@@ -65,6 +65,7 @@ sections build on earlier ones):
 import argparse
 import copy
 import getpass
+import json
 import logging
 import math
 import os
@@ -86,7 +87,7 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
+    _db, activitylog, brightStars, generationLimits, generationStats, log, physical_constants, population, program_constants, progressFile,
     progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
@@ -198,7 +199,7 @@ class _DecayingRemainingColumn(ProgressColumn):
         return Text(f"{hours}:{minutes:02d}:{secs:02d}", style="progress.remaining")
 
 
-def _generation_progress():
+def _generation_progress(disable=False):
     """
     Builds the shared `rich.progress.Progress` used by `run_galaxy`'s three
     modes -- one "Sectors" task per run tracking how many sectors have been
@@ -247,6 +248,9 @@ def _generation_progress():
     (`stellarObjects.progressFile`), so the web interface's Generate page
     can show a run it started in the background.
 
+    Args:
+        disable (bool): No bars at all (`--estimate-only`).
+
     Returns:
         Progress: Not yet started.
     """
@@ -258,6 +262,7 @@ def _generation_progress():
         TimeElapsedColumn(),
         TextColumn("[dim]remaining"),
         _DecayingRemainingColumn(),
+        disable=disable,
     )
 
 
@@ -856,6 +861,12 @@ def add_sector_arguments(parser):
     parser.add_argument('--num-sectors', type=int, default=1,
                         help="Generate this many independent sectors, each with no galactic positioning, "
                              "saving all of them into the same database. Defaults to 1.")
+    parser.add_argument('--yes', action='store_true',
+                        help="With --num-sectors > 1: don't ask before generating (the size and time "
+                             "question a terminal gets). A run the database disk can't hold is still refused.")
+    parser.add_argument('--estimate-only', action='store_true',
+                        help="Only show the size and time estimate, then stop without writing anything; "
+                             "ends with one 'ESTIMATE {json}' line.")
     _db.add_mysql_connection_args(parser)
 
 
@@ -1432,12 +1443,18 @@ def run_sector(args):
             "sector"`).
     """
     mysql_config = _db.mysql_config_from_args(args)
+    try:
+        _check_estimate(args, [args] * args.num_sectors, f"{args.num_sectors} unplaced sector(s)")
+    except _EstimateOnly as exc:
+        _print_estimate(exc)
+        return
 
-    def saved(result, _seconds, _weight):
+    def saved(result, seconds, _weight):
         if queue.parallel:
             RUN_COUNTS["sectors"] += 1
             RUN_COUNTS["systems"] += result["systems"]
             RUN_COUNTS["phenomena"] += result["phenomena"]
+        _record_sector(args, result, seconds)
         phenomena_note = f", {result['phenomena']} phenomena" if result["phenomena"] else ""
         log.normal(
             f"Saved sector '{result['name']}' to the database (sector_id={result['sector_id']}, "
@@ -1446,9 +1463,12 @@ def run_sector(args):
         )
         log.normal(result["summary"])
 
-    with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
-        for index in range(args.num_sectors):
-            queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
+    try:
+        with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
+            for index in range(args.num_sectors):
+                queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
+    finally:
+        _finish_stats(args)
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
@@ -1463,6 +1483,7 @@ def _unplaced_sector_task(args):
     _count_sector(sector)
     return {
         "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
+        "stars": sector_star_count(sector), "density": _sector_density(args),
         "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, args),
     }
 
@@ -1529,8 +1550,15 @@ def add_galaxy_arguments(parser):
                         help="With --ring (or --ring --shell, or --block): generate only the first N "
                              "not-yet-generated slots.")
     parser.add_argument('--yes', action='store_true',
-                        help="With --ring (or --ring --shell, or --block): skip the confirmation normally "
-                             "required before generating more than LARGE_RING_WARNING_THRESHOLD sectors.")
+                        help="Don't ask before generating: skips the size and time question asked on a "
+                             "terminal before filling more than one sector, and with --ring (or --ring "
+                             "--shell, or --block) the confirmation normally required before generating "
+                             "more than LARGE_RING_WARNING_THRESHOLD sectors. A run the database disk "
+                             "can't hold is still refused.")
+    parser.add_argument('--estimate-only', action='store_true',
+                        help="Only show the size and time estimate (and whether the disk would refuse the "
+                             "run), then stop without writing anything; ends with one 'ESTIMATE {json}' "
+                             "line. In random-start mode the estimate is for one random start.")
     parser.add_argument('--radius-pc', type=finite_float,
                         help="With --center-sector: the neighborhood search radius, in parsecs. With "
                              "--ring --slot: after generating that address, also generate its "
@@ -1866,15 +1894,7 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
                 conn.commit()
                 continue
             ceiling = level if level is not None else galaxy_level
-            addresses = [address for address in _block_addresses(block) if bounds.contains(address[0], address[1])]
-            filled = _db.get_occupied_addresses(conn, {address[0] for address in addresses})
-            rng = random.Random(f"{seed}:{block.ring}:{block.wedge}:{block.slab}:{floor:g}:{ceiling}")
-            rows = list(brightStars.backfill_cells(
-                skeleton.shape, [address for address in addresses if address not in filled], skeleton.edge_pc,
-                skeleton.expected_system_count_at_density_1, floor, ceiling, rng,
-            ))
-            _db.insert_bright_stars(conn, rows)
-            _db.set_bright_star_block_level(conn, block, floor)
+            rows = _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed)
             conn.commit()
             summary["blocks"] += 1
             summary["stars"] += len(rows)
@@ -1887,6 +1907,28 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
         log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['blocks']} block(s) down to "
                   f"{floor:g} L_sun")
     return summary
+
+
+def _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed):
+    """
+    Draws one sector block's band of bright stars, `floor` up to (not
+    including) `ceiling` (`None`: no ceiling), into its sectors that aren't
+    filled, and records `floor` as the block's level. The caller holds the
+    block's row lock (`_db.lock_bright_star_block`) and commits.
+
+    Returns:
+        list: The rows written, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    addresses = [address for address in _block_addresses(block) if bounds.contains(address[0], address[1])]
+    filled = _db.get_occupied_addresses(conn, {address[0] for address in addresses})
+    rng = random.Random(f"{seed}:{block.ring}:{block.wedge}:{block.slab}:{floor:g}:{ceiling}")
+    rows = list(brightStars.backfill_cells(
+        skeleton.shape, [address for address in addresses if address not in filled], skeleton.edge_pc,
+        skeleton.expected_system_count_at_density_1, floor, ceiling, rng,
+    ))
+    _db.insert_bright_stars(conn, rows)
+    _db.set_bright_star_block_level(conn, block, floor)
+    return rows
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
@@ -2075,7 +2117,7 @@ def _work_queue(args, title):
     at a time. One worker generates every sector right here, in order.
     """
     mysql_config = _db.mysql_config_from_args(args)
-    workers = workQueue.worker_count(getattr(args, "workers", None), mysql_config.host)
+    workers = _worker_count(args)
     log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
     return workQueue.WorkQueue(
         title, workers=workers,
@@ -2084,12 +2126,180 @@ def _work_queue(args, title):
     )
 
 
-def _settle_total(progress, task_id):
-    """Ends a bar whose `--limit` stopped the run early at what was done,
-    so it shows finished rather than stuck part way."""
-    task = next((t for t in progress.tasks if t.id == task_id), None)
-    if task is not None and task.total is not None and task.completed < task.total:
-        progress.update(task_id, total=task.completed)
+def _worker_count(args):
+    """The worker processes a run uses (`workQueue.worker_count`)."""
+    return workQueue.worker_count(getattr(args, "workers", None), _db.mysql_config_from_args(args).host)
+
+
+# ---------------------------------------------------------------------------
+# Size and time estimates, and measured speed (PERF.3, PERF.10)
+# ---------------------------------------------------------------------------
+
+_RUN_STATS = {}
+"""dict: The run's `generationStats.GenerationStats`, per control
+database, loaded on first use (`_generation_stats`)."""
+
+ESTIMATE_PREFIX = "ESTIMATE "
+"""str: Starts the one JSON line `--estimate-only` prints (the Generate
+page reads it)."""
+
+
+class _EstimateOnly(Exception):
+    """Raised by `_check_estimate` under `--estimate-only`: the run stops
+    there, before anything is written, and `run_galaxy`/`run_sector`
+    print the estimate."""
+
+    def __init__(self, what, result):
+        super().__init__(what)
+        self.what = what
+        self.result = result
+
+
+def _generation_stats(args):
+    """The stored speeds and sizes (`generationStats.GenerationStats`),
+    loaded once per run; none (defaults only, nothing recorded) when
+    `PLANETGEN_GENERATION_STATS` is `0` (the test suite's setting)."""
+    if os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false"):
+        return _RUN_STATS.setdefault(None, generationStats.GenerationStats())
+    control = _db.control_mysql_config(_db.mysql_config_from_args(args))
+    key = (control.host, control.port, control.database)
+    if key not in _RUN_STATS:
+        _RUN_STATS[key] = generationStats.GenerationStats(control)
+    return _RUN_STATS[key]
+
+
+def _e_value():
+    """Systems per standard sector at density 1."""
+    return expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+
+
+def _sector_density(sector_args):
+    """A sector's density (`relative_density`), from `--density` or
+    `--num-systems`."""
+    if sector_args.density is not None:
+        return float(sector_args.density)
+    return float(sector_args.num_systems or 0) / _e_value()
+
+
+def _expected_systems(sector_args):
+    if sector_args.num_systems is not None:
+        return float(sector_args.num_systems)
+    return float(sector_args.density or 0.0) * _e_value()
+
+
+def _record_sector(args, result, seconds):
+    """Adds one filled sector to its density's speed bucket."""
+    _generation_stats(args).record("sector", result.get("density"), seconds,
+                                   systems=result.get("systems", 0), stars=result.get("stars", 0))
+
+
+def _finish_stats(args):
+    """After a run: measures the galaxy database's size per system and
+    writes the run's speeds back."""
+    for stats in _RUN_STATS.values():
+        if not stats.available:
+            continue
+        config = _db.mysql_config_from_args(args)
+        try:
+            conn = _db.get_connection(config)
+        except Exception as exc:  # noqa: BLE001 -- stats never fail a run
+            log.debug(f"Generation stats: can't measure the database ({exc}).")
+        else:
+            try:
+                stats.measure_size(conn, config.database)
+            finally:
+                conn.close()
+        stats.flush()
+    # The next run (or web request) reads them fresh.
+    _RUN_STATS.clear()
+
+
+def _interactive():
+    return sys.stdin.isatty() and sys.stdout.isatty()
+
+
+def _ask(progress, question):
+    """Asks `question` on the terminal with the progress bars paused."""
+    if progress is not None:
+        progress.stop()
+    try:
+        return input(question).strip().lower()
+    except EOFError:
+        return ""
+    finally:
+        if progress is not None:
+            progress.start()
+
+
+def _estimate_sectors(args, sector_args_list):
+    """The `generationStats.Estimate` for filling these sectors, with the
+    database disk checked."""
+    config = _db.mysql_config_from_args(args)
+    stats = _generation_stats(args)
+    result = generationStats.estimate(
+        [(_sector_density(sector_args), _expected_systems(sector_args)) for sector_args in sector_args_list],
+        stats, config.database, workers=_worker_count(args),
+    )
+    try:
+        conn = _db.get_connection(config)
+        try:
+            disk = generationStats.database_disk(conn, config.host)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- no disk reading: nothing refused for space
+        log.debug(f"Generation estimate: no disk reading ({exc}).")
+        disk = None
+    generationStats.check_disk(result, disk)
+    return result
+
+
+def _check_estimate(args, sector_args_list, what, progress=None):
+    """
+    PERF.3: before a bulk run writes anything, estimates its size (+10%)
+    and time and shows them; refuses it when it would take more than a
+    quarter of the database disk or leave less than 5 GB free; and, on a
+    terminal, asks before filling more than one sector (`--yes` skips the
+    question, never the refusal). Off a terminal (the Generate page's
+    jobs, scripts) it shows the estimate and goes on: the page asked
+    first. Once per run (`args._estimate_checked`).
+
+    Raises:
+        _EstimateOnly: Under `--estimate-only`.
+        SystemExit: Refused (1), or the answer was no (0).
+    """
+    if getattr(args, "_estimate_checked", False):
+        return
+    result = _estimate_sectors(args, sector_args_list)
+    if getattr(args, "estimate_only", False):
+        raise _EstimateOnly(what, result)
+    args._estimate_checked = True
+    log.normal(f"Estimate for {what}: {result.summary()}")
+    if result.refusal:
+        log.error(f"{result.refusal} Nothing was generated.")
+        raise SystemExit(1)
+    if result.sectors > 1 and not getattr(args, "yes", False) and _interactive():
+        if _ask(progress, f"Generate these {result.sectors:,} sectors? [y/N] ") not in ("y", "yes"):
+            log.normal("Nothing was generated.")
+            raise SystemExit(0)
+
+
+def _print_estimate(exc):
+    """`--estimate-only`'s output: the summary, then one JSON line."""
+    log.normal(f"Estimate for {exc.what}: {exc.result.summary()}")
+    if exc.result.refusal:
+        log.normal(exc.result.refusal)
+    body = exc.result.as_dict()
+    body["what"] = exc.what
+    sys.stdout.write(ESTIMATE_PREFIX + json.dumps(body) + "\n")
+    sys.stdout.flush()
+
+
+def _submit_batch(args, batch, title, edge_pc, progress, task):
+    """Queues every `(address, position_pc, sector_args, suffix)` of
+    `batch` (`_submit_sector`) and waits for them."""
+    with _work_queue(args, title) as queue:
+        for address, position_pc, sector_args, suffix in batch:
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=suffix)
 
 
 def _fill_sector_task(payload):
@@ -2100,8 +2310,9 @@ def _fill_sector_task(payload):
     what the run reports for it.
 
     Returns:
-        dict: `sector_id`, `name` (as saved), `systems`, `phenomena` and
-            `summary` (`sector_generation_summary_lines`).
+        dict: `sector_id`, `name` (as saved), `systems`, `stars`,
+            `density`, `phenomena` and `summary`
+            (`sector_generation_summary_lines`).
     """
     sector_args = payload["args"]
     sector_id, sector_name, sector = generate_and_save_sector_at(
@@ -2109,19 +2320,21 @@ def _fill_sector_task(payload):
     )
     return {
         "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
+        "stars": sector_star_count(sector), "density": _sector_density(sector_args),
         "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, sector_args),
     }
 
 
 def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=""):
     """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
-    advances `task` and logs it."""
-    def saved(result, _seconds, _weight):
+    advances `task`, logs it and adds its time to the speed stats."""
+    def saved(result, seconds, _weight):
         if queue.parallel:
             # A worker's own RUN_COUNTS die with it; the run's are here.
             RUN_COUNTS["sectors"] += 1
             RUN_COUNTS["systems"] += result["systems"]
             RUN_COUNTS["phenomena"] += result["phenomena"]
+        _record_sector(sector_args, result, seconds)
         progress.update(task, advance=1)
         _log_saved(result, address, suffix=suffix)
 
@@ -2179,37 +2392,29 @@ def run_ring_batch(args, edge_pc, progress):
     finally:
         conn.close()
 
-    to_generate = total_slots - len(occupied)
-    if args.limit is not None and (args.density is not None or args.num_systems is not None):
-        # Only a safe cap when every unoccupied slot is sure to generate
-        # (an explicit density bypasses the qualification gate).
-        to_generate = min(to_generate, args.limit)
-    outer_task = progress.add_task(f"Sectors (ring {ring_index} layer {layer_index})", total=max(to_generate, 0))
-
-    generated = 0
+    what = f"ring {ring_index} layer {layer_index}"
+    batch = []
     skipped = 0
-    with _work_queue(args, f"Sectors (ring {ring_index} layer {layer_index})") as queue:
-        for slot_index in range(total_slots):
-            if args.limit is not None and generated >= args.limit:
-                break
-            address = (ring_index, layer_index, slot_index)
-            if address in occupied:
-                continue
+    for slot_index in range(total_slots):
+        if args.limit is not None and len(batch) >= args.limit:
+            break
+        address = (ring_index, layer_index, slot_index)
+        if address in occupied:
+            continue
 
-            position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
-            sector_args = batch_density.resolve(args, address, position_pc)
-            if sector_args is None:
-                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                          f"outside its layer's stored extent)")
-                skipped += 1
-                progress.update(outer_task, advance=1)
-                continue
+        position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
+        sector_args = batch_density.resolve(args, address, position_pc)
+        if sector_args is None:
+            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                      f"outside its layer's stored extent)")
+            skipped += 1
+            continue
+        batch.append((address, position_pc, sector_args, ""))
 
-            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, outer_task)
-            generated += 1
-
-    _settle_total(progress, outer_task)
+    _check_estimate(args, [item[2] for item in batch], what, progress)
+    outer_task = progress.add_task(f"Sectors ({what})", total=len(batch))
+    _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, outer_task)
+    generated = len(batch)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in ring {ring_index} layer {layer_index} "
@@ -2245,6 +2450,33 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
     finally:
         conn.close()
     return candidates, occupied, outside
+
+
+def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
+    """
+    The not-yet-generated, qualifying sectors among `candidates`
+    (`_neighborhood_candidates`), as `_submit_batch` items, nearest
+    first as enumerated; `suffix` may hold `{distance}` (pc).
+
+    Returns:
+        tuple: `(batch, already_existed, skipped)`.
+    """
+    batch = []
+    skipped = 0
+    already_existed = 0
+    for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
+        address = (ring_index, layer_index, slot_index)
+        if address in occupied or address in skip:
+            already_existed += 1
+            continue
+        sector_args = batch_density.resolve(args, address, (x, y, z))
+        if sector_args is None:
+            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                      f"outside its layer's stored extent)")
+            skipped += 1
+            continue
+        batch.append((address, (x, y, z), sector_args, suffix.format(distance=distance_pc)))
+    return batch, already_existed, skipped
 
 
 def run_local_neighborhood(args, edge_pc, progress):
@@ -2296,31 +2528,15 @@ def run_local_neighborhood(args, edge_pc, progress):
         center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
     )
 
-    to_generate = sum(1 for c in candidates if c[:3] not in occupied)
-    outer_task = progress.add_task("Sectors (local neighborhood)", total=to_generate)
-
-    generated = 0
-    skipped = 0
-    already_existed = 0
-    with _work_queue(args, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})") as queue:
-        for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
-            address = (ring_index, layer_index, slot_index)
-            if address in occupied:
-                already_existed += 1
-                continue
-
-            sector_args = batch_density.resolve(args, address, (x, y, z))
-            if sector_args is None:
-                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                          f"outside its layer's stored extent)")
-                skipped += 1
-                progress.update(outer_task, advance=1)
-                continue
-
-            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-            _submit_sector(queue, sector_args, address, (x, y, z), edge_pc, progress, outer_task,
-                           suffix=f", {distance_pc:.2f} pc from sector_id={args.center_sector}")
-            generated += 1
+    batch, already_existed, skipped = _neighborhood_batch(
+        args, candidates, occupied, batch_density, f", {{distance:.2f}} pc from sector_id={args.center_sector}",
+    )
+    _check_estimate(args, [item[2] for item in batch],
+                    f"the sectors within {args.radius_pc:g} pc of sector {args.center_sector}", progress)
+    outer_task = progress.add_task("Sectors (local neighborhood)", total=len(batch))
+    _submit_batch(args, batch, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})",
+                  edge_pc, progress, outer_task)
+    generated = len(batch)
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
@@ -2331,7 +2547,12 @@ def run_local_neighborhood(args, edge_pc, progress):
     )
 
 
-def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
+class GenerationRefused(RuntimeError):
+    """PERF.3: a bulk generation the database disk can't hold; the
+    message says why and how much it needs."""
+
+
+def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
     UI's "generate more sectors around this one" action
@@ -2351,15 +2572,20 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
         radius_ly (float, optional): Defaults to
             `program_constants.DEFAULT_GENERATE_RADIUS_PC` (12 pc).
         config (MySQLConfig, optional): Connection parameters.
+        estimate_only (bool): Only work out the size and time (PERF.3);
+            nothing is written.
 
     Returns:
         dict: `generated`, `already_existed`, `skipped`, `candidates`
             (addresses inside the galaxy), `outside_galaxy` (addresses in
-            the sphere past the galaxy's edge, left out) -- all int.
+            the sphere past the galaxy's edge, left out) -- all int --
+            and `estimate` (`generationStats.Estimate.as_dict`).
 
     Raises:
         ValueError: If `center_sector_id` doesn't exist, has never been
                    placed in a galaxy, or lies outside its outline.
+        GenerationRefused: The database disk can't hold it (nothing was
+                   written).
         RuntimeError: If the galaxy's skeleton has never been built.
     """
     edge_pc = _edge_pc()
@@ -2399,29 +2625,34 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None):
     # num_systems=10 default.
     args.density = None
     args.num_systems = None
+    args.workers = 1   # this runs in the web process, one sector at a time
 
-    generated = 0
-    skipped = 0
-    already_existed = 0
-    for ring_index, layer_index, slot_index, x, y, z, _distance_pc in candidates:
-        address = (ring_index, layer_index, slot_index)
-        if address in occupied:
-            already_existed += 1
-            continue
-        sector_args = batch_density.resolve(args, address, (x, y, z))
-        if sector_args is None:
-            skipped += 1
-            continue
-        generate_and_save_sector_at(sector_args, address, (x, y, z), edge_pc)
-        generated += 1
-
-    return {
-        "generated": generated,
+    batch, already_existed, skipped = _neighborhood_batch(args, candidates, occupied, batch_density)
+    counts = {
         "already_existed": already_existed,
         "skipped": skipped,
         "candidates": len(candidates),
         "outside_galaxy": outside,
     }
+    estimate = _estimate_sectors(args, [item[2] for item in batch])
+    if estimate_only:
+        _RUN_STATS.clear()
+        return {"generated": 0, "estimate": estimate.as_dict(), **counts}
+    if estimate.refusal:
+        _RUN_STATS.clear()
+        raise GenerationRefused(estimate.refusal)
+
+    generated = 0
+    try:
+        for address, position_pc, sector_args, _suffix in batch:
+            started = time.monotonic()
+            _sector_id, _name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+            _record_sector(args, {"density": _sector_density(sector_args), "systems": len(sector.entries),
+                                  "stars": sector_star_count(sector)}, time.monotonic() - started)
+            generated += 1
+    finally:
+        _finish_stats(args)
+    return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
 def run_random_start(args, edge_pc, progress):
@@ -2479,7 +2710,20 @@ def run_random_start(args, edge_pc, progress):
     finally:
         conn.close()
 
+    # The estimate covers the start and its whole neighborhood, before
+    # either is written.
+    candidates, occupied, _outside = _neighborhood_candidates(
+        position_pc, radius_pc, edge_pc, mysql_config, batch_density.bounds,
+    )
+    batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
+    _check_estimate(args, [sector_args] + [item[2] for item in batch],
+                    f"a random start at {_format_address(address)} and the sectors within {radius_pc:g} pc of it",
+                    progress)
+
+    started = time.monotonic()
     sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+    _record_sector(args, {"density": _sector_density(sector_args), "systems": len(sector.entries),
+                          "stars": sector_star_count(sector)}, time.monotonic() - started)
     designation = provisional_sector_designation(*address)
     log.normal(
         f"Saved random starting sector '{sector_name}' [{designation}] at {_format_address(address)} "
@@ -2515,7 +2759,30 @@ def run_single_slot(args, edge_pc, progress):
         raise SystemExit(1)
 
     mysql_config = _db.mysql_config_from_args(args)
-    _require_inside(_BatchDensity(mysql_config).bounds, args.ring, args.layer, _format_address(address))
+    batch_density = _BatchDensity(mysql_config)
+    _require_inside(batch_density.bounds, args.ring, args.layer, _format_address(address))
+    position_pc = sector_position_pc(*address, edge_pc)
+    conn = _db.get_connection(mysql_config)
+    try:
+        exists = _db.get_sector_id_at(conn, *address) is not None
+    finally:
+        conn.close()
+    sector_args = None
+    if not exists:
+        # As `ensure_sector_generated` does it: density-driven.
+        single = _default_generation_args(config=mysql_config)
+        single.density = single.num_systems = None
+        sector_args = batch_density.resolve(single, address, position_pc)
+    sectors = [sector_args] if sector_args is not None else []
+    what = _format_address(address)
+    if args.radius_pc is not None:
+        candidates, occupied, _outside = _neighborhood_candidates(
+            position_pc, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
+        )
+        batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
+        sectors += [item[2] for item in batch]
+        what += f" and the sectors within {args.radius_pc:g} pc of it"
+    _check_estimate(args, sectors, what, progress)
     task = progress.add_task(f"Sector ({_format_address(address)})", total=1)
     result = ensure_sector_generated(*address, config=mysql_config)
     progress.update(task, advance=1)
@@ -2567,22 +2834,22 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
 
     pending = [a for a in addresses if a not in occupied]
     limit = getattr(args, "limit", None)
-    task = progress.add_task(f"Sectors ({what})", total=len(pending))
-    generated = skipped = 0
-    with _work_queue(args, f"Sectors ({what})") as queue:
-        for address in pending:
-            if limit is not None and generated >= limit:
-                break
-            position_pc = sector_position_pc(*address, edge_pc)
-            sector_args = batch_density.resolve(args, address, position_pc)
-            if sector_args is None:
-                skipped += 1
-                progress.update(task, advance=1)
-                continue
-            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task)
-            generated += 1
+    batch = []
+    skipped = 0
+    for address in pending:
+        if limit is not None and len(batch) >= limit:
+            break
+        position_pc = sector_position_pc(*address, edge_pc)
+        sector_args = batch_density.resolve(args, address, position_pc)
+        if sector_args is None:
+            skipped += 1
+            continue
+        batch.append((address, position_pc, sector_args, ""))
 
-    _settle_total(progress, task)
+    _check_estimate(args, [item[2] for item in batch], what, progress)
+    task = progress.add_task(f"Sectors ({what})", total=len(batch))
+    _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, task)
+    generated = len(batch)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
@@ -2743,26 +3010,38 @@ def run_galaxy(args):
                   "per sector) -- re-run 'generate.py plan' with a different shape.")
         raise SystemExit(1)
 
-    with _generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            if getattr(args, "block", None) is not None:
-                run_block(args, edge_pc, progress)
-            elif args.column:
-                run_column(args, edge_pc, progress)
-            elif args.shell:
-                run_shell(args, edge_pc, progress)
-            elif args.slot is not None:
-                run_single_slot(args, edge_pc, progress)
-            elif args.ring is not None:
-                run_ring_batch(args, edge_pc, progress)
-            elif args.center_sector is not None:
-                run_local_neighborhood(args, edge_pc, progress)
-            else:
-                run_random_start(args, edge_pc, progress)
-        finally:
-            log.reset_console()
+    estimate_only = getattr(args, "estimate_only", False)
+    try:
+        with _generation_progress(disable=estimate_only) as progress:
+            log.set_console(progress.console)
+            try:
+                _run_galaxy_mode(args, edge_pc, progress)
+            finally:
+                log.reset_console()
+    except _EstimateOnly as exc:
+        _print_estimate(exc)
+        return
+    finally:
+        _finish_stats(args)
     run_population_after(args)
+
+
+def _run_galaxy_mode(args, edge_pc, progress):
+    """`run_galaxy`'s dispatch to the mode its arguments ask for."""
+    if getattr(args, "block", None) is not None:
+        run_block(args, edge_pc, progress)
+    elif args.column:
+        run_column(args, edge_pc, progress)
+    elif args.shell:
+        run_shell(args, edge_pc, progress)
+    elif args.slot is not None:
+        run_single_slot(args, edge_pc, progress)
+    elif args.ring is not None:
+        run_ring_batch(args, edge_pc, progress)
+    elif args.center_sector is not None:
+        run_local_neighborhood(args, edge_pc, progress)
+    else:
+        run_random_start(args, edge_pc, progress)
 
 
 # ===========================================================================
@@ -2817,6 +3096,11 @@ def add_plan_arguments(parser):
                               help="How many layers of bright stars to draw at once, each in its own "
                                    "low-priority worker process. Default: 80%% of this machine's cores "
                                    "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    bright_group.add_argument('--bright-stars-down-to', type=finite_float, default=None, metavar='L_SUN',
+                              help="Go one layer dimmer on the stored plan: keep the bright stars already "
+                                   "placed and add only those from L_SUN up to the level already scattered. "
+                                   "Sectors already filled are left out (their own systems already reach "
+                                   "that bright). Does nothing when L_SUN is not below the current level.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -2864,6 +3148,13 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
     if args.no_bright_stars and args.bright_stars_only:
         parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
+    if args.bright_stars_down_to is not None:
+        if args.no_bright_stars or args.bright_stars_only:
+            parser.error("--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only.")
+        try:
+            bright_star_fraction(args.bright_stars_down_to)
+        except ValueError as exc:
+            parser.error(f"--bright-stars-down-to: {exc}")
     if not args.no_bright_stars:
         try:
             bright_star_fraction(args.bright_star_min_luminosity)
@@ -2977,36 +3268,11 @@ def scatter_bright_stars(args):
         seed = random.SystemRandom().getrandbits(63)
         _db.clear_bright_stars(conn)
 
-        counts = {population: 0 for population in brightStars.POPULATIONS}
         t0 = time.perf_counter()
-        # Densest layers (nearest the plane) first, so no worker is left
-        # with a big one at the end while the others sit idle.
-        layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
-        with _generation_progress() as progress:
-            log.set_console(progress.console)
-            try:
-                task = progress.add_task("Bright stars (layers)", total=len(extents))
-
-                def layer_done(layer_counts, _seconds, _weight):
-                    for population, count in layer_counts.items():
-                        counts[population] += count
-                    progress.update(task, advance=1)
-
-                with _work_queue(args, "Bright stars (layers)") as queue:
-                    for layer_index, outer_ring in layers:
-                        payload = {
-                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
-                            "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
-                            "expected": skeleton.expected_system_count_at_density_1,
-                            "min_luminosity_sol": min_luminosity_sol, "seed": seed,
-                            "skip": {address for address in filled if address[1] == layer_index},
-                        }
-                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
-                                     on_done=layer_done)
-                _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
-                conn.commit()
-            finally:
-                log.reset_console()
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed,
+                                 "Bright stars (layers)")
+        _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
+        conn.commit()
     finally:
         conn.close()
     elapsed = time.perf_counter() - t0
@@ -3017,6 +3283,121 @@ def scatter_bright_stars(args):
     )
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
+                    max_luminosity_sol=None):
+    """
+    Draws and writes the bright stars of every layer through the work
+    queue, one task per layer, with a progress bar: every star at or
+    above `min_luminosity_sol`, or only those below `max_luminosity_sol`
+    too (one band of a staged scatter). Cells in `filled` are left out.
+
+    Returns:
+        dict: Stars written per population.
+    """
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    # Densest layers (nearest the plane) first, so no worker is left
+    # with a big one at the end while the others sit idle.
+    layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
+    with _generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            task = progress.add_task(label, total=len(extents))
+
+            def layer_done(layer_counts, _seconds, _weight):
+                for population, count in layer_counts.items():
+                    counts[population] += count
+                progress.update(task, advance=1)
+
+            with _work_queue(args, label) as queue:
+                for layer_index, outer_ring in layers:
+                    payload = {
+                        "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                        "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
+                        "expected": skeleton.expected_system_count_at_density_1,
+                        "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
+                        "seed": seed, "skip": {address for address in filled if address[1] == layer_index},
+                    }
+                    queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
+                                 on_done=layer_done)
+        finally:
+            log.reset_console()
+    return counts
+
+
+def add_bright_star_band(args):
+    """
+    Lowers the galaxy's star-fill level to `--bright-stars-down-to`:
+    keeps every bright star already placed and scatters only the band from
+    the new level up to (not including) the stored one, then stores the new
+    level. Sectors already filled are left out: their own systems were
+    drawn below the old level, so they already hold stars that bright.
+
+    Returns:
+        dict or None: `counts` (per population), `total`, `elapsed_s`,
+            `from_luminosity_sol` and `to_luminosity_sol`; `None` when there
+            was nothing to do (no scatter yet, or the level asked for is not
+            below the current one).
+    """
+    mysql_config = _db.mysql_config_from_args(args)
+    target = float(args.bright_stars_down_to)
+    conn = _db.get_connection(mysql_config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
+        settings = _db.bright_star_scatter_settings(conn)
+        if settings is None:
+            log.normal("No bright stars are scattered yet, so there is no layer to go below. Run "
+                       f"'generate.py plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
+            return None
+        current, first_seed = float(settings[0]), settings[1]
+        if target >= current:
+            log.normal(f"Nothing to add: every star of {current:g} L_sun or more is already placed, "
+                       f"and {target:g} is not below that.")
+            return None
+        extents = _db.get_galaxy_layers(conn)
+        filled = _db.filled_sector_addresses(conn)
+        # Sector blocks a GEN.23 backfill reached already hold part of the
+        # band (down to their own level): the layer scatter leaves them out
+        # and each gets only what it lacks below, one block at a time.
+        blocks = [DrillBlock(3, ring, wedge, slab) for ring, wedge, slab in _db.bright_star_block_keys(conn)]
+        skip = set(filled)
+        for block in blocks:
+            skip.update(_block_addresses(block))
+        seed = random.SystemRandom().getrandbits(63)
+        log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
+                   + (f", leaving out {len(filled):,} filled sectors" if filled else "")
+                   + (f" and {len(blocks):,} backfilled sector blocks" if blocks else "") + ".")
+        t0 = time.perf_counter()
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, skip, target, seed,
+                                 f"Bright stars {target:g}-{current:g} L_sun (layers)", max_luminosity_sol=current)
+        bounds = _db.get_galaxy_bounds(conn)
+        for block in blocks:
+            level = _db.lock_bright_star_block(conn, block)
+            if level is not None and level <= target:
+                conn.commit()
+                continue
+            for row in _backfill_block(conn, skeleton, bounds, block, target, current if level is None else min(level, current),
+                                       first_seed):
+                counts[row[6]] += 1
+            conn.commit()
+        # The first scatter's seed stays: it names the galaxy's scatter.
+        _db.record_bright_star_scatter(conn, target, first_seed)
+        conn.commit()
+    finally:
+        conn.close()
+    elapsed = time.perf_counter() - t0
+    total = sum(counts.values())
+    log.normal(
+        f"Added {total:,} bright stars ({target:g} to {current:g} L_sun) in {elapsed:.1f}s: "
+        + ", ".join(f"{count:,} {population}" for population, count in counts.items())
+        + f". The star-fill level is now {target:g} L_sun."
+    )
+    log.debug(f"bright-star band: {total} stars, seed {seed}, {target:g} to {current:g} L_sun")
+    return {"counts": counts, "total": total, "elapsed_s": elapsed,
+            "from_luminosity_sol": current, "to_luminosity_sol": target}
 
 
 def _scatter_layer_task(payload):
@@ -3035,6 +3416,7 @@ def _scatter_layer_task(payload):
         for row in brightStars.scatter_layer(
             payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+            max_luminosity_sol=payload.get("max_luminosity_sol"),
         ):
             counts[row[6]] += 1
             batch.append(row)
@@ -3054,12 +3436,16 @@ def run_plan(args):
     """
     Builds and persists the galaxy's density skeleton, then scatters its
     bright stars (unless `--no-bright-stars`; `--bright-stars-only` skips
-    the rebuild).
+    the rebuild, and `--bright-stars-down-to` adds one dimmer band to the
+    stored scatter instead).
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
+    if getattr(args, "bright_stars_down_to", None) is not None:
+        add_bright_star_band(args)
+        return
     if getattr(args, "bright_stars_only", False):
         scatter_bright_stars(args)
         return

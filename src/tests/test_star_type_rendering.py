@@ -4,7 +4,7 @@
 White dwarf and giant systems render on the system page and System Map
 (the star-type study of 2026-09-30: until the star population fix, no white dwarf or K/M giant had
 ever been generated, so these paths were untested), and the Sector Map's
-star dots keep them visibly apart in size.
+points of light keep them visibly apart in size.
 """
 
 import pytest
@@ -49,25 +49,29 @@ def test_star_dots_grow_on_a_log_scale_from_white_dwarfs_to_supergiants():
     assert starmap._star_dot_radius(sun * 1e5) == starmap._MAX_DOT_R
 
 
-def _glow_radius(luminosity_sol, radius_sol):
-    dot_r = starmap._star_dot_radius(starmap._SUN_RADIUS_KM * radius_sol)
-    glow = starmap._star_glow(luminosity_sol * starmap.SOLAR_LUMINOSITY, dot_r)
-    return dot_r, glow, dot_r * glow["glowScale"]
+def _light(luminosity_sol, radius_sol, temperature_k=5778.0):
+    return starmap._star_light(
+        luminosity_sol * starmap.SOLAR_LUMINOSITY, starmap._SUN_RADIUS_KM * radius_sol, temperature_k,
+    )
 
 
-def test_star_glow_shows_luminosity_while_the_core_stays_small():
-    white_dwarf = _glow_radius(0.001, 0.01)
-    sun = _glow_radius(1.0, 1.0)
-    giant = _glow_radius(100.0, 15.0)
-    supergiant = _glow_radius(1e5, 500.0)
-    # The glow's outer radius grows with luminosity, and a supergiant's is
-    # several times its core while a white dwarf's barely clears it.
-    radii = [white_dwarf[2], sun[2], giant[2], supergiant[2]]
-    assert radii == sorted(radii) and len(set(radii)) == 4
-    assert supergiant[2] >= 5 * supergiant[0]
-    assert white_dwarf[1]["glowScale"] == starmap._MIN_GLOW_SCALE
-    # Stronger at the core's edge for a bright star, faint for a dim one.
-    assert supergiant[1]["glowStrength"] > sun[1]["glowStrength"] > white_dwarf[1]["glowStrength"]
-    # A hypergiant's halo is capped.
-    hyper = _glow_radius(1e7, 1500.0)
-    assert hyper[2] <= starmap._MAX_GLOW_R + 1e-6
+def test_star_light_shows_luminosity_as_a_point_with_a_halo():
+    """MAP.15: every star is a point of light a few pixels across: the
+    core grows with the star's radius, the halo's width and strength with
+    its luminosity, and both stay within the Galaxy Map's own ranges."""
+    white_dwarf = _light(0.001, 0.01, 9000.0)
+    sun = _light(1.0, 1.0)
+    giant = _light(100.0, 15.0, 4500.0)
+    supergiant = _light(1e5, 500.0, 3600.0)
+    sizes = [star["sizePx"] for star in (white_dwarf, sun, giant, supergiant)]
+    assert sizes == sorted(sizes) and len(set(sizes)) == 4
+    assert supergiant["sizePx"] >= 3 * supergiant["corePx"]
+    assert white_dwarf["sizePx"] == pytest.approx(starmap._LIGHT_SIZE_PX[0], abs=0.5)
+    assert supergiant["glow"] > sun["glow"] > white_dwarf["glow"]
+    assert supergiant["corePx"] > sun["corePx"] > white_dwarf["corePx"]
+    # A hypergiant's halo and core are capped.
+    hyper = _light(1e7, 1500.0)
+    assert hyper["sizePx"] <= starmap._LIGHT_SIZE_PX[1]
+    assert hyper["corePx"] <= starmap._LIGHT_CORE_PX[1]
+    # Color follows temperature: a hot white dwarf is bluer than a cool giant.
+    assert int(white_dwarf["color"][5:7], 16) > int(supergiant["color"][5:7], 16)

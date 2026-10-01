@@ -277,10 +277,29 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
     raise ValueError(f"no bright star drawn in {program_constants.STAR_MODEL_MAX_REDRAWS} tries")
 
 
-def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random):
+BAND_REDRAWS = 10000
+"""int: How many stars `sample_bright_stars` draws above a band's lower
+limit before giving up on one landing below its upper limit (a band so
+thin almost every star overshoots it)."""
+
+
+def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
+    """One star with `min <= luminosity < max`: a star drawn above `min`,
+    redrawn while it reaches `max` (the brighter band already placed)."""
+    max_w = max_luminosity_sol * physical_constants.SOLAR_LUMINOSITY
+    for _ in range(BAND_REDRAWS):
+        params = _sample_one_bright(table, min_luminosity_sol, rng)
+        if params["luminosity_w"] < max_w:
+            return params
+    raise ValueError(f"no star between {min_luminosity_sol:g} and {max_luminosity_sol:g} Lsun drawn "
+                     f"in {BAND_REDRAWS} tries")
+
+
+def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random, max_luminosity_sol=None):
     """
     Draws `n` stars from the population model conditional on luminosity
-    `>= min_luminosity_sol` (see the module docstring for how).
+    `>= min_luminosity_sol` (see the module docstring for how), and below
+    `max_luminosity_sol` when given (one band of a staged scatter).
 
     Args:
         n (int): How many to draw.
@@ -289,60 +308,28 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random):
         population (str or None): As in `bright_star_fraction`.
         rng (random.Random): The random source (the module-level one by
             default); a seeded one gives the same stars every time.
+        max_luminosity_sol (float, optional): The band's upper limit
+            (Lsun, exclusive); `None` for no limit.
 
     Returns:
         list: `n` dicts from `stellarEvolution.star_params` (type, Yerkes
               class, mass, radius, temperature, luminosity, age, lifespan,
               initial mass and phase end age), each for `Star.from_params`.
     """
-    table = _bright_table(float(min_luminosity_sol), population)
-    return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
-
-
-def sample_stars_between(n, min_luminosity_sol, max_luminosity_sol, population=None, rng=random):
-    """
-    Draws `n` stars conditional on `min_luminosity_sol <= luminosity <
-    max_luminosity_sol` -- a band below an earlier, brighter draw (the
-    bright-star backfill, GEN.23). `sample_bright_stars` from the floor,
-    redrawing any star at or above the ceiling.
-
-    Args:
-        n (int): How many to draw.
-        min_luminosity_sol (float): The floor (Lsun), as
-            `sample_bright_stars`'s threshold.
-        max_luminosity_sol (float or None): The ceiling (Lsun); `None`
-            for none.
-        population (str or None): As in `bright_star_fraction`.
-        rng (random.Random): The random source.
-
-    Returns:
-        list: As `sample_bright_stars`.
-
-    Raises:
-        ValueError: When the band is empty, or a star keeps landing above
-            the ceiling.
-    """
     if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
-        raise ValueError(f"empty luminosity band [{min_luminosity_sol}, {max_luminosity_sol}) Lsun")
+        raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
     table = _bright_table(float(min_luminosity_sol), population)
-    ceiling_w = None if max_luminosity_sol is None else max_luminosity_sol * physical_constants.SOLAR_LUMINOSITY
-    stars = []
-    for _ in range(n):
-        for _try in range(program_constants.STAR_MODEL_MAX_REDRAWS):
-            star = _sample_one_bright(table, min_luminosity_sol, rng)
-            if ceiling_w is None or star["luminosity_w"] < ceiling_w:
-                stars.append(star)
-                break
-        else:
-            raise ValueError(f"no star below {max_luminosity_sol} Lsun drawn in "
-                             f"{program_constants.STAR_MODEL_MAX_REDRAWS} tries")
-    return stars
+    if max_luminosity_sol is None:
+        return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
+    return [_sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng) for _ in range(n)]
 
 
-def band_fraction(min_luminosity_sol, max_luminosity_sol, population=None):
-    """The share of a population's living stars with `min_luminosity_sol
-    <= luminosity < max_luminosity_sol` (`max_luminosity_sol` `None`: no
-    ceiling)."""
+def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None):
+    """
+    The share of a population's living stars with `min <= luminosity <
+    max` (`bright_star_fraction(min)` when `max` is `None`): what a staged
+    scatter's new band adds.
+    """
     fraction = bright_star_fraction(min_luminosity_sol, population)
     if max_luminosity_sol is not None:
         fraction -= bright_star_fraction(max_luminosity_sol, population)

@@ -285,7 +285,7 @@ def test_migration_from_v43_adds_the_tables(mysql_config):
         with conn:
             for table in ("system_owners", "polities", "species", "population_state"):
                 conn.execute(f"DROP TABLE {table}")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47)")
+            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47, 48)")
     finally:
         conn.close()
     _db.migrate_database(mysql_config)

@@ -10,7 +10,7 @@
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
-const { SCIENTIFIC_MIN_INTEGER_DIGITS, formatNumber, scientificText } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // Boss's exact values, in meters (stellarObjects/physical_constants.py).
 export const KM_M = 1e3;
@@ -32,20 +32,6 @@ const LADDER = [
 const PARSEC_UNITS = new Set(["mpc", "cpc", "pc", "kpc", "Mpc", "Gpc"]);
 export const DISTANCE_PAREN_MIN_LY = 0.01;
 export const DISTANCE_PAREN_MIN_AU = 0.01;
-
-// Three significant figures, comma-grouped, trailing zeros dropped;
-// scientific past 4 whole digits (UX.20).
-function threeFigures(value) {
-  if (value === 0 || !isFinite(value)) {
-    return String(value);
-  }
-  const magnitude = Math.floor(Math.log10(Math.abs(value)));
-  const decimals = Math.max(0, 2 - magnitude);
-  if (Math.abs(Math.round(value)) >= 10 ** (SCIENTIFIC_MIN_INTEGER_DIGITS - 1)) {
-    return scientificText(value);
-  }
-  return value.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
-}
 
 function inUnit(meters, label, unitM) {
   if (label === "km" && Math.abs(meters) >= 1e6) {

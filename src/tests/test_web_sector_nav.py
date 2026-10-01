@@ -163,10 +163,14 @@ class FakeData:
         self.sectors[sector_id]["wiki_url"] = "https://wiki.example/sectors/fake"
         return {"url": "https://wiki.example/sectors/fake"}
 
-    def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None):
-        self.calls.append(("generate", sector_id))
+    estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
+
+    def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None, estimate_only=False):
+        self.calls.append(("estimate" if estimate_only else "generate", sector_id))
         if self.action_error:
             raise self.action_error
+        if estimate_only:
+            return {"generated": 0, "already_existed": 2, "candidates": 6, "estimate": self.estimate}
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
@@ -299,11 +303,13 @@ def test_sector_wiki_link_never_links_a_non_http_url(client, fake, wiki_url):
 def test_admin_sees_forms_with_csrf_token(client, fake):
     _log_in(client, fake)
     html = client.get("/sector/5").get_data(as_text=True)
-    forms = re.findall(r'<form method="post" action="/sector/5".*?</form>', html, re.S)
-    assert len(forms) == 2
-    for form in forms:
+    every_form = re.findall(r'<form method="post" action="/sector/5".*?</form>', html, re.S)
+    for form in every_form:
         assert f'name="{csrf.FIELD_NAME}"' in form
         assert 'name="db"' not in form and 'name="id"' not in form
+    # The Edit panel's Regenerate and Delete forms (ADM.8) aside:
+    forms = [form for form in every_form if 'name="edit_action"' not in form]
+    assert len(forms) == 2 and len(every_form) == 4
     assert 'value="upload_wiki"' in forms[0] and 'value="wikijs"' in forms[0] and "mediawiki" not in forms[0]
     assert 'value="generate_neighborhood"' in forms[1]
 
@@ -330,11 +336,32 @@ def test_admin_post_without_csrf_token_is_rejected(client, fake):
     assert not [call for call in fake.calls if call[0] == "generate"]
 
 
+def test_generate_neighborhood_shows_the_estimate_first(app, client, fake):
+    """PERF.3: the first press only works out the size and time; the
+    page asks before anything is generated."""
+    _log_in(client, fake)
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200
+    assert ("estimate", 5) in fake.calls and ("generate", 5) not in fake.calls
+    assert "About 280 KB and 3 s for 4 sectors." in html
+    assert 'name="estimate_ok" value="1"' in html and "Generate these 4 sectors" in html
+
+
+def test_a_refused_neighborhood_has_no_generate_button(app, client, fake):
+    _log_in(client, fake)
+    fake.estimate = dict(fake.estimate, refused=True, refusal="Refused: not enough disk.")
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
+    html = resp.get_data(as_text=True)
+    assert "Refused: not enough disk." in html and 'name="estimate_ok"' not in html
+    assert ("generate", 5) not in fake.calls
+
+
 def test_generate_neighborhood_posts_then_redirects_to_get(app, client, fake):
     _log_in(client, fake)
     token = _csrf(app, client)
     resp = client.post("/sector/5?contents_page=2",
-                       data={"action": "generate_neighborhood", csrf.FIELD_NAME: token})
+                       data={"action": "generate_neighborhood", "estimate_ok": "1", csrf.FIELD_NAME: token})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/sector/5"
     assert ("generate", 5) in fake.calls
@@ -924,3 +951,60 @@ def test_galaxy_map_redirects(client, fake):
     assert client.get("/sector/404/galaxy").status_code == 404
     fake.sectors[5] = _sector_detail(placed=False)
     assert client.get("/sector/5/galaxy").headers["Location"].endswith("/galaxy")
+
+
+# --- Bookmarks (MAP.23) and the NAV page's Bookmarks select (MAP.22) ------------------
+
+def _bookmark_button(html):
+    match = re.search(r'<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
+                      html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_sector_page_has_a_bookmark_button(client, fake):
+    from stellarObjects.galaxyGeometry import provisional_sector_designation
+
+    html = client.get("/sector/5").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    button = _bookmark_button(html)
+    designation = provisional_sector_designation(5, 1, 20)
+    for attribute in (f'data-bookmark-db="{DB}"', 'data-bookmark-kind="sector"',
+                      f'data-bookmark-value="{designation}"', 'data-bookmark-name="Fake Sector"',
+                      'data-bookmark-url="/sector/5"', 'data-bookmark-sector-id="5"', 'aria-pressed="false"'):
+        assert attribute in button
+    # Shown and wired by the script; bookmarks live in the browser.
+    assert " hidden>" in button and "☆ Bookmark" in button
+    # No galaxy address: keyed by its page instead.
+    fake.sectors[5] = _sector_detail(placed=False)
+    assert 'data-bookmark-value="/sector/5"' in _bookmark_button(client.get("/sector/5").get_data(as_text=True))
+
+
+def _nav_bookmarks(html):
+    match = re.search(r'<form class="search-form nav-bookmarks" data-bookmarks-nav[^>]*>.*?</form>', html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_nav_origin_step_has_a_bookmarks_select(client, fake):
+    html = client.get("/nav?to=system:2001").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    form = _nav_bookmarks(_map_picks(html))
+    for attribute in (f'data-bookmark-db="{DB}"', 'data-nav-url="/nav"', 'data-pick="from"',
+                      'data-keep-name="to"', 'data-keep-value="system:2001"'):
+        assert attribute in form
+    assert " hidden>" in form  # until bookmarks.js finds bookmarks to offer
+    assert '<select name="bookmark"></select>' in form
+    assert ">Use as start</button>" in form
+    assert 'data-keep-value=""' in _nav_bookmarks(client.get("/nav").get_data(as_text=True))
+
+
+def test_nav_destination_step_has_a_bookmarks_select(client, fake):
+    form = _nav_bookmarks(client.get("/nav?from=system:1001").get_data(as_text=True))
+    assert 'data-pick="to"' in form and 'data-keep-name="from"' in form
+    assert 'data-keep-value="system:1001"' in form
+    assert ">Use as destination</button>" in form
+
+
+def test_nav_course_has_no_bookmarks_select(client, fake):
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "data-bookmarks-nav" not in html
+    assert "bookmarks.js" not in html

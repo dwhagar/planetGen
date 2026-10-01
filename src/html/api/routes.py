@@ -1129,7 +1129,12 @@ def generate_sector_neighborhood_route(sector_id):
     much longer timeout than its other calls for exactly this reason, but
     a production deployment's own reverse-proxy/gateway timeout (Apache,
     etc.) may still need raising for this one route to ever complete over
-    HTTP at all."""
+    HTTP at all.
+
+    PERF.3: `"estimate_only": true` returns the counts and the size and
+    time `estimate` without writing anything; a run the database disk
+    can't hold (over a quarter of it, or under 5 GB left) is refused with
+    507 and nothing written."""
     body = request.get_json(silent=True)
     if body is None:
         body = {}
@@ -1141,19 +1146,28 @@ def generate_sector_neighborhood_route(sector_id):
         or not 0 < radius_ly <= MAX_NEIGHBORHOOD_RADIUS_LY
     ):
         raise ApiError(f"'radius_ly' is invalid: {radius_ly!r}")
+    estimate_only = body.get("estimate_only", False)
+    if not isinstance(estimate_only, bool):
+        raise ApiError(f"'estimate_only' is invalid: {estimate_only!r}")
 
     try:
         result = generate.generate_sector_neighborhood(
             sector_id, radius_ly=radius_ly, config=_resolve_requested_write_db_config(),
+            estimate_only=estimate_only,
         )
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
+    except generate.GenerationRefused as exc:
+        # PERF.3: the database disk can't hold it; nothing was written.
+        raise ApiError(str(exc), status_code=507)
     except RuntimeError as exc:
         # The galaxy's density skeleton (`generate.py plan`) has never
         # been built -- generate_sector_neighborhood needs it to gate each
         # candidate slot's own generation on local stellar density.
         raise ApiError(str(exc), status_code=409)
 
+    if estimate_only:
+        return jsonify(result)
     audit(
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
         detail=f"radius_ly={radius_ly!r} generated={result['generated']}",

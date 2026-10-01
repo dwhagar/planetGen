@@ -77,7 +77,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
 from .nebulaData import Nebula
 from .planetData import Planet
-from .roguePlanetData import InterstellarComet, RoguePlanet, interstellar_comet_designation
+from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .quasarData import Quasar
@@ -89,7 +89,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 47
+SCHEMA_VERSION = 48
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -104,13 +104,14 @@ NAMED_LOCK_TIMEOUT_S = 50
 """int: How long `Connection.lock_until_commit` waits for a named lock,
 matching InnoDB's default `innodb_lock_wait_timeout`."""
 
-CONTROL_SCHEMA_VERSION = 5
+CONTROL_SCHEMA_VERSION = 6
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
 separate schema with its own versioning. v2 added `login_throttle`
 (SEC.1, SEC.21), v5 the work queue's `work_jobs`/`work_tasks`/
-`work_lease` (PERF.8); every control-schema change so far is a new table,
+`work_lease` (PERF.8), v6 `generation_stats`/`generation_size` (PERF.3,
+PERF.10); every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema by itself."""
 
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
@@ -1835,6 +1836,80 @@ def _insert_reflection_spectrum(conn, table, id_column, owner_id, visible, non_v
             )
 
 
+_BODY_COLUMNS = (
+    "body_type", "name",
+    "planet_class", "distance_km", "radius_km", "mass_kg", "volume_km3", "period_years", "zone",
+    "description", "gravity_g", "surface_temperature_k", "density_g_cm3", "atmosphere",
+    "atm_density", "atm_molar_density", "atmospheric_pressure_pa", "composition",
+    "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
+    "habitable_zone_inner_km", "habitable_zone_outer_km",
+    "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
+    "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+    "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
+    "min_update_interval_years",
+    "rotation_period_hours",
+)
+"""tuple: The generated-content columns `planets` and `moons` share, in
+`body_row_values` order."""
+
+_PLANET_ONLY_COLUMNS = ("reflex_offset_x_km", "reflex_offset_y_km", "reflex_offset_z_km")
+"""tuple: The `planets` columns `moons` lacks (a moon hosts no moons)."""
+
+
+def body_row_values(body):
+    """
+    A planet's or moon's generated-content column values, in
+    `_BODY_COLUMNS` order (plus `_PLANET_ONLY_COLUMNS` for a planet), with
+    every unit conversion `load_star_system` inverts: what
+    `insert_planet`/`insert_moon` write and `editStore` updates in place.
+    """
+    min_orbit_distance_km = (
+        body.min_orbit_distance * physical_constants.AU_TO_KM
+        if body.min_orbit_distance is not None else None
+    )
+    values = [
+        body.body_type, body.name,
+        body.planet_class,
+        body.distance * physical_constants.AU_TO_KM,
+        body.radius, body.mass, body.volume, body.period, body.zone,
+        body.description, body.gravity, body.surface_temperature,
+        body.density, body.atmosphere,
+        body.atm_density, body.atm_molar_density, body.atmospheric_pressure,
+        body.composition,
+        body.scale_height, body.hill_radius, min_orbit_distance_km,
+        body.habitable_zone[0] * physical_constants.AU_TO_KM,
+        body.habitable_zone[1] * physical_constants.AU_TO_KM,
+        body.life_chemical, body.evolutionary_speed,
+        body.flavor_text, body.flavor_text_count,
+        body.orbital_inclination_deg, body.orbital_ascending_node_deg,
+        body.orbital_phase_deg,
+        body.position_x * physical_constants.AU_TO_KM,
+        body.position_y * physical_constants.AU_TO_KM,
+        body.position_z * physical_constants.AU_TO_KM,
+        body.orbital_speed_kms,
+        body.min_update_interval_years,
+        body.rotation_period_hours,
+    ]
+    if not body.is_moon:
+        values += [
+            body.reflex_offset_x * physical_constants.AU_TO_KM,
+            body.reflex_offset_y * physical_constants.AU_TO_KM,
+            body.reflex_offset_z * physical_constants.AU_TO_KM,
+        ]
+    return values
+
+
+def body_child_rows(conn, body, body_id):
+    """Writes a planet's or moon's evolutionary paragraphs and reflection
+    spectrum rows (after any old ones were deleted)."""
+    prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
+    _insert_paragraphs(conn, f"{prefix}_evolutionary_paragraphs", id_column, body_id, body.evolutionary_data)
+    _insert_reflection_spectrum(
+        conn, f"{prefix}_reflection_spectrum", id_column, body_id,
+        body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
+    )
+
+
 def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     """
     Inserts a `planets` row for one top-level `Planet` (never a moon --
@@ -1856,61 +1931,14 @@ def insert_planet(conn, planet, star_system_id, star_id, orbital_index) -> int:
     Returns:
         int: The new `planets.id`.
     """
-    min_orbit_distance_km = (
-        planet.min_orbit_distance * physical_constants.AU_TO_KM
-        if planet.min_orbit_distance is not None else None
-    )
+    columns = ("star_system_id", "star_id", "orbital_index") + _BODY_COLUMNS + _PLANET_ONLY_COLUMNS
     cur = conn.execute(
-        """
-        INSERT INTO planets (
-            star_system_id, star_id, orbital_index, body_type, name,
-            planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years, zone,
-            description, gravity_g, surface_temperature_k, density_g_cm3, atmosphere,
-            atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
-            scale_height_km, hill_radius_km, min_orbit_distance_km,
-            habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
-            orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
-            position_x_km, position_y_km, position_z_km, orbital_speed_kms,
-            min_update_interval_years,
-            rotation_period_hours,
-            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            star_system_id, star_id, orbital_index, planet.body_type, planet.name,
-            planet.planet_class,
-            planet.distance * physical_constants.AU_TO_KM,
-            planet.radius, planet.mass, planet.volume, planet.period, planet.zone,
-            planet.description, planet.gravity, planet.surface_temperature,
-            planet.density, planet.atmosphere,
-            planet.atm_density, planet.atm_molar_density, planet.atmospheric_pressure,
-            planet.composition,
-            planet.scale_height, planet.hill_radius, min_orbit_distance_km,
-            planet.habitable_zone[0] * physical_constants.AU_TO_KM,
-            planet.habitable_zone[1] * physical_constants.AU_TO_KM,
-            planet.life_chemical, planet.evolutionary_speed,
-            planet.flavor_text, planet.flavor_text_count,
-            planet.orbital_inclination_deg, planet.orbital_ascending_node_deg,
-            planet.orbital_phase_deg,
-            planet.position_x * physical_constants.AU_TO_KM,
-            planet.position_y * physical_constants.AU_TO_KM,
-            planet.position_z * physical_constants.AU_TO_KM,
-            planet.orbital_speed_kms,
-            planet.min_update_interval_years,
-            planet.rotation_period_hours,
-            planet.reflex_offset_x * physical_constants.AU_TO_KM,
-            planet.reflex_offset_y * physical_constants.AU_TO_KM,
-            planet.reflex_offset_z * physical_constants.AU_TO_KM,
-        ),
+        f"INSERT INTO planets ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
+        (star_system_id, star_id, orbital_index, *body_row_values(planet)),
     )
     planet_id = cur.lastrowid
 
-    _insert_paragraphs(conn, "planet_evolutionary_paragraphs", "planet_id", planet_id, planet.evolutionary_data)
-    _insert_reflection_spectrum(
-        conn, "planet_reflection_spectrum", "planet_id", planet_id,
-        planet.reflection_spectrum_visible, planet.reflection_spectrum_non_visible,
-    )
+    body_child_rows(conn, planet, planet_id)
 
     for position, moon in enumerate(planet.moons or []):
         insert_moon(conn, moon, star_system_id, star_id, planet_id, position)
@@ -1940,57 +1968,14 @@ def insert_moon(conn, moon, star_system_id, star_id, planet_id, orbital_index) -
     Returns:
         int: The new `moons.id`.
     """
-    min_orbit_distance_km = (
-        moon.min_orbit_distance * physical_constants.AU_TO_KM
-        if moon.min_orbit_distance is not None else None
-    )
+    columns = ("planet_id", "star_system_id", "star_id", "orbital_index") + _BODY_COLUMNS
     cur = conn.execute(
-        """
-        INSERT INTO moons (
-            planet_id, star_system_id, star_id, orbital_index, body_type, name,
-            planet_class, distance_km, radius_km, mass_kg, volume_km3, period_years, zone,
-            description, gravity_g, surface_temperature_k, density_g_cm3, atmosphere,
-            atm_density, atm_molar_density, atmospheric_pressure_pa, composition,
-            scale_height_km, hill_radius_km, min_orbit_distance_km,
-            habitable_zone_inner_km, habitable_zone_outer_km,
-            life_chemical, evolutionary_speed, flavor_text, flavor_text_count,
-            orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg,
-            position_x_km, position_y_km, position_z_km, orbital_speed_kms,
-            min_update_interval_years,
-            rotation_period_hours
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            planet_id, star_system_id, star_id, orbital_index, moon.body_type, moon.name,
-            moon.planet_class,
-            moon.distance * physical_constants.AU_TO_KM,
-            moon.radius, moon.mass, moon.volume, moon.period, moon.zone,
-            moon.description, moon.gravity, moon.surface_temperature,
-            moon.density, moon.atmosphere,
-            moon.atm_density, moon.atm_molar_density, moon.atmospheric_pressure,
-            moon.composition,
-            moon.scale_height, moon.hill_radius, min_orbit_distance_km,
-            moon.habitable_zone[0] * physical_constants.AU_TO_KM,
-            moon.habitable_zone[1] * physical_constants.AU_TO_KM,
-            moon.life_chemical, moon.evolutionary_speed,
-            moon.flavor_text, moon.flavor_text_count,
-            moon.orbital_inclination_deg, moon.orbital_ascending_node_deg,
-            moon.orbital_phase_deg,
-            moon.position_x * physical_constants.AU_TO_KM,
-            moon.position_y * physical_constants.AU_TO_KM,
-            moon.position_z * physical_constants.AU_TO_KM,
-            moon.orbital_speed_kms,
-            moon.min_update_interval_years,
-            moon.rotation_period_hours,
-        ),
+        f"INSERT INTO moons ({', '.join(columns)}) VALUES ({', '.join('?' * len(columns))})",
+        (planet_id, star_system_id, star_id, orbital_index, *body_row_values(moon)),
     )
     moon_id = cur.lastrowid
 
-    _insert_paragraphs(conn, "moon_evolutionary_paragraphs", "moon_id", moon_id, moon.evolutionary_data)
-    _insert_reflection_spectrum(
-        conn, "moon_reflection_spectrum", "moon_id", moon_id,
-        moon.reflection_spectrum_visible, moon.reflection_spectrum_non_visible,
-    )
+    body_child_rows(conn, moon, moon_id)
 
     return moon_id
 
@@ -2394,14 +2379,15 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     cur = conn.execute(
         """
         INSERT INTO rogue_planets (
-            sector_id, name, planet_type, mass_bin, mass_kg, radius_km, composition, has_internal_heat, has_moons,
+            sector_id, name, planet_type, planet_class, mass_bin, mass_kg, radius_km, composition,
+            has_internal_heat, has_moons,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, planet.name, planet.planet_type, planet.mass_bin, planet.mass_kg, planet.radius_km,
+            sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
@@ -4040,7 +4026,7 @@ BRIGHT_STAR_COLUMNS = (
 
 def clear_bright_stars(conn):
     """
-    Empties `bright_stars` and `bright_star_blocks` (v47) and forgets the
+    Empties `bright_stars` and `bright_star_blocks` (v48) and forgets the
     scatter's threshold and seed --
     a plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves tens of millions of rows.
@@ -4095,6 +4081,22 @@ def bright_star_block_levels(conn, blocks):
         for row in rows:
             levels[(row["block_ring"], row["block_wedge"], row["block_slab"])] = row["min_luminosity_sol"]
     return levels
+
+
+def bright_star_block_keys(conn):
+    """
+    Every sector block with a `bright_star_blocks` row (GEN.23), whatever
+    its level: what a staged scatter (`generate.py plan
+    --bright-stars-down-to`) hands to the backfill instead of the layers.
+
+    Args:
+        conn (Connection): An open connection.
+
+    Returns:
+        list: `(ring, wedge, slab)` tuples, sorted.
+    """
+    rows = conn.execute("SELECT block_ring, block_wedge, block_slab FROM bright_star_blocks").fetchall()
+    return sorted((row["block_ring"], row["block_wedge"], row["block_slab"]) for row in rows)
 
 
 def lock_bright_star_block(conn, block):
@@ -7616,16 +7618,57 @@ def _migrate_v45_to_v46(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
 
 
+ROGUE_CLASS_BACKFILL_BATCH = 20000
+"""int: Rows per read when `_migrate_v46_to_v47` gives stored rogue
+planets their class."""
+
+
 def _migrate_v46_to_v47(conn):
     """
-    Adds `bright_star_blocks` (GEN.23) -- see `schema.sql`'s "v47" header
+    Adds `rogue_planets.planet_class` (GEN.8) -- see `schema.sql`'s "v47"
+    header note -- and fills it for every stored rogue planet with
+    `roguePlanetData.default_rogue_planet_class` (deterministic, so a
+    rerun gives the same classes). Brown dwarfs stay NULL. Read in id
+    order a batch at a time, one UPDATE per class per batch.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "rogue_planets", "planet_class"):
+        conn.execute("ALTER TABLE rogue_planets ADD COLUMN planet_class VARCHAR(4) AFTER planet_type")
+    last_id = 0
+    while True:
+        rows = conn.execute(
+            "SELECT id, planet_type, mass_bin, mass_kg, radius_km FROM rogue_planets "
+            "WHERE id > ? AND planet_class IS NULL ORDER BY id LIMIT ?",
+            (last_id, ROGUE_CLASS_BACKFILL_BATCH),
+        ).fetchall()
+        if not rows:
+            break
+        by_class = {}
+        for row in rows:
+            code = default_rogue_planet_class(row["planet_type"], row["radius_km"], row["mass_kg"], row["mass_bin"])
+            if code is not None:
+                by_class.setdefault(code, []).append(row["id"])
+        for code, ids in by_class.items():
+            conn.execute(
+                f"UPDATE rogue_planets SET planet_class = ? WHERE id IN ({', '.join('?' * len(ids))})",
+                (code, *ids),
+            )
+        last_id = rows[-1]["id"]
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
+
+
+def _migrate_v47_to_v48(conn):
+    """
+    Adds `bright_star_blocks` (GEN.23) -- see `schema.sql`'s "v48" header
     note. Empty: every block starts at the galaxy's scatter level.
 
     Args:
         conn (Connection): An open connection, mid-migration.
     """
     conn.execute(_schema_statement("bright_star_blocks"))
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (48)")
 
 
 def _schema_statement(table):
@@ -7734,6 +7777,7 @@ def _migration_steps():
         (45, _migrate_v44_to_v45),
         (46, _migrate_v45_to_v46),
         (47, _migrate_v46_to_v47),
+        (48, _migrate_v47_to_v48),
     ]
 
 

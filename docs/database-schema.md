@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v47" notes) rather than duplicated here, since that
+comment ("v2" through "v48" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v46_to_v47`. `migrate_database`
+version, through `_migrate_v47_to_v48`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v47), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v48), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -548,6 +548,12 @@ to a whole-word `REGEXP` on the rows the other words narrowed.
 LOCK=SHARED`): reads keep working, but writes to those tables wait
 until each index is built, which on a large galaxy can take minutes.
 
+**Rogue planet classes (v47, GEN.8).** `rogue_planets.planet_class` is a
+rogue's `PLANET_CLASSES` letter, drawn from the classes whose `"r"` flag
+says they can be rogue (C, D, I, J and T) and that fit its type, radius
+and mass. NULL for a brown dwarf. `_migrate_v46_to_v47` gives every
+stored rogue its most probable fitting class.
+
 **Population and politics (v44).** Filled by `generate.py population`
 (or `--population` on a `sector`/`galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
@@ -578,7 +584,7 @@ record the scatter; a fill reads them, not the constant. A plan re-run
 truncates the table (`_db.clear_bright_stars`). `_migrate_v42_to_v43`
 adds both, empty.
 
-**Bright-star backfill per sector block (v47, GEN.23).** Generating any
+**Bright-star backfill per sector block (v48, GEN.23).** Generating any
 galaxy sector first backfills the stars around it
 (`generate.backfill_bright_stars`): every sector block (a level-3 block
 of `galaxyDrill`, 3 rings by 3 layers by its wedge's slots) with a sector
@@ -592,7 +598,7 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`_db.bright_star_fill_level`). A backfill takes the block's row lock
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
-truncates it with `bright_stars`. `_migrate_v46_to_v47` creates it empty.
+truncates it with `bright_stars`. `_migrate_v47_to_v48` creates it empty.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,
@@ -682,10 +688,11 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Eleven tables, versioned independently via `control_schema_migrations`
-(currently version 5, mirroring `schema_migrations`'s own shape; v2 added
+Thirteen tables, versioned independently via `control_schema_migrations`
+(currently version 6, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
-`admin_recovery_codes`, v5 the work queue's three tables, and every control-schema change so far is a new table,
+`admin_recovery_codes`, v5 the work queue's three tables, v6
+`generation_stats` and `generation_size`, and every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
 `migrateDb.py` run):
 
@@ -740,9 +747,24 @@ which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
   the machine, refreshed every 5 s. A lease or job not refreshed for
   30 s belongs to a run that died: the next run takes the lease and
   marks that run's unfinished tasks cancelled. Jobs older than a week
-  are deleted with their tasks. These are the only control tables the
-  generator writes; it reaches them with its own MySQL account and runs
-  without them when it can't.
+  are deleted with their tasks.
+- **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
+  how fast this server generates and how big a galaxy gets
+  (`stellarObjects/generationStats.py`, see
+  [`cli.md`](cli.md#size-and-time-estimates)). `generation_stats` has
+  one row per `kind` (`sector` fill, or a `scatter` layer of bright
+  stars) and density `bucket` (`floor(2 * log10(density / 0.01))`: two
+  per decade from 0.01, with no top edge, `density_low`/`density_high`
+  its edges), each column a decaying average over every task that ever
+  finished in it (each new task weighs 5%): `seconds_per_task` (a
+  worker's wall time), `seconds_per_system`, `systems_per_task`,
+  `stars_per_system`, plus `samples` and the densest task seen
+  (`max_density`). `generation_size` has one row per galaxy database:
+  `bytes_per_system` (its tables' data and index bytes over its star
+  systems, measured after each run), `systems`, `total_bytes`. A galaxy
+  reset keeps both. These and the work queue's tables are the only
+  control tables the generator writes; it reaches them with its own
+  MySQL account and runs without them when it can't.
 
 `stellarObjects/adminAuth.py` is the only code that reads/writes the
 admin tables directly — `bootstrap_control_schema` creates the schema and,
@@ -1360,6 +1382,7 @@ from any star.
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
+| `planet_class` | VARCHAR(4) | nullable | Added in v47: its `PLANET_CLASSES` letter (GEN.8); NULL for a brown dwarf. |
 | `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
@@ -1545,8 +1568,8 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 
 ### `bright_star_blocks`
 
-Added in v47 (GEN.23). How deep the bright-star backfill has gone in each
-sector block. See "Bright-star backfill per sector block (v47, GEN.23)"
+Added in v48 (GEN.23). How deep the bright-star backfill has gone in each
+sector block. See "Bright-star backfill per sector block (v48, GEN.23)"
 above.
 
 | Column | Type | Null | Notes |

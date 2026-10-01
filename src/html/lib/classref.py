@@ -45,7 +45,8 @@ of their own and link to the class they stand for."""
 PLANET_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas giant"}
 """dict: `PLANET_CLASSES[...]["type"]` -> label."""
 
-PLANET_ZONE_LABELS = {"h": "Hot zone", "e": "Habitable zone (ecosphere)", "c": "Cold zone"}
+PLANET_ZONE_LABELS = {"h": "Hot zone", "e": "Habitable zone (ecosphere)", "c": "Cold zone",
+                      "r": "Interstellar space (rogue planet)"}
 """dict: The `PLANET_CLASSES` zone flags, in order out from the star."""
 
 ROGUE_MASS_CLASS_NAMES = {
@@ -201,6 +202,8 @@ def _planet():
         "notes": [
             "Each planet and moon gets one class letter. A class forms only in the zones listed for it: "
             "the hot zone near the star, the habitable zone (ecosphere), or the cold zone beyond.",
+            "A rogue planet, adrift with no star, gets a class too, from the classes that list "
+            "interstellar space: with no starlight, no class with life qualifies.",
         ],
         "classes": classes,
     }

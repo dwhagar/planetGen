@@ -366,9 +366,16 @@ def test_enumerate_within_radius_yields_consistent_tuples(center, radius, edge):
     for ring, layer, slot, x, y, z, distance in gg.enumerate_sectors_within_radius(center, radius, edge):
         assert (ring, layer, slot) not in seen
         seen.add((ring, layer, slot))
-        assert (x, y, z) == pytest.approx(gg.sector_position_pc(ring, layer, slot, edge))
+        # math.isclose with pytest.approx's default tolerances: this loop
+        # can visit a million sectors, and approx() costs ~10x more each.
+        expected = gg.sector_position_pc(ring, layer, slot, edge)
+        assert all(_approx(a, b) for a, b in zip((x, y, z), expected)), ((x, y, z), expected)
         assert distance <= radius + 1e-9
-        assert distance == pytest.approx(math.dist((x, y, z), center))
+        assert _approx(distance, math.dist((x, y, z), center))
+
+
+def _approx(a, b):
+    return math.isclose(a, b, rel_tol=1e-6, abs_tol=1e-12)
 
 
 @given(st.floats(max_value=-1e-12, allow_nan=False, allow_infinity=False))

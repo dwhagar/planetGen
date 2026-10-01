@@ -58,11 +58,6 @@ def make_planet(host_star, cls, zone, **kwargs):
 
 
 @pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
-def test_planet_generates_without_error(host_star, cls, zone):
-    make_planet(host_star, cls, zone)
-
-
-@pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
 def test_planet_radius_within_declared_range(host_star, cls, zone):
     planet = make_planet(host_star, cls, zone)
     min_r, max_r = prog_c.PLANET_CLASSES[cls]["radius_range"]

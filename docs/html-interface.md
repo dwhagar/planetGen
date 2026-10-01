@@ -203,7 +203,7 @@ URLs" below).
 | `/logout` | `logout.py` | `GET` asks to confirm and changes nothing; the button `POST`s to end the session. |
 | `/account` | `changecreds.py` | Change the admin username and password, and turn two-factor sign-in on or off (QR code, then recovery codes shown once; forms `POST` to `/account/two-factor`). |
 | `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
-| `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), and the newest failed sign-ins. |
+| `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), the newest failed sign-ins, and this server's generation speed per density bucket with the galaxy's size per star system (`GET /api/admin/generation-stats`). |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 | `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
 
@@ -219,6 +219,27 @@ answers `303 See Other` back to `/system/<id>?wiki=<outcome>#wiki-upload`
 `unconfigured` (501) or `failed`; the page shows a fixed message for
 each (and only to an admin), never text from the query string or the
 API. A POST from a visitor who is not an admin gets a 403 page.
+
+**Delete and Regenerate buttons (ADM.8).** For an admin whose
+credentials are current, the sector, system and phenomenon pages each
+have an Edit panel (`web/edit_actions.py`,
+`templates/partials/edit_controls.html`). The system page lists the
+system itself, every planet with its moons under it, and every asteroid
+belt, each with a Regenerate and a Delete button; the sector and
+phenomenon pages have one pair for the page's own object (not for a
+system's own black hole or neutron star). Each button opens a
+`<details>` confirm step (no script) with a short note of what it does,
+an "also delete facilities" checkbox where facilities could be lost, and
+a "Yes, ..." submit button. The form POSTs `edit_action` (`regenerate`
+or `delete`) and `edit_target` (`<kind>:<id>`, only targets the page
+shows are accepted) to the page itself, which calls the API (see
+`docs/api.md`, "Deleting and regenerating"), flashes the outcome, the
+bodies the re-validation moved and any warnings, and redirects (303):
+back to the page, or after a delete to the system's sector (or the
+Systems list), the Sectors list or the Phenomena list, and after a
+sector regenerate to the new sector. Every page shows those flashed
+lines under its heading (`base.html`), read only when the request
+carries a Flask session cookie.
 
 **System page facilities.** The system page lists the system's
 facilities (starbases, colonies, outposts; `GET /api/systems/<id>/
@@ -366,9 +387,10 @@ terminal on the server, as background jobs:
 | Form | Runs |
 |---|---|
 | New galaxy | `src/resetDb.py --yes`, then `generate.py plan --no-bright-stars`, then the bright-star scatter (`generate.py plan --bright-stars-only`), then `generate.py galaxy` around a random start. |
-| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended), or a Galaxy Map block (`--block m.I.s.S`, optionally one `--block-layer`). The single-sector neighborhood radius can be given in light-years (13 ly up to the parsec limit). Sent with `Accept: application/json`, the form answers `202 {"job", "url", "status_url"}` (or `{"error"}`) so the Galaxy Map can start a job without leaving the map. The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. |
+| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended), or a Galaxy Map block (`--block m.I.s.S`, optionally one `--block-layer`). The single-sector neighborhood radius can be given in light-years (13 ly up to the parsec limit). Sent with `Accept: application/json`, the form answers `202 {"job", "url", "status_url"}` (or `{"error"}`) so the Galaxy Map can start a job without leaving the map. The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. Before the job starts the page shows its size, time and the database disk's free space (`generate.py galaxy --estimate-only`) with a Generate button to confirm, or the refusal when the disk can't hold it; a JSON caller gets `409 {"error", "estimate", "confirm_field"}` and re-sends with `estimate_ok=1`. |
 | Plan the galaxy | `generate.py plan --no-bright-stars` with the galaxy shape fields, then the bright-star scatter as its own step (`generate.py plan --bright-stars-only`), so the job shows the scatter's progress bar and the count it placed. On New galaxy and Plan, "Skip the bright-star scatter" leaves that step out. |
 | Rebuild the bright stars | `generate.py plan --bright-stars-only` on the stored plan; "Leave filled sectors out" adds `--force` (otherwise the scatter refuses once any sector is filled). |
+| Add a dimmer layer of bright stars | `generate.py plan --bright-stars-down-to N`: keeps the bright stars already placed and adds only those from N up to the current star-fill level (shown on the panel), leaving filled sectors out. Disabled until a scatter has run. |
 | Reset | `src/resetDb.py --yes`. |
 
 The number fields have upper bounds, the same ones `generate.py` checks
@@ -423,6 +445,7 @@ src/html/web/
   views.py            /, /sectors, /systems, /search
   system_pages.py     /system/<id>, /phenomena, /phenomenon/<type>/<id>
   system_facilities.py  the system page's facility form
+  edit_actions.py     the admin Delete and Regenerate buttons (ADM.8)
   sector_page.py      /sector/<id>
   nav_page.py         /nav
   galaxy_views.py     /galaxy and its JSON routes

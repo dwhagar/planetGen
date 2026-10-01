@@ -46,7 +46,7 @@ from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
-                    format_galactic_orbit, format_length_km, format_relative_to_sol,
+                    format_duration_seconds, format_galactic_orbit, format_length_km, format_relative_to_sol,
                     generate_galactic_orbit_fields, properties_to_string, reseed_rng)
 
 
@@ -479,7 +479,7 @@ class NeutronStar(CompactRemnant):
             "type": self.type,
             "mass": mass_string,
             "radius": radius_string,
-            "spin_period": f"{self.spin_period_ms:.2f} ms",
+            "spin_period": format_duration_seconds(self.spin_period_ms / 1000),
             "magnetic_field": f"{self.magnetic_field_gauss:.2e} G",
             "surface_temp": f"{format_number(self.surface_temperature_k, ',.0f')} K",
             "orbit": orbit_string,
@@ -520,7 +520,7 @@ class NeutronStar(CompactRemnant):
         if self.pulsar_type != "non-pulsing":
             sentence += (
                 f" It is a {self.pulsar_type} pulsar, sweeping a beam of radiation past any observer once every "
-                f"{self.spin_period_ms:.2f} milliseconds."
+                f"{format_duration_seconds(self.spin_period_ms / 1000)}."
             )
         else:
             sentence += " Whatever rotational beam it once had no longer sweeps across this vantage point."

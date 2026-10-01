@@ -49,12 +49,6 @@ def make_star(star_type):
 
 
 @pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
-def test_star_generates_without_error(star_type):
-    for _ in range(TRIALS):
-        make_star(star_type)
-
-
-@pytest.mark.parametrize("star_type", ALL_STAR_TYPES)
 def test_age_never_exceeds_lifespan(star_type):
     for _ in range(TRIALS):
         s = make_star(star_type)

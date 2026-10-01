@@ -247,7 +247,7 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     ({"mode": "block", "block": "27.4.1.0", "whole_block": "1"}, ["--block", "27.4.1.0", "--yes"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
-    resp = _post(client, action="galaxy", **form)
+    resp = _post(client, action="galaxy", estimate_ok="1", **form)
     assert resp.status_code == 303
     (job,) = no_spawn
     assert _argv(job["steps"][0]) == ["galaxy"] + argv
@@ -287,12 +287,66 @@ def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
     assert no_spawn == []
 
 
+_ESTIMATE = {"sectors": 9, "systems": 120, "stars": 156, "bytes": 8_400_000, "seconds": 75.0, "workers": 2,
+             "measured": True, "refused": False, "refusal": None,
+             "disk": {"path": "/var/lib/mysql/", "total_bytes": 10 ** 12, "free_bytes": 4 * 10 ** 11},
+             "summary": "About 8.4 MB and 1 m 15 s for 9 sectors.", "what": "block 3.40.7.0"}
+
+
+def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn, monkeypatch):
+    """PERF.3: Generate sectors first shows the size and time, with a
+    Generate button that re-sends the form confirmed."""
+    asked = []
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: asked.append(argv) or dict(_ESTIMATE))
+    resp = _post(client, action="galaxy", mode="block", block="3.40.7.0")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200 and no_spawn == []
+    assert _argv({"argv": asked[0]}) == ["galaxy", "--block", "3.40.7.0"]
+    assert "About 8.4 MB" in html and "1 m 15 s" in html and "400 GB free of 1.0 TB" in html
+    form = html[html.index('id="estimate"'):]
+    form = form[:form.index("</section>")]
+    assert 'name="estimate_ok" value="1"' in form
+    assert 'name="mode" value="block"' in form and 'name="block" value="3.40.7.0"' in form
+    assert 'name="action" value="galaxy"' in form
+
+
+def test_a_refused_galaxy_job_cant_be_started(site, client, no_spawn, monkeypatch):
+    refused = dict(_ESTIMATE, refused=True, refusal="Refused: it would leave 2 GB free.")
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: refused)
+    html = _post(client, action="galaxy", mode="block", block="3.40.7.0").get_data(as_text=True)
+    assert "Refused: it would leave 2 GB free." in html and 'name="estimate_ok"' not in html
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block", block="3.40.7.0")
+    assert resp.status_code == 409 and resp.get_json()["error"] == "Refused: it would leave 2 GB free."
+    assert no_spawn == []
+
+
+def test_an_estimate_that_fails_is_shown_as_an_error(site, client, no_spawn, monkeypatch):
+    def failing(argv, env):
+        raise generate_page.FormError("Nothing was generated: Ring 900 holds 5000 sector slots")
+
+    monkeypatch.setattr(generate_page, "run_estimate", failing)
+    resp = _post(client, action="galaxy", mode="ring", ring="900")
+    assert resp.status_code == 400 and "Ring 900 holds 5000 sector slots" in resp.get_data(as_text=True)
+    assert no_spawn == []
+
+
+def test_run_estimate_reads_the_estimate_line(tmp_path):
+    script = tmp_path / "fake_generate.py"
+    script.write_text("import json, sys\nprint('Estimate for x: ...')\n"
+                      "print('ESTIMATE ' + json.dumps({'sectors': 3, 'args': sys.argv[1:]}))\n")
+    result = generate_page.run_estimate([sys.executable, str(script), "galaxy"], {})
+    assert result == {"sectors": 3, "args": ["galaxy", "--estimate-only"]}
+    script.write_text("import sys\nprint('Ring 9 is too big', file=sys.stderr)\nsys.exit(1)\n")
+    with pytest.raises(generate_page.FormError, match="Ring 9 is too big"):
+        generate_page.run_estimate([sys.executable, str(script)], {})
+
+
 def test_map_buttons_get_json(site, client, no_spawn, monkeypatch):
     """The Galaxy Map posts with `Accept: application/json` and reads the
     job's links back instead of following a redirect."""
     monkeypatch.setattr(jobs, "start_job", lambda *args, **kwargs: "job123")
     resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block",
-                 block="3.40.7.0", block_layer="0")
+                 block="3.40.7.0", block_layer="0", estimate_ok="1")
     assert resp.status_code == 202
     assert resp.get_json() == {"job": "job123", "url": "/admin/generate/jobs/job123",
                                "status_url": "/admin/generate/status?job=job123"}
@@ -359,6 +413,21 @@ def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _argv(step) == argv
 
 
+def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
+    assert _post(client, action="bright_band", down_to="100").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "bright_band"
+    (step,) = job["steps"]
+    assert step["label"] == generate_page.BAND_LABEL
+    assert _argv(step) == ["plan", "--bright-stars-down-to", "100"]
+
+
+def test_dimmer_layer_needs_a_level(site, client, no_spawn):
+    resp = _post(client, action="bright_band", down_to="")
+    assert resp.status_code == 400
+    assert no_spawn == []
+
+
 def test_scatter_flags_exist_in_generate_py():
     """Every flag the page passes is one `generate.py plan` accepts."""
     sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
@@ -369,6 +438,7 @@ def test_scatter_flags_exist_in_generate_py():
     assert plan.parse_args(["--no-bright-stars"]).no_bright_stars is True
     args = plan.parse_args(["--bright-stars-only", "--force"])
     assert args.bright_stars_only is True and args.force is True
+    assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
@@ -733,15 +803,17 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
 
     out = tmp_path / "system.md"
     # An unreachable database: --output must never try to connect.
-    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1"}
+    # UTF-8 both ways, so Windows' cp1252 default never decodes the output.
+    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
+           "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
-                          capture_output=True, text=True, timeout=120, env=env)
+                          capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
     wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
-                          capture_output=True, text=True, timeout=120, env=env)
+                          capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
 
 

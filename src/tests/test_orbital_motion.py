@@ -400,10 +400,10 @@ def test_generated_bodies_have_finite_positive_min_update_interval(bodies):
 
 
 # ---------------------------------------------------------------------------
-# years_to_time_string
+# format_period_years (UX.14, replacing years_to_time_string)
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import years_to_time_string
+from stellarObjects.utils import format_period_years
 
 
 @pytest.mark.parametrize("years,expected", [
@@ -413,25 +413,19 @@ from stellarObjects.utils import years_to_time_string
     (76.0, "76 years"),
     (100.0, "100 years"),
 ])
-def test_years_to_time_string_whole_years_have_no_leftover_days_or_hours(years, expected):
-    # Regression test: total_minutes used to be built from a 365.25-day
-    # year but decomposed back into whole years with a plain 365-day
-    # divisor, leaking the quarter-day/year discrepancy into "days"/
-    # "hours" for every whole-year input (e.g. 1.0 used to render as
-    # "1 year and 6 hours", 100.0 as "100 years and 25 days").
-    assert years_to_time_string(years) == expected
+def test_format_period_years_whole_years(years, expected):
+    # The year is the Julian 365.25 days throughout, so a whole number of
+    # years never picks up a stray fraction.
+    assert format_period_years(years) == expected
 
 
-def test_years_to_time_string_fractional_year_matches_exact_day_count():
-    # 0.5 year is exactly 182.625 days -- 182 days, 15 hours (365.25 * 0.5
-    # = 182.625; 0.625 * 24 = 15 hours exactly) -- confirms the same
-    # 365.25-day year is used consistently for both the whole-year and
-    # sub-year portions, not just for whole-year inputs.
-    assert years_to_time_string(0.5) == "182 days and 15 hours"
+def test_format_period_years_fractional_year_in_days():
+    # 0.5 year is exactly 182.625 days, three significant figures.
+    assert format_period_years(0.5) == "183 days"
 
 
-def test_years_to_time_string_zero_years_is_empty():
-    assert years_to_time_string(0.0) == ""
+def test_format_period_years_zero():
+    assert format_period_years(0.0) == "0 s"
 
 
 # ---------------------------------------------------------------------------

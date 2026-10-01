@@ -17,6 +17,7 @@ from stellarObjects import _db, brightStars, physical_constants
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
 from stellarObjects.galaxyGeometry import sector_address_at, sector_position_pc
+from stellarObjects.galaxyDrill import DrillBlock
 from stellarObjects.utils import ly_to_pc
 from stellarObjects import program_constants
 
@@ -78,6 +79,22 @@ def test_the_count_matches_the_expected_bright_share():
                         density * brightStars.bright_star_fraction(THRESHOLD, population)
                         for population, density in densities.items())
     assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
+
+
+def test_a_band_scatter_draws_only_stars_between_its_limits():
+    low = 100.0
+    assert _scatter(seed=5, max_luminosity_sol=THRESHOLD) == []
+    rows_low = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, low, 5, max_luminosity_sol=THRESHOLD))
+    assert len(rows_low) > len(_scatter(seed=5)) > 0
+    for row in map(_row_dict, rows_low):
+        assert low * physical_constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"]
+        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
+    # The band's expected share is the difference of the two fractions.
+    for population in brightStars.POPULATIONS:
+        band = brightStars.bright_band_fraction(low, THRESHOLD, population)
+        assert band == pytest.approx(brightStars.bright_star_fraction(low, population)
+                                     - brightStars.bright_star_fraction(THRESHOLD, population))
+        assert band > 0
 
 
 def test_fill_context_caps_dim_stars_and_sets_their_population():
@@ -166,6 +183,59 @@ def test_scatter_refuses_a_galaxy_with_filled_sectors_unless_forced(mysql_config
         conn.close()
 
 
+def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
+    _seed_galaxy(mysql_config)
+    first = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    # No GEN.23 backfill here: in this small galaxy it would reach every
+    # block (the next test covers a band after a backfill).
+    monkeypatch.setattr(generate, "backfill_bright_stars", lambda *_args, **_kwargs: {"blocks": 0, "stars": 0})
+    args = generate._default_generation_args(config=mysql_config)
+    args.num_systems = 1
+    address = (0, 0, 0)
+    generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    conn = _db.get_connection(mysql_config)
+    try:
+        before = {row["id"]: row["luminosity_w"] for row in conn.execute("SELECT id, luminosity_w FROM bright_stars").fetchall()}
+        seed = _db.bright_star_scatter_settings(conn)[1]
+    finally:
+        conn.close()
+    assert len(before) == first["total"]
+
+    band = generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100"))
+    assert band["total"] > first["total"]
+    assert (band["from_luminosity_sol"], band["to_luminosity_sol"]) == (THRESHOLD, 100.0)
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert _db.bright_star_scatter_settings(conn) == (100.0, seed)
+        rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index"
+                            " FROM bright_stars").fetchall()
+    finally:
+        conn.close()
+    after = {row["id"]: row["luminosity_w"] for row in rows}
+    assert {key: after[key] for key in before} == before
+    added = [row for row in rows if row["id"] not in before]
+    assert len(added) == band["total"]
+    for row in added:
+        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
+        assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY * 0.99
+        assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) != address
+
+    # At or above the stored level there is nothing to add.
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "300")) is None
+
+
+def test_going_down_a_layer_needs_a_scatter_first(mysql_config):
+    _seed_galaxy(mysql_config)
+    assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
 def test_plan_options_conflict():
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate.add_plan_arguments(parser)
@@ -173,6 +243,13 @@ def test_plan_options_conflict():
     with pytest.raises(SystemExit):
         generate.validate_plan_args(args, parser)
     args = parser.parse_args(["--bright-star-min-luminosity", "50"])
+    with pytest.raises(SystemExit):
+        generate.validate_plan_args(args, parser)
+    for extra in (["--bright-stars-only"], ["--no-bright-stars"]):
+        args = parser.parse_args(["--bright-stars-down-to", "100", *extra])
+        with pytest.raises(SystemExit):
+            generate.validate_plan_args(args, parser)
+    args = parser.parse_args(["--bright-stars-down-to", "50"])
     with pytest.raises(SystemExit):
         generate.validate_plan_args(args, parser)
 
@@ -183,16 +260,16 @@ FLOOR = 100.0
 
 
 def test_band_stars_stay_inside_their_band():
-    from stellarObjects.stellarPopulation import band_fraction, sample_stars_between
-    stars = sample_stars_between(40, FLOOR, THRESHOLD, "young", random.Random(5))
+    from stellarObjects.stellarPopulation import bright_band_fraction, sample_bright_stars
+    stars = sample_bright_stars(40, FLOOR, "young", random.Random(5), max_luminosity_sol=THRESHOLD)
     for star in stars:
         luminosity = star["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY
         assert FLOOR * 0.99 <= luminosity < THRESHOLD
-    assert band_fraction(FLOOR, THRESHOLD, "young") == pytest.approx(
+    assert bright_band_fraction(FLOOR, THRESHOLD, "young") == pytest.approx(
         brightStars.bright_star_fraction(FLOOR, "young") - brightStars.bright_star_fraction(THRESHOLD, "young"))
-    assert band_fraction(FLOOR, None, "young") == brightStars.bright_star_fraction(FLOOR, "young")
+    assert bright_band_fraction(FLOOR, None, "young") == brightStars.bright_star_fraction(FLOOR, "young")
     with pytest.raises(ValueError):
-        sample_stars_between(1, THRESHOLD, FLOOR)
+        sample_bright_stars(1, THRESHOLD, max_luminosity_sol=FLOOR)
 
 
 def test_backfilled_cells_get_band_stars_in_their_own_cell():
@@ -282,6 +359,48 @@ def test_backfill_fills_blocks_once_and_skips_filled_sectors(mysql_config):
         assert _block_rows(conn) == {}
     finally:
         conn.close()
+
+
+def test_going_down_a_layer_gives_backfilled_blocks_only_what_they_lack(mysql_config):
+    # A staged scatter (PERF.5) after a backfill (GEN.23): the blocks the
+    # backfill took down to `partial` already hold partial..THRESHOLD, so a
+    # band that stops above `partial` adds nothing there, and one below it
+    # adds only the stars under `partial`.
+    partial = 300.0
+    _seed_galaxy(mysql_config)
+    generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    assert generate.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC), radius_ly=20.0,
+                                          min_luminosity_sol=partial)["blocks"]
+    conn = _db.get_connection(mysql_config)
+    try:
+        blocks = _db.bright_star_block_keys(conn)
+    finally:
+        conn.close()
+    cells = {address for key in blocks for address in generate._block_addresses(DrillBlock(3, *key))}
+
+    def stars_since(last_id):
+        conn = _db.get_connection(mysql_config)
+        try:
+            rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index FROM bright_stars"
+                                " WHERE id > ? ORDER BY id", (last_id,)).fetchall()
+            top = conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"]
+            return rows, top, _block_rows(conn)
+        finally:
+            conn.close()
+
+    _rows, last, _levels = stars_since(0)
+    generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "400"))
+    added, last, levels = stars_since(last)
+    assert added and set(levels.values()) == {partial}
+    assert not [row for row in added if (row["ring_index"], row["layer_index"], row["ring_slot_index"]) in cells]
+
+    band = generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(FLOOR)))
+    added, last, levels = stars_since(last)
+    assert len(added) == band["total"] and set(levels.values()) == {FLOOR}
+    inside = [row for row in added if (row["ring_index"], row["layer_index"], row["ring_slot_index"]) in cells]
+    assert inside
+    for row in inside:
+        assert row["luminosity_w"] < partial * physical_constants.SOLAR_LUMINOSITY
 
 
 def test_generating_a_sector_backfills_around_it_and_fills_down_to_the_floor(mysql_config):

@@ -2,7 +2,10 @@
     view is HTML from lib/phenomenonrender.py or lib/phenomenonmap.py
     (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
+{% from "partials/edit_controls.html" import edit_buttons with context %}
+{% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- if view_kind == "render" %}
 <script type="module" src="{{ static_url('phenomenonrender.js') }}"></script>
 {%- elif view_kind == "map" %}
@@ -22,6 +25,7 @@
   <p class="page-actions">
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+    {{ bookmark_button(bookmark) }}
   </p>
   {%- if nearest_html %}
   <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>
@@ -46,5 +50,13 @@
 </section>
 {%- if view_kind == "render" %}
 </div></div>
+{%- endif %}
+{%- if can_edit %}
+<section class="panel" id="edit-phenomenon" aria-labelledby="edit-phenomenon-heading">
+  <h2 id="edit-phenomenon-heading">Edit</h2>
+  <p>{{ edit_buttons(page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1]), edit_target, title,
+       'Rolls it again as the same kind of object, keeping its name and place.',
+       'Deletes it.', facilities=False) }}</p>
+</section>
 {%- endif %}
 {% endblock %}

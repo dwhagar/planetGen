@@ -6,8 +6,30 @@ repository root (`pytest.ini` puts `.`, `src` and `src/html` on the path).
 ```sh
 pip install -e ".[test,api]"
 python -m nltk.downloader words
-pytest
+pytest -n auto
 ```
+
+## Running in parallel
+
+`-n auto` (pytest-xdist, part of the `test` extra) runs one worker process
+per core. Plain `pytest` still runs everything serially in one process,
+which is easier to read when debugging a single failure. On a 4-core
+machine with the database tests on, the whole suite took 17 min 21 s
+serially and 5 min 57 s with `-n 4` (2026-10-01).
+
+Workers never share database state:
+
+- each test that uses `mysql_config` gets its own uniquely named database;
+- each worker process gets its own control database
+  (`PLANETGEN_CONTROL_DATABASE` is set to `pgtest_control_<worker>_<random>`
+  by `conftest.py`, overriding any value in your environment, and dropped
+  at the end of the run), so nothing in the suite touches
+  `planetgen_control` or a real control schema;
+- generation runs in-process (`PLANETGEN_WORKERS=1`), so a test's
+  patched functions are the ones that run.
+
+`--dist worksteal` (what CI uses) lets idle workers take queued tests from
+busy ones, which helps when a few slow tests land on the same worker.
 
 ## The database tests
 
@@ -25,9 +47,32 @@ Each one falls back to the matching `PLANETGEN_MYSQL_*` variable, then to
 the built-in default (`127.0.0.1:3306`, user `planetgen`).
 
 The user needs to create and drop databases: each test gets its own
-uniquely named, throwaway database. Run the suite serially (no `pytest -n`)
-when these are set; a few API tests share server-wide state and can trip
-over each other under parallel workers.
+uniquely named, throwaway database, so the database tests are safe under
+`pytest -n auto` (see "Running in parallel" above).
+
+## Picking a slice of the suite
+
+`conftest.py` marks every test (markers registered in `pytest.ini`):
+
+- `db`: uses a real database (the `mysql_config` fixture, directly or
+  through another fixture);
+- `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
+  `test_bughunt_*`);
+- `browser`: the headless-browser checks (`test_web_a11y.py`).
+
+```sh
+pytest -n auto -m "not db and not slow"   # quick loop: about a minute on 4 cores
+pytest -n auto -m db                      # just the database tests
+```
+
+A pull request still needs the whole suite green.
+
+## Database engines
+
+Local runs here use MariaDB 10.11. CI's `test` job runs the whole suite
+three times: Python 3.9 on MySQL 8.0, and Python 3.12 on MySQL 8.4 and on
+MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
+than MariaDB, so a query that works locally can still fail there.
 
 ## Kinds of test
 
@@ -127,3 +172,9 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 profile each Monday, and can be started by hand from the Actions tab
 (**Deep fuzz** > **Run workflow**, optionally with a number of examples).
 A red deep run is a real bug report: its log carries the shrunk input.
+
+## CI runners
+
+CI can run on your own computers. Which jobs run where, what each machine
+needs, the security settings and troubleshooting are in
+[`ci-runners.md`](ci-runners.md).
