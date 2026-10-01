@@ -491,7 +491,7 @@ def population_status(conn):
     """
     try:
         row = conn.execute(
-            "SELECT EXISTS(SELECT 1 FROM population_state) AS generated, "
+            "SELECT EXISTS(SELECT 1 FROM population_state) AS `generated`, "
             "EXISTS(SELECT 1 FROM species) AS species, EXISTS(SELECT 1 FROM polities) AS polities, "
             "EXISTS(SELECT 1 FROM system_owners) AS territories"
         ).fetchone()

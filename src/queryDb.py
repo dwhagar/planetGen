@@ -1196,7 +1196,8 @@ _PHENOMENON_TABLES = (
     # table (a star system's own planet-orbiting comets).
     ("supernova_remnants", "supernova_remnant", "morphology", "radius_ly"),
     ("rogue_planets", "rogue_planet",
-     "(CASE WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
+     "(CASE WHEN mass_bin = 'brown-dwarf' THEN 'brown dwarf' "
+     "WHEN planet_type = 'g' THEN 'gas giant' ELSE 'terrestrial' END)", "0"),
     ("interstellar_comets", "interstellar_comet",
      "(CASE WHEN is_active THEN 'active' ELSE 'dormant' END)", "0"),
     # v31: a galaxy's active nucleus, always at the galactic center
@@ -1228,9 +1229,11 @@ _PHENOMENON_CLASS_COLUMNS = {
     "nebulae": "nebula_class",
     "supernova_remnants": "remnant_class",
     "asteroid_fields": "field_class",
+    "rogue_planets": "planet_class",
 }
-"""dict: The letter-class column (v38) of each `_PHENOMENON_TABLES` table
-that has one; every other type's rows carry `class` as `None`."""
+"""dict: The letter-class column (v38; a rogue planet's `PLANET_CLASSES`
+letter since v47) of each `_PHENOMENON_TABLES` table that has one; every
+other type's rows carry `class` as `None`."""
 
 
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):

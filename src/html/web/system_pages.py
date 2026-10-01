@@ -21,7 +21,7 @@ every link is a plain GET link (`page_url`).
 from flask import abort, redirect, request
 import apiclient
 from fmt import (
-    format_number, runaway_text,
+    format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
     nearest_systems_html,
 )
@@ -40,7 +40,7 @@ from . import bp
 from . import system_facilities
 from .class_pages import class_url
 from .helpers import (
-    crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
+    bookmark, crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
 
@@ -250,6 +250,8 @@ def system(system_id):
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         nav_links=links,
+        bookmark=bookmark("system", endpoint("system", system_id), detail["name"],
+                          page_url("system", system_id=system_id)),
         location_html=_location_html(detail),
         map_html=trusted_html(map_html),
         code_fmt=code_fmt,
@@ -409,8 +411,8 @@ def _optional(fmt):
     return lambda v: fmt(v) if v is not None else None
 
 
-_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{format_number(v, ',.1f')} km/s")
-_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{format_number(v, ',.2f')} Gy")
+_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", format_speed_kms)
+_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: format_period_years(v * 1e9))
 
 FIELD_SPECS = {
     "nebula": [
@@ -445,7 +447,7 @@ FIELD_SPECS = {
     "neutron_star": [
         ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
         ("radius_km", "Radius", _km),
-        ("spin_period_ms", "Spin Period", lambda v: f"{format_number(v, ',.2f')} ms"),
+        ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
@@ -466,6 +468,7 @@ FIELD_SPECS = {
     ],
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
+        ("planet_class", "Planet Class", str),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
@@ -476,7 +479,7 @@ FIELD_SPECS = {
     ],
     "interstellar_comet": [
         ("nucleus_diameter_km", "Nucleus Diameter", _km),
-        ("velocity_kms", "Velocity", lambda v: f"{format_number(v, ',.1f')} km/s"),
+        ("velocity_kms", "Velocity", format_speed_kms),
         ("is_active", "Active", _bool_text),
         ("composition_summary", "Composition", str),
         _SPEED, _PERIOD,
@@ -503,6 +506,7 @@ CLASS_COLUMNS = {
     "field_class": "asteroid-field",
     "mass_class": "black-hole",
     "mass_bin": "rogue-planet",
+    "planet_class": "planet",
 }
 """dict: The columns whose value is a class, and the class type
 (`lib/classref.py`) whose page it links to. An asteroid field's "C3"
@@ -566,6 +570,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
         nav_links=nav_links(phenomenon_type, detail["id"]),
+        bookmark=bookmark(phenomenon_type, endpoint(phenomenon_type, detail["id"]), detail["name"],
+                          page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=detail["id"])),
         view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),

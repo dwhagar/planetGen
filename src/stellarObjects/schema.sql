@@ -872,10 +872,17 @@
 --   against instead of scanning with `LIKE '%term%'`.
 --   `_migrate_v45_to_v46` adds them.
 --
--- v47: bright-star backfill per sector block (GEN.23) -- the
+-- v47: rogue planet classes (GEN.8) -- `rogue_planets.planet_class`, the
+--   rogue's `PLANET_CLASSES` letter, drawn from the classes flagged "r"
+--   (`roguePlanetData.choose_rogue_planet_class`). NULL for a brown dwarf
+--   (a failed star, not a planet). `_migrate_v46_to_v47` adds the column
+--   and gives every stored rogue its most probable fitting class
+--   (`roguePlanetData.default_rogue_planet_class`).
+--
+-- v48: bright-star backfill per sector block (GEN.23) -- the
 --   `bright_star_blocks` table below: for each 3x3x3 sector block a
 --   backfill has reached, the dimmest luminosity its stars have been
---   drawn down to. `_migrate_v46_to_v47` creates it empty.
+--   drawn down to. `_migrate_v47_to_v48` creates it empty.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2007,6 +2014,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
     planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
+    planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
     -- ROGUE_PLANET_MASS_BINS), or 'brown-dwarf' (13-80 Mjup).
     mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',
@@ -2412,7 +2421,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 
 
 -- ---------------------------------------------------------------------
--- bright_star_blocks (v47, GEN.23): one row per sector block (a level-3
+-- bright_star_blocks (v48, GEN.23): one row per sector block (a level-3
 -- block of `galaxyDrill`: 3 rings by 3 layers by its wedge's slots, keyed
 -- by block ring, wedge and slab) the bright-star backfill around a
 -- generated sector has reached. `min_luminosity_sol` is the dimmest

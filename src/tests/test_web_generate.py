@@ -733,15 +733,17 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
 
     out = tmp_path / "system.md"
     # An unreachable database: --output must never try to connect.
-    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1"}
+    # UTF-8 both ways, so Windows' cp1252 default never decodes the output.
+    env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
+           "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
-                          capture_output=True, text=True, timeout=120, env=env)
+                          capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
     wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
-                          capture_output=True, text=True, timeout=120, env=env)
+                          capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
 
 

@@ -100,8 +100,9 @@ export function drillBlockTotal(block, outline) {
 // - {kind: "quadrant", n}: the galaxy's first pick, a quarter of the disk
 //   (bearings n*90 to (n+1)*90 degrees);
 // - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
-//   slice, picked from the list beside the map: a third of them while
-//   more than three are left, then one;
+//   slice; pickOptions offers thirds while more than three are left (the
+//   keyboard and links use these), and the slab slider beside the map
+//   (galaxystageview.js) takes any one slab;
 // - {kind: "region", n}: an arc of the ring band in view, one of up to
 //   3 x 3 (a third of its rings across, a third of its arc along).
 // After a region comes a layer and after a layer a region, while each
@@ -275,17 +276,37 @@ export function pickOptions(view, kind) {
     const arc = Math.min(arcs - 1, Math.floor((angleFrom(midAngle(block), view.a0) / span) * arcs));
     const n = band * arcs + arc;
     if (!byOption.has(n)) {
-      byOption.set(n, {
-        pick: { kind: kind, n: n }, blocks: [],
-        a0: view.a0 + (span * arc) / arcs, a1: view.a0 + (span * (arc + 1)) / arcs,
-      });
+      byOption.set(n, { pick: { kind: kind, n: n }, arc: arc, blocks: [] });
     }
     byOption.get(n).blocks.push(block);
   });
   Array.from(byOption.keys()).sort(function (p, q) { return p - q; }).forEach(function (n) {
-    out.push(byOption.get(n));
+    const option = byOption.get(n);
+    // A choice reaches as far as its blocks do, not just its even share
+    // of the view: a block is sorted by its middle, and near the core a
+    // wedge (between meridians that run all the way in) is wider than a
+    // share, so the choice zooms into the wedge it highlights (Boss,
+    // 2026-10-01).
+    const share = blockSpan(option.blocks, view.a0 + (span * (option.arc + 0.5)) / arcs);
+    option.a0 = share.a0;
+    option.a1 = share.a1;
+    out.push(option);
   });
   return out;
+}
+
+// The bearings `blocks` cover, a0 to a1 (a1 - a0 under a turn), each
+// measured within half a turn of `mid`.
+function blockSpan(blocks, mid) {
+  let a0 = Infinity;
+  let a1 = -Infinity;
+  blocks.forEach(function (block) {
+    const b = block.bounds;
+    const t0 = mid + ((((b.t0 - mid + Math.PI) % TWO_PI) + TWO_PI) % TWO_PI) - Math.PI;
+    a0 = Math.min(a0, t0);
+    a1 = Math.max(a1, t0 + (b.t1 - b.t0));
+  });
+  return { a0: a0, a1: Math.min(a1, a0 + TWO_PI) };
 }
 
 // `view` after `pick`, or null when the pick isn't one it could take.

@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v47" notes) rather than duplicated here, since that
+comment ("v2" through "v48" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v46_to_v47`. `migrate_database`
+version, through `_migrate_v47_to_v48`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v47), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v48), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -548,6 +548,12 @@ to a whole-word `REGEXP` on the rows the other words narrowed.
 LOCK=SHARED`): reads keep working, but writes to those tables wait
 until each index is built, which on a large galaxy can take minutes.
 
+**Rogue planet classes (v47, GEN.8).** `rogue_planets.planet_class` is a
+rogue's `PLANET_CLASSES` letter, drawn from the classes whose `"r"` flag
+says they can be rogue (C, D, I, J and T) and that fit its type, radius
+and mass. NULL for a brown dwarf. `_migrate_v46_to_v47` gives every
+stored rogue its most probable fitting class.
+
 **Population and politics (v44).** Filled by `generate.py population`
 (or `--population` on a `sector`/`galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
@@ -578,7 +584,7 @@ record the scatter; a fill reads them, not the constant. A plan re-run
 truncates the table (`_db.clear_bright_stars`). `_migrate_v42_to_v43`
 adds both, empty.
 
-**Bright-star backfill per sector block (v47, GEN.23).** Generating any
+**Bright-star backfill per sector block (v48, GEN.23).** Generating any
 galaxy sector first backfills the stars around it
 (`generate.backfill_bright_stars`): every sector block (a level-3 block
 of `galaxyDrill`, 3 rings by 3 layers by its wedge's slots) with a sector
@@ -592,7 +598,7 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`_db.bright_star_fill_level`). A backfill takes the block's row lock
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
-truncates it with `bright_stars`. `_migrate_v46_to_v47` creates it empty.
+truncates it with `bright_stars`. `_migrate_v47_to_v48` creates it empty.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,
@@ -1360,6 +1366,7 @@ from any star.
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
+| `planet_class` | VARCHAR(4) | nullable | Added in v47: its `PLANET_CLASSES` letter (GEN.8); NULL for a brown dwarf. |
 | `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
@@ -1545,8 +1552,8 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 
 ### `bright_star_blocks`
 
-Added in v47 (GEN.23). How deep the bright-star backfill has gone in each
-sector block. See "Bright-star backfill per sector block (v47, GEN.23)"
+Added in v48 (GEN.23). How deep the bright-star backfill has gone in each
+sector block. See "Bright-star backfill per sector block (v48, GEN.23)"
 above.
 
 | Column | Type | Null | Notes |

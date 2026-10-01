@@ -250,6 +250,19 @@ def _map_picks(pick, other):
     return links
 
 
+def _bookmark_pick(pick, other_param):
+    """
+    The NAV page's Bookmarks select (MAP.22, MAP.23; design doc section
+    9): `static/bookmarks.js` fills it with the browser's system and
+    phenomenon bookmarks (and sectors, which open their system picker)
+    and goes to `/nav` with the `pick` endpoint set and `other_param`, the
+    other endpoint's value, kept.
+    """
+    keep = "to" if pick == "from" else "from"
+    return {"pick": pick, "keep_name": keep, "keep_value": other_param or "", "db": db_name(),
+            "nav_url": url_for("web.nav")}
+
+
 def _route_names(route, known):
     """`{node key: name}` for every stop on the route, looking up only
     intermediate systems (a phenomenon is only ever the first or last
@@ -387,7 +400,8 @@ def nav():
         return render_page(
             "nav.html", title="Nav", breadcrumbs=[crumb("Nav")],
             pickers=_origin_pickers(request.args.get("from_sector", ""), to_raw),
-            map_picks=_map_picks("from", destination), map_picks_heading="Or pick a start on a map", **page,
+            map_picks=_map_picks("from", destination), map_picks_heading="Or pick a start on a map",
+            bookmark_pick=_bookmark_pick("from", to_raw), **page,
         )
 
     origin = _resolve(*parse_endpoint(from_raw))
@@ -401,7 +415,8 @@ def nav():
         return render_page(
             "nav.html", title=title, breadcrumbs=crumbs, origin=origin,
             pickers=_destination_pickers(origin, request.args.get("to_sector", "")),
-            map_picks=_map_picks("to", origin), map_picks_heading="Or pick a destination on a map", **page,
+            map_picks=_map_picks("to", origin), map_picks_heading="Or pick a destination on a map",
+            bookmark_pick=_bookmark_pick("to", _param_of(origin)), **page,
         )
 
     to_kind, to_id = parse_endpoint(to_raw)

@@ -14,14 +14,15 @@
 // CSS version had (a real perspective camera now does the projection/
 // occlusion a browser's `preserve-3d` compositor used to).
 //
-// Every star and phenomenon cloud (nebula/asteroid field/black hole/
-// neutron star) is a real textured, glowing `THREE.Mesh` sphere -- not a
-// flat camera-facing `THREE.Sprite` the way this file used to draw them
-// (a label and the highlight ring still are sprites, which suits them
-// fine: flat 2D content with no "seen from any angle" concern a body's
-// own true 3D shape has). `./bodyRendering.js` supplies the shared
-// glow-shell shader and star granulation texture, the same building
-// blocks `static/systemmap.js` uses for its own per-marker spheres.
+// Every star, and every phenomenon that gives off light (quasar, neutron
+// star, accreting black hole), is a point of light (MAP.15): a tiny bright
+// core in a soft halo a fixed number of screen pixels across, the way
+// `static/galaxymap3d.js` draws its bright stars, all in one `THREE.Points`
+// (see "Points of light" below). A phenomenon with no light of its own
+// (quiescent black hole, rogue planet, interstellar comet) or an asteroid
+// field is a textured `THREE.Mesh` sphere with a fresnel glow shell from
+// `./bodyRendering.js`, and a nebula or supernova remnant a see-through
+// volume. Labels and the highlight ring are sprites.
 //
 // Built with plain DOM calls (never innerHTML/textContent-with-markup)
 // when filling the info panel, same discipline the old version had --
@@ -36,7 +37,7 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
@@ -59,6 +60,17 @@ var sceneData = readSceneData();
 function cssVar(name, fallback) {
   var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
   return value || fallback;
+}
+
+// Whether the map's background (--bg-subtle, the light or dark theme) is
+// light, from its computed color (same test as static/galaxymap3d.js's).
+function isLightBackground() {
+  var probe = document.createElement("span");
+  probe.style.color = cssVar("--bg-subtle", "#000");
+  document.body.appendChild(probe);
+  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+  probe.remove();
+  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
 }
 
 function addField(dl, label, value) {
@@ -410,11 +422,9 @@ var ROGUE_MARKER_COLOR = "#8f6df2";
 var ROGUE_MARKER_SCREEN_SIZE = 0.03;
 
 // A real 3D body: a textured core sphere plus a fresnel glow shell
-// (./bodyRendering.js), replacing the flat always-facing-camera Sprite
-// this file used to draw for every star/cloud. `coreTexture` is
-// whatever this kind's own recipe already built above (a star's own
-// granulation via makeStarSurfaceTexture, or one of the existing
-// nebula/asteroid-field/compact-remnant textures reused unchanged);
+// (./bodyRendering.js), for every phenomenon that is neither a cloud
+// volume nor a point of light. `coreTexture` is whatever this kind's own
+// recipe already built above;
 // `coreColorHex` tints it (0xffffff/no-op when the texture already has
 // its own baked-in color, as every one of these does). Returns
 // `{core, glow}` -- the caller adds `core` to the raycastable
@@ -518,6 +528,128 @@ function makeCloudVolume(cloud, volume) {
   // Only its far wall is drawn, so a star inside the cloud (nearer than
   // that wall) is never tinted over and stays easy to pick out.
   return mesh;
+}
+
+// --- Points of light (MAP.15) ----------------------------------------------
+//
+// Every star, and every phenomenon lib/starmap.py sends a `light` for, is
+// drawn the way static/galaxymap3d.js draws its bright stars: a point
+// sprite a fixed number of pixels across (never sized by distance), a core
+// `corePx` across in a soft halo `sizePx` across whose strength is `glow`,
+// the core `bright` opaque and whitened toward its middle (by `whiten`, 1
+// unless the entry says otherwise: an accreting black hole's core keeps
+// its disc's orange). lib/starmap.py works every number out (from the
+// star's radius, luminosity and temperature, or a fixed recipe for a
+// phenomenon). The halo falls off a little more slowly than the Galaxy
+// Map's, so even a red dwarf shows a bright aura on this smaller map (Boss:
+// "realistic sizes with bright auras"). The only change with zoom: closing in grows a point up to
+// POINT_CLOSE_GROWTH times its size. On the light theme's pale background
+// a white core would vanish, so there the core is a darker shade of its
+// own color instead, and the halo blends as usual.
+var POINT_CLOSE_GROWTH = 1.5;
+// A click within this many pixels of a point's center (or inside its
+// core, for a big one) picks it.
+var POINT_PICK_PX = 8;
+// The highlight ring around a selected point, in pixels across at least.
+var POINT_RING_MIN_PX = 20;
+
+var POINT_VERTEX_SHADER = [
+  "#include <common>",
+  "#include <logdepthbuf_pars_vertex>",
+  "attribute vec3 pointColor;",
+  "attribute float pointSize;",
+  "attribute float pointCore;",
+  "attribute float pointGlow;",
+  "attribute float pointBright;",
+  "attribute float pointWhiten;",
+  "uniform float pixelRatio;",
+  "uniform float sizeScale;",
+  "varying vec3 vColor;",
+  "varying float vCore;",
+  "varying float vGlow;",
+  "varying float vBright;",
+  "varying float vWhiten;",
+  "void main() {",
+  "  vColor = pointColor;",
+  "  vCore = pointCore / pointSize;",
+  "  vGlow = pointGlow;",
+  "  vBright = pointBright;",
+  "  vWhiten = pointWhiten;",
+  "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+  "  gl_PointSize = pointSize * sizeScale * pixelRatio;",
+  "  #include <logdepthbuf_vertex>",
+  "}",
+].join("\n");
+
+var POINT_FRAGMENT_SHADER = [
+  "#include <common>",
+  "#include <logdepthbuf_pars_fragment>",
+  "uniform float lightBackground;",
+  "varying vec3 vColor;",
+  "varying float vCore;",
+  "varying float vGlow;",
+  "varying float vBright;",
+  "varying float vWhiten;",
+  "void main() {",
+  "  #include <logdepthbuf_fragment>",
+  "  float r = length(gl_PointCoord * 2.0 - 1.0);",
+  "  if (r > 1.0) discard;",
+  "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
+  "  float halo = vGlow * exp(-r * r * 3.0) * (1.0 - r * r);",
+  "  vec3 lit = mix(vColor, vec3(1.0), 0.6 * vBright * vWhiten);",
+  "  vec3 coreColor = mix(lit, vColor * 0.55, lightBackground);",
+  "  gl_FragColor = vec4(mix(vColor, coreColor, core), clamp(core * vBright + halo, 0.0, 1.0));",
+  "}",
+].join("\n");
+
+// One THREE.Points holding every entry with a `light`; a neighboring
+// sector's phenomenon (`neighbor`) is dimmed as its cloud would be.
+function makePointsOfLight(entries, lightBackground) {
+  var n = entries.length;
+  var positions = new Float32Array(3 * n);
+  var colors = new Float32Array(3 * n);
+  var sizes = new Float32Array(n);
+  var cores = new Float32Array(n);
+  var glows = new Float32Array(n);
+  var brights = new Float32Array(n);
+  var whitens = new Float32Array(n);
+  var color = new THREE.Color();
+  entries.forEach(function (entry, i) {
+    var light = entry.light;
+    var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
+    positions.set([entry.x, entry.y, entry.z], 3 * i);
+    color.set(light.color || "#ffffff");
+    colors.set([color.r, color.g, color.b], 3 * i);
+    sizes[i] = light.sizePx;
+    cores[i] = light.corePx;
+    glows[i] = light.glow * dim;
+    brights[i] = light.bright * dim;
+    whitens[i] = light.whiten != null ? light.whiten : 1;
+  });
+  var geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setAttribute("pointColor", new THREE.BufferAttribute(colors, 3));
+  geometry.setAttribute("pointSize", new THREE.BufferAttribute(sizes, 1));
+  geometry.setAttribute("pointCore", new THREE.BufferAttribute(cores, 1));
+  geometry.setAttribute("pointGlow", new THREE.BufferAttribute(glows, 1));
+  geometry.setAttribute("pointBright", new THREE.BufferAttribute(brights, 1));
+  geometry.setAttribute("pointWhiten", new THREE.BufferAttribute(whitens, 1));
+  var material = new THREE.ShaderMaterial({
+    uniforms: {
+      pixelRatio: { value: 1 },
+      sizeScale: { value: 1 },
+      lightBackground: { value: lightBackground ? 1 : 0 },
+    },
+    vertexShader: POINT_VERTEX_SHADER,
+    fragmentShader: POINT_FRAGMENT_SHADER,
+    transparent: true,
+    depthWrite: false,
+  });
+  var points = new THREE.Points(geometry, material);
+  // Drawn after the clouds, so a cloud's far wall never paints over one.
+  points.renderOrder = 5;
+  points.frustumCulled = false;
+  return points;
 }
 
 function makeTextSprite(text, color) {
@@ -652,38 +784,28 @@ function initStarmap(canvasEl, data) {
   scene.add(interactiveGroup);
   var entryByObject = new Map();
 
-  // A star's own glow. lib/starmap.py keeps every star's core small and
-  // sends the glow per star (glowScale/glowStrength/glowPower, from its
-  // luminosity), so a supergiant is a small point in a big soft halo and a
-  // white dwarf a tiny dot with little glow; STAR_GLOW is only the fallback
-  // for a star without them.
-  var STAR_GLOW = { power: 1.5, strength: 2.2, scale: 1.4 };
-  // The core can be only a few pixels across, so each star gets an unseen
-  // sphere at least this big as its click target (the raycaster still hits
-  // a mesh whose material isn't drawn).
-  var STAR_HIT_MIN_R = 4;
-  var hitMaterial = new THREE.MeshBasicMaterial({ visible: false });
+  // Cloud volumes (see makeCloudVolume): a click that reaches one only
+  // through its far wall still picks a point of light in front of it.
+  var volumeMeshes = new Set();
 
-  (data.stars || []).forEach(function (star) {
-    var bodies = makeBodySpheres(
-      star.r, makeStarSurfaceTexture(THREE, star.fill), 0xffffff,
-      {
-        color: star.fill,
-        power: star.glowPower != null ? star.glowPower : STAR_GLOW.power,
-        strength: star.glowStrength != null ? star.glowStrength : STAR_GLOW.strength,
-        scale: star.glowScale != null ? star.glowScale : STAR_GLOW.scale,
-      },
-    );
-    bodies.core.position.set(star.x, star.y, star.z);
-    bodies.glow.position.set(star.x, star.y, star.z);
-    scene.add(bodies.core);
-    scene.add(bodies.glow);
-    var hit = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), hitMaterial);
-    hit.scale.setScalar(Math.max(star.r, STAR_HIT_MIN_R));
-    hit.position.set(star.x, star.y, star.z);
-    interactiveGroup.add(hit);
-    entryByObject.set(hit, star);
-  });
+  // Every star and light-giving phenomenon, drawn as points of light
+  // (MAP.15) and picked on screen (pointAtClientPoint), not by raycast.
+  var pointEntries = (data.stars || []).concat((data.clouds || []).filter(function (cloud) {
+    return cloud.light;
+  }));
+  var pointsOfLight = null;
+  if (pointEntries.length) {
+    pointsOfLight = makePointsOfLight(pointEntries, isLightBackground());
+    pointsOfLight.material.uniforms.pixelRatio.value = renderer.getPixelRatio();
+    scene.add(pointsOfLight);
+  }
+
+  // How much the points have grown with the camera's zoom: their own size
+  // up to default zoom, POINT_CLOSE_GROWTH times it at MAX_ZOOM.
+  function pointSizeScale() {
+    var share = THREE.MathUtils.clamp((currentZoom() - 1) / (MAX_ZOOM - 1), 0, 1);
+    return 1 + (POINT_CLOSE_GROWTH - 1) * share;
+  }
 
   // Not in interactiveGroup: a click on a marker's empty middle should
   // still reach whatever is behind it.
@@ -692,11 +814,15 @@ function initStarmap(canvasEl, data) {
   var rogueMarkerMaterial = null;
 
   (data.clouds || []).forEach(function (cloud) {
+    if (cloud.light) {
+      return;
+    }
     var volume = CLOUD_VOLUMES[cloud.kind];
     if (volume) {
       var mesh = makeCloudVolume(cloud, volume);
       interactiveGroup.add(mesh);
       entryByObject.set(mesh, cloud);
+      volumeMeshes.add(mesh);
       return;
     }
     var glow = glowRecipeForCloud(cloud);
@@ -770,18 +896,51 @@ function initStarmap(canvasEl, data) {
     }
   });
 
+  var ringTexture = makeRingTexture(accentColor);
   var highlightSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: makeRingTexture(accentColor), transparent: true, depthWrite: false })
+    new THREE.SpriteMaterial({ map: ringTexture, transparent: true, depthWrite: false })
   );
   highlightSprite.visible = false;
   scene.add(highlightSprite);
+  // A point of light keeps its size on screen, so its ring does too
+  // (sized each frame, updatePointHighlight).
+  var pointHighlightSprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: ringTexture, transparent: true, depthWrite: false, sizeAttenuation: false })
+  );
+  pointHighlightSprite.visible = false;
+  pointHighlightSprite.renderOrder = 6;
+  scene.add(pointHighlightSprite);
+  var highlightedPoint = null;
 
   function highlightEntry(entry) {
+    if (entry.light) {
+      highlightSprite.visible = false;
+      highlightedPoint = entry;
+      pointHighlightSprite.position.set(entry.x, entry.y, entry.z);
+      pointHighlightSprite.visible = true;
+      updatePointHighlight();
+      return;
+    }
+    highlightedPoint = null;
+    pointHighlightSprite.visible = false;
     highlightSprite.position.set(entry.x, entry.y, entry.z);
-    // At least a star's click target, so the ring clears a tiny core.
     var r = Math.max(entry.r || 8, 4);
     highlightSprite.scale.set(r * 2.6, r * 2.6, 1);
     highlightSprite.visible = true;
+  }
+
+  // A sprite without size attenuation is scaled in units of the view's
+  // height at distance 1, so a ring `px` pixels across needs
+  // px / heightPx * 2 * tan(fov / 2).
+  function updatePointHighlight() {
+    if (!highlightedPoint) {
+      return;
+    }
+    var light = highlightedPoint.light;
+    var px = Math.max(POINT_RING_MIN_PX, light.corePx * 2 + 14) * pointSizeScale();
+    var heightPx = canvasEl.clientHeight || 1;
+    var scale = (px / heightPx) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    pointHighlightSprite.scale.set(scale, scale, 1);
   }
 
   function selectEntry(entry) {
@@ -918,7 +1077,44 @@ function initStarmap(canvasEl, data) {
     );
     raycaster.setFromCamera(ndc, camera);
     var hits = raycaster.intersectObjects(interactiveGroup.children, false);
-    return hits.length ? entryByObject.get(hits[0].object) || null : null;
+    var point = pointAtClientPoint(clientX, clientY, rect);
+    var hit = hits.length ? hits[0] : null;
+    // A point of light wins unless a solid body sits in front of it (a
+    // cloud volume is only ever hit at its far wall, see makeCloudVolume).
+    if (point && (!hit || volumeMeshes.has(hit.object) || point.distance <= hit.distance)) {
+      return point.entry;
+    }
+    return hit ? entryByObject.get(hit.object) || null : null;
+  }
+
+  // The point of light whose center is nearest a screen point, within
+  // POINT_PICK_PX (or its own core, if bigger), as `{entry, distance}`
+  // (distance from the camera, in world units), or null -- picked on
+  // screen like static/galaxymap3d.js's stars, since a point is a fixed
+  // number of pixels across whatever its distance.
+  var projected = new THREE.Vector3();
+  function pointAtClientPoint(clientX, clientY, rect) {
+    var best = null;
+    var bestPx = Infinity;
+    var growth = pointSizeScale();
+    pointEntries.forEach(function (entry) {
+      projected.set(entry.x, entry.y, entry.z).project(camera);
+      if (projected.z < -1 || projected.z > 1) {
+        return;
+      }
+      var px = Math.hypot(
+        rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
+        rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
+      var reach = Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
+      if (px <= reach && px < bestPx) {
+        best = entry;
+        bestPx = px;
+      }
+    });
+    if (!best) {
+      return null;
+    }
+    return { entry: best, distance: camera.position.distanceTo(projected.set(best.x, best.y, best.z)) };
   }
 
   canvasEl.addEventListener("click", function (event) {
@@ -1039,6 +1235,10 @@ function initStarmap(canvasEl, data) {
 
   (function animate() {
     requestAnimationFrame(animate);
+    if (pointsOfLight) {
+      pointsOfLight.material.uniforms.sizeScale.value = pointSizeScale();
+    }
+    updatePointHighlight();
     renderer.render(scene, camera);
   })();
 }

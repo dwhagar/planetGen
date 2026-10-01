@@ -27,7 +27,7 @@ row's detail instead.
 """
 
 from classref import class_entry, star_type_classes
-from fmt import esc, format_distance_km, format_number
+from fmt import esc, format_distance_km, format_number, format_speed_kms
 from mdconvert import markdown_to_html
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -112,7 +112,7 @@ def facility_row(facility):
         "distance": format_distance_km(facility["orbit_distance_km"]) if orbital else None,
         "period": esc(format_period(facility["orbit_period_years"]))
         if orbital and facility.get("orbit_period_years") is not None else None,
-        "speed": f'{format_number(facility["orbital_speed_kms"], ",.2f")} km/s'
+        "speed": format_speed_kms(facility["orbital_speed_kms"])
         if orbital and facility.get("orbital_speed_kms") is not None else None,
     }
 

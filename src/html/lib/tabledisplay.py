@@ -61,8 +61,7 @@ try:
     from stellarObjects import physical_constants
     from stellarObjects.config import SystemConfig
     from stellarObjects.utils import (
-        format_body_radius_km, format_distance_km, format_relative_to_sol,
-        years_to_time_string,
+        format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol,
     )
 
     _HTML_CONFIG = SystemConfig()
@@ -72,7 +71,7 @@ except ImportError:
     # fall back to showing the raw number rather than failing outright (see
     # `html/sector.py`'s identical fallback for `milliparsecs_to_ly`).
     _HTML_CONFIG = None
-    years_to_time_string = None
+    format_period_years = None
 
 
 def format_star_mass(mass_kg):
@@ -96,9 +95,11 @@ def format_star_radius(radius_km):
 
 
 def format_period(period_years):
-    if years_to_time_string is None:
+    """An orbital period, in years, on the shared period ladder
+    (`stellarObjects.utils.format_period_years`, UX.14)."""
+    if format_period_years is None:
         return f"{period_years} years"
-    return years_to_time_string(period_years)
+    return format_period_years(period_years)
 
 
 def format_body_distance(distance_km, is_moon=False):

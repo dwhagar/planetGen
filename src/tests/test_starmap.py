@@ -130,10 +130,11 @@ def test_render_map_panel_rotates_star_dots_only_when_placed():
     assert _star_position(scene_unplaced_again) == unplaced_pos
 
 
-def test_scene_stars_carry_a_small_core_and_a_luminosity_glow():
-    """Each star in the scene data has a small core (`r`) and the glow
-    `sectormap.js` draws around it; a supergiant's glow, not its core,
-    is what sets it apart from a dwarf."""
+def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
+    """MAP.15: each star in the scene data carries the point of light
+    `sectormap.js` draws (`light`, in screen pixels): a supergiant's halo
+    is far wider and stronger than a red dwarf's, its core bigger, and
+    its color follows its temperature."""
     dwarf = _make_system()
     giant = _make_system(x=-100.0)
     giant["id"] = 2
@@ -144,10 +145,43 @@ def test_scene_stars_carry_a_small_core_and_a_luminosity_glow():
     scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [dwarf, giant]))
     small, big = scene["stars"]
     for star in (small, big):
-        assert set(star) >= {"r", "glowScale", "glowStrength", "glowPower"}
+        assert set(star["light"]) == {"color", "corePx", "sizePx", "glow", "bright"}
         assert star["r"] <= 8
-    assert big["r"] * big["glowScale"] > 4 * small["r"] * small["glowScale"]
-    assert big["glowStrength"] > small["glowStrength"]
+        # A point a few pixels across, never a ball.
+        assert star["light"]["corePx"] <= 5
+        assert star["light"]["sizePx"] <= 40
+        assert star["light"]["sizePx"] >= 2 * star["light"]["corePx"] + 2
+    assert big["light"]["sizePx"] > 2 * small["light"]["sizePx"]
+    assert big["light"]["corePx"] > small["light"]["corePx"]
+    assert big["light"]["glow"] > small["light"]["glow"]
+    assert big["light"]["bright"] > small["light"]["bright"]
+    # A 3600 K supergiant is orange-red: more red than blue.
+    color = big["light"]["color"]
+    assert int(color[1:3], 16) > int(color[5:7], 16)
+
+
+@pytest.mark.parametrize("type_, descriptor, lit", [
+    ("quasar", "radio-loud", True),
+    ("neutron_star", "pulsar", True),
+    ("black_hole", "accreting", True),
+    ("black_hole", "quiescent", False),
+    ("rogue_planet", "terrestrial", False),
+    ("interstellar_comet", "icy", False),
+    ("nebula", "emission", False),
+    ("supernova_remnant", "shell", False),
+    ("asteroid_field", "dense", False),
+])
+def test_only_light_giving_phenomena_are_points_of_light(type_, descriptor, lit):
+    """MAP.15: quasars, neutron stars and accreting black holes are drawn
+    as points of light; a quiescent black hole, a rogue planet (MAP.46
+    keeps it ringed) and an interstellar comet keep their spheres, and
+    clouds stay clouds."""
+    phenomenon = _phenomenon(type_=type_, descriptor=descriptor)
+    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon]))
+    cloud = scene["clouds"][0]
+    assert ("light" in cloud) is lit
+    if lit:
+        assert set(cloud["light"]) >= {"color", "corePx", "sizePx", "glow", "bright"}
 
 
 def test_render_map_panel_placed_on_axis_matches_unplaced():

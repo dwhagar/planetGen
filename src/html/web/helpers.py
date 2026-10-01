@@ -33,6 +33,8 @@ these:
 - `current_admin()`: the logged-in admin (or `None`), looked up once per
   request.
 - `pager(...)`: `lib/pagination.render_pagination`, as Markup.
+- `bookmark(kind, value, name, url, sector_id=None)`: what a page's
+  ☆ Bookmark button saves (`templates/partials/bookmark.html`).
 """
 
 from flask import current_app, g, render_template, request, url_for
@@ -52,6 +54,19 @@ def db_name():
     `mysql.database`, or `PLANETGEN_MYSQL_DATABASE`).
     """
     return current_app.config.get("WEB_DATABASE") or current_app.config["MYSQL_CONFIG"].database
+
+
+def bookmark(kind, value, name, url, sector_id=None):
+    """
+    The entry a page's ☆ Bookmark button saves in the browser
+    (`static/bookmarks.js`, MAP.23; rendered by
+    `templates/partials/bookmark.html`): `kind` is `"system"`, a
+    phenomenon type or `"sector"`; `value` is the NAV endpoint
+    (`nav_page.endpoint`) or the sector's designation; `url` is the page
+    it opens; `sector_id` lets the NAV page open a sector's system picker.
+    `db` names the browser's list, one per database.
+    """
+    return {"db": db_name(), "kind": kind, "value": value, "name": name, "url": url, "sector_id": sector_id}
 
 
 def page_url(name, _anchor=None, **params):

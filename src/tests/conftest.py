@@ -48,6 +48,18 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 # already uses the cores.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# The control schema (admin logins, sessions, the work queue's lease) is
+# one fixed name by default (`planetgen_control`), shared by everything on
+# a server. Code that falls back to it (migrateDb seeding, the work queue)
+# would make parallel pytest-xdist workers share one control database, and
+# a developer's own PLANETGEN_CONTROL_DATABASE could point tests at a real
+# one. Each test process gets its own throwaway name instead, dropped when
+# the session ends (`_drop_session_control_database` below). It doesn't
+# start with the `planetgen` prefix, so `/api/databases` never lists it.
+_XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "main")
+SESSION_CONTROL_DATABASE = f"pgtest_control_{_XDIST_WORKER}_{uuid.uuid4().hex[:8]}"
+os.environ[_db.CONTROL_DB_ENV_VAR] = SESSION_CONTROL_DATABASE
+
 
 def _test_server_kwargs():
     """Connection kwargs (host/port/user/password -- no database) for the
@@ -58,6 +70,27 @@ def _test_server_kwargs():
         user=os.environ.get("PLANETGEN_TEST_MYSQL_USER", os.environ.get("PLANETGEN_MYSQL_USER", "planetgen")),
         password=os.environ.get("PLANETGEN_TEST_MYSQL_PASSWORD", os.environ.get("PLANETGEN_MYSQL_PASSWORD", "")),
     )
+
+
+def pytest_collection_modifyitems(config, items):
+    """Suite markers (registered in pytest.ini), so a run can pick a slice:
+    `-m "not db"` without a database, `-m "not slow"` for a quick loop,
+    `-m browser` for the Playwright checks alone.
+
+    - `db`: the test uses a real MySQL database (`mysql_config`, directly or
+      through another fixture).
+    - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
+      `test_bughunt_*`), whose cost is in their number of examples.
+    - `browser`: `test_web_a11y.py` (headless Chromium).
+    """
+    for item in items:
+        if "mysql_config" in getattr(item, "fixturenames", ()):
+            item.add_marker(pytest.mark.db)
+        name = item.path.name
+        if name.startswith(("test_fuzz_", "test_bughunt_")):
+            item.add_marker(pytest.mark.slow)
+        if name == "test_web_a11y.py":
+            item.add_marker(pytest.mark.browser)
 
 
 @pytest.fixture(scope="session")
@@ -78,6 +111,16 @@ def _mysql_server_available():
             f"No MySQL test server reachable ({exc}) -- set PLANETGEN_TEST_MYSQL_HOST "
             f"(and _PORT/_USER/_PASSWORD as needed) to run database-backed tests."
         )
+    yield
+    # The per-process control database (SESSION_CONTROL_DATABASE above),
+    # if anything created it.
+    conn = pymysql.connect(**_test_server_kwargs(), connect_timeout=3)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"DROP DATABASE IF EXISTS `{SESSION_CONTROL_DATABASE}`")
+        conn.commit()
+    finally:
+        conn.close()
 
 
 @pytest.fixture
@@ -209,6 +252,30 @@ def mediawiki_config():
 # Registers and loads the hypothesis profiles for every `test_fuzz_*.py`
 # file (see tests/fuzz_support.py) before any of them is collected.
 from tests import fuzz_support  # noqa: E402,F401
+
+
+FAST_PASSWORD_HASH_METHOD = "pbkdf2:sha256:1000"
+
+
+@pytest.fixture(autouse=True)
+def _fast_password_hashing(request, monkeypatch):
+    """Every login, credential change and seeded admin user runs PBKDF2 at
+    600,000 rounds in production (`adminAuth.PASSWORD_HASH_METHOD`, SEC.25),
+    about a third of a second per check -- thousands of fuzzed logins
+    spend minutes on it without testing anything the round count changes.
+    Tests use 1,000 rounds instead (same algorithm, same code path, same
+    rehash-on-login logic), except those marked `real_password_hashing`
+    (test_password_hardening.py), which check the production setting
+    itself."""
+    if request.node.get_closest_marker("real_password_hashing"):
+        yield
+        return
+    from stellarObjects import adminAuth
+    monkeypatch.setattr(adminAuth, "PASSWORD_HASH_METHOD", FAST_PASSWORD_HASH_METHOD)
+    # The unknown-username dummy hash is cached; make the next one cheap
+    # too (monkeypatch puts the production one back afterwards).
+    monkeypatch.setattr(adminAuth, "_dummy_password_hash", None)
+    yield
 
 
 @pytest.fixture(autouse=True)

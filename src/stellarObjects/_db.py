@@ -77,7 +77,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
 from .nebulaData import Nebula
 from .planetData import Planet
-from .roguePlanetData import InterstellarComet, RoguePlanet, interstellar_comet_designation
+from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .quasarData import Quasar
@@ -89,7 +89,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 47
+SCHEMA_VERSION = 48
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2394,14 +2394,15 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     cur = conn.execute(
         """
         INSERT INTO rogue_planets (
-            sector_id, name, planet_type, mass_bin, mass_kg, radius_km, composition, has_internal_heat, has_moons,
+            sector_id, name, planet_type, planet_class, mass_bin, mass_kg, radius_km, composition,
+            has_internal_heat, has_moons,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, planet.name, planet.planet_type, planet.mass_bin, planet.mass_kg, planet.radius_km,
+            sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
@@ -4040,7 +4041,7 @@ BRIGHT_STAR_COLUMNS = (
 
 def clear_bright_stars(conn):
     """
-    Empties `bright_stars` and `bright_star_blocks` (v47) and forgets the
+    Empties `bright_stars` and `bright_star_blocks` (v48) and forgets the
     scatter's threshold and seed --
     a plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves tens of millions of rows.
@@ -7616,16 +7617,57 @@ def _migrate_v45_to_v46(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
 
 
+ROGUE_CLASS_BACKFILL_BATCH = 20000
+"""int: Rows per read when `_migrate_v46_to_v47` gives stored rogue
+planets their class."""
+
+
 def _migrate_v46_to_v47(conn):
     """
-    Adds `bright_star_blocks` (GEN.23) -- see `schema.sql`'s "v47" header
+    Adds `rogue_planets.planet_class` (GEN.8) -- see `schema.sql`'s "v47"
+    header note -- and fills it for every stored rogue planet with
+    `roguePlanetData.default_rogue_planet_class` (deterministic, so a
+    rerun gives the same classes). Brown dwarfs stay NULL. Read in id
+    order a batch at a time, one UPDATE per class per batch.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "rogue_planets", "planet_class"):
+        conn.execute("ALTER TABLE rogue_planets ADD COLUMN planet_class VARCHAR(4) AFTER planet_type")
+    last_id = 0
+    while True:
+        rows = conn.execute(
+            "SELECT id, planet_type, mass_bin, mass_kg, radius_km FROM rogue_planets "
+            "WHERE id > ? AND planet_class IS NULL ORDER BY id LIMIT ?",
+            (last_id, ROGUE_CLASS_BACKFILL_BATCH),
+        ).fetchall()
+        if not rows:
+            break
+        by_class = {}
+        for row in rows:
+            code = default_rogue_planet_class(row["planet_type"], row["radius_km"], row["mass_kg"], row["mass_bin"])
+            if code is not None:
+                by_class.setdefault(code, []).append(row["id"])
+        for code, ids in by_class.items():
+            conn.execute(
+                f"UPDATE rogue_planets SET planet_class = ? WHERE id IN ({', '.join('?' * len(ids))})",
+                (code, *ids),
+            )
+        last_id = rows[-1]["id"]
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
+
+
+def _migrate_v47_to_v48(conn):
+    """
+    Adds `bright_star_blocks` (GEN.23) -- see `schema.sql`'s "v48" header
     note. Empty: every block starts at the galaxy's scatter level.
 
     Args:
         conn (Connection): An open connection, mid-migration.
     """
     conn.execute(_schema_statement("bright_star_blocks"))
-    conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (48)")
 
 
 def _schema_statement(table):
@@ -7734,6 +7776,7 @@ def _migration_steps():
         (45, _migrate_v44_to_v45),
         (46, _migrate_v45_to_v46),
         (47, _migrate_v46_to_v47),
+        (48, _migrate_v47_to_v48),
     ]
 
 

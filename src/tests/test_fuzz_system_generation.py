@@ -37,13 +37,9 @@ Real bugs found here are kept as `xfail(strict=True)` tests named after
 the invariant they break, each with a minimal reproduction in its reason.
 """
 
-import contextlib
 import json
 import math
 import re
-import random
-import secrets
-from unittest import mock
 
 import pytest
 from hypothesis import HealthCheck, assume, example, given, note, settings
@@ -58,25 +54,11 @@ from stellarObjects.doubleStar import BinaryStarProxy
 from stellarObjects.starData import Star
 from stellarObjects.systemData import StarSystem
 
-from tests.fuzz_support import hostile_text, scaled
+from tests.fuzz_support import deterministic_entropy as _deterministic_entropy, hostile_text, scaled
 
 # ---------------------------------------------------------------------------
 # Reproducibility
 # ---------------------------------------------------------------------------
-
-
-@contextlib.contextmanager
-def _deterministic_entropy(seed):
-    """Seeds the global `random` module AND routes every `secrets` call the
-    generators make through one seeded `random.Random`, so a whole system
-    (planet classes, moon coin-flips, `reseed_rng()` reseeds, flavor text)
-    is a pure function of `seed` for the duration of the block."""
-    rng = random.Random(seed)
-    with mock.patch.object(secrets, "randbits", rng.getrandbits), \
-            mock.patch.object(secrets, "randbelow", rng.randrange), \
-            mock.patch.object(secrets, "choice", rng.choice):
-        random.seed(seed)
-        yield rng
 
 
 def _generate(cfg, seed, **kwargs):
@@ -936,6 +918,6 @@ def test_valid_domain_bounded_bell(lo, width, mode, seed):
 
 @given(years=st.floats(1 / (365.25 * 24 * 60), 1e15), age=st.floats(1e-6, 1e4))
 def test_valid_domain_text_formatters(years, age):
-    for text in (utils.years_to_time_string(years), utils.format_age_string(age)):
+    for text in (utils.format_period_years(years), utils.format_age_string(age)):
         assert isinstance(text, str) and text
         assert not {"nan", "inf", "-inf"} & set(text.lower().split())
