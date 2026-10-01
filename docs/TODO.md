@@ -1229,6 +1229,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that Boss approves; the moves themselves are filed as their own items
   from that plan.
 
+- [ ] **PERF.20 Short-term caching through the work queue and API (needs planning)**
+  Boss (2026-10-01 22:17Z): "Everything should go through the work
+  queue so that we can implement short-term caching where possible, add
+  a TODO item to investigate that so that the work queue and API work
+  together to optimize API calls back and forth. This is an item that
+  needs planning." Builds on PERF.19's audit of what the API and web
+  site start and on the page cache (PERF.2). Plan first, with Boss:
+  which API calls and queued results can be cached for a short time, and
+  where (the queue's task results, the API's responses, or both); how
+  long entries live and what clears them (a write, a regenerate, a
+  galaxy reset); how a request finds a queued or just-finished task that
+  already answers it instead of starting the same work again; and how
+  the API and the queue hand results back and forth with fewer round
+  trips. Done: an approved plan, with the build work filed as its own
+  items from it.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152).
