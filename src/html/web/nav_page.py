@@ -43,6 +43,7 @@ import apiclient
 from fmt import format_distance_ly
 from navmap import render_nav_map_panel
 from stellarObjects.navigation import format_course
+from stellarObjects.utils import ly_to_pc
 
 from . import bp
 from .sector_page import PHENOMENON_TYPE_LABELS
@@ -266,6 +267,79 @@ def _waypoints(origin, destination, result, names):
     return points
 
 
+def galaxy_map_url(origin, destination):
+    """`/galaxy` showing this course (`?course=<from>,<to>`, read by
+    `web/galaxy_views.py`)."""
+    return page_url("galaxy", course=f"{origin},{destination}")
+
+
+def galaxy_course(from_raw, to_raw):
+    """
+    A course as the Galaxy Map draws it (the drill-down's section 9.4):
+    its waypoints in galaxy-frame parsecs, so the map can open the
+    smallest stage holding them and draw the line.
+
+    Args:
+        from_raw (str): The origin's `from` value (`endpoint(...)`).
+        to_raw (str): The destination's `to` value.
+
+    Returns:
+        dict or None: `scope` (`"galaxy"` or `"sector"`), `points`
+            (`[{name, url, role, x, y, z}]`, parsecs; only for
+            `"galaxy"`), `sector` (`{id, name, ring, layer, slot}`, only
+            for `"sector"`, where the whole course sits inside one
+            sector) and `navUrl` (back to the course on the NAV page).
+            `None` when either endpoint can't be navigated, or the two
+            can't be navigated together.
+
+    Raises:
+        apiclient.NotFoundError: For an endpoint that doesn't exist.
+    """
+    origin = _resolve(*parse_endpoint(from_raw))
+    destination = _resolve(*parse_endpoint(to_raw))
+    if _unavailable_reason(origin) or _unavailable_reason(destination):
+        return None
+    try:
+        result = apiclient.get_nav(
+            db_name(), origin["id"], destination["id"],
+            from_kind=origin["kind"], to_kind=destination["kind"],
+            from_type=origin["type"], to_type=destination["type"],
+        )
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
+            raise
+        return None  # the two endpoints exist but can't be navigated together
+    nav_url_here = nav_url(_param_of(origin), _param_of(destination))
+    if result["scope"] != "galaxy":
+        # One sector holds the whole course: the map shows that sector.
+        sector = apiclient.get_sector(db_name(), origin["sector_id"])
+        if sector.get("ring_index") is None:
+            return None
+        return {
+            "scope": "sector", "points": [], "navUrl": nav_url_here,
+            "sector": {
+                "id": sector["id"], "name": sector["name"], "ring": sector["ring_index"],
+                "layer": sector["layer_index"], "slot": sector["ring_slot_index"],
+            },
+        }
+    names = _route_names(result["route"], {origin["key"]: origin["name"], destination["key"]: destination["name"]})
+    points = []
+    for point in _waypoints(origin, destination, result, names):
+        x, y, z = point["position"]
+        points.append({
+            "name": point["name"], "role": point["role"], "url": _point_url(point),
+            "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
+        })
+    return {"scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here}
+
+
+def _point_url(point):
+    """A waypoint's own page."""
+    if point.get("kind") == "phenomenon":
+        return page_url("phenomenon", phenomenon_type=point["type"], phenomenon_id=point["id"])
+    return page_url("system", system_id=point["id"])
+
+
 def _unavailable_reason(origin):
     if origin["kind"] == "phenomenon" and not origin["placed"]:
         return "NAV is not available: this phenomenon has not been placed in the galaxy."
@@ -341,6 +415,7 @@ def nav():
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
         map_html=trusted_html(map_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
+        galaxy_map_url=galaxy_map_url(_param_of(origin), _param_of(destination)),
         start_over=nav_url(_param_of(origin)),
         **page,
     )

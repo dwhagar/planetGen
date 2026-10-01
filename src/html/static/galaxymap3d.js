@@ -2123,6 +2123,80 @@ function initGalaxyMap3d(canvasEl, data) {
   renderFromCache(neededTiles());
   scheduleFetch(false);
 
+  // --- NAV course ---------------------------------------------------------------
+  //
+  // With ?course=<from>,<to> (the NAV result's "Show on Galaxy Map", see
+  // the drill-down design's section 9.4), the page embeds the course's
+  // waypoints in galaxy-frame parsecs (web/nav_page.galaxy_course). They
+  // are drawn as one line through every stop with a ring and a name at
+  // each, over everything else and never picked, in the stages and in
+  // free look alike; the map opens on the smallest stage holding them
+  // all (galaxystages.courseStage), unless the URL names a stage itself.
+  // A course inside one sector has no line to draw: the map opens that
+  // sector instead.
+  var course = data.course && (data.course.points || []).length >= 2 ? data.course : null;
+  var courseSectors = [];
+  var courseMarkers = [];
+  var COURSE_RING_PX = 11;
+  var COURSE_LABEL_PX = 13;
+
+  if (data.course && data.course.sector) {
+    courseSectors = [data.course.sector];
+  }
+  if (course) {
+    var courseGroup = new THREE.Group();
+    courseGroup.renderOrder = 4;
+    scene.add(courseGroup);
+    var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    courseGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(linePoints),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })
+    ));
+    course.points.forEach(function (point, n) {
+      var ends = n === 0 || n === course.points.length - 1;
+      var ring = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: highlightTexture, transparent: true, depthWrite: false, depthTest: false,
+        sizeAttenuation: false, opacity: ends ? 1 : 0.7,
+      }));
+      ring.position.copy(linePoints[n]);
+      courseGroup.add(ring);
+      courseMarkers.push({ sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6 });
+      if (!ends) {
+        return;
+      }
+      var label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture(point.name, accentColor), transparent: true, depthWrite: false, depthTest: false,
+        sizeAttenuation: false,
+      }));
+      label.position.copy(linePoints[n]);
+      courseGroup.add(label);
+      courseMarkers.push({ sprite: label, px: COURSE_LABEL_PX, label: true });
+    });
+    courseSectors = course.points.map(function (point) {
+      return sectorAddressAt(point.x, point.y, point.z, edgePc);
+    });
+  }
+
+  // Keeps every course marker the same size on screen, like the wedge
+  // labels (a sprite without size attenuation spans scale / tan(fov / 2)
+  // half-heights of the view).
+  function updateCourseMarkers() {
+    if (!courseMarkers.length) {
+      return;
+    }
+    var heightPx = canvasEl.clientHeight || 1;
+    var per = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+    courseMarkers.forEach(function (marker) {
+      var h = marker.px * per;
+      var aspect = marker.label ? marker.sprite.material.map.userData.aspect : 1;
+      marker.sprite.scale.set(h * aspect, h, 1);
+      // A name sits above its ring instead of on it.
+      if (marker.label) {
+        marker.sprite.center.set(0.5, -0.4);
+      }
+    });
+  }
+
   // --- Drill-down stages ------------------------------------------------------
   //
   // The map opens on the drill-down (galaxystageview.js): the galaxy in
@@ -2136,7 +2210,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
-    accentColor: accentColor, canGenerate: !!data.generate,
+    accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
     setCamera: function (v) {
@@ -2822,6 +2896,7 @@ function initGalaxyMap3d(canvasEl, data) {
     updateClouds();
     updateHighlightScale();
     updateWedgeLabels();
+    updateCourseMarkers();
     renderer.render(scene, camera);
   })();
 }

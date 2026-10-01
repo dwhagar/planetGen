@@ -163,6 +163,30 @@ export function sectorStage(ring, layer, slot) {
   return { at: chain[2], slab: layer };
 }
 
+// The smallest stage showing every one of `sectors` ({ring, layer,
+// slot}), for the NAV course overlay (section 9.4): the deepest block
+// holding them all, top-down when they also share one of its child
+// slabs, else its 3D view. An empty list, or sectors that share no
+// level-243 block, give the galaxy.
+export function courseStage(sectors) {
+  if (!sectors || !sectors.length) return { at: null, slab: null };
+  const chains = sectors.map(function (s) {
+    const chain = drillChainOf(s.ring, s.layer, s.slot);
+    return chain.concat([{ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }]);
+  });
+  let depth = 0;
+  while (depth < 3 && chains.every(function (chain) { return sameBlock(chain[depth], chains[0][depth]); })) {
+    depth++;
+  }
+  // depth is now how many of the chain's blocks they all share, so the
+  // container is the last of those and the children are the next level.
+  const at = depth ? chains[0][depth - 1] : null;
+  const children = chains.map(function (chain) { return chain[depth]; });
+  const slab = children[0].slab;
+  const together = children.every(function (block) { return block.slab === slab; });
+  return { at: at, slab: together ? slab : null };
+}
+
 // --- Designations -------------------------------------------------------------
 
 // provisional_sector_designation's hex code: ring << 33 | (layer + 4096)

@@ -285,6 +285,18 @@ def _density_shape(galaxy_shape):
     return shape
 
 
+def _escape(text):
+    """Text as HTML, for the course hint's names and URLs (a sector or
+    system name is generated, but never trusted as markup)."""
+    return (
+        str(text)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
 def _json_script(data):
     """Same `<script type="application/json">`-safe escaping
     `lib/starmap.py`'s own `_json_script` uses -- see that function's
@@ -300,7 +312,7 @@ def _json_script(data):
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
-                              locate_path="/galaxy/locate"):
+                              locate_path="/galaxy/locate", course=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -353,6 +365,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`static/galaxystageview.js`).
         locate_path (str): The address bar's name lookup
             (`/galaxy/locate`).
+        course (dict or None): A NAV course to draw over the map
+            (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
+            frame parsecs), `sector` and `navUrl`. `None` draws none.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -365,6 +380,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "fetchPath": fetch_path,
         "stagePath": stage_path,
         "locatePath": locate_path,
+        "course": course,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -402,6 +418,23 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "referenceDensityPerLy3": LOCAL_STELLAR_DENSITY_LY3,
     }
 
+    course_hint = ""
+    if course and course.get("points"):
+        ends = [course["points"][0]["name"], course["points"][-1]["name"]]
+        stops = len(course["points"]) - 2
+        course_hint = (
+            '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
+            + _escape(ends[1]) + "</strong>"
+            + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
+            + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
+        )
+    elif course and course.get("sector"):
+        course_hint = (
+            '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])
+            + '</strong>, so the map shows that sector &middot; <a href="' + _escape(course["navUrl"])
+            + '">back to NAV</a></p>'
+        )
+
     shape_hint = (
         ""
         if galaxy_shape
@@ -428,7 +461,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
-{shape_hint}
+{shape_hint}{course_hint}
 <form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
   <label for="galaxymap3d-address-input">Go to</label>
   <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
