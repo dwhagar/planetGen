@@ -843,7 +843,7 @@ MAP.48 and MAP.37, all fixed.
     - Reset, the skeleton build and schema work keep `web/jobs.py`'s
       one-at-a-time lock.
 
-    Progress (PR #PR3): the queue and pool are built
+    Progress (PR #225): the queue and pool are built
     (`stellarObjects/workQueue.py`, control schema v5) and `generate.py
     sector` and every `galaxy` mode fill sectors through it. Two choices
     differ from the defaults above. The run that queues the work is the
