@@ -325,7 +325,9 @@ def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, mon
     assert _run_main(updateOrbits, mysql_argv(seeded), monkeypatch) == 0
     second = capsys.readouterr().out
     assert "years elapsed since the last update" in second
-    assert second.strip().splitlines()[-1].startswith("Updated:")
+    lines = second.strip().splitlines()
+    assert lines[-2].startswith("Updated:")
+    assert lines[-1].startswith("Moved ")  # galactic motion, after the phases
 
 
 def test_update_orbits_on_an_empty_database(mysql_config, monkeypatch, capsys):

@@ -47,7 +47,8 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
-   26's storage in v41 and 35 (facilities) in v42.
+   26's storage in v41 and 35 (facilities) in v42; 32 (the
+   correlative update moves everything) shipped with them.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -257,7 +258,7 @@ for a mouse; spacing and type sized with `clamp()`.
     has `quadrant`, and `nearest_systems` holds the 3 nearest star
     systems to every placed system and phenomenon, searched across
     sector boundaries (`_db.refresh_nearest_systems`, filled at
-    generation; the correlative update refreshes it with #32).
+    generation and refreshed by the correlative update, `updateOrbits.py`).
     `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
     `sector_detail` returns `nearest` per system, and
     `queryDb.nearest_systems(conn, table, ids)` serves any page.
@@ -276,32 +277,46 @@ for a mouse; spacing and type sized with `clamp()`.
       reaching into it (`queryDb.galaxy_clouds_in_box`).
     - Left: the Sector Map draws each cloud's extent (`sectormap.js`).
 
-### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
+### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
 
-32. [ ] **Check and finish the correlative update.** Boss: "We need to
-    double check our 'correlative update' to move everything (planets,
-    moons, stars, phenomena, etc) in their orbital path, we had a script
-    for it but let's make sure it's working for the current version.
-    Each time this is run it should recalculate the nearest systems and
-    store it in the database after it calculates the new galactic
-    location."
-    - `updateOrbits.py` advances phases through
-      `_db.advance_orbital_phases`/`advance_comet_orbits`: planets,
-      moons, stars, binaries, standalone phenomena's galactic phase and
-      comets. No stale columns were found against schema v34, but it
-      needs a real run against a v34 database.
-    - It never moves anything's galactic position:
-      `sectors.center_*_pc`, `star_systems.position_*_mpc`, phenomena
-      `center_*_pc` and sector membership stay where they were. Move
-      them along their galactic orbits, then recompute the nearest
-      systems (#26).
-    - Quasars aren't in the phenomena loop.
-    - When an object's orbit carries it out of its sector it moves to
-      the new sector. Boss (2026-09-30): "when a sector changes then we
-      make sure the DB and all text is changed to point at the new
-      sector location": `sector_id`, sector-relative positions, octant
-      (`quadrant`), `star_systems.location`, containing nebula (`_db.refresh_containment`),
-      and any stored or rendered text naming the old sector.
+33. [ ] **Courses in "bearing mark mark" format on nested reference
+    frames.** Boss: "Course projections should be in the format of:
+    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
+    Boss's design (summarized; the full text and pseudocode are in
+    `docs/design/navigation-frames.md`):
+    - North points toward the local dominant center of mass. Every
+      local frame is a rigid transform of the absolute galactic
+      Cartesian frame.
+    - Galactic Standard Frame: origin the galactic core, +Z galactic
+      north, +X a fixed zero meridian. Between sectors, bearing 000
+      points at the core.
+    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
+      North from the ship toward it, +Z the galactic +Z.
+    - System Local Frame: origin the central star/barycenter, North
+      from the ship toward it, +Z the star's net angular momentum
+      (the ecliptic normal).
+    - Math: D = target - ship; U = the plane's normal; N = (center -
+      ship) with its U part removed, normalized; E = N x U. Bearing =
+      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
+      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
+      fall back to a fixed reference vector. Boss's `compute_course`
+      pseudocode in the design doc is the reference.
+    - Hand-offs: star to sector barycenter past the heliopause (~120
+      AU); galactic frame when crossing a sector boundary (> 4 pc).
+    - Today `navigation.course_between` returns azimuth/altitude on the
+      galactic plane and `nav.html` shows them as separate rows.
+    - **Questions for Boss:**
+      - Marks from 0-359: the math gives -90 to +90. Default taken, from
+        your own note: write mark as elevation mod 360, so 000-090 is up
+        and 270-359 is down (270 = straight down), and nothing between
+        091 and 269 appears. OK?
+      - "0 mark 0 toward the galactic core" holds in the galactic frame;
+        inside a system or sector, 0 points at the star or sector
+        barycenter. Default taken: 0 mark 0 is toward the current
+        frame's center.
+      - The zero meridian "toward a reference quasar": here the quasar
+        sits at the galactic center, so it can't set +X. Default taken:
+        keep the galaxy's existing +X axis (ring slot 0).
 
 ### Facilities (new)
 
@@ -324,7 +339,6 @@ for a mouse; spacing and type sized with `clamp()`.
       orbit to show before saving). See `docs/api.md`.
     - A colony makes its world inhabited: OR
       `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
-    - Facilities move with the correlative update (#32).
 
 ### Web API (`src/html/api/routes.py`)
 
