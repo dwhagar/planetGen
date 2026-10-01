@@ -46,6 +46,7 @@ from queryDb import (
     facilities_in_sector,
     facility_detail,
     NO_SECTOR,
+    bright_star_scatter_status,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
@@ -58,6 +59,7 @@ from queryDb import (
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_locate,
     galaxy_stage,
     galaxy_tiles,
     list_phenomena,
@@ -71,7 +73,7 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db, generationLimits, program_constants
+from stellarObjects import _db, brightStars, generationLimits, program_constants
 from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
@@ -79,7 +81,7 @@ from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_a
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
-from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc
+from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
@@ -686,8 +688,12 @@ def galaxy_shape():
     cloud from, for whatever space hasn't actually been generated yet.
     `"shape"` is `null` when the skeleton has never been built (the map
     then falls back to its own generic illustrative gradient).
+    `"bright_stars"` is `queryDb.bright_star_scatter_status`: whether the
+    bright-star scatter has run, its threshold and seed, and the default
+    threshold a plain plan uses.
     """
-    return jsonify({"shape": galaxy_density_shape(get_db())})
+    conn = get_db()
+    return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn)})
 
 
 @bp.route("/galaxy/cell")
@@ -760,6 +766,17 @@ def galaxy_tiles_route():
         return jsonify(galaxy_tiles(get_db(), tile_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/locate")
+def galaxy_locate_route():
+    """
+    The Galaxy Map address bar's name lookup: `?q=<part of a name>`.
+    Returns `{"matches": [...]}`, sectors and systems whose name contains
+    it, each with its sector address -- see `queryDb.galaxy_locate`.
+    Called by `/galaxy/locate` (`html/web/galaxy_views.py`).
+    """
+    return jsonify({"matches": galaxy_locate(get_db(), request.args.get("q") or "")})
 
 
 @bp.route("/galaxy/stage")
@@ -1187,6 +1204,57 @@ def _validate_system_config_body(body):
             )
 
 
+def _placement_fields(body):
+    """Pops and checks `POST /api/systems`' placement fields: `sector_id`
+    (a positive integer) and `position` (three finite light-year numbers,
+    sector-local, only with `sector_id`). Returns `(sector_id, position)`."""
+    sector_id = body.pop("sector_id", None)
+    position = body.pop("position", None)
+    if sector_id is not None and (not isinstance(sector_id, int) or isinstance(sector_id, bool) or sector_id < 1):
+        raise ApiError("'sector_id' must be a positive integer or null")
+    if position is not None:
+        if sector_id is None:
+            raise ApiError("'position' needs 'sector_id'")
+        if (not isinstance(position, list) or len(position) != 3
+                or not all(isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c)
+                           for c in position)):
+            raise ApiError("'position' must be three finite numbers (light-years from the sector's center)")
+        position = tuple(float(c) for c in position)
+    return sector_id, position
+
+
+def _sector_generation_context(conn, sector_id, system_config):
+    """For a galaxy-placed sector: the system's distance from the galactic
+    center in light-years, after giving `system_config` the sector's
+    stellar population and (once a bright-star scatter ran) its dim-star
+    cap, as a sector fill would (`brightStars.FillContext`). `None` for a
+    sector outside the galaxy. 404 when the sector doesn't exist."""
+    try:
+        placement = _db.get_sector_galaxy_position(conn, sector_id)
+    except ValueError:
+        raise ApiError(f"no such sector: {sector_id}", status_code=404)
+    if placement is None:
+        return None
+    skeleton = get_galaxy_shape(conn)
+    if skeleton is not None:
+        settings = _db.bright_star_scatter_settings(conn)
+        center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
+        brightStars.FillContext(center, skeleton.shape,
+                                min_luminosity_sol=settings[0] if settings else None).apply(system_config)
+    return pc_to_ly(placement["galactic_radius_pc"])
+
+
+def _generate_system(system_config, galactic_center_dist_ly=None):
+    """Generates a `StarSystem` from a validated recipe; a generation
+    failure is the request's fault, so a 400, not a 500."""
+    try:
+        return StarSystem(system_config=system_config, galactic_center_dist_ly=galactic_center_dist_ly)
+    except Exception as exc:
+        # Generation can reject an internally-inconsistent recipe (e.g. an
+        # impossible num_orbits/planet-class combination).
+        raise ApiError(f"system generation failed: {exc}")
+
+
 @bp.route("/systems", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
@@ -1194,35 +1262,43 @@ def create_system():
     """
     `POST /api/systems` -- a generation "recipe" body (see
     `SYSTEM_CONFIG_ALLOWED_FIELDS`), the same shape `systemGen.py
-    --system-file` already takes (`SystemConfig.from_dict`). Generates a
-    new **standalone** system (no `sector_id` -- attaching a newly
-    generated system to an existing sector needs that sector's own
-    placement/Hill-sphere separation logic, tracked as follow-up work in
-    docs/TODO.md, not implemented here) and persists it via the same
-    `insert_star_system` every other entry point uses. Returns the new
-    `star_systems.id`.
+    --system-file` already takes (`SystemConfig.from_dict`), plus optional
+    `sector_id` and `position`. Without `sector_id` the new system is
+    standalone. With it, the system joins that sector
+    (`_db.add_system_to_sector`): placed clear of every stored system's
+    Hill sphere, or at `position` (`[x, y, z]` light-years from the
+    sector's center, inside it), with the sector's stellar population
+    when it is in the galaxy. Returns the new `star_systems.id` (and
+    `position` when placed in a sector).
     """
     body = require_json_body()
+    sector_id, position = _placement_fields(body)
     _validate_system_config_body(body)
     system_config = SystemConfig.from_dict(body)
-
-    try:
-        star_system = StarSystem(system_config=system_config)
-    except Exception as exc:
-        # Generation can reject an internally-inconsistent recipe (e.g. an
-        # impossible num_orbits/planet-class combination) -- surfaced as a
-        # 400 (the request body was the problem), not an unhandled 500.
-        raise ApiError(f"system generation failed: {exc}")
 
     conn = _write_conn()
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, star_system, system_config)
+            if sector_id is None:
+                system_id = _db.insert_star_system(conn, _generate_system(system_config), system_config)
+                placed = None
+            else:
+                dist_ly = _sector_generation_context(conn, sector_id, system_config)
+                star_system = _generate_system(system_config, dist_ly)
+                try:
+                    system_id, placed = _db.add_system_to_sector(conn, sector_id, star_system, system_config,
+                                                                 position=position)
+                except ValueError as exc:
+                    raise ApiError(str(exc), status_code=409 if position is None else 400)
     finally:
         conn.close()
 
-    audit("system.create", target=f"system:{system_id}", detail=f"star_type={body.get('star_type')!r}")
-    return jsonify({"id": system_id}), 201
+    audit("system.create", target=f"system:{system_id}",
+          detail=f"star_type={body.get('star_type')!r} sector_id={sector_id!r}")
+    result = {"id": system_id}
+    if placed is not None:
+        result.update(sector_id=sector_id, position=list(placed))
+    return jsonify(result), 201
 
 
 NAME_MAX_LENGTH = MAX_NAME_LENGTH
@@ -1246,7 +1322,11 @@ def _rename_body():
     unknown = set(body) - {"name"}
     if unknown:
         raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-    name = body.get("name")
+    return _check_name(body.get("name"))
+
+
+def _check_name(name):
+    """A new name, trimmed and checked as `_rename_body` describes."""
     if not isinstance(name, str) or not name.strip():
         raise ApiError("'name' must be a non-empty string")
     name = " ".join(name.split())
@@ -1277,28 +1357,78 @@ def _system_rename_exclusions(conn, system_id):
     return exclude
 
 
+_SYSTEM_PATCH_FIELDS = {"name", "regenerate", "drop_facilities"}
+
+
 @bp.route("/systems/<int:system_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def update_system(system_id):
-    """`PATCH /api/systems/<id>` `{"name": str}` -- renames a system, and
+    """
+    `PATCH /api/systems/<id>` -- `{"name": str}` renames a system, and
     every star, planet and moon still named after it
-    (`_db.rename_star_system`). 409 if a sector, system or star already has the
-    name."""
-    name = _rename_body()
+    (`_db.rename_star_system`); 409 if a sector, system or star already has
+    the name.
+
+    `{"regenerate": recipe}` (the `POST /api/systems` recipe fields, `{}`
+    for a fresh roll with defaults) replaces the system's stars, planets,
+    moons, asteroid belts and comets with a newly generated set, keeping
+    its id, name, sector, position and links
+    (`_db.replace_star_system_content`). A sector system keeps its
+    sector's stellar population. 409 when the system was built around a
+    pre-placed bright star, or hosts facilities unless `"drop_facilities":
+    true` (they would be deleted with the bodies). Both may be sent
+    together; the rename happens first.
+    """
+    body = require_json_body()
+    unknown = set(body) - _SYSTEM_PATCH_FIELDS
+    if unknown:
+        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
+    if "name" not in body and "regenerate" not in body:
+        raise ApiError("send 'name', 'regenerate', or both")
+    name = _check_name(body["name"]) if "name" in body else None
+    recipe = body.get("regenerate")
+    drop_facilities = body.get("drop_facilities", False)
+    if not isinstance(drop_facilities, bool):
+        raise ApiError("'drop_facilities' must be a boolean")
+    if "regenerate" in body:
+        if not isinstance(recipe, dict):
+            raise ApiError("'regenerate' must be an object (a recipe, or {} for defaults)")
+        _validate_system_config_body(recipe)
+        if "name" in recipe:
+            raise ApiError("'regenerate' keeps the system's name; rename with 'name' instead")
 
     conn = _write_conn()
     try:
         with conn:
-            if conn.execute("SELECT id FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
+            row = conn.execute("SELECT id, sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+            if row is None:
                 raise ApiError(f"no such system: {system_id}", status_code=404)
-            _require_unique_name(conn, name, _system_rename_exclusions(conn, system_id))
-            _db.rename_star_system(conn, system_id, name)
+            if name is not None:
+                _require_unique_name(conn, name, _system_rename_exclusions(conn, system_id))
+                _db.rename_star_system(conn, system_id, name)
+            if recipe is not None:
+                blockers = _db.system_content_blockers(conn, system_id)
+                if blockers["bright_star"]:
+                    raise ApiError("this system is built around a pre-placed bright star, so its content "
+                                   "can't be regenerated", status_code=409)
+                if blockers["facilities"] and not drop_facilities:
+                    raise ApiError(f"this system hosts {blockers['facilities']} facilities, which regenerating "
+                                   "would delete; send \"drop_facilities\": true to go ahead", status_code=409)
+                system_config = SystemConfig.from_dict(recipe)
+                dist_ly = (_sector_generation_context(conn, row["sector_id"], system_config)
+                           if row["sector_id"] is not None else None)
+                _db.replace_star_system_content(conn, system_id, _generate_system(system_config, dist_ly),
+                                                system_config)
+            final_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
     finally:
         conn.close()
 
-    audit("system.update", target=f"system:{system_id}", detail=str({"name": name}))
-    return jsonify({"status": "ok", "id": system_id, "name": name})
+    detail = {key: body[key] for key in ("name", "drop_facilities") if key in body}
+    if recipe is not None:
+        detail["regenerate"] = recipe
+    audit("system.update", target=f"system:{system_id}", detail=str(detail))
+    return jsonify({"status": "ok", "id": system_id, "name": final_name, "regenerated": recipe is not None})
 
 
 @bp.route("/stars/<int:star_id>", methods=["PATCH"])

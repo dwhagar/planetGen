@@ -1,5 +1,73 @@
 # Changelog
 
+## [7.44.0] - 2026-10-01
+
+### Added
+
+- The Galaxy Map opens on the drill-down: the whole galaxy in blocks 243 sectors a side, where hovering a slab highlights it and clicking pulls it out to a view from above; clicking a block there flies into it and shows its contents as blocks a ninth the size, down to single sectors, where a click opens the sector (or, for a sector not generated yet, shows where it is and its Generate buttons for an admin). A breadcrumb with sibling menus, a slab list with generated counts, a hover tooltip, keys (arrows, Enter, Escape, Home), touch taps and a "Generated only" toggle come with it. Each stage has its own URL (`/galaxy?slab=`, `?at=`, `?sector=<designation>`), so Back and Forward work and a stage can be linked. The old free camera stays behind a Free look button.
+
+## [7.43.0] - 2026-10-01
+
+### Added
+
+- **The API can add a system to an existing sector and regenerate a
+  system in place.** `POST /api/systems` takes an optional `sector_id`
+  (and `position`): the new system is placed clear of the sector's other
+  systems' Hill spheres, with its location, containment and nearest
+  systems filled in. `PATCH /api/systems/<id>` takes `{"regenerate":
+  recipe}` to replace a system's stars, planets, moons, belts and comets
+  while keeping its id, name, place and links.
+
+## [7.42.1] - 2026-10-01
+
+### Changed
+- **Lighter Galaxy Map meshes where sectors are generated.** Blocks whose sectors are all generated (drawn solid) no longer draw the faces they share with each other, which nobody can see. A fully generated neighborhood now needs about a twentieth of the vertices it did, which matters most on phones. Translucent blocks keep every face, since those faces draw the block grid you see through the glass.
+
+## [7.42.0] - 2026-10-01
+
+### Added
+
+The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more, placed by `generate.py plan` before any sector is filled), so the spiral arms show before anything is generated. Each star is a tiny point with a big soft glow in its own color, the same few pixels across at every zoom. Clicking one shows its type, luminosity and sector, and links to its system once that sector is filled. `/api/galaxy/tiles` lists each tile's most luminous 400 as `stars`.
+
+## [7.41.3] - 2026-10-01
+
+### Added
+- **The drill-down's stage API.** `GET /api/galaxy/stage?at=m.ring.wedge.slab`
+  (and the site's cached `/galaxy/stage`) returns how many generated
+  sectors each block inside a drill-down block holds, and the sectors
+  themselves at the smallest level. It feeds the Galaxy Map's coming
+  drill-down navigation; nothing on the map changes yet.
+
+## [7.41.2] - 2026-10-01
+
+### Added
+- **The drill-down's block ladder.** The Galaxy Map's coming drill-down
+  navigation has its geometry: blocks 243, 27 and 3 sectors a side, each
+  sitting wholly inside one block of the next size up, with the same
+  rules on the page (`galaxyprisms.js`) and the server
+  (`stellarObjects/galaxyDrill.py`). Nothing on the map changes yet.
+
+## [7.41.1] - 2026-10-01
+
+### Changed
+- The Sector Map draws nebulae and supernova remnants as see-through volumes: densest through the middle and fading at the edge, with a remnant showing as a bright shell. A cloud far larger than the sector, or one centered in another sector, still tints the view from inside it, and stars inside a cloud stay visible and clickable.
+
+## [7.41.0] - 2026-10-01
+
+### Added
+- System and phenomenon pages show an "Inside" badge linking the nebula or supernova remnant they sit in, and the sector Contents list says "Inside <name>" for those systems. `GET /api/systems/<id>` gains `inside`.
+- Sector Contents rows show a nebula's, remnant's or asteroid field's class.
+
+## [7.40.1] - 2026-10-01
+
+### Changed
+
+- **Bright stars can go down to 100 solar luminosities.** The default
+  stays at 500 (about 60 million stars in a Milky Way, about 10 GB);
+  `generate.py plan --bright-star-min-luminosity 100` now works too
+  (about 220 million stars, about 35 GB). White dwarfs, which are never
+  pre-placed, always stay in a sector's own draw.
+
 ## [7.40.0] - 2026-10-01
 
 ### Changed

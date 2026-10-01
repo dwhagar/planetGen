@@ -95,6 +95,7 @@ class FakeData:
         self.wiki_config = {"wikijs": True, "mediawiki": False}
         self.calls = []
         self.nav_error = None
+        self.nav_galaxy_scope = False
         self.action_error = None
 
     def get_sector(self, db, sector_id):
@@ -132,7 +133,7 @@ class FakeData:
         if self.nav_error:
             raise self.nav_error
         return {
-            "scope": "sector",
+            "scope": "galaxy" if self.nav_galaxy_scope else "sector",
             "direct": {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
                        "elevation_deg": -2.5, "frame": "sector"},
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
@@ -463,6 +464,41 @@ def test_nav_course_and_route(client, fake):
     assert '<a class="navmap-point navmap-hop" href="/system/1500">' in html
     assert "data-nav" not in html
     assert '<a href="/nav?from=system:1002&amp;to=system:1001">Reverse course</a>' in html
+
+
+def test_nav_result_links_to_the_galaxy_map(client, fake):
+    """The course panel offers "Show on Galaxy Map", which carries both
+    endpoints to the map (the drill-down's section 9.4)."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'href="/galaxy?course=system:1001,system:1002"' in html
+    assert ">Show on Galaxy Map</a>" in html
+
+
+def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
+    """`nav_page.galaxy_course` hands the map galaxy-frame parsecs; a
+    course inside one sector names that sector instead."""
+    from stellarObjects.utils import ly_to_pc
+    from web.nav_page import galaxy_course
+
+    app = client.application
+    with app.test_request_context("/galaxy"):
+        same_sector = galaxy_course("system:1001", "system:1002")
+        assert same_sector["scope"] == "sector"
+        assert same_sector["points"] == []
+        assert same_sector["sector"]["id"] == 5
+        assert same_sector["navUrl"] == "/nav?from=system:1001&to=system:1002"
+
+        fake.nav_galaxy_scope = True
+        course = galaxy_course("system:1001", "system:2001")
+        assert course["scope"] == "galaxy"
+        assert [p["name"] for p in course["points"]] == ["Alpha", "Waypoint", "Distant"]
+        assert [p["role"] for p in course["points"]] == ["origin", "hop", "destination"]
+        assert course["points"][-1]["x"] == pytest.approx(ly_to_pc(3.0))
+        assert course["points"][0]["url"] == "/system/1001"
+
+        # A pair that can't be navigated together simply isn't drawn.
+        fake.nav_error = apiclient.ApiError("planetGen API error (400): different sectors", status_code=400)
+        assert galaxy_course("system:1001", "system:2001") is None
 
 
 def test_nav_phenomenon_origin(client, fake):

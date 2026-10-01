@@ -67,8 +67,9 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
   blockAt, blockSectorCount, blockSectorRanges, blockSizeForScale, blockSlotRange, cellCoordinates, cellVertices,
-  sectorAddressAt, sectorCellBounds, wedgeLines,
+  drillBlockBounds, drillSlotRange, sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
+const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
@@ -247,6 +248,71 @@ function showCellInfo(cell) {
   if (single && !(cell.filled > 0) && sceneData.generate) {
     panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot));
   }
+}
+
+// A drill-down block's info (galaxystageview.js): its rings, layers and
+// slots, how many sectors it can hold and how many are generated, where
+// it is, and (`enter`) a button that flies into it. `info.hint` goes
+// under it.
+function showBlockInfo(info, edgePc) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  panel.textContent = "";
+  var block = info.block;
+  var b = drillBlockBounds(block, edgePc);
+  var heading = document.createElement("h3");
+  heading.textContent = "Block " + block.ring + "·" + block.wedge + " (" + block.m + " sectors a side)";
+  panel.appendChild(heading);
+  var half = (block.m - 1) / 2;
+  var ringFirst = block.ring * block.m;
+  var ringLast = ringFirst + block.m - 1;
+  var dl = document.createElement("dl");
+  addField(dl, "Rings", ringFirst + "–" + ringLast);
+  addField(dl, "Layers", (block.slab * block.m - half) + "–" + (block.slab * block.m + half));
+  [ringFirst, ringLast].forEach(function (ring) {
+    var slots = drillSlotRange(block, ring);
+    addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
+  });
+  if (info.total != null) {
+    addField(dl, "Sectors", info.total.toLocaleString());
+  }
+  if (info.generated != null) {
+    addField(dl, "Generated", info.generated.toLocaleString()
+      + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : ""));
+  }
+  var coords = cellCoordinates(b);
+  addField(dl, "Center x, y, z", coords.cartesian.map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
+  addField(dl, "Distance from core", formatDistancePc((b.r0 + b.r1) / 2));
+  panel.appendChild(dl);
+  if (info.enter) {
+    var enter = document.createElement("button");
+    enter.type = "button";
+    enter.className = "btn";
+    enter.textContent = "Fly into this block →";
+    enter.addEventListener("click", info.enter);
+    panel.appendChild(enter);
+  }
+  if (info.hint) {
+    showHint(info.hint, true);
+  }
+}
+
+// A hint paragraph in the info panel: replacing what's there, or (keep)
+// under it.
+function showHint(text, keep) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  if (!keep) {
+    panel.textContent = "";
+  }
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = text;
+  panel.appendChild(hint);
 }
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
@@ -902,11 +968,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // How many sectors a side the drawn blocks are.
   var drawnSectorsPerPrism = 1;
 
-  // TODO(galaxy-map #19): this is per CSS pixel. The block size (#13)
-  // should stay per CSS pixel (it is about what a person can see and
-  // click), but say so in the readout's code.
   // Parsecs per screen pixel at the view's focus (the orbit target), for
-  // the camera at orbit radius `radius` (default: where it is).
+  // the camera at orbit radius `radius` (default: where it is). Per CSS
+  // pixel, on purpose, not per device pixel: the block size (a block at
+  // least blockMinPx across) and the scale readout's "1 px" are about what
+  // a person can see and click, which is the same on a 2x phone screen as
+  // on a 1x monitor. The renderer draws at up to 2 device pixels per CSS
+  // pixel (setPixelRatio) for sharpness only, and the bright stars' sizes
+  // are CSS pixels too (scaled by pixelRatio in their shader).
   function pcPerPixelAtTarget(radius) {
     var heightPx = canvasEl.clientHeight || 1;
     return ((radius || orbit.radius) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
@@ -1005,23 +1074,30 @@ function initGalaxyMap3d(canvasEl, data) {
   function makeBlockSet(key, built, version, points) {
     var set = { key: key, m: built.m, version: version, points: points, meshes: [], vertexCount: 0 };
     [built.solid, built.glass].forEach(function (part, n) {
-      var geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(part.positions, 3));
-      geometry.setAttribute("prismCenter", new THREE.BufferAttribute(part.centers, 3));
-      geometry.setAttribute("prismColor", new THREE.BufferAttribute(part.colors, 3, true));
-      geometry.setAttribute("faceUv", new THREE.BufferAttribute(part.uvs, 2, true));
-      geometry.setAttribute("prismAlpha", new THREE.BufferAttribute(part.alphas, 1, true));
-      geometry.setAttribute("prismFill", new THREE.BufferAttribute(part.fills, 1, true));
-      geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
-      var mesh = new THREE.Mesh(geometry, makeBlockMaterial(n === 1));
-      mesh.frustumCulled = false;
-      mesh.visible = part.vertexCount > 0;
-      mesh.userData.part = part;
+      var mesh = makeBlockMesh(part, n === 1);
       mesh.userData.set = set;
       set.meshes.push(mesh);
       set.vertexCount += part.vertexCount;
     });
     return set;
+  }
+
+  // One packed part (galaxyblocks' pack) as a mesh with the block shader,
+  // keeping the part for picking.
+  function makeBlockMesh(part, translucent) {
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(part.positions, 3));
+    geometry.setAttribute("prismCenter", new THREE.BufferAttribute(part.centers, 3));
+    geometry.setAttribute("prismColor", new THREE.BufferAttribute(part.colors, 3, true));
+    geometry.setAttribute("faceUv", new THREE.BufferAttribute(part.uvs, 2, true));
+    geometry.setAttribute("prismAlpha", new THREE.BufferAttribute(part.alphas, 1, true));
+    geometry.setAttribute("prismFill", new THREE.BufferAttribute(part.fills, 1, true));
+    geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
+    var mesh = new THREE.Mesh(geometry, makeBlockMaterial(translucent));
+    mesh.frustumCulled = false;
+    mesh.visible = part.vertexCount > 0;
+    mesh.userData.part = part;
+    return mesh;
   }
 
   function disposeSet(set) {
@@ -1577,7 +1653,11 @@ function initGalaxyMap3d(canvasEl, data) {
       return false;
     }
     var stale = currentGeneration ? staleKeys(currentStamp, stamp, payload.history) : null;
+    var hadStamp = !!currentStamp;
     currentStamp = stamp;
+    if (hadStamp && stageView) {
+      stageView.invalidate();
+    }
     if (stale) {
       stale.forEach(function (key) {
         tileMemory.delete(key);
@@ -2043,6 +2123,185 @@ function initGalaxyMap3d(canvasEl, data) {
   renderFromCache(neededTiles());
   scheduleFetch(false);
 
+  // --- NAV course ---------------------------------------------------------------
+  //
+  // With ?course=<from>,<to> (the NAV result's "Show on Galaxy Map", see
+  // the drill-down design's section 9.4), the page embeds the course's
+  // waypoints in galaxy-frame parsecs (web/nav_page.galaxy_course). They
+  // are drawn as one line through every stop with a ring and a name at
+  // each, over everything else and never picked, in the stages and in
+  // free look alike; the map opens on the smallest stage holding them
+  // all (galaxystages.courseStage), unless the URL names a stage itself.
+  // A course inside one sector has no line to draw: the map opens that
+  // sector instead.
+  var course = data.course && (data.course.points || []).length >= 2 ? data.course : null;
+  var courseSectors = [];
+  var courseMarkers = [];
+  var COURSE_RING_PX = 11;
+  var COURSE_LABEL_PX = 13;
+
+  if (data.course && data.course.sector) {
+    courseSectors = [data.course.sector];
+  }
+  if (course) {
+    var courseGroup = new THREE.Group();
+    courseGroup.renderOrder = 4;
+    scene.add(courseGroup);
+    var linePoints = course.points.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+    courseGroup.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(linePoints),
+      new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })
+    ));
+    course.points.forEach(function (point, n) {
+      var ends = n === 0 || n === course.points.length - 1;
+      var ring = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: highlightTexture, transparent: true, depthWrite: false, depthTest: false,
+        sizeAttenuation: false, opacity: ends ? 1 : 0.7,
+      }));
+      ring.position.copy(linePoints[n]);
+      courseGroup.add(ring);
+      courseMarkers.push({ sprite: ring, px: ends ? COURSE_RING_PX : COURSE_RING_PX * 0.6 });
+      if (!ends) {
+        return;
+      }
+      var label = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: makeLabelTexture(point.name, accentColor), transparent: true, depthWrite: false, depthTest: false,
+        sizeAttenuation: false,
+      }));
+      label.position.copy(linePoints[n]);
+      courseGroup.add(label);
+      courseMarkers.push({ sprite: label, px: COURSE_LABEL_PX, label: true });
+    });
+    courseSectors = course.points.map(function (point) {
+      return sectorAddressAt(point.x, point.y, point.z, edgePc);
+    });
+  }
+
+  // Keeps every course marker the same size on screen, like the wedge
+  // labels (a sprite without size attenuation spans scale / tan(fov / 2)
+  // half-heights of the view).
+  function updateCourseMarkers() {
+    if (!courseMarkers.length) {
+      return;
+    }
+    var heightPx = canvasEl.clientHeight || 1;
+    var per = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+    courseMarkers.forEach(function (marker) {
+      var h = marker.px * per;
+      var aspect = marker.label ? marker.sprite.material.map.userData.aspect : 1;
+      marker.sprite.scale.set(h * aspect, h, 1);
+      // A name sits above its ring instead of on it.
+      if (marker.label) {
+        marker.sprite.center.set(0.5, -0.4);
+      }
+    });
+  }
+
+  // --- Drill-down stages ------------------------------------------------------
+  //
+  // The map opens on the drill-down (galaxystageview.js): the galaxy in
+  // level-243 blocks, a slab of them from above, a block's level-27
+  // children, and so on down to a sector. The Free look button switches
+  // to the free camera above (and back). While stages show, the free
+  // view's block sets are put away and pointer, wheel and key input goes
+  // to the stage view; tiles (stars, clouds) and the wedge lines follow
+  // the camera as before.
+  var stageMode = true;
+  var stageView = createStageView({
+    THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
+    edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
+    accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
+    blockScene: localBlockScene,
+    makeBlockMesh: makeBlockMesh,
+    setCamera: function (v) {
+      zoomAnimation = null;
+      target.set(v.target[0], v.target[1], v.target[2]);
+      orbit.radius = v.dist;
+      orbit.theta = v.theta;
+      orbit.phi = v.phi;
+      applyCamera();
+      updateScaleBar();
+    },
+    fetchStage: function (query) {
+      return fetch((data.stagePath || "/galaxy/stage") + query, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    },
+    setBlockSize: function (m) {
+      drawnSectorsPerPrism = m;
+      updateScaleBar();
+    },
+    showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
+    showPlacedInfo: showPlacedInfo,
+    showCellInfo: showCellInfo,
+    showHint: function (text) { showHint(text, false); },
+    sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
+    locate: function (name) {
+      return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
+        headers: { Accept: "application/json" },
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        })
+        .then(function (payload) { return payload.matches || []; });
+    },
+    els: {
+      crumbs: document.getElementById("galaxymap3d-crumbs"),
+      slabs: document.getElementById("galaxymap3d-slabs"),
+      tooltip: document.getElementById("galaxymap3d-tooltip"),
+      notice: document.getElementById("galaxymap3d-notice"),
+      address: document.getElementById("galaxymap3d-address"),
+      matches: document.getElementById("galaxymap3d-matches"),
+    },
+  });
+
+  // Puts the free view's blocks away (stage mode draws its own).
+  function hideFreeBlocks() {
+    if (fadingSet) {
+      retireSet(fadingSet);
+      fadingSet = null;
+    }
+    if (shownSet) {
+      retireSet(shownSet);
+      shownSet = null;
+    }
+    highlightSprite.visible = false;
+  }
+
+  function setStageMode(on) {
+    stageMode = on;
+    if (on) {
+      hideFreeBlocks();
+      stageView.openFromLocation();
+      stageView.setActive(true);
+    } else {
+      stageView.setActive(false);
+      resetView();
+      showHint("Click a block for details, or double-click it to zoom in there.", false);
+    }
+    if (controlsEl) {
+      controlsEl.querySelectorAll("[data-stage-only]").forEach(function (el) { el.hidden = !on; });
+      controlsEl.querySelectorAll("[data-free-only]").forEach(function (el) { el.hidden = on; });
+      var free = controlsEl.querySelector('[data-action="free-look"]');
+      if (free) {
+        free.setAttribute("aria-pressed", String(!on));
+      }
+    }
+  }
+
+  canvasEl.addEventListener("pointerleave", function (event) {
+    if (stageMode) {
+      stageView.onPointerLeave(event);
+    }
+  });
+
   // --- Pointer/keyboard interaction --------------------------------------
 
   var dragging = false;
@@ -2052,6 +2311,10 @@ function initGalaxyMap3d(canvasEl, data) {
   var suppressNextClick = false;
 
   canvasEl.addEventListener("pointerdown", function (event) {
+    if (stageMode) {
+      stageView.onPointerDown(event);
+      return;
+    }
     if (event.button !== 0) {
       return;
     }
@@ -2067,6 +2330,10 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   canvasEl.addEventListener("pointermove", function (event) {
+    if (stageMode) {
+      stageView.onPointerMove(event);
+      return;
+    }
     if (!dragging) {
       return;
     }
@@ -2082,6 +2349,10 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   function endDrag(event) {
+    if (stageMode) {
+      stageView.onPointerUp(event);
+      return;
+    }
     if (!dragging) {
       return;
     }
@@ -2141,6 +2412,10 @@ function initGalaxyMap3d(canvasEl, data) {
     "wheel",
     function (event) {
       event.preventDefault();
+      if (stageMode) {
+        stageView.onWheel(event);
+        return;
+      }
       var deltaPx = event.deltaY;
       if (event.deltaMode === 1) {
         deltaPx *= 33;
@@ -2161,6 +2436,10 @@ function initGalaxyMap3d(canvasEl, data) {
   );
 
   canvasEl.addEventListener("keydown", function (event) {
+    if (stageMode) {
+      stageView.onKey(event);
+      return;
+    }
     var key = event.key;
     if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") {
       return;
@@ -2404,6 +2683,9 @@ function initGalaxyMap3d(canvasEl, data) {
   var lastCenterClickAt = 0;
 
   canvasEl.addEventListener("click", function (event) {
+    if (stageMode) {
+      return;
+    }
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
@@ -2419,6 +2701,9 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   canvasEl.addEventListener("dblclick", function (event) {
+    if (stageMode) {
+      return;
+    }
     if (suppressNextClick) {
       suppressNextClick = false;
       return;
@@ -2445,6 +2730,24 @@ function initGalaxyMap3d(canvasEl, data) {
     controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
       button.addEventListener("click", function () {
         var action = button.dataset.action;
+        if (action === "free-look") {
+          setStageMode(!stageMode);
+          return;
+        }
+        if (action === "generated-only") {
+          var on = button.getAttribute("aria-pressed") !== "true";
+          button.setAttribute("aria-pressed", String(on));
+          stageView.setGeneratedOnly(on);
+          return;
+        }
+        if (stageMode && (action === "zoom-in" || action === "zoom-out" || action === "reset")) {
+          if (action === "reset") {
+            stageView.home();
+          } else {
+            stageView.zoomBy(action === "zoom-in" ? 0.8 : 1.25);
+          }
+          return;
+        }
         if (action === "zoom-in") {
           zoomTo(zoomGoal() / clickZoomFactor(zoomGoal()));
           scheduleFetch(true);
@@ -2562,6 +2865,9 @@ function initGalaxyMap3d(canvasEl, data) {
   resize();
   window.addEventListener("resize", resize);
 
+  // The drill-down first, at the stage the URL names.
+  setStageMode(true);
+
   // Every frame: the zoom glide, then (when the view moved) the filled
   // sectors from cached tiles, a fetch for missing ones and the wedge
   // lines, then the block set for the view.
@@ -2569,7 +2875,12 @@ function initGalaxyMap3d(canvasEl, data) {
 
   (function animate(now) {
     requestAnimationFrame(animate);
-    stepZoom(now || performance.now());
+    now = now || performance.now();
+    if (stageMode) {
+      stageView.step(now);
+    } else {
+      stepZoom(now);
+    }
     var viewSignature = [target.x, target.y, target.z, orbit.radius, canvasEl.clientHeight].join(",");
     if (viewSignature !== lastViewSignature) {
       lastViewSignature = viewSignature;
@@ -2579,10 +2890,13 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       updateWedgeLevels(pcPerPixelAtTarget());
     }
-    syncBlocks();
+    if (!stageMode) {
+      syncBlocks();
+    }
     updateClouds();
     updateHighlightScale();
     updateWedgeLabels();
+    updateCourseMarkers();
     renderer.render(scene, camera);
   })();
 }

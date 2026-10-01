@@ -285,6 +285,18 @@ def _density_shape(galaxy_shape):
     return shape
 
 
+def _escape(text):
+    """Text as HTML, for the course hint's names and URLs (a sector or
+    system name is generated, but never trusted as markup)."""
+    return (
+        str(text)
+        .replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace('"', "&quot;")
+    )
+
+
 def _json_script(data):
     """Same `<script type="application/json">`-safe escaping
     `lib/starmap.py`'s own `_json_script` uses -- see that function's
@@ -299,7 +311,8 @@ def _json_script(data):
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
-                              system_url=None):
+                              system_url=None, stage_path="/galaxy/stage",
+                              locate_path="/galaxy/locate", course=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -347,6 +360,14 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         system_url (str, optional): A star system page URL with `{id}`
             where the id goes, for a filled bright star's "View system"
             link; without it the panel shows no link.
+        stage_path (str): The drill-down's stage endpoint
+            (`/galaxy/stage`), which the map opens on
+            (`static/galaxystageview.js`).
+        locate_path (str): The address bar's name lookup
+            (`/galaxy/locate`).
+        course (dict or None): A NAV course to draw over the map
+            (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
+            frame parsecs), `sector` and `navUrl`. `None` draws none.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -357,6 +378,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     scene_data = {
         "storageKey": db_name,
         "fetchPath": fetch_path,
+        "stagePath": stage_path,
+        "locatePath": locate_path,
+        "course": course,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -394,6 +418,23 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "referenceDensityPerLy3": LOCAL_STELLAR_DENSITY_LY3,
     }
 
+    course_hint = ""
+    if course and course.get("points"):
+        ends = [course["points"][0]["name"], course["points"][-1]["name"]]
+        stops = len(course["points"]) - 2
+        course_hint = (
+            '<p class="hint">Showing the course from <strong>' + _escape(ends[0]) + "</strong> to <strong>"
+            + _escape(ends[1]) + "</strong>"
+            + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
+            + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
+        )
+    elif course and course.get("sector"):
+        course_hint = (
+            '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])
+            + '</strong>, so the map shows that sector &middot; <a href="' + _escape(course["navUrl"])
+            + '">back to NAV</a></p>'
+        )
+
     shape_hint = (
         ""
         if galaxy_shape
@@ -408,7 +449,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
+  <span class="hint">The map opens on the whole galaxy in big blocks: hover a slab (a layer of blocks) and click it to
+  see it from above, click a block there to fly into it, and so on down to single sectors (Esc or the path above the
+  map goes back up; arrow keys and Enter pick too) &middot; Free look switches to the free camera: drag to rotate
+  &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
   center the view there and see what it holds &middot; double-click to do the same AND zoom in (bigger steps while
   zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
   pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
@@ -417,14 +461,26 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
-{shape_hint}
+{shape_hint}{course_hint}
+<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
+  <label for="galaxymap3d-address-input">Go to</label>
+  <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
+         placeholder="Designation, ring/layer/slot, x, y, z pc, or a name">
+  <button type="submit" class="starmap-btn">Go</button>
+</form>
+<div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
+<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
+<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
+     aria-label="Interactive 3D Galaxy Map. Up and down arrows pick a slab, Enter opens it; in a slab seen
+     from above, arrow keys pick a block and Enter flies into it; Escape goes back up and Home returns to
+     the whole galaxy. With Free look on, drag or use arrow keys to rotate, scroll or the zoom buttons to
      zoom, click a block to center the view there and select it, double-click to do the same and
      zoom in."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
+<div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
@@ -432,11 +488,16 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
   <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
-  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true"
+  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true" data-free-only hidden
           title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
+  <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false" data-stage-only
+          title="Dim every block with no generated sectors">Generated only</button>
+  <button type="button" class="starmap-btn" data-action="free-look" aria-pressed="false"
+          title="Fly the camera freely instead of stepping through slabs and blocks">Free look</button>
 </div>
+<div class="galaxy-slabs" id="galaxymap3d-slabs" hidden></div>
 <aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click a block for details, or double-click it to zoom in there.</p>
+<p class="hint">Hover a slab of blocks, then click it to see it from above.</p>
 </aside>
 </div>
 </div>

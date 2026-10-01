@@ -346,6 +346,42 @@ console.log(JSON.stringify({positions: Array.from(g.positions), normals: Array.f
         assert sum(n[k] * normal[k] for k in range(3)) > 0
 
 
+
+def test_geometry_leaves_out_faces_shared_by_listed_neighbours():
+    """Opaque blocks from one listing drop the faces they share: a stacked
+    pair loses the top and bottom between them, wedge neighbours their
+    common side, and rings with matching wedge counts the wall between
+    them. Blocks without an address, or built without skipShared (the
+    translucent ones), keep every face."""
+    out = _run("""
+const dt = 2 * Math.PI / 12;
+function block(ring, seg, slab) {
+  return {ring: ring, seg: seg, slab: slab, r0: 10 * ring, r1: 10 * ring + 10, t0: seg * dt, t1: (seg + 1) * dt,
+          z0: 10 * slab - 5, z1: 10 * slab + 5};
+}
+function count(prisms) {
+  return P.buildPrismGeometry(prisms, {skipShared: true}).owners.length;
+}
+function bare(prisms) {
+  return prisms.map(p => ({r0: p.r0, r1: p.r1, t0: p.t0, t1: p.t1, z0: p.z0, z1: p.z1}));
+}
+const one = count([block(3, 0, 0)]);
+const stacked = [block(3, 0, 0), block(3, 0, 1)];
+const side = [block(3, 0, 0), block(3, 1, 0)];
+const wrap = [block(3, 11, 0), block(3, 0, 0)];
+const walls = [block(3, 0, 0), block(4, 0, 0)];
+const glass = P.buildPrismGeometry(stacked).owners.length;
+console.log(JSON.stringify({one: one, glass: glass, stacked: [count(stacked), count(bare(stacked))],
+  side: [count(side), count(bare(side))], wrap: [count(wrap), count(bare(wrap))],
+  walls: [count(walls), count(bare(walls))]}));
+""")
+    arcs_row = (out["one"] - 8) // 8  # 4 curved faces of 2 rows each, plus two 4-vertex sides
+    assert out["stacked"] == [out["stacked"][1] - 2 * 2 * arcs_row, 2 * out["one"]]
+    assert out["side"] == [2 * out["one"] - 8, 2 * out["one"]]
+    assert out["wrap"] == [2 * out["one"] - 8, 2 * out["one"]]
+    assert out["walls"] == [2 * out["one"] - 2 * 2 * arcs_row, 2 * out["one"]]
+    assert out["glass"] == 2 * out["one"]
+
 def test_wedge_counts_follow_the_cylindrical_sector_rule():
     rings = list(range(0, 40)) + [100, 1234]
     got = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.azimuthSegments(i))));")

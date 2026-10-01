@@ -21,7 +21,7 @@ import pytest
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db, adminAuth, spaceSector
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyViewport import tile_keys_containing, tiles_intersecting_sphere
@@ -902,6 +902,28 @@ def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
         conn.close()
 
 
+def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        body = client.get("/api/galaxy/shape").get_json()
+        assert body["shape"] is None
+        assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
+                                        "default_min_luminosity_sol": 500.0}
+        with conn:
+            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
+                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
+                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
+                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
+            _db.record_bright_star_scatter(conn, 500.0, 1234)
+    finally:
+        conn.close()
+    body = client.get("/api/galaxy/shape").get_json()
+    assert body["shape"]["edge_pc"] == 4
+    assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
+                                    "default_min_luminosity_sol": 500.0}
+
+
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;
@@ -950,6 +972,43 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     assert not changes["full"]
     assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:3]} | {
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
+
+
+def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
+    """`/api/galaxy/locate` finds sectors and systems whose name contains
+    the term, each with its sector address, exact matches first; sectors
+    with no address are left out."""
+    from stellarObjects.galaxyGeometry import sector_position_pc
+
+    address = (12, 1, 30)
+    sector_id = _place_sector(mysql_config, "Belcana", sector_position_pc(*address, 4.0), address=address)
+    other = (13, 0, 40)
+    _place_sector(mysql_config, "Belcana Reach", sector_position_pc(*other, 4.0), address=other)
+    # No address: never offered, since the map cannot fly to it.
+    _place_sector(mysql_config, "Belcana Lost", (50.0, 0.0, 0.0))
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE star_systems SET name = 'Belcana' WHERE sector_id = ?", (sector_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+    matches = client.get("/api/galaxy/locate?q=belcana").get_json()["matches"]
+    assert [(m["kind"], m["name"]) for m in matches[:2]] == [("sector", "Belcana"), ("system", "Belcana")]
+    assert all(m["name"] != "Belcana Lost" for m in matches)
+    assert {m["name"] for m in matches} == {"Belcana", "Belcana Reach"}
+    first = matches[0]
+    assert (first["ring"], first["layer"], first["slot"]) == address
+    assert first["sector_id"] == sector_id
+    system = matches[1]
+    assert (system["ring"], system["layer"], system["slot"]) == address
+    assert system["sector_name"] == "Belcana"
+
+    assert client.get("/api/galaxy/locate?q=  ").get_json()["matches"] == []
+    assert client.get("/api/galaxy/locate?q=nothing-like-this").get_json()["matches"] == []
+    # A term with LIKE wildcards in it is a plain substring, not a pattern.
+    assert client.get("/api/galaxy/locate?q=%25").get_json()["matches"] == []
 
 
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
@@ -1385,14 +1444,112 @@ def test_create_system_generates_and_persists_a_standalone_system(admin_client):
 
 
 def test_create_system_rejects_unrecognized_and_invalid_fields(admin_client):
-    response = admin_client.post("/api/systems", json={"sector_id": 1})
+    response = admin_client.post("/api/systems", json={"sector_id": "1"})
     assert response.status_code == 400
+
+    response = admin_client.post("/api/systems", json={"position": [0, 0, 0]})
+    assert response.status_code == 400  # a position needs a sector
+
+    response = admin_client.post("/api/systems", json={"sector_id": 999999})
+    assert response.status_code == 404
 
     response = admin_client.post("/api/systems", json={"age": "ancient"})
     assert response.status_code == 400
 
     response = admin_client.post("/api/systems", json={"num_orbits": -1})
     assert response.status_code == 400
+
+
+def test_create_system_inside_a_sector_keeps_clear_of_its_systems(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "star_type": "K2V", "planets": False,
+                                                        "binary_system": False})
+    assert response.status_code == 201, response.get_json()
+    body = response.get_json()
+    assert body["sector_id"] == sector_id
+    placed = body["position"]
+    assert all(abs(c) <= 5.0 for c in placed)
+
+    detail = admin_client.get(f"/api/systems/{body['id']}").get_json()
+    assert detail["sector_id"] == sector_id
+    assert detail["location"]
+
+    conn = _db.get_connection(config)
+    try:
+        sector = _db.sector_for_placement(conn, sector_id)
+    finally:
+        conn.close()
+    new = next(e for e in sector.entries if e.star_system.name == detail["name"])
+    for other in sector.entries:
+        if other is not new:
+            assert spaceSector.distance_between(new.position, other.position) >= \
+                spaceSector.required_separation_ly(new.star_system, other.star_system) - 1e-3
+
+
+def test_create_system_at_an_explicit_position_inside_the_sector(seeded_sector, admin_client):
+    _config, sector_id, _ids = seeded_sector
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [4.0, -4.0, 2.5],
+                                                        "planets": False})
+    assert response.status_code == 201
+    assert response.get_json()["position"] == pytest.approx([4.0, -4.0, 2.5], abs=1e-3)
+
+    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [40.0, 0, 0]})
+    assert response.status_code == 400  # outside the sector
+
+
+def test_regenerate_keeps_the_system_but_replaces_its_bodies(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    system_id = system_ids[0]
+    before = admin_client.get(f"/api/systems/{system_id}").get_json()
+    old_star_ids = {star["id"] for star in before["stars"]}
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={
+        "regenerate": {"star_type": "K1V", "planets": True, "binary_system": False}})
+    assert response.status_code == 200, response.get_json()
+    assert response.get_json()["regenerated"] is True
+
+    after = admin_client.get(f"/api/systems/{system_id}").get_json()
+    assert (after["name"], after["sector_id"], after["location"]) == (before["name"], before["sector_id"],
+                                                                       before["location"])
+    assert after["stars"][0]["star_type"].startswith("K1V")
+    assert after["stars"][0]["name"] == before["name"]
+    assert not old_star_ids & {star["id"] for star in after["stars"]}
+    for planet in after["planets"]:
+        assert planet["name"].startswith(before["name"])
+
+    conn = _db.get_connection(config)
+    try:
+        # The stand-in row used while swapping is gone, with its name.
+        assert conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id IS NULL").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
+def test_regenerate_refuses_to_drop_facilities_unless_told(seeded_sector, admin_client):
+    config, sector_id, system_ids = seeded_sector
+    system_id = system_ids[1]
+    star_id = admin_client.get(f"/api/systems/{system_id}").get_json()["stars"][0]["id"]
+    response = admin_client.post("/api/facilities", json={
+        "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "star", "host_id": star_id})
+    assert response.status_code == 201, response.get_json()
+
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False}})
+    assert response.status_code == 409
+    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False},
+                                                                      "drop_facilities": True})
+    assert response.status_code == 200
+    assert admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"] == []
+
+
+def test_regenerate_rejects_bad_bodies(admin_client):
+    system_id = admin_client.post("/api/systems", json={"planets": False}).get_json()["id"]
+    assert admin_client.patch(f"/api/systems/{system_id}", json={}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": []}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"age": "ancient"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"name": "X"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {}, "drop_facilities": 1}
+                              ).status_code == 400
+    assert admin_client.patch("/api/systems/999999", json={"regenerate": {}}).status_code == 404
 
 
 def test_update_and_delete_system(admin_client):

@@ -2359,7 +2359,77 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
     return bands
 
 
-def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS):
+def bright_star_scatter_status(conn):
+    """
+    Whether the galaxy's bright-star scatter (`generate.py plan`) has run,
+    and with what threshold and seed -- so the Generate page can say so
+    and offer the right next step.
+
+    Returns:
+        dict: `scattered` (bool), `min_luminosity_sol` and `seed` (both
+            `None` until a scatter runs), and `default_min_luminosity_sol`
+            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses).
+    """
+    row = conn.execute(
+        "SELECT bright_star_min_luminosity_sol, bright_star_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    scattered = row is not None and row["bright_star_min_luminosity_sol"] is not None
+    return {
+        "scattered": scattered,
+        "min_luminosity_sol": float(row["bright_star_min_luminosity_sol"]) if scattered else None,
+        "seed": row["bright_star_seed"] if scattered else None,
+        "default_min_luminosity_sol": program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+    }
+
+
+def _bright_star_entry(row):
+    """One `bright_stars` row as the dict `galaxy_bright_stars_in_box` and
+    `bright_stars_in_sector` return."""
+    return {
+        "id": row["id"],
+        "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
+        "z": row["position_z_mpc"] / MPC_PER_PC,
+        "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
+        "temperature_k": row["temperature_k"], "star_type": row["star_type"],
+        "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
+        "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
+        "system_id": row["star_system_id"],
+    }
+
+
+def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfilled_only=True):
+    """
+    The pre-placed bright stars (`bright_stars`) in one sector cell, most
+    luminous first -- the stars a sector page lists for a cell that hasn't
+    been filled yet (filling builds each into a system, see
+    `generate.py fill`). Reads `idx_bright_stars_address`, so it's cheap
+    at any galaxy size.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        ring_index, layer_index, ring_slot_index (int): The cell's address.
+        unfilled_only (bool): Leave out stars already built into a system
+            (the default); `False` lists every star placed in the cell,
+            each filled one with its `system_id`.
+
+    Returns:
+        list[dict]: As `galaxy_bright_stars_in_box`; empty when no scatter
+            has run or the cell holds none.
+    """
+    unfilled = " AND star_system_id IS NULL" if unfilled_only else ""
+    rows = conn.execute(
+        f"""
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+        FROM bright_stars
+        WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?{unfilled}
+        ORDER BY luminosity_w DESC, id
+        """,
+        (int(ring_index), int(layer_index), int(ring_slot_index)),
+    ).fetchall()
+    return [_bright_star_entry(row) for row in rows]
+
+
+def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False):
     """
     The most luminous pre-placed bright stars (`bright_stars`) in the box
     `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
@@ -2379,6 +2449,9 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         edge_pc (float): The sector edge, parsecs.
         limit (int): See `GALAXY_TILE_MAX_BRIGHT_STARS`.
+        unfilled_only (bool): Only the stars whose sector hasn't been
+            filled yet (`system_id` is `None`) -- what a page listing the
+            stars still waiting in a box shows.
 
     Returns:
         list[dict]: Most luminous first: `id`, `x`/`y`/`z` (parsecs),
@@ -2397,6 +2470,8 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         "position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ? "
         "AND position_z_mpc >= ? AND position_z_mpc < ?"
     )
+    if unfilled_only:
+        box += " AND star_system_id IS NULL"
     box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
 
     # Rows read each way, assuming stars spread evenly over the disk: the
@@ -2436,19 +2511,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         """,
         params + box_params + [int(limit)],
     ).fetchall()
-    return [
-        {
-            "id": row["id"],
-            "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
-            "z": row["position_z_mpc"] / MPC_PER_PC,
-            "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
-            "temperature_k": row["temperature_k"], "star_type": row["star_type"],
-            "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
-            "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
-            "system_id": row["star_system_id"],
-        }
-        for row in rows
-    ]
+    return [_bright_star_entry(row) for row in rows]
 
 
 def galaxy_tiles(conn, tile_keys):
@@ -2624,6 +2687,65 @@ def _stage_children(counts):
         {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": n}
         for b, n in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
     ]
+
+
+GALAXY_LOCATE_LIMIT = 8
+"""int: Most matches `galaxy_locate` returns."""
+
+
+def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
+    """
+    Sectors and star systems whose name contains `term`, with each one's
+    sector address, for the Galaxy Map's address bar (the drill-down's
+    section 9.3): picking a match flies to that sector. Exact names come
+    first, then names that start with `term`, then the rest, by name.
+    Sectors without an address (placed before the cylindrical grid) and
+    systems outside a sector are left out.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        term (str): Part of a name; blank finds nothing.
+        limit (int): Most matches to return.
+
+    Returns:
+        list[dict]: `{kind ("sector" or "system"), id, name, sector_id,
+            sector_name, ring, layer, slot}`.
+    """
+    term = (term or "").strip()
+    if not term:
+        return []
+    pattern = _search_like_pattern(term)
+    order = "CASE WHEN {col} = ? THEN 0 WHEN {col} LIKE ? ESCAPE '\\\\' THEN 1 ELSE 2 END, {col}, id"
+    prefix = _search_like_pattern(term)[1:]
+    sectors = conn.execute(
+        "SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors "
+        "WHERE ring_index IS NOT NULL AND name LIKE ? ESCAPE '\\\\' "
+        f"ORDER BY {order.format(col='name')} LIMIT ?",
+        (pattern, term, prefix, limit),
+    ).fetchall()
+    systems = conn.execute(
+        "SELECT ss.id, ss.name, s.id AS sector_id, s.name AS sector_name, "
+        "s.ring_index, s.layer_index, s.ring_slot_index "
+        "FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id "
+        "WHERE s.ring_index IS NOT NULL AND ss.name LIKE ? ESCAPE '\\\\' "
+        f"ORDER BY {order.format(col='ss.name').replace(', id', ', ss.id')} LIMIT ?",
+        (pattern, term, prefix, limit),
+    ).fetchall()
+    found = [{
+        "kind": "sector", "id": r["id"], "name": r["name"], "sector_id": r["id"], "sector_name": r["name"],
+        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+    } for r in sectors] + [{
+        "kind": "system", "id": r["id"], "name": r["name"], "sector_id": r["sector_id"],
+        "sector_name": r["sector_name"],
+        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+    } for r in systems]
+    lowered = term.lower()
+
+    def rank(match):
+        name = (match["name"] or "").lower()
+        return (0 if name == lowered else 1 if name.startswith(lowered) else 2, name, match["kind"], match["id"])
+
+    return sorted(found, key=rank)[:limit]
 
 
 def galaxy_stage_keys(ring, layer, slot):
