@@ -326,9 +326,11 @@ for a mouse; spacing and type sized with `clamp()`.
     after I want to generate down to 100 solar luminosities, so we have
     to make sure when I do that, it only generates between the limits
     (i.e. doesn't generate more brighter stars). Probably add a value for
-    the star-fill level." The default threshold
-    (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`, 500 today) is
-    being changed to 100 separately. Today the plan's scatter
+    the star-fill level." Boss then kept the default at 500 (2026-10-01):
+    "OMG, no, so let's make the default 500 then, sorry, I am now down
+    with adding 35 gigs to the database." So the default threshold
+    (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`) is 500, and going
+    down to 100 later is the kind of extra layer this item adds. Today the plan's scatter
     (`generate.py`, `--bright-star-min-luminosity`) clears `bright_stars`
     and redraws everything at or above the threshold, and refuses when
     any sector is already filled unless `--force` leaves those sectors
