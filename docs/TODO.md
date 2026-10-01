@@ -72,6 +72,68 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
+Bugs Boss found on the map (2026-10-01): "bug fix, wedge lines should
+not extend past the boundary of the galaxy. bug fix, bright stars do not
+display past 500 seconds scale (1 block = 81 sectors across). bug fix
+zooming reveals stars are being drawn but it takes a while to load,
+another bugfix, it's really hard to find the generated star system on
+the map, so everything not yet filled should be more transparent by a
+lot with a much higher contrast."
+
+96. [ ] **Bug: wedge lines run past the galaxy's edge.** Boss: "wedge
+    lines should not extend past the boundary of the galaxy." Today
+    `galaxymap3d.js` (`buildWedgeLines`) draws every master line of
+    `galaxyprisms.wedgeLines` as a straight radial line out to
+    `GALAXY_RADIUS * 1.02`, a fixed circle, so the lines carry on past
+    the galaxy's real outline (which is not a circle at every bearing)
+    and slightly past the radius itself. Done: each wedge line stops at
+    the galaxy's boundary along its bearing, in the 3D view and the
+    drill-down stages (items 70-72) alike. Open questions: which
+    boundary counts (the outermost generated ring at that bearing, the
+    density model's cutoff from `densityShape`, or the outermost layer
+    extent from `galaxySkeleton.build_layer_extents`); and whether the
+    bearing labels move in to the new line ends.
+
+97. [ ] **Bug: bright stars vanish when zoomed out.** Boss: "bright
+    stars do not display past 500 seconds scale (1 block = 81 sectors
+    across)." Past that zoom the pre-placed bright stars (v43,
+    `bright_stars`, drawn as points with a glow) stop showing; they
+    should show at every zoom. Leads to check, not yet confirmed: each
+    tile carries at most `queryDb.GALAXY_TILE_MAX_BRIGHT_STARS` (400)
+    stars, and zoomed out the view may switch to tiles or a view
+    radius that leaves stars out. Done: bright stars draw at every zoom
+    out to the whole galaxy, thinned by luminosity if there are too many
+    rather than disappearing. Open questions: "500 seconds" is taken as
+    the scale readout at the zoom where blocks are 81 sectors a side;
+    Boss to confirm which readout he meant. How many stars should the
+    whole-galaxy view draw (the brightest N overall, or the brightest
+    per tile)?
+
+98. [ ] **Bug: stars take a while to appear after a zoom.** Boss:
+    "zooming reveals stars are being drawn but it takes a while to
+    load." After a zoom the bright stars (and the tiles they come in,
+    `renderFromCache` in `galaxymap3d.js`) arrive late, so the view
+    shows them popping in. Done: stars already loaded stay on screen
+    through a zoom, the tiles for the new view load faster or ahead of
+    time, and nothing visibly pops in. Open questions: where the time
+    goes (the tile request, `galaxy_bright_stars_in_box`'s query, or
+    rebuilding the points); whether to prefetch the next zoom level's
+    tiles; and whether a separate, lighter star endpoint would help
+    (ties in with item 90's fewer, bigger database calls).
+
+99. [ ] **Bug: generated systems are hard to find on the map.** Boss:
+    "it's really hard to find the generated star system on the map, so
+    everything not yet filled should be more transparent by a lot with
+    a much higher contrast." Done: blocks and sectors not yet filled
+    draw much more transparent, and filled sectors stand out with much
+    higher contrast against them, on the 3D map and on the drill-down
+    stages (items 70-72). Open questions: how transparent the unfilled
+    blocks go (and whether the density shape still reads at the galaxy
+    scale); what "higher contrast" uses (a bright color, an outline, a
+    glow like the bright stars); whether a block holding only a few
+    filled sectors gets the filled look; and whether it follows the
+    light and dark themes and keeps enough contrast in both.
+
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
 Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
@@ -128,6 +190,90 @@ stages themselves don't need it.
     link goes to the Quadrant table today. Done: sector, system and
     search pages link to `/galaxy?sector=<designation>`.
 
+100. [ ] **Bug: no free camera; drill down from a top-down view by
+    wedge, slice and block.** Boss (2026-10-01): "bugfix, remove the
+    ability to free form select a point to center on. Instead, we'll
+    start at a top-down view. The user will select the wedge (quarter)
+    aligned with the wedge lines, that we then zoom in on. From there
+    the user select a slice of blocks that fit the current zoom level.
+    It is selected by the mouse and it should be clearly highlighted the
+    slice the user is going to click on and make sure the block size is
+    such that the user can easily operate it via the correct method
+    (responsive design, if a touch sized screen make sure the user can
+    easily tap with a finger, but if it's a computer then the user is
+    probably using a mouse). Once selected the user can choose any block
+    in that slice. Once selected, the user zooms into that block, they
+    can then see the next group of slices and the process repeats. This
+    occurs until we get to the sector level. At no point can the user
+    free rotate the map anymore." This settles decision 2 of the design
+    doc (section 11, "Free camera"): no free look and no free rotation,
+    not even the default's drag-rotate inside the 3D stages. Today the
+    old free camera (click any point to center on it, drag to rotate)
+    stays behind the map's Free look button (added with item 72, PR
+    #171), and the 3D stages (1, 3, 5, 7, section 5.1) can be
+    drag-rotated. Done:
+    - The Free look button, free-camera picking and every drag-rotate
+      are removed; the map can't be rotated at any stage.
+    - The map opens top-down on the whole galaxy; the user picks a
+      wedge (a quarter, its edges on the wedge lines) and the map zooms
+      in on it.
+    - At each level the user picks a slice of blocks sized to the
+      current zoom, then any block in that slice, and the map zooms
+      into that block and shows its slices; this repeats down to the
+      sector level, where a click opens the sector.
+    - The slice (and then the block) under the pointer is clearly
+      highlighted before the click.
+    - Blocks and slices are sized for the input: big enough to tap with
+      a finger on touch screens (`pointer: coarse`), mouse-sized on a
+      computer (the Responsive Web Design Standards' 44-48 px touch
+      targets, under the Web interface section).
+    - The design doc's sections 5 and 10-11 are updated to match, and
+      breadcrumb, Back, stage URLs (`/galaxy?slab=`, `?at=`), bookmarks
+      (item 76), the address bar (item 77) and the NAV course (item 79)
+      keep working with the new steps.
+    Ties in with the map bugs 96-99 (wedge lines stopping at the
+    galaxy's edge matter more once wedges are what the user picks, and
+    item 99's contrast applies to the slices and blocks). Open
+    questions: how the "wedge (quarter)" maps onto the design's nested
+    ladder (243 -> 27 -> 3 -> 1, section 3): is the first pick always
+    one of four quarters, or one of the master wedges at that ring?
+    What a "slice" is: a ring band, a layer (the current 3D stages pick
+    a slab, a layer), or a row of blocks along the wedge? With no 3D
+    view, how does the user pick a layer above or below the galactic
+    plane (a side view, a layer list, or slices that run through the
+    disk's thickness)? What replaces the free camera for item 73's
+    neighborhood generate and item 75's NAV picking, which may want an
+    arbitrary point?
+
+101. [ ] **Bug: "Show on Galaxy Map" should open at the sector, and the
+    map needs its own Back and Forward.** Boss (2026-10-01): "when the
+    user clicks "Show on Galaxy" It should be zoomed in to the sector
+    level of the slice that we can see that sector, and back and forward
+    buttons to travel ones own history on the map display". Today
+    `/galaxy?sector=<designation>` already opens the sector's stage 8
+    (`galaxystages.parseStageQuery`), but not every "Show on Galaxy
+    Map" link uses it: the NAV result's link opens the course overlay
+    (`/galaxy?course=<from>,<to>`, item 79) over the galaxy, and the
+    sector and system pages still link to the Quadrant table (item 78).
+    The map has no Back or Forward of its own; moving between stages
+    relies on the breadcrumb and the browser's Back button. Done:
+    - Every "Show on Galaxy Map" link (sector, system and search pages,
+      the NAV result) opens the map zoomed in to the sector level of
+      the slice holding that sector, with the sector in view and
+      highlighted.
+    - The map display has Back and Forward buttons that step through
+      the user's own history on the map (each stage or position they
+      visited), separate from but consistent with the browser's
+      history and the stage URLs.
+    This follows the wedge, slice and block drill-down of item 100
+    (the "slice" here is item 100's slice), and folds in item 78's links.
+    Open questions: for the NAV result, which sector is shown (the
+    start, the destination, or a view that fits both, as item 79's
+    course does today)? Is the map's history its own list or the
+    browser's history (`history.pushState` per stage) with the buttons
+    calling `history.back()`/`forward()`? Does it survive a page reload
+    or a visit to a sector page and back? How far back does it go?
+
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
 Web workstream. Boss's UX reference for both items below is
@@ -175,6 +321,52 @@ for a mouse; spacing and type sized with `clamp()`.
     from the command line, which don't take the web jobs lock today
     (they would need to write the same lock and progress file)? What does
     it say when there's no ETA yet?
+
+102. [ ] **One meaningful-unit ladder for speeds.** Boss (2026-10-01):
+    "standardization with speeds, similar to what we do with distances
+    to make them always meaningful, speeds should always be meaningful.
+    Going from km/h on the low speed end to mm/s on the high speed end."
+    Distances already work this way: every page passes them through
+    `stellarObjects.utils.format_distance_m` (and its `_km`/`_au`/`_ly`
+    wrappers, `html/lib/fmt.py`), mirrored by `static/distance.js` for
+    the maps, which picks the largest unit the value is at least 1 of.
+    Speeds have no such function; each page formats its own (km/s on
+    system and facility pages, multiples of c for warp and fold in
+    `stellarObjects/navigation.py`'s `warp_speed_c` and travel tables).
+    Done: one shared speed formatter in Python with a JavaScript mirror,
+    with a fixed ladder of units, used by every page, API text field
+    and map that shows a speed, and the existing call sites converted.
+    Open questions: the ladder reads reversed as written (mm/s is slower
+    than km/h), so what is the intended order from slowest to fastest?
+    For example mm/s, m/s, km/h, km/s, then fractions and multiples of
+    c, with warp and fold factors shown alongside rather than replacing
+    them. Where it switches units (at 1 of the next unit, as distances
+    do, or another rule), and whether it adds a parenthetical in a
+    second unit the way distances add ly or AU. Where it lives
+    (`stellarObjects/utils.py` next to `format_distance_m`, and a
+    `static/speed.js` or a section of `distance.js`).
+
+103. [ ] **One meaningful-unit ladder for time periods.** Boss
+    (2026-10-01): "Same for orbital periods, galactic, lunar, planetary,
+    we should tie all those into a function to do the same. For slowest
+    (measured in Gy) to fastest (measured in microseconds). Those are 2
+    seperate TODO items." Today orbital periods go through
+    `stellarObjects.utils.years_to_time_string` ("x years y days z hours
+    m minutes", via `html/lib/tabledisplay.format_period`), which gets
+    long for galactic orbits and loses anything under a minute; star
+    ages and lifespans are shown in Gy elsewhere, and the admin pages
+    have their own `format_duration`. Done: one shared period formatter
+    in Python with a JavaScript mirror, picking a meaningful unit from
+    Gy at the slow end down to microseconds at the fast end, used for
+    planetary, lunar and galactic orbital periods (and rotation periods,
+    ages and other durations where it fits), with the existing call
+    sites converted. Open questions: the ladder (for example Gy, My, ky,
+    years, days, hours, minutes, seconds, ms, µs) and where it switches;
+    one unit with decimals ("1.88 years") or a mixed form ("1 year 321
+    days") for everyday periods; rounding and significant figures; which
+    year length it uses (Julian 365.25 days, as `years_to_time_string`
+    does); and whether elapsed-time and ETA displays for jobs (items 86-88)
+    and the admin pages use the same function.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
@@ -370,6 +562,90 @@ for a mouse; spacing and type sized with `clamp()`.
     in one sector avoid clashing on names and positions when they are
     built at the same time; and what happens to queued and half-done
     tasks when the server restarts or a job is cancelled.
+
+93. [ ] **Weight the bright-star ETA by the shape of the galaxy.** Boss
+    (2026-10-01): "so that the bright stars ETA takes into account the
+    shape of what's being generated (ie that at layer 0 and 635 take very
+    little time)". Today the plan's scatter (`brightStars.scatter`) walks
+    the layers in `extents` order and calls `on_layer(done, total)` once
+    per layer, so the "Bright stars (layers)" bar in `generate.py` counts
+    every layer the same. The thin layers at the edges finish almost at
+    once and the dense middle layers take most of the time, so the ETA
+    swings badly. Done: the bar and its ETA count expected work, not
+    layers. Before the scatter starts, each layer gets an expected star
+    count from the same density model the scatter uses
+    (`_ring_bins` × `expected_at_density_1` × the bright fraction for the
+    chosen threshold), and progress and the ETA are measured in expected
+    stars done out of the expected total, so a run through the sparse
+    edge layers no longer makes the rest look quick or slow. Ties in with
+    item 86 (the up-front time estimate uses the same per-layer
+    weights), items 87 and 88 (the banner's ETA, and item 88's
+    stars-remaining estimate for the current layer), item 89 (a staged
+    scatter weights only the new luminosity band), and items 91 and 92
+    (the decaying-average rate and the parallel tasks). Open questions:
+    is the weight the expected star count alone, or does it also count
+    rings and slots walked (an empty edge layer still costs some loop
+    time)? How does the weighting combine with item 91's decaying
+    average: the average measured in expected stars per second, or in
+    layers per second and then scaled? Is the per-layer expected count
+    worked out in a quick pre-pass at the start of every plan, or stored
+    with the galaxy skeleton? Once item 92 runs layers in parallel and
+    out of order, does the ETA add up the expected work still queued
+    rather than following the layer order?
+
+94. [ ] **Record generation speed across a log scale of densities.**
+    Boss (2026-10-01): "record generation stats such as time per star,
+    time per sector for a log scale of densities from 0.01 to the max
+    expected density / actual density found. ... Both of these will be
+    continued to be refined and calculated as long as the galaxy is in
+    existence but as a decaying average." Today nothing records how long
+    generation takes per star or per sector, and item 86's planned
+    stars-per-second figure is a single number for the whole server.
+    Done: density is split into log-scale buckets from 0.01 up to the
+    highest density expected or found; every sector fill adds its time
+    per star and time per sector to its density's bucket as a decaying
+    average; the buckets keep updating for as long as the galaxy exists;
+    and they can be read back by the tools below. These stats feed
+    item 86 (time estimates before bulk generation, per bucket instead
+    of one rate), item 87 (the banner's ETA), item 88 (the slow-layer
+    bar's stars-remaining ETA), item 89 (the time for a new luminosity
+    band), item 91 (the decaying-average rate) and item 93 (weighting
+    the bright-star ETA by expected work per layer). Open questions: how
+    many buckets and where their edges sit (per decade, half-decade?);
+    whether the top edge is fixed from the density model's expected
+    maximum or moves up when a denser sector is found; the decay
+    constant (how fast old runs fade); whether the plan's bright-star
+    scatter gets its own buckets (its cost per star differs from sector
+    fill); whether it lives in the control database (survives a new
+    galaxy, as item 86 suggests for stars per second) or the galaxy
+    database (resets with it), and so what a regenerate or reset does to
+    it; and whether item 92's parallel workers count wall time or CPU
+    time per task.
+
+95. [ ] **Store each sector's expected and actual density.** Boss
+    (2026-10-01): "add stats for each sector's density expected and
+    actual in the database in a way that can be easily accessed. Both of
+    these will be continued to be refined and calculated as long as the
+    galaxy is in existence but as a decaying average." Today `sectors`
+    stores only a sector's address and center; its expected density is
+    worked out on demand from the galaxy skeleton (`relative_density`
+    times `galaxy_layer`'s `expected_system_count_at_density_1`), and
+    its actual density means counting its systems. Done: every sector
+    has its expected density and its actual density (systems, and stars,
+    found when filled) stored where a query can read them directly, as
+    columns on `sectors` or a sector-stats table, readable by
+    `queryDb`, `adminStats` and the API; the galaxy-wide comparison of
+    expected against actual is kept as a decaying average and updated
+    after every fill. Item 94 places each sector in its density bucket
+    with these numbers, and items 86, 89 and 93 use the
+    expected-versus-actual ratio to correct their estimates. Open
+    questions: columns on `sectors` (a migration in the Database
+    workstream) or a separate table; whether "actual" counts systems,
+    stars, or both; what the decaying average is taken over (the ratio
+    per density bucket, so it ties in with item 94, or one galaxy-wide
+    figure); whether existing sectors are backfilled by a migration;
+    and what happens to the stats when a sector is regenerated
+    (item 60) or the galaxy is reset.
 
 
 ### Star population (from the galaxy studies of 2026-09-30)
