@@ -306,6 +306,33 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
     assert fake.stage_calls == []
 
 
+# --- The NAV course overlay --------------------------------------------------------------
+
+def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
+    """`?course=<from>,<to>` embeds the course `nav_page.galaxy_course`
+    works out, and says what it is showing."""
+    from web import nav_page
+
+    asked = []
+    course = {
+        "scope": "galaxy", "navUrl": "/nav?from=system:1&to=system:2", "sector": None,
+        "points": [{"name": "Alpha", "role": "origin", "url": "/system/1", "x": 1.0, "y": 2.0, "z": 0.0},
+                   {"name": "Omega", "role": "destination", "url": "/system/2", "x": 90.0, "y": 2.0, "z": 0.0}],
+    }
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda f, t: asked.append((f, t)) or course)
+    html = client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
+    assert asked == [("system:1", "system:2")]
+    assert _scene(html)["course"]["points"][1]["name"] == "Omega"
+    assert "Showing the course from <strong>Alpha</strong> to <strong>Omega</strong>" in html
+    assert 'href="/nav?from=system:1&amp;to=system:2"' in html
+
+
+def test_galaxy_page_without_a_course(client, fake):
+    assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
+    # A malformed value asks nothing and draws nothing.
+    assert _scene(client.get("/galaxy?course=system:1").get_data(as_text=True))["course"] is None
+
+
 # --- /galaxy/locate ----------------------------------------------------------------------
 
 def test_locate_endpoint_passes_the_name_through(client, fake, monkeypatch):

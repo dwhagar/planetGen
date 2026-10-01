@@ -100,8 +100,9 @@ item names its section. 70 (the nested ladder,
 `stellarObjects/galaxyDrill.py`), 71 (`GET /api/galaxy/stage`) and 72
 (the stages, `static/galaxystages.js` and `static/galaxystageview.js`,
 with stage URLs `/galaxy?slab=`, `?at=`, `?sector=<designation>`) have
-shipped, and so has 77 (the address bar, `/galaxy/locate`); Web can do
-63, 74, 75 and 78 now. The old free camera stays
+shipped, and so have 77 (the address bar, `/galaxy/locate`) and 79 (the
+course overlay, `/galaxy?course=<from>,<to>`); Web can do 63, 74, 75 and
+78 now. The old free camera stays
 behind the map's Free look button until Boss settles decision 2 (section
 11). If it stays, its blocks could also grow with distance from the
 camera (bigger blocks on the far side of the view ball, where the nested
@@ -146,10 +147,6 @@ stages themselves don't need it.
 78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
     link goes to the Quadrant table today. Done: sector, system and
     search pages link to `/galaxy?sector=<designation>`.
-
-79. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
-    result's "Show on Galaxy Map" opens the smallest stage holding both
-    endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 

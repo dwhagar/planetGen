@@ -123,11 +123,13 @@ def galaxy():
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
     initial_view = fetch_tiles(db, initial_tile_request(max_radius))
+    course = _course_from_args()
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
         stage_path=url_for("web.galaxy_stage"),
         locate_path=url_for("web.galaxy_locate"),
+        course=course,
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         phenomenon_url=phenomenon_url_template(),
@@ -157,6 +159,30 @@ def galaxy():
         description="An interactive 3D map of every sector placed in this generated galaxy.",
         **context,
     )
+
+
+def _course_from_args():
+    """
+    The NAV course the map should draw, from `?course=<from>,<to>` (the
+    NAV result's "Show on Galaxy Map" link, the drill-down's section
+    9.4), or `None`. A course that can't be drawn is simply not drawn;
+    an endpoint that doesn't exist is the usual 404.
+    """
+    raw = (request.args.get("course") or "").strip()
+    if not raw or "," not in raw:
+        return None
+    from_raw, to_raw = (part.strip() for part in raw.split(",", 1))
+    if not from_raw or not to_raw:
+        return None
+    from .nav_page import galaxy_course  # imported here: both modules register routes on `bp`
+
+    try:
+        return galaxy_course(from_raw, to_raw)
+    except apiclient.ApiError as exc:
+        if isinstance(exc, apiclient.NotFoundError):
+            raise
+        log.exception(f"API error while plotting a course for the galaxy map: {exc}")
+        return None
 
 
 def _json_error(message, status):
