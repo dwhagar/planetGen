@@ -46,6 +46,7 @@ from queryDb import (
     facilities_in_sector,
     facility_detail,
     NO_SECTOR,
+    bright_star_scatter_status,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
@@ -686,8 +687,12 @@ def galaxy_shape():
     cloud from, for whatever space hasn't actually been generated yet.
     `"shape"` is `null` when the skeleton has never been built (the map
     then falls back to its own generic illustrative gradient).
+    `"bright_stars"` is `queryDb.bright_star_scatter_status`: whether the
+    bright-star scatter has run, its threshold and seed, and the default
+    threshold a plain plan uses.
     """
-    return jsonify({"shape": galaxy_density_shape(get_db())})
+    conn = get_db()
+    return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn)})
 
 
 @bp.route("/galaxy/cell")

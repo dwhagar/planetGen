@@ -2359,7 +2359,77 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
     return bands
 
 
-def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS):
+def bright_star_scatter_status(conn):
+    """
+    Whether the galaxy's bright-star scatter (`generate.py plan`) has run,
+    and with what threshold and seed -- so the Generate page can say so
+    and offer the right next step.
+
+    Returns:
+        dict: `scattered` (bool), `min_luminosity_sol` and `seed` (both
+            `None` until a scatter runs), and `default_min_luminosity_sol`
+            (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, what a plain plan uses).
+    """
+    row = conn.execute(
+        "SELECT bright_star_min_luminosity_sol, bright_star_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    scattered = row is not None and row["bright_star_min_luminosity_sol"] is not None
+    return {
+        "scattered": scattered,
+        "min_luminosity_sol": float(row["bright_star_min_luminosity_sol"]) if scattered else None,
+        "seed": row["bright_star_seed"] if scattered else None,
+        "default_min_luminosity_sol": program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+    }
+
+
+def _bright_star_entry(row):
+    """One `bright_stars` row as the dict `galaxy_bright_stars_in_box` and
+    `bright_stars_in_sector` return."""
+    return {
+        "id": row["id"],
+        "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
+        "z": row["position_z_mpc"] / MPC_PER_PC,
+        "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
+        "temperature_k": row["temperature_k"], "star_type": row["star_type"],
+        "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
+        "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
+        "system_id": row["star_system_id"],
+    }
+
+
+def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfilled_only=True):
+    """
+    The pre-placed bright stars (`bright_stars`) in one sector cell, most
+    luminous first -- the stars a sector page lists for a cell that hasn't
+    been filled yet (filling builds each into a system, see
+    `generate.py fill`). Reads `idx_bright_stars_address`, so it's cheap
+    at any galaxy size.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        ring_index, layer_index, ring_slot_index (int): The cell's address.
+        unfilled_only (bool): Leave out stars already built into a system
+            (the default); `False` lists every star placed in the cell,
+            each filled one with its `system_id`.
+
+    Returns:
+        list[dict]: As `galaxy_bright_stars_in_box`; empty when no scatter
+            has run or the cell holds none.
+    """
+    unfilled = " AND star_system_id IS NULL" if unfilled_only else ""
+    rows = conn.execute(
+        f"""
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+        FROM bright_stars
+        WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?{unfilled}
+        ORDER BY luminosity_w DESC, id
+        """,
+        (int(ring_index), int(layer_index), int(ring_slot_index)),
+    ).fetchall()
+    return [_bright_star_entry(row) for row in rows]
+
+
+def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False):
     """
     The most luminous pre-placed bright stars (`bright_stars`) in the box
     `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
@@ -2379,6 +2449,9 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         edge_pc (float): The sector edge, parsecs.
         limit (int): See `GALAXY_TILE_MAX_BRIGHT_STARS`.
+        unfilled_only (bool): Only the stars whose sector hasn't been
+            filled yet (`system_id` is `None`) -- what a page listing the
+            stars still waiting in a box shows.
 
     Returns:
         list[dict]: Most luminous first: `id`, `x`/`y`/`z` (parsecs),
@@ -2397,6 +2470,8 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         "position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ? "
         "AND position_z_mpc >= ? AND position_z_mpc < ?"
     )
+    if unfilled_only:
+        box += " AND star_system_id IS NULL"
     box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
 
     # Rows read each way, assuming stars spread evenly over the disk: the
@@ -2436,19 +2511,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         """,
         params + box_params + [int(limit)],
     ).fetchall()
-    return [
-        {
-            "id": row["id"],
-            "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
-            "z": row["position_z_mpc"] / MPC_PER_PC,
-            "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
-            "temperature_k": row["temperature_k"], "star_type": row["star_type"],
-            "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
-            "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
-            "system_id": row["star_system_id"],
-        }
-        for row in rows
-    ]
+    return [_bright_star_entry(row) for row in rows]
 
 
 def galaxy_tiles(conn, tile_keys):

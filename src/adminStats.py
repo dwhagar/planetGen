@@ -135,6 +135,34 @@ def exact_counts(conn):
     return counts
 
 
+def bright_star_counts(conn):
+    """
+    How many pre-placed bright stars the galaxy's scatter wrote
+    (`generate.py plan`) and how many of them a sector fill has since built
+    into a system.
+
+    `placed` is read off the id run, not a `COUNT(*)` of tens of millions
+    of rows: a scatter empties the table (`TRUNCATE`, which also restarts
+    the ids) and writes every star from one connection, and nothing deletes
+    single rows, so the ids run unbroken from `MIN(id)` to `MAX(id)`.
+    `filled` counts the non-NULL end of the `star_system_id` index, so it
+    reads only the filled stars.
+
+    Returns:
+        dict | None: `placed`, `filled` and `unfilled`; all three 0 when
+            no scatter has run, `None` when the table can't be read (a
+            database older than v43).
+    """
+    try:
+        span = conn.execute("SELECT MIN(id) AS lo, MAX(id) AS hi FROM bright_stars").fetchone()
+        filled = conn.execute(
+            "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL").fetchone()["n"]
+    except Exception:
+        return None
+    placed = 0 if span["hi"] is None else int(span["hi"]) - int(span["lo"]) + 1
+    return {"placed": placed, "filled": int(filled), "unfilled": placed - int(filled)}
+
+
 def timestamp_stats(conn):
     """
     For every table with v27 row timestamps (`_db.TIMESTAMPED_TABLES`):

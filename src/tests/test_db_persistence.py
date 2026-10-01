@@ -3033,6 +3033,64 @@ def test_bright_stars_store_and_clear(mysql_config):
         conn.close()
 
 
+def test_bright_star_web_queries(mysql_config):
+    """The Stats page's placed/filled counts, the sector page's per-cell and
+    per-box listings (unfilled only by default) and the Generate page's
+    scatter status all agree with what was stored."""
+    import adminStats
+    import queryDb
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert adminStats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
+        status = queryDb.bright_star_scatter_status(conn)
+        assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
+        assert status["default_min_luminosity_sol"] == 500.0
+        assert queryDb.bright_stars_in_sector(conn, 3, 0, 1) == []
+        with conn:
+            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
+                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
+                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
+                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
+            _db.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
+                                           _bright_row(slot=2)], batch_size=2)
+            _db.record_bright_star_scatter(conn, 100.0, 9)
+        listed = queryDb.bright_stars_in_sector(conn, 3, 0, 1)
+        assert [s["luminosity_sol"] for s in listed] == pytest.approx([800.0, 600.0], rel=1e-2)
+        assert listed[0]["x"] == pytest.approx(12.0) and listed[0]["yerkes_class"] == "V"
+        assert listed[0]["system_id"] is None
+
+        system, cfg = _named_system("Lanternfall")
+        with conn:
+            system_id = _db.insert_star_system(conn, system, cfg)
+            _db.mark_bright_star_filled(conn, listed[0]["id"], system_id)
+        assert adminStats.bright_star_counts(conn) == {"placed": 3, "filled": 1, "unfilled": 2}
+        assert [s["id"] for s in queryDb.bright_stars_in_sector(conn, 3, 0, 1)] == [listed[1]["id"]]
+        every = queryDb.bright_stars_in_sector(conn, 3, 0, 1, unfilled_only=False)
+        assert [(s["id"], s["system_id"]) for s in every] == [(listed[0]["id"], system_id), (listed[1]["id"], None)]
+
+        lo, hi = (11.0, 2.0, -1.0), (13.0, 4.0, 1.0)
+        boxed = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0)
+        assert system_id in [s["system_id"] for s in boxed]
+        assert queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, unfilled_only=True) \
+            == [s for s in boxed if s["system_id"] is None]
+
+        status = queryDb.bright_star_scatter_status(conn)
+        assert status == {"scattered": True, "min_luminosity_sol": 100.0, "seed": 9,
+                          "default_min_luminosity_sol": 500.0}
+
+        # A re-scatter empties the table and restarts the ids, so the id
+        # span still counts exactly.
+        _db.clear_bright_stars(conn)
+        with conn:
+            _db.insert_bright_stars(conn, [_bright_row(slot=s) for s in range(5)])
+        assert adminStats.bright_star_counts(conn) == {"placed": 5, "filled": 0, "unfilled": 5}
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 5
+    finally:
+        conn.close()
+
+
 def test_migrate_v42_to_v43_adds_bright_star_storage(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
