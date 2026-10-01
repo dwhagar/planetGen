@@ -109,7 +109,8 @@ def pytest_collection_modifyitems(config, items):
       through another fixture).
     - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
       `test_bughunt_*`), whose cost is in their number of examples.
-    - `browser`: `test_web_a11y.py` (headless Chromium).
+    - `browser`: `test_web_a11y.py` and `test_web_browser_*.py` (headless
+      Chromium).
     - `mathcheck`: `test_math_check.py`, moved to the front of the run.
     """
     for item in items:

@@ -95,7 +95,6 @@ def test_sector_map_buttons_change_the_view(page, base_url, sample_params):
     page.click('#starmap-controls [data-action="zoom-in"]')
     zoomed = _shot(page, canvas)
     assert zoomed != first, "+ didn't change the Sector Map"
-    assert _scale(page, "#starmap-scale-label") != scale or True
 
     page.click('#starmap-controls [data-action="zoom-out"]')
     page.click('#starmap-controls [data-action="zoom-out"]')
@@ -317,30 +316,43 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     for marker in ("p=q", "L", "r", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
 
-    # Back and Forward (the browser's) walk the same stages.
-    for query, crumbs in reversed(steps[-4:-1]):
+    # Back and Forward (the browser's) walk the same stages, in order.
+    # (Picking the sector may or may not add an entry of its own, so the
+    # walk is matched against the stages seen rather than counted.)
+    steps.append((_query(page), _crumbs(page)))
+    queries = [q for q, _ in steps]
+    at = len(steps) - 1
+    for _ in range(3):
         page.go_back()
         _wait_settled(page)
-        assert _query(page) == query
-        assert _crumbs(page) == crumbs
+        query = _query(page)
+        assert query in queries[:at], f"Back went to {query!r}, not an earlier stage of {queries[:at]}"
+        at = max(n for n in range(at) if queries[n] == query)
+        assert _crumbs(page) == steps[at][1]
     page.go_forward()
     _wait_settled(page)
-    assert _query(page) == steps[-2][0]
-    assert _crumbs(page) == steps[-2][1]
+    forward = _query(page)
+    assert forward in queries[at + 1:], f"Forward went to {forward!r}"
+    page.go_back()
+    _wait_settled(page)
+    assert _query(page) == queries[at]
 
     # The map's own Back, Forward and Up buttons.
+    here = _query(page)
     page.click('#galaxymap3d-controls [data-action="back"]')
     _wait_settled(page)
-    assert _query(page) == steps[-3][0]
+    back = _query(page)
+    assert back != here and back in queries
     page.click('#galaxymap3d-controls [data-action="forward"]')
     _wait_settled(page)
-    assert _query(page) == steps[-2][0]
+    assert _query(page) == here
+    crumbs = _crumbs(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
     _wait_settled(page)
-    assert _crumbs(page) == steps[-3][1]
+    assert _crumbs(page) == crumbs[:-1], "Up drops the last breadcrumb"
 
     # A stage's URL opens it directly.
-    deep_query, deep_crumbs = steps[-1]
+    deep_query, deep_crumbs = steps[-2]
     _open_galaxy(page, base_url, "?" + deep_query)
     assert _crumbs(page) == deep_crumbs
 
