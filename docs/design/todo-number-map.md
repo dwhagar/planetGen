@@ -760,8 +760,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
-| TEST.4 | Revive and widen the known-bug tests | none | open |
-| TEST.5 | Real 4 pc in boundary tests | none | open |
+| TEST.4 | Revive and widen the known-bug tests | none | done, PR #303 |
+| TEST.5 | Real 4 pc in boundary tests | none | done, PR #303 |
 | TEST.6 | SQL portability lint | none | open |
 | TEST.7 | Strict sql_mode on both engines | none | open |
 | TEST.8 | Migrate from real old schemas | none | open |
@@ -779,20 +779,20 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.20 | Work queue failure paths | none | done, PR #305 |
 | TEST.21 | Cancelling a run | none | done, PR #305 |
 | TEST.22 | Every bulk mode in parallel | none | open |
-| TEST.23 | Resume after an interrupted fill | none | open |
-| TEST.24 | Bright-star scatter edge cases | none | open |
-| TEST.25 | Interrupted bright-star scatter | none | open |
-| TEST.26 | `--force` scatter then fill | none | open |
+| TEST.23 | Resume after an interrupted fill | none | done, PR #303 |
+| TEST.24 | Bright-star scatter edge cases | none | done, PR #303 |
+| TEST.25 | Interrupted bright-star scatter | none | done, PR #303 |
+| TEST.26 | `--force` scatter then fill | none | done, PR #303 |
 | TEST.27 | Progress and ETA under bad clocks | none | open |
-| TEST.28 | CLI errors by message | none | open |
-| TEST.29 | Limits stay consistent | none | open |
-| TEST.30 | Grid seams and the nucleus | none | open |
-| TEST.31 | Sector placement exhaustion | none | open |
-| TEST.32 | System builder internals | none | open |
-| TEST.33 | Moon stability helpers | none | open |
-| TEST.34 | Kepler solver extremes | none | open |
-| TEST.35 | Star and evolution helpers | none | open |
-| TEST.36 | Phenomenon class helpers | none | open |
+| TEST.28 | CLI errors by message | none | done, PR #303 |
+| TEST.29 | Limits stay consistent | none | done, PR #303 |
+| TEST.30 | Grid seams and the nucleus | none | done, PR #303 |
+| TEST.31 | Sector placement exhaustion | none | done, PR #303 |
+| TEST.32 | System builder internals | none | done, PR #303 |
+| TEST.33 | Moon stability helpers | none | done, PR #303 |
+| TEST.34 | Kepler solver extremes | none | done, PR #303 |
+| TEST.35 | Star and evolution helpers | none | done, PR #303 |
+| TEST.36 | Phenomenon class helpers | none | done, PR #303 |
 | TEST.37 | Names under parallel saves | none | open |
 | TEST.38 | Population incremental rescans | none | open |
 | TEST.39 | Navigation graph | none | open |
@@ -825,7 +825,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.66 | Distributions match their targets | none | done, PR #281 |
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
-| TEST.69 | Intermittent failure in the colony test (bug) | none | open |
+| TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
 | TEST.70 | Tests for the map JavaScript | none | open |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |

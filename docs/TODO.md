@@ -1449,30 +1449,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.4 Revive and widen the known-bug tests**
-  The "Real bugs (strict xfail)" block in
-  `test_fuzz_system_generation.py` (about line 562) now passes on 5-200
-  seeds; widen the seed counts and fix the stale docstring; promote the
-  three Tier-2 "tracked-not-fixed" reports (NaN radius in the system
-  map, `SERIALIZABLE_FIELDS` drift, galaxy-boundary report) to hard
-  asserts or strict xfails. [infra, GEN]
-
-- [ ] **TEST.5 Real 4 pc in boundary tests**
-  `test_bughunt_galaxy_boundaries.py` uses `EDGE_PC = 10.0`; run it at
-  the real 4 pc sector edge too. [infra, GEN]
-
-- [ ] **TEST.69 Intermittent failure in the colony test (bug)**
-  `test_web_facilities.py::test_real_colony_makes_its_world_inhabited`
-  failed once in a full parallel run on main plus ADM.6 and ADM.7, then
-  passed in 9 isolated and parallel reruns, bare main included (reported
-  by the ADM.1 thread, 2026-10-01). It likely depends on the randomly
-  generated system: `_system_with_terrestrial` or one of its asserts
-  (the other planets' `inhabited` matching `life_stage`, or the
-  `habitable` flag staying the same) fails on some draws. Done: the
-  failing draw is found (loop the test over seeds), the cause is fixed
-  in the test or in the code it found, and the test passes on every
-  seed tried. [infra, web]
-
 - [ ] **TEST.71 Intermittent failure in the admin planet-regenerate test (bug)**
   `test_admin_edits.py::test_system_page_regenerates_a_planet` fails
   about 1 run in 12 on main (seen by the TODO thread while testing
@@ -1563,73 +1539,10 @@ clears each one.
   `sector --num-sectors N` with `--workers 2`, checking run counts and
   that no sector is filled twice. [PERF, GEN]
 
-- [ ] **TEST.23 Resume after an interrupted fill**
-  Stop a ring, shell or block run partway, run it again, and get the
-  same result as one uninterrupted run with no duplicates. [GEN]
-
-- [ ] **TEST.24 Bright-star scatter edge cases**
-  `_place_one` running out of redraws, a zero-weight bin picked by float
-  rounding, a layer where nothing qualifies, `outer_ring=0`, empty
-  extents, a threshold below every white dwarf. [GEN, PERF]
-
-- [ ] **TEST.25 Interrupted bright-star scatter**
-  A worker fails mid-scatter after some 10,000-row commits (the seed is
-  written only at the end); a re-plan or later fill handles the partial
-  table. [GEN, PERF]
-
-- [ ] **TEST.26 `--force` scatter then fill**
-  Sectors skipped by a forced scatter fill correctly afterwards. [GEN]
-
 - [ ] **TEST.27 Progress and ETA under bad clocks**
   `DecayingRate` with time going backwards, NaN or infinite amounts,
   many adds at one instant, a tiny rate; workers never write the
   progress file. [PERF]
-
-- [ ] **TEST.28 CLI errors by message**
-  Every `parser.error` in `generate.py` (block, column, shell,
-  center-sector, limit, plan shape, workers, population, phenomenon,
-  mysql-port) asserted by its text, and each limit tested at exactly its
-  maximum (`MAX_GENERATE_RING`, `MAX_GENERATE_LIMIT`, first and last
-  `--block-layer`). [GEN, OPS]
-
-- [ ] **TEST.29 Limits stay consistent**
-  `MAX_GENERATE_LIMIT` matches `ring_sector_count(MAX_GENERATE_RING)`
-  whatever `DEFAULT_MAX_RING` is. [GEN]
-
-- [ ] **TEST.30 Grid seams and the nucleus**
-  Points at θ just under 2π and at -0.0 on the 4 pc grid; the outermost
-  planned ring and layer against `galaxy_bounds`; the nucleus sector
-  (ring 0, slot 0) across layers 0 and -1. [GEN]
-
-- [ ] **TEST.31 Sector placement exhaustion**
-  "could not place a new object", the Poisson cap, explicit positions on
-  the cell boundary, `nearest_neighbors` with a bad count. [GEN]
-
-- [ ] **TEST.32 System builder internals**
-  Direct tests for `generate_slot_object`,
-  `calculate_distance_for_class`, `_forced_habitable_distance`,
-  `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
-  `_clear_circumbinary_floor` and the `from_dict` error; these are what
-  ADM.5's validate module (`stellarObjects/validation.py`) wraps. [GEN]
-
-- [ ] **TEST.33 Moon stability helpers**
-  `moon_orbit_bounds_km`, `drop_unstable_moons`, `update_hill_sphere`
-  and the "no valid planet class" errors, tested directly. [GEN]
-
-- [ ] **TEST.34 Kepler solver extremes**
-  Eccentricity above 0.99, negative mean anomaly and above 2π,
-  non-convergence detected rather than silently returned,
-  `_real_cube_root` at 0 and negative. [GEN]
-
-- [ ] **TEST.35 Star and evolution helpers**
-  `calculate_heliosphere`, the population-model star path, age windows,
-  radius and temperature helpers, white dwarf radius, Yerkes class, and
-  their raise messages. [GEN]
-
-- [ ] **TEST.36 Phenomenon class helpers**
-  Direct tests for nebula, remnant, black hole, rogue planet, comet and
-  asteroid-field class and designation helpers, and every
-  `get_table_properties`. [GEN]
 
 - [ ] **TEST.37 Names under parallel saves**
   Two workers saving systems and sectors with the same base name at
