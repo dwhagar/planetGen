@@ -225,6 +225,26 @@ for a mouse; spacing and type sized with `clamp()`.
     Open question: does the block info panel go under the controls, or
     stay beside the map on wide screens?
 
+87. [ ] **Warn every visitor while a background job changes the
+    galaxy.** Boss (2026-10-01): "a warning to all users on the UI when a
+    task is running in the background which is modifying the starmap is
+    going on with an ETA until it will be finished to the nearest hour
+    rounding up." Today only the admin Generate page shows a running job
+    (`web/jobs.py`: the `active` lock in the jobs directory, each job's
+    `state.json`, and `progress.json` written by `generate.py` through
+    `stellarObjects.progressFile`). Done: while a job that writes to the
+    galaxy is running (plan, bright-star scatter, sector fill, reset, new
+    galaxy, and later item 60's regenerate and item 73's slice and
+    neighborhood generation), every page shows a banner to every
+    visitor, signed in or not, saying the galaxy is being changed and
+    when it should finish, as an ETA rounded up to the next whole hour
+    (from `progress.json`, and from item 86's measured stars-per-second
+    rate). Open questions: a banner at the top of every page, or only on
+    the map and list pages? Does it also cover `generate.py` runs started
+    from the command line, which don't take the web jobs lock today
+    (they would need to write the same lock and progress file)? What does
+    it say when there's no ETA yet?
+
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 86. [ ] **Estimate size and time before bulk generation, and refuse
@@ -268,6 +288,35 @@ for a mouse; spacing and type sized with `clamp()`.
     been measured (a conservative default?); whether the rate is kept per
     server or per kind of sector (bright-star and bulge sectors cost
     more per star); and whether an admin can override the refusal.
+
+88. [ ] **A second progress bar for slow layers in the plan.** Boss
+    (2026-10-01): "For building the layers, when the rate drops below 1
+    layer per 30 seconds, which is calculated on every star system
+    generated, then it should double up the progress bars intelligently
+    (they should still not cause any flicker and should stay at the
+    bottom while the text above scrolls) that has the ETA for the layer
+    being generated based on the estimated number of stars remaining.
+    This means the system should estimate the stars remaining every time
+    a new star is generated during the plan." Today the plan's bright-star
+    scatter (`generate.py`, the "Bright stars (layers)" task) shows one
+    bar that moves once per finished layer (`brightStars.scatter`'s
+    `on_layer` callback), so a slow layer looks stalled. The display is
+    `_generation_progress()` (rich `Progress`, with every log line routed
+    through `progress.console` so the bars stay pinned at the bottom
+    without flicker). Done: after every star the plan generates, it
+    recomputes the layer rate and the current layer's estimated stars
+    remaining; while the rate is below 1 layer per 30 seconds, a second
+    bar appears under the layers bar showing the current layer's stars
+    done of its estimate with that layer's ETA, and it goes away when the
+    rate recovers; no flicker, bars stay at the bottom, log lines keep
+    scrolling above, and the web job's `progress.json` carries the same
+    numbers. Open questions: what "estimated stars remaining" is based on
+    (the layer's expected count from the density skeleton and the bright
+    fraction, then updated as it goes?); hysteresis so the second bar
+    doesn't flash on and off near the 30-second line (the old per-sector
+    bar was removed for exactly that); and whether the same rule applies
+    to sector fill (`Sectors (ring … layer …)`), where item 86's rate is
+    measured.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
