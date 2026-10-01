@@ -169,6 +169,8 @@ def _contents(sector):
 
     for row in phenomena:
         details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
+        if row.get("class"):
+            details.insert(0, f"Class {row['class']}")
         if row["radius_ly"]:
             details.append(f"{format_distance_ly(row['radius_ly'])} radius")
         rows.append({

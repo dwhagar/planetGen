@@ -149,3 +149,13 @@ def test_system_detail_names_the_containing_nebula(mysql_config):
         assert (inside["type"], inside["id"]) == ("nebula", nebula_id)
     finally:
         conn.close()
+
+
+def test_contents_rows_show_the_phenomenon_class():
+    nebula = {"type": "nebula", "id": 5, "name": "Veil", "descriptor": "emission", "radius_ly": 0,
+              "distance_ly": 1.0, "class": "D"}
+    hole = {"type": "black_hole", "id": 6, "name": "Hole", "descriptor": "quiescent", "radius_ly": 0,
+            "distance_ly": 2.0, "class": None}
+    with create_app(_Config).test_request_context("/sector/1"):
+        rows, _map = sector_page._contents({"systems": [], "phenomena": [nebula, hole]})
+    assert [row["details"] for row in rows] == ["Class D, Emission", "Quiescent"]
