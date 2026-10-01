@@ -15,17 +15,19 @@
          importing it; only when one is missing, too old or broken does
          pip install from requirements-server.lock (--require-hashes).
       3. The NLTK 'words' corpus: fetched only if it's missing.
-      4. src\migrateDb.py, a no-op when the database is current. When a
+      4. generate.py check-math, the math check (TEST.68). A failure
+         only warns (repeated at the end) and skips the population pass.
+      5. src\migrateDb.py, a no-op when the database is current. When a
          migration is pending it first asks (y/N, 30 seconds, default N)
          whether to delete the galaxy data instead; a scheduled run with
          no console keeps the data and migrates it. Then it offers (y/N,
          30 seconds, default N; skipped with no console) to run the
          population pass, generate.py population; -Population runs it
          without asking.
-      5. The tile cache, jobs and log folders.
-      6. Permissions for the app's account (icacls), in case new folders
+      6. The tile cache, jobs and log folders.
+      7. Permissions for the app's account (icacls), in case new folders
          came in.
-      7. Imports the web app, so anything unusable fails here instead of
+      8. Imports the web app, so anything unusable fails here instead of
          as a 500.
 
     Run from an elevated PowerShell in the checkout:
@@ -56,7 +58,7 @@ if ($LASTEXITCODE -ne 0 -or "$inside".Trim() -ne "true") {
     throw "$Root is not a git checkout; can't pull an update here."
 }
 
-Write-Step "1/7: Pulling the latest changes"
+Write-Step "1/8: Pulling the latest changes"
 $dirty = @(& git status --porcelain)
 if ($dirty.Count -gt 0) {
     Write-Warning "Uncommitted local changes in $Root will be overwritten:"
@@ -82,31 +84,41 @@ if ($before -eq $after) {
 # Again, now that the pull may have changed it.
 . (Join-Path $Root "scripts\deploy-common.ps1")
 
-Write-Step "2/7: Checking the Python libraries in $VenvDir"
+Write-Step "2/8: Checking the Python libraries in $VenvDir"
 Install-PythonDeps -Check
 
-Write-Step "3/7: Checking the NLTK 'words' corpus"
+Write-Step "3/8: Checking the NLTK 'words' corpus"
 Install-NltkWords
 
-Write-Step "4/7: Migrating the configured MySQL database to the current schema"
+Write-Step "4/8: Checking the generator's math"
+$mathOk = Test-MathCheck
+
+Write-Step "5/8: Migrating the configured MySQL database to the current schema"
 if (Test-DatabaseUnconfigured) {
     Write-Host "Skipped: config.json still has the example's database password. Set the mysql settings in"
     Write-Host "  $(Join-Path $Root 'config.json'), then run this again."
 } else {
     Invoke-MigrateOrReset
-    Invoke-OptionalPopulation -Run:$Population
+    if ($mathOk) {
+        Invoke-OptionalPopulation -Run:$Population
+    } else {
+        Write-Host "Skipping the population pass: the math check failed."
+    }
 }
 
-Write-Step "5/7: Checking the tile cache, jobs and log folders"
+Write-Step "6/8: Checking the tile cache, jobs and log folders"
 New-RuntimeDirs
 
-Write-Step "6/7: Setting permissions for $ServiceAccount"
+Write-Step "7/8: Setting permissions for $ServiceAccount"
 Set-PlanetGenPermissions
 
-Write-Step "7/7: Checking that the web app imports"
+Write-Step "8/8: Checking that the web app imports"
 Test-AppImports
 
 Write-Host ""
+if (-not $mathOk) {
+    Write-Warning "The math check failed (step 4): bulk generation refuses to start until it passes."
+}
 if ($before -ne $after) {
     Write-Host "Done. Restart the app so the site runs the new code:"
     Write-Host "  $(Get-RestartHint)"

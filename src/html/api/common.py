@@ -10,9 +10,14 @@ import cycle otherwise).
 
 from urllib.parse import urlsplit
 
+import pymysql
 from flask import current_app, g, request
 
 from stellarObjects._db import get_control_connection
+
+CONTROL_DATABASE_UNAVAILABLE = "database unavailable"
+"""str: What a route needing the control database says when it can't be
+reached -- the same words as `routes.DATABASE_UNAVAILABLE`."""
 
 
 class ApiError(Exception):
@@ -61,9 +66,17 @@ def get_control_db():
     `close_control_db` in the app's teardown handler -- exactly the
     `routes.get_db`/`close_db` pattern, mirrored here for the control
     schema instead of a content database.
+
+    If the server can't be reached, the request ends with a 503 saying
+    only "database unavailable" (the server's address goes to the log),
+    the same answer the content routes give, not a 500.
     """
     if "control_db" not in g:
-        g.control_db = get_control_connection(current_app.config["CONTROL_MYSQL_CONFIG"], ensure_schema=False)
+        try:
+            g.control_db = get_control_connection(current_app.config["CONTROL_MYSQL_CONFIG"], ensure_schema=False)
+        except pymysql.err.OperationalError as exc:
+            current_app.logger.error("Control database unavailable on %s %s: %s", request.method, request.path, exc)
+            raise ApiError(CONTROL_DATABASE_UNAVAILABLE, status_code=503) from exc
     return g.control_db
 
 

@@ -14,13 +14,13 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.52 |
+| MAP | MAP.57 |
 | NAV | NAV.3 |
-| GEN | GEN.30 |
+| GEN | GEN.31 |
 | PERF | PERF.18 |
 | DB | DB.2 |
-| API | API.3 |
-| ADM | ADM.13 |
+| API | API.9 |
+| ADM | ADM.14 |
 | SEC | SEC.29 |
 | TEST | TEST.70 |
 | USR | USR.8 |
@@ -401,8 +401,15 @@ Parents marked "new parent" had no old number of their own.
 | ADM.10 | Admin page to view and manage the work queue | none | open |
 | ADM.11 | Jobs keep running after the browser closes | none | open |
 | ADM.12 | Jobs as a tree, with timing for every node | none | open |
+| ADM.13 | Incomplete uploads page | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
+| API.3 | Remote generate: generate locally, upload through the API | none | open |
+| API.4 | API compatibility data in the docs | none | open |
+| API.5 | API version and compatibility checking | none | open |
+| API.6 | Admin-created user-level API keys that can read but not upload | none | open |
+| API.7 | Investigate and plan upload limits | none | open |
+| API.8 | Verify uploaded data before it is finalized | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -436,6 +443,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
+| GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PR #295 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -487,6 +495,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
+| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | open |
+| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | open |
+| MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
+| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
+| MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -728,12 +741,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
-| TEST.63 | Math check that runs first (new parent) | none | open |
-| TEST.64 | Reference values | none | open |
-| TEST.65 | Identities and invariants | none | open |
-| TEST.66 | Distributions match their targets | none | open |
-| TEST.67 | Runs first in the suite and in CI | none | open |
-| TEST.68 | Gate before bulk generation | none | open |
+| TEST.63 | Math check that runs first (new parent) | none | done, PRs #281 and #290 |
+| TEST.64 | Reference values | none | done, PR #281 |
+| TEST.65 | Identities and invariants | none | done, PR #281 |
+| TEST.66 | Distributions match their targets | none | done, PR #281 |
+| TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
+| TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

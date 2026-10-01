@@ -2471,6 +2471,99 @@ body.app {
   font-weight: 400;
 }
 
+/* Generate page sections fold (ADM.4): the heading is the toggle. */
+.panel-fold > .fold > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+  min-height: 2rem;
+}
+
+.panel-fold > .fold > summary::-webkit-details-marker {
+  display: none;
+}
+
+.panel-fold > .fold > summary::before {
+  content: "\25B8"; /* ▸, closed */
+  color: var(--text-muted);
+  width: 0.8rem;
+  flex: none;
+}
+
+.panel-fold > .fold[open] > summary::before {
+  content: "\25BE"; /* ▾, open */
+}
+
+.panel-fold > .fold > summary:focus-visible {
+  outline: 2px solid var(--link);
+  outline-offset: 2px;
+}
+
+.panel-fold > .fold > summary h2 {
+  margin: 0;
+}
+
+.panel-fold > .fold[open] > summary {
+  margin-bottom: 0.75rem;
+}
+
+.panel-fold > .fold > .fold-body > :last-child {
+  margin-bottom: 0;
+}
+
+@media (pointer: coarse) {
+  .panel-fold > .fold > summary {
+    min-height: 2.75rem;
+  }
+}
+
+.generate-center {
+  margin-left: 0.25rem;
+}
+
+.sector-finder [hidden] {
+  display: none;
+}
+
+.sector-finder-results {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.sector-finder-results:empty {
+  display: none;
+}
+
+.sector-finder-pick {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--link);
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 0.4rem 0.25rem;
+  cursor: pointer;
+}
+
+.sector-finder-pick:hover,
+.sector-finder-pick:focus-visible {
+  background: var(--bg-subtle);
+}
+
+@media (pointer: coarse) {
+  .sector-finder-pick {
+    min-height: 2.75rem;
+  }
+}
+
 /* One-off system page (web/templates/generate_system.html). */
 .system-format {
   margin-top: 1rem;
@@ -2989,4 +3082,67 @@ body.app {
 /* The NAV page's Bookmarks select sits under the map picks. */
 .nav-bookmarks {
   margin-top: 0.75rem;
+}
+
+/* The admin work queue (ADM.10): job trees as nested details, each node's
+   facts as a wrapping row of label/value pairs. */
+.queue-jobs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.queue-job {
+  border-top: 1px solid var(--border);
+  padding: 0.5rem 0;
+}
+
+.queue-node {
+  border-left: 2px solid var(--border);
+  margin: 0.4rem 0 0.4rem 0.25rem;
+  padding-left: 0.75rem;
+  min-width: 0;
+}
+
+.queue-tasks {
+  list-style: none;
+  margin: 0.4rem 0;
+  padding: 0;
+}
+
+.queue-tasks li {
+  padding: 0.15rem 0;
+  overflow-wrap: anywhere;
+}
+
+.queue-node > summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.queue-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.4rem 0;
+}
+
+.queue-facts dt {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.queue-facts dd {
+  margin: 0;
+}
+
+.queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge.job-paused,
+.badge.job-cancelled {
+  border-style: dashed;
 }

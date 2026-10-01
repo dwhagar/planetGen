@@ -310,7 +310,20 @@ def sample_job(tmp_path_factory):
 
 
 @pytest.fixture(scope="module")
-def sample_params(site_app, sample_job):
+def sample_job_tree(admin_token, site_db):
+    """One finished job tree (`/admin/queue/<node_id>`, ADM.10) with a
+    work queue and a task under it."""
+    from stellarObjects import workQueue
+
+    with workQueue.job_node("galaxy", "generate.py galaxy --ring 1", site_db,
+                            argv=["galaxy", "--ring", "1"]) as root:
+        with workQueue.WorkQueue("Sectors (ring 1)", workers=1) as queue:
+            queue.submit("sector", "1,0,0", int, "7")
+    return root.id
+
+
+@pytest.fixture(scope="module")
+def sample_params(site_app, sample_job, sample_job_tree):
     """
     A value for every URL parameter a page route may take, drawn from the
     generated database through the JSON API. Add an entry here when a
@@ -343,6 +356,8 @@ def sample_params(site_app, sample_job):
         "code": "D",
         "species_id": items("/api/species")[0]["id"],
         "polity_id": items("/api/polities")[0]["id"],
+        "node_id": sample_job_tree,  # web.admin_queue_tree
+        "action": "queue-pause",  # web.admin_queue_confirm
     }
 
 
