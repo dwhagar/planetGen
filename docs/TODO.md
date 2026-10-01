@@ -322,6 +322,52 @@ for a mouse; spacing and type sized with `clamp()`.
     (they would need to write the same lock and progress file)? What does
     it say when there's no ETA yet?
 
+102. [ ] **One meaningful-unit ladder for speeds.** Boss (2026-10-01):
+    "standardization with speeds, similar to what we do with distances
+    to make them always meaningful, speeds should always be meaningful.
+    Going from km/h on the low speed end to mm/s on the high speed end."
+    Distances already work this way: every page passes them through
+    `stellarObjects.utils.format_distance_m` (and its `_km`/`_au`/`_ly`
+    wrappers, `html/lib/fmt.py`), mirrored by `static/distance.js` for
+    the maps, which picks the largest unit the value is at least 1 of.
+    Speeds have no such function; each page formats its own (km/s on
+    system and facility pages, multiples of c for warp and fold in
+    `stellarObjects/navigation.py`'s `warp_speed_c` and travel tables).
+    Done: one shared speed formatter in Python with a JavaScript mirror,
+    with a fixed ladder of units, used by every page, API text field
+    and map that shows a speed, and the existing call sites converted.
+    Open questions: the ladder reads reversed as written (mm/s is slower
+    than km/h), so what is the intended order from slowest to fastest?
+    For example mm/s, m/s, km/h, km/s, then fractions and multiples of
+    c, with warp and fold factors shown alongside rather than replacing
+    them. Where it switches units (at 1 of the next unit, as distances
+    do, or another rule), and whether it adds a parenthetical in a
+    second unit the way distances add ly or AU. Where it lives
+    (`stellarObjects/utils.py` next to `format_distance_m`, and a
+    `static/speed.js` or a section of `distance.js`).
+
+103. [ ] **One meaningful-unit ladder for time periods.** Boss
+    (2026-10-01): "Same for orbital periods, galactic, lunar, planetary,
+    we should tie all those into a function to do the same. For slowest
+    (measured in Gy) to fastest (measured in microseconds). Those are 2
+    seperate TODO items." Today orbital periods go through
+    `stellarObjects.utils.years_to_time_string` ("x years y days z hours
+    m minutes", via `html/lib/tabledisplay.format_period`), which gets
+    long for galactic orbits and loses anything under a minute; star
+    ages and lifespans are shown in Gy elsewhere, and the admin pages
+    have their own `format_duration`. Done: one shared period formatter
+    in Python with a JavaScript mirror, picking a meaningful unit from
+    Gy at the slow end down to microseconds at the fast end, used for
+    planetary, lunar and galactic orbital periods (and rotation periods,
+    ages and other durations where it fits), with the existing call
+    sites converted. Open questions: the ladder (for example Gy, My, ky,
+    years, days, hours, minutes, seconds, ms, µs) and where it switches;
+    one unit with decimals ("1.88 years") or a mixed form ("1 year 321
+    days") for everyday periods; rounding and significant figures; which
+    year length it uses (Julian 365.25 days, as `years_to_time_string`
+    does); and whether elapsed-time and ETA displays for jobs (items 86-88)
+    and the admin pages use the same function.
+
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 86. [ ] **Estimate size and time before bulk generation, and refuse
