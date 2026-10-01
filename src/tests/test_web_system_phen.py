@@ -547,7 +547,9 @@ def test_real_phenomena_list_and_detail(db_app, mysql_config):
         resp = client.get(link)
         page = resp.get_data(as_text=True)
         assert resp.status_code == 200
-        assert 'id="phenomenonmap-svg"' in page
+        # Rogue planets and comets get a rendered view, built from the
+        # real row's fields.
+        assert 'id="phenomrender"' in page
         assert "Galactic Orbital Speed" in page
 
 

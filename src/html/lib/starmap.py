@@ -933,6 +933,7 @@ def _noscript_list_html(link_url, systems, phenomena, neighbors=None):
 
 def render_map_panel(
     link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
+    nav=None,
 ):
     """
     Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
@@ -1007,6 +1008,13 @@ def render_map_panel(
                               token, so an unfilled neighbor's panel can
                               offer Generate buttons. `None` (every
                               visitor) shows the address alone.
+        nav (callable or None): `nav(kind, id)` -> `{"from", "to",
+                              "pick", "pickLabel"}`: the NAV links the
+                              info panel offers for a system (kind
+                              `"system"`) or phenomenon (its type), and,
+                              in pick mode, the "Use as destination" (or
+                              start) link and its label (`None` outside
+                              pick mode). Stored on each entry as `nav`.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -1047,6 +1055,8 @@ def render_map_panel(
         stars = system["stars"]
         is_binary = len(stars) > 1
         stars_data.append(_star_data(link_url, system, stars[0], x_px, y_px, z_px))
+        if nav is not None:
+            stars_data[-1]["nav"] = nav("system", system["id"])
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
@@ -1055,6 +1065,8 @@ def render_map_panel(
                 link_url, system, stars[1], x_px + offset, y_px + offset, z_px,
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
             ))
+            if nav is not None:
+                stars_data[-1]["nav"] = nav("system", system["id"])
 
     clouds_data = []
     for phenomenon in (phenomena or []) if ly_to_milliparsecs is not None else ():
@@ -1074,6 +1086,8 @@ def render_map_panel(
         radius_px = _phenomenon_cloud_radius_px(phenomenon["radius_ly"], half_edge)
         if radius_px:
             clouds_data.append(_cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px))
+            if nav is not None:
+                clouds_data[-1]["nav"] = nav(phenomenon["type"], phenomenon["id"])
             # The cloud's own edge, not just its center -- a large nebula
             # can dwarf the scene (see `_MAX_CLOUD_RADIUS_PX`), and its
             # center alone would understate how far out it actually reaches.

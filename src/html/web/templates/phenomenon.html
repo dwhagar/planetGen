@@ -1,9 +1,14 @@
 {#- One phenomenon (/phenomenon/<type>/<id>, web/system_pages.py). The
-    diagram is HTML from lib/phenomenonmap.py (escaped there). -#}
+    view is HTML from lib/phenomenonrender.py or lib/phenomenonmap.py
+    (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
 {% block head %}
+{%- if view_kind == "render" %}
+<script type="module" src="{{ static_url('phenomenonrender.js') }}"></script>
+{%- elif view_kind == "map" %}
 <script src="{{ static_url('mapzoom.js') }}" defer></script>
 <script type="module" src="{{ static_url('phenomenonmap.js') }}"></script>
+{%- endif %}
 {% endblock %}
 {% block subhead %}
 <div class="page-subhead">
@@ -24,7 +29,7 @@
 </div>
 {% endblock %}
 {% block content %}
-{{ map_html }}
+{%- if map_html %}{{ map_html }}{% endif %}
 <section class="panel" aria-labelledby="phenomenon-data-heading">
   <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
   <div class="table-scroll" tabindex="0"><table>

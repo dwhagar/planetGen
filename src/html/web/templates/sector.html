@@ -22,6 +22,10 @@
 </p>
 {% endblock %}
 {% block content %}
+{%- if pick %}
+<p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> pick a system or phenomenon on the
+  Sector Map, then &ldquo;{{ pick.label }}&rdquo;. <a href="{{ pick.cancel }}">Cancel</a></p>
+{%- endif %}
 {%- for message in messages %}
 <p class="hint" role="status">{{ message }}</p>
 {%- endfor %}
