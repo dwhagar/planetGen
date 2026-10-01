@@ -67,6 +67,8 @@ def test_default_config_matches_example_shape():
         "api_base_url",
         "debug",
         "log_file",
+        "log_dir",
+        "log_rotation",
         "mysql",
         "control_database",
         "ratelimit",

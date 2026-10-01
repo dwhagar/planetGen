@@ -4,6 +4,8 @@
   "api_base_url": "http://127.0.0.1/api",
   "debug": false,
   "log_file": "/var/log/planetgen.log",
+  "log_dir": "",
+  "log_rotation": "auto",
   "mysql": {
     "host": "127.0.0.1",
     "port": 3306,

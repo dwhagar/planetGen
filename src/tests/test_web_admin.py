@@ -77,6 +77,7 @@ class FakeAuth:
         self.database_extra = {}
         self.keys = [_key(1), _key(2, revoked=True)]
         self.login_error = None
+        self.failures = []
         self.change_error = None
         self.names = [{"base_name": "Vega", "levels": ["system"], "rows": [
             {"kind": "sector", "id": 5, "name": "Vega Alpha"},
@@ -128,13 +129,17 @@ class FakeAuth:
         return {"items": self.names[offset:offset + limit], "total": len(self.names),
                 "limit": limit, "offset": offset}
 
+    def admin_login_failures(self, cookie_header, limit=None):
+        self.calls.append(("admin_login_failures",))
+        return self.failures
+
     def called(self, name):
         return [call for call in self.calls if call[0] == name]
 
 
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
-          "admin_duplicate_names")
+          "admin_duplicate_names", "admin_login_failures")
 
 
 @pytest.fixture
@@ -317,7 +322,7 @@ def test_login_wrong_password_shows_form_again(client, fake, token):
     fake.login_error = apiclient.ApiError("planetGen API error (401): invalid credentials", status_code=401)
     resp = client.post("/login", data={csrf.FIELD_NAME: token, "username": "<b>x</b>", "password": "nope"})
     html = resp.get_data(as_text=True)
-    assert resp.status_code == 200
+    assert resp.status_code == 401
     assert "Invalid username or password." in html
     assert 'value="&lt;b&gt;x&lt;/b&gt;"' in html
     assert "nope" not in html
@@ -801,7 +806,7 @@ def test_real_login_keeps_rate_limit(db_app):
         statuses = [client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin",
                                                 "password": "wrong"}).status_code
                     for _ in range(per_minute + 1)]
-        assert statuses[:per_minute] == [200] * per_minute  # the form again, "Invalid username or password."
+        assert statuses[:per_minute] == [401] * per_minute  # the form again, "Invalid username or password."
         assert statuses[-1] == 429
         last = client.post("/login", data={csrf.FIELD_NAME: token, "username": "admin",
                                            "password": db_app.first_admin_password})

@@ -160,7 +160,7 @@ def test_login_page_names_the_wait(app):
         token = csrf._sign(nonce, "")
     form = {"username": "admin", "password": "wrong", "csrf_token": token}
     for _ in range(FREE_FAILURES + 1):
-        assert client.post("/login", data=form, environ_base=_fresh_address()).status_code == 200
+        assert client.post("/login", data=form, environ_base=_fresh_address()).status_code == 401
     response = client.post("/login", data=form, environ_base=_fresh_address())
     assert response.status_code == 429
     assert "Too many failed logins for this username. Try again in 1 second." in response.get_data(as_text=True)

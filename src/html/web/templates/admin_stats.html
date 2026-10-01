@@ -22,6 +22,26 @@
     </tbody>
   </table></div>
 </section>
+<section class="panel" id="sign-ins" aria-labelledby="sign-ins-heading">
+  <h2 id="sign-ins-heading">Failed sign-ins</h2>
+  <p class="hint">The newest refused logins and wrong current passwords, with
+  the address they came from. Every one is also a line in the activity log
+  (see <code>docs/config.md</code>). Kept for 90 days.</p>
+  {%- if failures.error %}
+  <p class="error">{{ failures.error }}</p>
+  {%- elif not failures["items"] %}
+  <p class="hint">No failed sign-ins recorded.</p>
+  {%- else %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">When</th><th scope="col">What</th><th scope="col">Username</th><th scope="col">Address</th></tr></thead>
+    <tbody>
+      {%- for item in failures["items"] %}
+      <tr><td>{% if item.created_at %}{{ utc_time(item.created_at) }}{% endif %}</td><td>{{ item.what }}</td><td>{{ item.username }}</td><td><code>{{ item.ip }}</code></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
 {%- if database.reachable %}
 <section class="panel" aria-labelledby="database-heading">
   <h2 id="database-heading">Database <code>{{ database.name }}</code></h2>

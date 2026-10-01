@@ -41,6 +41,7 @@ from fmt import format_distance_km, format_number
 from systempage import facility_kind_label, facility_row
 from tabledisplay import format_period
 
+from stellarObjects import activitylog
 from stellarObjects import facilities as facility_rules
 from stellarObjects.program_constants import FACILITY_KINDS, FACILITY_ORBIT_STEPS
 
@@ -230,6 +231,7 @@ def handle_post(system_id, system, facilities):
     "preview"}`.
     """
     if current_admin() is None:
+        activitylog.event("AUTHZ", "admin.required", path=request.path)
         abort(403)
     action = request.form.get("facility_action")
     cookie_header = request.headers.get("Cookie")

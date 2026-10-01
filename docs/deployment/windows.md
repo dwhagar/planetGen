@@ -85,6 +85,7 @@ Layout used below (short names, no spaces):
 | `C:\ProgramData\planetgen\tiles` | Galaxy Map tile cache (Linux: `/var/cache/planetgen/tiles`) |
 | `C:\ProgramData\planetgen\jobs` | Generate jobs (Linux: `/var/lib/planetgen/jobs`) |
 | `C:\ProgramData\planetgen\logs` | Debug log, service and web server logs |
+| `C:\srv\planetGen\logs` | The always-on activity log, `planetgen.log` (Linux: `/var/log/planetgen/`); `"log_dir"` moves it |
 | `C:\ProgramData\planetgen\nltk_data` | NLTK `words` corpus (Linux: `/usr/local/share/nltk_data`) |
 
 1. **Database.** Install MySQL 8.4 LTS or MariaDB (current LTS) with its
@@ -359,6 +360,15 @@ to `C:\srv\`, then create one task per database:
 It reads the database credentials from `config.json`. In Task Scheduler,
 tick "Run task as soon as possible after a scheduled start is missed"
 (the equivalent of `Persistent=true`).
+
+## Activity log
+
+planetGen always records sign-ins, refused requests and database changes
+in `logs\planetgen.log` under the checkout (`"log_dir"` in `config.json`
+moves it; see [the activity log](../config.md#the-activity-log)).
+`install.ps1`/`update.ps1` create the folder and let the app's account
+write to it. Windows has no logrotate, so the program rotates the file
+itself: past 100 MB it becomes `planetgen.log.1`, and 30 copies are kept.
 
 ## Debug log
 

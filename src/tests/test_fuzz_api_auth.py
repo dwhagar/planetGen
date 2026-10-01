@@ -276,9 +276,13 @@ def test_login_page_refuses_hostile_credentials(app, username, password, next_ur
         data["next"] = next_url
     response = client.post("/login", data=data)
     body = check_response(response, "/login", sent=[username, password, next_url or ""])
-    assert response.status_code == 200, response.status_code
     assert not _session_cookies(response)
-    assert "Invalid username or password." in body or "Enter a username and password." in body
+    if "Enter a username and password." in body:
+        assert response.status_code == 200, response.status_code
+    else:
+        # A wrong password answers 401, so the access log shows it (SEC.20).
+        assert "Invalid username or password." in body
+        assert response.status_code == 401, response.status_code
     assert client.get(_ME).status_code == 401
 
 

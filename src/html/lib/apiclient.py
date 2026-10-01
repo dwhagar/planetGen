@@ -774,6 +774,16 @@ def admin_stats(cookie_header, db):
     return body
 
 
+def admin_login_failures(cookie_header, limit=None):
+    """`GET /api/admin/login-failures?limit=` -- the newest refused
+    sign-ins (`{"action", "username", "ip", "created_at"}` each), newest
+    first."""
+    query = _build_query({"limit": limit})
+    path = f"/admin/login-failures?{query}" if query else "/admin/login-failures"
+    body, _set_cookie_headers = _auth_request("GET", path, cookie_header=cookie_header)
+    return body["items"]
+
+
 def admin_duplicate_names(cookie_header, db, limit=None, offset=None):
     """`GET /api/admin/duplicate-names?db=&limit=&offset=` -- one page of the
     names the uniqueness rules had to decorate, each with the rows that

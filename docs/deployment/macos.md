@@ -189,11 +189,19 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
 
       /var/log/planetgen.log  _www:_www  660  7  102400  *  Z
 
+- **Activity log:** always on, in `/Library/Logs/planetgen/planetgen.log`
+  (see [the activity log](../config.md#the-activity-log)). `install.sh`
+  creates the folder (root:_www, mode 2770) and writes this rule to
+  `/etc/newsyslog.d/planetgen-log.conf` (daily or past 100 MB, 30 copies,
+  bzip2):
+
+      /Library/Logs/planetgen/planetgen.log  _www:_www  660  30  102400  $D0  JN
+
 - **Sleep:** a Mac serving a site should not sleep (System Settings,
   Energy, "Prevent automatic sleeping"), and should start after a power
   failure.
 - **Logs:** `/usr/local/planetgen/log/gunicorn.log`, the nginx logs next
-  to it, and the debug log.
+  to it, the activity log, and the debug log.
 - **Stats page:** the admin Stats page shows no memory figure on macOS
   (it reads Linux's `/proc/meminfo`).
 
