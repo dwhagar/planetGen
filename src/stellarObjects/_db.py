@@ -1641,8 +1641,8 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     Inserts a `supernova_remnants` row (see `schema.sql`'s "v16"/"v28"
     header notes), plus (for a core-collapse progenitor whose collapsed
     core is still detectable) its embedded `black_holes`/`neutron_stars`
-    row, which shares the remnant's own `sector_id` and `placement` -- it
-    sits at the remnant's center.
+    row, which shares the remnant's own `sector_id` and sits at its
+    `placement` moved by the core's birth kick (`compact_offset_ly`).
 
     Args:
         conn (Connection): An open, schema-initialized connection.
@@ -1660,15 +1660,22 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     compact_remnant_kind = None
     black_hole_id = None
     neutron_star_id = None
+    core_placement = placement
+    offset_ly = getattr(remnant, "compact_offset_ly", None)
+    if placement is not None and offset_ly is not None:
+        # The core has drifted off-center by its birth kick.
+        x, y, z = (placement[f"center_{axis}_pc"] + ly_to_pc(offset_ly[i]) for i, axis in enumerate("xyz"))
+        core_placement = {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
+                          "galactic_radius_pc": math.sqrt(x * x + y * y + z * z)}
     if isinstance(remnant.compact_remnant, BlackHole):
         compact_remnant_kind = "black_hole"
         black_hole_id = insert_black_hole(
-            conn, remnant.compact_remnant, sector_id=sector_id, placement=placement,
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement,
         )
     elif isinstance(remnant.compact_remnant, NeutronStar):
         compact_remnant_kind = "neutron_star"
         neutron_star_id = insert_neutron_star(
-            conn, remnant.compact_remnant, sector_id=sector_id, placement=placement,
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement,
         )
 
     cur = conn.execute(

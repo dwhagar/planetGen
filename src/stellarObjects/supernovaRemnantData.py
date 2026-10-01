@@ -16,6 +16,7 @@ entirely) may still contain the collapsed stellar core that caused the
 explosion, embedded via `compactRemnant.BlackHole`/`NeutronStar`.
 """
 
+import math
 import random
 
 from .compactRemnant import BlackHole, NeutronStar
@@ -88,7 +89,7 @@ class SupernovaRemnant:
 
     SERIALIZABLE_FIELDS = [
         "name", "remnant_class", "morphology", "age_years", "radius_ly", "progenitor_type",
-        "dominant_species", "density_cm3", "temperature_k", "extinction_av",
+        "dominant_species", "density_cm3", "temperature_k", "extinction_av", "compact_offset_ly",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
@@ -127,10 +128,9 @@ class SupernovaRemnant:
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
 
-        # TODO(phenomena #27): core-collapse remnants keep a neutron star
-        # (most) or black hole, offset from the center by its birth kick (a
-        # few hundred km/s times the age); thermonuclear (Type Ia, class W)
-        # remnants have none.
+        # Core-collapse remnants keep a neutron star (most) or black hole,
+        # offset from the center by its birth kick (compact_offset_ly
+        # below); thermonuclear (Type Ia, class W) remnants have none.
         self.compact_remnant = None
         if not is_type_ia and random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
             if random.random() < program_constants.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:
@@ -163,6 +163,24 @@ class SupernovaRemnant:
         )
         (self.dominant_species, self.density_cm3, self.temperature_k,
          self.extinction_av) = draw_class_contents(self.remnant_class)
+        self.compact_offset_ly = self._draw_kick_offset_ly(kind)
+
+    def _draw_kick_offset_ly(self, kind):
+        """
+        Where the compact core has drifted since the explosion, relative to
+        the remnant's center, light-years: its birth kick
+        (`SUPERNOVA_KICK_SPEED_RANGE_KMS`, log-uniform) times the age, in a
+        random direction. `None` when there is no core.
+        """
+        if kind is None:
+            return None
+        low, high = program_constants.SUPERNOVA_KICK_SPEED_RANGE_KMS[kind]
+        speed_kms = math.exp(random.uniform(math.log(low), math.log(high)))
+        distance_ly = speed_kms / 299792.458 * self.age_years
+        z = random.uniform(-1.0, 1.0)
+        phi = random.uniform(0.0, 2 * math.pi)
+        r = math.sqrt(1 - z * z)
+        return [distance_ly * r * math.cos(phi), distance_ly * r * math.sin(phi), distance_ly * z]
 
     def to_dict(self):
         """
@@ -204,6 +222,7 @@ class SupernovaRemnant:
         """
         remnant = object.__new__(cls)
         remnant.system_config = system_config
+        remnant.compact_offset_ly = None
         data = dict(data)
         if data.get("remnant_class") is None:
             # Saved before classes existed (schema v38).

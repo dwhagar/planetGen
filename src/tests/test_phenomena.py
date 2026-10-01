@@ -624,3 +624,17 @@ def test_save_phenomenon_dispatches_by_type(mysql_config):
     finally:
         conn.close()
     assert row["name"] == comet.name
+
+
+def test_a_core_collapse_core_drifts_by_its_kick_and_a_type_ia_has_none():
+    import math
+    for _ in range(TRIALS):
+        remnant = SupernovaRemnant(make_config())
+        if remnant.compact_remnant is None:
+            assert remnant.compact_offset_ly is None
+            continue
+        kind = "black_hole" if isinstance(remnant.compact_remnant, BlackHole) else "neutron_star"
+        low, high = program_constants.SUPERNOVA_KICK_SPEED_RANGE_KMS[kind]
+        distance = math.hypot(*remnant.compact_offset_ly)
+        speed_kms = distance / remnant.age_years * 299792.458
+        assert low * 0.999 <= speed_kms <= high * 1.001
