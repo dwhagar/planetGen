@@ -1345,13 +1345,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // core dimmer for a fainter star, all in the star's blackbody color.
   // Halos blend normally rather than adding up, so a crowded arm zoomed
   // out glows in its stars' colors instead of burning to white; stars are
-  // depth-tested against the blocks without hiding them.
-  var STAR_MIN_PX = 5;
+  // drawn over the blocks, never hidden by them.
+  var STAR_MIN_PX = 6;
   var STAR_MAX_PX = 30;
   var STAR_CORE_PX = [1.1, 4.5];
   var STAR_LOG_RADIUS = [-1, 3];
-  var STAR_GLOW = [0.12, 0.6];
-  var STAR_CORE_ALPHA = [0.55, 1];
+  var STAR_GLOW = [0.2, 0.6];
+  var STAR_CORE_ALPHA = [0.75, 1];
   var STAR_LOG_LUMINOSITY = [-4, 6];
   // A click within this many pixels of a star's center picks it.
   var STAR_PICK_PX = 7;
@@ -1411,6 +1411,9 @@ function initGalaxyMap3d(canvasEl, data) {
     ].join("\n"),
     transparent: true,
     depthWrite: false,
+    // Drawn over the blocks (MAP.51): a generated sector's block is
+    // solid, and depth-tested stars inside it never showed.
+    depthTest: false,
   });
   var starPoints = new THREE.Points(new THREE.BufferGeometry(), starMaterial);
   starPoints.renderOrder = 5;
