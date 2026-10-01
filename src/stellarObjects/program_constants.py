@@ -2531,3 +2531,37 @@ optimal-route pathfinding runs over. Symmetrized after building (see that
 function's docstring), so a system can end up connected to more than `k`
 neighbors if others chose it as one of theirs.
 """
+
+# --- Facilities (schema v42) ---
+
+FACILITY_KINDS = {
+    "colony": "A settlement people live in; makes its world inhabited.",
+    "outpost": "A small crewed post: a research, relay or survey station.",
+    "mining-colony": "A settlement built to work an asteroid belt.",
+    "station": "A crewed space station.",
+    "starbase": "A large station: a port, yard and base in one.",
+}
+"""dict: Every facility kind (`facilities.kind`), with a one-line meaning."""
+
+FACILITY_RULES = {
+    # (placement, host type): the kinds allowed there. Boss, 2026-09-30:
+    # gas giants take orbital facilities only; terrestrial worlds and moons
+    # take colonies and orbital facilities; asteroid belts take outposts and
+    # mining colonies, asteroid fields outposts; a star can have an outpost
+    # (or a station) in orbit around it; stand-alone ones park in space.
+    ("terrestrial", "planet"): ("colony", "outpost"),
+    ("terrestrial", "moon"): ("colony", "outpost"),
+    ("orbital", "star"): ("outpost", "station", "starbase"),
+    ("orbital", "planet"): ("outpost", "station", "starbase"),
+    ("orbital", "moon"): ("outpost", "station", "starbase"),
+    ("asteroid", "asteroid_belt"): ("outpost", "mining-colony"),
+    ("asteroid", "asteroid_field"): ("outpost",),
+    ("standalone", "space"): ("outpost", "station", "starbase"),
+}
+"""dict: Which facility kinds (`FACILITY_KINDS`) may go where, keyed by
+`(placement, host_type)`. A terrestrial facility also needs a terrestrial
+(`body_type = 't'`) planet or moon -- `facilities.check_facility`."""
+
+FACILITY_DEFAULT_ORBIT_RADII = 3.0
+"""float: An orbital facility around a planet or moon with no distance
+given orbits at this many of its host's radii."""

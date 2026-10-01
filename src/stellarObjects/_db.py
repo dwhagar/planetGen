@@ -62,6 +62,7 @@ from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
 from .compactRemnant import BlackHole, NeutronStar
+from . import facilities as facility_rules
 from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
@@ -84,7 +85,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 41
+SCHEMA_VERSION = 42
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2943,6 +2944,186 @@ def _add_sector_to_nearest(conn, sector_id):
             changed[key] = merged
             sectors[key] = other_sector
     _write_nearest(conn, changed, sectors)
+
+
+# ---------------------------------------------------------------------------
+# Facilities (schema v42) -- see stellarObjects/facilities.py
+# for the rules and the orbit math.
+# ---------------------------------------------------------------------------
+
+class FacilityError(ValueError):
+    """A facility that breaks the placement rules, or whose host doesn't
+    exist (`not_found`)."""
+
+    def __init__(self, message, not_found=False):
+        super().__init__(message)
+        self.not_found = not_found
+
+
+def _facility_host(conn, host_type, host_id):
+    """
+    Reads one facility host: `(columns, mass_kg, radius_km, body_type)`,
+    where `columns` are the `facilities` host columns to set. Mass and
+    radius are `None` for hosts nothing orbits.
+
+    Raises:
+        FacilityError: If no such host exists (`not_found`).
+    """
+    missing = FacilityError(f"no such {host_type.replace('_', ' ')}: {host_id}", not_found=True)
+    if host_type == "star":
+        row = conn.execute(
+            "SELECT s.star_system_id, s.mass_kg, s.radius_km, ss.binary_configuration, ss.binary_separation_km"
+            " FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE s.id = ?",
+            (host_id,),
+        ).fetchone()
+        if row is None:
+            raise missing
+        mass, radius = row["mass_kg"], row["radius_km"]
+        if row["binary_configuration"] == "close":
+            # A close pair is orbited as one: their combined mass, clear of both.
+            pair = conn.execute("SELECT SUM(mass_kg) AS mass, MAX(radius_km) AS radius FROM stars"
+                                " WHERE star_system_id = ?", (row["star_system_id"],)).fetchone()
+            mass = pair["mass"]
+            radius = (row["binary_separation_km"] or 0.0) + pair["radius"]
+        return {"star_system_id": row["star_system_id"], "star_id": host_id}, mass, radius, None
+    if host_type in ("planet", "moon"):
+        table = "planets" if host_type == "planet" else "moons"
+        row = conn.execute(f"SELECT star_system_id, mass_kg, radius_km, body_type FROM {table} WHERE id = ?",
+                           (host_id,)).fetchone()
+        if row is None:
+            raise missing
+        return ({"star_system_id": row["star_system_id"], f"{host_type}_id": host_id},
+                row["mass_kg"], row["radius_km"], row["body_type"])
+    if host_type == "asteroid_belt":
+        row = conn.execute("SELECT star_system_id FROM asteroid_belts WHERE id = ?", (host_id,)).fetchone()
+        if row is None:
+            raise missing
+        return {"star_system_id": row["star_system_id"], "asteroid_belt_id": host_id}, None, None, None
+    if host_type == "asteroid_field":
+        if conn.execute("SELECT 1 FROM asteroid_fields WHERE id = ?", (host_id,)).fetchone() is None:
+            raise missing
+        return {"asteroid_field_id": host_id}, None, None, None
+    if host_type == "space":
+        if conn.execute("SELECT 1 FROM sectors WHERE id = ?", (host_id,)).fetchone() is None:
+            raise FacilityError(f"no such sector: {host_id}", not_found=True)
+        return {"sector_id": host_id}, None, None, None
+    raise FacilityError(f"unknown host type {host_type!r}")
+
+
+def facility_orbit(conn, host_type, host_id, distance_km=None):
+    """
+    The circular orbit an orbital facility would have around a star,
+    planet or moon (`facilities.orbit_for`), without saving anything --
+    what the web form shows before saving.
+
+    Raises:
+        FacilityError: If the host can't be orbited, doesn't exist, or the
+            distance is inside it.
+    """
+    if host_type not in ("star", "planet", "moon"):
+        raise FacilityError(f"nothing orbits a {host_type.replace('_', ' ')}")
+    _columns, mass, radius, _body_type = _facility_host(conn, host_type, host_id)
+    try:
+        return facility_rules.orbit_for(mass, radius, distance_km)
+    except ValueError as exc:
+        raise FacilityError(str(exc)) from exc
+
+
+def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=None, phase_deg=None,
+                 offset_ly=None, description=None):
+    """
+    Stores one facility after checking it against the placement rules
+    (`facilities.check_facility`).
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        name (str): What it's called.
+        kind (str): A `program_constants.FACILITY_KINDS` key.
+        placement (str): `terrestrial`, `orbital`, `asteroid` or `standalone`.
+        host_type (str): `star`, `planet`, `moon`, `asteroid_belt`,
+            `asteroid_field`, or `space` (then `host_id` is a sector).
+        host_id (int): The host row's id.
+        distance_km (float, optional): An orbital facility's orbit radius
+            (`facilities.orbit_for`'s default otherwise).
+        phase_deg (float, optional): Where along its orbit it starts;
+            random otherwise.
+        offset_ly (tuple, optional): A stand-alone facility's `(x, y, z)`
+            from its sector's center, light-years, along the sector's own
+            axes (`galaxyGeometry.sector_orientation`). The center if left
+            out.
+        description (str, optional): Free text.
+
+    Returns:
+        int: The new `facilities.id`.
+
+    Raises:
+        FacilityError: If the rules refuse it or the host doesn't exist.
+    """
+    columns, mass, radius, body_type = _facility_host(conn, host_type, host_id)
+    problem = facility_rules.check_facility(kind, placement, host_type, body_type)
+    if problem:
+        raise FacilityError(problem)
+
+    orbit = {}
+    if placement == "orbital":
+        try:
+            orbit = facility_rules.orbit_for(mass, radius, distance_km)
+        except ValueError as exc:
+            raise FacilityError(str(exc)) from exc
+        if phase_deg is None:
+            phase_deg = random.uniform(0.0, 360.0)
+        orbit["phase_deg"] = phase_deg % 360.0
+    elif distance_km is not None or phase_deg is not None:
+        raise FacilityError("only an orbital facility has an orbit")
+
+    placement_values = (None, None, None, None)
+    if host_type == "space":
+        sector = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors WHERE id = ?",
+                              (host_id,)).fetchone()
+        if sector["center_x_pc"] is None:
+            raise FacilityError("that sector isn't placed in the galaxy")
+        offset_ly = tuple(offset_ly) if offset_ly is not None else (0.0, 0.0, 0.0)
+        half_edge_ly = milliparsecs_to_ly(sector["edge_mpc"]) / 2
+        if len(offset_ly) != 3 or any(not math.isfinite(c) or abs(c) > half_edge_ly for c in offset_ly):
+            raise FacilityError(f"the offset must be three numbers within {half_edge_ly:.2f} ly of the center")
+        center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
+        point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
+        placement_values = (*point, math.sqrt(sum(c * c for c in point)))
+    elif offset_ly is not None:
+        raise FacilityError("only a stand-alone facility has a position in space")
+
+    cur = conn.execute(
+        """
+        INSERT INTO facilities (
+            name, kind, placement, host_type, star_system_id, star_id, planet_id, moon_id,
+            asteroid_belt_id, asteroid_field_id, sector_id,
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            orbit_distance_km, orbit_period_years, orbital_speed_kms, orbit_phase_deg, description
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        (
+            name, kind, placement, host_type, columns.get("star_system_id"), columns.get("star_id"),
+            columns.get("planet_id"), columns.get("moon_id"), columns.get("asteroid_belt_id"),
+            columns.get("asteroid_field_id"), columns.get("sector_id"),
+            *placement_values,
+            orbit.get("distance_km"), orbit.get("period_years"), orbit.get("orbital_speed_kms"),
+            orbit.get("phase_deg"), description,
+        ),
+    )
+    if columns.get("star_system_id") is not None:
+        touch_star_system(conn, columns["star_system_id"])
+    return cur.lastrowid
+
+
+def delete_facility(conn, facility_id):
+    """Deletes one facility. Returns `False` if there was none."""
+    row = conn.execute("SELECT star_system_id FROM facilities WHERE id = ?", (facility_id,)).fetchone()
+    if row is None:
+        return False
+    conn.execute("DELETE FROM facilities WHERE id = ?", (facility_id,))
+    if row["star_system_id"] is not None:
+        touch_star_system(conn, row["star_system_id"])
+    return True
 
 
 def sectors_reached_by(conn, center_pc, radius_pc):
@@ -6026,6 +6207,28 @@ def _migrate_v40_to_v41(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (41)")
 
 
+def _migrate_v41_to_v42(conn):
+    """
+    Creates `facilities` -- see `schema.sql`'s "v42" header note. Reads
+    the table's definition from `schema.sql` itself so the two can't
+    drift.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    conn.execute(_schema_statement("facilities"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (42)")
+
+
+def _schema_statement(table):
+    """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
+    with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
+        text = handle.read()
+    start = text.index(f"CREATE TABLE IF NOT EXISTS {table} (")
+    end = text.index(";", text.index(") ENGINE=InnoDB", start))
+    return text[start:end]
+
+
 def _designate_existing_comets(conn):
     """Gives every stored star-bound comet its designation
     (`cometData.comet_designation`) -- `_designate_comets`' counterpart
@@ -6117,6 +6320,7 @@ def _migration_steps():
         (39, _migrate_v38_to_v39),
         (40, _migrate_v39_to_v40),
         (41, _migrate_v40_to_v41),
+        (42, _migrate_v41_to_v42),
     ]
 
 
