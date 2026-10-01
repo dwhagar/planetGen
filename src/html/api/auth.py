@@ -254,7 +254,7 @@ def login_totp():
 
 
 @bp.route("/logout", methods=["POST"])
-@require_admin()
+@require_admin(session_only=True)
 def logout():
     """`POST /api/auth/logout` -- ends the current session, clears the cookie."""
     adminAuth.end_session(get_control_db(), request.cookies.get(SESSION_COOKIE_NAME))
@@ -275,7 +275,7 @@ def me():
 
 @bp.route("/change-credentials", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
-@require_admin()
+@require_admin(session_only=True)
 def change_credentials():
     """
     `POST /api/auth/change-credentials`
@@ -352,7 +352,7 @@ def totp_status():
 
 @bp.route("/totp/setup", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
-@require_admin(fresh=True)
+@require_admin(fresh=True, session_only=True)
 def totp_setup():
     """
     `POST /api/auth/totp/setup` `{"current_password"}` -- starts setting up
@@ -374,7 +374,7 @@ def totp_setup():
 
 @bp.route("/totp/confirm", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
-@require_admin(fresh=True)
+@require_admin(fresh=True, session_only=True)
 def totp_confirm():
     """
     `POST /api/auth/totp/confirm` `{"code"}` -- turns two-factor sign-in on
@@ -393,12 +393,14 @@ def totp_confirm():
 
 @bp.route("/totp/disable", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
-@require_admin(fresh=True)
+@require_admin(fresh=True, session_only=True)
 def totp_disable():
     """
     `POST /api/auth/totp/disable` `{"current_password", "code"}` -- turns
     two-factor sign-in off; needs the password and a current code (or a
     recovery code). Lost both? `src/loginLockouts.py --reset-two-factor`.
+    Forgets every trusted device of this admin and gives the caller a
+    new one.
     """
     body = require_json_body()
     refused = _check_current_password(body)
@@ -412,9 +414,15 @@ def totp_disable():
             guard.failed("totp.failed")
             raise ApiError("that code isn't right", status_code=400)
     adminAuth.disable_totp(conn, g.admin_user["id"])
+    # Devices trusted while the second factor was on aren't trusted any
+    # more (TEST.46); this browser gets a fresh one, like after a
+    # credentials change.
+    adminAuth.revoke_devices(conn, g.admin_user["id"])
     activitylog.event("AUTH", "totp.disabled", user=g.admin_user["username"])
     audit("totp.disable", target=f"admin:{g.admin_user['id']}")
-    return jsonify({"enabled": False})
+    resp = jsonify({"enabled": False})
+    _issue_device_cookie(resp, conn, g.admin_user["id"])
+    return resp
 
 
 @bp.route("/api-keys", methods=["GET"])
@@ -438,7 +446,7 @@ def list_api_keys():
 
 
 @bp.route("/api-keys", methods=["POST"])
-@require_admin(fresh=True)
+@require_admin(fresh=True, session_only=True)
 def create_api_key():
     """
     `POST /api/auth/api-keys` `{"label": str}` -> `{"id", "label", "key"}`.

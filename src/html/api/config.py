@@ -215,6 +215,13 @@ class Config:
     # See `_proxy_fix` above. All 0 (the default) leaves the app as it is.
     PROXY_FIX = _proxy_fix(_config_file.get("proxy_fix"))
 
+    # The largest request body the app reads (SEC, TEST.47): a bigger one
+    # is a 413 before any route parses it. The biggest real body is a
+    # system's text sent back for download (well under 1 MB); without a
+    # limit a multi-megabyte JSON or form body would be read into memory
+    # whole.
+    MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+
     # See `_secret_key` above.
     SECRET_KEY = _SECRET_KEY
     SECRET_KEY_IS_EPHEMERAL = _SECRET_KEY_IS_EPHEMERAL

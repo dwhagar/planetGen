@@ -718,9 +718,11 @@ def auth_totp_confirm(cookie_header, code):
 
 
 def auth_totp_disable(cookie_header, current_password, code):
-    """`POST /api/auth/totp/disable`."""
+    """`POST /api/auth/totp/disable`. Returns the `Set-Cookie` headers to
+    relay (a fresh trusted-device cookie: turning it off forgets every
+    other device, TEST.46)."""
     return _auth_request("POST", "/auth/totp/disable", cookie_header=cookie_header,
-                         json_body={"current_password": current_password, "code": code})[0]
+                         json_body={"current_password": current_password, "code": code})[1]
 
 
 def auth_logout(cookie_header):
