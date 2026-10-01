@@ -238,6 +238,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picks (regions inside the wedge) follow the same cursor-centered
   rule?
 
+- [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
+  Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
+  around once it's zoomed into the wedge and zoom in more based on
+  window size." Today the wedge zoom of PR #243 fits the real wedge at
+  a fixed orientation and scale. Done: once zoomed into a wedge, the
+  user can rotate the view around it (drag, keys, and a touch gesture,
+  like the free camera below quarter level), and the zoom fits the
+  wedge to the map's actual size, so a bigger window shows it larger;
+  it refits when the window is resized or rotated. Ties in with MAP.52
+  (the 40-degree wedge pick). Open questions: does rotating turn the
+  wedge about the galaxy's center or about the wedge's own middle; is
+  the rotation kept in the URL and bookmarks?
+
+- [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
+  Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
+  have a line going from each slab on the map (dynamically rendered to
+  always point where it needs to) from the button for that slab to the
+  slab itself on the map." Today slabs are picked with the slab slider
+  beside the map (MAP.30, shipped as a slider in PR #234,
+  `galaxystageview.js`). Done: the slider is replaced by one button per
+  slab, and each button has a line drawn from it to its slab on the
+  map; the lines are redrawn whenever the view rotates, zooms, pans or
+  the window resizes, so they always point at the slab; hovering or
+  focusing a button highlights its line and slab, and clicking picks
+  the slab as the slider does today. MAP.30 stays done; this item
+  replaces its slider. Open questions: how the lines stay readable with
+  many slabs (thin lines, only the hovered one drawn bright, or
+  grouping); how crossing or overlapping lines are kept apart; what a
+  line shows when its slab is off screen or hidden behind another
+  (point to the edge, dashed, or no line); and where the buttons sit on
+  a phone-width screen.
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
