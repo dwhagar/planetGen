@@ -49,7 +49,11 @@ const DRAG_CLICK_PX = 6;
 // 2026-10-01). Its layers touch, as blocks do everywhere else (no space
 // between blocks or layers, Boss, 2026-10-01). The tilt from straight down.
 const CUBE_MAX_SECTORS = 27;
-const CUBE_TILT = (55 * Math.PI) / 180;
+// The isometric slant, arctan(sqrt 2) (about 54.7 degrees) from straight
+// down: used for the cube and whenever a block is in view and a slab is
+// to be picked, so its layers can be told apart (Boss, 2026-10-01).
+export const ISO_TILT = Math.atan(Math.SQRT2);
+const CUBE_TILT = ISO_TILT;
 // Below the galaxy and its quarters the view can be turned, moved and
 // zoomed freely (Boss, 2026-10-01): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
@@ -361,7 +365,7 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
-    if (isCube(r)) {
+    if (isCube(r) || (isFree(r) && r.kind === "layer")) {
       return {
         target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
         dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),

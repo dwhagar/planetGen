@@ -330,7 +330,13 @@ MAP.48 and MAP.37, all fixed.
     close to its old height) and no taller than the window under the
     header, 1:1 under 600 px; the slider column keeps its width at every
     stage, so the map doesn't move. The other controls stay under the
-    map.
+    map. Boss (2026-10-01 14:50Z): "when a block is visible and the user
+    need to select a slab ... the view should always shift to
+    isometric." Done: inside a block, a stage whose next pick is a slab
+    opens from the isometric slant (arctan of the square root of 2,
+    about 54.7 degrees from straight down, `ISO_TILT` in
+    `galaxystageview.js`, the cube's slant too); the whole galaxy and its
+    quarters stay top-down.
 
 - [x] **MAP.5 Galaxy Map rework**
   Done (the pixel-sized mega-blocks plan Boss approved in the project's
