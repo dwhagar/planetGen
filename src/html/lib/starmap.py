@@ -161,8 +161,11 @@ def _default_zoom(extent_radii_px):
     return max(_MIN_DEFAULT_ZOOM, _SCENE_HALF_PX / max_radius)
 
 _SUN_RADIUS_KM = SOLAR_RADIUS_M / 1000.0
-_MIN_DOT_R = 3.0
-_MAX_DOT_R = 20.0
+# A star's core stays small at every size: luminosity is shown by its glow
+# (`_star_glow`), not by a big disc, so a supergiant reads as a small point
+# in a big soft halo, the way the Galaxy Map draws bright stars.
+_MIN_DOT_R = 1.5
+_MAX_DOT_R = 6.0
 
 # Secondary-star offset (binary systems), as a fraction of the primary's
 # own dot radius -- "down and to the right", overlapping the primary
@@ -465,8 +468,8 @@ distance -- see `_neighbor_indicator_data`'s own docstring."""
 _NEIGHBOR_INDICATOR_RADIUS_PX = 7.0
 """A neighboring-sector indicator's own drawn size -- fixed, unlike a star
 dot's radius (`_star_dot_radius`), since there's no real "size" a sector
-address has; comparable to a real star dot's own range (`_MIN_DOT_R`
-3-`_MAX_DOT_R` 20) so it reads as a marker of similar visual weight."""
+address has; about a bright star's glow (`_star_glow`) so it reads as a
+marker of similar visual weight."""
 
 
 def _neighbor_indicator_data(link_url, neighbor):
@@ -662,28 +665,68 @@ def _star_color(star_type, temperature_k, luminosity_w):
     return fill, stroke
 
 
-_SUN_DOT_R = 7.0
+_SUN_DOT_R = 3.0
 """The Sun's own dot radius -- the pivot of `_star_dot_radius`'s log scale."""
-_DOT_R_PER_DECADE_BELOW_SUN = 2.25
-_DOT_R_PER_DECADE_ABOVE_SUN = 4.33
+_DOT_R_PER_DECADE_BELOW_SUN = 0.75
+_DOT_R_PER_DECADE_ABOVE_SUN = 1.0
 """How much a dot grows per factor of ten in radius: gently below the Sun
-(0.01 solar radii, a white dwarf, lands on `_MIN_DOT_R`), faster above it
-so 10, 100 and 1000 solar radii (giants, bright giants, supergiants) each
-read clearly larger, 1000 reaching `_MAX_DOT_R`."""
+(0.01 solar radii, a white dwarf, lands on `_MIN_DOT_R`), a little faster
+above it so 10, 100 and 1000 solar radii (giants, bright giants,
+supergiants) each read a little larger, 1000 reaching `_MAX_DOT_R`."""
 
 
 def _star_dot_radius(radius_km):
-    """Maps a star's physical radius to a dot radius in scene units on a
-    log scale pivoting at the Sun (`_SUN_DOT_R`), so a white dwarf, a red
-    dwarf, the Sun, a giant and a supergiant are all visibly different
-    sizes; clamped to `_MIN_DOT_R`..`_MAX_DOT_R` so the map stays legible
-    at either extreme."""
+    """Maps a star's physical radius to its core's radius in scene units on
+    a log scale pivoting at the Sun (`_SUN_DOT_R`), so a white dwarf, a red
+    dwarf, the Sun, a giant and a supergiant are still different sizes;
+    clamped to the narrow `_MIN_DOT_R`..`_MAX_DOT_R` so even a supergiant
+    is a small point (its brightness shows in its glow, `_star_glow`)."""
     if not radius_km or radius_km <= 0:
         return _MIN_DOT_R
     decades = math.log10(radius_km / _SUN_RADIUS_KM)
     per_decade = _DOT_R_PER_DECADE_ABOVE_SUN if decades > 0 else _DOT_R_PER_DECADE_BELOW_SUN
     dot_r = _SUN_DOT_R + per_decade * decades
     return max(_MIN_DOT_R, min(_MAX_DOT_R, dot_r))
+
+
+_SUN_GLOW_R = 7.0
+"""The outer radius of the Sun's glow shell, in scene units."""
+_GLOW_R_PER_DECADE_BELOW_SUN = 1.8
+_GLOW_R_PER_DECADE_ABOVE_SUN = 6.5
+"""How much the glow's outer radius grows per factor of ten in luminosity:
+more slowly below the Sun (a red dwarf keeps a thin rim, a white dwarf
+almost none), quickly above it, so a giant (100 L_sun) has a wide halo
+and a supergiant (10^5) a very big one."""
+_MAX_GLOW_R = 48.0
+"""The largest glow shell, so a hypergiant can't swamp the scene."""
+_MIN_GLOW_SCALE = 1.25
+"""The thinnest glow shell, as a multiple of the core's radius."""
+
+
+def _star_glow(luminosity_w, dot_r):
+    """
+    How a star's glow shell (`static/sectormap.js`'s `makeBodySpheres`)
+    shows its luminosity: its size, its brightness at the core's edge and
+    how fast it fades. The core (`_star_dot_radius`) stays small, so this
+    is where a bright star stands out: a supergiant gets a big, strong,
+    soft halo, a white dwarf a tiny dot with little glow.
+
+    Returns:
+        dict: `glowScale` (the shell's radius as a multiple of `dot_r`),
+            `glowStrength` (brightness at the core's edge, the shader's
+            `glowStrength`, kept under 2 so a big halo doesn't saturate
+            into a flat disc) and `glowPower` (fade exponent; higher
+            fades sooner, so the big halos stay soft).
+    """
+    luminosity_solar = (luminosity_w / SOLAR_LUMINOSITY) if luminosity_w else 1.0
+    decades = max(-5.0, min(6.0, math.log10(max(luminosity_solar, 1e-6))))
+    per_decade = _GLOW_R_PER_DECADE_ABOVE_SUN if decades > 0 else _GLOW_R_PER_DECADE_BELOW_SUN
+    glow_r = min(_MAX_GLOW_R, _SUN_GLOW_R + per_decade * decades)
+    return {
+        "glowScale": round(max(_MIN_GLOW_SCALE, glow_r / dot_r), 3),
+        "glowStrength": round(max(0.4, min(1.7, 1.1 + 0.12 * decades)), 3),
+        "glowPower": round(max(1.4, min(2.6, 1.8 + 0.12 * decades)), 3),
+    }
 
 
 def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
@@ -702,6 +745,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     return {
         "x": x_px, "y": y_px, "z": z_px, "r": dot_r,
+        **_star_glow(star["luminosity_w"], dot_r),
         "fill": fill, "stroke": stroke,
         "name": star.get("name") or system["name"],
         "starType": star["star_type"],
@@ -1091,7 +1135,7 @@ def render_map_panel(
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; dot size &asymp; star radius &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants, glowing points &asymp; black holes/neutron stars/rogue planets/interstellar comets, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; small dot &asymp; star &middot; glow size &asymp; brightness &middot; color &asymp; spectral type &amp; brightness &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants, glowing points &asymp; black holes/neutron stars/rogue planets/interstellar comets, near this sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

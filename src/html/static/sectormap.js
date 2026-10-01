@@ -600,21 +600,37 @@ function initStarmap(canvasEl, data) {
   scene.add(interactiveGroup);
   var entryByObject = new Map();
 
-  // A star's own glow: bright/wide, like static/systemmap.js's identical
-  // STAR_GLOW_POWER/_STRENGTH/_SCALE tuning for its own star spheres --
-  // shared visual language for "this is a star" across both maps.
+  // A star's own glow. lib/starmap.py keeps every star's core small and
+  // sends the glow per star (glowScale/glowStrength/glowPower, from its
+  // luminosity), so a supergiant is a small point in a big soft halo and a
+  // white dwarf a tiny dot with little glow; STAR_GLOW is only the fallback
+  // for a star without them.
   var STAR_GLOW = { power: 1.5, strength: 2.2, scale: 1.4 };
+  // The core can be only a few pixels across, so each star gets an unseen
+  // sphere at least this big as its click target (the raycaster still hits
+  // a mesh whose material isn't drawn).
+  var STAR_HIT_MIN_R = 4;
+  var hitMaterial = new THREE.MeshBasicMaterial({ visible: false });
 
   (data.stars || []).forEach(function (star) {
     var bodies = makeBodySpheres(
       star.r, makeStarSurfaceTexture(THREE, star.fill), 0xffffff,
-      { color: star.fill, power: STAR_GLOW.power, strength: STAR_GLOW.strength, scale: STAR_GLOW.scale },
+      {
+        color: star.fill,
+        power: star.glowPower != null ? star.glowPower : STAR_GLOW.power,
+        strength: star.glowStrength != null ? star.glowStrength : STAR_GLOW.strength,
+        scale: star.glowScale != null ? star.glowScale : STAR_GLOW.scale,
+      },
     );
     bodies.core.position.set(star.x, star.y, star.z);
     bodies.glow.position.set(star.x, star.y, star.z);
-    interactiveGroup.add(bodies.core);
+    scene.add(bodies.core);
     scene.add(bodies.glow);
-    entryByObject.set(bodies.core, star);
+    var hit = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), hitMaterial);
+    hit.scale.setScalar(Math.max(star.r, STAR_HIT_MIN_R));
+    hit.position.set(star.x, star.y, star.z);
+    interactiveGroup.add(hit);
+    entryByObject.set(hit, star);
   });
 
   (data.clouds || []).forEach(function (cloud) {
@@ -685,7 +701,8 @@ function initStarmap(canvasEl, data) {
 
   function highlightEntry(entry) {
     highlightSprite.position.set(entry.x, entry.y, entry.z);
-    var r = entry.r || 8;
+    // At least a star's click target, so the ring clears a tiny core.
+    var r = Math.max(entry.r || 8, 4);
     highlightSprite.scale.set(r * 2.6, r * 2.6, 1);
     highlightSprite.visible = true;
   }

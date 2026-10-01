@@ -855,6 +855,12 @@
 --   `galaxy_shape.bright_star_min_luminosity_sol`/`bright_star_seed`.
 --   `_migrate_v42_to_v43` adds them (empty: the next plan scatters).
 --
+-- v44: population and politics (TODO 51-54,
+--   docs/design/population-and-politics.md) -- the `species`, `polities`,
+--   `system_owners` and `population_state` tables below, all filled by
+--   `generate.py population` (stellarObjects/population.py).
+--   `_migrate_v43_to_v44` creates them empty.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2383,6 +2389,87 @@ CREATE TABLE IF NOT EXISTS bright_stars (
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- ---------------------------------------------------------------------
+-- Population and politics (v44, TODO 51-54): see
+-- docs/design/population-and-politics.md. Filled by `generate.py
+-- population` (stellarObjects/population.py) from what is already
+-- stored; nothing in system generation writes these.
+--
+-- species: one dominant species per life world (a planet whose
+-- evolutionary milestone is multicellularity or a technological
+-- civilization). civilization_age_years and era are NULL without a
+-- civilization; spacefaring = era Interstellar or later.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS species (
+    id                       BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name                     VARCHAR(255) NOT NULL,
+    homeworld_planet_id      BIGINT UNSIGNED NOT NULL,
+    star_system_id           BIGINT UNSIGNED NOT NULL,
+    life_chemical            VARCHAR(64),
+    life_stage               VARCHAR(32) NOT NULL,
+    build                    VARCHAR(16) NOT NULL,
+    climate                  VARCHAR(16) NOT NULL,
+    size                     VARCHAR(16) NOT NULL,
+    civilization_age_years   DOUBLE,
+    era                      VARCHAR(16),
+    spacefaring              TINYINT(1) NOT NULL DEFAULT 0 CHECK (spacefaring IN (0, 1)),
+    created_at               TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_species_name (name),
+    UNIQUE KEY uq_species_homeworld (homeworld_planet_id),
+    KEY idx_species_system (star_system_id),
+    KEY idx_species_spacefaring (spacefaring),
+    CONSTRAINT chk_species_life_stage CHECK (life_stage IN ('multicellularity', 'technological_civilization')),
+    CONSTRAINT fk_species_planet
+        FOREIGN KEY (homeworld_planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_species_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- polities: one government per spacefaring species, its capital the
+-- homeworld's system. reach_ly is how far its territory extends.
+CREATE TABLE IF NOT EXISTS polities (
+    id                  BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name                VARCHAR(255) NOT NULL,
+    species_id          BIGINT UNSIGNED NOT NULL,
+    capital_system_id   BIGINT UNSIGNED NOT NULL,
+    government          VARCHAR(32) NOT NULL,
+    color               CHAR(7) NOT NULL,
+    reach_ly            DOUBLE NOT NULL,
+    created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE KEY uq_polities_name (name),
+    UNIQUE KEY uq_polities_species (species_id),
+    KEY idx_polities_capital (capital_system_id),
+    CONSTRAINT fk_polities_species
+        FOREIGN KEY (species_id) REFERENCES species(id) ON DELETE CASCADE,
+    CONSTRAINT fk_polities_capital
+        FOREIGN KEY (capital_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- system_owners: the polity with the strongest claim (reach / distance)
+-- on each system inside some polity's reach. Recomputed from scratch by
+-- every population pass.
+CREATE TABLE IF NOT EXISTS system_owners (
+    star_system_id   BIGINT UNSIGNED PRIMARY KEY,
+    polity_id        BIGINT UNSIGNED NOT NULL,
+    distance_ly      DOUBLE NOT NULL,
+
+    KEY idx_system_owners_polity (polity_id),
+    CONSTRAINT fk_system_owners_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT fk_system_owners_polity
+        FOREIGN KEY (polity_id) REFERENCES polities(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- population_state: one row (id = 1), the highest planets.id the
+-- population pass has scanned.
+CREATE TABLE IF NOT EXISTS population_state (
+    id                     TINYINT UNSIGNED PRIMARY KEY,
+    scanned_planet_id      BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    CHECK (id = 1)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
 -- ---------------------------------------------------------------------

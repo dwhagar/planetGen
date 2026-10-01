@@ -87,7 +87,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 43
+SCHEMA_VERSION = 44
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -6773,6 +6773,21 @@ def _migrate_v42_to_v43(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (43)")
 
 
+def _migrate_v43_to_v44(conn):
+    """
+    Adds population and politics' storage (TODO 51-54) -- see
+    `schema.sql`'s "v44" header note: the `species`, `polities`,
+    `system_owners` and `population_state` tables, empty until the next
+    `generate.py population` pass.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table in ("species", "polities", "system_owners", "population_state"):
+        conn.execute(_schema_statement(table))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (44)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -6875,6 +6890,7 @@ def _migration_steps():
         (41, _migrate_v40_to_v41),
         (42, _migrate_v41_to_v42),
         (43, _migrate_v42_to_v43),
+        (44, _migrate_v43_to_v44),
     ]
 
 

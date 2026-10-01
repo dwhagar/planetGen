@@ -1,0 +1,24 @@
+{#- Every class type (/classes, web/class_pages.py). -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" aria-labelledby="class-types-heading">
+  <div class="panel-header">
+    <h2 id="class-types-heading">Class Types</h2>
+  </div>
+  <p>The classes the generator gives stars, planets, nebulae and other objects, read from the same tables it uses.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead>
+      <tr><th scope="col">Type</th><th scope="col">Classes</th><th scope="col">About</th></tr>
+    </thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{{ row.count }}</td>
+        <td>{{ row.summary }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{% endblock %}

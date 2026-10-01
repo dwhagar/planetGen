@@ -53,9 +53,10 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/lib/tilecache.py` | The web layer's on-disk cache (written by the WSGI process serving `/galaxy` and `/galaxy/tiles`) of 3D Galaxy Map tiles: `fetch_tiles` serves each requested tile from `<cache dir>/<db>/<generation>/` when present and asks `GET /api/galaxy/tiles` only for the rest. Every 60 s at most it asks `GET /api/galaxy/changes` which tiles changed (from the rows' `modified_at`) and deletes only those, or starts a new generation when the answer is `full`. The changed keys are passed on to the browser's cache too. Size-capped (`tile_cache.max_mb`, oldest files pruned first); location from `PLANETGEN_TILE_CACHE_DIR`/`tile_cache.dir` (see `config.md`). Fails open: an unwritable directory or bad file just means an API call. Not web-accessible. |
 | `../src/html/lib/galaxymap3d.py` | Builds the `/galaxy` page's "Galaxy Map" panel: the canvas/controls/info-panel markup, plus the one starting JSON payload (zoom-range numbers, tile settings, and the zoomed-all-the-way-out view's cube tiles, which `initial_tile_request` picks the same way the client does for every later view) `static/galaxymap3d.js` reads on first paint -- every later payload, as the camera moves, is fetched by that script directly and never passes through this module. `view_radius_bounds` (the zoom floor/ceiling: a couple of sector-widths up to this galaxy's own real outer edge) is a pure function the `/galaxy` view also calls directly, before this module's own panel-rendering function runs. The panel's JSON names the tile URL (`fetchPath`, `/galaxy/tiles`) and a sector-page URL template (`sectorUrl`, from `page_url`) for the info panel's real "View sector" `<a href>`; it carries no database name except `storageKey`, which only namespaces the browser's `localStorage`. Not web-accessible. |
 | `../src/html/lib/systemmap.py` | Builds the system page's "System Map" panel: a fixed-size, square true-position plot (real angle from `position_x/y_km`, a shared log-radial scale from anchor -- star, or barycenter for a merged/'close' binary pair -- to body) with one colored/sized marker per body, plus a full ring (not a directional band) for each asteroid belt -- distinct from `starmap.py`'s draggable 3D cube, since this only ever needs a flat top-down projection. A once-only pairwise-repulsion pass (`_relax_markers`) nudges apart any two markers real placement happened to put too close together, real position first, decluttering only where needed. Clicking a planet with moons swaps to a "zoom into this planet's moons" scene (`static/systemmap.js` toggles which `<svg>` scene is visible); clicking anything else fills the info side panel, same click-for-info pattern as `starmap.py`/`sectormap.js`. Adds a small green badge to any body with `life_chemical` set. Also hands over each planet/moon marker's resolved class color (`_class_color`) plus its `atmosphere`/`composition`/`surface_temperature_k` (whether it has a real atmosphere at all, not just the description text) as `data-*`, plus a star's own spectral-type color (`_star_color`, same `data-color` attribute), for `static/systemmap.js`'s own per-marker live sphere rendering. Not web-accessible. |
+| `../src/html/lib/classref.py` | The class reference catalog behind `/classes`: every class type built from the generator's own tables (`program_constants`, `physical_constants`, `stellarEvolution.YERKES_CLASS_NAMES`, `nebulaData`, `cometData`), never hand-copied, once per process (`catalog()`, called by `web.init_app` at startup) so the pages always show the values the generator uses. Also `class_url_parts` (is this a real class?) and `star_type_classes` ("G2V Yellow Main Sequence Star" -> `("G", "V")`). Not web-accessible. |
 | `../src/html/lib/systempage.py` | The system page's Python-built HTML (moved from the old `system.py`): the expandable body list (`system_list_html`) and the Stars/Planets & Moons/Asteroid Belts/Comets tables (`stars_html`, `bodies_html`). Escapes every database value itself; `web/system_pages.py` passes the result through `trusted_html`. Not web-accessible. |
 | `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns the system page already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
-| `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- billboarded, radius from `radius_km` square-root scaled against the Sun, color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
+| `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- a small core (`_star_dot_radius`: log-scaled from `radius_km` but kept between 1.5 and 6 scene units, so even a supergiant is a point) inside a glow shell whose size, strength and fade come from `luminosity_w` (`_star_glow`: a supergiant gets a big soft halo, a white dwarf almost none, matching how the Galaxy Map draws bright stars; `sectormap.js` clicks a star through an unseen sphere at least 4 units across), color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
 | `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so bearings aren't visually distorted, plus a compass arrow along the origin's bearing 000 (toward the frame's center) and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course's mark already covers that axis. Not web-accessible. |
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by the web server. |
 | `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
@@ -167,17 +168,20 @@ URLs" below).
 | `/galaxy/stage?at=...` | `galaxy_views.py` | JSON for the map's drill-down: one stage's generated counts (`at=m.ring.wedge.slab`, or none for the galaxy; see `/api/galaxy/stage`). Through `lib/tilecache.py`'s disk cache (`fetch_stage`), where a sector change deletes only its chain's stages; 400 on a malformed key, 502 on an API failure, both `{"error": ...}`. Shares the `galaxy_tiles` rate limit. `Cache-Control: no-store`. |
 | `/galaxy/locate?q=...` | `galaxy_views.py` | JSON for the map's address bar: sectors and star systems named like `q`, each with its sector address (see `/api/galaxy/locate`). A blank `q` asks the API nothing; 502 on an API failure, as `{"error": ...}`. Shares the `search` rate limit. |
 | `/galaxy/tiles?tiles=...` | `galaxy_tiles.py` | JSON for the map's script: the requested cube tiles (`tiles=level/ix/iy/iz,...`) and, given the browser cache's `stamp`, the changed tiles since. Through `lib/tilecache.py`'s disk cache; 400 on a malformed request, 502 on an API failure, both `{"error": ...}`. `Cache-Control: no-store`. |
-| `/system/<id>` | `system.py` | One star system: badges, "Navigate from/to here" (systems in a sector), nearest-neighbour location links, the System Map, the expandable body list, `?code=wikitext\|markdown` code views with a Copy button, the Stars/Planets/Belts/Comets tables, and for an admin the "Upload to Wiki" form (see below). |
+| `/system/<id>` | `system.py` | One star system: badges, "Navigate from/to here" (systems in a sector), nearest-neighbour location links, the System Map, the expandable body list, `?code=wikitext\|markdown` code views with a Copy button, the Stars/Planets/Belts/Comets tables, the Facilities panel, and for an admin the "Upload to Wiki" form and the facility form (see below). |
 | `/phenomena` | `phenomena.py` | Every exotic phenomenon, paged with `?page=N`. |
 | `/phenomenon/<type>/<id>` | `phenomenon.py` | One phenomenon's data table and AU-scale diagram, with "Navigate from/to here". `<type>` is one of `nebula`, `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`, `quasar`; anything else is a 404. |
-| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems and nearby phenomena, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
+| `/classes` | (new) | The class reference: every class type (star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets, comets) with how many classes it has. |
+| `/classes/<type>` | (new) | One type's classes, each linking to its page, plus notes (an asteroid field's size digit, for one). `<type>` is `star-spectral`, `star-luminosity`, `planet`, `nebula`, `supernova-remnant`, `asteroid-field`, `black-hole`, `rogue-planet` or `comet`; anything else is a 404. |
+| `/classes/<type>/<code>` | (new) | One class's facts, e.g. `/classes/planet/M`, `/classes/star-luminosity/IA+`, `/classes/comet/halley_type`. An unknown code is a 404. The system page links a star's type and a planet's or comet's class here, and the phenomenon page its Class (an asteroid field's `C3` by its letter) and a rogue planet's Mass Class. |
+| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
 | `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). |
 | `/logout` | `logout.py` | `GET` asks to confirm and changes nothing; the button `POST`s to end the session. |
 | `/account` | `changecreds.py` | Change the admin username and password. |
 | `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
-| `/admin/stats` | `adminstats.py` | Server health and database stats, and every name made unique (`?names_page=N`). |
+| `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), and every name made unique (`?names_page=N`). |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 | `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
 
@@ -193,6 +197,30 @@ answers `303 See Other` back to `/system/<id>?wiki=<outcome>#wiki-upload`
 `unconfigured` (501) or `failed`; the page shows a fixed message for
 each (and only to an admin), never text from the query string or the
 API. A POST from a visitor who is not an admin gets a 403 page.
+
+**System page facilities.** The system page lists the system's
+facilities (starbases, colonies, outposts; `GET /api/systems/<id>/
+facilities`) in a Facilities panel (name, kind, host, placement, and an
+orbital one's distance, period and speed as stored), and each one again
+in its host's row of the body list. The System Map draws each as a small
+diamond at its host (`lib/systemmap.py`'s `_facilities_svg`): a star's on
+a dashed orbit on the map's own scale, a planet's or moon's just outside
+its marker (and a planet's again around the center of its moon view), a
+belt's on the ring. A colony makes its world "Inhabited"
+(`queryDb._with_life_fields`). For an admin the panel has a form
+(`web/system_facilities.py`): the host (any star, planet, moon or belt in
+the system), the placement (in orbit, on the surface, in the belt), the
+kind, an orbital distance in km or AU (blank for 3 host radii), a name and
+an optional description. It POSTs to `/system/<id>` with
+`{{ csrf_field() }}` and a `facility_action`: `preview` checks the
+placement rules (`stellarObjects.facilities.check_facility`) and shows the
+orbit `GET /api/facilities/orbit` works out from the host's mass, saving
+nothing; `save` calls `POST /api/facilities` and answers `303` back to
+`/system/<id>?facility=added#facilities`; `remove` (each row's Remove
+button, behind a `<details>` confirm step) calls `DELETE
+/api/facilities/<id>` for one of this system's own facilities. Errors,
+including the API's reason for a refusal, show next to the form. No
+script is involved.
 
 **Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
 (`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,
@@ -219,9 +247,11 @@ in `config.json`'s `tile_cache` (or the app server's own environment) instead.
 `/sector/<id>` (`web/sector_page.py`, `templates/sector.html`) shows the
 sector's badges (cube edge, counts, a link to its Galaxy Map quadrant),
 the interactive Sector Map (`lib/starmap.py` data rendered by
-`static/sectormap.js`) and one Contents table of its systems and the
-phenomena near it, nearest the center first, 50 per page
-(`?contents_page=N`). Every map entry carries a plain `href`: the info
+`static/sectormap.js`) and one Contents table of its systems, the
+phenomena near it and its facilities outside any system (stand-alone ones
+parked in open space and those on its asteroid fields, `GET
+/api/sectors/<id>/facilities`; a facility has no page, so its name is not
+a link), nearest the center first, 50 per page (`?contents_page=N`). Every map entry carries a plain `href`: the info
 panel's "View system/phenomenon/sector" button and the `<noscript>` list
 are ordinary links.
 
@@ -289,7 +319,7 @@ For a visitor:
   config (`mysql.database` / `PLANETGEN_MYSQL_DATABASE`), never from the
   request.
 - **A header** with the site name, the sections
-  (Galaxy, Sectors, Systems, Phenomena, Nav) with `aria-current="page"`
+  (Galaxy, Sectors, Systems, Phenomena, Nav, Classes) with `aria-current="page"`
   on the current one, a search box, and Login or Admin/Stats/Generate/Logout
   plus the theme button. Below 56rem (92rem for a logged-in admin, whose
   header has more links) the sections, search and account links fold into
@@ -306,9 +336,10 @@ terminal on the server, as background jobs:
 
 | Form | Runs |
 |---|---|
-| New galaxy | `src/resetDb.py --yes`, then `generate.py plan`, then `generate.py galaxy` around a random start. |
+| New galaxy | `src/resetDb.py --yes`, then `generate.py plan --no-bright-stars`, then the bright-star scatter (`generate.py plan --bright-stars-only`), then `generate.py galaxy` around a random start. |
 | Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended). The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. |
-| Plan the galaxy | `generate.py plan` with the galaxy shape fields. |
+| Plan the galaxy | `generate.py plan --no-bright-stars` with the galaxy shape fields, then the bright-star scatter as its own step (`generate.py plan --bright-stars-only`), so the job shows the scatter's progress bar and the count it placed. On New galaxy and Plan, "Skip the bright-star scatter" leaves that step out. |
+| Rebuild the bright stars | `generate.py plan --bright-stars-only` on the stored plan; "Leave filled sectors out" adds `--force` (otherwise the scatter refuses once any sector is filled). |
 | Reset | `src/resetDb.py --yes`. |
 
 The number fields have upper bounds, the same ones `generate.py` checks

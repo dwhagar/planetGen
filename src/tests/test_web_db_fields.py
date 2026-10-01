@@ -23,7 +23,9 @@ class _Config(Config):
 
 
 def _fields(kind, detail):
-    return dict(system_pages.phenomenon_fields(kind, detail))
+    """label -> text (the class links are checked in test_class_pages.py)."""
+    with create_app(_Config).test_request_context("/"):
+        return {label: text for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
 
 
 def test_black_hole_class_and_rogue_mass_class_rows():
@@ -159,3 +161,38 @@ def test_contents_rows_show_the_phenomenon_class():
     with create_app(_Config).test_request_context("/sector/1"):
         rows, _map = sector_page._contents({"systems": [], "phenomena": [nebula, hole]})
     assert [row["details"] for row in rows] == ["Class D, Emission", "Quiescent"]
+
+
+def test_contents_rows_show_a_phenomenons_octant_and_nearest_systems():
+    nebula = {"type": "nebula", "id": 5, "name": "Veil", "descriptor": "emission", "radius_ly": 0,
+              "distance_ly": 1.0, "class": None, "octant": "+X-Y+Z",
+              "nearest": [{"id": 1, "name": "Sol", "distance_ly": 4.24}, {"id": 2, "name": "Tau", "distance_ly": 9.0}]}
+    with create_app(_Config).test_request_context("/sector/1"):
+        rows, _map = sector_page._contents({"systems": [], "phenomena": [nebula]})
+    assert rows[0]["octant"] == "+X-Y+Z"
+    assert str(rows[0]["location"]) == ('Nearest: <a href="/system/1">Sol</a> (4.2 ly), '
+                                        '<a href="/system/2">Tau</a> (9.0 ly)')
+
+
+def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config):
+    import queryDb
+    from stellarObjects import _db
+    from tests.test_db_persistence import _placed_nebula, _sector_with_systems
+
+    sector_id = _db.save_sector(_sector_with_systems("Nearmark", [(1.0, 1.0, 1.0), (2.0, 1.0, 1.0)]),
+                                config=mysql_config, galaxy_position={
+        "center_x_pc": 0.0, "center_y_pc": 200.0, "center_z_pc": 0.0, "galactic_radius_pc": 200.0,
+    })
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            nebula_id = _placed_nebula(conn, sector_id, (0.5, 200.5, -0.5), radius_ly=0.5)
+            _db.refresh_nearest_systems(conn, [sector_id])
+        detail = queryDb.phenomenon_detail(conn, "nebula", nebula_id)
+        assert len(detail["nearest"]) == 2 and detail["quadrant"]
+        system_ids = [row["id"] for row in conn.execute(
+            "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
+        neighbors = queryDb.system_detail(conn, system_ids[0])["nearest_neighbors"]
+        assert [n["id"] for n in neighbors] == [system_ids[1]]
+    finally:
+        conn.close()

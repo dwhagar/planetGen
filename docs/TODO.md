@@ -34,7 +34,6 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (8)**.
-- **Class reference pages (56)**: Web, after its class display work.
 - **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
    70 (the nested block ladder), 71 (the stage contents API) and 72
@@ -48,14 +47,15 @@ renumber when items are added or finished.
    sorting showed no artifacts; block size stays per CSS pixel).
    Distance-based detail was left to the drill-down (see the note under
    "Galaxy navigation").
-- **Features (25-36)** from the same notes: phenomena views and stored nearest systems (25-26), nebulae and
+- **Features (25-36)** from the same notes: phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
-   26's storage in v41 and 35 (facilities) in v42; 32 (the
-   correlative update moves everything) shipped with them, and so did
-   33-34 (navigation frames and speeds).
+   26 (nearest systems) in v41 and 35 (facilities) in v42; 32 (the
+   correlative update moves everything) and 36 (placing facilities
+   from the web) shipped with them, and so did 33-34 (navigation
+   frames and speeds).
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -152,22 +152,6 @@ stages themselves don't need it.
     endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
-
-56. [ ] **Class reference pages.** Boss: "it should have pages generated
-    and cached (i.e. generated and cached when the program runs so they
-    are always in sync with the values the program uses) that list the
-    classes of everything. A user should be able to click on a class of
-    something and get information about that class given to them and be
-    able to view a page that lists classes of a type (Nebula, Asteroid
-    Field, Stars, PLanets, etc) for informational purposes." One page
-    per type (stars' spectral and luminosity classes, planets, nebulae
-    A-Q, supernova remnants R-W, asteroid fields letter+digit, black
-    holes, rogue planets, and any other type with classes) and one page
-    per class, built from the code's own class tables
-    (`program_constants`, the class definitions from PRs #138 and #141),
-    never hand-copied text, and cached when the site starts. Every class
-    label on the system, phenomenon, sector and search pages links to
-    its class page. Web does this after its class display work.
 
 Web workstream. Boss's UX reference for both items below is
 "Responsive Web Design Standards" (Boss's notes of 2026-10-01; a copy is
@@ -454,39 +438,6 @@ for a mouse; spacing and type sized with `clamp()`.
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
 
-26. [ ] **Show phenomena's octant and everyone's nearest systems.**
-    Storage shipped in schema v41 (2026-09-30): every placed phenomenon
-    has `quadrant`, and `nearest_systems` holds the 3 nearest star
-    systems to every placed system and phenomenon, searched across
-    sector boundaries (`_db.refresh_nearest_systems`, filled at
-    generation and refreshed by the correlative update, `updateOrbits.py`).
-    `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
-    `sector_detail` returns `nearest` per system, and
-    `queryDb.nearest_systems(conn, table, ids)` serves any page.
-    - Left: show them on the sector page (`sector_page._contents`'s
-      `octant`/`location`), system page and phenomenon page.
-
-### Facilities (new)
-
-36. [ ] **Place facilities from the web interface.** Boss: "The web
-    interface should have a way to select within a star system where a
-    facility goes in orbit around the star or around the planet, which
-    will have calculated distances and orbital speeds the same way
-    everything else does, based on the approximate mass." An admin form
-    on the system page (`web/system_pages.system`), showing the
-    calculated distance and speed before saving; facilities listed on
-    the system page and drawn on the System Map; stand-alone ones on the
-    sector page.
-    - The database side shipped in schema v42 (2026-09-30): the
-      `facilities` table, the rules in `program_constants.FACILITY_RULES`
-      (`stellarObjects/facilities.py`), `_db.add_facility`, and the API:
-      `POST /api/facilities`, `DELETE /api/facilities/<id>`,
-      `GET /api/facilities/<id>`, `GET /api/systems/<id>/facilities`,
-      `GET /api/sectors/<id>/facilities` and
-      `GET /api/facilities/orbit?host_type=&host_id=&distance_km=` (the
-      orbit to show before saving). See `docs/api.md`.
-    - A colony makes its world inhabited: OR
-      `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
 
 ### Star population (from the galaxy studies of 2026-09-30)
 
@@ -499,22 +450,6 @@ population densities (`galaxyDensity.population_densities`) and
 project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
 `bright-star-preplacement-plan.md`), and so has the fill in
 `generate.py` that uses them (population ages and pre-placed bright stars).
-
-49. [ ] **System Map names never overlap.** Boss: "we need to make sure
-    names on the system map clickable interface do not overlap."
-    - Today `systemmap._label_sides_2d` places each label (4 directions,
-      then a pushed "below"/"above" with a leader line, else dropped)
-      against the others (plus seeded star-label rects) using an
-      estimated width (`_label_half_width_px`: character count times a
-      fixed width). Real text can run wider than the estimate, so
-      labels can still collide.
-    - Fix: make sure every star label and marker is in the collision
-      set; measure the real text in the browser
-      (`getBBox()` in `systemmap.js` after load and after each zoom
-      step in `mapzoom.js`) and nudge or hide labels that still
-      overlap, keeping the server placement as the no-script fallback.
-    - Check every scene: single star, close and wide binaries, and the
-      moon-centered scenes, at 390 px and 1280 px.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
@@ -840,13 +775,9 @@ and 84 are blocked on it; item 85 is not.
 
 ## Population and Politics
 
-Exploratory ideas, not yet designed. Each needs a design pass before it
-can be ordered against the work above.
-
-51. [ ] Assign government ownership to star systems so that groups of
-    systems form territories mapped in 3D space.
-52. [ ] Flag worlds with life for generated names of their dominant
-    species.
-53. [ ] A database of spacefaring species.
-54. [ ] Model younger and older civilizations: what differs with a
-    society's age and how to store and present it.
+Items 51-54 shipped as schema v44 (`generate.py population`, the
+`/api/species`, `/api/polities` and `/api/territories` endpoints; see
+`docs/design/population-and-politics.md`). Still open, unnumbered until
+the planned renumbering: the pages that show it (a Species list and page,
+a polity page, "Dominant species" on a life world, "Territory of ..." on
+an owned system) and a territory overlay on the Galaxy Map.

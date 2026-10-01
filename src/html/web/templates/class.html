@@ -1,0 +1,22 @@
+{#- One class (/classes/<type_slug>/<code>, web/class_pages.py). -#}
+{% extends "base.html" %}
+{% block subhead %}
+<p class="badges">
+  <span class="badge"><a href="{{ type_url }}">{{ class_type.name }}</a></span>
+  {%- if item.name != title %}<span class="badge">{{ item.name }}</span>{% endif -%}
+</p>
+{% endblock %}
+{% block content %}
+<section class="panel" aria-labelledby="class-facts-heading">
+  <h2 id="class-facts-heading">About This Class</h2>
+  <p>{{ item.summary }}</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <tbody>
+      {%- for label, text in item.facts %}
+      <tr><th scope="row">{{ label }}</th><td>{{ text }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <p><a href="{{ type_url }}">All {{ class_type.name|lower }}</a></p>
+</section>
+{% endblock %}

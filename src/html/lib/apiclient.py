@@ -717,6 +717,64 @@ def admin_set_sector_wiki_url(cookie_header, db, sector_id, wiki_url):
     _auth_request("PATCH", url_path, json_body=body, cookie_header=cookie_header)
 
 
+# ---------------------------------------------------------------------
+# Facilities (schema v42) -- see `docs/api.md`'s "Facilities" section.
+# ---------------------------------------------------------------------
+
+def get_system_facilities(db, system_id):
+    """Returns `GET /api/systems/<id>/facilities`'s `items`: every
+    facility in the system (`queryDb._facility_dict`'s shape)."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/facilities", {"db": db})["items"]
+
+
+def get_sector_facilities(db, sector_id):
+    """Returns `GET /api/sectors/<id>/facilities`'s `items`: the
+    stand-alone facilities parked in the sector and those on its asteroid
+    fields."""
+    _require_db(db)
+    return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
+
+
+def get_facility_orbit(db, host_type, host_id, distance_km=None):
+    """
+    `GET /api/facilities/orbit` -- the orbit an orbital facility would get
+    around a star, planet or moon, without saving anything.
+
+    Returns:
+        dict: `distance_km`, `period_years`, `orbital_speed_kms`.
+
+    Raises:
+        ApiError: `status_code == 400` with the API's reason (a distance
+            inside the host, a host nothing orbits).
+        NotFoundError: For an unknown host.
+    """
+    _require_db(db)
+    return _request("/facilities/orbit", {
+        "db": db, "host_type": host_type, "host_id": host_id, "distance_km": distance_km,
+    })
+
+
+def create_facility(cookie_header, db, body):
+    """`POST /api/facilities` with `body` (`name`, `kind`, `placement`,
+    `host_type`, `host_id`, plus optional `distance_km`/`description`).
+    Returns the new facility's id. A rule the API refuses is an
+    `ApiError` with `status_code == 400`; a missing host a
+    `NotFoundError`."""
+    _require_db(db)
+    result, _set_cookie_headers = _auth_request(
+        "POST", f"/facilities?{_build_query({'db': db})}", json_body=body, cookie_header=cookie_header,
+    )
+    return result["id"]
+
+
+def delete_facility(cookie_header, db, facility_id):
+    """`DELETE /api/facilities/<id>`. `NotFoundError` if it is already
+    gone."""
+    _require_db(db)
+    _auth_request("DELETE", f"/facilities/{facility_id}?{_build_query({'db': db})}", cookie_header=cookie_header)
+
+
 _NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS = 1800
 """float: `generate_sector_neighborhood` below can legitimately run for a
 very long time -- its default 100 ly radius holds on the order of
