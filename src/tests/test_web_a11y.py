@@ -154,7 +154,8 @@ def site_db(_mysql_server_available):
         random.seed(20260924)
         try:
             target = mysql_argv(config)
-            run_cli("plan", ["--quiet"] + target)
+            # No bright-star scatter: it would place millions of rows.
+            run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
             run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "+planets", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
