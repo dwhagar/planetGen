@@ -21,7 +21,7 @@ release is stamped.
 | DB | DB.2 |
 | API | API.3 |
 | ADM | ADM.10 |
-| SEC | SEC.28 |
+| SEC | SEC.29 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -527,7 +527,8 @@ Parents marked "new parent" had no old number of their own.
 | SEC.24 | Refuse common and breached passwords | none | open |
 | SEC.25 | Check the password hashing cost and re-hash on login | none | open |
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | open |
-| SEC.27 | A fail2ban recipe in the deployment docs | none | open |
+| SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | open |
+| SEC.28 | An always-on log in the standard log location | none | open |
 | USR.1 | User accounts (new parent) | none | open |
 | USR.2 | Roles: user, admin, Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -926,7 +927,7 @@ never appear in TODO.md, since finished items are deleted):
   then MAP.49 (bug, planet orbits drawn inside an asteroid belt) and
   MAP.50 (bug, names running off the edge of the map), then UX.19,
   UX.20 and ADM.9 (bugs: belt rows, scientific notation, the facility
-  form).
+  form), then SEC.28 (the always-on log; SEC.20 moved under it).
 - Flat IDs (after PR #190): every dotted ID above was replaced by the
   next number in its category (see "Tree IDs to flat IDs"). A bug with no
   open item it breaks is now a top-level "(bug)" item (UX.15, UX.16)
