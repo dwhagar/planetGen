@@ -451,19 +451,17 @@ with `clamp()`.
   Generate page generates every not-yet-generated sector of the core on
   layer 0, nucleus sector included, with the same size warning,
   confirmation, `--limit` and progress as the other bulk modes (PERF.3
-  estimates). Open questions:
-  - How big is "the core": a fixed radius (the bulge scale radius,
-    200 pc by default, which is about 50 rings and roughly 7,900
-    sectors on layer 0), a radius the admin types, or a number of
-    rings?
-  - Only layer 0, or every layer the bulge reaches (a cylinder or a
-    sphere around the center)? Boss said layer 0, so that is the
-    default.
-  - Does it run with the plan's bright stars already in place, and
-    does GEN.23's smaller sphere and bright-star backfill apply around
-    it?
-  - Order of generation: ring 0 outward, so a partial run (or
-    `--limit`) leaves a filled disc around the nucleus?
+  estimates). Boss's answers (2026-10-01 14:55Z):
+  - Size: the admin chooses. The Generate page offers "core" as one
+    more mode alongside the others, where Boss types the size he
+    wants, as a radius or a number of rings (the CLI takes the same).
+    Suggested default: the bulge scale radius, 200 pc, about 50 rings
+    and roughly 7,900 sectors on layer 0.
+  - Layer 0 only, not every layer the bulge reaches.
+  - GEN.23's smaller generate-around sphere and bright-star backfill
+    run around the core too, as they do around any generated sector.
+  - Fill from ring 0 outward, so a run that stops early (or hits
+    `--limit`) still leaves a solid disc around the nucleus.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
