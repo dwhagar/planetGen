@@ -43,9 +43,9 @@ renumber when items are added or finished.
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27, 30 and 35
+   and speeds (33-34), and facilities (35-36). 26, 27 and 35
    are schema changes; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39.
+   (containment) in v39, 30 (naming) in v40.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -202,22 +202,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       see-through volume (`sectormap.js makeCloudVolume`), even with its
       center in another sector. Left: the Galaxy Map shows them
       (`galaxymap3d.js`).
-
-30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
-    comets should be named using a method that tells something about
-    them by their name in letters and numbers in a standardized way.
-    Nebulae should get names the same as star systems do, as do neutron
-    stars, quasars, black holes, etc."
-    - Nebulae, remnants, neutron stars, black holes, quasars and rogue
-      planets go through the system-name registry
-      (`_db.reserve_system_name`/`confirm_system_name`) instead of an
-      unregistered `generate_phoneme_salad_name`.
-    - Comets and asteroid fields get designations. Draft (IAU-style):
-      `P/<system>-<n>` periodic comet, `C/<system>-<n>` long-period,
-      `I/<sector designation>-<n>` interstellar comet, and
-      `AF <class><size digit>-<sector designation>-<n>` asteroid field
-      (`asteroid_fields.field_class`, schema v38). Examples are in the design
-      doc. Needs a migration that renames existing rows.
 
 ### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
 

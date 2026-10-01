@@ -178,9 +178,8 @@ class Nebula:
         """
         reseed_rng()
         self.system_config = system_config
-        # TODO(phenomena #30): name nebulae the way star systems are named,
-        # through the system-name registry (_db.reserve_system_name /
-        # confirm_system_name), not an unregistered phoneme-salad name.
+        # A draft name: `_db.insert_nebula` reserves it through the
+        # system-name registry (v40), which may decorate it.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         if nebula_class is not None:

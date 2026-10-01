@@ -824,6 +824,20 @@
 --   A nebula only nests inside a larger cloud. ON DELETE SET NULL, so
 --   deleting a cloud frees what was inside it.
 --
+-- v40: names that follow one standard. Black holes, neutron stars,
+--   nebulae, supernova remnants, rogue planets and quasars draw their
+--   names through system_name_registry like star systems do (a supernova
+--   remnant's core is "<remnant> Core" and isn't registered separately),
+--   so `first_star_system_id` is nullable and `first_object_table`/
+--   `first_object_id` name a phenomenon holder. Comets and asteroid fields
+--   get designations instead: `P/<host>-<n>` (periodic, under 200 years)
+--   or `C/<host>-<n>` for a star-bound comet, `I/<sector>-<n>` for an
+--   interstellar comet and `AF <field_class>-<sector>-<nn>` for an
+--   asteroid field, where <sector> is the sector's grid designation
+--   (`galaxyGeometry.provisional_sector_designation`) or its name. Each
+--   of those phenomenon tables gains an index on `name`.
+--   `_migrate_v39_to_v40` renames and registers existing rows.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1646,6 +1660,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -1708,6 +1723,7 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1782,6 +1798,8 @@ CREATE TABLE IF NOT EXISTS nebulae (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
+
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
     -- `_migrate_v17_to_v18` can add the exact same constraint by name to a
     -- migrated (not freshly created) database -- an anonymous CHECK gets
@@ -1853,6 +1871,8 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
+
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_supernova_remnants_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -1903,6 +1923,7 @@ CREATE TABLE IF NOT EXISTS quasars (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_quasars_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_quasars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1956,6 +1977,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
+    KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -2060,8 +2082,9 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- exactly (same per-component/concentration shape -- both are generated
 -- via the same shared `asteroidData.generate_asteroid_composition`).
 -- ---------------------------------------------------------------------
--- TODO(phenomena #30): add the designation. Asteroid fields can sit inside
--- a nebula (inside_nebula_id, v39) but never contain anything.
+-- v40: `name` holds the field's designation (`AF <field_class>-<sector>-<nn>`,
+-- `asteroidFieldData.asteroid_field_designation`). Asteroid fields can sit
+-- inside a nebula (inside_nebula_id, v39) but never contain anything.
 CREATE TABLE IF NOT EXISTS asteroid_fields (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
@@ -2174,7 +2197,14 @@ CREATE TABLE IF NOT EXISTS system_name_registry (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name              VARCHAR(255) NOT NULL,
     occurrence_count       INT NOT NULL,
-    first_star_system_id   BIGINT UNSIGNED NOT NULL,
+    -- The first holder of the name: a star system, or (v40) a uniquely
+    -- named phenomenon -- `first_object_table`/`first_object_id` (e.g.
+    -- 'nebulae', 12), with first_star_system_id NULL. A phenomenon holder
+    -- has no foreign key; deleting it leaves the count one high, which
+    -- only means the next holder gets a decoration it could have skipped.
+    first_star_system_id   BIGINT UNSIGNED,
+    first_object_table     VARCHAR(32),
+    first_object_id        BIGINT UNSIGNED,
 
     -- Index into names.DIMINUTIVE_PREFIXES already applied to this base
     -- name's system side against a colliding sector -- NULL until the
