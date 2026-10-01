@@ -105,7 +105,7 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
    and ADM.7 in PR #260).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -612,25 +612,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## ADM: Admin tools
 
-- [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
-  Boss (2026-10-01): "In generation screen each section should be
-  collapsible and generate around a sector should have the option to
-  locate an existing filled sector or put in the coordinates." Today
-  the admin Generate page (`web/templates/generate.html`) shows every
-  section (Current job, One-off system, New galaxy, Generate sectors,
-  Plan the galaxy, Rebuild the bright stars, Reset) open, one after
-  another, and "around a sector" (`mode == "center"`) asks for a
-  numeric sector ID and a radius. Done: each section can be collapsed
-  and expanded (a `<details>` or a heading button, keyboard and screen
-  reader friendly); "around a sector" lets the admin either find an
-  existing filled sector (search by name or designation, or pick it on
-  the Galaxy Map or from a list) or type coordinates (a ring, layer and
-  slot address, or galaxy-frame x, y, z). Open questions: which
-  sections start open (only Current job, or the last one used,
-  remembered per browser)? Which coordinates: a sector address, a
-  position in pc or ly, or both? Does "locate" reuse the Sector Map pick
-  mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
-
 - [ ] **ADM.10 An admin page to view and manage the work queue**
   Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
   manage the work queue", and (19:05Z): "For the job management page I
@@ -726,6 +707,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part of, or linked from, the job page (ADM.10). Open question: should
   an upload with no contact for a long time be flagged as stale on the
   page?
+
+- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
+  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
+  boxes not the headings. Text boxes should all be even with each
+  other". Today each field on the admin Generate page
+  (`web/templates/generate.html`, the `field` macro inside
+  `search-fields`) puts its label above its input, and the fields flow
+  side by side, so inputs start at different heights and widths
+  wherever a label wraps or is longer. Done: down every form on the page
+  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
+  stars, Add a dimmer layer, One-off system), the text boxes share one
+  left edge and width and sit level with each other, however long their
+  labels are, at desktop and phone widths, in both themes. This includes
+  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
+  #295).
 
 ## SEC: Security
 
