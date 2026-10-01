@@ -1,5 +1,32 @@
 # Changelog
 
+## [7.119.271] - 2026-10-01
+
+### Changed
+
+- Bright stars now come after the sectors (GEN.30). A new galaxy generates its first sectors and then scatters the bright stars galaxy-wide, leaving those sectors out (`generate.py galaxy --then-scatter`).
+- The bright-star backfill runs once, after a run has generated every sector it was asked for. By default it backfills only around the requested sector: the random start, the center sector or the slot address, or for ring, column, shell and block runs the generated sector nearest the middle. `--backfill-from all` (on the Generate page, "Backfill from every generated sector (farthest out)") backfills around every generated sector instead, and `--backfill-from none` skips the backfill.
+- The scatter always leaves filled sectors out. The "Leave filled sectors out" checkbox is gone, and `--force` is accepted but no longer needed. A generated sector never gets scattered or backfilled stars.
+
+## [7.118.271] - 2026-10-01
+
+### Added
+- **The Generate page's sections fold (ADM.4).** Click a section's
+  heading (or focus it and press Enter or Space) to open or close it.
+  Current job starts open; every other section opens or closes the way
+  you last left it in this browser. A form shown again with an error or
+  its size-and-time estimate stays open.
+- **"Around a sector" can find its center.** Pick a filled sector by
+  searching for its name (or a star system's name, which finds the sector
+  it is in), or from a paged list of every filled sector, nearest the
+  core first; or give a sector address (ring, layer and slot), or a
+  galaxy-frame position in parsecs. An address or position that isn't
+  generated yet is generated first, then its neighborhood.
+
+### Fixed
+- **A HEAD request to the Generate page no longer runs its form.** It
+  is answered like a GET, so it can't skip the form's CSRF check.
+
 ## [7.117.271] - 2026-10-01
 
 ### Changed
