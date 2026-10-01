@@ -25,7 +25,10 @@
 #      reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
-#   4. `src/migrateDb.py`: brings the database up to the current schema
+#   4. `generate.py check-math`: the math check (TEST.68). A failure only
+#      warns (repeated at the end) and skips the population pass below;
+#      bulk generation refuses to start until it passes.
+#   5. `src/migrateDb.py`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see
@@ -33,18 +36,18 @@
 #      (y/N, 30 seconds, default N; skipped with no terminal) to run the
 #      population pass, `generate.py population`; POPULATION=1 runs it
 #      without asking (offer_population_pass in scripts/deploy-common.sh).
-#   5. Apache's headers, deflate and wsgi modules: enabled only if not
+#   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
-#   6. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
+#   7. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
 #      since a pull leaves new and changed files owned by root.
-#   7. The tile cache and Generate jobs directories
+#   8. The tile cache and Generate jobs directories
 #      (`examples/apache/create-cache-dir.sh`) and the debug log
 #      (`examples/apache/setup-debug-log.sh`).
-#   8. Imports the web app as Apache's user, so anything still unusable
+#   9. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
-# Steps 2, 3 and 5 share their code with install.sh (scripts/), so the
+# Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
 # ./install.sh` is still there for a full reinstall.
 #
@@ -95,7 +98,7 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
-echo "== 1/8: Pulling the latest changes =="
+echo "== 1/9: Pulling the latest changes =="
 
 dirty="$(git status --porcelain)"
 if [[ -n "$dirty" ]]; then
@@ -134,21 +137,25 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
 echo
-echo "== 2/8: Checking the Python libraries =="
+echo "== 2/9: Checking the Python libraries =="
 PYTHON="$PYTHON" bash "$SCRIPT_DIR/scripts/install-python-deps.sh" --check
 use_site_python
 
 echo
-echo "== 3/8: Checking the NLTK 'words' corpus =="
+echo "== 3/9: Checking the NLTK 'words' corpus =="
 ensure_nltk_words "$NLTK_DATA_DIR"
 
 echo
-echo "== 4/8: Migrating the configured MySQL database to the current schema =="
+echo "== 4/9: Checking the generator's math =="
+check_math
+
+echo
+echo "== 5/9: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
 offer_population_pass
 
 echo
-echo "== 5/8: Checking Apache's modules (macOS: the gunicorn daemon) =="
+echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
 APACHE_NEEDS_RESTART=0
 if is_macos; then
     ensure_gunicorn_daemon
@@ -157,19 +164,22 @@ else
 fi
 
 echo
-echo "== 6/8: Setting directory ownership/permissions for Apache =="
+echo "== 7/9: Setting directory ownership/permissions for Apache =="
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$DB_DIR"
 
 echo
-echo "== 7/8: Checking the cache, jobs and debug log locations =="
+echo "== 8/9: Checking the cache, jobs and debug log locations =="
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
 
 echo
-echo "== 8/8: Checking that the web app imports =="
+echo "== 9/9: Checking that the web app imports =="
 check_app_imports
 
 echo
+if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
+    echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
+fi
 if is_macos; then
     if [[ "$before" != "$after" ]]; then
         echo "Done. Reload gunicorn so the site runs the new code (a running Generate job is left alone):"

@@ -215,14 +215,23 @@ def _argv(step):
     return step["argv"][2:]
 
 
+def _work_steps(job):
+    """A generating job's steps after its first one, the math check
+    (TEST.68), which this checks is there."""
+    check, *rest = job["steps"]
+    assert check["label"] == generate_page.MATH_CHECK_LABEL
+    assert check["argv"][1] == jobs.GENERATE_SCRIPT and _argv(check) == ["check-math"]
+    return rest
+
+
 def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     resp = _post(client, action="plan", arm_count="3", pitch_angle_deg="")
     assert resp.status_code == 303
     assert resp.headers["Location"].endswith("/admin/generate#current-job")
     (job,) = no_spawn
     assert job["kind"] == "plan"
-    assert _argv(job["steps"][0]) == ["plan", "--arm-count", "3", "--no-bright-stars"]
-    assert job["steps"][0]["argv"][1] == jobs.GENERATE_SCRIPT
+    assert _argv(_work_steps(job)[0]) == ["plan", "--arm-count", "3", "--no-bright-stars"]
+    assert _work_steps(job)[0]["argv"][1] == jobs.GENERATE_SCRIPT
     assert job["admin"] == "boss" and job["database"] == DB
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
 
@@ -272,7 +281,7 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", estimate_ok="1", **form)
     assert resp.status_code == 303
     (job,) = no_spawn
-    assert _argv(job["steps"][0]) == ["galaxy"] + argv
+    assert _argv(_work_steps(job)[0]) == ["galaxy"] + argv
 
 
 @pytest.mark.parametrize("form, message", [
@@ -389,7 +398,7 @@ def test_center_position_without_a_plan_uses_the_standard_edge(site, client, no_
                  center_x_pc="10", center_y_pc="0", center_radius_pc="20")
     assert resp.status_code == 303
     (job,) = no_spawn
-    assert _argv(job["steps"][0])[:7] == ["galaxy", "--ring", "2", "--layer", "0", "--slot", "0"]
+    assert _argv(job["steps"][-1])[:7] == ["galaxy", "--ring", "2", "--layer", "0", "--slot", "0"]
 
 
 def _fold(html, section):
@@ -473,7 +482,7 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, scatter, galaxy = job["steps"]
+    reset, plan, scatter, galaxy = _work_steps(job)
     assert reset["argv"][1] == jobs.RESET_SCRIPT and _argv(reset) == ["--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
     assert scatter["label"] == generate_page.SCATTER_LABEL
@@ -486,7 +495,7 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
 def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
     assert _post(client, action="plan").status_code == 303
     (job,) = no_spawn
-    plan, scatter = job["steps"]
+    plan, scatter = _work_steps(job)
     assert _argv(plan) == ["plan", "--no-bright-stars"]
     assert scatter["label"] == generate_page.SCATTER_LABEL
     assert _argv(scatter) == ["plan", "--bright-stars-only"]
@@ -496,7 +505,7 @@ def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
 def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     assert _post(client, action=action, confirm=DB, skip_bright_stars="1").status_code == 303
     (job,) = no_spawn
-    labels = [step["label"] for step in job["steps"]]
+    labels = [step["label"] for step in _work_steps(job)]
     assert generate_page.SCATTER_LABEL not in labels
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[-1] == "--no-bright-stars"
@@ -510,7 +519,7 @@ def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _post(client, action="bright_stars", **form).status_code == 303
     (job,) = no_spawn
     assert job["kind"] == "bright_stars"
-    (step,) = job["steps"]
+    (step,) = _work_steps(job)
     assert _argv(step) == argv
 
 
@@ -518,7 +527,7 @@ def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
     assert _post(client, action="bright_band", down_to="100").status_code == 303
     (job,) = no_spawn
     assert job["kind"] == "bright_band"
-    (step,) = job["steps"]
+    (step,) = _work_steps(job)
     assert step["label"] == generate_page.BAND_LABEL
     assert _argv(step) == ["plan", "--bright-stars-down-to", "100"]
 
@@ -997,3 +1006,24 @@ def test_map_generate_target_only_for_a_usable_admin():
         assert target["url"] == "/admin/generate"
         assert target["csrfField"] == csrf.FIELD_NAME
         assert target["csrfToken"]
+
+
+# --- The math check (TEST.68) --------------------------------------------------------
+
+@pytest.mark.parametrize("action, form", [
+    ("new_galaxy", {"confirm": DB}),
+    ("plan", {}),
+    ("bright_stars", {}),
+    ("bright_band", {"down_to": "100"}),
+    ("galaxy", {"mode": "random"}),
+])
+def test_every_generating_job_checks_the_math_first(action, form):
+    kind, title, steps = generate_page.build_job(action, form, DB)
+    assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
+    assert steps[0]["argv"][1:] == [jobs.GENERATE_SCRIPT, "check-math"]
+    assert len(steps) > 1
+
+
+def test_a_plain_reset_has_no_math_step():
+    kind, title, steps = generate_page.build_job("reset", {"confirm": DB}, DB)
+    assert [step["label"] for step in steps] == ["Reset the galaxy"]

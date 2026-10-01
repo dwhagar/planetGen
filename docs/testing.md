@@ -71,6 +71,9 @@ where the expected value comes from. It takes well under a second.
 - CI runs it as its own first job, `mathcheck`; every other job waits for it.
 - The website runs it once when it starts and shows admins a warning on
   every page if it failed (the site keeps serving).
+- Bulk generation runs it first and refuses to start if it fails:
+  `generate.py check-math` by hand, and every bulk path (see
+  [cli.md](cli.md#subcommands)); `update.sh`/`update.ps1` warn.
 
 ```sh
 cd src && python -m stellarObjects.mathCheck -v   # the report, exit 1 on failure
