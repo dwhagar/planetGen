@@ -29,7 +29,7 @@ draws one still frame under `prefers-reduced-motion`.
 import json
 import math
 
-from fmt import esc, format_number
+from fmt import esc, format_duration_seconds, format_number
 
 _RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
 _NO_VIEW = {"asteroid_field"}
@@ -56,19 +56,13 @@ def shown_spin_period_s(spin_period_ms):
     return _SHOWN_PERIOD_MIN_S * 10 ** (math.log10(period_ms) / _SHOWN_PERIOD_LOG_DIVISOR)
 
 
-def _seconds_text(seconds):
-    if seconds < 1:
-        return f"{format_number(seconds * 1000, ',.1f')} ms"
-    return f"{format_number(seconds, ',.2f')} s"
-
-
 def _params(phenomenon_type, detail):
     """The numbers the script needs, plus the caption under the view."""
     if phenomenon_type == "neutron_star":
         pulsing = detail.get("pulsar_type") != "non-pulsing"
         real_s = (detail.get("spin_period_ms") or 1000.0) / 1000
         shown_s = shown_spin_period_s(detail.get("spin_period_ms"))
-        caption = (f"One turn every {_seconds_text(real_s)} in reality, slowed here to "
+        caption = (f"One turn every {format_duration_seconds(real_s)} in reality, slowed here to "
                    f"one every {shown_s:.1f} s (about {format_number(shown_s / real_s)} times slower).")
         if pulsing:
             caption += " Each flash is a radio beam sweeping past you."

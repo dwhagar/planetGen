@@ -328,7 +328,7 @@ the browser loads.
 |---|---|
 | [`galaxymap3d.js`](../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, tile fetching from `/galaxy/tiles`, `localStorage` tile cache, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
 | `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, stage URLs (`?slab=`, `?at=`, `?sector=`), breadcrumb, labels, the flight path. No three.js import; tested under node. |
-| `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector, camera flights, breadcrumb with sibling menus, slab strip, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
+| `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector, camera flights, breadcrumb with sibling menus, slab slider, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
 | `galaxyprisms.js` | Sector-grid prisms, block level of detail, density shading and the `drill*` ladder rules (mirrors `galaxyGeometry.py` and `galaxyDrill.py`). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
 | `sectormap.js` | The 3D Sector Map (three.js). |

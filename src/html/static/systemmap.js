@@ -127,9 +127,11 @@ function makeRingTexture(baseColorHex) {
 }
 
 
+// The kelvin at the front of "1,230 K (957 °C, 1,754 °F)"
+// (utils.format_temperature_k), comma grouping and all.
 function parseSurfaceTempK(text) {
-  var match = /(-?[\d.]+)/.exec(text || "");
-  return match ? parseFloat(match[1]) : NaN;
+  var match = /(-?[\d.,]+)/.exec(text || "");
+  return match ? parseFloat(match[1].replace(/,/g, "")) : NaN;
 }
 
 // Not a spectral simulation -- just enough of a temperature cue that a
