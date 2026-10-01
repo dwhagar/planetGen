@@ -396,6 +396,67 @@ def test_column_and_shell_reject_bad_combinations(argv):
         _run_cli(argv + _DUMMY_MYSQL_ARGV)
 
 
+def test_block_mode_generates_one_layer_of_a_drill_block(mysql_config):
+    """`--block 3.I.s.S --block-layer j`: the block's sectors on that
+    layer (design doc section 3.5), and the whole block without it."""
+    from stellarObjects.galaxyDrill import parse_drill_key
+
+    _plan_wide_galaxy(mysql_config)
+    block = parse_drill_key("3.2.1.0")
+    one_layer = set(galaxyGen.block_addresses(block, 1))
+    assert one_layer and {address[1] for address in one_layer} == {1}
+    assert {address[0] for address in one_layer} <= {6, 7, 8}
+    _run_cli(["--block", "3.2.1.0", "--block-layer", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == one_layer
+
+    _run_cli(["--block", "3.2.1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    everything = set(galaxyGen.block_addresses(block))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == everything
+    assert {address[1] for address in everything} == {-1, 0, 1}
+
+
+def test_block_mode_skips_what_the_outline_leaves_out(mysql_config):
+    _seed_skeleton(mysql_config, layers=[(0, 999)])
+    _run_cli(["--block", "3.2.1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row)[1] for row in _all_sectors(mysql_config)} == {0}
+    with pytest.raises(SystemExit):
+        _run_cli(["--block", "3.2.1.0", "--block-layer", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+
+
+def test_block_mode_needs_limit_or_yes_when_large(mysql_config):
+    _plan_wide_galaxy(mysql_config)
+    with pytest.raises(SystemExit):
+        _run_cli(["--block", "27.2.0.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 0
+    _run_cli(["--block", "27.2.0.0", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 2
+
+
+def test_block_layers_cover_the_sector_layers_of_each_size():
+    from stellarObjects.galaxyDrill import parse_drill_key
+
+    assert galaxyGen.block_layers(parse_drill_key("3.5.0.0")) == [-1, 0, 1]
+    assert galaxyGen.block_layers(parse_drill_key("3.5.0.2")) == [5, 6, 7]
+    assert galaxyGen.block_layers(parse_drill_key("27.1.0.0")) == list(range(-13, 14))
+    assert galaxyGen.block_layers(parse_drill_key("243.0.0.0")) == list(range(-121, 122))
+
+
+@pytest.mark.parametrize("argv", [
+    ["--block", "nope"],
+    ["--block", "1.0.0.0"],
+    ["--block", "3.0.99.0"],
+    ["--block", "3.2.1.0", "--block-layer", "5"],
+    ["--block-layer", "0", "--ring", "1"],
+    ["--block", "3.2.1.0", "--ring", "1"],
+    ["--block", "3.2.1.0", "--layer", "0"],
+    ["--block", "3.2.1.0", "--radius-pc", "5"],
+    ["--block", "3.2.1.0", "--shell"],
+])
+def test_block_mode_rejects_bad_combinations(argv):
+    with pytest.raises(SystemExit):
+        _run_cli(argv + _DUMMY_MYSQL_ARGV)
+
+
 # ---------------------------------------------------------------------------
 # --ring I --layer J --slot K -- single-address mode, the direct path from a
 # designation/address copied out of the interactive 3D Galaxy Map

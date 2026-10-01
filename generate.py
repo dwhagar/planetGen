@@ -91,6 +91,9 @@ from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
+from stellarObjects.galaxyDrill import (
+    DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key, parse_drill_key,
+)
 from stellarObjects.galaxyGeometry import (
     SectorCell, enumerate_sectors_within_radius, galactic_radius_pc,
     provisional_sector_designation, ring_bounds_pc, ring_sector_count, sector_address_at, sector_position_pc,
@@ -1388,8 +1391,9 @@ def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own mode/placement options -- on top
     of whatever `add_shared_generation_options` already added -- to
-    `parser`: the `--ring`/`--center-sector` mode-selection group,
-    `--layer`, `--slot`, `--limit`, `--yes`, `--radius-pc`, `--max-ring`,
+    `parser`: the `--ring`/`--block`/`--center-sector` mode-selection
+    group, `--layer`, `--slot`, `--block-layer`, `--limit`, `--yes`,
+    `--radius-pc`, `--max-ring`,
     `--min-start-density`, and the MySQL connection args.
 
     Args:
@@ -1399,6 +1403,11 @@ def add_galaxy_arguments(parser):
     mode_group.add_argument('--ring', type=int, metavar='I',
                             help="Batch mode: generate every not-yet-generated sector in ring I (0-indexed "
                                  "cylindrical radius band, one sector edge wide) at --layer J.")
+    mode_group.add_argument('--block', metavar='M.I.S.SLAB',
+                            help="Block mode: generate every not-yet-generated sector the galaxy's outline "
+                                 "allows inside one Galaxy Map drill-down block, given by its key "
+                                 "(size.ring.wedge.slab, as in the map's stage links, e.g. 3.40.7.0). "
+                                 "Needs --limit or --yes past LARGE_RING_WARNING_THRESHOLD sectors.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -1423,12 +1432,15 @@ def add_galaxy_arguments(parser):
                              "ring I through every layer the outline reaches (a cylindrical shell). Far "
                              "larger than one ring at one layer, so it needs --limit or --yes past "
                              "LARGE_RING_WARNING_THRESHOLD sectors.")
+    parser.add_argument('--block-layer', type=int, metavar='J',
+                        help="With --block: only the block's sectors on sector layer J (one layer of a "
+                             "size-3 block is about 9 sectors).")
     parser.add_argument('--limit', type=int,
-                        help="With --ring (or --ring --shell): generate only the first N not-yet-generated "
-                             "slots.")
+                        help="With --ring (or --ring --shell, or --block): generate only the first N "
+                             "not-yet-generated slots.")
     parser.add_argument('--yes', action='store_true',
-                        help="With --ring (or --ring --shell): skip the confirmation normally required "
-                             "before generating more than LARGE_RING_WARNING_THRESHOLD sectors.")
+                        help="With --ring (or --ring --shell, or --block): skip the confirmation normally "
+                             "required before generating more than LARGE_RING_WARNING_THRESHOLD sectors.")
     parser.add_argument('--radius-pc', type=finite_float,
                         help="With --center-sector: the neighborhood search radius, in parsecs. With "
                              "--ring --slot: after generating that address, also generate its "
@@ -1466,6 +1478,31 @@ def validate_galaxy_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
+    block = getattr(args, "block", None)
+    block_layer = getattr(args, "block_layer", None)
+    if block is not None:
+        try:
+            args.block = parse_drill_key(block)
+        except ValueError as exc:
+            parser.error(f"--block: {exc}")
+        if args.block.m == 1:
+            parser.error("--block takes a block, not a single sector; use --ring --layer --slot.")
+        others = [flag for flag, value in (
+            ("--layer", args.layer), ("--slot", args.slot), ("--radius-pc", args.radius_pc),
+            ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
+        ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
+        if others:
+            parser.error(f"--block can't be combined with {', '.join(others)}.")
+        if block_layer is not None and block_layer not in block_layers(args.block):
+            layers = block_layers(args.block)
+            parser.error(f"--block-layer must be one of the block's layers, {layers[0]} to {layers[-1]}.")
+        if args.limit is not None and not 1 <= args.limit <= generationLimits.MAX_GENERATE_LIMIT:
+            parser.error(f"--limit must be between 1 and {generationLimits.MAX_GENERATE_LIMIT}.")
+        args.sector_name = args.system_file = args.num_orbits = args.name = None
+        return
+    if block_layer is not None:
+        parser.error("--block-layer requires --block.")
+
     random_start = args.ring is None and args.center_sector is None
 
     if args.ring is not None and args.ring < 0:
@@ -2295,6 +2332,76 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
     )
 
 
+def block_layers(block):
+    """
+    Every sector layer a drill-down block spans, lowest first: a size-3
+    block's three (`drill_slabs`), and for a bigger one the layers of
+    each of its child slabs in turn.
+    """
+    m, _ring, _wedge, slab = block
+    if m == 3:
+        return drill_slabs(block)
+    child_m = DRILL_LEVELS[DRILL_LEVELS.index(m) + 1]
+    layers = []
+    for child_slab in drill_slabs(block):
+        layers.extend(block_layers(type(block)(child_m, 0, 0, child_slab)))
+    return layers
+
+
+def block_addresses(block, layer=None):
+    """
+    Every sector address `(ring, layer, slot)` inside drill-down block
+    `block` (only on sector layer `layer` when given), ring by ring --
+    a size-3 block's sectors (`drill_block_sectors`, design doc section
+    3.5), and a bigger block's children's, recursively.
+    """
+    if block.m == 3:
+        layers = drill_slabs(block) if layer is None else [layer]
+        for sector_layer in layers:
+            for sector in drill_block_sectors(block, sector_layer):
+                yield (sector.ring, sector_layer, sector.wedge)
+        return
+    for _slab, children in drill_children(block):
+        for child in children:
+            if layer is not None and layer not in block_layers(child):
+                continue
+            yield from block_addresses(child, layer)
+
+
+def run_block(args, edge_pc, progress):
+    """
+    Block mode: every sector the galaxy's outline allows inside one
+    drill-down block (`--block`, optionally one `--block-layer`). Needs
+    `--limit` or `--yes` when that is more than
+    `LARGE_RING_WARNING_THRESHOLD` sectors.
+
+    Raises:
+        SystemExit: If the outline allows nothing in the block, or it is
+                   too large and neither `--limit` nor `--yes` was given.
+    """
+    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    bounds = batch_density.bounds
+    key = format_drill_key(args.block)
+    where = f"block {key}" + (f" layer {args.block_layer}" if args.block_layer is not None else "")
+    confirmed = args.limit is not None or args.yes
+    addresses = []
+    for address in block_addresses(args.block, args.block_layer):
+        if not bounds.contains(address[0], address[1]):
+            continue
+        addresses.append(address)
+        if not confirmed and len(addresses) > LARGE_RING_WARNING_THRESHOLD:
+            # A big block can hold millions of sectors: stop counting here.
+            log.error(
+                f"{where.capitalize()} holds more than {LARGE_RING_WARNING_THRESHOLD} sector slots -- pass "
+                f"--limit N to generate only the first N, or --yes to confirm generating all of them."
+            )
+            raise SystemExit(1)
+    if not addresses:
+        log.error(f"The galaxy's outline allows no sector in {where}.")
+        raise SystemExit(1)
+    _generate_addresses(args, addresses, where, edge_pc, progress, batch_density)
+
+
 def run_column(args, edge_pc, progress):
     """
     Column mode: every sector at `(--ring I, --slot K)` through every
@@ -2349,7 +2456,7 @@ def run_shell(args, edge_pc, progress):
 
 def run_galaxy(args):
     """
-    Dispatches to column, shell, single-address, ring-batch,
+    Dispatches to block, column, shell, single-address, ring-batch,
     local-neighborhood, or random-start mode, owning the one `rich.progress.Progress` display
     they share. First checks the galaxy has been planned at the standard
     sector edge, since every mode validates its addresses against that
@@ -2381,7 +2488,9 @@ def run_galaxy(args):
     with _generation_progress() as progress:
         log.set_console(progress.console)
         try:
-            if args.column:
+            if getattr(args, "block", None) is not None:
+                run_block(args, edge_pc, progress)
+            elif args.column:
                 run_column(args, edge_pc, progress)
             elif args.shell:
                 run_shell(args, edge_pc, progress)

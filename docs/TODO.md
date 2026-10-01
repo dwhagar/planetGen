@@ -108,7 +108,10 @@ stages themselves don't need it.
     ly, 13-652 ly, converted with `ly_to_pc`, an "up to about N sectors"
     estimate, a confirmation above 5,000), started without leaving the
     map and refreshed when the job ends. Web owns `generate.py` and the
-    Generate page; Galaxy Map owns the buttons.
+    Generate page; Galaxy Map owns the buttons. Web's part is built:
+    `--block`/`--block-layer`, the Generate page's block form and
+    light-year neighborhood radius, and JSON answers to
+    `Accept: application/json` posts. Only the map buttons remain.
 
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as

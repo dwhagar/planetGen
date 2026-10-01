@@ -106,9 +106,9 @@ def _token(client):
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
-def _post(client, **form):
+def _post(client, headers=None, **form):
     form.setdefault("csrf_token", _token(client))
-    return client.post("/admin/generate", data=form)
+    return client.post("/admin/generate", data=form, headers=headers)
 
 
 def _wait_finished(job_id, root, timeout=30):
@@ -237,6 +237,14 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     ({"mode": "shell", "shell_ring": "5", "shell_limit": "40", "whole_shell": "1"},
      ["--ring", "5", "--shell", "--limit", "40"]),
     ({"mode": "shell", "shell_ring": "5", "whole_shell": "1"}, ["--ring", "5", "--shell", "--yes"]),
+    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_ly": "100"},
+     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "30.7"]),
+    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_ly": "652"},
+     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "199.9"]),
+    ({"mode": "block", "block": " 3.40.7.0 "}, ["--block", "3.40.7.0"]),
+    ({"mode": "block", "block": "3.40.7.0", "block_layer": "-1"}, ["--block", "3.40.7.0", "--block-layer", "-1"]),
+    ({"mode": "block", "block": "27.4.1.0", "block_limit": "50"}, ["--block", "27.4.1.0", "--limit", "50"]),
+    ({"mode": "block", "block": "27.4.1.0", "whole_block": "1"}, ["--block", "27.4.1.0", "--yes"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", **form)
@@ -263,12 +271,33 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "column", "column_ring": "1"}, "Slot is required."),
     ({"mode": "shell"}, "Ring is required."),
     ({"mode": "shell", "shell_ring": "2", "shell_limit": "9999999"}, "Limit must be at most"),
+    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_ly": "12"},
+     "Neighborhood radius (ly) must be at least 13."),
+    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_ly": "653"},
+     "Neighborhood radius (ly) must be at most 652."),
+    ({"mode": "block"}, "Block is required."),
+    ({"mode": "block", "block": "3.40"}, "Block must be a Galaxy Map block key"),
+    ({"mode": "block", "block": "1.4.2.0"}, "Block must be a Galaxy Map block key"),
+    ({"mode": "block", "block": "3.40.7.0", "block_layer": "x"}, "Layer must be a whole number."),
 ])
 def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
     resp = _post(client, action="galaxy", **form)
     assert resp.status_code == 400
     assert message in resp.get_data(as_text=True)
     assert no_spawn == []
+
+
+def test_map_buttons_get_json(site, client, no_spawn, monkeypatch):
+    """The Galaxy Map posts with `Accept: application/json` and reads the
+    job's links back instead of following a redirect."""
+    monkeypatch.setattr(jobs, "start_job", lambda *args, **kwargs: "job123")
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block",
+                 block="3.40.7.0", block_layer="0")
+    assert resp.status_code == 202
+    assert resp.get_json() == {"job": "job123", "url": "/admin/generate/jobs/job123",
+                               "status_url": "/admin/generate/status?job=job123"}
+    resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block")
+    assert resp.status_code == 400 and resp.get_json() == {"error": "Block is required."}
 
 
 def test_plan_rejects_out_of_range(site, client, no_spawn):
@@ -738,6 +767,8 @@ def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, mo
          "max_ring": str(limits.MAX_GENERATE_RING)},
         {"mode": "ring", "ring": str(limits.MAX_GENERATE_RING), "limit": str(limits.MAX_GENERATE_LIMIT)},
         {"mode": "center", "center_sector": "9", "center_radius_pc": str(limits.MAX_GENERATE_RADIUS_PC)},
+        {"mode": "slot", "slot_ring": "3", "slot": "1", "slot_radius_ly": str(generate_page.MAX_GENERATE_RADIUS_LY)},
+        {"mode": "block", "block": "243.0.0.0", "block_limit": str(limits.MAX_GENERATE_LIMIT)},
     ]
     for form in forms:
         argv, _description = generate_page.galaxy_argv(form)
