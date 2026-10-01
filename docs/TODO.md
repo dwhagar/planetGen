@@ -36,7 +36,8 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
-   70 (the nested block ladder) has shipped; 71-72 next, in order. It
+   70 (the nested block ladder) and 71 (the stage contents API) have
+   shipped; 72 next. It
    replaces the map's click-to-center and double-click zoom.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
@@ -101,16 +102,10 @@ a sector. Admins can generate a sector, a layer or a neighborhood (radius
 asked in light-years) at the sector level, and the NAV page can pick its
 start and destination on the map or in a sector. Everything below is
 specified, with the math, in the design doc named in the heading; each
-item names its section. Items 71-72 go in order (Galaxy Map thread; 70,
-the nested ladder, is in `stellarObjects/galaxyDrill.py`); Web
+item names its section. Item 72 is next (Galaxy Map thread; 70, the
+nested ladder, is in `stellarObjects/galaxyDrill.py`, and 71 is `GET
+/api/galaxy/stage`); Web
 can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
-
-71. [ ] **Stage contents API (section 7).** Done: `GET
-    /api/galaxy/stage?at=m.I.s.S` returns one container's children with
-    generated counts (generated sectors listed at m = 3), and the whole
-    galaxy's level-243 blocks with no `at`; cached by `lib/tilecache.py`
-    under the stamp, a change invalidating only its ancestor chain. No
-    schema change.
 
 72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
     eight stages on the Galaxy Map, with slab hover highlight, pull-out

@@ -31,6 +31,8 @@ class FakeApi:
         self.stamp_calls = 0
         self.since = []
         self.tile_calls = []
+        self.changed_stages = []
+        self.stage_calls = []
 
     def get_galaxy_changes(self, db, since=None):
         self.stamp_calls += 1
@@ -39,7 +41,12 @@ class FakeApi:
         return {
             "stamp": self.stamp, "state": "state-" + self.stamp,
             "full": full, "tiles": [] if full else list(self.changed),
+            "stages": [] if full else list(self.changed_stages),
         }
+
+    def get_galaxy_stage(self, db, at=None):
+        self.stage_calls.append(at)
+        return {"at": at, "child_m": 27, "children": [{"ring": 1, "wedge": 2, "slab": 0, "generated": 5}], "sectors": None}
 
     def get_galaxy_tiles(self, db, tile_keys):
         self.tile_calls.append(list(tile_keys))
@@ -54,6 +61,7 @@ def api(monkeypatch, tmp_path):
     fake = FakeApi()
     monkeypatch.setattr(tilecache, "get_galaxy_changes", fake.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", fake.get_galaxy_tiles)
+    monkeypatch.setattr(tilecache, "get_galaxy_stage", fake.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
@@ -238,3 +246,29 @@ def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_p
 
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_MAX_MB", "0")
     assert tilecache.configured_cache_dir() is None
+
+
+def test_stages_are_cached_until_their_chain_changes(api, monkeypatch):
+    first = tilecache.fetch_stage("mydb", "243.7.14.0")
+    assert first["children"][0]["generated"] == 5 and first["stamp"] == api.stamp
+    tilecache.fetch_stage("mydb", "243.7.14.0")
+    tilecache.fetch_stage("mydb", "27.63.115.-1")
+    tilecache.fetch_stage("mydb", None)
+    tilecache.fetch_stage("mydb", None)
+    assert api.stage_calls == ["243.7.14.0", "27.63.115.-1", None]
+
+    api.stamp = "00000000000000bb"
+    api.changed = []
+    api.changed_stages = ["galaxy", "243.7.14.0"]
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    tilecache.fetch_stage("mydb", "27.63.115.-1")
+    tilecache.fetch_stage("mydb", "243.7.14.0")
+    tilecache.fetch_stage("mydb", None)
+    assert api.stage_calls[3:] == ["243.7.14.0", None]
+
+
+def test_stage_keys_are_checked(api):
+    for bad in ("81.0.0.0", "243.0.99.0", "../x", "1.0.0.0"):
+        with pytest.raises(tilecache.TileRequestError):
+            tilecache.fetch_stage("mydb", bad)
+    assert api.stage_calls == []

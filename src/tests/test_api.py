@@ -838,6 +838,56 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     assert [c["id"] for c in capped] == [nebula_id]
 
 
+def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
+    """`/api/galaxy/stage` counts each child block's generated sectors at
+    every level, and at a level-3 block lists the sectors themselves;
+    `galaxy_changes` names the stages a new sector makes stale."""
+    from stellarObjects.galaxyDrill import drill_block_sectors, drill_chain_of, format_drill_key
+    from stellarObjects.galaxyGeometry import sector_position_pc
+
+    home = (1705, -20, 3225)
+    chain = drill_chain_of(*home)
+    level3 = chain[2]
+    # Two more sectors in the same level-3 block, one on another layer.
+    others = [s for s in drill_block_sectors(level3, -20) if (s.ring, s.slab, s.wedge) != home][:1]
+    others += drill_block_sectors(level3, -21)[:1]
+    addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others] + [(0, 0, 0)]
+    before = queryDb.galaxy_changes(_db.get_connection(mysql_config))["state"]
+    ids = [_place_sector(mysql_config, f"Stage {n}", sector_position_pc(*a, 4.0), address=a) for n, a in enumerate(addresses)]
+
+    galaxy = client.get("/api/galaxy/stage").get_json()
+    assert galaxy["at"] is None and galaxy["child_m"] == 243
+    top = {(c["ring"], c["wedge"], c["slab"]): c["generated"] for c in galaxy["children"]}
+    assert top[(chain[0].ring, chain[0].wedge, chain[0].slab)] == 3
+    core = drill_chain_of(0, 0, 0)[0]
+    assert top[(core.ring, core.wedge, core.slab)] == 1
+
+    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[0])}").get_json()
+    assert stage["child_m"] == 27
+    assert stage["children"] == [{"ring": chain[1].ring, "wedge": chain[1].wedge, "slab": chain[1].slab, "generated": 3}]
+
+    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[1])}").get_json()
+    assert stage["children"] == [{"ring": level3.ring, "wedge": level3.wedge, "slab": level3.slab, "generated": 3}]
+
+    stage = client.get(f"/api/galaxy/stage?at={format_drill_key(level3)}").get_json()
+    assert stage["child_m"] == 1
+    assert sorted((s["ring"], s["layer"], s["slot"]) for s in stage["sectors"]) == sorted(addresses[:3])
+    assert {s["id"] for s in stage["sectors"]} == set(ids[:3])
+    assert all(s["system_count"] == 1 for s in stage["sectors"])
+    assert len(stage["children"]) == 3 and all(c["generated"] == 1 for c in stage["children"])
+
+    # A block next door holds none of them.
+    empty = client.get(f"/api/galaxy/stage?at=3.{level3.ring}.{level3.wedge + 1}.{level3.slab}").get_json()
+    assert empty["children"] == [] and empty["sectors"] == []
+    for bad in ("81.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
+        assert client.get(f"/api/galaxy/stage?at={bad}").status_code == 400
+
+    changes = queryDb.galaxy_changes(_db.get_connection(mysql_config), before)
+    assert not changes["full"]
+    assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:3]} | {
+        format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
+
+
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     """A box holding more than `limit` placed sectors returns every Nth by
     id, not the lowest ids -- a neighborhood is generated outward from the core,
@@ -888,7 +938,8 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
     before = client.get("/api/galaxy/stamp").get_json()
 
     unchanged = _galaxy_changes(client, before["state"])
-    assert unchanged == {"stamp": before["stamp"], "state": before["state"], "full": False, "tiles": []}
+    assert unchanged == {"stamp": before["stamp"], "state": before["state"], "full": False, "tiles": [],
+                         "stages": []}
 
     time.sleep(0.01)
     conn = _db.get_connection(mysql_config)

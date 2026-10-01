@@ -194,8 +194,8 @@ connectivity to that specific schema rather than the default one.
   65,536 pc on a side centered on the galactic origin, each level halves
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...}}},
-  "edge_pc": ..., "has_shape": ...}`:
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...},
+  "clouds": [...]}}, "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
@@ -208,20 +208,37 @@ connectivity to that specific schema rather than the default one.
   "cells": [[ring, layer, wedge, count], ...]}` per cell `g` sectors a side
   (`g` a power of 3; cell ring `I` has `max(3, round(2π(I + ½)))` wedges
   from +x, and a sector counts in the wedge holding its center angle).
-  The Galaxy Map sums these into its blocks. Predicted density isn't
+  The Galaxy Map sums these into its blocks. `clouds` lists the placed
+  nebulae and supernova remnants whose sphere reaches into the tile
+  (`queryDb.galaxy_clouds_in_box`), largest first, at most 200:
+  `{type, id, name, descriptor, class, radius_pc, x, y, z}`. Predicted density isn't
   served: the page evaluates the galaxy's shape itself
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
   database's contents, so callers cache it by key and `/api/galaxy/stamp`.
+- `GET /api/galaxy/stage?at=<m.ring.wedge.slab>` — one stage of the
+  Galaxy Map's drill-down (`queryDb.galaxy_stage`, design in
+  `design/galaxy-drilldown-navigation.md`): how many generated sectors
+  each child block of block `at` holds, as `{"at", "child_m", "children":
+  [{"ring", "wedge", "slab", "generated"}], "sectors"}`. Blocks are 243,
+  27 and 3 sectors a side (`stellarObjects.galaxyDrill`); with no `at`,
+  the children are the galaxy's level-243 blocks. Children with nothing
+  generated are left out (the page computes totals itself). At a level-3
+  block the children are sectors (`wedge` is the slot, `slab` the layer)
+  and `sectors` lists each one as `{ring, layer, slot, id, name,
+  system_count}`; otherwise `sectors` is `null`. A malformed or impossible
+  key is a 400.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
   "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
   tile contents could: sectors placed, edited or removed (their
   `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
   or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
 - `GET /api/galaxy/changes?since=<state>` — `{"stamp", "state", "full",
-  "tiles"}` (`queryDb.galaxy_changes`): the keys of the tiles that changed
-  since that `state`, found from `sectors.modified_at`, new sector ids and
-  new star-system ids. `full` is `true` (and `tiles` empty) when that can't
+  "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
+  that changed since that `state`, found from `sectors.modified_at`, new
+  sector ids and new star-system ids, and the drill-down stages holding
+  those sectors (`"galaxy"` and each one's level-243, 27 and 3 block
+  keys). `full` is `true` (and both lists empty) when that can't
   be pinned to tiles: a deleted sector, a new shape or release, more than
   1,000 changed sectors, or a missing or unreadable `since`.
   `../src/html/lib/tilecache.py` (the web layer's disk cache) calls it

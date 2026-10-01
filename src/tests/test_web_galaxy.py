@@ -57,6 +57,7 @@ class FakeData:
         self.dbs = set()
         self.tile_calls = []
         self.fail_tiles = None
+        self.stage_calls = []
 
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
@@ -81,6 +82,11 @@ class FakeData:
             "edge_pc": 3.526, "has_shape": True,
         }
 
+    def get_galaxy_stage(self, db, at=None):
+        self.dbs.add(db)
+        self.stage_calls.append(at)
+        return {"at": at, "child_m": 243 if at is None else 27, "children": [], "sectors": None}
+
     def auth_me(self, cookie_header):
         return None
 
@@ -92,6 +98,7 @@ def fake(monkeypatch, tmp_path):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
+    monkeypatch.setattr(tilecache, "get_galaxy_stage", data.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
@@ -270,6 +277,30 @@ def test_tiles_endpoint_api_failure_is_json(client, fake):
     assert resp.status_code == 502
     assert resp.mimetype == "application/json"
     assert "secret detail" not in resp.get_data(as_text=True)
+
+
+# --- /galaxy/stage -----------------------------------------------------------------------
+
+def test_stage_endpoint_serves_and_caches(client, fake):
+    first = client.get("/galaxy/stage?at=243.7.14.0")
+    assert first.status_code == 200
+    assert first.headers["Cache-Control"] == "no-store"
+    assert first.get_json()["at"] == "243.7.14.0"
+    assert first.get_json()["stamp"] == STAMP
+    galaxy = client.get("/galaxy/stage").get_json()
+    assert galaxy["child_m"] == 243
+    client.get("/galaxy/stage?at=243.7.14.0")
+    client.get("/galaxy/stage")
+    assert fake.stage_calls == ["243.7.14.0", None]
+    assert fake.dbs == {DB}
+
+
+def test_stage_endpoint_rejects_bad_keys(client, fake):
+    for bad in ("81.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
+        resp = client.get(f"/galaxy/stage?at={bad}")
+        assert resp.status_code == 400
+        assert "error" in resp.get_json()
+    assert fake.stage_calls == []
 
 
 # --- Old CGI URLs ---------------------------------------------------------------------------
