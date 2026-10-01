@@ -17,8 +17,11 @@ needs a terminal on the server. Four actions, each a background job
 - Add a dimmer layer: keep the bright stars already placed and add only
   those from a lower level up to the current one
   (`generate.py plan --bright-stars-down-to N`).
-- Generate sectors: `generate.py galaxy` in any of its four modes
-  (random start, a whole ring, around a sector, one address).
+- Generate sectors: `generate.py galaxy` in any of its modes (random
+  start, a whole ring, around a sector, one address, ...). "Around a
+  sector" names its center as a filled sector (searched by name or
+  picked from `/admin/generate/sectors`'s list), a sector address, or a
+  galaxy-frame position in pc.
 - Reset: wipe the database only.
 
 New galaxy and Reset delete every generated sector and system, so both
@@ -29,6 +32,9 @@ The page shows the running job (step, progress bar, elapsed time and the
 tail of its output), refreshed every few seconds by
 `static/generatejobs.js` from `/admin/generate/status`, plus the last few
 jobs, each with its full output at `/admin/generate/jobs/<id>`.
+
+Every section folds (ADM.4; `static/generatefolds.js` remembers which
+are open per browser).
 
 Admins only: a visitor who isn't logged in is sent to the login page,
 and any POST or status request without an admin session gets a 403.
@@ -46,6 +52,7 @@ import apiclient
 from fmt import utc_time_html
 from stellarObjects import activitylog, generationStats, log, program_constants
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
+from stellarObjects.galaxyGeometry import sector_address_at
 from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
@@ -96,7 +103,8 @@ GALAXY_MODES = (
      "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
      "or only the first few with a limit."),
     ("center", "Around a sector",
-     "Every not-yet-generated sector within a radius of an existing sector."),
+     "Every not-yet-generated sector within a radius of a center: an existing filled sector "
+     "(found by name or picked from the list), a sector address, or a position in the galaxy."),
     ("slot", "One address",
      "Exactly one sector, by ring, layer and slot (the address the Galaxy Map shows). "
      "With a radius, its neighborhood too."),
@@ -110,6 +118,27 @@ GALAXY_MODES = (
      "Every sector of one ring through every layer: a whole cylinder, usually thousands of sectors, "
      "so it needs a limit or the confirmation box."),
 )
+
+CENTER_CHOICES = (
+    ("sector", "A filled sector", "Find it by name, pick it from the list, or type its ID."),
+    ("address", "A sector address", "Ring, layer and slot, as the Galaxy Map shows them. "
+                                    "The sector there is generated first if it isn't yet."),
+    ("position", "A position (pc)", "Galaxy-frame x, y and z in parsecs (the center is 0, 0, 0; "
+                                    "z is height above the plane). The sector holding that point is the center."),
+)
+"""tuple: How "Around a sector" names its center (`center_by`):
+`(value, label, hint)`."""
+
+SECTION_FOR_ACTION = {
+    "new_galaxy": "new-galaxy", "galaxy": "generate-sectors", "plan": "plan",
+    "bright_stars": "bright-stars", "bright_band": "bright-band", "reset": "reset",
+}
+"""dict: The page section each form lives in, so a form shown again
+with an error is open whatever the browser remembered."""
+
+FINDER_PAGE_SIZE = 50
+"""int: Sectors per page in the "Around a sector" list (every web list
+pages 50 rows)."""
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 
@@ -245,9 +274,53 @@ def _neighborhood_radius_pc(form):
     return _number(form, "slot_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
 
 
-def galaxy_argv(form):
+def center_argv(form, edge_pc=None):
     """
-    `generate.py galaxy` arguments for the chosen mode.
+    "Around a sector": `--center-sector` for a filled sector, or the
+    One address arguments with a radius (`--ring --layer --slot
+    --radius-pc`, which generates that sector first when it's empty) for
+    an address or a galaxy-frame position, the position turned into the
+    address of the cell holding it with the plan's sector edge
+    (`edge_pc`, the standard 4 pc when there is no plan).
+
+    Returns:
+        tuple: `(argv, description)`.
+    """
+    by = form.get("center_by") or "sector"
+    if by == "sector":
+        sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
+        description = f"around sector {sector_id}"
+        argv = ["--center-sector", str(sector_id)]
+    elif by == "address":
+        ring = _number(form, "center_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        layer = _number(form, "center_layer", "Layer", int) or 0
+        slot = _number(form, "center_slot", "Slot", int, required=True, minimum=0)
+        description = f"around ring {ring} layer {layer} slot {slot}"
+        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
+    elif by == "position":
+        point = (_number(form, "center_x_pc", "x (pc)", float, required=True),
+                 _number(form, "center_y_pc", "y (pc)", float, required=True),
+                 _number(form, "center_z_pc", "z (pc)", float) or 0.0)
+        edge = float(edge_pc or program_constants.DEFAULT_SECTOR_EDGE_PC)
+        if max(abs(v) for v in point) > (MAX_GENERATE_RING + 1) * edge:
+            raise FormError("That position is outside the galaxy grid.")
+        ring, layer, slot = sector_address_at(point, edge)
+        if ring > MAX_GENERATE_RING:
+            raise FormError("That position is outside the galaxy grid.")
+        description = (f"around {', '.join(f'{v:g}' for v in point)} pc "
+                       f"(ring {ring} layer {layer} slot {slot})")
+        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
+    else:
+        raise FormError("Choose how to name the center sector.")
+    radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
+                     maximum=MAX_GENERATE_RADIUS_PC)
+    return argv + ["--radius-pc", str(radius)], description
+
+
+def galaxy_argv(form, edge_pc=None):
+    """
+    `generate.py galaxy` arguments for the chosen mode. `edge_pc` is the
+    plan's sector edge, which only "Around a sector" by position needs.
 
     Returns:
         tuple: `(argv, description)`.
@@ -266,10 +339,7 @@ def galaxy_argv(form):
             argv.append("--yes")
         return argv, f"in ring {ring} layer {layer or 0}"
     if mode == "center":
-        sector_id = _number(form, "center_sector", "Sector ID", int, required=True, minimum=1)
-        radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
-                         maximum=MAX_GENERATE_RADIUS_PC)
-        return ["--center-sector", str(sector_id), "--radius-pc", str(radius)], f"around sector {sector_id}"
+        return center_argv(form, edge_pc)
     if mode == "slot":
         ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         layer = _number(form, "slot_layer", "Layer", int) or 0
@@ -352,10 +422,11 @@ def plan_steps(generate, form):
     return steps
 
 
-def build_job(action, form, database):
+def build_job(action, form, database, edge_pc=None):
     """
-    The job a form asks for. Every job that generates starts with the
-    math check (`MATH_CHECK_LABEL`); a plain reset doesn't.
+    The job a form asks for (`edge_pc`: see `galaxy_argv`). Every job
+    that generates starts with the math check (`MATH_CHECK_LABEL`); a
+    plain reset doesn't.
 
     Returns:
         tuple: `(kind, title, steps)` for `jobs.start_job`.
@@ -365,14 +436,14 @@ def build_job(action, form, database):
     """
     if action in CONFIRM_ACTIONS and (form.get("confirm") or "").strip() != database:
         raise FormError(f"Type the database name ({database}) to confirm. Nothing was changed.")
-    kind, title, steps = _build_job_steps(action, form)
+    kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind != "reset":
         python = jobs.python_executable()
         steps = [{"label": MATH_CHECK_LABEL, "argv": [python, jobs.GENERATE_SCRIPT, "check-math"]}, *steps]
     return kind, title, steps
 
 
-def _build_job_steps(action, form):
+def _build_job_steps(action, form, edge_pc=None):
     """`build_job`'s `(kind, title, steps)` before the math check step."""
     python = jobs.python_executable()
     generate = [python, jobs.GENERATE_SCRIPT]
@@ -397,7 +468,7 @@ def _build_job_steps(action, form):
         argv = generate + ["plan", "--bright-stars-down-to", f"{down_to:g}"]
         return "bright_band", f"Bright stars down to {down_to:g} L\u2609", [{"label": BAND_LABEL, "argv": argv}]
     if action == "galaxy":
-        argv, description = galaxy_argv(form)
+        argv, description = galaxy_argv(form, edge_pc)
         label = f"Generate sectors {description}"
         return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv}]
     if action == "reset":
@@ -447,6 +518,30 @@ def _galaxy_summary(database):
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
         summary["error"] = str(exc)
     return summary
+
+
+def _edge_pc(action, form, database):
+    """The plan's sector edge in parsecs, asked for only when "Around a
+    sector" was given a position (the one form that needs it); `None`
+    otherwise, or when the database doesn't answer (the standard edge is
+    then used)."""
+    if action != "galaxy" or form.get("mode") != "center" or form.get("center_by") != "position":
+        return None
+    try:
+        shape = apiclient.get_galaxy_shape(database)
+    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+        log.error(f"Generate page: no galaxy shape for a center position: {exc}")
+        return None
+    return (shape or {}).get("edge_pc")
+
+
+def _kept_section(form):
+    """
+    The section of a form shown again (with its error or its estimate),
+    which the server renders open and `static/generatefolds.js` leaves
+    open whatever the browser remembered; `None` on a plain visit.
+    """
+    return SECTION_FOR_ACTION.get(form.get("action")) if form else None
 
 
 def _job_view(job):
@@ -548,6 +643,8 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
         max_ring=MAX_GENERATE_RING,
         max_limit=MAX_GENERATE_LIMIT,
+        center_choices=CENTER_CHOICES,
+        kept_section=_kept_section(form),
         error=error,
         form=form or {},
         estimate=estimate,
@@ -563,7 +660,7 @@ def generate():
     """The Generate page (GET) and its forms (POST, answered with a 303
     back to the page, or the page again with an error when nothing
     started)."""
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
         return response or _page(admin)
 
@@ -581,7 +678,7 @@ def generate():
     database = db_name()
     wants_json = _wants_json()
     try:
-        kind, title, steps = build_job(action, request.form, database)
+        kind, title, steps = build_job(action, request.form, database, edge_pc=_edge_pc(action, request.form, database))
     except FormError as exc:
         if wants_json:
             return _no_store(make_response(jsonify({"error": str(exc)}), 400))
@@ -663,6 +760,36 @@ def generate_status():
 
 
 generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/admin/generate/sectors")
+def generate_sectors():
+    """
+    JSON for "Around a sector"'s list of filled sectors
+    (`static/generatefolds.js`): `?page=N`, 50 a page, nearest the
+    galactic core first (`apiclient.get_sectors`). Sectors without an
+    address (placed before the cylindrical grid) are listed too: the
+    center only needs their ID.
+    """
+    _admin_or_403()
+    try:
+        page = max(1, int(request.args.get("page") or 1))
+    except ValueError:
+        page = 1
+    try:
+        found = apiclient.get_sectors(db_name(), limit=FINDER_PAGE_SIZE, offset=(page - 1) * FINDER_PAGE_SIZE)
+    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+        log.error(f"Generate page: sector list failed: {exc}")
+        return _no_store(make_response(jsonify({"error": "The sector list could not be loaded."}), 502))
+    items = [{
+        "id": row["id"], "name": row["name"], "systems": row.get("system_count"),
+        "ring": row.get("ring_index"), "layer": row.get("layer_index"), "slot": row.get("ring_slot_index"),
+    } for row in found["items"]]
+    return _no_store(jsonify({"items": items, "total": found["total"], "page": page,
+                              "pages": max(1, -(-found["total"] // FINDER_PAGE_SIZE))}))
+
+
+generate_sectors.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/admin/generate/jobs/<job_id>")
