@@ -123,7 +123,7 @@ def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch
     monkeypatch.setattr(program_constants, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     monkeypatch.setattr(
         generate, "generate_sector",
-        lambda args, galactic_center_dist_ly=None, cell=None: ("Fake", SpaceSector("Fake")),
+        lambda args, galactic_center_dist_ly=None, cell=None, fill=None: ("Fake", SpaceSector("Fake")),
     )
 
     for layer in (-1, 0, 1):

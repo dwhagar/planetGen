@@ -499,7 +499,9 @@ def plan_argv(draw):
     so a huge galaxy's scan stays fast."""
     length = draw(st.sampled_from([1.0, 12.0, 40.0, 2800.0, 1e5]))
     argv = [
-        "plan", "--quiet",
+        # The bright-star scatter walks every cell of the outline; its own
+        # tests (test_bright_star_scatter.py) cover it on a small galaxy.
+        "plan", "--quiet", "--no-bright-stars",
         "--disk-scale-length-pc", repr(length),
         "--disk-scale-height-pc", repr(draw(st.sampled_from([1e-3, 1.0, 350.0, 1e5]))),
         "--bulge-scale-radius-pc", repr(draw(st.sampled_from([1e-3, 10.0, 200.0, 1e5]))),

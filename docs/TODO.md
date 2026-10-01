@@ -365,16 +365,56 @@ bright/dim sampling API (`stellarObjects/stellarPopulation.py`),
 population densities (`galaxyDensity.population_densities`) and
 `SpaceSector.add_preplaced_system` have shipped (bugs S1-S8 of the
 project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
-`bright-star-preplacement-plan.md`). What's left:
+`bright-star-preplacement-plan.md`), and so has the fill in
+`generate.py` that uses them (population ages and pre-placed bright stars).
 
-55. [ ] **Use population ages at sector fill (S7 call site).** In
-    `generate.py`'s `generate_sector`, set each system's
-    `SystemConfig.POPULATION` to
-    `stellarPopulation.pick_population(galaxyDensity.population_densities(position_pc, shape))`
-    for a galaxy-placed sector, so O/B stars and supergiants sit in the
-    arms near the plane and the bulge has none (Database/Web own that
-    file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
-    way).
+49. [ ] **System Map names never overlap.** Boss: "we need to make sure
+    names on the system map clickable interface do not overlap."
+    - Today `systemmap._label_sides_2d` places each label (4 directions,
+      then a pushed "below"/"above" with a leader line, else dropped)
+      against the others (plus seeded star-label rects) using an
+      estimated width (`_label_half_width_px`: character count times a
+      fixed width). Real text can run wider than the estimate, so
+      labels can still collide.
+    - Fix: make sure every star label and marker is in the collision
+      set; measure the real text in the browser
+      (`getBBox()` in `systemmap.js` after load and after each zoom
+      step in `mapzoom.js`) and nudge or hide labels that still
+      overlap, keeping the server placement as the no-script fallback.
+    - Check every scene: single star, close and wide binaries, and the
+      moon-centered scenes, at 390 px and 1280 px.
+
+### Installers and platforms (Boss's notes, 2026-09-30)
+
+50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
+    also run on macOS.** Boss: "we need to write a powershell install and
+    upgrade scripts as well as make sure our bash shell scripts will also
+    work on macos as well as linux."
+    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
+      `install.sh` and `update.sh`: the same steps and the same prompts
+      (check-only upgrades, the migrate-or-delete database prompt with
+      its 30-second default, the migration progress bar), using a venv
+      or the Windows Python launcher instead of apt, Windows services or
+      Task Scheduler instead of systemd timers, and Apache on Windows
+      (or IIS) paths and permissions (`icacls`) instead of `www-data`
+      and `chown`.
+    - **macOS:** every bash script (`install.sh`, `update.sh`,
+      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
+      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
+      macOS too. Known gaps: macOS ships bash 3.2, so
+      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
+      (require Homebrew bash, or rewrite them); apt is assumed (use
+      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
+      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
+      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
+      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
+      `stat`, `readlink`, `date` and `timeout` wherever they appear.
+    - Keep the steps in step across the three platforms, so a change to
+      one installer lands in all of them.
+    - The Windows and macOS hosting guides (being written in `docs/` by
+      the docs thread) describe the server setup; this item is only the
+      scripts, and the guides should point at them once they exist.
+    - Each script carries a `TODO(installers #50)` comment at its top.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 

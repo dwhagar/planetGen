@@ -567,7 +567,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
 
     captured = {}
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
         captured["density"] = args.density
         captured["num_systems"] = args.num_systems
         from stellarObjects.spaceSector import SpaceSector
@@ -601,7 +601,7 @@ def test_ring_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, 
 
     captured = []
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
         captured.append((args.density, args.num_systems))
         from stellarObjects.spaceSector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
@@ -625,7 +625,7 @@ def test_ring_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_
 
     captured = []
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
         captured.append((args.density, args.num_systems))
         from stellarObjects.spaceSector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
