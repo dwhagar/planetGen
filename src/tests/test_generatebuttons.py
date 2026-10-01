@@ -74,3 +74,43 @@ def test_an_unknown_sector_size_has_no_estimate():
     out = _run("console.log(JSON.stringify([G.neighborhoodSectors(100, undefined), "
                "G.neighborhoodSectors(100, 0), G.neighborhoodSectors(0, 13)]));")
     assert out == [None, None, None]
+
+
+# A bare-bones `document` for the DOM-building functions: elements keep
+# their properties and children, which is all the forms need.
+_FAKE_DOM = """
+class El {
+  constructor(tag) { this.tag = tag; this.children = []; this.listeners = {}; }
+  appendChild(c) { this.children.push(c); return c; }
+  insertBefore(c, ref) { const i = this.children.indexOf(ref); this.children.splice(i < 0 ? 0 : i, 0, c); return c; }
+  get firstChild() { return this.children[0]; }
+  get lastChild() { return this.children[this.children.length - 1]; }
+  addEventListener(name, fn) { this.listeners[name] = fn; }
+}
+globalThis.document = { createElement: (tag) => new El(tag) };
+function forms(box) {
+  return box.children.filter((c) => c.tag === "form").map((f) => ({
+    action: f.action,
+    label: f.children.find((c) => c.tag === "button").textContent,
+    fields: Object.fromEntries(f.children.filter((c) => c.tag === "input").map((i) => [i.name, i.value])),
+  }));
+}
+const TARGET = {url: "/admin/generate", csrfField: "csrf_token", csrfToken: "tok"};
+"""
+
+
+def test_block_buttons_post_the_generate_pages_block_mode():
+    out = _run(_FAKE_DOM + "console.log(JSON.stringify(forms(G.blockGenerateButtons(TARGET, "
+               "{block: '3.40.7.0', layer: -1, wholeBlock: true}))));")
+    common = {"csrf_token": "tok", "action": "galaxy", "mode": "block", "block": "3.40.7.0"}
+    assert out == [
+        {"action": "/admin/generate", "label": "Generate this layer", "fields": {**common, "block_layer": "-1"}},
+        {"action": "/admin/generate", "label": "Generate this block", "fields": {**common, "whole_block": "1"}},
+    ]
+
+
+def test_block_buttons_leave_out_what_the_offer_leaves_out():
+    out = _run(_FAKE_DOM + "console.log(JSON.stringify(["
+               "forms(G.blockGenerateButtons(TARGET, {block: '3.1.2.0', layer: null, wholeBlock: true})).map((f) => f.label),"
+               "forms(G.blockGenerateButtons(TARGET, {block: '3.1.2.0', layer: 1, wholeBlock: false})).map((f) => f.label)]));")
+    assert out == [["Generate this block"], ["Generate this layer"]]

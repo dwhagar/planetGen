@@ -72,7 +72,7 @@ const {
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
-const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -253,8 +253,9 @@ function showCellInfo(cell) {
 
 // A drill-down block's info (galaxystageview.js): its rings, layers and
 // slots, how many sectors it can hold and how many are generated, where
-// it is, and (`enter`) a button that flies into it. `info.hint` goes
-// under it.
+// it is, and (`enter`) a button that flies into it; `info.generate`
+// (stages 7-8, admins only) adds the block's Generate buttons.
+// `info.hint` goes under it.
 function showBlockInfo(info, edgePc) {
   var panel = document.getElementById("galaxymap3d-info");
   if (!panel) {
@@ -294,6 +295,10 @@ function showBlockInfo(info, edgePc) {
     enter.textContent = "Fly into this block →";
     enter.addEventListener("click", info.enter);
     panel.appendChild(enter);
+  }
+  // Stages 7-8 for an admin: generate the block, or the layer shown.
+  if (info.generate && sceneData.generate) {
+    panel.appendChild(blockGenerateButtons(sceneData.generate, info.generate));
   }
   if (info.hint) {
     showHint(info.hint, true);
