@@ -1038,7 +1038,13 @@ the design doc above; its section numbers are cited below. Order: SEC.28
 (with SEC.20), SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25,
 SEC.26, SEC.27.
 
-- [ ] **SEC.28 An always-on log in the standard log location**
+- [x] **SEC.28 An always-on log in the standard log location**
+  Done (PR #217): `stellarObjects/activitylog.py`, documented in
+  `docs/config.md` ("The activity log"). Defaults taken: the directory
+  `/var/log/planetgen/`, file only, 30 rotated copies. The folder is
+  root and the web server's group, mode 2770 (file 0660), not 0750/0640,
+  so a CLI user in that group can append, as with the debug log. The
+  description below is kept for reference.
   Boss (2026-10-01): "Implement a full logging suite that will log to
   the standard log location. If it's on Windows then it should just do
   its root folder and a subdirectory for logs but on other platforms it
@@ -1141,7 +1147,8 @@ SEC.26, SEC.27.
   Default: no, file only. How long rotated logs are kept? Default: 30
   days.
 
-  - [ ] **SEC.20 Log every failed and locked login with its address**
+  - [x] **SEC.20 Log every failed and locked login with its address**
+    Done (PR #217), failure audit rows kept 90 days (the default below).
 
     Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
 

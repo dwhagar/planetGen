@@ -521,7 +521,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.17 | Per-username login backoff (cited as "39a") | 39a (2026-09-30 22:33Z to 22:51Z) | done in 7.14.1, PR #131 (see note 8) |
 | SEC.18 | Upper bounds on admin generation inputs (cited as "39b") | 39b (2026-09-30 21:37Z to 22:27Z) | done in 7.10.2, PR #118 (see note 8) |
 | SEC.19 | Hashed lock file for pip dependencies (cited as "39c") | 39c (2026-09-30 21:39Z to 21:54Z) | done in 7.7.0, PR #119 (see note 8) |
-| SEC.20 | Log every failed and locked login with its address | none | open |
+| SEC.20 | Log every failed and locked login with its address | none | done, PR #217 |
 | SEC.21 | Keep the per-username backoff in the control database | none | open |
 | SEC.22 | Trusted-device cookie so lockouts can't shut out the real admin | none | open |
 | SEC.23 | Wrong current passwords on /account aren't counted (bug) | none | open |
@@ -529,7 +529,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.25 | Check the password hashing cost and re-hash on login | none | open |
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | open |
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | open |
-| SEC.28 | An always-on log in the standard log location | none | open |
+| SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
 | USR.1 | User accounts (new parent) | none | open |
 | USR.2 | Roles: user, admin, Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings | 65 (2026-10-01 02:13Z to 05:29Z) | open |
