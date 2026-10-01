@@ -96,6 +96,34 @@ SCHEMA_VERSION = 49
 comment). Also the target version `migrate_database` brings a database's
 `schema_migrations` bookkeeping up to."""
 
+
+
+class SchemaTooNewError(RuntimeError):
+    """
+    Raised when a database's schema version is newer than this code's
+    (`SCHEMA_VERSION`, or `CONTROL_SCHEMA_VERSION` for the control
+    schema): a newer planetGen has already migrated it, and this older
+    code must not write to it or try to migrate it (TEST.10). The fix is
+    to update the code (`update.sh`), not the database.
+    """
+
+    def __init__(self, database, version, expected, what="schema"):
+        self.database = database
+        self.version = version
+        self.expected = expected
+        super().__init__(
+            f"database '{database}' is at {what} v{version}, newer than this code's v{expected}: "
+            f"a newer planetGen has already migrated it. Update planetGen (git pull, or update.sh) "
+            f"before using this database; it is refused rather than migrated or written to."
+        )
+
+
+def _refuse_newer(conn, version, expected, what="schema"):
+    """Raises `SchemaTooNewError` when `version` is above `expected`."""
+    if version is not None and version > expected:
+        database = conn._config.database if getattr(conn, "_config", None) is not None else "?"
+        raise SchemaTooNewError(database, version, expected, what)
+
 _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
@@ -152,6 +180,22 @@ CONTROL_DB_ENV_VAR = "PLANETGEN_CONTROL_DATABASE"
 DEFAULT_CONTROL_DATABASE = "planetgen_control"
 """str: Default control-schema name when neither `CONTROL_DB_ENV_VAR` nor
 `config.json`'s `control_database` is set."""
+
+
+def _stored_version(conn, table):
+    """`MAX(version)` of a migrations table (`schema_migrations` or
+    `control_schema_migrations`), or `None` while it doesn't exist yet or
+    is empty -- read before any DDL runs, so a newer database is refused
+    before this code's older `schema.sql` (its `CREATE OR REPLACE VIEW`s
+    among them) touches it."""
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",
+        (table,),
+    ).fetchone()
+    if not row["n"]:
+        return None
+    return conn.execute(f"SELECT MAX(version) AS v FROM {table}").fetchone()["v"]
+
 
 
 class MySQLConfig:
@@ -899,7 +943,11 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
     config = config or DEFAULT_MYSQL_CONFIG
     conn = Connection(_get_pool(config, statement_timeout_s).connection(), config)
     if ensure_schema and config._key() not in _schema_ensured:
-        _ensure_schema(conn)
+        try:
+            _ensure_schema(conn)
+        except BaseException:
+            conn.close()
+            raise
         _schema_ensured.add(config._key())
     return conn
 
@@ -1052,7 +1100,12 @@ def _ensure_schema(conn):
 
     Args:
         conn (Connection): The connection to apply the schema to.
+
+    Raises:
+        SchemaTooNewError: The database is already past `SCHEMA_VERSION`
+            (checked before any DDL runs).
     """
+    _refuse_newer(conn, _stored_version(conn, "schema_migrations"), SCHEMA_VERSION)
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     if conn._config is not None:
@@ -1131,7 +1184,11 @@ def get_control_connection(config=None, ensure_schema=False):
     config = config or control_mysql_config()
     conn = Connection(_get_pool(config).connection(), config)
     if ensure_schema:
-        _ensure_control_schema(conn)
+        try:
+            _ensure_control_schema(conn)
+        except BaseException:
+            conn.close()
+            raise
     return conn
 
 
@@ -1146,6 +1203,8 @@ def _ensure_control_schema(conn):
     Args:
         conn (Connection): The connection to apply the schema to.
     """
+    _refuse_newer(conn, _stored_version(conn, "control_schema_migrations"), CONTROL_SCHEMA_VERSION,
+                  "control schema")
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
@@ -7927,10 +7986,17 @@ def schema_status(config=None):
     `(current version, number of migration steps pending)` for a
     database, without migrating it -- `migrateDb.py --status`, which
     update.sh reads to decide whether to ask about the database at all.
+    Raises `SchemaTooNewError` for a database past `SCHEMA_VERSION`.
     """
-    conn = get_connection(config)
+    # No DDL here (TEST.62): it "changes nothing", and must work for an
+    # account that can only read. A database with no version yet is
+    # created at the current schema by the migration, so nothing is pending.
+    conn = get_connection(config, ensure_schema=False)
     try:
-        version = _schema_version(conn)
+        version = _stored_version(conn, "schema_migrations")
+        if version is None:
+            return SCHEMA_VERSION, 0
+        _refuse_newer(conn, version, SCHEMA_VERSION)
         return version, sum(1 for target, _ in _migration_steps() if version < target)
     finally:
         conn.close()
@@ -7998,6 +8064,10 @@ def migrate_database(config=None, on_step=None):
     Returns:
         int: The database's `schema_migrations` version (always
             `SCHEMA_VERSION` after this call).
+
+    Raises:
+        SchemaTooNewError: The database is past `SCHEMA_VERSION` already
+            (a newer planetGen migrated it); nothing is changed.
     """
     conn = get_connection(config, ensure_schema=False)
     try:
@@ -8006,6 +8076,7 @@ def migrate_database(config=None, on_step=None):
         _ensure_schema(conn)
         _schema_ensured.add((config or DEFAULT_MYSQL_CONFIG)._key())
         version = _schema_version(conn)
+        _refuse_newer(conn, version, SCHEMA_VERSION)
         pending = [(target, step) for target, step in _migration_steps() if version < target]
         for number, (target, step) in enumerate(pending, start=1):
             if on_step is not None:

@@ -58,7 +58,10 @@ fi
 
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
-read -r APACHE_USER APACHE_GROUP < <(detect_apache_group)
+if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]; then
+    echo "error: couldn't work out Apache's user and group (see above); nothing was changed." >&2
+    exit 1
+fi
 
 # Parents (e.g. /var/cache/planetgen) stay root-owned and world-traversable;
 # only the cache directory itself belongs to Apache.

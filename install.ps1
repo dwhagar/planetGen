@@ -28,7 +28,10 @@
       5. Permissions with icacls, as set-permissions.sh does on Linux: the
          app's account (-ServiceAccount) reads the code, venv and corpus,
          changes only the runtime folders, and config.json is readable by
-         Administrators, SYSTEM and that account only.
+         Administrators, SYSTEM and that account only. Then it checks
+         that account can write both logs' folders (the debug log's and
+         the activity log's, default or configured); one it can't only
+         warns, with the New-Item and icacls commands that fix it.
       6. Imports the web app with the venv's Python, so a problem shows
          here instead of as a 500.
 
