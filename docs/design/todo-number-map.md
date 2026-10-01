@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.21 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
-| GEN | GEN.24 |
+| GEN | GEN.25 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
@@ -426,6 +426,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.21 | Star population model: population ages at sector fill | 55 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.23.0 (PR #141) and 7.38.0 (PR #159) |
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | open |
+| GEN.24 | Generate the galactic core on layer 0 | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
