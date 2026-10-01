@@ -39,6 +39,8 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 import apiclient
 from fmt import utc_time_html
 from stellarObjects import log, program_constants
+from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
+from stellarObjects.utils import ly_to_pc, pc_to_ly
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
@@ -77,6 +79,10 @@ GALAXY_MODES = (
      "With a radius, its neighborhood too."),
     ("column", "A column",
      "Every sector at one ring and slot, through every layer the galaxy reaches there."),
+    ("block", "A Galaxy Map block",
+     "Every sector the galaxy allows inside one drill-down block, by its key (size.ring.wedge.slab, "
+     "as in the Galaxy Map's links), or only one of its layers. A size-3 block holds about 9 sectors "
+     "a layer; bigger ones need a limit or the confirmation box past 2,000."),
     ("shell", "A shell (not recommended)",
      "Every sector of one ring through every layer: a whole cylinder, usually thousands of sectors, "
      "so it needs a limit or the confirmation box."),
@@ -138,6 +144,28 @@ def random_start_argv(form):
     return argv
 
 
+MIN_NEIGHBORHOOD_RADIUS_LY = 13
+"""int: The smallest neighborhood radius offered, in light-years (about
+one sector edge)."""
+
+MAX_GENERATE_RADIUS_LY = int(pc_to_ly(MAX_GENERATE_RADIUS_PC))
+"""int: `MAX_GENERATE_RADIUS_PC` in whole light-years (about 652)."""
+
+
+def _neighborhood_radius_pc(form):
+    """
+    The "One address" neighborhood radius in parsecs: `slot_radius_ly`
+    (light-years, 13 to about 652, as the page and the Galaxy Map's
+    dialog send it), converted with `ly_to_pc` and rounded to 0.1 pc, or
+    the older `slot_radius_pc`. `None` for just the one sector.
+    """
+    radius_ly = _number(form, "slot_radius_ly", "Neighborhood radius (ly)", float,
+                        minimum=MIN_NEIGHBORHOOD_RADIUS_LY, maximum=MAX_GENERATE_RADIUS_LY)
+    if radius_ly is not None:
+        return min(round(ly_to_pc(radius_ly), 1), MAX_GENERATE_RADIUS_PC)
+    return _number(form, "slot_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
+
+
 def galaxy_argv(form):
     """
     `generate.py galaxy` arguments for the chosen mode.
@@ -169,7 +197,7 @@ def galaxy_argv(form):
         slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
         argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
         description = f"at ring {ring} layer {layer} slot {slot}"
-        radius = _number(form, "slot_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
+        radius = _neighborhood_radius_pc(form)
         if radius is not None:
             argv += ["--radius-pc", str(radius)]
             description = f"around ring {ring} layer {layer} slot {slot}"
@@ -179,6 +207,28 @@ def galaxy_argv(form):
         slot = _number(form, "column_slot", "Slot", int, required=True, minimum=0)
         return (["--ring", str(ring), "--slot", str(slot), "--column"],
                 f"in the column at ring {ring} slot {slot}")
+    if mode == "block":
+        key = (form.get("block") or "").strip()
+        if not key:
+            raise FormError("Block is required.")
+        try:
+            block = parse_drill_key(key)
+        except ValueError:
+            raise FormError("Block must be a Galaxy Map block key, size.ring.wedge.slab (e.g. 3.40.7.0).") from None
+        if block.m == 1:
+            raise FormError("That is a single sector; use One address instead.")
+        argv = ["--block", format_drill_key(block)]
+        description = f"in block {format_drill_key(block)}"
+        layer = _number(form, "block_layer", "Layer", int)
+        if layer is not None:
+            argv += ["--block-layer", str(layer)]
+            description += f" layer {layer}"
+        limit = _number(form, "block_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
+        if limit is not None:
+            argv += ["--limit", str(limit)]
+        elif form.get("whole_block"):
+            argv.append("--yes")
+        return argv, description
     if mode == "shell":
         ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         argv = ["--ring", str(ring), "--shell"]
@@ -277,9 +327,10 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "error": None}
+    summary = {"shape": None, "sectors": None, "bright": None, "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
+        summary["bright"] = apiclient.get_bright_star_status(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
         summary["error"] = str(exc)
@@ -346,6 +397,8 @@ def _page(admin, error=None, status=200, form=None):
         bright_min_luminosity=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
+        min_radius_ly=MIN_NEIGHBORHOOD_RADIUS_LY,
+        max_radius_ly=MAX_GENERATE_RADIUS_LY,
         max_ring=MAX_GENERATE_RING,
         max_limit=MAX_GENERATE_LIMIT,
         error=error,
@@ -374,21 +427,43 @@ def generate():
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
 
     database = db_name()
+    wants_json = _wants_json()
     try:
         kind, title, steps = build_job(action, request.form, database)
     except FormError as exc:
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": str(exc)}), 400))
         return _page(admin, error=str(exc), status=400, form=request.form)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
     try:
-        jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"
-        return _page(admin, error=f"{running} is still running. Wait for it to finish, or cancel it first.",
-                     status=409, form=request.form)
+        message = f"{running} is still running. Wait for it to finish, or cancel it first."
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": message}), 409))
+        return _page(admin, error=message, status=409, form=request.form)
     except OSError as exc:
         log.exception(f"Could not start a {kind} job: {exc}")
+        if wants_json:
+            return _no_store(make_response(jsonify({"error": f"The job could not be started: {exc}"}), 500))
         return _page(admin, error=f"The job could not be started: {exc}", status=500, form=request.form)
+    if wants_json:
+        return _no_store(make_response(jsonify({
+            "job": job_id,
+            "url": url_for("web.generate_job", job_id=job_id),
+            "status_url": url_for("web.generate_status", job=job_id),
+        }), 202))
     return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+
+
+def _wants_json():
+    """True when the form was sent by script (the Galaxy Map's Generate
+    buttons) asking for JSON: `Accept: application/json`. Such a caller
+    gets `{"job", "url", "status_url"}` (202) or `{"error"}` instead of a
+    redirect or the page."""
+    best = request.accept_mimetypes.best_match(["application/json", "text/html"])
+    return best == "application/json" and request.accept_mimetypes[best] > request.accept_mimetypes["text/html"]
 
 
 @bp.route("/admin/generate/status")

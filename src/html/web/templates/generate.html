@@ -41,6 +41,9 @@
   {%- else %}
   <span class="badge">{% if summary.shape %}Planned, edge at ring {{ "{:,}".format(summary.shape.outer_ring_index) }}{% else %}Not planned yet{% endif %}</span>
   <span class="badge">{{ "{:,}".format(summary.sectors or 0) }} sector{{ "" if summary.sectors == 1 else "s" }}</span>
+  {%- if summary.bright %}
+  <span class="badge">{% if summary.bright.scattered %}Bright stars scattered ({{ "{:,.0f}".format(summary.bright.min_luminosity_sol) }} L&#9737; and up, seed {{ summary.bright.seed }}){% else %}Bright stars not scattered yet{% endif %}</span>
+  {%- endif %}
   {%- endif %}
 </p>
 {% endblock %}
@@ -128,10 +131,15 @@
         {{ field("slot_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("slot_layer", "Layer", placeholder="0", step="1") }}
         {{ field("slot", "Slot", step="1", min=0) }}
-        {{ field("slot_radius_pc", "Neighborhood radius (pc)", placeholder="just this sector", min=0.1, max=max_radius_pc) }}
+        {{ field("slot_radius_ly", "Neighborhood radius (ly)", placeholder="just this sector", min=min_radius_ly, max=max_radius_ly) }}
       {%- elif mode == "column" %}
         {{ field("column_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("column_slot", "Slot", step="1", min=0) }}
+      {%- elif mode == "block" %}
+        {{ field("block", "Block", kind="text", placeholder="e.g. 3.40.7.0") }}
+        {{ field("block_layer", "Layer", placeholder="every layer", step="1") }}
+        {{ field("block_limit", "Limit (sectors)", placeholder="the whole block", step="1", min=1, max=max_limit) }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="whole_block" value="1"> Allow a block over 2,000 sectors without a limit</span></label>
       {%- elif mode == "shell" %}
         {{ field("shell_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
@@ -168,6 +176,11 @@
   <h2 id="bright-stars-heading">Rebuild the bright stars</h2>
   <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
   Needs a plan.</p>
+  {%- if summary.bright %}
+  <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ "{:,.0f}".format(summary.bright.min_luminosity_sol) }}
+  solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}
+  A plain plan uses {{ "{:,.0f}".format(summary.bright.default_min_luminosity_sol) }} and up.</p>
+  {%- endif %}
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="bright_stars">

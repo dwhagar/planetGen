@@ -151,6 +151,7 @@ in real galaxy-frame 3D space (see
 python generate.py galaxy --ring I [--layer J] [--slot K [--radius-pc R]] [options]
 python generate.py galaxy --ring I --slot K --column [options]
 python generate.py galaxy --ring I --shell [--limit N | --yes] [options]
+python generate.py galaxy --block M.I.S.SLAB [--block-layer J] [options]
 python generate.py galaxy --center-sector ID --radius-pc R [options]
 python generate.py galaxy [options]
 ```
@@ -175,6 +176,11 @@ that slot through every layer the galaxy reaches at that ring, and
 `--ring I --shell` generates the whole ring through every layer, a
 cylindrical shell usually thousands of sectors large, so it needs `--limit`
 or `--yes`.
+`--block M.I.S.SLAB` generates one Galaxy Map drill-down block (size M of
+243, 27 or 3, in ring I, wedge S and slab SLAB; see
+[`docs/design/galaxy-drilldown-navigation.md`](docs/design/galaxy-drilldown-navigation.md)),
+and `--block-layer J` narrows it to one of the block's layers. Blocks past
+the large-ring threshold need `--limit` or `--yes` too.
 
 Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-

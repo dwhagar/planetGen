@@ -74,6 +74,7 @@ class FakeAuth:
     def __init__(self):
         self.admin = None
         self.calls = []
+        self.database_extra = {}
         self.keys = [_key(1), _key(2, revoked=True)]
         self.login_error = None
         self.change_error = None
@@ -118,7 +119,9 @@ class FakeAuth:
 
     def admin_stats(self, cookie_header, db):
         self.calls.append(("admin_stats", db))
-        return _stats()
+        stats = _stats()
+        stats["database"].update(self.database_extra)
+        return stats
 
     def admin_duplicate_names(self, cookie_header, db, limit=None, offset=None):
         self.calls.append(("admin_duplicate_names", db, limit, offset))
@@ -647,12 +650,22 @@ def test_admin_stats_counts_bright_stars(client, fake):
     assert re.search(r'<th scope="row">Bright stars</th><td>about 61,234 placed in all \(estimate\)</td>', html)
 
 
-@pytest.mark.parametrize("tables, text", [
-    ([], "not tracked by this schema"),
-    ([{"name": "bright_stars", "approx_rows": 0}], "none pre-placed"),
+def test_admin_stats_exact_bright_star_counts(client, fake):
+    _logged_in(client, fake)
+    fake.database_extra = {"bright_stars": {"placed": 61234, "filled": 1234, "unfilled": 60000}}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert re.search(r'<th scope="row">Bright stars</th><td>61,234 placed: 1,234 built into systems, '
+                     r'60,000 waiting for their sectors</td>', html)
+
+
+@pytest.mark.parametrize("database, text", [
+    ({"tables": []}, "not tracked by this schema"),
+    ({"tables": [{"name": "bright_stars", "approx_rows": 0}]}, "none pre-placed"),
+    ({"tables": [], "bright_stars": {"placed": 0, "filled": 0, "unfilled": 0}}, "none pre-placed"),
+    ({"tables": [], "bright_stars": None}, "not tracked by this schema"),
 ])
-def test_bright_star_text_without_a_scatter(tables, text):
-    assert admin_pages.bright_star_text(tables) == text
+def test_bright_star_text_without_a_scatter(database, text):
+    assert admin_pages.bright_star_text(database) == text
 
 
 def test_admin_stats_names_paged(client, fake):

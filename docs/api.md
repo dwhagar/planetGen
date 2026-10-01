@@ -331,6 +331,13 @@ connectivity to that specific schema rather than the default one.
   `{"distance_km", "period_years", "orbital_speed_kms"}`. Without
   `distance_km` it orbits at 3 host radii. `400` for a distance inside the
   host, `404` for an unknown host.
+- `GET /api/galaxy/bright-stars?ring=<i>&layer=<j>&slot=<k>[&all=1]` —
+  `{"items": [...]}`: the bright stars the plan pre-placed in one sector
+  cell, brightest first (`queryDb.bright_stars_in_sector`), only those not
+  yet built into a system unless `all=1`. Each has `id`, `x`/`y`/`z` (pc),
+  `luminosity_sol`, `temperature_k`, `star_type`, `yerkes_class`, the
+  address and `system_id`. Empty when no scatter has run. `400` for a
+  missing or non-integer address.
 - `GET /api/population` — `{"generated", "species", "polities",
   "territories"}` booleans: whether a population pass has run and whether
   any species, polity or owned system exists (all `false` on a database

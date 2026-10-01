@@ -1,0 +1,2 @@
+### Added
+- **More on the bright stars.** The Stats page counts the pre-placed bright stars exactly: how many were placed, how many are built into systems and how many are still waiting for their sectors. The Generate page says whether the bright stars have been scattered, at what brightness and with what seed. On the Sector Map, a neighboring sector that hasn't been generated yet lists the bright stars waiting in it. New `GET /api/galaxy/bright-stars` lists one sector cell's bright stars.

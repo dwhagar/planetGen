@@ -166,10 +166,11 @@ stages themselves don't need it.
     own buttons are in (an admin picking a sector at stage 8 gets
     Generate this sector, Generate neighborhood with its light-year
     radius and sector estimate, Generate column and Generate the entire
-    shell). What is left is Web's: Generate this layer or slab, which
-    needs a new `generate.py galaxy --block m.I.s.S [--block-layer j]`
-    mode and a Generate page form for it. Once that exists, the Galaxy
-    Map adds the button at stages 7-8.
+    shell), and so is Web's `generate.py galaxy --block m.I.s.S
+    [--block-layer j]` mode with its Generate page form (posts with
+    `Accept: application/json` get the job back as JSON). What is left
+    is the Galaxy Map's Generate this layer or slab button at stages
+    7-8.
 
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as
