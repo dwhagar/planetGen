@@ -1,8 +1,29 @@
 # Galaxy Map drill-down navigation
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
-This is a plan: nothing here is built yet. The work items are in
-`docs/TODO.md` (items 70-79), and each one points back to a section here.
+
+**Status (2026-10-01, checked against 7.58.2):** mostly built.
+
+| Piece | Section | TODO | Built in |
+|---|---|---|---|
+| Block ladder (`stellarObjects/galaxyDrill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.2.9 | 7.41.2, PR #160 |
+| Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.2.10 | 7.41.3, PR #160 |
+| The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only"; the old camera behind Free look | 4, 5, 8.1 | MAP.2.1 | 7.44.0, PR #171 |
+| Address bar (`/galaxy/locate`) | 9.3 | MAP.2.6 | 7.50.0, PR #172 |
+| Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.2.8 | 7.52.0, PR #176 |
+| Map Generate buttons and the light-year radius dialog | 6 | MAP.2.2 (map side) | 7.53.0, PR #177 |
+| Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.2.3 | 7.58.0, PR #178 |
+| Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.2.2 | not built |
+| NAV page pickers | 9 | MAP.2.4 | not built |
+| Bookmarks | 8.2 | MAP.2.5 | not built |
+| "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.2.7 | not built (`?sector=` itself works) |
+
+Two later requests change this design: MAP.2.1.1 (no free camera and no
+drag-rotate at all; start top-down and pick a wedge, then a slice, then a
+block), which settles decision 2 against Free look, and MAP.2.7.1 ("Show on
+Galaxy Map" opens at the sector level, and the map gets its own Back and
+Forward). Neither is built. The open work items are in `docs/TODO.md`,
+and each one points back to a section here.
 
 ## 1. What Boss asked for
 
@@ -184,7 +205,8 @@ sectors of its children.
 - `stellarObjects/galaxyDrill.py`: the same functions in Python, for
   the API (section 7) and generation (section 6), plus
   `format_drill_key`/`parse_drill_key` for the `m.ring.wedge.slab` keys
-  (`formatDrillKey`/`parseDrillKey` on the page). Built 2026-10-01.
+  (`formatDrillKey`/`parseDrillKey` on the page). Built 2026-10-01
+  (PR #160). Generation (section 6) does not use it yet.
 - `tests/test_galaxydrill.py` runs both on every block ring and on
   sampled sectors and checks that they agree, and that a parent's
   sectors are exactly the sectors of its children.
@@ -346,7 +368,14 @@ centered on the selected sector, generated or not.
 - Above 5,000 sectors, the Start button asks for a confirmation that it
   may run for a long time.
 
-**After starting:** the form posts to the admin Generate page as today.
+**As built (7.53.0):** the buttons and the radius dialog work as above
+(default 100 ly, 13 to 652 ly, the estimate, and the confirmation past
+5,000 sectors); the radius goes as `slot_radius_pc`. Generate this layer
+or slab is not built: it waits for the `--block` mode. The progress line
+below is not built either; the form still posts and follows the redirect
+to the job page.
+
+**After starting (planned):** the form posts to the admin Generate page as today.
 Instead of following the redirect, the map sends it with `fetch` and
 reads the job URL. The panel then shows a progress line (polling the
 same status endpoint `generatejobs.js` uses) with a link to the job
@@ -369,17 +398,21 @@ blocks.
 At `m = 3` the children are sectors, and `sectors` lists each generated
 one: `{ring, layer, slot, id, name, system_count}`.
 
-- **Query:** `SELECT ring_index, layer_index, slot_index, id, name, ...
-  FROM sectors WHERE ring_index BETWEEN I*m AND I*m+m-1 AND layer_index
-  BETWEEN ...`. This is the existing range index; the wedge test is done
-  in Python with section 3.5's integer formula, then grouped by child
-  block. Without `at`, it groups every generated sector by
-  `(ring_index DIV 243, ROUND(layer_index / 243), slot_index)` and maps
-  slots to wedges in Python. That returns no more rows than there are
-  generated sectors.
-- **Caching:** stored by `lib/tilecache.py` under the galaxy stamp, the
-  same way as tiles. A changed sector invalidates only its ancestor
-  chain (4 entries) through `/api/galaxy/changes`.
+- **Query (as built, `queryDb.galaxy_stage`):** for a block, one
+  `SELECT ... FROM sectors WHERE layer_index BETWEEN ? AND ? AND (...)`,
+  where the bracket holds one `(ring_index = ? AND ring_slot_index BETWEEN
+  ? AND ?)` clause per member ring, with each ring's slot range worked out
+  first by section 3.5's integer formula (`_block_slot_range`). The rows
+  are then grouped by child block in Python. At `m = 3` it also counts each
+  sector's systems. Without `at`, it groups every generated sector by
+  `(ring_index, FLOOR((layer_index + 121) / 243), ring_slot_index)` and maps
+  each group to its level-243 block in Python (`drill_chain_of`). That
+  returns no more rows than there are generated sectors. Children with no
+  generated sectors are left out of `children`.
+- **Caching:** the site's `/galaxy/stage` reads through
+  `lib/tilecache.fetch_stage`, a disk cache under the galaxy stamp, the
+  same way as tiles. A changed sector deletes only its ancestor chain's
+  stages, which `/api/galaxy/changes` lists as `stages`.
 - **Scale note:** if generated sectors ever reach the millions, the
   no-`at` summary should come from a per-level count table kept up to
   date on generation (a Database thread item at that point). No schema
@@ -403,13 +436,18 @@ one: `{ring, layer, slot, id, name, system_count}`.
   the stage with the flight played in reverse. A reload or a shared link
   opens that stage directly, with the breadcrumb rebuilt by walking
   `drillParent`.
-- The server validates `at` and `slab` (the block must exist and the
-  child slab must be inside it). Anything invalid opens stage 1, with a
-  notice saying why.
+- The page validates `at` and `slab` (`galaxystages.parseStageQuery`:
+  the block must exist and the child slab must be inside it). Anything
+  invalid opens stage 1, with a notice saying why. The server does not
+  check them; it only serves `/galaxy/stage` for a valid `at`.
 - `?sector=<designation>` opens the stage 8 that holds that sector, with
-  it selected. Sector, system and search pages link this way.
+  it selected (built in 7.44.0). Sector, system and search pages are to
+  link this way (MAP.2.7, not built; the sector page still links to the
+  Quadrant table).
 
 ### 8.2 Bookmarks
+
+Not built yet (MAP.2.5).
 
 - A ☆ button on the breadcrumb and on each info panel saves the current
   stage, sector, system or phenomenon:
@@ -429,7 +467,9 @@ one: `{ring, layer, slot, id, name, system_count}`.
 
 ## 9. NAV integration
 
-The NAV page keeps its sector-then-system dropdowns. Each endpoint gains:
+The NAV page keeps its sector-then-system dropdowns. Each endpoint gains
+the following (the NAV page part, MAP.2.4, is not built yet; 9.1 to 9.4
+are):
 
 1. **Pick on Galaxy Map**, which links to `/galaxy?pick=from&to=system:40`
    (or `pick=to&from=...`), carrying the other endpoint along.
@@ -438,7 +478,7 @@ The NAV page keeps its sector-then-system dropdowns. Each endpoint gains:
    - In pick mode "Generated only" is forced on, since NAV endpoints are
      systems and phenomena, which exist only in generated sectors.
    - At stage 8, clicking a sector goes to
-     `/sectors/<id>?pick=to&from=system:12`.
+     `/sector/<id>?pick=to&from=system:12`.
 2. **Pick in this sector** appears once the other endpoint is known. It
    opens that endpoint's own sector straight in pick mode, so a pick
    inside one sector uses only the sector interface.
@@ -446,7 +486,8 @@ The NAV page keeps its sector-then-system dropdowns. Each endpoint gains:
 
 ### 9.1 Sector Map pick mode
 
-`/sectors/<id>?pick=to&from=...` shows the same banner. Clicking a
+Built in 7.58.0 (`web/sector_page.py`, `_pick_mode`).
+`/sector/<id>?pick=to&from=...` shows the same banner. Clicking a
 system or phenomenon adds a **Use as destination** (or start) button to
 its info panel. That button links to
 `/nav?from=system:12&to=system:40`, which lands on the plotted course.
@@ -456,32 +497,52 @@ The endpoint strings are `nav_page.endpoint(kind, id)`.
 
 System and phenomenon pages, and the Sector Map's info panel, get **Nav
 from here** and **Nav to here**. The NAV page already accepts `to`
-without `from`.
+without `from`. Built: the system and phenomenon pages had "Navigate
+from/to here" already, and the Sector Map's panel gained them in 7.58.0.
 
 ### 9.3 Address bar
 
 A field over the breadcrumb takes a designation, `312/-3/1042` or
 `ring 312 layer -3 slot 1042`, `x, y, z` in pc, or a sector or system
-name (looked up through `/api/search`). It flies to that sector's stage
-8 (section 5.3). It also works in pick mode.
+name. It flies to that sector's stage 8 (section 5.3).
 
-### 9.4 Later: the course on the map
+As built (7.50.0): the page parses addresses itself
+(`galaxystages.parseAddress`). A name goes to the site's `/galaxy/locate`,
+which calls `GET /api/galaxy/locate` (`queryDb.galaxy_locate`: sectors and
+systems named like the text, each with its sector address), not
+`/api/search` as first planned. A name with several matches lists them to
+pick from, and anything that can't be a sector says why. Pick mode on the
+Galaxy Map is not built, so it does not work there yet.
+
+### 9.4 The course on the map
 
 The NAV result offers **Show on Galaxy Map**. That opens the smallest
 stage holding both endpoints, with a line between them and the endpoints
 marked.
 
+As built (7.52.0): the link is `/galaxy?course=<from>,<to>`;
+`web/galaxy_views.py` asks `nav_page.galaxy_course` for the waypoints in
+galaxy-frame parsecs, and the map draws the course through its stops,
+each ringed and the two ends named. A course that stays inside one sector
+opens that sector instead. MAP.2.7.1 asks for every "Show on Galaxy Map"
+link, this one included, to open at the sector level.
+
 ## 10. What changes on today's map
 
 - Click-to-center and double-click zoom are replaced by the stages. The
   free continuous zoom stays only if decision 2 keeps a "Free look"
-  toggle.
+  toggle. (As built: the map opens on the stages and keeps Free look as
+  a button; MAP.2.1.1 would remove it.)
 - Wedge lines, density shading, the filled-share look, the sector/pc/ly
   scale readout and the info panel all stay.
 - Each stage draws at most about 900 blocks, so the phone-performance
-  follow-ups in TODO 19 matter only for free look.
-- TODO 63 (bigger map, controls underneath) should land first or
+  follow-ups in MAP.1 matter only for free look. (MAP.1 shipped in
+  7.42.1.)
+- MAP.3 (bigger map, controls underneath) should land first or
   alongside: the breadcrumb, address bar and slab strip need the room.
+  (It shipped in 7.55.0, after the stages.)
+- Added since: the Territories overlay (7.54.0, population-and-politics.md)
+  and the NAV course line (section 9.4) draw over the map.
 
 ## 11. Decisions for Boss
 
@@ -491,7 +552,10 @@ Each has a default, and work can start on it.
    bigger targets".)*
 2. **Free camera.** Default: drag-rotate inside the 3D stages only, with
    no free fly. Alternative: keep today's free zoom as a "Free look"
-   toggle.
+   toggle. *(As built in 7.44.0: the stages drag-rotate and Free look is
+   kept as a button until Boss decides. Boss's MAP.2.1.1 of 2026-10-01
+   goes further than the default: no Free look and no drag-rotate at any
+   stage, starting top-down with a wedge pick. Not built yet.)*
 3. **Bigger generate buttons.** Default: sector, layer or slab, and
    neighborhood at stages 7-8 only. Option: "Generate this block" at
    stage 5 (up to about 19,000 sectors) behind a confirmation.
@@ -503,25 +567,30 @@ Each has a default, and work can start on it.
    bottom), with a compass arrow. Alternative: bearing 000 to the right
    everywhere, as in stage 2.
 7. **Neighborhood radius default.** Default: 100 ly, the same as today's
-   button.
+   button. *(Built with this default in 7.53.0.)*
 
 ## 12. Build order and owners
 
 | TODO | Piece | Owner | Depends on |
 | --- | --- | --- | --- |
-| 70 | Nested ladder geometry, JS and Python, with a parity test (section 3) | Galaxy Map | none |
-| 71 | Stage contents API and caching (section 7) | Galaxy Map | 70 |
-| 72 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1) | Galaxy Map | 70, 71, TODO 63 |
-| 73 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6) | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | 70 (Python), 72 |
-| 74 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2) | Web | the URL formats only |
-| 75 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | 72, 74 |
-| 76 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | 72 |
-| 77 | Address bar (section 9.3) | Galaxy Map | 72 |
-| 78 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | 72's URL format |
-| 79 | Course on the Galaxy Map (section 9.4) | Galaxy Map and Web | 72, 75 |
+| MAP.2.9 | Nested ladder geometry, JS and Python, with a parity test (section 3). **Built, 7.41.2, PR #160** | Galaxy Map | none |
+| MAP.2.10 | Stage contents API and caching (section 7). **Built, 7.41.3, PR #160** | Galaxy Map | MAP.2.9 |
+| MAP.2.1 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.2.9, MAP.2.10, MAP.3 |
+| MAP.2.2 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177**; `--block`, the form and progress open | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.2.9 (Python), MAP.2.1 |
+| MAP.2.3 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
+| MAP.2.4 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | MAP.2.1, MAP.2.3 |
+| MAP.2.5 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.2.1 |
+| MAP.2.6 | Address bar (section 9.3). **Built, 7.50.0, PR #172** | Galaxy Map | MAP.2.1 |
+| MAP.2.7 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | MAP.2.1's URL format |
+| MAP.2.8 | Course on the Galaxy Map (section 9.4). **Built, 7.52.0, PR #176** | Galaxy Map and Web | MAP.2.1, MAP.2.4 |
+| MAP.2.1.1 | No free camera; drill down top-down by wedge, slice and block (bug against MAP.2.1; decision 2) | Galaxy Map | MAP.2.1 |
+| MAP.2.7.1 | "Show on Galaxy Map" opens at the sector level; the map's own Back and Forward (bug; folds in MAP.2.7) | Galaxy Map and Web | MAP.2.1.1, MAP.2.7 |
 
-70 to 72 run in order in the Galaxy Map thread. Web can do TODO 63 and
-74 at the same time, then 75 and 78 once 72 fixes the URL formats.
+MAP.3 (the bigger map) shipped in 7.55.0. MAP.2.8 shipped before MAP.2.4, using
+the NAV result's link rather than the NAV pickers. What is left is MAP.2.2's
+`--block` mode, MAP.2.4, MAP.2.5 and MAP.2.7, and the two bugs MAP.2.1.1 and MAP.2.7.1, which
+change sections 4, 5 and 8.1 once Boss's open questions in them are
+answered.
 
 ## 13. Sources
 
@@ -534,3 +603,47 @@ Each has a default, and work can start on it.
   `blockSlotRange`, `blockSectorCount`), `stellarObjects/galaxyGeometry.py`
   (`ring_master_count`, `ring_sector_count`), `stellarObjects/generationLimits.py`,
   `web/generate_page.py`, `web/nav_page.py`.
+
+## 14. Why it works this way
+
+- **Discrete stages instead of free zoom.** Boss asked to select in
+  sections: click a block, zoom into just its contents, and repeat down to a
+  sector (section 1). The research paper Boss shared supports discrete scale
+  tiers, a breadcrumb and animated flights (section 2).
+- **243, 27, 3, 1.** Boss chose "the bigger targets" over 81, 9, 1
+  (decision 1). One result, noted in section 5.1, is that each stage draws
+  at most about 900 blocks, so the free camera's 60,000-block budget never
+  matters.
+- **A nested wedge rule.** With each level's wedge count picked on its own,
+  child wedges sat inside one parent only in some rings (109 of 143 rings
+  at 243 to 27, 1,468 of 3,856 at 3 to 1). A drill-down needs every child
+  inside exactly one parent, so each child count is a whole multiple of its
+  parent's. The cost is a slightly wider arc error (section 3.4).
+- **Sectors join the level-3 block holding their center.** Sector slots do
+  not line up with level-3 wedges (only 1 of 1,286 rings does), so exact
+  nesting is impossible at the last step; the center rule is the one
+  `blockSlotRange` already used.
+- **Generated counts from the server, totals in the browser.** The
+  allowed-sector totals follow from the stored outline and are cheap to
+  compute on the page; only generated counts need the database. The
+  stage query reads at most one row per generated sector.
+- **A Free look button, for now.** Decision 2 was still open when the
+  stages shipped, so the old camera stayed behind a button rather than
+  being removed (7.44.0). MAP.2.1.1 is Boss's answer: remove it.
+- **Addresses parsed on the page, names on the server.** A designation,
+  ring/layer/slot or coordinates map to a sector with pure math the page
+  already has, so only a name needs the database (`/galaxy/locate`).
+- **Same math in Python and JavaScript, with a parity test.** The page and
+  the server must agree on every block key; `test_galaxydrill.py` runs both.
+- **three.js stays.** The map keeps the vendored three.js build; the reasons
+  are in `docs/html-interface.md` ("Why the maps use three.js") and in
+  `design-decisions.md`.
+
+### Ideas from the paper that were rejected
+
+Section 2's table records them: a 2D canvas replacing 3D (the 3D solid stays
+for picking slabs), unwrapping each cylindrical shell into a strip (a ring
+is one sector wide, so the strip is a thin ribbon that hides radial
+neighbors), Morton hashing (every address is already closed form and the
+designation is already a reversible key) and fisheye lenses (they would
+bend the distances and bearings NAV reports).

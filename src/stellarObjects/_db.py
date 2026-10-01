@@ -3165,7 +3165,7 @@ def delete_facility(conn, facility_id):
 
 
 # ---------------------------------------------------------------------------
-# Galactic motion (TODO item 32): the correlative update moves every placed
+# Galactic motion (GEN.6): the correlative update moves every placed
 # star system, phenomenon and stand-alone facility along its galactic orbit,
 # refiles it under whichever generated sector it drifted into, then refreshes
 # containment, octants, nearest systems and location text.
@@ -6775,7 +6775,7 @@ def _migrate_v42_to_v43(conn):
 
 def _migrate_v43_to_v44(conn):
     """
-    Adds population and politics' storage (TODO 51-54) -- see
+    Adds population and politics' storage (POP.1 to POP.4) -- see
     `schema.sql`'s "v44" header note: the `species`, `polities`,
     `system_owners` and `population_state` tables, empty until the next
     `generate.py population` pass.

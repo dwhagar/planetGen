@@ -1,7 +1,7 @@
 # tests/test_web_population.py
 
 """
-The population pages (`web/population_pages.py`, TODO 51-54): Species,
+The population pages (`web/population_pages.py`, POP.1 to POP.4): Species,
 a species, Polities and a polity, "Dominant species" on a life world's
 planet row and "Territory of ..." on an owned system -- and all of them
 hidden until a population pass has made species.

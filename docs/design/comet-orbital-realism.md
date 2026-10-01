@@ -1,156 +1,141 @@
-# Comet Realism: Add Elliptical & Parabolic Comet Types
+# Comets: elliptical, parabolic and interstellar
 
-## Context
+**Status:** built in version 5.31.0 (schema v19), PR #66. Names follow the
+IAU-style designations added in 7.31.0 (schema v40). Since 7.46.0 each
+comet period class has a reference page (`/classes/comet/<class>`), and
+since 7.57.0 an interstellar comet's page shows a rendered nucleus, with a
+coma and tail when it is active (`html/lib/phenomenonrender.py`). This
+document started as the plan for that work; it now describes what the
+code does and why.
 
-Comets in planetGen today are represented by exactly one class:
-`InterstellarComet` (`src/stellarObjects/roguePlanetData.py:175-318`) — a
-standalone, unbound phenomenon with a hyperbolic excess velocity, generated
-only via `phenomenonGen.py`, never tied to a star system. There is no
-concept of a comet that orbits a star, gets captured, or slingshots off a
-planet — that vocabulary (`eccentricity`, `perihelion`, `capture`,
-`hyperbolic`, `slingshot`) does not exist anywhere else in the codebase.
+## What exists
 
-The user wants comets to feel more astronomically real. After discussion,
-the scope for this pass is narrower than "full N-body capture/slingshot
-simulation": add the two missing, physically distinct comet orbit types —
-**elliptical (bound, periodic)** and **parabolic (marginal, single-pass)**
-— as proper star-associated objects, alongside the existing standalone
-interstellar (hyperbolic) comet. A separate, parallel thread is already
-building trajectory/wobble-update logic for planets, moons, and binary
-stars (recomputing trajectories roughly once per in-game month); true
-gravitational capture/slingshot (which requires modeling a close encounter
-with a second massive body) is out of scope here and should be revisited
-once that thread's N-body/close-encounter primitives exist.
+planetGen has three kinds of comet, split by orbital eccentricity `e`:
 
-## Comet orbital taxonomy (research summary)
-
-Real comets split cleanly by orbital energy/eccentricity `e`, and this maps
-directly onto three implementation categories:
-
-| Class | Eccentricity | Bound to star? | Real-world example | Status in codebase |
+| Kind | Eccentricity | Bound to a star? | Class | Table |
 |---|---|---|---|---|
-| Hyperbolic / interstellar | e > 1 | No — passes through once, never originated in this system | ʻOumuamua, Borisov | **Exists**: `InterstellarComet` |
-| Parabolic / near-parabolic | e ≈ 1 | Marginally — originates in the system's own Oort-cloud-analog, but escapes after one perihelion pass | Many "great comets," single-apparition long-period comets | **Missing** — this plan |
-| Elliptical | 0 ≤ e < 1 | Yes — periodic, returns every orbit | Halley (e≈0.967, P≈76yr), Jupiter-family comets (P<20yr) | **Missing** — this plan |
+| Elliptical (periodic) | 0 <= e < 1 | Yes, returns every orbit | `cometData.Comet`, `orbit_type = "elliptical"` | `comets` |
+| Parabolic (one pass) | 0.995 to 1.0, propagated as an exact parabola | Marginally: from the system's own outer cloud, leaves after one perihelion | `cometData.Comet`, `orbit_type = "parabolic"` | `comets` |
+| Interstellar (hyperbolic) | e > 1 | No, passes through a sector once | `roguePlanetData.InterstellarComet` | `interstellar_comets` |
 
-Elliptical comets further split by period/origin (Jupiter-family, P<20yr,
-low inclination, shaped by repeated Jupiter encounters; Halley-type,
-20–200yr, can be high/retrograde inclination; long-period, >200yr, e very
-close to 1, isotropic inclination from the Oort Cloud) — useful as
-flavor/subtype metadata but not a physics distinction, since all of them
-propagate the same way (bound two-body Kepler orbit).
+Star-bound comets belong to a star system, like asteroid belts. Interstellar
+comets are sector phenomena, drawn per star at the design rate in
+`program_constants.PHENOMENON_DENSITY_PC3["comet"]` (see
+`interstellar-object-rates.md`).
 
-Key physical points that should drive the design:
-- A comet's coma/tail activity is driven by solar heating, not by orbit
-  type — activity should scale with **perihelion distance**, not with
-  which class the comet belongs to (ices sublimate noticeably inside
-  ~2.5–3 AU regardless of whether the orbit is elliptical or parabolic).
-- Motion along an eccentric orbit is **not** uniform in angle (Kepler's
-  second law — a comet near perihelion moves much faster than near
-  aphelion). The existing planet/moon phase-advance in `updateOrbits.py`
-  linearly advances `orbital_phase_deg` by elapsed time, which is a fine
-  approximation for near-circular planetary orbits but breaks down at
-  cometary eccentricities (elliptical comets can have e up to ~0.99;
-  parabolic is e≈1). Realistic comets need proper Kepler-equation
-  propagation (mean anomaly → eccentric anomaly → true anomaly), not the
-  simple linear phase used elsewhere.
-- Parabolic orbits have no periapsis-to-periapsis period (technically
-  infinite) — they must be modeled as a one-shot event (time since/until
-  perihelion) rather than with `period_years`, similar in spirit to how
-  `InterstellarComet` already tracks a single passage via `is_active`.
+### Elliptical comets
 
-## Recommended design
+- `period_class` is drawn first from `program_constants.COMET_PERIOD_CLASSES`
+  (Jupiter-family 50%, Halley-type 30%, long-period 20%). The class sets the
+  eccentricity range and the largest inclination.
+- Perihelion `q` is drawn from `COMET_PERIHELION_DISTANCE_RANGE_AU`
+  (0.05 to 5 AU). The semi-major axis is `q / (1 - e)`, and the period comes
+  from Kepler's third law with the host star's mass.
+- The class's `period_range_years` is not used by generation. Because the
+  period is computed from `q` and `e`, a comet tagged Jupiter-family can come
+  out with a period outside 3.3 to 20 years. The tag is descriptive only.
+- Motion uses the mean anomaly `mean_anomaly_deg`, which advances linearly
+  and wraps at 360. Position comes from solving Kepler's equation
+  (`keplerMotion.solve_eccentric_anomaly`, Newton-Raphson), so a comet moves
+  fast near perihelion and slowly near aphelion.
 
-### 1. New star-bound comet types, following the existing belt/field precedent
+### Parabolic comets
 
-The codebase already has a precedent for "same object, standalone vs.
-star-bound" in asteroids: `asteroidFieldData.AsteroidField` (standalone)
-vs. `asteroidData.AsteroidBelt` (star-bound). Mirror that pattern for
-comets instead of overloading `InterstellarComet`:
+- About 30% of star-bound comets (`COMET_PARABOLIC_CHANCE`).
+- `eccentricity` is stored (0.995 to 1.0) but the orbit is propagated as an
+  exact parabola with Barker's equation (`keplerMotion.solve_barker_equation`).
+- There is no period. `parabolic_mean_anomaly` advances linearly and does not
+  wrap; it starts near zero (around the one perihelion passage) and can be
+  negative (still approaching).
+- Nothing removes or expires a parabolic comet after its pass. It keeps
+  receding on every orbit update. The plan's "flag for removal" step was not
+  built.
 
-- New module `src/stellarObjects/cometData.py` with a `Comet` class,
-  associated with a star (like `AsteroidBelt`), carrying an
-  `orbit_type` field: `"elliptical"` or `"parabolic"`.
-- Shared physical fields (reuse as-is): `nucleus_diameter_km`,
-  `composition` (sampled from `program_constants.COMET_COMPOSITION`),
-  `is_active` — same fields already on `InterstellarComet`.
-- New orbital fields:
-  - `perihelion_distance_au` (q) — always present, drives activity.
-  - `eccentricity` — 0 ≤ e < 1 for elliptical, fixed at/near 1.0 for
-    parabolic.
-  - `inclination_deg`, `arg_periapsis_deg`, `ascending_node_deg` — full
-    3D orbit orientation (comets are not confined to a system's ecliptic
-    plane the way planets are).
-  - `orbital_period_years` — only for elliptical; `None` for parabolic.
-  - `time_of_perihelion_passage` (or equivalent phase reference) — replaces
-    the simple `orbital_phase_deg` used for planets, since position must be
-    derived via Kepler's equation, not linear interpolation.
-  - Optional `period_class` flavor tag (`"jupiter_family"`,
-    `"halley_type"`, `"long_period"`) derived from `orbital_period_years`
-    for description/plausibility text only.
+### Activity
 
-### 2. Position updates: proper Kepler propagation, not linear phase
+Whether a comet shows a coma and tail (`is_active`) depends on perihelion
+distance, not on orbit type: `cometData._activity_chance` falls linearly from
+0.9 at `q = 0` to 0.05 at `q >= 3 AU` (`COMET_ACTIVITY_*`). Interstellar
+comets keep a flat roll (`INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5`).
 
-Add a small orbital-mechanics helper (e.g. in `planetPhysics.py` or a new
-`keplerMotion.py`) that solves Kepler's equation for eccentric orbits:
-mean anomaly `M = 2π·(t - t_perihelion)/P` (elliptical) or Barker's
-equation for the parabolic case → eccentric/true anomaly → distance from
-star. Hook this into `updateOrbits.py` as a comet-specific branch rather
-than reusing the linear `orbital_phase_deg` advance used for planets/moons.
-This is self-contained (pure two-body physics) and does not depend on the
-parallel trajectory-wobble work, but should adopt whatever periodic
-"recompute trajectory on update" structure that thread introduces, so the
-two stay stylistically consistent once it lands — worth a follow-up sync
-rather than blocking this work.
+### Names
 
-### 3. Activity driven by perihelion distance
+`cometData.comet_designation` (7.31.0, schema v40) names a star-bound comet
+`P/<host>-<n>` when it is elliptical with a period under 200 years, and
+`C/<host>-<n>` otherwise. `<host>` is the star it orbits and `<n>` counts
+from 1. The name follows a rename of its star (`rename_comet_designation`).
+Interstellar comets are `I/<sector>-<n>`.
 
-Replace the flat `INTERSTELLAR_COMET_ACTIVE_CHANCE` roll (used for
-interstellar comets, where perihelion is arbitrary/often irrelevant) with
-a perihelion-distance-scaled activity chance for star-bound comets —
-higher activity chance the closer `perihelion_distance_au` is to the star,
-tapering off past ~3 AU. Add this as a new constant/function in
-`program_constants.py` alongside the existing `COMET_COMPOSITION` and
-active-chance constants.
+### Storage and updates
 
-### 4. Parabolic comets as one-shot events
+- `comets` and `comet_composition` (schema v19, `_migrate_v18_to_v19`). The
+  table stores `perihelion_distance_km` (km in the database, AU in Python),
+  the full orientation (`inclination_deg`, `arg_periapsis_deg`,
+  `ascending_node_deg`), `mean_anomaly_deg` or `parabolic_mean_anomaly`, and
+  the current position and speed.
+- `StarSystem` holds `comets` (and `secondary_comets` for a wide pair's
+  second star), separate from `planets`, because a comet's distance changes
+  continuously instead of sitting in an orbital slot.
+- `SystemConfig.COMETS` is a tri-state flag; `generate.py system` exposes it.
+- `updateOrbits.py` calls `_db.advance_comet_orbits` after the planet and
+  moon pass. It reads every comet row, advances the anomaly, solves Kepler or
+  Barker in Python and writes all rows back with one `executemany`.
+- Since 7.37.0 the whole system, comets included, also moves along its
+  galactic orbit and can change sector.
 
-Parabolic comets should behave like `InterstellarComet` in lifecycle (one
-perihelion passage, then gone) but originate from the star's own system
-rather than interstellar space — track only `is_active` /
-time-since-perihelion, no `orbital_period_years`, and flag for removal or
-"expired" status once sufficiently far past perihelion (mirrors the
-existing `is_active` pattern rather than inventing a new lifecycle
-concept).
+### Tests
 
-### 5. Generation, schema, and plausibility — reuse existing wiring
+`src/tests/test_kepler_motion.py` covers the solvers (Kepler's equation,
+Barker's equation, faster motion near perihelion, vis-viva speed).
+`src/tests/test_comet_data.py` covers generation ranges, perihelion bounds,
+round-tripping and the page text. `test_phenomena.py` and
+`test_phenomena_plausibility.py` cover interstellar comets. The plan's
+proposed comet cases in `test_orbital_motion.py` were placed in
+`test_kepler_motion.py` instead.
 
-- **Generation**: unlike `InterstellarComet` (only spawned standalone via
-  `phenomenonGen.py`), the new `Comet` type should be spawnable from
-  `systemGen.py` as part of normal star-system generation, the same way
-  `AsteroidBelt` is.
-- **Schema/DB**: add `comets` (+ `comet_composition`) tables in
-  `schema.sql`, modeled on `interstellar_comets` (`schema.sql:1218-1253`)
-  plus the new orbital columns, with a `star_id` FK; wire insert/select in
-  `_db.py` alongside `insert_interstellar_comet` (`_db.py:1185-1223`).
-- **Plausibility**: extend `phenomenaPlausibility.py` with checks specific
-  to bound comets — eccentricity range per `orbit_type`, positive
-  perihelion distance, `orbital_period_years` required iff elliptical.
+## Why it works this way
 
-### 6. Testing
+- **Three kinds, split by eccentricity.** Real comets fall into these three
+  dynamical groups, and they need different math: elliptical orbits use
+  Kepler's equation, parabolic ones Barker's equation, and interstellar ones
+  a fixed hyperbolic pass. Before 5.31.0 only the interstellar kind existed,
+  so no comet could orbit a star (CHANGELOG 5.31.0).
+- **A separate `Comet` class, not an option on `InterstellarComet`.** The
+  plan followed the asteroid precedent: `AsteroidField` (standalone) and
+  `AsteroidBelt` (star-bound) are separate classes. A bound comet needs the
+  host's mass and a full orbit, which an interstellar comet does not.
+- **Kepler propagation instead of a linear phase.** Planets and moons
+  advance `orbital_phase_deg` linearly, which is close enough for nearly
+  circular orbits. At comet eccentricities (up to 0.999) that would be badly
+  wrong, because most of the orbit is spent far out. The cost is that the
+  update cannot be one set-based SQL `UPDATE` as it is for planets; it runs
+  in Python. The table is small (1 to 3 comets per system,
+  `SYSTEM_COMET_COUNT_RANGE`), so this was accepted, and the writes are
+  batched (CHANGELOG 5.31.0, "advance_comet_orbits now batches").
+- **Activity from perihelion distance.** Ices sublimate when a comet comes
+  within about 3 AU of a Sun-like star, whatever its orbit type. A flat roll
+  would let a comet that never comes near its star show a tail.
+- **IAU-style names.** Boss asked that comets and asteroid fields get names
+  that say something about them in a standard way (GEN.4.4); the real IAU
+  `P/`, `C/` and `I/` prefixes do that (CHANGELOG 7.31.0).
 
-- Unit tests for the Kepler-equation helper (mean→eccentric→true anomaly)
-  against known values (e.g. verify Halley-like e≈0.967 orbit position at
-  known mean anomalies).
-- Extend `test_phenomena.py` / `test_phenomena_plausibility.py` with cases
-  for the new `Comet` class and its plausibility rules.
-- Extend `test_orbital_motion.py` with a comet-specific case showing
-  non-uniform angular speed (faster near perihelion) to confirm the new
-  propagation is actually being used instead of linear phase advance.
+### Alternatives not taken
 
-## Verification
+- **Gravitational capture and planetary slingshots.** Both need a real
+  three-body close encounter. They were left out of 5.31.0 on purpose, to be
+  revisited once the project has close-encounter primitives. None exist yet.
+- **Expiring parabolic comets.** Planned, not built. The reason it was
+  dropped is not recorded.
+- **Plausibility checks for bound comets.** The plan asked
+  `phenomenaPlausibility.py` to check eccentricity per orbit type and that
+  only elliptical comets have a period. Those checks were not added; the
+  ranges are enforced by generation and by `test_comet_data.py` instead.
+  The reason is not recorded.
 
-- Run `pytest src/tests/test_phenomena.py src/tests/test_phenomena_plausibility.py src/tests/test_orbital_motion.py` and confirm new comet tests pass.
-- Generate a test star system via `systemGen.py` and confirm elliptical/parabolic comets appear with sane orbital elements (e in valid range, perihelion positive, period present only for elliptical).
-- Spot-check Kepler propagation manually: for a high-eccentricity test comet, confirm the time spent near perihelion is much shorter than time near aphelion (non-uniform angular speed), unlike the existing linear-phase planet motion.
-- Confirm `InterstellarComet` and `phenomenonGen.py` are untouched/still pass existing tests — this is additive, not a replacement.
+## Corrections made to the original plan text
+
+The earlier version of this file was the pre-build plan. It named
+`phenomenonGen.py` and `systemGen.py`, which were merged into `generate.py`
+in 5.35.0; it cited line numbers in `roguePlanetData.py`, `schema.sql` and
+`_db.py` that no longer match; and it described a "time of perihelion
+passage" field, where the code stores a mean anomaly instead.

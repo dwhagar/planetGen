@@ -2,7 +2,7 @@
 
 """
 An in-memory cache of the API's public read responses, so the pages
-don't query the database on every request (TODO 8).
+don't query the database on every request (PERF.2).
 
 Every page reads through `apiclient`'s plain GET wrappers (`get_sector`,
 `get_system`, `get_phenomena`, ...), which send no cookie, so their

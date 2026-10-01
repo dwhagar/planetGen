@@ -855,7 +855,7 @@
 --   `galaxy_shape.bright_star_min_luminosity_sol`/`bright_star_seed`.
 --   `_migrate_v42_to_v43` adds them (empty: the next plan scatters).
 --
--- v44: population and politics (TODO 51-54,
+-- v44: population and politics (POP.1 to POP.4,
 --   docs/design/population-and-politics.md) -- the `species`, `polities`,
 --   `system_owners` and `population_state` tables below, all filled by
 --   `generate.py population` (stellarObjects/population.py).
@@ -2391,7 +2391,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 
 
 -- ---------------------------------------------------------------------
--- Population and politics (v44, TODO 51-54): see
+-- Population and politics (v44, POP.1 to POP.4): see
 -- docs/design/population-and-politics.md. Filled by `generate.py
 -- population` (stellarObjects/population.py) from what is already
 -- stored; nothing in system generation writes these.

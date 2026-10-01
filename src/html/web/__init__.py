@@ -151,7 +151,7 @@ def _app_page_cache():
 
 def _install_page_cache(app):
     """
-    Gives `app` its own `pagecache.ResponseCache` (TODO 8) unless
+    Gives `app` its own `pagecache.ResponseCache` (PERF.2) unless
     `page_cache.enabled` is off, and clears it after every successful
     write under `/api` -- a page's admin form or an API client alike.
     """

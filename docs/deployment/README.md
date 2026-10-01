@@ -63,6 +63,12 @@ full steps for its platform.
 - **The NLTK `words` corpus** somewhere the app's account can read:
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.
+- **An optional population pass.** After the database step, the install
+  and update scripts ask whether to run `generate.py population`
+  (species, civilizations, territories): y/N, default N after 30
+  seconds, and skipped when there is no terminal or console to ask on.
+  `POPULATION=1` (`-Population` on Windows) runs it without asking. It
+  can be run by hand any time.
 
 ## Behind a reverse proxy: `proxy_fix`
 

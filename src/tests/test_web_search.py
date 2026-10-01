@@ -114,7 +114,7 @@ def test_q_searches_every_name(client, fake):
     assert 'href="/system/7"' in stars
     assert "118,000 km" in stars
     assert "Standalone" in _panel(html, "systems")
-    # "Show on Galaxy Map" (TODO 78): a sector always, a standalone system never.
+    # "Show on Galaxy Map" (MAP.2.7): a sector always, a standalone system never.
     assert 'href="/sector/5/galaxy" aria-label="Show Kepler &lt;Reach&gt; on the Galaxy Map">Show</a>' in _panel(html, "sectors")
     assert "/galaxy" not in _panel(html, "systems")
     # Chip to remove the name search.

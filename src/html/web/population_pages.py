@@ -1,7 +1,7 @@
 # html/web/population_pages.py
 
 """
-The population pages (TODO 51-54), read from the population API
+The population pages (POP.1 to POP.4), read from the population API
 (`api/population.py`, schema v44):
 
 - `/species`: every species, 50 a page, `?spacefaring=1|0` to filter.

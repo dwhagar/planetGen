@@ -1,6 +1,6 @@
 # tests/test_galactic_motion.py
 
-"""The correlative update's galactic motion (TODO item 32): everything
+"""The correlative update's galactic motion (GEN.6): everything
 moves along its galactic orbit and is refiled into the sector it drifts
 into, with octant, location, containment and nearest systems following."""
 

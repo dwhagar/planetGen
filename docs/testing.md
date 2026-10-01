@@ -21,6 +21,9 @@ export PLANETGEN_TEST_MYSQL_USER=root
 export PLANETGEN_TEST_MYSQL_PASSWORD=...
 ```
 
+Each one falls back to the matching `PLANETGEN_MYSQL_*` variable, then to
+the built-in default (`127.0.0.1:3306`, user `planetgen`).
+
 The user needs to create and drop databases: each test gets its own
 uniquely named, throwaway database. Run the suite serially (no `pytest -n`)
 when these are set; a few API tests share server-wide state and can trip
@@ -30,6 +33,12 @@ over each other under parallel workers.
 
 - **Unit and behaviour tests** (`test_<area>.py`): one module or page each,
   with fixed inputs and exact expectations.
+- **Bug-hunt tests** (`test_bughunt_*.py`, support in
+  `bughunt_support.py`): seeded, exhaustive sweeps for the recurring bug
+  categories (placement overlaps, unit conversions, NaN physics, name
+  exhaustion, rendering breakage). Plain asserts are hard invariants;
+  tests marked `tier2` (registered in `pytest.ini`) check softer,
+  statistical properties but still run every time.
 - **Edge-case tests** (`test_edge_*.py`): the admin scripts (`jobRunner`,
   `resetDb`, `migrateDb`, `updateOrbits`) run in-process against empty,
   broken and unreachable databases, cancelled jobs and malformed input.
@@ -57,10 +66,30 @@ over each other under parallel workers.
   - `test_fuzz_web_routes.py` and `test_fuzz_api_auth.py`: every web page
     and API endpoint, logins, CSRF and API keys.
 
+- **Browser checks** (`test_web_a11y.py`): every page in headless
+  Chromium at phone and desktop widths, in light and dark, against
+  axe-core and the layout rules described in
+  [`html-interface.md`](html-interface.md#flask-pages) ("Browser checks").
+  They need `pip install -e ".[browser]"` and `python -m playwright install
+  chromium` plus the MySQL test server, and skip without them. CI runs
+  them in their own `browser-a11y` job.
+
 A known bug that is not fixed yet is kept as a test marked
 `xfail(strict=True)` whose reason names the bug and a repro. When someone
 fixes it, the test starts passing, strict mode fails the run, and the
 marker has to come off: the fix can't land without its regression test.
+
+## Opt-in tests
+
+These skip unless you turn them on:
+
+- `test_wikiclient_wikijs_integration.py` and
+  `test_wikiclient_mediawiki_integration.py` talk to a real wiki: set
+  `PLANETGEN_TEST_WIKIJS_BASE_URL` and `PLANETGEN_TEST_WIKIJS_TOKEN`, or
+  `PLANETGEN_TEST_MEDIAWIKI_BASE_URL`, `PLANETGEN_TEST_MEDIAWIKI_USERNAME`
+  and `PLANETGEN_TEST_MEDIAWIKI_PASSWORD`.
+- `test_sector_generation_perf.py` is a timing benchmark:
+  `PLANETGEN_RUN_PERF_BENCHMARK=1 pytest -s src/tests/test_sector_generation_perf.py`.
 
 ## Fuzz profiles
 

@@ -10,8 +10,9 @@ rather than a direct database consumer — see that doc's own note on the
 switch, and "Deploying" below for how both are served by one app.
 
 Every read endpoint is fully implemented and unauthenticated (read-only,
-no account needed). Every write endpoint (create/modify/delete a sector or
-system) requires an authenticated admin whose credentials aren't still the
+no account needed), except the admin stats endpoints. Every write endpoint
+(create/modify/delete a sector, system or facility, rename a body,
+publish to a wiki, generate a sector's neighborhood) requires an authenticated admin whose credentials aren't still the
 seeded first login — see "Authentication" and "Write endpoints" below.
 
 ## Why Flask
@@ -53,8 +54,11 @@ connectivity to that specific schema rather than the default one.
 
 - `GET /api/health` — liveness/readiness check: confirms the process is up
   and the configured (or `db=`-selected) database can actually be opened.
-  Returns `{"status": "ok"}`, or `{"status": "error", "detail": "database
-  unavailable"}` with a `503` if the database can't be reached (the real
+  Returns `{"status": "ok", "schema_version": <n>, "schema_current":
+  <bool>}` (plus a `detail` naming the fix when the schema is behind the
+  code's `SCHEMA_VERSION` or was never initialized; still a `200`), or
+  `{"status": "error", "detail": "database unavailable"}` with a `503` if
+  the database can't be reached (the real
   reason, which names the MySQL user and host, goes only to the server's
   log). Rate-limited per client IP (`ratelimit.pages.health`, default 60 per
   minute), not by the default limits; see "Rate limiting".
@@ -77,10 +81,17 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`).
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
-  it, nearest the sector's center first — `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
+  it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `position_x_mpc`/`position_y_mpc`/`position_z_mpc`, `center_distance_ly`,
-  and `stars`, each
-  with `role`/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`) and
+  `runaway_class`/`runaway_speed_kms`, `inside` (the nebula or supernova
+  remnant around it, or `null`), `nearest` (its stored nearest systems,
+  `{id, name, distance_ly}`), and `stars`, each
+  with `role`/`name`/`star_type`/`temperature_k`/`radius_km`/`luminosity_w`),
+  `star_count`, `interstellar_debris_count` (an estimate of the
+  interstellar comets and planetesimals drifting through it, far too many
+  to store as rows), `neighbors` (every grid cell sharing a face with a
+  placed sector: its address, `designation`, `direction_pc`, `exists`
+  and `sector_id`/`sector_name`, empty for an unplaced sector), and
   `phenomena` (every galaxy-placed standalone phenomenon whose sphere
   could plausibly reach into this sector's cube, plus every placed one
   generated as part of this sector, nearest its center first — `id`,
@@ -114,20 +125,21 @@ connectivity to that specific schema rather than the default one.
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
   `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
-  `runaway_speed_kms`, `inside` (`{type, id, name, class}` of the nebula
-  or supernova remnant the system sits in, or `null`),
-  `wikijs_url`/`mediawiki_url`
+  `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`), `belts`, `sector_siblings` (`{id, name}`
-  for every other system in the same sector), and `nearest_neighbors`
-  (`{id, name, distance_ly}` for the up-to-3 closest systems in the same
-  sector, nearest first, computed from current positions and names; the
-  names inside `location` are frozen at generation time and can be
-  stale), `inside` (the nebula or supernova remnant around the system,
-  `{type, id, name, class, density_cm3, temperature_k}`, or `null`), and
+  or `null` — and `inhabited`), `belts`, `comets`, `sector_siblings`
+  (`{id, name}` for every system in the same sector), and
+  `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
+  systems, nearest first, from the stored `nearest_systems` rows (schema
+  v41), which are searched across sector boundaries; a system with no
+  stored rows falls back to its own sector's closest systems, computed
+  from current positions and names. The names inside `location` are
+  frozen at generation time and can be stale), `inside` (the nebula or
+  supernova remnant around the system, `{type, id, name, class,
+  density_cm3, temperature_k}`, or `null`), and
   `heliopause_au` (the heliopause squeezed by that cloud, the edge of the
   system's navigation frame) with `heliopause_open_space_au`
   (`queryDb.system_detail`) — same "flat display
@@ -157,13 +169,17 @@ connectivity to that specific schema rather than the default one.
   how much of the galaxy has actually been generated (see `TODO.md`'s
   Phase 4 lazy-generation design), not by the addressable galaxy's own
   scale.
-- `GET /api/galaxy/phenomena` — every galaxy-placed nebula/asteroid
-  field/black hole/neutron star
+- `GET /api/galaxy/phenomena` — every galaxy-placed standalone
+  phenomenon of all eight types
   (non-`null` `center_x/y/z_pc`), each with `id`, `type`
-  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`), `name`,
+  (`"nebula"`/`"asteroid_field"`/`"black_hole"`/`"neutron_star"`/
+  `"supernova_remnant"`/`"rogue_planet"`/`"interstellar_comet"`/`"quasar"`), `name`,
   `descriptor` (a nebula's `nebula_type`, a field's `density`, a black
-  hole's accretion state, or a neutron star's `pulsar_type`), `radius_ly`
-  (always 0 for a black hole/neutron star), `x`/`y`/`z`
+  hole's accretion state, a neutron star's `pulsar_type`, a remnant's
+  `morphology`, a rogue planet's body type, a comet's activity, or a
+  quasar's radio loudness), `radius_ly`
+  (0 for every point-like type: everything but nebulae, asteroid fields
+  and supernova remnants), `x`/`y`/`z`
   (`center_x/y/z_pc`), and `galactic_radius_pc`
   (`queryDb.galaxy_placed_phenomena`) — the phenomenon counterpart to
   `/api/galaxy/sectors`, plotted as a small fixed-size dot on the same
@@ -378,6 +394,16 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/sectors/<id>` — remove a sector.
 - `POST /api/sectors/<id>/wiki` — publish a sector-summary page to a
   wiki (see "Wiki publishing" below).
+- `POST /api/sectors/<id>/generate-neighborhood` — generate every
+  not-yet-generated sector within `radius_ly` (optional JSON body field,
+  default 100 ly, at most the generator's own radius cap) of this
+  galaxy-placed sector, synchronously. Returns counts: `generated`,
+  `already_existed`, `skipped`, `candidates` and `outside_galaxy`. `404`
+  for an unknown or unplaced sector, `409`
+  when the galaxy has never been planned (`generate.py plan`). The default
+  radius covers thousands of candidate slots, so this can run for a long
+  time; a reverse proxy's timeout may need raising for it. The sector
+  page's admin form calls it.
 - `POST /api/systems` — generate and create a system, standalone or in
   an existing sector.
 - `PATCH /api/systems/<id>` — rename a system (its stars, planets and
@@ -811,8 +837,9 @@ On success (`201`), both return the new page's
 already exists at that path/title (every `wikiClient` backend is
 create-only); `502` if the wiki instance rejected the credentials or
 couldn't be reached.
-Editing a system's generated content (stars/planets/moons/belts) isn't
-supported via this API; regenerate via `DELETE` + `POST` instead.
+Editing individual generated bodies (stars/planets/moons/belts) isn't
+supported via this API beyond renaming them; regenerate the whole system
+in place instead (see "Regenerating a system" above).
 
 ## Rate limiting
 
@@ -959,10 +986,10 @@ front, never in production.
 
 ## Not done yet
 
-See `docs/TODO.md`'s open items — in particular, sector-attached system
-creation (`POST /api/systems` is standalone-only today, per "Systems —
-request body" above) and editing a system's generated content (stars/
-planets/moons/belts) beyond renaming it. The frontend gap that this
+See `docs/TODO.md`'s open items, in particular editing individual
+generated bodies (stars/planets/moons/belts) beyond renaming them or
+regenerating the whole system. (`POST /api/systems` can now place a
+system in an existing sector; see "Placing it in a sector" above.) The frontend gap that this
 section used to describe is closed: the pages in `../src/html/web/` (see
 [`html-interface.md`](html-interface.md)) are this API's own server-
 rendered frontend.

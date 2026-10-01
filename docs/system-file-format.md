@@ -8,6 +8,10 @@
 python generate.py system --system-file examples/systems/solar_system.json
 ```
 
+Like any `generate.py system` run, this saves the system to the
+configured database. Add `--output FILE` (or `--output -` for standard
+output) to write the page to a file instead and leave the database alone.
+
 Every key is optional. Anything you leave out is generated normally (randomly,
 subject to the usual physical rules). Anything given on the command line
 *in addition to* `--system-file` overrides the corresponding value from the
@@ -23,10 +27,11 @@ resembling our own solar system.
 | `star_type` | string or `null` | A specific spectral type + Yerkes class, e.g. `"G2V"`, `"M5V"`, `"B0IA"`. Format is `[OBAFGKM][0-9][Yerkes class]` (Yerkes classes: `0`, `IA+`, `IA`, `IAB`, `IB`, `II`, `III`, `IV`, `V`, `VI`, `VII`/`D`). If omitted, the star is generated randomly. |
 | `name` | string or `null` | The star system's name. If omitted, a name is randomly generated. |
 | `age` | `"young"`, `"old"`, or `null` | Biases the star's initial age toward the start or end of its lifespan. If omitted, age is random. |
-| `num_orbits` | integer or `null` | The exact number of orbital slots (planets *and* asteroid belts, combined) to generate. If omitted, the count is estimated from the star's mass (see `max_planets` below) and randomized. |
+| `num_orbits` | integer or `null` | The exact number of orbital slots (planets *and* asteroid belts, combined) to generate, at most 500. If omitted, the count is estimated from the star's mass (see `max_planets` below) and randomized. |
 | `slots` | array or `null` | Per-orbit specifications — see [Slots](#slots) below. |
 | `habitable_world` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `asteroid_belt` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
+| `comets` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `large_star` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `moons` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
 | `max_planets` | `true`, `false`, or omitted | See [Tri-state options](#tri-state-options). |
@@ -51,6 +56,7 @@ command line's `+name` / `-name` flags (`+habitable_world` sets it `true`,
 |---|---|---|
 | `habitable_world` | At least one habitable world exists. | No habitable world is generated. |
 | `asteroid_belt` | At least one asteroid belt exists. | No asteroid belt is generated. |
+| `comets` | At least one star-bound comet exists. | No star-bound comet is generated. |
 | `large_star` | A large, massive star is generated (only matters when `star_type` is omitted). | Nothing beyond the normal default population — included for symmetry/explicitness. |
 | `moons` | Every planet gets a chance at moons. | No planet in the system gets moons (unless a slot gives it an explicit `moons` count — see below). |
 | `max_planets` | The system generates the maximum number of orbital objects its star can support. | The system generates the minimum (0, or whatever `habitable_world`/`asteroid_belt`/`planets` require). |
@@ -128,15 +134,15 @@ a "class M world".
 | `F` | Volcanic world with shallow seas and bacterial life | terrestrial | e | yes |
 | `G` | Rocky, barren world with simple life | terrestrial | e | yes |
 | `H` | Desert world, minimal water | terrestrial | e | yes |
-| `I` | Ice giant with a tilted magnetic field | gas giant | c | no |
-| `J` | Gas giant with a turbulent atmosphere and rings | gas giant | c | no |
+| `I` | Ice giant with a tilted magnetic field | gas giant | e, c | no |
+| `J` | Gas giant with a turbulent atmosphere and rings | gas giant | h, e, c | no |
 | `K` | Adaptable world with a thin atmosphere | terrestrial | e | yes |
 | `L` | Marginally habitable world with vegetation | terrestrial | e | yes |
 | `M` | Terrestrial, Earth-like world | terrestrial | e | yes |
 | `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
 | `O` | Pelagic (ocean) world, >90% liquid water | terrestrial | e | yes |
 | `P` | Cold, glaciated world | terrestrial | e | yes |
-| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | yes |
+| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | no |
 | `T` | Gas dwarf with a thick atmosphere | gas giant | c | no |
 | `V` | Super-Earth with high gravity | terrestrial | e | yes |
 
@@ -175,6 +181,6 @@ giants — a rough analog of our own solar system. Anything not specified here
 exact radius/mass/atmosphere details, orbital distances, names, ages, life
 chemistry, flavor text, etc.) is still generated normally.
 
-See [`../README.md`](../README.md) for the full command-line reference,
+See [`cli.md`](cli.md) for the full command-line reference,
 or [`example-systems.md`](example-systems.md) for the rest of the example
 files.

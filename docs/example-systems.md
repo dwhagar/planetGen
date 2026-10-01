@@ -6,6 +6,9 @@ Run any of these with:
 python generate.py system --system-file examples/systems/<file>.json
 ```
 
+That saves the system to the configured database; add `--output -` to
+print the page instead, with no database needed.
+
 See [`system-file-format.md`](system-file-format.md) for the full format
 reference.
 
@@ -24,7 +27,8 @@ reference.
 | `procyon_system.json` | Procyon (real) | A real F-type subgiant; covers the subgiant (`IV`) evolved-star age path. |
 | `wide_binary_demo_system.json` | Kelmoor (synthetic) | An S-type (wide) binary (`wide_binary: true`) — unlike `tatooine_system.json`/`solaris_system.json` (both pinned `wide_binary: false`, since their planets are meant to orbit both suns), each star here hosts its own independent, fully random planets. |
 
-These last four exist mainly for **test coverage**: the original seven only
+The four real stars (Van Maanen's Star, Zeta Ophiuchi, VY Canis Majoris
+and Procyon) exist mainly for **test coverage**: the original seven only
 ever exercise Yerkes classes `V` (main sequence), `III` (giant), and `IB`
 (supergiant) between them, missing exactly the white dwarf, hypergiant, and
 O/B dwarf paths where real bugs were found and fixed (see git history for

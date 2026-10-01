@@ -1,9 +1,16 @@
 # Navigation reference frames
 
-Boss's design for nested navigation frames, recorded 2026-09-30 (TODO
-items 33 and 34). Implemented in `stellarObjects/navigation.py`:
+Boss's design for nested navigation frames, recorded 2026-09-30 (NAV.1
+and NAV.2). Built in versions 7.8.0 (warp curve) and 7.14.0 (bearing
+and mark on nested frames), plus the squeezed heliopause in 7.39.0.
+Implemented in `stellarObjects/navigation.py`:
 `course_between` is Boss's `compute_course` below, `format_course` writes
 "000 mark 000", and `warp_speed_c`/`fold_speed_c` are the travel speeds.
+Later releases changed how a course is picked and shown, not the frames:
+the Sector Map's Nav from/to links and pick mode (7.58.0) and the course
+drawn on the Galaxy Map (7.52.0); see `galaxy-drilldown-navigation.md`,
+section 9. UX.13 (a unit ladder for speeds) would change how warp and
+fold speeds are written, not their values.
 
 Decisions Boss approved on 2026-09-30:
 
@@ -246,3 +253,36 @@ and `FOLD_*`), and `src/tests/test_navigation.py` pins these values
 | 7.5 | 7,593.8 | 20.79 | 0.048 | 157 |
 | 8 | 12,288.0 | 33.64 | 0.030 | 97 |
 | 8.5 | 20,880.2 | 57.17 | 0.017 | 57 |
+
+## Why it works this way
+
+- **North points at the frame's center.** Boss's design: "North" points
+  toward the local dominant center of mass, so a course reads the same way
+  wherever the ship is, and "0 mark 0" always means "toward the center".
+  The code follows the design text above; the choice itself is Boss's and no
+  further reason is recorded.
+- **Mark as elevation mod 360.** Approved by Boss on 2026-09-30 (the list at
+  the top). It keeps both numbers in the familiar 000-359 form.
+- **+X stays the zero meridian.** The quasar sits at the galactic center, so
+  it cannot define a direction from the center; ring slot 0's axis was
+  already the grid's zero, so nothing had to move.
+- **Only two frames are chosen today.** NAV endpoints are whole systems and
+  phenomena, so every course leaves a heliopause. `course_between` already
+  takes a center and up vector so in-system navigation can use the System
+  Local Frame later.
+- **A per-system heliopause instead of 120 AU.** Boss's text names about
+  120 AU; the code uses each system's own heliopause, pressed in by any cloud
+  it sits in (7.39.0), because inside a dense cloud the real edge can be
+  under 1 AU.
+- **Every speed coefficient a named constant, pinned by tests.** So the
+  tables Boss supplied stay exact (commit 2823354; CHANGELOG 7.8.0). The
+  earlier plain `w^(10/3)` warp curve was replaced by Boss's formula, which
+  matches it up to about warp 9 and then climbs toward warp 10. No other
+  reason is recorded.
+
+### Alternatives not taken
+
+- Azimuth and altitude (the NAV output before 7.14.0): replaced by bearing
+  and mark.
+- A reference quasar as the zero meridian: impossible with the quasar at
+  the center.

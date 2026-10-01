@@ -44,9 +44,10 @@ never mutates the generation/physics code's own native units. Its shape:
   position=None)`).
 - `migrate_database(config=None)` — brings a database's `schema_migrations`
   bookkeeping up to `SCHEMA_VERSION`, applying any migration step in
-  between (today, always a no-op past the first connection, since every
-  MySQL database this project creates already starts at the current
-  schema — see "Versioning" below). An existing pre-MySQL-port SQLite
+  between. A brand-new database is created at the current schema, so this
+  is a no-op there; a database created by an older release gets one
+  `_migrate_vN_to_vN+1` step per version it is behind (see "Versioning"
+  below). `src/migrateDb.py` is its CLI. An existing pre-MySQL-port SQLite
   database is brought in with the separate, one-time
   `src/migrateSqliteToMysql.py` instead (a straight column-preserving copy,
   documented in its own module docstring), not this function.
@@ -60,12 +61,12 @@ never mutates the generation/physics code's own native units. Its shape:
   path — `StarSystem` itself is assembled directly (mirroring
   `StarSystem.from_dict`'s own wiring) since the data is normalized across
   many flat tables rather than naturally nested the way a JSON export is.
-- Every `table_*`/`composition_summary` column is read from a
-  `get_table_properties()` method on `Star`/`BinaryStarProxy`/`Planet` (and
-  `get_composition_summary()` on `AsteroidBelt`), extracted from each
-  class's own `to_paragraph_list()` so the database and the rendered wiki
-  page can never drift apart — one formatting implementation, two
-  consumers.
+- Every `composition_summary` column is read from a
+  `get_composition_summary()` method (`AsteroidBelt`, asteroid fields,
+  comets), the same text the rendered page uses. The old `table_*`
+  display-string columns were dropped in v5 and the stored page text in
+  v29: display formatting is computed on demand from the data columns
+  (`html/lib/tabledisplay.py`, `stellarObjects/systemRender.py`).
 
 ## How to read this document
 
@@ -73,6 +74,11 @@ never mutates the generation/physics code's own native units. Its shape:
   and unit (where relevant), and a short note on where the value comes from
   in the generator.
 - `FK -> table.column` marks a foreign key.
+- Types are given loosely in the older tables below (`INTEGER`, `TEXT`).
+  In MySQL every `id` and foreign key is `BIGINT UNSIGNED` (ids
+  `AUTO_INCREMENT`), most short strings (names, types, classes) are
+  `VARCHAR(n)`, booleans are `TINYINT(1)`, and URL columns are
+  `VARCHAR(2048)`. `schema.sql` is authoritative for exact types.
 - Conventions that apply across many tables (units, the searchable-field
   principle, versioning) are explained once, up front, rather than repeated
   per table.
@@ -106,12 +112,16 @@ boundary, once it's built: `src/stellarObjects/utils.py` provides
 AU-to-km needs no helper, since it's a single multiply by the existing
 `physical_constants.AU_TO_KM`.
 
-`table_*` columns (see below) are the one exception to both conventions —
-they're copies of already-formatted display text (e.g. `"1.2 R☉"`, still
-whatever unit the wiki page itself shows: AU, ly, or km), independent of
-the raw column's storage unit.
+The `table_*` columns that once held copies of already-formatted display
+text (e.g. `"1.2 R☉"`) were the one exception to both conventions; v5
+dropped them (see "The searchable-field principle" below).
 
 ### The searchable-field principle
+
+*Historical: v5 dropped every `table_*`/`binary_table_*` column described
+in the next paragraph, and display strings are now computed on demand
+from the raw columns (`html/lib/tabledisplay.py`). The belt columns in
+the second paragraph remain.*
 
 Every `*Data`/`*_properties` dict that `to_paragraph_list()` builds in the
 generator — the exact values that appear in each object's rendered wiki
@@ -133,7 +143,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `20`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `44`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -142,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v8" notes) rather than duplicated here, since that
+comment ("v2" through "v44" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -394,15 +404,27 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `_migrate_v21_to_v22` for v22's search-facing indexes on `sectors`/
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
-steps only — no new columns, nothing to backfill). `migrate_database`
+steps only — no new columns, nothing to backfill), and so on, one step per
+version, through `_migrate_v43_to_v44`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v22), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v44), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
+
+**v19 to v26, in brief.** v19 added star-bound comets (`comets`,
+`comet_composition`; see that table below). v22 added the search-facing
+indexes above. v23 wired up wiki publishing (`sectors.wiki_url`, and
+`star_systems.wikijs_url`/`mediawiki_url` for existing databases). v24
+added the name-uniqueness registries (`sector_name_registry`,
+`system_name_registry` and a planet/moon `body_name_registry` that v34
+later dropped), so no two sectors or systems share a display name. v25
+and v26 added composite `(center_x_pc, center_y_pc, center_z_pc)` indexes
+on `sectors` and the placeable phenomenon tables, so bounding-box queries
+range-scan instead of reading every row.
 
 **Row timestamps (v27).** `sectors`, `star_systems` and the seven
 exotic-phenomenon tables each carry `created_at` and `modified_at`
@@ -432,6 +454,15 @@ linked to a galaxy-placed sector a random point inside that sector's
 cube (its real generated position was never saved), seeded by the row's
 id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
+
+**Page text rendered on demand (v29).** `_migrate_v28_to_v29` drops
+`star_systems.wikitext_content`/`markdown_content`; see "Rendered wiki
+text and URLs" below.
+
+**Data cleanup (v30).** No shape change. `_migrate_v29_to_v30` clears the
+atmosphere-only columns on planets and moons reclassified into an
+airless class (and on `atmosphere = 'None'` rows), and raises any surface
+temperature below the cosmic microwave background (2.725 K) to it.
 
 **Quasars (v31).** A new `quasars` table holds a galaxy's active nucleus
 (`quasarData.Quasar`). A quasar is only ever generated at the galactic
@@ -493,7 +524,8 @@ intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
 **Population and politics (v44).** Filled by `generate.py population`
-(and after every `sector`/`galaxy` run) from what is already stored; see
+(or `--population` on a `sector`/`galaxy` run, or the optional question
+the install and update scripts ask) from what is already stored; see
 docs/design/population-and-politics.md. `species` holds one dominant
 species per life world (a planet whose evolutionary milestone is
 multicellularity or a technological civilization): a galaxy-unique
@@ -652,7 +684,7 @@ same `StarSystem.__str__` generation used to run once before saving, so
 the text is identical, except that it now follows later changes (renames,
 names made unique, orbit ticks' current wobble and comet positions).
 `src/checkRenderParity.py` compares the two on a database still at v28.
-`mediawiki_url`/`wikijs_url` (v22 — see `schema.sql`'s header comment)
+`mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
 /api/systems/<id>/wiki` (`src/wikiClient/`, `web/system_pages.py`'s "Upload to
 Wiki" form) has actually uploaded it there — one system is one wiki page;
@@ -689,7 +721,9 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`generate.py sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
-| `wiki_url` | TEXT | nullable | Where this sector's summary page lives on a wiki (v22) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (`html/admin.py`'s manual-link admin section). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
+| `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
+| `created_at` | TIMESTAMP | NOT NULL | Added in v27. See "Row timestamps (v27)" above. |
+| `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Indexed. |
 
 A `CHECK` constraint enforces `center_x_pc`/`center_y_pc`/`center_z_pc`/
 `galactic_radius_pc` being NULL together (see "v3 → v4" in "Schema
@@ -733,6 +767,8 @@ billions of candidates).
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs: always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC` (4) since v33. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
 | `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, found by `generate.py plan` (the plane's layer reaches farthest), not an arbitrary radius. Named `outer_shell_index` before v32. |
+| `bright_star_min_luminosity_sol` | DOUBLE | nullable | Added in v43. The luminosity threshold the bright-star scatter used (see `bright_stars` below). A sector fill reads this, not the current constant. NULL until a scatter has run. |
+| `bright_star_seed` | BIGINT UNSIGNED | nullable | Added in v43. The scatter's random seed. |
 
 ### `galaxy_layer`
 
@@ -804,7 +840,7 @@ to maintain, and (unless installed with `--skip-update-timer`) `sudo
 update on the same monthly run:
 
 ```
-sudo ../examples/maintenance/install-maintenance-timer.sh [database ...]
+sudo examples/maintenance/install-maintenance-timer.sh [database ...]
 ```
 
 `updateOrbits.py` mutates rows, so it needs the same read-write database
@@ -856,7 +892,7 @@ One row per generated system (single-star or binary).
 |---|---|---|---|
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | NULL for a standalone system never placed in a sector. |
-| `system_config_id` | INTEGER | FK -> `system_configs.id`, NOT NULL | The recipe this system was generated from. For binaries, this is the *shared* config the primary/proxy/planets all use — the secondary star's transient `LARGE_STAR=False` deep copy (`systemData.py:97-100`) has no field this schema captures, so there's no second config row. |
+| `system_config_id` | INTEGER | FK -> `system_configs.id`, NOT NULL | The recipe this system was generated from. For binaries, this is the *shared* config the primary/proxy/planets all use — the secondary star is generated with `LARGE_STAR` temporarily forced off (`systemData.py`), a transient change this schema doesn't capture, so there's no second config row. |
 | `name` | TEXT | NOT NULL | The system's display name, e.g. `"Voranthis"`. Unique across systems and sectors (v24). Its stars, planets and moons are named from it (v34, see below); renaming it (`PATCH /api/systems/<id>`, or a uniqueness decoration) renames every one still carrying it. |
 | `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | DOUBLE | nullable | Position relative to the sector's cubic center. NULL iff not placed in a sector. |
 | `quadrant` | TEXT | nullable, CHECK IN ('I'..'VIII') | The sector octant label derived from the position above (see "Quadrant labeling" below). NULL iff position is NULL. |
@@ -885,14 +921,15 @@ One row per generated system (single-star or binary).
 | `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
 | `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v20. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
 | `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
-| `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
 | `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
-| `created_at` | TEXT | NOT NULL, default `CURRENT_TIMESTAMP` | |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | FK -> `nebulae.id` / `supernova_remnants.id`, `ON DELETE SET NULL`, nullable | Added in v39. The innermost nebula or supernova remnant whose sphere holds this system; at most one is set. See "Containment (v39)" above. |
+| `created_at` | TIMESTAMP | NOT NULL, default `CURRENT_TIMESTAMP` | |
+| `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Also bumped when a child row (star, planet, moon, belt, comet) changes. |
 
 **Quadrant labeling.** `quadrant` reuses the generator's own octant scheme
 (`src/stellarObjects/spaceSector.py`'s `classify_octant`, backed by
@@ -1097,6 +1134,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same real semantics as `planets.star_id` above — a real `stars.id` for a single star or a `'wide'` binary's comet; NULL only for a `'close'` binary's, which orbits the merged pair rather than one individually-stored star row. |
+| `name` | VARCHAR(255) | NOT NULL | Added in v40. A designation, `P/<host>-<n>` (periodic, under 200 years) or `C/<host>-<n>`, that follows a rename of its star. See "Names (v40)" above. |
 | `orbit_type` | TEXT | NOT NULL, CHECK IN ('elliptical','parabolic') | |
 | `period_class` | TEXT | nullable, CHECK IN ('jupiter_family','halley_type','long_period') | Only set for `orbit_type = 'elliptical'` — flavor/plausibility metadata only. |
 | `nucleus_diameter_km` | DOUBLE | NOT NULL | |
@@ -1152,6 +1190,9 @@ standalone (no owning `StarSystem` at all).
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. NULL when `star_id` is set (an anchored remnant's motion lives on its own `stars` row instead); populated only for a standalone black hole. See `stars`' identical columns below. |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. The sector this standalone black hole was generated as part of (`generate.generate_sector_phenomena`) or placed near (`generate.py phenomenon --sector-id`), the same convention `nebulae.sector_id` uses. Always NULL when `star_id` is set. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. This black hole's own galaxy-frame center, the same shape `nebulae`'s identical columns use (see below) -- but here it's usually the *exact* position `SpaceSector.add_phenomenon`'s Hill-sphere-aware in-sector placement computed at generation time (never within a neighboring star system's or another compact remnant's own Hill sphere), converted to galaxy-frame coordinates, rather than `compute_phenomenon_placement`'s independent random jitter (still used for `generate.py phenomenon`'s own standalone `--sector-id`, which has no specific in-sector position to convert). |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 **`neutron_stars`**
 
@@ -1168,6 +1209,9 @@ standalone (no owning `StarSystem` at all).
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | nullable | Added in v17. Same nullable-when-anchored convention as `black_holes` above. |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | Added in v21. Same convention as `black_holes.sector_id` above. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v21. Same convention as `black_holes`' identical columns above. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `nebulae`
 
@@ -1188,6 +1232,9 @@ sector-context encounter through v17, unused (always NULL) by
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 (`generate.py phenomenon --sector-id`): this nebula's own galaxy-frame center, in the same Cartesian space `sectors.center_x/y/z_pc` uses -- a sphere (this + `radius_ly`), not a sector-relative offset, since a nebula (up to 200 ly across) is frequently far larger than one sector (default edge 4 pc, ~13 ly) and may overlap several. NULL together: never placed in the galaxy (still the default -- `--sector-id` is optional). See `queryDb.phenomena_near_sector`/`galaxy_placed_phenomena` for how this is read back, and `docs/design/galaxy-coordinate-system.md` for the coordinate system itself. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. Set only when this nebula nests inside a larger cloud. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `supernova_remnants`
 
@@ -1214,6 +1261,8 @@ white dwarf).
 | `compact_remnant_neutron_star_id` | INTEGER | FK -> `neutron_stars.id`, `ON DELETE SET NULL`, nullable | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a supernova remnant is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this remnant's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `rogue_planets`
 
@@ -1232,6 +1281,9 @@ from any star.
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `quasars`
 
@@ -1254,6 +1306,7 @@ note.
 | `jet_length_ly` | DOUBLE | nullable | Set exactly when `is_radio_loud`. |
 | `active_age_years` | DOUBLE | NOT NULL | How long this episode of activity has run. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Always the galactic center (all 0) when placed; NULL together when never placed. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `created_at`, `modified_at` | TIMESTAMP | NOT NULL | Row timestamps, as v27 gave every other phenomenon table. |
 
 ### `interstellar_comets`
@@ -1271,6 +1324,9 @@ unbound from any star.
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary`. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (an interstellar comet is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this comet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `interstellar_comet_composition`
 
@@ -1305,6 +1361,9 @@ v18 gave it one.
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Always populated (an asteroid field is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v18 -- see `nebulae`'s identical "v18" column note above (an asteroid field's `radius_ly` tops out much smaller, `program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY` = 0.001-1.0 ly, so it usually stays within a single sector, but the same galaxy-frame-sphere model is used for consistency). |
+| `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
+| `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
 
 ### `asteroid_field_composition`
 
@@ -1321,6 +1380,130 @@ concentration shape — both are generated via the same shared
 | `component` | TEXT | NOT NULL | e.g. `"iron"`. |
 | `concentration` | TEXT | NOT NULL, CHECK IN ('high','moderate','small','trace') | |
 
+### `sector_name_registry` / `system_name_registry`
+
+Name-uniqueness bookkeeping (v24, `stellarObjects/nameUniqueness.py`).
+One row per base name (the name with every decoration this project adds
+stripped off) that has collided at least once; a name only ever used once
+has no row. `first_*` names the row that first used the base name, the
+one renamed as collisions happen (bare, then Alpha, ...).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `base_name` | VARCHAR(255) | NOT NULL, UNIQUE | |
+| `occurrence_count` | INT | NOT NULL | How many rows have used this base name. |
+| `first_sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | `sector_name_registry` only. |
+| `first_star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, nullable | `system_name_registry` only. NULL when the first holder is a phenomenon. |
+| `first_object_table`, `first_object_id` | VARCHAR(32), BIGINT UNSIGNED | nullable | `system_name_registry` only (v40): a uniquely named phenomenon holder, e.g. `('nebulae', 12)`. No foreign key. |
+| `diminutive_index` | INT | nullable | `system_name_registry` only: the diminutive prefix already applied against a colliding sector name. |
+
+### `nearest_systems`
+
+Added in v41. Up to 3 rows per placed star system or phenomenon: the
+nearest star systems, searched across sector boundaries out to
+`_db.NEAREST_SYSTEMS_SEARCH_PC`. Filled when a sector is generated (which
+also updates its neighbors' lists) and by `updateOrbits.py`. See
+"Octants and nearest systems (v41)" above.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, NOT NULL | The object's sector. |
+| `object_table`, `object_id` | VARCHAR(32), BIGINT UNSIGNED | NOT NULL | The object: `'star_systems'` or a phenomenon table, and its id. UNIQUE with `neighbor_rank`. |
+| `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, nullable | Repeats `object_id` for a system, so deleting it removes its rows. |
+| `neighbor_rank` | TINYINT | NOT NULL | 1 for the nearest. |
+| `neighbor_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `distance_pc` | DOUBLE | NOT NULL | |
+
+### `facilities`
+
+Added in v42. Starbases, colonies and outposts, each on exactly one host
+named by `host_type` (checked by `_db.add_facility`, since MySQL refuses
+a CHECK on a cascading column). See "Facilities (v42)" above and the API's
+"Facilities" section ([`api.md`](api.md#facilities)).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `name` | VARCHAR(255) | NOT NULL | Indexed. |
+| `kind` | VARCHAR(16) | NOT NULL, CHECK IN ('colony','outpost','mining-colony','station','starbase') | |
+| `placement` | VARCHAR(16) | NOT NULL, CHECK IN ('terrestrial','orbital','asteroid','standalone') | |
+| `host_type` | VARCHAR(16) | NOT NULL | `star`, `planet`, `moon`, `asteroid_belt`, `asteroid_field` or `space`. |
+| `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, nullable | Set for every host inside a system. |
+| `star_id`, `planet_id`, `moon_id`, `asteroid_belt_id`, `asteroid_field_id` | BIGINT UNSIGNED | FK, `ON DELETE CASCADE`, nullable | The host row. `star_id` is NULL for a close pair's shared orbit. |
+| `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | For a stand-alone facility in open space. |
+| `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable | A stand-alone facility's galaxy-frame position. |
+| `orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg` | DOUBLE | nullable | An orbital facility's circular orbit, from its host's mass. |
+| `description` | TEXT | nullable | |
+| `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | |
+
+### `bright_stars`
+
+Added in v43. Every star at least `galaxy_shape.bright_star_min_luminosity_sol`
+bright, generated and placed galaxy-wide by `generate.py plan`'s scatter
+before any sector is filled. See "Bright-star pre-placement (v43)" above.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `ring_index`, `layer_index`, `ring_slot_index` | INT / SMALLINT / INT | NOT NULL | The sector cell it falls in. Indexed together. |
+| `position_x_mpc`, `position_y_mpc`, `position_z_mpc` | BIGINT | NOT NULL | Galaxy-frame position, milliparsecs. |
+| `population` | VARCHAR(12) | NOT NULL, CHECK IN ('young','intermediate','old','bulge') | |
+| `star_type`, `yerkes_class` | VARCHAR | NOT NULL | As on `stars`. |
+| `mass_kg`, `radius_km`, `temperature_k`, `luminosity_w`, `age_gy` | DOUBLE | NOT NULL | The finished star. `luminosity_w` is indexed. |
+| `lifespan_gy`, `phase_end_age_gy` | DOUBLE | nullable | |
+| `initial_mass_sol` | DOUBLE | NOT NULL | A companion's mass is drawn from it. |
+| `seed` | BIGINT UNSIGNED | NOT NULL | Seed for the system built around it later. |
+| `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+### `species` / `polities` / `system_owners` / `population_state`
+
+Added in v44, filled only by the population pass
+(`stellarObjects/population.py`); see "Population and politics (v44)"
+above and `docs/design/population-and-politics.md`.
+
+**`species`**: one dominant species per life world.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `name` | VARCHAR(255) | NOT NULL, UNIQUE | |
+| `homeworld_planet_id` | BIGINT UNSIGNED | FK -> `planets.id`, `ON DELETE CASCADE`, NOT NULL, UNIQUE | |
+| `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `life_chemical` | VARCHAR(64) | nullable | |
+| `life_stage` | VARCHAR(32) | NOT NULL, CHECK IN ('multicellularity','technological_civilization') | |
+| `build`, `climate`, `size` | VARCHAR(16) | NOT NULL | |
+| `civilization_age_years`, `era` | DOUBLE, VARCHAR(16) | nullable | NULL without a civilization. |
+| `spacefaring` | TINYINT(1) | NOT NULL, default 0 | Era Interstellar or later. Indexed. |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+**`polities`**: one government per spacefaring species.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `name` | VARCHAR(255) | NOT NULL, UNIQUE | |
+| `species_id` | BIGINT UNSIGNED | FK -> `species.id`, `ON DELETE CASCADE`, NOT NULL, UNIQUE | |
+| `capital_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | The homeworld's system. |
+| `government` | VARCHAR(32) | NOT NULL | |
+| `color` | CHAR(7) | NOT NULL | `#rrggbb`, for the map. |
+| `reach_ly` | DOUBLE | NOT NULL | How far its territory extends. |
+| `created_at` | TIMESTAMP | NOT NULL | |
+
+**`system_owners`**: the polity with the strongest claim on each system
+inside some polity's reach, rebuilt from scratch by every pass.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `star_system_id` | BIGINT UNSIGNED | PK, FK -> `star_systems.id`, `ON DELETE CASCADE` | |
+| `polity_id` | BIGINT UNSIGNED | FK -> `polities.id`, `ON DELETE CASCADE`, NOT NULL | |
+| `distance_ly` | DOUBLE | NOT NULL | From the capital. |
+
+**`population_state`**: a singleton row (`id = 1`) holding
+`scanned_planet_id`, the highest `planets.id` the pass has scanned.
+
 ### `sector_objects` (view, not a table)
 
 `UNION ALL` across `stars`, `planets`, `moons`, `asteroid_belts`, and
@@ -1334,10 +1517,10 @@ SELECT * FROM sector_objects WHERE sector_id = ?;
 
 Columns: `object_type` (`'star'`/`'planet'`/`'moon'`/`'asteroid_belt'`/
 `'comet'`), `object_id` (the row's real id in its own table),
-`star_system_id`, `sector_id`, `name`, `summary` (a short type-appropriate
-label — a star's `table_type`, a planet's/moon's class or body type, a
-belt's density, a comet's `orbit_type`), `orbital_index` (NULL for stars
-and comets).
+`star_system_id`, `sector_id`, `name` (the literal `'Asteroid Belt'` for
+a belt), `summary` (a short type-appropriate label — a star's
+`star_type`, a planet's/moon's class or body type, a belt's density, a
+comet's `orbit_type`), `orbital_index` (NULL for stars and comets).
 
 This is a view rather than a sixth physical table specifically to avoid
 write-side upkeep: a real table would need to be kept in sync on every
@@ -1379,7 +1562,14 @@ with only a reserved, currently-unused `sector_id` FK. `nebulae`/
 already-generated sector, alongside their own galaxy-frame
 `center_x/y/z_pc`/`galactic_radius_pc` — see this file's "v18" note above.
 
-`galaxy_shape`/`galaxy_layer` stand apart from the tree above —
+`facilities` hangs off whichever host it names (a star, planet, moon,
+belt, asteroid field, or a sector for open space), and `species` off a
+planet, with `polities` and `system_owners` hanging off `species` and
+`star_systems`. `nearest_systems` links systems and phenomena to their
+nearest systems; `bright_stars` points at the system built around each
+star once its sector is filled.
+
+`galaxy_shape`/`galaxy_layer`/`galaxy_column` stand apart from the tree above —
 neither has a foreign key to `sectors` or anything else. They describe the
 galaxy as a whole (its shape parameters, and which addresses could hold
 content), not any individual sector; `sectors.ring_index` is the ring
