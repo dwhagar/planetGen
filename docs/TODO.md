@@ -608,6 +608,138 @@ invite links too.
     Do bookmarks survive a galaxy regenerate (object ids change), and if
     not, what does a broken bookmark show?
 
+### Project process (Boss's notes of 2026-10-01)
+
+80. [ ] **Number TODO items by category, and build the version from
+    them.** Boss (2026-10-01): "I want to renumber the TODO items in
+    groups so like UI changes get 'UX.1' and API Changes at 'API.1' kind
+    of thing, so that we can better track changes. We'll revamp
+    everything so that tags are consistent through the documentation.
+    We'll then build the build number (major feature set.revision.build)
+    to be a composite of the change numbers for each category added up.
+    (i.e. if we're on UX.4, API.8, and DB.12 we'd add those up to be
+    4+8+12)." Nothing is renumbered yet. Today items carry one running
+    number across groups (this file's "How to use this document" says to
+    renumber when items are added or finished), code sites carry
+    `TODO(<area> #N)` tags (`grep TODO(`), and the version (README badge,
+    `src/stellarObjects/_version.py`, `CHANGELOG.md`; 7.37.0 as of this
+    item) is bumped by `.github/workflows/stamp-version.yml` and
+    `scripts/bump_version.py` from each merged PR's
+    `changes/<name>.<patch|minor|major>.md` note. Done: every open item
+    gets a category ID (`UX.1`, `API.1`, `DB.1`, ...); the same IDs are
+    used in `TODO(...)` code tags, `changes/` notes, the changelog, PR
+    titles and the design docs; and the version's third number is the
+    sum of each category's counter. Open questions:
+    - The category list and what each covers (for example UX, API, DB,
+      MAP for the Galaxy/Sector/System maps, GEN for generation and
+      physics, NAV, SEC for security, OPS for installers and hosting,
+      DOC).
+    - Is a category's counter the number of changes shipped in it, or the
+      highest item ID? Does a finished item keep its ID (no more
+      renumbering), so IDs are never reused?
+    - How the post-merge Action counts: does each `changes/` note name its
+      category and item ID (for example `ux-62.patch.md` or a front-matter
+      line), and what happens to a PR that touches two categories or none
+      (a pure bug fix)?
+    - What "major feature set" and "revision" mean and who bumps them
+      (still the `patch`/`minor`/`major` level of the note?). Does the
+      build number reset when they go up? It can't, if it's a running sum
+      of counters, so the version would only ever grow in its third
+      place.
+    - Do the 1-79 numbers already in commits, PRs and the changelog get a
+      mapping table to the new IDs?
+
+81. [ ] **A structural design document: the program's "circuitry".**
+    Boss (2026-10-01): "build a structural design document of how the
+    program works overall, bridging file names to what they contain and
+    basically lays out the 'circuitry' of the program." Nothing like it
+    exists today: `docs/` has reference docs per area (`api.md`,
+    `database-schema.md`, `html-interface.md`, `config.md`,
+    `testing.md`, ...) and `docs/design/` has topic designs, but nothing
+    shows the whole. Done: one document (for example
+    `docs/design/architecture.md`) that maps every top-level script,
+    package and important module (`generate.py`, `src/stellarObjects/`,
+    `src/html/api/`, `src/html/web/`, `src/html/lib/`, `src/html/static/`,
+    installers, workflows) to what it holds, and traces the main flows
+    through them: generating a galaxy, sector and system; storing and
+    migrating the database; serving a page and a map; admin login and
+    jobs; releases. Open questions: diagrams (Mermaid, which GitHub
+    renders) or text only? How is it kept current (a CI check that every
+    module is listed, or a rule that PRs update it)?
+
+82. [ ] **Bring the design documents up to date, with the reasons.** Boss
+    (2026-10-01): "clean up the design documents make sure they are all
+    current, document how the program works the way it does and why and
+    what choices were made that influenced each." Done: every file in
+    `docs/design/` and `docs/analysis/` (and the reference docs in
+    `docs/`) checked against the code, fixed or marked as historical; each
+    says how that part works, why, and which choices and alternatives
+    shaped it (for example the cylindrical sector grid, rendering systems
+    from the database, three.js for the Galaxy Map, Flask-only site),
+    drawing on the PRs and `CHANGELOG.md`. Open questions: do superseded
+    designs get deleted or kept in an archive folder? Does this wait for
+    item 80's category IDs so the docs are tagged once? Best done after
+    item 81, which gives the map to hang them on.
+
+### View from a planet (Boss's notes of 2026-10-01)
+
+**Research first.** Boss: "view-from-planet will have to do calculations
+on colors and A LOT Of stuff, so make special note of that, it will need
+a full research pass." Before any code for items 83-84, Boss wants a
+research session with him "into exactly how one would do that". Items 83
+and 84 are blocked on it; item 85 is not.
+
+83. [ ] **A starmap seen from a planet. RESEARCH WITH BOSS FIRST.** Boss:
+    "Build a function to select a planet and generate an effective starmap
+    from that planet based on all visible stars, this will have to include
+    a lot, A LOT, of math so remind me to do research when we get there
+    into exactly how one would do that, but it would have to account for
+    where each star would have been at that light years back in time?"
+    Done: pick a planet (or moon), and get every star visible from it
+    with its direction and brightness as seen there, placed where it was
+    when the light now arriving left it (light-travel time back along
+    its galactic orbit; the correlative update now moves everything along
+    galactic orbits, TODO 32, PR #157). The research pass covers at least:
+    - which stars are visible (apparent magnitude from luminosity and
+      distance, a magnitude cut, interstellar extinction and reddening by
+      dust, and whether stars beyond the generated sectors are included,
+      for example from the density skeleton or the `bright_stars` table
+      from PR #159);
+    - star colors as seen from the planet (colour from temperature,
+      reddening, the planet's atmosphere and its own star's glare; Boss
+      singled out colors as needing real work);
+    - light-time positions (the star's position at "now minus distance /
+      c" along its galactic orbit), and where the planet is in its own
+      orbit and its sky orientation (axial tilt, rotation, latitude);
+    - nebulae, the galactic band, the companion stars of the planet's own
+      system, and performance (millions of stars per view).
+
+84. [ ] **Render the view as a PNG, with constellations.** Boss: "when
+    it does that it will generate a PNG and it will generate
+    constellations." Done: item 83's view is drawn to a PNG (a sky
+    projection, star size and colour by apparent brightness), and the
+    brighter stars are grouped into constellations with lines and names
+    from item 85, stored so a planet keeps the same constellations each
+    time. Blocked on item 83's research pass. Open questions: whole-sky
+    or a horizon view from a point on the surface? How are constellations
+    chosen (bright-star patterns, by clustering, a set number per sky)?
+    Are the PNGs cached on disk and served by the web interface, or made
+    on request?
+
+85. [ ] **Constellation names in the name generator.** Boss: "add to our
+    name generator constellation name support based on constellation
+    names throughout all known languages and then slice it up like we do
+    for all our naming". Done: a constellation name list in
+    `stellarObjects/names.py` gathered from constellation and star-group
+    names across the world's languages and sky cultures (not just the 88
+    IAU ones), and a constellation name generator that slices and
+    recombines them into new names the same way stars, planets and
+    sectors are named (`split_into_syllables` in `utils.py`, the
+    prefix/suffix lists, the `offensive_words.txt` filter). Used by item
+    84. Open questions: what counts as a source list (licensing of sky
+    culture data such as Stellarium's), transliteration of non-Latin
+    scripts, and whether names are unique per planet or galaxy-wide.
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
