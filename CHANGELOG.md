@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.29.1] - 2026-10-01
+
+### Changed
+
+- The Sector Map draws the sector's own cell again as a faint wireframe, with its inner and outer faces following the ring's curve.
+
 ## [7.29.0] - 2026-10-01
 
 ### Added
