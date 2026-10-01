@@ -159,53 +159,24 @@ def test_format_relative_to_sol_picks_percent_or_multiplier(value, markdown, low
         assert out.endswith("× Sol)")
 
 
-_MINUTES_PER_YEAR = 365.25 * 24 * 60
-_TIME_PART = re.compile(r"^(?:and )?(\d+) (year|day|hour|minute)(s?)$")
+_PERIOD_TEXT = re.compile(r"^-?[0-9.,]+(?: \u00d7 10[\u207b\u2070\u00b9\u00b2\u00b3\u2074-\u2079]+)? "
+                          r"(\u00b5s|ms|s|minutes?|hours?|days?|years?|ky|My|Gy)$")
 
 
-def _parse_time_string(text):
-    parts = {"year": 0, "day": 0, "hour": 0, "minute": 0}
-    if not text:
-        return parts
-    tokens = text.split(" ")
-    chunks, i = [], 0
-    while i < len(tokens):
-        if tokens[i] == "and":
-            chunks.append(" ".join(tokens[i:i + 3]))
-            i += 3
-        else:
-            chunks.append(" ".join(tokens[i:i + 2]))
-            i += 2
-    for index, chunk in enumerate(chunks):
-        match = _TIME_PART.match(chunk)
-        assert match, (text, chunk)
-        assert chunk.startswith("and ") == (index == len(chunks) - 1 and len(chunks) > 1), text
-        count, unit, plural = int(match.group(1)), match.group(2), match.group(3)
-        assert count > 0 and (plural == "s") == (count > 1), text
-        assert parts[unit] == 0, text
-        parts[unit] = count
-    return parts
-
-
-@given(years=st.floats(min_value=0, max_value=9999.99))
-def test_years_to_time_string_decomposes_exactly(years):
-    text = utils.years_to_time_string(years)
-    parts = _parse_time_string(text)
-    total = round(years * _MINUTES_PER_YEAR)
-    rebuilt = round(parts["year"] * _MINUTES_PER_YEAR) + parts["day"] * 1440 + parts["hour"] * 60 + parts["minute"]
-    assert rebuilt == total, (years, text)
-    assert parts["day"] <= 365 and parts["hour"] < 24 and parts["minute"] < 60
-
-
-@given(years=st.floats(min_value=1e4, max_value=1e12))
-def test_years_to_time_string_goes_scientific_past_four_digits(years):
-    assert utils.years_to_time_string(years).endswith(" years")
-    assert "\u00d7 10" in utils.years_to_time_string(years)
+@given(years=st.floats(min_value=0, max_value=1e15))
+def test_format_period_years_is_one_number_and_one_unit(years):
+    text = utils.format_period_years(years)
+    match = _PERIOD_TEXT.match(text)
+    assert match, (years, text)
+    unit = match.group(1)
+    if unit.rstrip("s") in ("minute", "hour", "day", "year"):
+        # Singular exactly when the number shown is 1.
+        assert (text.split(" ")[0] == "1") == (not unit.endswith("s")), text
 
 
 @given(years=st.floats(min_value=-1e9, max_value=0))
-def test_years_to_time_string_non_positive_does_not_raise(years):
-    assert isinstance(utils.years_to_time_string(years), str)
+def test_format_period_years_non_positive_does_not_raise(years):
+    assert isinstance(utils.format_period_years(years), str)
 
 
 @given(sentences=st.lists(hostile_text, max_size=6))

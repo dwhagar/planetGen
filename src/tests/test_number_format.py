@@ -15,7 +15,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects.utils import format_distance_km, format_number, scientific_text, years_to_time_string
+from stellarObjects.utils import format_distance_km, format_number, format_period_years, scientific_text
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
 
@@ -50,8 +50,10 @@ def test_distance_ladder_goes_scientific_past_four_digits():
 
 
 def test_periods_go_scientific_past_four_digits_of_years():
-    assert years_to_time_string(12_345.6) == "1.23 × 10⁴ years"
-    assert years_to_time_string(9_000) == "9000 years"
+    # Past 999 years the period ladder moves to ky, so a period only goes
+    # scientific past 9,999 Gy.
+    assert format_period_years(9_000) == "9 ky"
+    assert format_period_years(1.2346e13) == "1.23 × 10⁴ Gy"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

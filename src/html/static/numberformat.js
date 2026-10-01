@@ -35,3 +35,19 @@ export function formatNumber(value, maxDecimals = 0, minDecimals = maxDecimals) 
   }
   return text;
 }
+
+// Three significant figures, comma-grouped, trailing zeros dropped;
+// scientific past 4 whole digits (UX.20). The mirror of
+// stellarObjects/utils.py `_three_figures`; distance.js, speed.js and
+// period.js share it.
+export function threeFigures(value) {
+  if (value === 0 || !isFinite(value)) {
+    return String(value);
+  }
+  const magnitude = Math.floor(Math.log10(Math.abs(value)));
+  const decimals = Math.max(0, 2 - magnitude);
+  if (Math.abs(Math.round(value)) >= 10 ** (SCIENTIFIC_MIN_INTEGER_DIGITS - 1)) {
+    return scientificText(value);
+  }
+  return value.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
+}

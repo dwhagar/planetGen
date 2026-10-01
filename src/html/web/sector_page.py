@@ -47,7 +47,7 @@ from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 
 from . import bp, edit_actions
-from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
+from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
@@ -368,6 +368,29 @@ def _nav_for(pick):
     return nav
 
 
+def sector_designation(sector):
+    """A sector's galaxy designation (`provisional_sector_designation`),
+    or `None` for a sector with no galaxy address."""
+    address = (sector.get("ring_index"), sector.get("layer_index"), sector.get("ring_slot_index"))
+    if None in address:
+        return None
+    try:
+        return provisional_sector_designation(*address)
+    except ValueError:
+        return None
+
+
+def sector_bookmark(sector, sector_id):
+    """
+    The sector page's ☆ Bookmark entry (MAP.23): kind `"sector"`, keyed
+    by its designation so the Galaxy Map's ☆ on the same sector finds it
+    (its page URL when it has no galaxy address), with its id for the
+    NAV page's system picker.
+    """
+    url = page_url("sector", sector_id=sector_id)
+    return bookmark("sector", sector_designation(sector) or url, sector["name"], url, sector_id=sector_id)
+
+
 def galaxy_map_url(sector):
     """
     "Show on Galaxy Map" for a sector (MAP.25): `/galaxy?sector=
@@ -375,14 +398,8 @@ def galaxy_map_url(sector):
     it selected (design doc section 8.1). `None` for a sector with no
     galaxy address.
     """
-    address = (sector.get("ring_index"), sector.get("layer_index"), sector.get("ring_slot_index"))
-    if None in address:
-        return None
-    try:
-        designation = provisional_sector_designation(*address)
-    except ValueError:
-        return None
-    return page_url("galaxy", sector=designation)
+    designation = sector_designation(sector)
+    return page_url("galaxy", sector=designation) if designation else None
 
 
 @bp.route("/sector/<int:sector_id>/galaxy")
@@ -463,6 +480,7 @@ def sector(sector_id):
         phenomenon_count=phenomenon_count,
         quadrant=quadrant,
         galaxy_url=galaxy_map_url(detail),
+        bookmark=sector_bookmark(detail, sector_id),
         map_html=trusted_html(map_html),
         rows=page_rows,
         total_rows=len(rows),

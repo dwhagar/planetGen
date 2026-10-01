@@ -11,6 +11,7 @@ Run with: pytest src/tests/test_galaxymap3d.py
 import json
 import math
 import os
+import re
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -113,6 +114,21 @@ def test_panel_leaves_territories_out_when_there_are_none():
     assert 'data-action="territories"' not in html
     assert 'id="galaxymap3d-territories"' not in html
     assert _json_payload(html)["territoryPath"] is None
+
+
+def test_panel_has_the_bookmarks_menu():
+    """MAP.23: a Bookmarks menu in the controls row, for this database's
+    list, with Ctrl+1-9 on, filled by static/bookmarks.js; it takes no
+    data-action, which galaxymap3d.js's own buttons use."""
+    html = render_galaxy_map3d_panel('my"db', None, EDGE_PC, _empty_view())
+    controls = re.search(r'<div class="starmap-controls" id="galaxymap3d-controls">(.*?)\n</div>', html, re.S).group(1)
+    menu = re.search(r'<details class="bookmarks-menu"([^>]*)>(.*?)</details>', controls, re.S)
+    assert menu
+    assert "data-bookmarks-menu" in menu.group(1) and "data-bookmarks-keys" in menu.group(1)
+    assert 'data-bookmark-db="my&quot;db"' in menu.group(1)
+    assert "data-action" not in menu.group(0)
+    assert re.search(r'<summary class="starmap-btn"[^>]*>Bookmarks</summary>', menu.group(2))
+    assert "data-bookmarks-panel" in menu.group(2)
 
 
 def test_panel_json_payload_has_every_field_the_client_reads():
