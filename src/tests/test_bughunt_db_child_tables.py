@@ -41,6 +41,8 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
+from tests.fuzz_support import deterministic_entropy
+
 
 def _make_config(**overrides):
     cfg = SystemConfig()
@@ -197,24 +199,26 @@ def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql
 def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_config):
     """Same check as the planet test above, for a moon with life data --
     moon_evolutionary_paragraphs/moon_reflection_spectrum are a completely
-    separate table pair from the planet ones, so this isn't redundant."""
+    separate table pair from the planet ones, so this isn't redundant.
+
+    A moon that generates its own life data is too rare to wait for (none
+    in hundreds of systems; this test used to skip almost every run), so
+    a generated moon is given a life-bearing planet's paragraphs: the
+    child-table write is what's under test, not how often moons get life."""
     conn = _db.get_connection(mysql_config)
     try:
         found_moon = None
-        found_planet = None
-        for _ in range(15):
-            system = _generate_habitable_system_with_moons()
-            for obj in system.planets:
-                for moon in getattr(obj, "moons", []) or []:
-                    if getattr(moon, "life_chemical", None) and getattr(moon, "evolutionary_data", None):
-                        found_moon, found_planet = moon, obj
-                        break
-                if found_moon:
-                    break
-            if found_moon:
+        for seed in range(40):
+            with deterministic_entropy(seed):
+                system = _generate_habitable_system_with_moons()
+            planet = _first_planet_with_life_data(system)
+            moons = [moon for obj in system.planets for moon in getattr(obj, "moons", []) or []]
+            if planet is not None and moons:
+                found_moon = moons[0]
                 break
-        if found_moon is None:
-            pytest.skip("could not generate a habitable moon with life data in 15 attempts -- rare by design")
+        assert found_moon is not None, "no seed in 0-39 gave a life-bearing planet and a moon"
+        found_moon.life_chemical = planet.life_chemical
+        found_moon.evolutionary_data = list(planet.evolutionary_data)
 
         system_id = _db.insert_star_system(conn, system, system.system_config)
         conn.commit()
