@@ -431,6 +431,111 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   length remain, on one line, in the map's chosen units (sectors and pc
   or ly, as now).
 
+- [ ] **MAP.61 One map engine and control set for the Galaxy Map and the Sector Map**
+  Boss (2026-10-01 20:55Z): "unify the sector view with the galactic
+  view so it's all the same code and control set, because right now
+  they're different." Today the Galaxy Map (`galaxymap3d.js`,
+  `galaxystageview.js`, `galaxystages.js`) and the Sector Map
+  (`sectormap.js`) are separate three.js pages, with their own camera,
+  controls, picking, tooltips and scale readouts. Done: one shared
+  engine (scene, camera, controls, picking, hover, info panel, scale
+  line, bookmarks, keys and touch) draws both. The sector is the
+  deepest stage of the galaxy drill-down, with the same buttons and
+  gestures, and the only differences are the data each level shows.
+  Ties in with NAV.3 (the shared picker), MAP.53 to MAP.60 (the
+  Galaxy Map controls being reworked now) and MAP.62 (the system view
+  joins the same engine).
+
+- [ ] **MAP.62 A full 3D star system view with a free camera**
+  Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
+  movable free-camera motion view." Today the System Map
+  (`systemmap.js`, `lib/systemmap.py`) is a flat SVG diagram. Done: a
+  star system is drawn in 3D (its stars, planets, moons, belts and
+  comets on their orbits, sizes and distances shown legibly, with a
+  scale option), and the camera can be moved freely (orbit, pan, zoom,
+  fly to a body), using the shared engine of MAP.61 and the shared
+  picker of NAV.3. Clicking a body opens or selects it. The flat
+  diagram stays available.
+
+## NAV: Navigation and courses
+
+- [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
+  Boss (2026-10-01 20:55Z): "completely functionalize all functions
+  for the Galactic Picker and join it up with functionalizing the
+  Sector Display and Star System Display so that the user, upon
+  clicking on things in the navigation segment, can: go from one
+  specific item (say, a moon in a star system) and go back out;
+  navigate visually via the UI; select another sector, another star
+  system, stellar phenomena, or anything like that, and vice versa to
+  go from one to the other, so that we don't have to repeat code for
+  the visual interfaces." Today the NAV page (`web/nav_page.py`) picks
+  endpoints from dropdowns (a sector, then a system), and the Galaxy
+  Map's drill-down, the Sector Map and the System Map each have their
+  own picking code. Done: one picker module, shared by every visual
+  display and the NAV page, that can:
+  - pick any object at any level: a sector, a star system, a
+    phenomenon, a star, a planet or a moon;
+  - step out from any item to its parents (moon to planet to system to
+    sector to the galaxy) and back in, visually and through a
+    breadcrumb;
+  - move sideways from one item to another of any kind.
+  The NAV page uses it for both endpoints, so a course's ends are
+  picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
+  NAV.6.
+
+- [ ] **NAV.4 Save a course**
+  Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
+  as a user ... Actually just have it save both so the user has either,
+  no matter what they wanted in the first place." Today a course
+  (`/nav?from=...&to=...`, `queryDb.nav_between`) can only be
+  bookmarked as a URL. Done: a signed-in user can save a course under a
+  name. A saved course always keeps both forms:
+  - the direct, point-to-point line (its bearing and mark, NAV.1);
+  - the system-to-system route (the chain of systems it hops through).
+  The user can list, open, rename and delete their saved courses. The
+  saved course shows whichever form the user views, and they can switch
+  between the two. Needs user accounts (USR.1) and their storage. Open
+  question: until user accounts exist, should saving be admin-only, or
+  per browser like bookmarks?
+
+- [ ] **NAV.5 Show a course on the Galaxy Map**
+  Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
+  to view the route in the context of the galactic map, zoomed in as far
+  as it can be zoomed in and still show the entire path. The course
+  path, direct and system-to-system, should then be specially
+  highlighted as a course." Today the NAV page draws its own flat map
+  of the route (`lib/navmap.py`), and the Galaxy Map only takes
+  `?course=` for an end point. Done: from the NAV page (and a saved
+  course, NAV.4), the course opens on the Galaxy Map, zoomed in as far
+  as it can be while showing the whole path. Both the direct line and
+  the system-to-system route are drawn in a distinct course style,
+  told apart from each other, with their end points and hops marked
+  and clickable. The same works inside a sector. Ties in with MAP.58
+  (zoom limits: a course view may need a fitted zoom outside the user
+  range) and MAP.61.
+
+- [ ] **NAV.6 Courses that steer clear of gravity wells**
+  Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
+  the course. A ship piloting would adjust the course to avoid falling
+  into the gravitational field of objects it knows about. We'll need to
+  have the system automatically adjust the course to avoid objects,
+  attempting to stay out of the Hill sphere of each object. We're also
+  going to use this within the sector and within the star system."
+  Today a course is a straight line between its ends (NAV.1), and the
+  route is a chain of systems. Done: course planning finds the bodies
+  near the path that it knows about, and bends the path to stay outside
+  each one's Hill sphere (or a safe radius where a Hill sphere doesn't
+  apply, such as a star in the galaxy or a black hole). This works:
+  - between systems in the galaxy (stars, black holes, neutron stars,
+    nebulae and other phenomena);
+  - inside a sector;
+  - inside a star system (planets and moons, around the star).
+  The adjusted path, its extra length and its time at each speed (NAV.2)
+  are shown with the course, and the straight line stays available for
+  comparison. Open questions: a Hill sphere needs an orbit around a
+  heavier body, so what radius applies to a star or a lone object? And
+  does the system level need the bodies' positions at a given time?
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
