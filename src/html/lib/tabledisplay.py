@@ -34,6 +34,8 @@ first.
 
 import re
 
+from fmt import dash_unless_finite
+
 _SUP_HTML_RE = re.compile(r'<sup>(-?\d+)</sup>')
 _SUPERSCRIPT_DIGITS = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
 
@@ -72,6 +74,19 @@ except ImportError:
     # `html/sector.py`'s identical fallback for `milliparsecs_to_ly`).
     _HTML_CONFIG = None
     format_period_years = None
+
+
+def _dash_unless_positive(formatter):
+    """`dash_unless_finite(formatter)`, and a dash for a negative value too:
+    a negative mass or luminosity is no real value, and `format_relative_to_sol`
+    would spell -1e300 out as a 300-digit percentage (TEST.53)."""
+    guarded = dash_unless_finite(formatter)
+
+    def positive(value):
+        return "\u2013" if isinstance(value, (int, float)) and value < 0 else guarded(value)
+    positive.__name__ = formatter.__name__
+    positive.__doc__ = formatter.__doc__
+    return positive
 
 
 def format_star_mass(mass_kg):
@@ -119,3 +134,12 @@ def format_body_distance(distance_km, is_moon=False):
     if _HTML_CONFIG is None:
         return f"{distance_km} km"
     return format_distance_km(distance_km)
+
+
+# TEST.53: `None`, NaN, an infinity or a number past float range shows a
+# dash, never "nan km" or a traceback.
+format_star_mass = _dash_unless_positive(format_star_mass)
+format_star_luminosity = _dash_unless_positive(format_star_luminosity)
+format_star_radius = dash_unless_finite(format_star_radius)
+format_period = dash_unless_finite(format_period)
+format_body_distance = dash_unless_finite(format_body_distance)

@@ -1,5 +1,137 @@
 # Changelog
 
+## [7.119.271] - 2026-10-01
+
+### Changed
+
+- Bright stars now come after the sectors (GEN.30). A new galaxy generates its first sectors and then scatters the bright stars galaxy-wide, leaving those sectors out (`generate.py galaxy --then-scatter`).
+- The bright-star backfill runs once, after a run has generated every sector it was asked for. By default it backfills only around the requested sector: the random start, the center sector or the slot address, or for ring, column, shell and block runs the generated sector nearest the middle. `--backfill-from all` (on the Generate page, "Backfill from every generated sector (farthest out)") backfills around every generated sector instead, and `--backfill-from none` skips the backfill.
+- The scatter always leaves filled sectors out. The "Leave filled sectors out" checkbox is gone, and `--force` is accepted but no longer needed. A generated sector never gets scattered or backfilled stars.
+
+## [7.118.271] - 2026-10-01
+
+### Added
+- **The Generate page's sections fold (ADM.4).** Click a section's
+  heading (or focus it and press Enter or Space) to open or close it.
+  Current job starts open; every other section opens or closes the way
+  you last left it in this browser. A form shown again with an error or
+  its size-and-time estimate stays open.
+- **"Around a sector" can find its center.** Pick a filled sector by
+  searching for its name (or a star system's name, which finds the sector
+  it is in), or from a paged list of every filled sector, nearest the
+  core first; or give a sector address (ring, layer and slot), or a
+  galaxy-frame position in parsecs. An address or position that isn't
+  generated yet is generated first, then its neighborhood.
+
+### Fixed
+- **A HEAD request to the Generate page no longer runs its form.** It
+  is answered like a GET, so it can't skip the form's CSRF check.
+
+## [7.117.271] - 2026-10-01
+
+### Changed
+
+- A new galaxy's galaxy-wide bright-star scatter now places every star of 1,000 solar luminosities and up (was 500). A galaxy already scattered keeps its level and its stars.
+- The bright-star backfill around each generated sector is tiered by distance (GEN.30): down to 100 solar luminosities within 10 ly, 250 within 25 ly, 500 within 50 ly and 750 out to 100 ly. A block takes the tier of its nearest sector, and a block a nearer sector reaches later is topped up with only the band it lacks.
+- The Generate page has a "Bright stars from (solar luminosities)" field on New galaxy, Plan and Rebuild the bright stars, passed to the scatter as `--bright-star-min-luminosity`.
+
+## [7.116.271] - 2026-10-01
+
+### Added
+
+- An admin Queue page (`/admin/queue`, in the settings menu) to view and
+  manage generation jobs (ADM.10): workers active and the server's load
+  as "x / x / x" (CPU percent over 1, 5 and 15 minutes on Windows), the
+  job trees with timing, progress and ETA on every node, and Pause,
+  Resume, Cancel, Retry and Delete on any job, part of a job or failed
+  sector. A paused job finishes its running tasks and stands by without
+  holding up other jobs; "Pause the queue" stops every job from starting
+  or taking another task until it is resumed. Each control is confirmed
+  first and written to the activity log.
+
+## [7.115.271] - 2026-10-01
+
+### Added
+- Tests for pages staying fresh after a command-line write (TEST.42) and
+  the caches under real threads (TEST.54).
+- Tests for who may call what across the whole API, generated from the
+  route list (TEST.43), what an API key may do (TEST.44), more than one
+  admin (TEST.45), trusted-device and two-factor edge cases (TEST.46),
+  oversized requests (TEST.47) and security headers on every kind of
+  response (TEST.48), the thinly tested API routes (TEST.49) and Galaxy
+  Map URLs combined (TEST.50).
+
+### Changed
+- A request body over 2 MB is refused with a 413 (JSON under `/api`, the
+  error page elsewhere) before the login checks or the database see it.
+  Before, any size was read into memory.
+- An API key can no longer make API keys, change credentials, set up or
+  turn off two-factor sign-in, or log out: those answer 403 and need a
+  browser sign-in, so a leaked key can't make itself a replacement.
+- Turning two-factor sign-in off forgets every trusted device of that
+  admin; the browser that turned it off gets a new one.
+
+### Fixed
+- An admin route whose control database can't be reached answers 503
+  "database unavailable" instead of a 500.
+- A phenomenon added from the command line (`generate.py phenomenon
+  --sector-id N`) now shows up on cached sector pages and Galaxy Map
+  tiles; before, it marked nothing as changed, so cached tiles never
+  showed it.
+- `/galaxy/locate` answers JSON when the API says "not found" (for
+  example an unknown database), like `/galaxy/tiles` and `/galaxy/stage`
+  already did, instead of the HTML 404 page.
+
+## [7.114.271] - 2026-10-01
+
+### Added
+- **Bulk generation checks the math first (TEST.68).** `generate.py
+  check-math` runs the math check by hand (`-v` lists every check). Every
+  bulk run (`galaxy`, `plan`, `population`, and `sector` with more than one
+  sector), every Generate page job (its new first step, "Check the math")
+  and the Sector page's neighbourhood generation run it first and refuse
+  to start if a check fails, naming the failed checks and writing nothing.
+  `update.sh` and `update.ps1` run it after updating (a new step 4) and
+  warn if it fails, skipping the population pass.
+
+## [7.113.271] - 2026-10-01
+
+### Added
+
+- Every generation job is now a tree, with timing on every node (ADM.12):
+  a Generate page job, its steps, each `generate.py` run, its phases
+  (skeleton, bright stars, population), its work queues and their sectors
+  or layers, each with its own state, start, end and duration, and
+  totals, timings and an ETA added up from the children. One-worker runs
+  are recorded too. Control schema v7: run `update.sh` (or `update.ps1`)
+  after updating.
+
+## [7.112.265] - 2026-10-01
+
+### Added
+- **A math check that runs first (TEST.63 to TEST.67).** A new module,
+  `stellarObjects/mathCheck.py`, checks the generator's math against 49
+  fixed answers before anything trusts it: known values from real
+  astronomy (the Sun's luminosity, lifetime and temperature, Earth's and
+  Jupiter's orbits, Earth's Hill sphere, the habitable zone and snow line,
+  white dwarf sizes, the Sun's Schwarzschild radius and galactic orbit,
+  Holman & Wiegert's stability limits, the Kepler and Barker equations),
+  identities that hold for any input (unit conversions, constants that
+  agree with each other, energy conservation around an orbit, the sector
+  grid), and seeded draws from every sampler (star masses, ages, sector
+  counts, planet sizes and classes) checked against their intended shares.
+  Each check says where its expected value comes from. It takes under a
+  second. The test suite runs it before any test and stops if it fails,
+  CI runs it as its own first job, and the website runs it at startup and
+  shows admins a warning if it fails. `python -m stellarObjects.mathCheck -v`
+  prints the report.
+
+### Fixed
+- **The speed of light disagreed with the light-year.** `SPEED_OF_LIGHT_M_S`
+  was 2.998e8 m/s while the light-year used the exact 299,792,458 m/s; it
+  is now exact too, so black hole and quasar event horizons come out
+  0.005% larger.
+
 ## [7.111.254] - 2026-10-01
 
 ### Changed
