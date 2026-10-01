@@ -879,7 +879,7 @@ def iter_sector_configs(args):
 # O/B stars for H II regions, a B or A star for reflection, one hot central
 # star for a planetary nebula, none for molecular clouds, a neutron star or
 # black hole for core-collapse remnants. They span many sectors, so later
-# sectors generated inside one must see it (#29).
+# sectors generated inside one must see it (_db.refresh_containment does, v39).
 def sector_star_count(sector):
     """How many stars `sector`'s systems hold (a binary counts two) --
     what every per-star phenomenon rate multiplies."""

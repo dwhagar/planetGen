@@ -750,8 +750,53 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     # the level-0 tile is far too big to list slots at all.
     assert tiles[near]["planned"]
     assert tiles[whole]["planned"] == []
+    # Neither sector has a grid address, so neither is in a filled summary.
+    assert tiles[near]["filled"] == {"g": 1, "cells": []}
+    assert tiles[whole]["filled"]["cells"] == []
     assert "density" not in body
     assert body["has_shape"] is False
+
+
+def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
+    """A tile's filled summary lists each addressed sector at g = 1 and
+    past `max_cells` groups them into cells three sectors a side, with the
+    cell's wedge by center angle -- nothing is sampled away."""
+    from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
+
+    addresses = [(0, 0, 0), (1, 0, 4), (2, 1, 0), (7, -1, 30), (7, 0, 30)]
+    ids = []
+    for n, address in enumerate(addresses):
+        center = sector_position_pc(*address, 4.0)
+        ids.append(_place_sector(mysql_config, f"Cell {n}", center, address=address))
+    _place_sector(mysql_config, "No Address", (1.0, 1.0, 1.0))
+    lo, hi = (-100.0, -100.0, -100.0), (100.0, 100.0, 100.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        exact = queryDb.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0)
+        grouped = queryDb.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0, max_cells=4)
+        coarse = queryDb.galaxy_filled_in_box(conn, lo, hi, 3 * 4.0 * queryDb.GALAXY_TILE_FILLED_SCALE, 4.0)
+    finally:
+        conn.close()
+    assert exact["g"] == 1
+    assert [cell[:5] for cell in exact["cells"]] == [
+        [ring, layer, slot, sector_id, 1] for (ring, layer, slot), sector_id in zip(addresses, ids)
+    ]
+    assert exact["cells"][0][5] == "Cell 0"
+    assert ring_sector_count(7) > 30
+
+    def expected_cells(g):
+        cells = {}
+        for ring, layer, slot in addresses:
+            cell_ring = ring // g
+            wedges = max(3, round(2 * math.pi * (cell_ring + 0.5)))
+            angle = (slot + 0.5) / ring_sector_count(ring)
+            key = (cell_ring, (layer + (g - 1) // 2) // g, int(angle * wedges))
+            cells[key] = cells.get(key, 0) + 1
+        return cells
+
+    for summary in (grouped, coarse):
+        assert summary["g"] == 3
+        assert {tuple(cell[:3]): cell[3] for cell in summary["cells"]} == expected_cells(3)
 
 
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):

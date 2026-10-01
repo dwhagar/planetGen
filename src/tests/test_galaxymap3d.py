@@ -26,7 +26,6 @@ from galaxymap3d import (  # noqa: E402
     DENSITY_SHAPE_FIELDS,
     FETCH_RADIUS_FACTOR,
     MIN_VIEW_RADIUS_FLOOR_PC,
-    PLANNED_MAX_VIEW_RADIUS_PC,
     galaxy_extent_pc,
     initial_tile_request,
     render_galaxy_map3d_panel,
@@ -34,7 +33,6 @@ from galaxymap3d import (  # noqa: E402
 )
 
 from stellarObjects.galaxyViewport import (  # noqa: E402
-    TILE_MAX_LEVEL,
     parse_tile_key,
     tile_level_for_view_radius,
     tiles_intersecting_sphere,
@@ -111,8 +109,8 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["fetchPath"] == "/galaxy/tiles"
     assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True
-    for field in ("tileRootEdgePc", "tileMaxLevel", "plannedTileMaxEdgePc", "plannedMaxViewRadiusPc",
-                  "fetchRadiusFactor", "maxTilesPerRequest"):
+    for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest",
+                  "blockMinPx", "blockBudget"):
         assert field in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0
@@ -159,17 +157,19 @@ def test_panel_json_is_safely_escaped_against_script_breakout():
     assert data["storageKey"] == "weird</script><script>alert(1)</script>db"
 
 
-def test_panel_includes_real_placed_and_planned_data_from_the_initial_view():
+def test_panel_includes_the_initial_views_tiles():
     view = _empty_view(has_shape=True)
     view["tiles"]["1/1/1/1"] = {
         "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
                      "galactic_radius_pc": 3.7, "ring_index": 1, "layer_index": 0, "ring_slot_index": 0,
                      "designation": "ABC", "system_count": 4}],
         "planned": [],
+        "filled": {"g": 1, "cells": [[1, 0, 0, 1, 4, "Real Sector"]]},
     }
     html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 10}, EDGE_PC, view)
     data = _json_payload(html)
     assert data["initial"]["tiles"]["1/1/1/1"]["placed"][0]["name"] == "Real Sector"
+    assert data["initial"]["tiles"]["1/1/1/1"]["filled"]["cells"][0][5] == "Real Sector"
     assert data["initial"]["stamp"] == "0123456789abcdef"
 
 
@@ -182,23 +182,9 @@ def test_initial_tile_request_matches_the_shared_tile_math(orbit_radius):
     view_radius = orbit_radius * FETCH_RADIUS_FACTOR
     level = tile_level_for_view_radius(view_radius)
     view_keys = tiles_intersecting_sphere(level, center, view_radius)
-    assert keys[:len(view_keys)] == view_keys
+    # One level only: the map no longer fetches the finest (planned) tiles.
+    assert keys == view_keys
     for key in keys:
         parse_tile_key(key)
-    if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
-        assert any(key.startswith(f"{TILE_MAX_LEVEL}/") for key in keys)
-    else:
-        assert all(key.startswith(f"{level}/") for key in keys)
     assert len(keys) <= 128
 
-
-def test_planned_tiles_cover_the_whole_view_not_a_smaller_ball():
-    # A zoomed-in view fetches planned tiles out to the full view radius,
-    # so the dots fill the screen instead of clustering into a ball around
-    # the target.
-    center = (8000.0, 3.0, -2.0)
-    orbit_radius = PLANNED_MAX_VIEW_RADIUS_PC / FETCH_RADIUS_FACTOR
-    keys = initial_tile_request(orbit_radius, center)
-    view_radius = orbit_radius * FETCH_RADIUS_FACTOR
-    planned_keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, view_radius)
-    assert set(planned_keys) <= set(keys)

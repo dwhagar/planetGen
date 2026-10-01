@@ -36,14 +36,15 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 15-18 in order (13, pixel-sized blocks, and 14, the solid and its slice, have shipped). 12 (the
+   slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27, 29, 30 and 35
-   are schema changes; 28 and 31 (classes) shipped in schema v38.
+   and speeds (33-34), and facilities (35-36). 26, 27, 30 and 35
+   are schema changes; 28 and 31 (classes) shipped in schema v38, 29
+   (containment) in v39.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -72,52 +73,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-15. [ ] **One solid of blocks for filled and unfilled sectors; no more
-   marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
-   and out and find generated ("filled") sectors from the blocks alone.
-   - **Remove the dots.** Drop the placed-sector sprites (the halo and
-     core dots) and the planned-sector dots from `galaxymap3d.js`: the
-     textures, `syncTier`, `withPinned`, marker scaling, and marker picking.
-     Filled and unfilled sectors are both shown only through the
-     continuous solid of blocks (#13, #14).
-   - **Color by density.** Every block is colored by the density of the
-     space it covers (`prismShade`). At m = 1, a filled sector is colored by its
-     real system density (`placedDensityColor`'s scale).
-   - **Opacity by how full a block is.**
-     - Unfilled space is 20% (densest) to 50% (sparsest) transparent,
-       scaled by density.
-     - A block holding filled sectors grows more solid in proportion to
-       its filled share (filled ÷ total sectors), reaching fully opaque when
-       every sector is filled.
-     - At large m the share is tiny (a handful of filled sectors among
-       531,441), so give any filled content a minimum visible step, then
-       scale it. A log of the count is one option.
-     - Boss confirmed on 2026-09-30: the more filled sectors a block
-       holds, the more solid it is, and fully solid once every sector is
-       generated.
-   - **Individual filled sectors appear only at sector zoom (m = 1).**
-     Coarser, they show only through their block's opacity.
-   - **Picking moves to blocks.**
-     - Clicking a block shows its info (#16).
-     - At m = 1, a filled block links to its sector page, and an unfilled
-       one shows today's designation and CLI snippet.
-     - Double-clicking a block with filled sectors zooms in toward them.
-   - **What it needs:**
-     - Per-block filled counts, counted in the browser from the tiles'
-       placed lists, or totalled by the server for coarse views.
-     - Translucent blocks drawn after opaque ones, sorted back to front.
-     - Interior culling (#13) only where all neighbours are opaque.
-     - A block's total sector count (`blockSectorCount`).
-
-   Done means filled sectors can be found by zooming alone at every zoom,
-   there are no marker sprites left, colors follow density, and the frame
-   rate holds at the #13 block budget.
-
-16. [ ] **Block info on click.** Clicking a block shows its sector ring,
-   layer and slot ranges and its exact sector count (and how many are
-   generated once tiles carry that). A click at m = 1 keeps today's sector
-   panel (designation, CLI snippet, 8 corners).
 
 17. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
    rebuilds the whole prism set on the main thread, then waits on tiles.
@@ -239,24 +194,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
       `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
 
-29. [ ] **Record what sits inside a nebula.** Boss: "Add a DB field for
-    if any stellar object (including systems) exist within a nebulae or
-    similar (not asteroid fields, that wouldn't work) or stellar
-    remnants if necessary."
-    - A nullable `nebula_id` (the innermost containing nebula or
-      supernova remnant) on `star_systems`, `rogue_planets`,
-      `interstellar_comets`, `black_holes`, `neutron_stars`,
-      `asteroid_fields`, `nebulae` (nesting) and stand-alone facilities
-      (#35). Asteroid fields can sit inside a nebula but never contain
-      anything. Schema change with a migration.
-    - Containment is a 3D distance test against every nebula that
-      reaches the object's sector, set at generation, when a later
-      sector is generated inside an existing nebula, and by #32.
-    - Show "inside <nebula>" on system, phenomenon and sector pages.
-      Being inside also compresses a star's heliopause (down to ~0.2 AU
-      in a dense cloud), which should feed system text, habitability and
-      the navigation hand-off radius (#33).
-
 30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
     comets should be named using a method that tells something about
     them by their name in letters and numbers in a standardized way.
@@ -297,7 +234,7 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       the new sector. Boss (2026-09-30): "when a sector changes then we
       make sure the DB and all text is changed to point at the new
       sector location": `sector_id`, sector-relative positions, octant
-      (`quadrant`), `star_systems.location`, containing nebula (#29),
+      (`quadrant`), `star_systems.location`, containing nebula (`_db.refresh_containment`),
       and any stored or rendered text naming the old sector.
 
 ### Facilities (new)

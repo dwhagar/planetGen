@@ -149,7 +149,7 @@ human-readable label for this script's own summary line."""
 # phenomenon along its galactic orbit, update its galactic location (and
 # its sector when it crosses a boundary: sector_id, octant, location text
 # and every stored or rendered text naming the old sector all follow), then
-# recalculate the nearest systems (#26) and containing nebula (#29) and
+# recalculate the nearest systems (#26) and containing nebula (_db.refresh_containment) and
 # store them.
 def main():
     parser = argparse.ArgumentParser(
