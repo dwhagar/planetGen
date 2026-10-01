@@ -481,6 +481,25 @@ def refresh_territories(conn):
 # Reads (API, pages)
 # ---------------------------------------------------------------------------
 
+def population_status(conn):
+    """
+    What population data exists, for pages to hide themselves when there
+    is none (Boss, 2026-10-01): `generated` (a pass has run), `species`
+    (any species), `polities` (any polity) and `territories` (any owned
+    system). Three indexed `EXISTS` probes. All false on a database
+    without the v44 tables.
+    """
+    try:
+        row = conn.execute(
+            "SELECT EXISTS(SELECT 1 FROM population_state) AS generated, "
+            "EXISTS(SELECT 1 FROM species) AS species, EXISTS(SELECT 1 FROM polities) AS polities, "
+            "EXISTS(SELECT 1 FROM system_owners) AS territories"
+        ).fetchone()
+    except Exception:  # noqa: BLE001 -- a pre-v44 database: nothing generated
+        return {"generated": False, "species": False, "polities": False, "territories": False}
+    return {key: bool(row[key]) for key in ("generated", "species", "polities", "territories")}
+
+
 _SPECIES_COLUMNS = (
     "s.id, s.name, s.homeworld_planet_id, p.name AS homeworld_name, s.star_system_id, ss.name AS system_name, "
     "s.life_chemical, s.life_stage, s.build, s.climate, s.size, s.civilization_age_years, s.era, s.spacefaring, "

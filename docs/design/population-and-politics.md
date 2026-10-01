@@ -132,12 +132,14 @@ so it works on the galaxy Boss is generating now with no regenerate:
 Flags: `--rescan` (drop the watermark and rebuild species from scratch,
 keeping nothing), `--territories-only` (skip steps 1-2).
 
-`generate.py galaxy` and `generate.py sector` run the whole pass after
-they save (`--no-population` skips it), so species and territories stay
-current as the galaxy fills in; that includes the admin Generate page's
-jobs, which run those commands. The API's "generate neighborhood" button
-does not; the next pass picks its systems up. Nothing in system
-generation itself changes.
+Population is optional and off by default (Boss, 2026-10-01): nothing
+runs it unless asked. `generate.py galaxy` and `generate.py sector` run
+the whole pass after they save only with `--population`; the admin
+Generate page's jobs don't pass it. `install.sh`/`update.sh` (and
+`install.ps1`/`update.ps1`) offer to run it after the database step,
+y/N with a 30-second timeout defaulting to No and skipped with no
+terminal; `POPULATION=1` (`-Population` on Windows) runs it without
+asking. Nothing in system generation itself changes.
 
 ## Storage (schema v44)
 
@@ -159,6 +161,9 @@ polity, and the polity to its ownership rows.
   polity page listing its systems, "Dominant species" on a life world's
   planet card and "Territory of ..." on an owned system's page.
 - Galaxy Map: a territory overlay coloring owned systems by polity.
+  Shipped in PR #179: a Territories button draws each polity's reach as a
+  soft ball around its capital, owned systems as dots in its color, and a
+  legend (page endpoint `/galaxy/territories`).
 - API: `GET /api/species`, `GET /api/species/<id>`,
   `GET /api/planets/<id>/species`, `GET /api/polities`,
   `GET /api/polities/<id>` (systems included),
@@ -176,5 +181,7 @@ Boss accepted every recommended default on 2026-10-01:
 2. Species names unique across the galaxy.
 3. One polity per spacefaring species.
 4. Territory reach cap 100 ly.
-5. Territories recompute automatically after each fill.
+5. Territories recompute automatically after each fill. Superseded the
+   same day: population is optional and off by default everywhere,
+   including fills and install/update (see "When it runs").
 6. Civilizations on 1 in 1,000 worlds past the milestone.

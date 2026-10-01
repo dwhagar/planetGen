@@ -346,3 +346,42 @@ def test_api(mysql_config, galaxy, client):
     assert owner is not None and owner["distance_ly"] == 0.0
     territories = client.get("/api/territories").get_json()
     assert territories["points"] and territories["polities"]
+
+
+def test_fills_skip_population_unless_asked(monkeypatch):
+    """Off by default (Boss, 2026-10-01): a sector/galaxy run only runs the
+    pass with --population."""
+    import argparse
+    calls = []
+    monkeypatch.setattr(generate._db, "get_connection", lambda *a, **k: calls.append(1))
+    generate.run_population_after(argparse.Namespace(population=False))
+    assert calls == []
+    parser, _commands = generate.build_parser()
+    assert parser.parse_args(["galaxy"]).population is False
+    assert parser.parse_args(["sector", "--population"]).population is True
+
+
+def test_population_status(mysql_config, client):
+    empty = client.get("/api/population").get_json()
+    assert empty == {"generated": False, "species": False, "polities": False, "territories": False}
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert population.population_status(conn) == empty
+        with conn:
+            conn.execute("DROP TABLE system_owners")
+        assert population.population_status(conn) == empty     # pre-v44 shape
+    finally:
+        conn.close()
+
+
+def test_population_status_after_a_pass(mysql_config, galaxy, client):
+    conn = _db.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        with conn:
+            _set_age(conn, galaxy["a"], 1e6)
+        population.run_pass(conn)
+    finally:
+        conn.close()
+    assert client.get("/api/population").get_json() == {
+        "generated": True, "species": True, "polities": True, "territories": True}

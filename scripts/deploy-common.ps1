@@ -259,6 +259,31 @@ function Invoke-MigrateOrReset {
     }
 }
 
+# Optionally runs the population pass (generate.py population: species,
+# civilizations and territories, docs\design\population-and-politics.md).
+# Off by default (Boss, 2026-10-01): it runs with -Population, or when
+# someone answers y to the prompt (y/N, 30 seconds, default N). With no
+# console it is skipped. generate.py population can always be run later.
+function Invoke-OptionalPopulation([switch]$Run) {
+    if ($Run) {
+        $answer = "y"
+    } else {
+        $answer = Read-AnswerWithTimeout "Run the population pass now (species, civilizations, territories)? [y/N] (default N in 30s): " 30
+    }
+    if ($answer -match "^(y|yes)$") {
+        Write-Host "Running the population pass."
+        $python = Get-VenvPython
+        Push-Location $Root
+        try {
+            Invoke-Checked $python "generate.py" population
+        } finally {
+            Pop-Location
+        }
+    } else {
+        Write-Host "Skipping the population pass (run generate.py population any time, or pass -Population)."
+    }
+}
+
 # The tile cache and jobs folders config.json names (read the way
 # create-cache-dir.sh reads them, with examples\apache\deploy-paths.py),
 # the debug log's folder, and the logs folder the services write to.

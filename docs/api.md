@@ -331,6 +331,11 @@ connectivity to that specific schema rather than the default one.
   `{"distance_km", "period_years", "orbital_speed_kms"}`. Without
   `distance_km` it orbits at 3 host radii. `400` for a distance inside the
   host, `404` for an unknown host.
+- `GET /api/population` — `{"generated", "species", "polities",
+  "territories"}` booleans: whether a population pass has run and whether
+  any species, polity or owned system exists (all `false` on a database
+  without them). Pages that show population data hide themselves when
+  the matching flag is false (`population.population_status`).
 - `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
   dominant species of every life world, by name, paginated (see
   docs/design/population-and-politics.md). Each item has its homeworld

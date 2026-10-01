@@ -18,7 +18,10 @@
       4. src\migrateDb.py, a no-op when the database is current. When a
          migration is pending it first asks (y/N, 30 seconds, default N)
          whether to delete the galaxy data instead; a scheduled run with
-         no console keeps the data and migrates it.
+         no console keeps the data and migrates it. Then it offers (y/N,
+         30 seconds, default N; skipped with no console) to run the
+         population pass, generate.py population; -Population runs it
+         without asking.
       5. The tile cache, jobs and log folders.
       6. Permissions for the app's account (icacls), in case new folders
          came in.
@@ -30,13 +33,15 @@
         powershell -ExecutionPolicy Bypass -File .\update.ps1
 
     then restart the app (the closing message says how). Takes the same
-    -VenvDir, -DataDir and -ServiceAccount as install.ps1.
+    -VenvDir, -DataDir and -ServiceAccount as install.ps1, and
+    -Population to run the population pass without asking.
 #>
 [CmdletBinding()]
 param(
     [string]$VenvDir = "C:\srv\planetgen-venv",
     [string]$DataDir = (Join-Path $env:ProgramData "planetgen"),
-    [string]$ServiceAccount = "NT SERVICE\planetgen"
+    [string]$ServiceAccount = "NT SERVICE\planetgen",
+    [switch]$Population
 )
 
 $ErrorActionPreference = "Stop"
@@ -89,6 +94,7 @@ if (Test-DatabaseUnconfigured) {
     Write-Host "  $(Join-Path $Root 'config.json'), then run this again."
 } else {
     Invoke-MigrateOrReset
+    Invoke-OptionalPopulation -Run:$Population
 }
 
 Write-Step "5/7: Checking the tile cache, jobs and log folders"
