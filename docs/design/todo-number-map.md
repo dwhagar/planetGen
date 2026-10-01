@@ -14,8 +14,8 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.61 |
-| NAV | NAV.3 |
+| MAP | MAP.63 |
+| NAV | NAV.7 |
 | GEN | GEN.33 |
 | PERF | PERF.18 |
 | DB | DB.2 |
@@ -507,8 +507,14 @@ Parents marked "new parent" had no old number of their own.
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | open |
+| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
+| MAP.62 | A full 3D star system view with a free camera | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
+| NAV.4 | Save a course | none | open |
+| NAV.5 | Show a course on the Galaxy Map | none | open |
+| NAV.6 | Courses that steer clear of gravity wells | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
