@@ -103,9 +103,7 @@ of the SEC section.
       out), then MAP.48 (pop in after a zoom).
    3. MAP.43 (wedge lines past the galaxy's edge) and MAP.37
       (generated systems hard to find).
-   4. MAP.49: planet orbits drawn inside an asteroid belt on the System
-      Map.
-   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -643,26 +641,6 @@ MAP.48 and MAP.37 below.
   emitting light (quasars, neutron stars and accreting black holes
   yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
-
-- [ ] **MAP.49 (bug) The System Map shows planet orbits inside an asteroid belt**
-  Boss (2026-10-01): "the system view still is showing orbits of
-  planets inside the orbit of an asteroid belt." Generation already
-  keeps planets clear of belts (a planet after a belt keeps 5 Hill
-  radii clear of its outer edge, and belts can't overlap the next
-  planet out, per the CHANGELOG), so the first lead is the drawing:
-  `html/lib/systemmap.py` places every orbit on a shared log scale
-  (`_radial_px`), but `_belt_band_px` draws the belt's ring width
-  linearly (`radius_px * (upper - lower) / distance`) and clamps it to
-  9-40 px, so on the log scale the drawn band can reach past a
-  neighboring planet's orbit. Second lead: systems stored before those
-  generation fixes, which a regenerate would clear. Done: the belt's
-  ring is drawn from its inner and outer edges mapped through the same
-  log scale as the orbits (with a minimum visible width that never
-  crosses a neighbor's orbit), on the System Map and in the 3D system
-  view if it draws belts too; a test checks that no drawn planet orbit
-  falls inside a drawn belt band for systems with belts; and a check
-  over the stored data reports any planet whose orbit really is inside
-  a belt (if there are any, that is a generation bug to fix too).
 
 ## GEN: Generation and physics
 

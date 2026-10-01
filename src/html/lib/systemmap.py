@@ -143,13 +143,15 @@ _CENTER_PLANET_R = 36.0
 _ZONE_LABELS = {"h": "Hot zone", "e": "Ecosphere", "c": "Cold zone"}
 
 # An asteroid belt is a *range* of orbit radii -- drawn as a full ring
-# (stroke width = its own radial spread) around its own anchor, the
-# natural true-position shape for "every angle at roughly this distance",
-# rather than the old schematic map's directional shaded band. Clamped so
-# a belt with almost no radial spread is still visibly a ring and one with
-# an enormous spread doesn't swallow its neighbors.
+# around its own anchor, the natural true-position shape for "every angle
+# at roughly this distance", rather than the old schematic map's
+# directional shaded band. The ring runs from the belt's inner edge to its
+# outer edge, both mapped through the same log scale as every orbit
+# (`_belt_band`), so a planet orbit outside the belt is drawn outside the
+# ring. A belt too thin to see is widened to `_BELT_MIN_BAND_PX`, but never
+# past a neighboring orbit (less `_BELT_ORBIT_GAP_PX`).
 _BELT_MIN_BAND_PX = 9.0
-_BELT_MAX_BAND_PX = 40.0
+_BELT_ORBIT_GAP_PX = 2.0
 
 # Anchor color per planet class, hand-picked (not derived from any
 # physical model, unlike `starmap.py`'s spectral colors -- there's no
@@ -296,6 +298,15 @@ def _radial_px(distance_km, lo_km, hi_km):
     distance_km = max(lo_km, min(hi_km, distance_km))
     frac = (math.log10(distance_km) - math.log10(lo_km)) / (math.log10(hi_km) - math.log10(lo_km))
     return _MIN_RADIUS_PX + frac * _RADIUS_SPREAD_PX
+
+
+def _orbit_radius_km(planet):
+    """A planet's distance from its anchor in 3D, which is its orbit's
+    radius. Not the top-down `hypot(x, y)`: on an inclined orbit that is
+    shorter, and drew a planet just outside a belt (whose edges are real
+    radii) with its orbit inside the belt's ring."""
+    return math.hypot(planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0,
+                      planet.get("position_z_km") or 0.0) or planet.get("distance_km") or 0.0
 
 
 def _polar_to_px(anchor_x_px, anchor_y_px, radius_px, x_km, y_km):
@@ -711,9 +722,28 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
     return attrs
 
 
-def _belt_band_px(belt, radius_px):
-    spread_fraction = (belt["upper_limit_km"] - belt["lower_limit_km"]) / max(belt["distance_km"], 1.0)
-    return max(_BELT_MIN_BAND_PX, min(_BELT_MAX_BAND_PX, radius_px * spread_fraction))
+def _belt_band(belt, lo_km, hi_km, orbit_radii_px=()):
+    """
+    The drawn ring for `belt`: `(center_px, width_px)`.
+
+    Its inner and outer edges are the belt's own `lower_limit_km` and
+    `upper_limit_km` through `_radial_px`, the scale every orbit uses (a
+    belt's `distance_km` is its inner edge, not its middle, so centering
+    the ring on it drew half the ring inside the belt). A ring thinner than
+    `_BELT_MIN_BAND_PX` is widened about its middle, but each edge stops
+    `_BELT_ORBIT_GAP_PX` short of the nearest orbit in `orbit_radii_px`
+    (the drawn orbit radii around the same anchor) that lies outside it.
+    """
+    inner = _radial_px(belt["lower_limit_km"] or belt["distance_km"], lo_km, hi_km)
+    outer = _radial_px(belt["upper_limit_km"] or belt["distance_km"], lo_km, hi_km)
+    inner, outer = min(inner, outer), max(inner, outer)
+    if outer - inner < _BELT_MIN_BAND_PX:
+        middle = (inner + outer) / 2
+        inner_limit = max((r + _BELT_ORBIT_GAP_PX for r in orbit_radii_px if r < inner), default=0.0)
+        outer_limit = min((r - _BELT_ORBIT_GAP_PX for r in orbit_radii_px if r > outer), default=math.inf)
+        inner = max(min(inner, middle - _BELT_MIN_BAND_PX / 2), min(inner, inner_limit))
+        outer = min(max(outer, middle + _BELT_MIN_BAND_PX / 2), max(outer, outer_limit))
+    return (inner + outer) / 2, outer - inner
 
 
 def _belt_ring_svg(cx, cy, radius_px, band_px, belt):
@@ -988,10 +1018,9 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     """
     local_r_list = []
     for planet in planets:
-        lx, ly = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
-        local_r_list.append(math.hypot(lx, ly) or planet.get("distance_km") or 0.0)
+        local_r_list.append(_orbit_radius_km(planet))
     for belt in belts:
-        local_r_list.append(belt["distance_km"])
+        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
     lo, hi = _radial_scale_bounds(local_r_list)
 
     star_r = _star_radius_px(star["radius_km"])
@@ -1009,16 +1038,17 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             "type": "obstacle", "cx": extra_obstacle["cx"], "cy": extra_obstacle["cy"],
             "r": extra_obstacle["r"], "fixed": True,
         })
+    orbit_radii = []
     for planet in planets:
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
-        r_px = _radial_px(math.hypot(lx_km, ly_km), lo, hi)
+        r_px = _radial_px(_orbit_radius_km(planet), lo, hi)
+        orbit_radii.append(r_px)
         cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx_km, ly_km)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
     facility_hosts = {("star", star["id"]): (_CENTER_PX, _CENTER_PX, star_r, True)}
     for belt in belts:
-        r_px = _radial_px(belt["distance_km"], lo, hi)
-        band_px = _belt_band_px(belt, r_px)
+        r_px, band_px = _belt_band(belt, lo, hi, orbit_radii)
         belt_svgs.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
         facility_hosts[("asteroid_belt", belt["id"])] = (_CENTER_PX, _CENTER_PX, r_px, False)
 
@@ -1201,10 +1231,9 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
 
     local_r_list = [math.hypot(*star_pos_km[star["id"]]) for star in stars] if is_binary else []
     for planet in planets:
-        lx, ly = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
-        local_r_list.append(math.hypot(lx, ly) or planet.get("distance_km") or 0.0)
+        local_r_list.append(_orbit_radius_km(planet))
     for belt in belts:
-        local_r_list.append(belt["distance_km"])
+        local_r_list.extend((belt["lower_limit_km"], belt["upper_limit_km"]))
 
     lo, hi = _radial_scale_bounds(local_r_list)
 
@@ -1246,10 +1275,12 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     # real focusable/clickable marker, not decorative.
     belt_svgs = []
     markers = list(star_markers)
+    orbit_radii = {}  # anchor -> drawn orbit radii around it
     for planet in planets:
         ax_px, ay_px = anchor_px(planet.get("star_id"))
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
-        r_px = _radial_px(math.hypot(lx_km, ly_km), lo, hi)
+        r_px = _radial_px(_orbit_radius_km(planet), lo, hi)
+        orbit_radii.setdefault((ax_px, ay_px), []).append(r_px)
         cx, cy = _polar_to_px(ax_px, ay_px, r_px, lx_km, ly_km)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{ax_px:.1f}" cy="{ay_px:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
@@ -1257,8 +1288,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     facility_hosts = {}
     for belt in belts:
         ax_px, ay_px = anchor_px(belt.get("star_id"))
-        r_px = _radial_px(belt["distance_km"], lo, hi)
-        band_px = _belt_band_px(belt, r_px)
+        r_px, band_px = _belt_band(belt, lo, hi, orbit_radii.get((ax_px, ay_px), ()))
         belt_svgs.append(_belt_ring_svg(ax_px, ay_px, r_px, band_px, belt))
         facility_hosts[("asteroid_belt", belt["id"])] = (ax_px, ay_px, r_px, False)
 
