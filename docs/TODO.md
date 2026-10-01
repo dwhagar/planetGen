@@ -1174,7 +1174,13 @@ SEC.26, SEC.27.
     failures shouldn't grow the table without bound)? Default: prune
     after 90 days.
 
-- [ ] **SEC.1 Lock out an IP address after failed logins**
+- [x] **SEC.1 Lock out an IP address after failed logins**
+  Done (PR #220): `stellarObjects/loginThrottle.py` and
+  `html/api/loginguard.py`, table `login_throttle` (control schema v2).
+  Defaults taken: both limits kept; IPv6 counted by its /64; loopback
+  and the new `login_allowlist` setting never locked; lockouts listed
+  and lifted on Admin › Stats and with `src/loginLockouts.py`. Until
+  `update.sh` creates the table, counting falls back to memory.
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 2)
 
@@ -1213,7 +1219,8 @@ SEC.26, SEC.27.
   Default: yes, see SEC.21. IPv6: lock the single address or its /64
   (one machine often holds a whole /64)? Default: the /64.
 
-  - [ ] **SEC.21 Keep the per-username backoff in the control database too**
+  - [x] **SEC.21 Keep the per-username backoff in the control database too**
+    Done (PR #220): same `login_throttle` table, scope `user`.
     Today `loginbackoff.py` keeps its counts in memory, so a restart
     clears every lock and each worker process counts separately (the
     deployment guides run one process today, so this only bites with

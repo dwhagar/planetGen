@@ -314,7 +314,7 @@ Sorted by old number, then date.
 | 60 | 2026-10-01 01:15Z to 05:29Z | ADM.8 | Delete and regenerate buttons, sector down | open |
 | 61 | 2026-09-30 19:02Z to 19:17Z | POP.3 | Database of spacefaring species | done in 7.49.0, PR #169 |
 | 61 | 2026-09-30 20:01Z to 20:27Z | UX.12 | System page: one ordered list of everything in orbit | done in 7.12.0, PR #126 |
-| 61 | 2026-10-01 01:15Z to 05:29Z | SEC.1 | Lock out an IP after failed logins | open |
+| 61 | 2026-10-01 01:15Z to 05:29Z | SEC.1 | Lock out an IP after failed logins | done, PR #220 |
 | 62 | 2026-09-30 19:02Z to 19:17Z | POP.4 | Younger and older civilizations | done in 7.49.0, PR #169 |
 | 62 | 2026-09-30 20:01Z to 20:27Z | MAP.4 | System Map names never overlap | done in 7.21.1, PR #135 (see note 3) |
 | 62 | 2026-10-01 01:44Z to 05:29Z | UX.2 | Menus sized to what they hold | open |
@@ -502,7 +502,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.4 | Younger and older civilizations | 15 (2026-09-24 01:32Z to 02:18Z); 12 (2026-09-24 01:57Z to 02:02Z); 10 (2026-09-24 02:25Z to 05:38Z); 9 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 18 (2026-09-30 16:44Z); 19 (2026-09-30 16:49Z); 20 (2026-09-30 16:51Z to 18:09Z); 37 (2026-09-30 18:14Z); 42 (2026-09-30 18:39Z to 18:41Z); 62 (2026-09-30 19:02Z to 19:17Z); 66 (2026-09-30 20:01Z to 20:27Z); 49 (2026-09-30 20:07Z); 53 (2026-09-30 20:08Z to 20:48Z); 54 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.5 | Population pages: species, polities, dominant species, territory (unnumbered in TODO.md) | none | done after 7.58.2, PR #184 |
 | POP.6 | Territories overlay on the Galaxy Map (unnumbered in TODO.md) | none | done in 7.54.0 (PR #179) and 7.58.1 (PR #181) |
-| SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | open |
+| SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
 | SEC.4 | Web-user compromise can become root via the installer | 40 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -522,7 +522,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.18 | Upper bounds on admin generation inputs (cited as "39b") | 39b (2026-09-30 21:37Z to 22:27Z) | done in 7.10.2, PR #118 (see note 8) |
 | SEC.19 | Hashed lock file for pip dependencies (cited as "39c") | 39c (2026-09-30 21:39Z to 21:54Z) | done in 7.7.0, PR #119 (see note 8) |
 | SEC.20 | Log every failed and locked login with its address | none | done, PR #217 |
-| SEC.21 | Keep the per-username backoff in the control database | none | open |
+| SEC.21 | Keep the per-username backoff in the control database | none | done, PR #220 |
 | SEC.22 | Trusted-device cookie so lockouts can't shut out the real admin | none | open |
 | SEC.23 | Wrong current passwords on /account aren't counted (bug) | none | open |
 | SEC.24 | Refuse common and breached passwords | none | open |
