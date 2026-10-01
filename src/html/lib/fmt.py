@@ -31,7 +31,12 @@ try:
         format_distance_km as _ladder_km,
         format_distance_ly as _ladder_ly,
         format_distance_pc as _ladder_pc,
+        format_duration_seconds,
         format_number,
+        format_period_years,
+        format_pressure_pa,
+        format_speed_kms,
+        format_temperature_k,
     )
 except ImportError:
     # Without the planetGen package there is no ladder; plain units still
@@ -56,6 +61,21 @@ except ImportError:
             superscript = str.maketrans("-0123456789", "\u207b\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079")
             return f"{mantissa} \u00d7 10{str(int(exponent)).translate(superscript)}"
         return text
+
+    def format_speed_kms(kms):
+        return "\u2013" if kms is None else f"{kms:,.3g} km/s"
+
+    def format_duration_seconds(seconds):
+        return "\u2013" if seconds is None else f"{seconds:,.3g} s"
+
+    def format_period_years(years):
+        return "\u2013" if years is None else f"{years:,.3g} years"
+
+    def format_temperature_k(kelvin):
+        return "\u2013" if kelvin is None else f"{kelvin:,.0f} K"
+
+    def format_pressure_pa(pascals):
+        return "\u2013" if pascals is None else f"{pascals:,.3g} Pa"
 
 
 def _read_package_version():
@@ -319,12 +339,12 @@ def inside_text(row):
 
 
 def runaway_text(system):
-    """`"Runaway star, 84 km/s"` / `"Hypervelocity star, 720 km/s"` for a
-    system flagged fast (`star_systems.runaway_class`, schema v37), else
-    `None`."""
+    """`"Runaway star, 84.4 km/s"` / `"Hypervelocity star, 1.23 Mm/s"` (the
+    speed on the shared ladder, `format_speed_kms`) for a system flagged
+    fast (`star_systems.runaway_class`, schema v37), else `None`."""
     kind = system.get("runaway_class")
     if not kind:
         return None
     text = f"{kind.capitalize()} star"
     speed = system.get("runaway_speed_kms")
-    return f"{text}, {format_number(speed)} km/s" if speed is not None else text
+    return f"{text}, {format_speed_kms(speed)}" if speed is not None else text

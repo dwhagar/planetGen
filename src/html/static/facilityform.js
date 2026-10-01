@@ -17,27 +17,14 @@
 // This module's own `?v=`, so the sibling loads at the same version.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatDistanceKm } = await import(`./distance.js${VERSION_QUERY}`);
-const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { formatDurationSeconds } = await import(`./period.js${VERSION_QUERY}`);
+const { formatSpeedKms } = await import(`./speed.js${VERSION_QUERY}`);
 
 const G = 6.6743e-11; // m^3 kg^-1 s^-2
-const SECONDS_PER_DAY = 86400;
-const DAYS_PER_YEAR = 365.25;
 
 function distanceFromStep(step, steps, lowestKm, highestKm) {
   const fraction = Math.min(Math.max(step, 0), steps) / steps;
   return lowestKm * Math.pow(highestKm / lowestKm, fraction);
-}
-
-function formatPeriod(seconds) {
-  const days = seconds / SECONDS_PER_DAY;
-  const fmt = (value) => formatNumber(Number(value.toPrecision(3)), 6, 0);
-  if (days < 1) {
-    return `${fmt(days * 24)} hours`;
-  }
-  if (days < DAYS_PER_YEAR) {
-    return `${fmt(days)} days`;
-  }
-  return `${fmt(days / DAYS_PER_YEAR)} years`;
 }
 
 function setUp(form) {
@@ -61,8 +48,8 @@ function setUp(form) {
     const meters = km * 1000;
     const periodS = 2 * Math.PI * Math.sqrt(meters ** 3 / (G * Number(option.dataset.massKg)));
     const speedKms = (2 * Math.PI * km) / periodS;
-    readout.textContent = `${formatDistanceKm(km)} from its host, one orbit every ${formatPeriod(periodS)}, `
-      + `at ${formatNumber(speedKms, 2)} km/s`;
+    readout.textContent = `${formatDistanceKm(km)} from its host, one orbit every ${formatDurationSeconds(periodS)}, `
+      + `at ${formatSpeedKms(speedKms)}`;
     slider.setAttribute("aria-valuetext", formatDistanceKm(km));
   };
 

@@ -94,12 +94,6 @@ def make_planet(host_star, cls, zone):
 
 
 @pytest.mark.parametrize("star_type,cls,zone", FULL_MATRIX, ids=FULL_MATRIX_IDS)
-def test_planet_generates_without_error_for_every_star_type(star_type, cls, zone):
-    host = make_host_star(star_type)
-    make_planet(host, cls, zone)
-
-
-@pytest.mark.parametrize("star_type,cls,zone", FULL_MATRIX, ids=FULL_MATRIX_IDS)
 def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type, cls, zone):
     """
     Every scalar physical property a planet computes must stay finite and

@@ -29,7 +29,7 @@ from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
-                    years_to_time_string)
+                    format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k)
 
 
 class Planet:
@@ -426,8 +426,8 @@ class Planet:
         properties = {
             "class": self.planet_class,
             "distance": distance_text,
-            "period": years_to_time_string(self.period),
-            "speed": f"{self.orbital_speed_kms:.2f} km/s",
+            "period": format_period_years(self.period),
+            "speed": format_speed_kms(self.orbital_speed_kms),
             "radius": radius_string,
             "gravity": f"{round(self.gravity, 3)} g",
         }
@@ -487,8 +487,8 @@ class Planet:
 
         return [
             depth_sentence,
-            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_number(transition_temperature_c)} degrees C.",
-            f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {core_pressure_gpa:.0f} GPa.",
+            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_temperature_k(transition_temperature_c + physical_constants.CELSIUS_ZERO_K)}.",
+            f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {format_pressure_pa(core_pressure_gpa * 1e9)}.",
         ]
 
     def to_paragraph_list(self):
@@ -530,16 +530,16 @@ class Planet:
         if self.body_type == "t":
             if self.atmosphere != "None":
                 sentences.append(
-                    f"This {object_type_desc} has a surface pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.2f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                    f"This {object_type_desc} has a surface pressure of {format_pressure_pa(self.atmospheric_pressure)} and a temperature of {format_temperature_k(self.surface_temperature)}.")
                 sentences.append(
                     f"It is {self.description.lower()} with an atmosphere of {self.atmosphere.lower()} and a composition of {self.composition.lower()}.")
             else:
                 sentences.append(
-                    f"This {object_type_desc} has no atmosphere and a surface temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                    f"This {object_type_desc} has no atmosphere and a surface temperature of {format_temperature_k(self.surface_temperature)}.")
                 sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
         else:
             sentences.append(
-                f"This gas giant has an internal pressure of {self.atmospheric_pressure / 1000:.1f} kPa or {self.atmospheric_pressure / 101300:.1f} atmospheres and a temperature of {self.surface_temperature - 273.15:.1f} degrees C.")
+                f"This gas giant has an internal pressure of {format_pressure_pa(self.atmospheric_pressure)} and a temperature of {format_temperature_k(self.surface_temperature)}.")
             sentences.extend(self._gas_giant_pressure_depth_text())
             sentences.append(f"It is {self.description.lower()} with a composition of {self.composition.lower()}.")
 

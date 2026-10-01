@@ -1,5 +1,115 @@
 # Changelog
 
+## [7.98.253] - 2026-10-01
+
+### Changed
+- **Surface temperatures and pressures show customary units alongside
+  metric.** A planet's or moon's surface temperature now reads in K with
+  °C and °F ("288 K (15 °C, 59 °F)") in its description and on the
+  System Map's info panel, and atmospheric, internal and core pressures
+  read on a Pa, kPa, MPa, GPa ladder with atm and psi alongside
+  ("101 kPa (1 atm, 14.7 psi)"), through the new
+  `stellarObjects.utils.format_temperature_k` and `format_pressure_pa`.
+  Star temperatures stay in K alone.
+
+## [7.97.253] - 2026-10-01
+
+### Changed
+- **Stars and glowing phenomena are points of light on the Sector Map
+  (MAP.15).** Every star is now drawn the way the Galaxy Map draws its
+  bright stars: a tiny bright core in a soft aura a fixed number of
+  pixels across, the core sized by the star's radius, the aura's width
+  and brightness by its luminosity, and the color by its temperature,
+  instead of a textured ball with a glow shell. Quasars, neutron stars
+  and accreting black holes are points of light too; quiescent black
+  holes, rogue planets (still ringed by "Mark rogue planets") and
+  interstellar comets keep their spheres, and nebulae, supernova
+  remnants and asteroid fields stay clouds. Points grow a little (up to
+  1.5 times) as the camera closes in, a click within a few pixels of one
+  still selects it and shows its details, and on the light theme a
+  point's core is a darker shade of its color so it stays visible.
+  `lib/starmap.py` now sends each star's point (`light`: color, core
+  and aura size in pixels, aura strength, core brightness) in place of
+  the old glow-shell numbers.
+
+## [7.96.253] - 2026-10-01
+
+### Changed
+- **Speeds and time periods are always shown in a meaningful unit**
+  (UX.13, UX.14). Speeds go through one shared ladder, km/h, km/s, Mm/s,
+  then multiples of c from a tenth of light speed ("29.8 km/s",
+  "4.5 Mm/s", "0.25 c"); periods and durations through another, µs, ms,
+  s, minutes, hours, days, years, ky, My and Gy ("27.3 days",
+  "1.88 years", "236 My"), each to three significant figures. Orbital
+  periods and speeds of planets, moons, comets, binaries, wide binaries
+  and facilities, galactic orbits, pulsar spin periods, NAV travel
+  times, the facility form's live readout and the admin pages' uptimes
+  all use them, in Python (`stellarObjects.utils.format_speed_kms`,
+  `format_duration_seconds`, `format_period_years`) and in the browser
+  (`static/speed.js`, `static/period.js`). The old "x years y days z
+  hours" period text (`years_to_time_string`) is gone.
+
+## [7.95.253] - 2026-10-01
+
+### Changed
+
+- Galaxy Map: slabs are picked with a vertical slider to the right of the
+  map instead of a list under it (MAP.30). It has one step per slab, so
+  any slab is one pick; dragging fades the other slabs and shows the
+  slab's generated share, and letting go (or Enter, or Open) takes it.
+  The map is now 4:3 and no taller than the window (1:1 on a phone).
+- Galaxy Map: inside a block, whenever a slab is to be picked, the view
+  opens from an isometric slant so the layers can be told apart.
+
+## [7.94.253] - 2026-10-01
+
+### Added
+
+- Bookmarks (MAP.23, which also finishes the NAV page's map picks,
+  MAP.22, and so the Galaxy Map drill-down, MAP.2). A ☆ on the Galaxy
+  Map's breadcrumb saves the view (its stage URL) or the selected sector,
+  and a ☆ Bookmark button on system, phenomenon and sector pages saves
+  that page; it turns into ★ Bookmarked, and pressing it again offers to
+  remove the bookmark. A Bookmarks menu in the map's controls opens,
+  renames and deletes them, and Ctrl+1 to Ctrl+9 open the first nine
+  while the map page has the focus (not while typing in a box). The NAV
+  page offers the system and phenomenon bookmarks as a start or a
+  destination, and a sector bookmark opens that sector's system picker.
+  Bookmarks are kept in this browser (`localStorage`, one list per
+  database, up to 100), in the new `static/bookmarks.js`; with storage
+  blocked there are just none.
+
+## [7.93.253] - 2026-10-01
+
+### Changed
+- **The test suite runs in parallel.** `pytest -n auto` (pytest-xdist, now
+  in the `test` extra) runs one worker per core: the full suite went from
+  17 min 21 s to 5 min 57 s on 4 cores, and CI and the weekly deep fuzz
+  run use it. Each test process now gets its own throwaway control
+  database instead of falling back to `planetgen_control`, so workers
+  never share one and the tests never touch a real control schema.
+  Plain `pytest` still runs serially.
+
+## [7.92.253] - 2026-10-01
+
+### Fixed
+
+- Galaxy Map: picking a quarter or an arc now zooms into the wedge it highlights (the bearings its blocks really cover, set by the meridians that run to the core) instead of an even 90° or one-third share of the view.
+
+### Changed
+
+- Galaxy Map: zoomed into a wedge, only that wedge shows (wedge lines, stars and clouds outside it are hidden), and every view below the whole galaxy opens at an isometric slant so layers can be clicked on the map as well as picked from the list.
+
+## [7.91.253] - 2026-10-01
+
+### Added
+- **One module to validate a planet, a lunar system and a star system
+  (ADM.5).** `stellarObjects/validation.py` holds checks that report what
+  is wrong without changing anything, the orbit-spacing pass generation
+  already ran (moved there unchanged), and a stabilize pass that re-spaces
+  an edited system from its moons outward, ready for the admin overrides
+  (ADM.6, ADM.7).
+
 ## [7.90.177] - 2026-10-01
 
 ### Changed

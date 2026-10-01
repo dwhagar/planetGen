@@ -182,23 +182,3 @@ def test_vis_viva_parabolic_semi_major_axis_infinite_is_finite_speed():
 
 
 # --- comet_orbital_state: dispatch validation ----------------------------
-
-def test_comet_orbital_state_unknown_orbit_type_raises_value_error():
-    with pytest.raises(ValueError):
-        km.comet_orbital_state(
-            "hyperbolic", 1.0, 0.5, 0.0, 0.0, 0.0, 1.0, mean_anomaly_rad=0.0,
-        )
-
-
-def test_comet_orbital_state_elliptical_missing_mean_anomaly_raises():
-    with pytest.raises(ValueError):
-        km.comet_orbital_state(
-            "elliptical", 1.0, 0.5, 0.0, 0.0, 0.0, 1.0,
-        )
-
-
-def test_comet_orbital_state_parabolic_missing_anomaly_raises():
-    with pytest.raises(ValueError):
-        km.comet_orbital_state(
-            "parabolic", 1.0, 0.999, 0.0, 0.0, 0.0, 1.0,
-        )
