@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.46.0] - 2026-10-01
+
+### Added
+- **Class reference pages.** A new Classes section (`/classes`) lists every kind of class the generator gives out: star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets and comets. Each type has a page listing its classes, and each class has its own page of facts, all read from the generator's own tables when the site starts, so they always match what it generates.
+- Class labels now link to these pages: a star's type and a planet's or comet's class on the system page, and the class of a nebula, supernova remnant, asteroid field, black hole or rogue planet on its phenomenon page.
+
 ## [7.45.0] - 2026-10-01
 
 ### Added
