@@ -22,7 +22,7 @@ release is stamped.
 | API | API.3 |
 | ADM | ADM.10 |
 | SEC | SEC.29 |
-| TEST | TEST.69 |
+| TEST | TEST.70 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -306,13 +306,13 @@ Sorted by old number, then date.
 | 57 | 2026-09-30 19:02Z to 20:27Z | GEN.19 | A binary's secondary outweighs its primary (bug) | done in 7.9.1, PR #123 |
 | 57 | 2026-10-01 01:15Z to 05:29Z | ADM.5 | Central validate module | done, PR #235 |
 | 58 | 2026-09-30 19:02Z to 20:27Z | GEN.20 | Sector growth ignores black holes and neutron stars (bug) | done in 7.6.1, PR #116 |
-| 58 | 2026-10-01 01:15Z to 05:29Z | ADM.6 | Override a planet's or moon's class | open |
+| 58 | 2026-10-01 01:15Z to 05:29Z | ADM.6 | Override a planet's or moon's class | done, PR #260 |
 | 59 | 2026-09-30 19:02Z to 19:17Z | POP.1 | Government ownership of systems | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | 59 | 2026-09-30 20:01Z to 20:27Z | UX.11 | Paginated list of every system | done in 7.20.0, PR #135 |
-| 59 | 2026-10-01 01:15Z to 05:29Z | ADM.7 | Override a star | open |
+| 59 | 2026-10-01 01:15Z to 05:29Z | ADM.7 | Override a star | done, PR #260 |
 | 60 | 2026-09-30 19:02Z to 19:17Z | POP.2 | Names for dominant species on living worlds | done in 7.49.0, PR #169 |
 | 60 | 2026-09-30 20:01Z to 20:27Z | MAP.12 | Arc-segment wireframe on the Sector Map | done in 7.29.1, PR #143 |
-| 60 | 2026-10-01 01:15Z to 05:29Z | ADM.8 | Delete and regenerate buttons, sector down | open |
+| 60 | 2026-10-01 01:15Z to 05:29Z | ADM.8 | Delete and regenerate buttons, sector down | done, PR #244 |
 | 61 | 2026-09-30 19:02Z to 19:17Z | POP.3 | Database of spacefaring species | done in 7.49.0, PR #169 |
 | 61 | 2026-09-30 20:01Z to 20:27Z | UX.12 | System page: one ordered list of everything in orbit | done in 7.12.0, PR #126 |
 | 61 | 2026-10-01 01:15Z to 05:29Z | SEC.1 | Lock out an IP after failed logins | done, PR #220 |
@@ -389,14 +389,14 @@ Parents marked "new parent" had no old number of their own.
 
 | New ID | Title | Old numbers (date range, UTC) | Status |
 |---|---|---|---|
-| ADM.1 | Admin editing: overrides, delete, regenerate (new parent) | none | open |
+| ADM.1 | Admin editing: overrides, delete, regenerate (new parent) | none | done (all subitems: PRs #235, #244, #260) |
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
 | ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
 | ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | done, PR #235 |
-| ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
-| ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
-| ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
+| ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
+| ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
+| ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | done, PR #244 |
 | ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | done, PR #211 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
@@ -730,6 +730,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.66 | Distributions match their targets | none | open |
 | TEST.67 | Runs first in the suite and in CI | none | open |
 | TEST.68 | Gate before bulk generation | none | open |
+| TEST.69 | Intermittent failure in the colony test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
