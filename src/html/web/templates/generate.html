@@ -30,8 +30,22 @@
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
 </label>
 {%- endmacro -%}
+{#- ADM.4: every section folds. Current job starts open; the rest open
+    or close as this browser last left them (static/generatefolds.js),
+    except the section of a form shown again, which stays open. -#}
+{%- macro fold(id, title) -%}
+<section class="panel panel-fold" id="{{ id }}" aria-labelledby="{{ id }}-heading">
+  <details class="fold" data-fold="{{ id }}"{% if id == "current-job" or id == kept_section %} open{% endif %}{% if id == kept_section %} data-fold-keep{% endif %}>
+    <summary><h2 id="{{ id }}-heading">{{ title }}</h2></summary>
+    <div class="fold-body">
+    {{- caller() }}
+    </div>
+  </details>
+</section>
+{%- endmacro -%}
 {% block head %}
 <script type="module" src="{{ static_url('generatejobs.js') }}"></script>
+<script type="module" src="{{ static_url('generatefolds.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges">
@@ -82,16 +96,18 @@
 </section>
 {%- endif %}
 
-<section class="panel" id="current-job" aria-labelledby="current-job-heading"
+<section class="panel panel-fold" id="current-job" aria-labelledby="current-job-heading"
   data-status-url="{{ url_for('web.generate_status') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
-  <h2 id="current-job-heading">Current job</h2>
-  <div data-job-body>
-  {%- if active %}
-  {{ job_status(active, active_log) }}
-  {%- else %}
-  <p class="hint">Nothing is running.</p>
-  {%- endif %}
-  </div>
+  <details class="fold" data-fold="current-job" open>
+    <summary><h2 id="current-job-heading">Current job</h2></summary>
+    <div class="fold-body" data-job-body>
+    {%- if active %}
+    {{ job_status(active, active_log) }}
+    {%- else %}
+    <p class="hint">Nothing is running.</p>
+    {%- endif %}
+    </div>
+  </details>
 </section>
 
 {%- set busy = active is not none %}
@@ -99,15 +115,13 @@
 <p class="hint">The forms below unlock when the current job finishes.</p>
 {%- endif %}
 
-<section class="panel" id="one-off-system" aria-labelledby="one-off-system-heading">
-  <h2 id="one-off-system-heading">One-off system</h2>
+{% call fold("one-off-system", "One-off system") %}
   <p>Generate a single star system with any of the command-line options and get it as Markdown or wikitext,
   without adding it to the database.</p>
   <p><a class="btn" href="{{ url_for('web.generate_system') }}">Generate a one-off system</a></p>
-</section>
+{% endcall %}
 
-<section class="panel" id="new-galaxy" aria-labelledby="new-galaxy-heading">
-  <h2 id="new-galaxy-heading">New galaxy</h2>
+{% call fold("new-galaxy", "New galaxy") %}
   <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,
   then generates a first neighborhood around a random populated spot. Admin logins and API keys are kept.</p>
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
@@ -128,10 +142,9 @@
       <button type="submit" class="btn btn-danger"{% if busy %} disabled{% endif %}>Delete and start a new galaxy</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="generate-sectors" aria-labelledby="generate-sectors-heading">
-  <h2 id="generate-sectors-heading">Generate sectors</h2>
+{% call fold("generate-sectors", "Generate sectors") %}
   <p class="hint">Adds sectors to the current galaxy. Plan the galaxy first.</p>
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
@@ -152,7 +165,6 @@
         {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
       {%- elif mode == "center" %}
-        {{ field("center_sector", "Sector ID", step="1", min=1) }}
         {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc) }}
       {%- elif mode == "slot" %}
         {{ field("slot_ring", "Ring", step="1", min=0, max=max_ring) }}
@@ -173,16 +185,61 @@
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
       {%- endif %}
       </div>
+      {%- if mode == "center" %}
+      {%- set center_by = form.get("center_by", "sector") if form else "sector" %}
+      {%- for by, by_label, by_hint in center_choices %}
+      <fieldset class="generate-mode generate-center">
+        <legend><label><input type="radio" name="center_by" value="{{ by }}"{% if by == center_by %} checked{% endif %}> {{ by_label }}</label></legend>
+        <p class="hint">{{ by_hint }}</p>
+        {%- if by == "sector" %}
+        <div class="sector-finder" data-finder data-locate-url="{{ url_for('web.galaxy_locate') }}"
+          data-list-url="{{ url_for('web.generate_sectors') }}" hidden>
+          <div class="search-fields">
+            <label class="search-field">Find a sector by name
+              <input type="search" data-finder-query placeholder="a sector or star system name"
+                autocomplete="off" autocapitalize="off" spellcheck="false">
+              <span class="field-hint">A star system's name finds the sector it is in.</span>
+            </label>
+          </div>
+          <div class="search-actions">
+            <button type="button" class="btn" data-finder-list>List filled sectors</button>
+          </div>
+          <p class="hint" data-finder-status role="status" aria-live="polite"></p>
+          <ul class="sector-finder-results" data-finder-results></ul>
+          <div class="search-actions" data-finder-pager hidden>
+            <button type="button" class="btn" data-finder-prev>Previous</button>
+            <button type="button" class="btn" data-finder-next>Next</button>
+          </div>
+        </div>
+        <div class="search-fields">
+          {{ field("center_sector", "Sector ID", step="1", min=1) }}
+        </div>
+        <p class="hint" data-finder-chosen role="status" aria-live="polite"></p>
+        {%- elif by == "address" %}
+        <div class="search-fields">
+          {{ field("center_ring", "Ring", step="1", min=0, max=max_ring) }}
+          {{ field("center_layer", "Layer", placeholder="0", step="1") }}
+          {{ field("center_slot", "Slot", step="1", min=0) }}
+        </div>
+        {%- else %}
+        <div class="search-fields">
+          {{ field("center_x_pc", "x (pc)") }}
+          {{ field("center_y_pc", "y (pc)") }}
+          {{ field("center_z_pc", "z (pc)", placeholder="0") }}
+        </div>
+        {%- endif %}
+      </fieldset>
+      {%- endfor %}
+      {%- endif %}
     </fieldset>
     {%- endfor %}
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Generate</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="plan" aria-labelledby="plan-heading">
-  <h2 id="plan-heading">Plan the galaxy</h2>
+{% call fold("plan", "Plan the galaxy") %}
   <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist, then
   scatters the bright stars. Sectors already generated stay as they are, but the scatter is refused while
   any exist (they would never get their bright stars); rebuild the bright stars below to leave them out.</p>
@@ -197,10 +254,9 @@
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Plan</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="bright-stars" aria-labelledby="bright-stars-heading">
-  <h2 id="bright-stars-heading">Rebuild the bright stars</h2>
+{% call fold("bright-stars", "Rebuild the bright stars") %}
   <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
   Needs a plan.</p>
   {%- if summary.bright %}
@@ -219,10 +275,9 @@
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Rebuild bright stars</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="bright-band" aria-labelledby="bright-band-heading">
-  <h2 id="bright-band-heading">Add a dimmer layer of bright stars</h2>
+{% call fold("bright-band", "Add a dimmer layer of bright stars") %}
   <p class="hint">Keeps every bright star already placed and adds only the stars from a lower level up to
   the current one, then lowers the galaxy's star-fill level. Sectors already generated are left out: their
   own systems were drawn below the old level, so they already hold stars that bright.
@@ -239,10 +294,9 @@
       <button type="submit" class="btn"{% if busy or not (summary.bright and summary.bright.scattered) %} disabled{% endif %}>Add layer</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="reset" aria-labelledby="reset-heading">
-  <h2 id="reset-heading">Reset</h2>
+{% call fold("reset", "Reset") %}
   <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.
   Admin logins and API keys are kept.</p>
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
@@ -255,10 +309,9 @@
       <button type="submit" class="btn btn-danger"{% if busy %} disabled{% endif %}>Delete everything</button>
     </div>
   </form>
-</section>
+{% endcall %}
 
-<section class="panel" id="recent-jobs" aria-labelledby="recent-jobs-heading">
-  <h2 id="recent-jobs-heading">Recent jobs</h2>
+{% call fold("recent-jobs", "Recent jobs") %}
   {%- if recent %}
   <div class="table-scroll"><table>
     <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">By</th><th scope="col">Status</th><th scope="col" class="num">Time</th></tr></thead>
@@ -277,5 +330,5 @@
   {%- else %}
   <p class="hint">No jobs yet.</p>
   {%- endif %}
-</section>
+{% endcall %}
 {% endblock %}
