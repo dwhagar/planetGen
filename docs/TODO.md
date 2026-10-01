@@ -134,6 +134,42 @@ lot with a much higher contrast."
     filled sectors gets the filled look; and whether it follows the
     light and dark themes and keeps enough contrast in both.
 
+110. [ ] **Bug: wedge lines and ring circles run far past a zoomed-in
+    block.** Boss (2026-10-01): "when zoomed in to a sector block it the
+    radial lines should only be contained within the block and just a
+    little beyond, and that should also be cylindar boundaries about the
+    same." Today the wedge lines (`galaxymap3d.js`, `updateWedgeLevels`
+    and `clipWedgeLevel`) are clipped only to the view ball around the
+    camera's target, so when the drill-down (items 70-72) is zoomed in to
+    a block they still run across the whole view, and the cylinder
+    (ring) boundaries do the same. Done: zoomed in to a block, the wedge
+    lines and the ring boundaries are drawn only across that block and a
+    small margin past its edges, at every drill-down stage; zoomed out,
+    item 96's rule (stop at the galaxy's edge) applies. Open questions:
+    how big "a little beyond" is (a fixed fraction of the block, such as
+    10-20%, or a few pixels on screen)? Do the lines fade out across the
+    margin or stop sharply? Does the same apply to the 3D stages while
+    item 100 still has them, or only to the top-down ones?
+
+111. [ ] **Bug: the block under the pointer is too hard to see from
+    above.** Boss (2026-10-01): "selection of blocks from top-down
+    doesn't show highlight well enough, needs to be more obvious, when
+    selecting everything but what your mouse is over should be dimmed".
+    Today, in the top-down stages (2, 4, 6, 8), hovering a block only
+    draws an outline around it (`galaxystageview.js`, `applyHover` ->
+    `outlineBlock`), and nothing else changes; the 3D stages already
+    fade the other slabs (`OTHER_SLAB_FADE`). Done: while the user is
+    picking, everything except the block (or slice) under the pointer
+    is dimmed, and the hovered one stands out clearly, in both themes,
+    with the same look for a first tap on touch screens and for keyboard
+    focus; the dimming clears when the pointer leaves the map. Goes with
+    item 100 (the wedge, slice and block picks all need this highlight)
+    and item 99 (unfilled blocks drawn much more transparent, which the
+    dimming must still read against). Open questions: how dim the rest
+    goes (say 25-40% opacity)? Does the hovered block also brighten or
+    get a thicker outline? Does it animate (a short fade) or switch
+    instantly, and does `prefers-reduced-motion` turn the fade off?
+
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
 Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
@@ -261,6 +297,30 @@ stages themselves don't need it.
     browser's history (`history.pushState` per stage) with the buttons
     calling `history.back()`/`forward()`? Does it survive a page reload
     or a visit to a sector page and back? How far back does it go?
+
+109. [ ] **Slab list to the left of the map, and a 3:4 map.** Boss
+    (2026-10-01): "slab selection goes to the left of the galactic map
+    if there is room, given the galactic map shoul dhave a 3:4 aspect
+    ratio to its window or 1:1 if necessary, like in mobile view
+    perhaps." Today (after item 63, which put the controls underneath
+    the map) the Galaxy Map's viewport (`.galaxymap3d-panel
+    .starmap-viewport` in `static/style.css`) is the full width with a
+    height of `min(100svh - 9rem, max(20rem, 75vw))`, and the stage
+    view's slab list (`.galaxy-slab-row` rows, `static/galaxystageview.js`)
+    sits with the other controls below the map. Done: the map keeps a
+    3:4 aspect ratio within its window, falling back to 1:1 where the
+    window can't fit 3:4 (as on phones); when there's room beside the
+    map, the slab list moves to its left; when there isn't, it stays
+    under the map with the other controls; no layout jump as stages
+    change. Goes with item 100 (once the drill-down picks wedges and
+    slices, the left-hand list holds whatever the current stage offers)
+    and follows the Responsive Web Design Standards notes above item 62
+    (size classes, container queries). Open questions: is 3:4 width to
+    height (taller than wide) or height to width (4:3, wider than tall,
+    close to today's 75vw height)? At what width does the list move to
+    the left (the standards' expanded class, 840 px and up, or whenever
+    a readable list column fits)? Does the rest of item 63's controls
+    row stay under the map, or join the list on the left?
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
