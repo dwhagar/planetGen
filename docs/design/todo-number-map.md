@@ -746,11 +746,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.52 | Old URLs and error codes | none | done, PR #293 |
 | TEST.53 | Formatters with bad numbers | none | done, PR #293 |
 | TEST.54 | Caches under threads | none | done, PR #293 |
-| TEST.55 | Map buttons do something | none | open |
-| TEST.56 | No overlapping controls | none | open |
-| TEST.57 | Galaxy Map JavaScript logic | none | open |
-| TEST.58 | Other map JavaScript | none | open |
-| TEST.59 | Galaxy Map drill-down in a browser | none | open |
+| TEST.55 | Map buttons do something | none | done, PR #307 |
+| TEST.56 | No overlapping controls | none | done, PR #307 |
+| TEST.57 | Galaxy Map JavaScript logic | none | done, PR #307 |
+| TEST.58 | Other map JavaScript | none | done, PR #307 |
+| TEST.59 | Galaxy Map drill-down in a browser | none | done, PR #307 |
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
