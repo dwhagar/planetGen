@@ -94,7 +94,7 @@
               {%- endfor %}
             </ul>
           </details>
-          {%- else %}<a href="{{ row.url }}">{{ row.name }}</a>{% endif %}</td>
+          {%- elif row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}</td>
         <td>{{ row.type }}</td>
         <td>{{ row.details }}</td>
         <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>

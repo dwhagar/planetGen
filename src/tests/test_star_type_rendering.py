@@ -42,5 +42,32 @@ def test_star_dots_grow_on_a_log_scale_from_white_dwarfs_to_supergiants():
     assert sizes[0] == starmap._MIN_DOT_R
     assert sizes[2] == pytest.approx(starmap._SUN_DOT_R)
     assert sizes[-1] == pytest.approx(starmap._MAX_DOT_R, abs=0.05)
-    # A giant (10 solar radii) is clearly larger than the Sun.
-    assert sizes[3] - sizes[2] > 4
+    # A giant (10 solar radii) is still larger than the Sun, but every core
+    # stays small: a supergiant is a point, not a big disc.
+    assert sizes[3] > sizes[2]
+    assert starmap._MAX_DOT_R <= 8
+    assert starmap._star_dot_radius(sun * 1e5) == starmap._MAX_DOT_R
+
+
+def _glow_radius(luminosity_sol, radius_sol):
+    dot_r = starmap._star_dot_radius(starmap._SUN_RADIUS_KM * radius_sol)
+    glow = starmap._star_glow(luminosity_sol * starmap.SOLAR_LUMINOSITY, dot_r)
+    return dot_r, glow, dot_r * glow["glowScale"]
+
+
+def test_star_glow_shows_luminosity_while_the_core_stays_small():
+    white_dwarf = _glow_radius(0.001, 0.01)
+    sun = _glow_radius(1.0, 1.0)
+    giant = _glow_radius(100.0, 15.0)
+    supergiant = _glow_radius(1e5, 500.0)
+    # The glow's outer radius grows with luminosity, and a supergiant's is
+    # several times its core while a white dwarf's barely clears it.
+    radii = [white_dwarf[2], sun[2], giant[2], supergiant[2]]
+    assert radii == sorted(radii) and len(set(radii)) == 4
+    assert supergiant[2] >= 5 * supergiant[0]
+    assert white_dwarf[1]["glowScale"] == starmap._MIN_GLOW_SCALE
+    # Stronger at the core's edge for a bright star, faint for a dim one.
+    assert supergiant[1]["glowStrength"] > sun[1]["glowStrength"] > white_dwarf[1]["glowStrength"]
+    # A hypergiant's halo is capped.
+    hyper = _glow_radius(1e7, 1500.0)
+    assert hyper[2] <= starmap._MAX_GLOW_R + 1e-6

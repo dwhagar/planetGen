@@ -104,6 +104,10 @@ class FakeData:
         except (KeyError, ValueError):
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
 
+    def get_sector_facilities(self, db, sector_id):
+        self.calls.append(("get_sector_facilities", db, sector_id))
+        return []
+
     def get_sectors(self, db, limit=None, offset=None):
         self.calls.append(("get_sectors", db, limit))
         items = [{"id": key, "name": value["name"]} for key, value in sorted(self.sectors.items())]
@@ -160,7 +164,7 @@ class FakeData:
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
-_FAKED = ("get_sector", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
+_FAKED = ("get_sector", "get_sector_facilities", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
           "auth_me", "upload_sector_to_wiki", "generate_sector_neighborhood")
 
 

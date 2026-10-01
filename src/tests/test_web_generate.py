@@ -156,7 +156,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert f"Database {DB}" in html
     assert "Planned, edge at ring 4,100" in html
     assert "7 sectors" in html
-    for action in ("new_galaxy", "galaxy", "plan", "reset"):
+    for action in ("new_galaxy", "galaxy", "plan", "bright_stars", "reset"):
         assert f'name="action" value="{action}"' in html
     assert "Nothing is running." in html
     assert re.search(r'<script type="module" src="/static/generatejobs.js\?v=[^"]+"></script>', html)
@@ -196,7 +196,7 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     assert resp.headers["Location"].endswith("/admin/generate#current-job")
     (job,) = no_spawn
     assert job["kind"] == "plan"
-    assert _argv(job["steps"][0]) == ["plan", "--arm-count", "3"]
+    assert _argv(job["steps"][0]) == ["plan", "--arm-count", "3", "--no-bright-stars"]
     assert job["steps"][0]["argv"][1] == jobs.GENERATE_SCRIPT
     assert job["admin"] == "boss" and job["database"] == DB
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
@@ -273,10 +273,64 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, galaxy = job["steps"]
+    reset, plan, scatter, galaxy = job["steps"]
     assert reset["argv"][1] == jobs.RESET_SCRIPT and _argv(reset) == ["--yes"]
-    assert _argv(plan) == ["plan", "--arm-count", "4"]
+    assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
+    assert scatter["label"] == generate_page.SCATTER_LABEL
+    assert _argv(scatter) == ["plan", "--bright-stars-only"]
     assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0"]
+
+
+# --- Bright-star scatter ----------------------------------------------------------
+
+def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
+    assert _post(client, action="plan").status_code == 303
+    (job,) = no_spawn
+    plan, scatter = job["steps"]
+    assert _argv(plan) == ["plan", "--no-bright-stars"]
+    assert scatter["label"] == generate_page.SCATTER_LABEL
+    assert _argv(scatter) == ["plan", "--bright-stars-only"]
+
+
+@pytest.mark.parametrize("action", ["plan", "new_galaxy"])
+def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, skip_bright_stars="1").status_code == 303
+    (job,) = no_spawn
+    labels = [step["label"] for step in job["steps"]]
+    assert generate_page.SCATTER_LABEL not in labels
+    plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
+    assert _argv(plan)[-1] == "--no-bright-stars"
+
+
+@pytest.mark.parametrize("form, argv", [
+    ({}, ["plan", "--bright-stars-only"]),
+    ({"bright_force": "1"}, ["plan", "--bright-stars-only", "--force"]),
+])
+def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
+    assert _post(client, action="bright_stars", **form).status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "bright_stars"
+    (step,) = job["steps"]
+    assert _argv(step) == argv
+
+
+def test_scatter_flags_exist_in_generate_py():
+    """Every flag the page passes is one `generate.py plan` accepts."""
+    sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
+    import generate
+
+    _parser, parsers = generate.build_parser()
+    plan = parsers["plan"]
+    assert plan.parse_args(["--no-bright-stars"]).no_bright_stars is True
+    args = plan.parse_args(["--bright-stars-only", "--force"])
+    assert args.bright_stars_only is True and args.force is True
+
+
+def test_page_offers_the_scatter_checkbox(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="skip_bright_stars"') == 2  # New galaxy and Plan
+    assert "Skip the bright-star scatter" in html
+    assert 'name="bright_force"' in html
 
 
 def test_one_job_at_a_time(site, client, no_spawn, jobs_root):

@@ -183,9 +183,14 @@ def nearest_neighbors_location(location, neighbors, system_url):
         str: HTML-safe markup.
     """
     prefix = (location or "").split(_LOCATION_NEIGHBOR_MARKER, 1)[0]
-    entries = [f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a> ({n["distance_ly"]:.1f} ly)'
-               for n in neighbors]
-    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(entries)
+    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + nearest_systems_html(neighbors, system_url)
+
+
+def nearest_systems_html(neighbors, system_url):
+    """`{id, name, distance_ly}` neighbors (`queryDb.nearest_systems`) as
+    comma-separated links with their distances. HTML-safe markup."""
+    return ", ".join(f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a> ({n["distance_ly"]:.1f} ly)'
+                     for n in neighbors)
 
 
 def format_distance_km(distance_km):

@@ -45,6 +45,7 @@ _STATIC_DIR = os.path.join(_HTML_DIR, "static")
 if _LIB_DIR not in sys.path:
     sys.path.insert(0, _LIB_DIR)
 
+import classref  # noqa: E402
 from fmt import STATIC_VERSION, utc_time_html  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
@@ -125,6 +126,7 @@ from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, sector_page  # noqa: E402,F401 -- /nav, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
+from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
 from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 
 
@@ -142,6 +144,9 @@ def init_app(app, limiter=None):
             `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
+    # The class reference catalog is built from the generator's tables
+    # now, once, so the /classes pages never build it on a request.
+    classref.catalog()
     app.before_request(csrf.protect)
     app.after_request(csrf.set_cookie)
     transport.install()

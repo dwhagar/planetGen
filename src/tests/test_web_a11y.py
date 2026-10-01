@@ -305,6 +305,8 @@ def sample_params(site_app, sample_job):
         "page": 1,
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
+        "type_slug": "nebula",  # web.class_type_page / web.class_page
+        "code": "D",
     }
 
 

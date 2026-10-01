@@ -5,7 +5,9 @@ The sector page, `/sector/<id>` (was `sector.py`): the sector's size and
 badges, its interactive 3D Sector Map (`lib/starmap.py` data, drawn by
 `static/sectormap.js`), and one "Contents" table of its systems and the
 phenomena near it, nearest the sector's center first, paged with
-`?contents_page=N`.
+`?contents_page=N`. The Contents table also lists the sector's
+facilities outside its systems (schema v42): stand-alone ones parked in
+open space and those on its asteroid fields.
 
 Admin actions are POST forms to the same URL, each carrying
 `csrf_field()` and an `action` field:
@@ -28,12 +30,17 @@ import re
 from flask import flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
-from fmt import format_distance_ly, inside_text, linkify_location, runaway_text
+from fmt import (
+    esc, format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html,
+    runaway_text,
+)
 from galaxymap import sector_quadrant
 from pagination import page_slice, parse_page
 from starmap import render_map_panel
+from systempage import facility_kind_label
 
 from api.common import is_http_url
+from stellarObjects.utils import pc_to_ly
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
@@ -130,11 +137,57 @@ def _rogue_group_row(rogues):
     }
 
 
-def _contents(sector):
+def _nearest_html(nearest, system_url):
+    """A phenomenon's "Nearest: ..." Location cell, or `None` when it has
+    no stored neighbors."""
+    return trusted_html("Nearest: " + nearest_systems_html(nearest, system_url)) if nearest else None
+
+
+def _facility_rows(sector, facilities):
     """
-    Every system and phenomenon as Contents rows, nearest the sector's
-    center first (anything without a position last), plus the placed
-    systems for the map.
+    The sector's own facilities (`GET /api/sectors/<id>/facilities`) as
+    Contents rows: a stand-alone one at its distance from the sector's
+    center, one on an asteroid field at the field's, linked from the
+    Location cell. A facility has no page of its own, so its name is plain
+    text.
+    """
+    fields = {row["id"]: row for row in sector.get("phenomena") or [] if row["type"] == "asteroid_field"}
+    center = (sector.get("center_x_pc"), sector.get("center_y_pc"), sector.get("center_z_pc"))
+    rows = []
+    for facility in facilities:
+        kind = facility_kind_label(facility["kind"])
+        distance_ly, location = None, None
+        if facility["host_type"] == "space":
+            details = f"Stand-alone {kind.lower()}, parked in open space"
+            point = (facility.get("center_x_pc"), facility.get("center_y_pc"), facility.get("center_z_pc"))
+            if None not in center and None not in point:
+                distance_ly = pc_to_ly(math.dist(center, point))
+        else:
+            details = f"{kind} on an asteroid field"
+            field = fields.get(facility["host_id"])
+            if field is not None:
+                distance_ly = field["distance_ly"]
+            url = page_url("phenomenon", phenomenon_type="asteroid_field", phenomenon_id=facility["host_id"])
+            location = trusted_html(f'On <a href="{esc(url)}">{esc(facility["host_name"] or "an asteroid field")}</a>')
+        if facility.get("description"):
+            details += f": {facility['description']}"
+        rows.append({
+            "distance_ly": distance_ly,
+            "name": facility["name"],
+            "url": None,
+            "type": f"Facility ({kind})",
+            "details": details,
+            "octant": None,
+            "location": location,
+        })
+    return rows
+
+
+def _contents(sector, facilities=()):
+    """
+    Every system, phenomenon and facility outside a system as Contents
+    rows, nearest the sector's center first (anything without a position
+    last), plus the placed systems for the map.
     """
     systems = sector["systems"]
     name_to_id = {row["name"]: row["id"] for row in systems}
@@ -154,7 +207,10 @@ def _contents(sector):
                 bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
             ),
             "octant": row["quadrant"],
-            "location": trusted_html(linkify_location(row["location"], name_to_id, system_url)),
+            "location": trusted_html(
+                nearest_neighbors_location(row["location"], row["nearest"], system_url) if row.get("nearest")
+                else linkify_location(row["location"], name_to_id, system_url)
+            ),
         })
         if row["position_x_mpc"] is not None and row["stars"]:
             map_systems.append(_map_system(row))
@@ -179,13 +235,11 @@ def _contents(sector):
             "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
             "type": PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]),
             "details": ", ".join(bit for bit in details if bit),
-            # TODO(phenomena #26): list the octant a phenomenon is in
-            # (spaceSector.classify_octant on its sector-relative
-            # position), and its three nearest star systems from the new
-            # stored table.
-            "octant": None,
-            "location": None,
+            "octant": row.get("octant"),
+            "location": _nearest_html(row.get("nearest"), system_url),
         })
+
+    rows.extend(_facility_rows(sector, facilities))
 
     rows.sort(key=lambda entry: (entry["distance_ly"] is None, entry["distance_ly"] or 0.0))
     for entry in rows:
@@ -256,7 +310,7 @@ def sector(sector_id):
         # Saved before the API checked it: never link to a javascript:/
         # data: URL.
         detail["wiki_url"] = None
-    rows, map_systems = _contents(detail)
+    rows, map_systems = _contents(detail, apiclient.get_sector_facilities(db_name(), sector_id))
     page_rows, contents_page = page_slice(rows, parse_page(request.args.get("contents_page")))
 
     center_pc = (

@@ -1420,8 +1420,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         phenomenon_id (int): The row's own `id` in its backing table.
 
     Returns:
-        dict: Every column of the phenomenon's own row, plus `type` and
-            `sector_name` (`None` if it has no `sector_id`).
+        dict: Every column of the phenomenon's own row, plus `type`,
+            `sector_name` (`None` if it has no `sector_id`) and `nearest`
+            (its stored nearest star systems, see `nearest_systems`).
 
     Raises:
         ValueError: If `phenomenon_type` isn't a recognized type, or no
@@ -1445,6 +1446,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
     detail = dict(row)
     detail["type"] = phenomenon_type
+    detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     return detail
 
 
@@ -1655,8 +1657,8 @@ def system_detail(conn, system_id):
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
             own `moons` list; every planet and moon also carries
-            `habitable`, `life_stage` and `inhabited` -- see
-            `_with_life_fields`), `belts` (`asteroid_belts` rows, including
+            `habitable`, `life_stage` and `inhabited` (a colony counts --
+            see `_with_life_fields`), `belts` (`asteroid_belts` rows, including
             `star_id`), `comets` (`comets` rows, including `star_id` --
             no `orbital_index`, see `insert_comet`'s docstring), and
             `sector_siblings` (`{id, name}` for every other system in the
@@ -1693,13 +1695,14 @@ def system_detail(conn, system_id):
     ).fetchall()
     planet_stages = _life_stages(conn, "planet_evolutionary_paragraphs", "planet_id", "planets", system_id)
     moon_stages = _life_stages(conn, "moon_evolutionary_paragraphs", "moon_id", "moons", system_id)
+    colonized = colonized_body_ids(conn, system_id)
     planets = []
     for planet in planet_rows:
         moon_rows = conn.execute(
             "SELECT * FROM moons WHERE planet_id = ? ORDER BY orbital_index", (planet["id"],)
         ).fetchall()
-        planet_dict = _with_life_fields(dict(planet), planet_stages)
-        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages) for m in moon_rows]
+        planet_dict = _with_life_fields(dict(planet), planet_stages, colonized["planets"])
+        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"]) for m in moon_rows]
         planets.append(planet_dict)
 
     belts = conn.execute(
@@ -1719,7 +1722,11 @@ def system_detail(conn, system_id):
             (system["sector_id"],),
         ).fetchall()
         sector_siblings = [{"id": r["id"], "name": r["name"]} for r in sibling_rows]
-        nearest_neighbors = _nearest_sector_siblings(system, sibling_rows)
+        # The stored neighbors (schema v41) are searched across sector
+        # boundaries; a system generated before them falls back to its
+        # own sector's.
+        nearest_neighbors = (nearest_systems(conn, "star_systems", [system_id]).get(system_id)
+                             or _nearest_sector_siblings(system, sibling_rows))
 
     cloud = containing_cloud(conn, system)
     open_space_au, heliopause_au = _heliopause_au(conn, system, cloud)
@@ -1764,9 +1771,7 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
-# TODO(facilities #36): a colony on a terrestrial world makes it inhabited;
-# OR `colonized_body_ids` into `inhabited` here.
-def _with_life_fields(body, stages):
+def _with_life_fields(body, stages, colonized=()):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its class is one of
@@ -1775,11 +1780,13 @@ def _with_life_fields(body, stages):
     evolutionary milestone its timeline reached, or `None`) and
     `inhabited` (habitable and reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
-    `Planet._generate_life_and_flavor_paragraphs`).
+    `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
+    it: `colonized` is that table's ids from `colonized_body_ids`, schema
+    v42).
     """
     body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["life_stage"] = stages.get(body["id"]) if body["habitable"] else None
-    body["inhabited"] = body["life_stage"] == "technological_civilization"
+    body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
     return body
 
 

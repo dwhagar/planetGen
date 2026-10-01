@@ -269,7 +269,8 @@ connectivity to that specific schema rather than the default one.
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
   `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
-  `age_years`), plus `type` and `sector_name` — `queryDb.
+  `age_years`), plus `type`, `sector_name` and `nearest` (its three
+  nearest star systems, `{id, name, distance_ly}`) — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
   `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
   `interstellar_comet`/`quasar`; an unrecognized type or

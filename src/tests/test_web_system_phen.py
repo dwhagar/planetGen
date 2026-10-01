@@ -96,6 +96,10 @@ class FakeData:
         self.calls.append(("get_system_sections", db, system_id))
         return self.sections
 
+    def get_system_facilities(self, db, system_id):
+        self.calls.append(("get_system_facilities", db, system_id))
+        return []
+
     def get_system_text(self, db, system_id, fmt):
         self.calls.append(("get_system_text", db, system_id, fmt))
         return {"id": system_id, "format": fmt, "content": f"== {fmt} <page> ==\nline"}
@@ -124,7 +128,7 @@ class FakeData:
         return self.admin
 
 
-_FAKED = ("get_system", "get_system_sections", "get_system_text", "get_wiki_config", "upload_system_to_wiki",
+_FAKED = ("get_system", "get_system_sections", "get_system_facilities", "get_system_text", "get_wiki_config", "upload_system_to_wiki",
           "get_phenomena", "get_phenomenon", "auth_me")
 
 

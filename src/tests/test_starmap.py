@@ -130,6 +130,26 @@ def test_render_map_panel_rotates_star_dots_only_when_placed():
     assert _star_position(scene_unplaced_again) == unplaced_pos
 
 
+def test_scene_stars_carry_a_small_core_and_a_luminosity_glow():
+    """Each star in the scene data has a small core (`r`) and the glow
+    `sectormap.js` draws around it; a supergiant's glow, not its core,
+    is what sets it apart from a dwarf."""
+    dwarf = _make_system()
+    giant = _make_system(x=-100.0)
+    giant["id"] = 2
+    giant["stars"] = [{
+        "star_type": "M2IA", "temperature_k": 3600, "radius_km": 696000 * 800,
+        "luminosity_w": 3.828e26 * 2e5, "temp_display": "3600 K",
+    }]
+    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [dwarf, giant]))
+    small, big = scene["stars"]
+    for star in (small, big):
+        assert set(star) >= {"r", "glowScale", "glowStrength", "glowPower"}
+        assert star["r"] <= 8
+    assert big["r"] * big["glowScale"] > 4 * small["r"] * small["glowScale"]
+    assert big["glowStrength"] > small["glowStrength"]
+
+
 def test_render_map_panel_placed_on_axis_matches_unplaced():
     """
     A galaxy placement exactly on the galactic axis is where

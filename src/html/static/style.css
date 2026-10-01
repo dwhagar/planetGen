@@ -462,6 +462,44 @@ tbody tr:last-child td {
   padding: 0.75rem 0.5rem 0.25rem 1.5rem;
 }
 
+/* A body's class links (/classes pages), above its description. */
+.body-detail .class-links {
+  font-size: 0.9rem;
+}
+
+/* A body's facilities (starbases, colonies, outposts), at the top of its
+   detail. */
+.facility-list {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.facility-name {
+  font-weight: 600;
+}
+
+/* The system page's Facilities panel: the Remove confirm step and the
+   form's preview. */
+.facility-remove > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.facility-remove > summary::-webkit-details-marker {
+  display: none;
+}
+
+.facility-remove[open] > summary {
+  margin-bottom: 0.4rem;
+}
+
+.facility-preview {
+  border-left: 3px solid var(--accent);
+  padding: 0.25rem 0.75rem;
+  margin: 0.5rem 0 1rem;
+}
+
 /* A planet's moons: their own collapsed group right under its row. */
 .moon-group > summary {
   padding: 0.3rem 0.5rem 0.3rem 1.75rem;
@@ -1507,6 +1545,53 @@ code {
   vertical-align: middle;
 }
 
+/* Facilities (lib/systemmap.py's `_facilities_svg`): a small diamond at
+   its host, on a dashed orbit when it orbits. */
+.sysmap-facility {
+  cursor: pointer;
+}
+
+.sysmap-facility polygon {
+  fill: #e8b04a;
+  stroke: #7a5410;
+  stroke-width: 1px;
+}
+
+.sysmap-facility-colony polygon,
+.sysmap-facility-mining-colony polygon {
+  fill: #5fc1e8;
+  stroke: #1d5f7a;
+}
+
+.sysmap-facility:hover polygon,
+.sysmap-facility:focus-visible polygon {
+  stroke: var(--text);
+  stroke-width: 2px;
+}
+
+.sysmap-facility:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sysmap-facility-orbit {
+  fill: none;
+  stroke: #e8b04a80;
+  stroke-width: 1px;
+  stroke-dasharray: 3 3;
+  pointer-events: none;
+}
+
+.sysmap-legend-facility {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  background: #e8b04a;
+  border: 1px solid #7a5410;
+  transform: rotate(45deg);
+  vertical-align: middle;
+}
+
 .sysmap-crumb {
   display: flex;
   flex-wrap: wrap;
@@ -1899,8 +1984,8 @@ body.app {
 
 /* The bar's own search box shows only when there's room for a text entry
    at least twice the button's width next to everything else; otherwise
-   search lives under the gear. Widths: the name (~6rem), five section
-   buttons (~27rem) or the Menu (~5.5rem), the gear (~2.5rem), the gaps
+   search lives under the gear. Widths: the name (~6rem), six section
+   buttons (~32.5rem) or the Menu (~5.5rem), the gear (~2.5rem), the gaps
    and padding, and the search itself (a >= 9rem entry plus its ~4.5rem
    button). Checked from 360 to 1400 px: the entry is always at least
    twice the button when shown, and nothing overflows. */
@@ -1912,7 +1997,7 @@ body.app {
   min-width: 9rem;
 }
 
-@container site-header (min-width: 58rem) {
+@container site-header (min-width: 64rem) {
   .app .site-header-inner > .site-search {
     display: flex;
   }
@@ -1922,9 +2007,9 @@ body.app {
   }
 }
 
-/* The five section buttons need about 43rem with the name, the gear and
+/* The six section buttons need about 49rem with the name, the gear and
    the header's padding; below that they fold into the Menu. */
-@container site-header (max-width: 43rem) {
+@container site-header (max-width: 49rem) {
   .app .site-wide {
     display: none;
   }
@@ -1934,7 +2019,7 @@ body.app {
   }
 }
 
-@container site-header (min-width: 34rem) and (max-width: 43rem) {
+@container site-header (min-width: 34rem) and (max-width: 49rem) {
   .app .site-header-inner > .site-search {
     display: flex;
   }
