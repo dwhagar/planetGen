@@ -37,9 +37,9 @@ def test_black_hole_class_and_rogue_mass_class_rows():
 def test_runaway_text():
     assert fmt.runaway_text({"runaway_class": None}) is None
     assert fmt.runaway_text({"runaway_class": "runaway", "runaway_speed_kms": 84.4}) == \
-        "Runaway star, 84 km/s"
+        "Runaway star, 84.4 km/s"
     assert fmt.runaway_text({"runaway_class": "hypervelocity", "runaway_speed_kms": 1234.0}) == \
-        "Hypervelocity star, 1,234 km/s"
+        "Hypervelocity star, 1.23 Mm/s"
 
 
 def test_debris_html():

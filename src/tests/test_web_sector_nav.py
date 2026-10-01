@@ -924,3 +924,60 @@ def test_galaxy_map_redirects(client, fake):
     assert client.get("/sector/404/galaxy").status_code == 404
     fake.sectors[5] = _sector_detail(placed=False)
     assert client.get("/sector/5/galaxy").headers["Location"].endswith("/galaxy")
+
+
+# --- Bookmarks (MAP.23) and the NAV page's Bookmarks select (MAP.22) ------------------
+
+def _bookmark_button(html):
+    match = re.search(r'<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
+                      html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_sector_page_has_a_bookmark_button(client, fake):
+    from stellarObjects.galaxyGeometry import provisional_sector_designation
+
+    html = client.get("/sector/5").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    button = _bookmark_button(html)
+    designation = provisional_sector_designation(5, 1, 20)
+    for attribute in (f'data-bookmark-db="{DB}"', 'data-bookmark-kind="sector"',
+                      f'data-bookmark-value="{designation}"', 'data-bookmark-name="Fake Sector"',
+                      'data-bookmark-url="/sector/5"', 'data-bookmark-sector-id="5"', 'aria-pressed="false"'):
+        assert attribute in button
+    # Shown and wired by the script; bookmarks live in the browser.
+    assert " hidden>" in button and "☆ Bookmark" in button
+    # No galaxy address: keyed by its page instead.
+    fake.sectors[5] = _sector_detail(placed=False)
+    assert 'data-bookmark-value="/sector/5"' in _bookmark_button(client.get("/sector/5").get_data(as_text=True))
+
+
+def _nav_bookmarks(html):
+    match = re.search(r'<form class="search-form nav-bookmarks" data-bookmarks-nav[^>]*>.*?</form>', html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_nav_origin_step_has_a_bookmarks_select(client, fake):
+    html = client.get("/nav?to=system:2001").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    form = _nav_bookmarks(_map_picks(html))
+    for attribute in (f'data-bookmark-db="{DB}"', 'data-nav-url="/nav"', 'data-pick="from"',
+                      'data-keep-name="to"', 'data-keep-value="system:2001"'):
+        assert attribute in form
+    assert " hidden>" in form  # until bookmarks.js finds bookmarks to offer
+    assert '<select name="bookmark"></select>' in form
+    assert ">Use as start</button>" in form
+    assert 'data-keep-value=""' in _nav_bookmarks(client.get("/nav").get_data(as_text=True))
+
+
+def test_nav_destination_step_has_a_bookmarks_select(client, fake):
+    form = _nav_bookmarks(client.get("/nav?from=system:1001").get_data(as_text=True))
+    assert 'data-pick="to"' in form and 'data-keep-name="from"' in form
+    assert 'data-keep-value="system:1001"' in form
+    assert ">Use as destination</button>" in form
+
+
+def test_nav_course_has_no_bookmarks_select(client, fake):
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "data-bookmarks-nav" not in html
+    assert "bookmarks.js" not in html

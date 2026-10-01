@@ -2,8 +2,10 @@
     the stars table and the map are HTML from lib/systempage.py and
     lib/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
+{% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 <script type="module" src="{{ static_url('copycode.js') }}"></script>
 <script type="module" src="{{ static_url('facilityform.js') }}"></script>
 {% endblock %}
@@ -14,13 +16,14 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
-  {%- if nav_links %}
   <p class="page-actions">
+    {%- if nav_links %}
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
     <a class="btn btn-small" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
+    {%- endif %}
+    {{ bookmark_button(bookmark) }}
   </p>
-  {%- endif %}
   {%- if location_html %}
   <p class="location inline-links">Location: {{ location_html }}</p>
   {%- endif %}

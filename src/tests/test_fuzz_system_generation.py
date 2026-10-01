@@ -936,6 +936,6 @@ def test_valid_domain_bounded_bell(lo, width, mode, seed):
 
 @given(years=st.floats(1 / (365.25 * 24 * 60), 1e15), age=st.floats(1e-6, 1e4))
 def test_valid_domain_text_formatters(years, age):
-    for text in (utils.years_to_time_string(years), utils.format_age_string(age)):
+    for text in (utils.format_period_years(years), utils.format_age_string(age)):
         assert isinstance(text, str) and text
         assert not {"nan", "inf", "-inf"} & set(text.lower().split())

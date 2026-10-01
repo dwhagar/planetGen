@@ -1,5 +1,10 @@
 {#- The NAV page (web/nav_page.py). -#}
 {% extends "base.html" %}
+{% block head %}
+{%- if bookmark_pick %}
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+{%- endif %}
+{% endblock %}
 {% block subhead %}
 {%- if origin %}
 <p class="badges">
@@ -28,6 +33,22 @@
     <a class="btn btn-small" href="{{ link.url }}">{{ link.label }}</a>
     {%- endfor %}
   </p>
+  {%- if bookmark_pick %}
+  {#- Filled from this browser's bookmarks by static/bookmarks.js; hidden
+      while there are none it can use (and with no script). -#}
+  <form class="search-form nav-bookmarks" data-bookmarks-nav data-bookmark-db="{{ bookmark_pick.db }}"
+        data-nav-url="{{ bookmark_pick.nav_url }}" data-pick="{{ bookmark_pick.pick }}"
+        data-keep-name="{{ bookmark_pick.keep_name }}" data-keep-value="{{ bookmark_pick.keep_value }}" hidden>
+    <div class="search-fields">
+      <label class="search-field">Bookmarks
+        <select name="bookmark"></select>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">{{ "Use as start" if bookmark_pick.pick == "from" else "Use as destination" }}</button>
+    </div>
+  </form>
+  {%- endif %}
 </section>
 {%- endif %}
 
