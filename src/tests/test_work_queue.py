@@ -301,5 +301,5 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
     finally:
         conn.close()
 
-    job = _rows(control_config, "SELECT state, workers, tasks_done FROM work_jobs")[0]
+    job = _rows(control_config, "SELECT state, workers, tasks_done FROM work_jobs WHERE kind = 'queue'")[0]
     assert (job["state"], job["workers"], job["tasks_done"]) == ("done", 2, expected)

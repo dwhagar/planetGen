@@ -77,16 +77,40 @@ def _test_server_kwargs():
     )
 
 
+def pytest_sessionstart(session):
+    """
+    The math check gate (TEST.67): before any test runs, the whole
+    `stellarObjects.mathCheck` list runs once (well under a second), and a
+    failure stops the run there -- with the math broken, every other
+    failure would be noise. Under pytest-xdist only the controller runs it;
+    the workers start after it passed. `test_math_check.py` repeats each
+    check as its own test, for the report.
+    """
+    if hasattr(session.config, "workerinput"):
+        return
+    from stellarObjects import mathCheck
+
+    results = mathCheck.run_all()
+    if mathCheck.failures(results):
+        pytest.exit(
+            "The math check failed, so the rest of the suite would only be noise. Fix these first "
+            "(python -m stellarObjects.mathCheck -v):\n" + mathCheck.format_report(results),
+            returncode=1,
+        )
+
+
 def pytest_collection_modifyitems(config, items):
     """Suite markers (registered in pytest.ini), so a run can pick a slice:
     `-m "not db"` without a database, `-m "not slow"` for a quick loop,
-    `-m browser` for the Playwright checks alone.
+    `-m browser` for the Playwright checks alone, `-m mathcheck` for the
+    math check gate.
 
     - `db`: the test uses a real MySQL database (`mysql_config`, directly or
       through another fixture).
     - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
       `test_bughunt_*`), whose cost is in their number of examples.
     - `browser`: `test_web_a11y.py` (headless Chromium).
+    - `mathcheck`: `test_math_check.py`, moved to the front of the run.
     """
     for item in items:
         if "mysql_config" in getattr(item, "fixturenames", ()):
@@ -96,6 +120,9 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.slow)
         if name == "test_web_a11y.py":
             item.add_marker(pytest.mark.browser)
+    # The math check's own tests run first (a stable sort keeps every
+    # other test in its collected order).
+    items.sort(key=lambda item: item.get_closest_marker("mathcheck") is None)
 
 
 @pytest.fixture(scope="session")

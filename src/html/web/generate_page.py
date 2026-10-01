@@ -100,6 +100,10 @@ CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 BAND_LABEL = "Add a dimmer layer of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
+
+MATH_CHECK_LABEL = "Check the math"
+"""str: Every generating job's first step (TEST.68): `generate.py
+check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
 (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
@@ -313,7 +317,8 @@ def plan_steps(generate, form):
 
 def build_job(action, form, database):
     """
-    The job a form asks for.
+    The job a form asks for. Every job that generates starts with the
+    math check (`MATH_CHECK_LABEL`); a plain reset doesn't.
 
     Returns:
         tuple: `(kind, title, steps)` for `jobs.start_job`.
@@ -323,6 +328,15 @@ def build_job(action, form, database):
     """
     if action in CONFIRM_ACTIONS and (form.get("confirm") or "").strip() != database:
         raise FormError(f"Type the database name ({database}) to confirm. Nothing was changed.")
+    kind, title, steps = _build_job_steps(action, form)
+    if kind != "reset":
+        python = jobs.python_executable()
+        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, jobs.GENERATE_SCRIPT, "check-math"]}, *steps]
+    return kind, title, steps
+
+
+def _build_job_steps(action, form):
+    """`build_job`'s `(kind, title, steps)` before the math check step."""
     python = jobs.python_executable()
     generate = [python, jobs.GENERATE_SCRIPT]
     reset_step = {"label": "Reset the galaxy", "argv": [python, jobs.RESET_SCRIPT, "--yes"]}
@@ -538,7 +552,7 @@ def generate():
         # PERF.3: show the size and time first; the admin confirms (or the
         # disk refuses it) before the job starts.
         try:
-            estimate = run_estimate(steps[0]["argv"], env)
+            estimate = run_estimate(steps[-1]["argv"], env)
         except FormError as exc:
             if wants_json:
                 return _no_store(make_response(jsonify({"error": str(exc)}), 400))
