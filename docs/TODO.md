@@ -48,7 +48,8 @@ renumber when items are added or finished.
    and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
    26's storage in v41 and 35 (facilities) in v42; 32 (the
-   correlative update moves everything) shipped with them.
+   correlative update moves everything) shipped with them, and so did
+   33-34 (navigation frames and speeds).
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -277,49 +278,6 @@ for a mouse; spacing and type sized with `clamp()`.
       reaching into it (`queryDb.galaxy_clouds_in_box`).
     - Left: the Sector Map draws each cloud's extent (`sectormap.js`).
 
-### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
-
-33. [ ] **Courses in "bearing mark mark" format on nested reference
-    frames.** Boss: "Course projections should be in the format of:
-    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
-    Boss's design (summarized; the full text and pseudocode are in
-    `docs/design/navigation-frames.md`):
-    - North points toward the local dominant center of mass. Every
-      local frame is a rigid transform of the absolute galactic
-      Cartesian frame.
-    - Galactic Standard Frame: origin the galactic core, +Z galactic
-      north, +X a fixed zero meridian. Between sectors, bearing 000
-      points at the core.
-    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
-      North from the ship toward it, +Z the galactic +Z.
-    - System Local Frame: origin the central star/barycenter, North
-      from the ship toward it, +Z the star's net angular momentum
-      (the ecliptic normal).
-    - Math: D = target - ship; U = the plane's normal; N = (center -
-      ship) with its U part removed, normalized; E = N x U. Bearing =
-      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
-      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
-      fall back to a fixed reference vector. Boss's `compute_course`
-      pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the system's own
-      heliopause (`queryDb.system_detail`'s `heliopause_au`, pressed in
-      by any nebula around it); galactic frame when crossing a sector
-      boundary (> 4 pc).
-    - Today `navigation.course_between` returns azimuth/altitude on the
-      galactic plane and `nav.html` shows them as separate rows.
-    - **Questions for Boss:**
-      - Marks from 0-359: the math gives -90 to +90. Default taken, from
-        your own note: write mark as elevation mod 360, so 000-090 is up
-        and 270-359 is down (270 = straight down), and nothing between
-        091 and 269 appears. OK?
-      - "0 mark 0 toward the galactic core" holds in the galactic frame;
-        inside a system or sector, 0 points at the star or sector
-        barycenter. Default taken: 0 mark 0 is toward the current
-        frame's center.
-      - The zero meridian "toward a reference quasar": here the quasar
-        sits at the galactic center, so it can't set +X. Default taken:
-        keep the galaxy's existing +X axis (ring slot 0).
-
 ### Facilities (new)
 
 36. [ ] **Place facilities from the web interface.** Boss: "The web
@@ -385,38 +343,6 @@ project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
       overlap, keeping the server placement as the no-script fallback.
     - Check every scene: single star, close and wide binaries, and the
       moon-centered scenes, at 390 px and 1280 px.
-
-### Installers and platforms (Boss's notes, 2026-09-30)
-
-50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
-    also run on macOS.** Boss: "we need to write a powershell install and
-    upgrade scripts as well as make sure our bash shell scripts will also
-    work on macos as well as linux."
-    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
-      `install.sh` and `update.sh`: the same steps and the same prompts
-      (check-only upgrades, the migrate-or-delete database prompt with
-      its 30-second default, the migration progress bar), using a venv
-      or the Windows Python launcher instead of apt, Windows services or
-      Task Scheduler instead of systemd timers, and Apache on Windows
-      (or IIS) paths and permissions (`icacls`) instead of `www-data`
-      and `chown`.
-    - **macOS:** every bash script (`install.sh`, `update.sh`,
-      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
-      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
-      macOS too. Known gaps: macOS ships bash 3.2, so
-      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
-      (require Homebrew bash, or rewrite them); apt is assumed (use
-      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
-      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
-      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
-      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
-      `stat`, `readlink`, `date` and `timeout` wherever they appear.
-    - Keep the steps in step across the three platforms, so a change to
-      one installer lands in all of them.
-    - The Windows and macOS hosting guides (being written in `docs/` by
-      the docs thread) describe the server setup; this item is only the
-      scripts, and the guides should point at them once they exist.
-    - Each script carries a `TODO(installers #50)` comment at its top.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
