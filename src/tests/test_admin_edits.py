@@ -39,9 +39,13 @@ def admin(client, mysql_config):
     return client
 
 
-def _saved_system(mysql_config, want=lambda s: True):
+def _saved_system(mysql_config, want=None):
     """A saved single-star sector system with planets, moons and a belt
-    where possible, retried until `want(system)` holds."""
+    where possible, retried until `want(system)` holds (by default, until
+    it has at least one planet)."""
+    if want is None:
+        def want(system):
+            return any(p.body_type != 'a' for p in system.planets)
     for _ in range(300):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
