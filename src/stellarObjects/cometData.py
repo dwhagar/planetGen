@@ -56,6 +56,45 @@ key, for `Comet.to_paragraph_list`'s descriptive text -- presentation
 only, not consulted by generation or propagation."""
 
 
+PERIODIC_COMET_MAX_PERIOD_YEARS = 200
+"""float: A bound comet with an orbital period under this many years is
+periodic (`P/`); every other star-bound comet is `C/` -- the IAU's own
+split (TODO item 30, v40)."""
+
+
+def comet_designation(host_name, index, comet):
+    """
+    A star-bound comet's designation (v40): `P/<host>-<n>` for a periodic
+    comet (elliptical, period under `PERIODIC_COMET_MAX_PERIOD_YEARS`), or
+    `C/<host>-<n>` otherwise, after the real IAU prefixes. `<host>` is the
+    star it orbits (the system's name for a single star or close pair)
+    and `<n>` counts that star's comets from 1.
+    """
+    periodic = (comet.orbit_type == "elliptical" and comet.orbital_period_years is not None
+                and comet.orbital_period_years < PERIODIC_COMET_MAX_PERIOD_YEARS)
+    return f"{'P' if periodic else 'C'}/{host_name}-{index}"
+
+
+def rename_comet_designation(name, old_host, new_host):
+    """
+    `name` with its host swapped when it's a `comet_designation` whose
+    host is `old_host` or starts with `old_host` followed by a space
+    (`bodyNames.rename_prefix`'s rule), else `None`.
+    """
+    if name is None or len(name) < 3 or name[1] != "/" or name[0] not in "PC" or "-" not in name:
+        return None
+    host, _, number = name[2:].rpartition("-")
+    if not number.isdigit():
+        return None
+    if host == old_host:
+        renamed = new_host
+    elif host.startswith(old_host + " "):
+        renamed = new_host + host[len(old_host):]
+    else:
+        return None
+    return f"{name[:2]}{renamed}-{number}"
+
+
 def _activity_chance(perihelion_distance_au):
     """
     Linearly interpolates the chance a comet currently shows a coma/tail,
@@ -161,11 +200,8 @@ class Comet:
         """
         reseed_rng()
         self.system_config = system_config
-        # TODO(phenomena #30): comets get a standardized designation
-        # instead of a name: "P/<system>-<n>" for periodic (under 200
-        # years), "C/<system>-<n>" for long-period; interstellar comets
-        # (roguePlanetData.InterstellarComet) use "I/<sector
-        # designation>-<n>".
+        # A placeholder: `_db.insert_star_system` replaces it with the
+        # comet's designation (`comet_designation`, v40).
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.primary_mass_solar = primary_mass_solar
 

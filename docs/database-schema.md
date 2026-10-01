@@ -492,6 +492,22 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Names (v40).** Black holes, neutron stars, nebulae, supernova
+remnants, rogue planets and quasars draw their names through
+`system_name_registry`, the same collision rules star systems use, so
+none shares a name with a system, a sector or each other.
+`system_name_registry.first_star_system_id` is nullable and
+`first_object_table`/`first_object_id` name a phenomenon holder. A
+remnant's core is named `"<remnant> Core"` and follows its remnant; an
+anchored black hole or neutron star shares its system's name. Comets and
+asteroid fields get designations instead: `P/<host>-<n>` (periodic,
+under 200 years) or `C/<host>-<n>` for a star-bound comet, which follow
+a rename of their star, `I/<sector>-<n>` for an interstellar comet and
+`AF <field_class>-<sector>-<nn>` for an asteroid field, where
+`<sector>` is the sector's grid designation (or its name off the grid).
+Each named phenomenon table indexes `name`, and `_db.name_in_use`
+searches them. `_migrate_v39_to_v40` renames and registers existing rows.
+
 **Containment (v39).** `star_systems`, `rogue_planets`,
 `interstellar_comets`, `black_holes`, `neutron_stars`, `asteroid_fields`
 and `nebulae` get `inside_nebula_id` and `inside_remnant_id`, foreign keys

@@ -49,8 +49,11 @@ def _make_cheap_system(star_type="G2V"):
     return StarSystem(system_config=cfg), cfg
 
 
-def _seeded_sector(system_count):
-    sector = SpaceSector("Phenomena Test Sector")
+def _seeded_sector(system_count, edge_ly=100.0):
+    # Wider than the default sector: a forced phenomenon must always find
+    # room clear of the seeded systems' Hill spheres, which in a default
+    # 13 ly sector it failed to about once in 700 runs.
+    sector = SpaceSector("Phenomena Test Sector", edge_ly=edge_ly)
     for _ in range(system_count):
         system, cfg = _make_cheap_system()
         sector.add_system(system, system_config=cfg)

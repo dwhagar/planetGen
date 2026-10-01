@@ -74,6 +74,19 @@ def _family_composition(composition_family):
     return list(zip(chosen, concentrations))
 
 
+def asteroid_field_designation(field_class, sector_code, index):
+    """
+    An asteroid field's designation (v40): `AF <class>-<sector>-<nn>`,
+    e.g. `AF C3-FE81000A2B-01`, where `<sector>` is the sector it was
+    found in (its grid designation, or its name) and `<nn>` counts that
+    sector's fields from 01. `AF <class>-<nn>` for one found in no
+    sector.
+    """
+    if sector_code:
+        return f"AF {field_class}-{sector_code}-{index:02d}"
+    return f"AF {field_class}-{index:02d}"
+
+
 class AsteroidField:
     """
     A basic class to store information for a standalone field of asteroid
@@ -126,9 +139,8 @@ class AsteroidField:
         """
         reseed_rng()
         self.system_config = system_config
-        # TODO(phenomena #30): asteroid fields get a standardized
-        # designation instead of a name: "AF <field_class>-<sector
-        # designation>-<n>", e.g. "AF C3-4F2A1-02".
+        # A placeholder: `_db.insert_asteroid_field` replaces it with the
+        # field's designation (`asteroid_field_designation`, v40).
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         self.density = random.choice(["dense", "sparse", "typical"])

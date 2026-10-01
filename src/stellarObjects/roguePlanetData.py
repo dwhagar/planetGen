@@ -262,6 +262,16 @@ class RoguePlanet:
         return "\n\n".join(self.to_paragraph_list())
 
 
+def interstellar_comet_designation(sector_code, index):
+    """
+    An interstellar comet's designation (v40): `I/<sector>-<n>`, after
+    the IAU's `I/` prefix, where `<sector>` is the sector it was found in
+    (its grid designation, or its name) and `<n>` counts that sector's
+    interstellar comets from 1. `I/<n>` for one found in no sector.
+    """
+    return f"I/{sector_code}-{index}" if sector_code else f"I/{index}"
+
+
 class InterstellarComet:
     """
     A basic class to store information for a small icy body passing
