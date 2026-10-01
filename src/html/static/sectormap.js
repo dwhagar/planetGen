@@ -176,7 +176,8 @@ function showNeighborInfo(panel, entry) {
   }
 
   if (sceneData && sceneData.generate) {
-    panel.appendChild(generateButtons(sceneData.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
+    panel.appendChild(generateButtons(sceneData.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex,
+      sceneData.edgeLy));
   }
 }
 

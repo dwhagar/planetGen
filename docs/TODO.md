@@ -100,18 +100,15 @@ stages themselves don't need it.
     we're down to a sector level we can tell a slice to generate all the
     sectors in that slice or click on a sector and generate it from the
     UI if you're admin", and "add a 'generate neighborhood' when at a
-    sector selection level that will ask the radius in ly." Done, for an
-    admin at stages 7-8: Generate this sector (today's `slot` mode),
-    Generate this layer or slab (a new `generate.py galaxy --block
-    m.I.s.S [--block-layer j]` mode plus a Generate page form), and
-    Generate neighborhood with a light-year radius dialog (default 100
-    ly, 13-652 ly, converted with `ly_to_pc`, an "up to about N sectors"
-    estimate, a confirmation above 5,000), started without leaving the
-    map and refreshed when the job ends. Web owns `generate.py` and the
-    Generate page; Galaxy Map owns the buttons. Web's part is built:
-    `--block`/`--block-layer`, the Generate page's block form and
-    light-year neighborhood radius, and JSON answers to
-    `Accept: application/json` posts. Only the map buttons remain.
+    sector selection level that will ask the radius in ly." The map's
+    own buttons are in (an admin picking a sector at stage 8 gets
+    Generate this sector, Generate neighborhood with its light-year
+    radius and sector estimate, Generate column and Generate the entire
+    shell), and so is Web's `generate.py galaxy --block m.I.s.S
+    [--block-layer j]` mode with its Generate page form (posts with
+    `Accept: application/json` get the job back as JSON). What is left
+    is the Galaxy Map's Generate this layer or slab button at stages
+    7-8.
 
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as

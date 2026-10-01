@@ -509,6 +509,21 @@ def get_galaxy_stage(db, at=None):
     return _request("/galaxy/stage", {"db": db, "at": at})
 
 
+def get_territories(db):
+    """Returns `GET /api/territories`' payload (`points`: owned systems
+    with galaxy-frame parsec positions and their polity's color;
+    `polities`: each one's `id`, `capital_pc` and `reach_ly`)."""
+    _require_db(db)
+    return _request("/territories", {"db": db})
+
+
+def get_polities(db, limit=None, offset=None):
+    """Returns `GET /api/polities`' paginated envelope (`items`/`total`/
+    `limit`/`offset`), polities by name."""
+    _require_db(db)
+    return _request("/polities", {"db": db, "limit": limit, "offset": offset})
+
+
 def get_galaxy_locate(db, q):
     """Returns `GET /api/galaxy/locate`'s `matches` (sectors and systems
     named like `q`, each with its sector address -- see

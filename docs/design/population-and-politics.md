@@ -1,9 +1,8 @@
 # Population and politics: species, civilizations and territories
 
 Design pass for TODO items 51-54 (`docs/TODO.md`, "Population and
-Politics"). Status: **first build on the defaults below (schema v44)**;
-the open questions at the end are put to Boss in the project thread and
-this file records the answers as they come.
+Politics"). Status: **shipped as schema v44 (PR #169)**; Boss's decisions are
+recorded at the end.
 
 ## What exists already
 
@@ -169,17 +168,13 @@ polity, and the polity to its ownership rows.
 The API and the query helpers ship with v44; the pages and the overlay
 are requested from the Web and Galaxy Map threads.
 
-## Open questions for Boss
+## Decisions
 
-Defaults above are being built; answers replace them here.
+Boss accepted every recommended default on 2026-10-01:
 
-1. Which worlds get a named dominant species: multicellular and up
-   (default), any life at all, or civilizations only?
-2. Species names unique across the galaxy: yes (default) or no?
-3. Governments: one per spacefaring species (default), or several rival
-   polities per species?
-4. Territory reach cap: 100 ly (default), 500 ly, or none?
-5. Recompute territories automatically after each fill: yes (default) or
-   manual only?
-6. How common are civilizations among worlds past the milestone: 1 in
-   1,000 (default), 1 in 100, or 1 in 10,000?
+1. Named dominant species on multicellular worlds and up.
+2. Species names unique across the galaxy.
+3. One polity per spacefaring species.
+4. Territory reach cap 100 ly.
+5. Territories recompute automatically after each fill.
+6. Civilizations on 1 in 1,000 worlds past the milestone.
