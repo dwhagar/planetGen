@@ -232,11 +232,9 @@ def assert_orbits_sane(planets):
                 f"belt limits out of order: {obj.lower_limit} / {obj.distance} / {obj.upper_limit}")
     for prev, cur in zip(planets, planets[1:]):
         if prev.body_type == "a":
-            # A planet after a belt is only held to MIN_ASTEROID_BELT_SEPARATION
-            # (not its own Hill radius) -- see the strict-xfail
-            # test_planet_hill_sphere_clears_the_belt_inside_it for why
-            # that asymmetry is itself a bug; here, the rule the code
-            # actually promises.
+            # The floor every body after a belt keeps; a planet's own Hill
+            # sphere clearance is checked by
+            # test_planet_hill_sphere_clears_the_belt_inside_it.
             inner_reach = prev.upper_limit + prog.MIN_ASTEROID_BELT_SEPARATION
             outer_reach = cur.distance if cur.body_type != "a" else cur.lower_limit
             assert inner_reach <= outer_reach * (1 + 1e-12), (
@@ -582,10 +580,6 @@ def _moon_heavy_system(seed):
     return _generate(cfg, seed)
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: planetPhysics.generate_moons places moons out to high_orbit = planet.min_orbit_distance "
-    "(= 5 x the planet's Hill radius), so most moons orbit outside their parent's Hill sphere "
-    "(repro: G2V +moons +max_planets seed=0; the code comment says 1/5 of the Hill radius)"))
 def test_moons_orbit_inside_their_parents_hill_sphere():
     bad = []
     for seed in range(5):
@@ -595,10 +589,6 @@ def test_moons_orbit_inside_their_parents_hill_sphere():
     assert not bad, f"{len(bad)} moons outside their parent's Hill sphere, e.g. {bad[:3]}"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "BUG: planetPhysics.generate_moons' low_orbit (scale_height*15, or a flat 100 km with no "
-    "atmosphere) ignores the parent's own radius, so moons orbit inside the planet's body "
-    "(repro: G2V +moons +max_planets seed=0, e.g. a class-C planet r=3074 km with a moon at 533 km)"))
 def test_moons_orbit_outside_their_parents_body():
     bad = []
     for seed in range(5):

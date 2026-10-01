@@ -33,14 +33,11 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **The known generation bugs (40-45) come first**; their tests are
-   already written.
-- **Bug fixes (4-7)** come next, from Boss's notes of 2026-09-30. 4 is
+- **Bug fixes (4-7)** come first, from Boss's notes of 2026-09-30. 4 is
    a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
-- **Extend the cache (8)**, then do the System Map route (9). The
-   local-time change (22) is small and can go in any time.
+- **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
@@ -49,10 +46,9 @@ renumber when items are added or finished.
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27, 28, 29, 30 and 35
-   are schema changes.
-- **More pages (46, 47, 49)**: the full systems list, the Sector Map
-   wireframe and non-overlapping System Map names are small and can go in any time.
+   and speeds (33-34), and facilities (35-36). 26, 27, 29, 30 and 35
+   are schema changes; 28 and 31 (classes) shipped in schema v38.
+- **More pages (47)**: the Sector Map wireframe is small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -68,124 +64,13 @@ renumber when items are added or finished.
    isn't overwhelming, add stellar phenomena types to its search list.
    I can't find any nebulae on the phenomena page and they aren't
    searchable."
-   - `search.html` "Browse by Tag": each group becomes a
-     `<details>`, open when one of its tags is active.
+   - Done: each "Browse by Tag" group is a `<details>`, open when one
+     of its tags is active. Left: the phenomenon facet, after item 28.
    - `searchpage.TAG_FACETS`/`RESULT_PANELS` and
      `queryDb.SEARCH_TAG_FACETS`: add a phenomenon-type facet and a
      Phenomena result panel (none exists today).
    - Nebulae are missing because they're almost never generated, not
-     because the page hides them: see #5.
-
-5. [ ] **Real-world frequencies for interstellar objects.** Boss: "The
-   most common interstellar objects should be asteroid field and
-   comets, look up actual stats for how common each stellar object is
-   and adjust probability tables adding to constants if necessary so
-   it's tweakable."
-   - Boss supplied the research on 2026-09-30 and asked to reorganize the
-     rates from it. Numbers, scaling functions, checks, measured cost and
-     references: `docs/design/interstellar-object-rates.md`.
-   - Today (`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`, per
-     star system, Poisson per sector in `generate.generate_sector_phenomena`):
-     rogue planet 0.1, comet 0.05, asteroid field 0.05, neutron star
-     5e-3, black hole 5e-4, nebula 2.5e-7, supernova remnant 1e-8.
-   - The model: each type has a local density `n_i` (per pc³) at the
-     solar neighborhood's `n_*0 = 0.14` stars per pc³, scaled by the
-     sector's own stellar density: `n_i = n_i0 * n_* / 0.14`. That is a
-     fixed rate per star, so the existing per-sector Poisson draw stays;
-     only the rates change.
-
-     | Type | n_i0 (pc⁻³) | Per star | Scales with |
-     |---|---|---|---|
-     | Comets and debris | 1e12 (1e11-1e14) | ~7e12 | n_* |
-     | Terrestrial rogue planets | 0.7 (0.5-1.4) | 5 (2-10) | n_* |
-     | Jupiter-mass rogue planets | 0.035 | ≤ 0.25 | n_* |
-     | Rogue brown dwarfs | 0.03 | ~0.21 | n_* |
-     | Runaway stars | 2.1e-3 | 0.015 | n_* |
-     | Isolated neutron stars | 1e-3 | ~7e-3 | n_* |
-     | Isolated black holes | 1e-4 | ~7e-4 | n_* |
-     | Giant molecular clouds | 5e-6 | n/a | ρ_gas^1.4, filling 1-2% of arms |
-     | Planetary nebulae | 3e-8 | ~2e-7 | n_* |
-     | Supernova remnants | 1e-8 | n/a | n_* · ρ_gas |
-     | Hypervelocity stars | 1e-10 at 8 kpc (research says 5e-9) | n/a | r_GC⁻² |
-     | Isolated asteroid fields | ~0 | 0 | none (they disperse) |
-
-   - Constants to add in `program_constants` (replacing
-     `PHENOMENON_RATE_PER_STAR_SYSTEM`), each with its source in a
-     comment: `REFERENCE_STELLAR_DENSITY_PC3 = 0.14`;
-     `PHENOMENON_DENSITY_PC3` keyed by type (`"rogue-planet"` is the sum
-     of the item 6 bins, `"brown-dwarf"`, `"runaway-star"`,
-     `"hypervelocity-star"`, `"neutron-star"`, `"black-hole"`,
-     `"molecular-cloud"`, `"planetary-nebula"`, `"supernova-remnant"`,
-     `"comet"`, `"asteroid-field"`); `GMC_ARM_FILLING_FACTOR = 0.015`;
-     `GMC_GAS_DENSITY_EXPONENT = 1.4`; `HVS_REFERENCE_RADIUS_PC = 8000`;
-     `INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12`; and one
-     `PHENOMENON_RATE_SCALE` per type (default 1.0) to dial any type up
-     or down without touching the research value.
-   - Generation cost (measured, see the design doc): at these rates a
-     local-density 4 pc sector gets about 50-60 rogue rows on top of
-     roughly 650 body rows, about 8-10% more rows and under 1% more
-     generation time. Cost is not the problem; the sector's look is.
-     Rogues would outnumber systems about five to one in the Contents
-     table and on the Sector Map.
-   - Recommended way to apply them:
-     - Rogue planets, brown dwarfs, neutron stars, black holes: rows,
-       per-star rate times the sector's star count, Poisson, no cap.
-     - Comets: the real density (~6e13 per sector) can't be rows. Show
-       it as a computed sector figure ("about 10^13 interstellar comets
-       and planetesimals"), and keep the `comet` rows as notable comets
-       at a design rate (default 0.007 per pc³, which is today's 0.05
-       per star); `INTERSTELLAR_DEBRIS_DENSITY_PC3` feeds the figure.
-     - Isolated asteroid fields: rate 0 (Boss's research: a free
-       asteroid field disperses in 1e6-1e7 years). Keep the type and
-       table for hand-made fields and facilities (#31, #35); none get
-       generated.
-     - Runaway and hypervelocity stars: a flag and speed on an ordinary
-       generated system (1.5% of systems; HVS by `r_GC⁻²`), not a new
-       phenomenon table.
-     - Brown dwarfs: a new rogue-body kind (a rogue planet row above
-       13 Mjup, or its own table); schema change.
-     - Nebulae and remnants: real point rates make them essentially
-       never appear (a planetary nebula ~2e-6 per sector). Molecular
-       clouds place by filling factor (about 1-2% of arm sectors sit
-       inside one), with #27 generating the stars inside; planetary
-       nebulae and remnants keep their real rates.
-   - The research's comet separation column, hypervelocity density and
-     remnant density don't add up; see "Checks" in the design doc.
-   - **Question for Boss:** show rogue planets at the full research rate
-     (about 45 per sector, five to one against systems), or scale them
-     down for readability with `PHENOMENON_RATE_SCALE["rogue-planet"]`
-     (0.1 gives about 5 per sector)? Default: full rate, with rogues
-     grouped into one collapsible row in the sector's Contents table.
-   - Regenerate the galaxy after this ships to see the new mix.
-
-6. [ ] **Rogue planets: terrestrial ones, and fewer giants.** Boss: "I
-   see no terrestrial planets as rogue planets, is that intentional?
-   Research and revise probabilities for appearance of rogue planets
-   (there are a lot of them right now) and what type."
-   - Not intentional. `roguePlanetData.RoguePlanet.__init__` draws mass
-     linear-uniformly over 0.0005-10 Mjup, so only ~0.5% land under the
-     0.05 Mjup gas-giant threshold. Microlensing says low-mass rogues
-     outnumber giants several to one; terrestrial rogues must stay
-     present.
-   - Boss's research (2026-09-30): terrestrial rogues 2-10 per star
-     (Johnson et al. 2020; OGLE-2016-BLG-1928, 0.3-2 M⊕, Mróz et al.
-     2020); Jupiter-mass rogues at most 0.25 per star (Mróz et al. 2017,
-     superseding Sumi et al. 2011's 1.8). Sub-Neptunes are expected to
-     dominate with terrestrials (Barclay et al. 2023) but have no rate.
-   - Draw a mass bin by its per-star rate, then a log-uniform mass inside
-     the bin. Constant to add next to `ROGUE_PLANET_MASS_RANGE_JUPITER`
-     (which it replaces): `ROGUE_PLANET_MASS_BINS`, each bin
-     `(min_mass_earth, max_mass_earth, per_star_rate)`:
-     - terrestrial 0.1-2 M⊕, 5 per star;
-     - sub-Neptune 2-20 M⊕, 1 per star (default, not from the research);
-     - Saturn-class 20 M⊕-1 Mjup, 0.25 per star (default, not from the
-       research);
-     - Jupiter-mass 1-13 Mjup, 0.25 per star.
-     Above 13 Mjup is a brown dwarf (#5). A single power law can't fit
-     both ends (the design doc shows why).
-   - The bins' summed per-star rate is the rogue-planet rate in #5.
-   - Update `phenomenaPlausibility` (it recomputes the expected
-     terrestrial share from the same draw).
+     because the page hides them: see `docs/design/interstellar-object-rates.md` (the v37 rates).
 
 ### Performance
 
@@ -199,19 +84,6 @@ renumber when items are added or finished.
    changes`, from the v27 `modified_at` columns). Extend that pattern to
    the other pages, invalidating each page from its own rows'
    `modified_at`.
-
-### System Map (`lib/systemmap.py`, `static/systemmap.js`)
-
-9. [ ] **Draw the Measure distance path and route it around obstacles.**
-   "Measure distance" ([5.46.32]) reports a straight-line distance plus,
-   when the line crosses the scene's central body, a tangent-and-arc
-   detour around that one body (`computeMeasurement`,
-   `routeAroundCircle`). It should also draw the path on the map, and the
-   route should avoid every body it would pass through (planets, moons,
-   either star of a binary), keep a safe distance from stars rather than
-   just clearing the surface, and not thread between the two stars of a
-   close binary. Done means the drawn path and reported distance agree
-   and both respect those clearances.
 
 ### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
@@ -258,31 +130,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
-22. [ ] **Show every timestamp in the viewer's own time zone.** Boss asked
-    for this on 2026-09-30. Today, times are shown in whatever zone they
-    were stored or formatted in.
-    - Server-rendered pages. Examples:
-      - `generate_page.py`'s job `created_text`, formatted with the
-        server's `time.localtime`;
-      - `admin_pages.py`'s API key `created_at` and the stats page's
-        "Last system change", "Newest system" and "Last sector change";
-      - `errors.py`'s error-page time.
-    - API responses, such as `api/auth.py`'s key `created_at`,
-      `last_used_at` and `revoked_at`. These should stay UTC ISO 8601 with
-      an explicit offset, since clients convert them.
-    - Job status in `static/generatejobs.js`, and any time the Galaxy Map
-      shows.
-
-    Approach: the server always emits UTC as `<time datetime="...Z">` with
-    a UTC fallback text, and one small script (like `theme.js`) rewrites
-    each one with `Intl.DateTimeFormat` in the browser's zone
-    (`Intl.DateTimeFormat().resolvedOptions().timeZone`), also showing the
-    zone's abbreviation. Pages still read correctly without JavaScript
-    (UTC, labelled). MySQL `DATETIME` columns carry no zone, so first
-    confirm the server session's `time_zone` is UTC or convert on read.
-    Done means no page shows a bare, zone-less time, and tests pin the UTC
-    markup.
-
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 23. [ ] **Generate a column and a shell.** Boss defined them on
@@ -309,6 +156,14 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column and shell
       (#23); the buttons post a CSRF-protected form that
       starts the job with the address filled in.
+
+55. [ ] **Star dots sized to real giants and white dwarfs.** From the
+    star-type study (2026-09-30): `lib/starmap.py _star_dot_radius`
+    caps at 14 px, so every giant and supergiant draws the same size.
+    Once the star population fix adds real giants (10-200 solar radii)
+    and white dwarfs (0.01), size the Sector Map dots on a log scale so
+    a giant is visibly larger than a dwarf, and check that white dwarf
+    and giant systems render on the system page and System Map.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
@@ -361,9 +216,9 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     Remnants should be generated and placed on the map. Research if we
     need stars at the center of these or what kind of star, etc, so we
     can make them."
-    - Rates come from #5 (a per-volume rate suits objects this big).
-    - Each class brings its central object (table in
-      `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
+    - Rates come from `PHENOMENON_DENSITY_PC3` (v37; a per-volume rate suits objects this big).
+    - Each class brings its central object (`NEBULA_CLASSES[...]["center"]`,
+      table in `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
       emission nebulae, a B or A star for reflection, one hot central
       star becoming a white dwarf for planetary, none for molecular
       clouds (protostars at most), a neutron star or black hole for
@@ -376,26 +231,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - Sites: `generate.generate_sector_phenomena`,
       `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
       `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
-
-28. [ ] **Class nebulae and remnants A-Z by what's in them.** Boss:
-    "We also want Nebulae and Stellar remnants to be classed like
-    planets ... and we'll need to come up with What's IN the Nebulae.
-    ... develop a letter-class system similar to planets (A to Z) based
-    on contents of the nebulae."
-    - Draft classes A-W (I and O unused, X-Z reserved) are in
-      `docs/design/nebula-and-asteroid-field-classes.md`, built from
-      Boss's reference document: diffuse (A-B), H II (C-E), reflection
-      (F-G), planetary (H-L), molecular (M-Q), supernova remnants (R-W).
-    - Add `NEBULA_CLASSES` next to `PLANET_CLASSES` in
-      `program_constants` (description, contents, radius, nH,
-      temperature, extinction, central-object rule, frequency),
-      replacing `NEBULA_TYPES` and `SUPERNOVA_REMNANT_MORPHOLOGIES`.
-    - Store the class and contents (dominant species, density,
-      temperature, extinction) on `nebulae` and `supernova_remnants`;
-      show them on the phenomenon page and as a search facet (#4).
-    - **Question for Boss:** does "stellar remnants" also mean the
-      compact objects (white dwarfs, neutron stars, black holes)? The
-      draft classes supernova remnants only.
 
 29. [ ] **Record what sits inside a nebula.** Boss: "Add a DB field for
     if any stellar object (including systems) exist within a nebulae or
@@ -428,18 +263,8 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       `P/<system>-<n>` periodic comet, `C/<system>-<n>` long-period,
       `I/<sector designation>-<n>` interstellar comet, and
       `AF <class><size digit>-<sector designation>-<n>` asteroid field
-      (class from #31). Examples and the size rule are in the design
+      (`asteroid_fields.field_class`, schema v38). Examples are in the design
       doc. Needs a migration that renames existing rows.
-
-31. [ ] **Class asteroid fields A-Z.** Boss: "Asteroid fields should also
-    have classes (A to Z) based on composition and density and size."
-    Draft in the design doc: the letter comes from composition
-    (carbonaceous, stony, metallic, icy, basaltic, mixed, dust,
-    collisional family) and density (today's sparse/typical/dense), and
-    size is the digit in the designation (#30). `asteroidFieldData`,
-    `ASTEROID_FIELD_*` constants, `asteroid_fields` table, phenomenon
-    page. **Question for Boss:** should size be part of the letter
-    instead?
 
 ### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
 
@@ -519,30 +344,27 @@ Low priority; nobody is waiting on these.
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
 
-### Known generation bugs (strict xfail tests)
+### Star population (from the galaxy studies of 2026-09-30)
 
-Each has a test marked `xfail(strict=True)` that starts passing, and so
-fails the run, once the bug is fixed; remove the marker in the same PR.
-Each has a `TODO(physics #N)` comment where the fix goes.
+The random star model (mass from the Kroupa IMF, an age, then evolution:
+`stellarObjects/stellarEvolution.py`), secondaries from a mass ratio at
+the primary's age, planet/life gating by star age and engulfment, the
+bright/dim sampling API (`stellarObjects/stellarPopulation.py`),
+population densities (`galaxyDensity.population_densities`) and
+`SpaceSector.add_preplaced_system` have shipped (bugs S1-S8 of the
+project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
+`bright-star-preplacement-plan.md`). What's left:
 
-40. [ ] **Moons orbit outside their planet's Hill sphere.**
-    `planetPhysics.generate_moons` sets `high_orbit` to 5 Hill radii
-    (the comment says 1/5). Test:
-    `test_fuzz_system_generation.py::test_moons_orbit_inside_their_parents_hill_sphere`.
-41. [ ] **Moons can orbit inside their planet.** `generate_moons`'
-    `low_orbit` ignores the planet's radius. Test:
-    `test_moons_orbit_outside_their_parents_body`.
+55. [ ] **Use population ages at sector fill (S7 call site).** In
+    `generate.py`'s `generate_sector`, set each system's
+    `SystemConfig.POPULATION` to
+    `stellarPopulation.pick_population(galaxyDensity.population_densities(position_pc, shape))`
+    for a galaxy-placed sector, so O/B stars and supergiants sit in the
+    arms near the plane and the bulge has none (Database/Web own that
+    file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
+    way).
 
 ### More pages (Boss's notes, 2026-09-30)
-
-46. [ ] **A paginated list of every system on the Systems page.** Boss:
-    "the systems page should have a paginated list of all systems."
-    Today `/systems` (`views.systems`, `_systems_panel`) lists only
-    standalone systems (`sector_id="none"`). List every system, 50 rows
-    a page through the shared pager (`html/lib/pagination.py`), with
-    its sector and octant; keep the standalone list as its own panel or
-    a filter. `apiclient.get_systems` without `sector_id` already pages
-    all systems.
 
 47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
     that we have defined arc segments let's add a wireframe to the
@@ -554,22 +376,6 @@ Each has a `TODO(physics #N)` comment where the fix goes.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-49. [ ] **System Map names never overlap.** Boss: "we need to make sure
-    names on the system map clickable interface do not overlap."
-    - Today `systemmap._label_sides_2d` places each label (4 directions,
-      then a pushed "below"/"above" with a leader line, else dropped)
-      against the others (plus seeded star-label rects) using an
-      estimated width (`_label_half_width_px`: character count times a
-      fixed width). Real text can run wider than the estimate, so
-      labels can still collide.
-    - Fix: make sure every star label and marker is in the collision
-      set; measure the real text in the browser
-      (`getBBox()` in `systemmap.js` after load and after each zoom
-      step in `mapzoom.js`) and nudge or hide labels that still
-      overlap, keeping the server placement as the no-script fallback.
-    - Check every scene: single star, close and wide binaries, and the
-      moon-centered scenes, at 390 px and 1280 px.
 
 ## Population and Politics
 

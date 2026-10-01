@@ -141,9 +141,61 @@ def test_compact_remnants_are_star_subclasses():
 def test_nebula_type_and_radius_within_configured_ranges():
     for _ in range(TRIALS):
         nebula = Nebula(make_config())
-        assert nebula.nebula_type in program_constants.NEBULA_TYPES
-        radius_range = program_constants.NEBULA_TYPES[nebula.nebula_type]["radius_range_ly"]
+        class_data = program_constants.NEBULA_CLASSES[nebula.nebula_class]
+        assert nebula.nebula_type == class_data["family"] != "supernova-remnant"
+        radius_range = class_data["radius_range_ly"]
         assert radius_range[0] <= nebula.radius_ly <= radius_range[1]
+        low, high = class_data["density_range_cm3"]
+        assert low <= nebula.density_cm3 <= high
+
+
+def test_nebula_family_request_draws_a_class_in_that_family():
+    for _ in range(TRIALS):
+        nebula = Nebula(make_config(), nebula_type="planetary")
+        assert nebula.nebula_class in ("H", "J", "K", "L")
+    with pytest.raises(ValueError):
+        Nebula(make_config(), nebula_class="R")
+
+
+def test_remnant_class_matches_its_progenitor_and_core():
+    for _ in range(TRIALS):
+        remnant = SupernovaRemnant(make_config())
+        class_data = program_constants.NEBULA_CLASSES[remnant.remnant_class]
+        assert remnant.morphology == class_data["morphology"]
+        kind = None if remnant.compact_remnant is None else type(remnant.compact_remnant).__name__
+        kind = {"BlackHole": "black_hole", "NeutronStar": "neutron_star", None: None}[kind]
+        assert kind in class_data["compact"]
+        assert (remnant.progenitor_type == "Type Ia") == (remnant.remnant_class == "W")
+        low, high = class_data["age_range_years"]
+        assert low <= remnant.age_years <= high
+
+
+def test_asteroid_field_class_is_letter_plus_size_digit():
+    from stellarObjects.asteroidFieldData import asteroid_field_class
+    assert asteroid_field_class("carbonaceous", "dense", 0.01) == "C2"
+    assert asteroid_field_class("metallic", "sparse", 0.001) == "G1"
+    assert asteroid_field_class("icy", "typical", 1.0) == "L4"
+    for _ in range(TRIALS):
+        field = AsteroidField(make_config())
+        family = program_constants.ASTEROID_FIELD_COMPOSITIONS[field.composition_family]
+        assert field.field_class[0] == family["letters"][field.density]
+        assert field.field_class[1] in "1234"
+
+
+def test_old_saved_phenomena_get_inferred_classes():
+    nebula = Nebula(make_config(), nebula_class="D").to_dict()
+    for key in ("nebula_class", "dominant_species", "density_cm3", "temperature_k", "extinction_av"):
+        del nebula[key]
+    nebula.update(nebula_type="planetary", radius_ly=0.2)
+    assert Nebula.from_dict(nebula, make_config()).nebula_class == "H"
+    remnant = SupernovaRemnant(make_config()).to_dict()
+    del remnant["remnant_class"]
+    remnant.update(progenitor_type="Type Ia")
+    assert SupernovaRemnant.from_dict(remnant, make_config()).remnant_class == "W"
+    field = AsteroidField(make_config()).to_dict()
+    del field["field_class"], field["composition_family"]
+    loaded = AsteroidField.from_dict(field, make_config())
+    assert loaded.composition_family == "mixed" and loaded.field_class[0] in "QRS"
 
 
 def test_supernova_remnant_morphology_and_sedov_taylor_radius():
@@ -169,7 +221,9 @@ def test_rogue_planet_mass_and_type_within_configured_ranges():
     for _ in range(TRIALS):
         planet = RoguePlanet(make_config())
         mass_jupiter = planet.mass_kg / physical_constants.JUPITER_MASS_TO_KG
-        assert program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER[0] <= mass_jupiter <= program_constants.ROGUE_PLANET_MASS_RANGE_JUPITER[1]
+        low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[planet.mass_bin]
+        mass_earth = planet.mass_kg / physical_constants.EARTH_MASS_TO_KG
+        assert low * (1 - 1e-9) <= mass_earth <= high * (1 + 1e-9)
         assert planet.planet_type in ('t', 'g')
         if planet.planet_type == 'g':
             assert mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
@@ -177,6 +231,27 @@ def test_rogue_planet_mass_and_type_within_configured_ranges():
             assert mass_jupiter < program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
         assert planet.radius_km > 0
         assert planet.mass_kg > 0
+
+
+def test_rogue_planets_are_mostly_terrestrial():
+    """Terrestrial rogues outnumber the rest (5 of 6.5 per star)."""
+    bins = [RoguePlanet(make_config()).mass_bin for _ in range(400)]
+    share = bins.count("terrestrial") / len(bins)
+    assert 0.65 < share < 0.88
+    assert set(bins) <= set(program_constants.ROGUE_PLANET_MASS_BINS)
+
+
+def test_rogue_brown_dwarf():
+    dwarf = RoguePlanet(make_config(), mass_bin="brown-dwarf")
+    low, high = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+    assert low <= dwarf.mass_kg / physical_constants.JUPITER_MASS_TO_KG <= high
+    assert dwarf.planet_type == 'g' and dwarf.kind_label == "Brown Dwarf"
+    assert "Rogue Brown Dwarf" in dwarf.to_paragraph_list()[0]
+    with pytest.raises(ValueError):
+        RoguePlanet(make_config(), mass_bin="moon")
+    old = dwarf.to_dict()
+    old.pop("mass_bin")
+    assert RoguePlanet.from_dict(old, make_config()).mass_bin == "brown-dwarf"
 
 
 def test_interstellar_comet_within_configured_ranges():
@@ -195,7 +270,7 @@ def test_asteroid_field_within_configured_ranges():
         assert field.density in ("dense", "sparse", "typical")
         assert 0 < len(field.composition) <= 4
         for component, concentration in field.composition:
-            assert component in program_constants.ASTEROID_COMPONENTS
+            assert component in program_constants.ASTEROID_COMPONENTS + program_constants.COMET_COMPOSITION
             assert concentration in ("high", "moderate", "small", "trace")
 
 

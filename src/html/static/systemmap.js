@@ -518,6 +518,76 @@ function resetInfo(panel) {
   panel.appendChild(hint);
 }
 
+// --- Labels that never overlap ------------------------------------------
+//
+// lib/systemmap.py places each name with an estimated text width (the
+// no-script layout). Once a scene is shown, the real text is measured
+// here: a label that overlaps another label or any marker but its own is
+// nudged up or down a line, and hidden if neither clears (its name is
+// still the marker's aria-label and shows on hover or focus). Star names
+// are placed first. A label with a leader line only stays or hides, since
+// moving it would pull it off its line.
+
+function boxesOverlap(a, b) {
+  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+}
+
+function circleHitsBox(c, box) {
+  var nx = Math.max(box.x, Math.min(c.x, box.x + box.w));
+  var ny = Math.max(box.y, Math.min(c.y, box.y + box.h));
+  return Math.hypot(c.x - nx, c.y - ny) < c.r;
+}
+
+function layoutLabels(sceneEl) {
+  var labels = Array.prototype.slice.call(sceneEl.querySelectorAll("text.sysmap-label"));
+  if (!labels.length) {
+    return;
+  }
+  labels.sort(function (a, b) {
+    return (b.classList.contains("sysmap-star-label") ? 1 : 0) - (a.classList.contains("sysmap-star-label") ? 1 : 0);
+  });
+  var fills = Array.prototype.slice.call(sceneEl.querySelectorAll("circle.sysmap-body-fill"));
+  var circles = [];
+  fills.forEach(function (circle) {
+    try {
+      var box = circle.getBBox();
+      circles.push({ x: box.x + box.width / 2, y: box.y + box.height / 2, r: box.width / 2 + 1, el: circle });
+    } catch (e) {
+      // Not rendered: nothing to avoid.
+    }
+  });
+  var kept = [];
+  labels.forEach(function (label) {
+    label.removeAttribute("transform");
+    label.classList.remove("sysmap-label-hidden");
+    var box;
+    try {
+      box = label.getBBox();
+    } catch (e) {
+      return;
+    }
+    if (!box.width) {
+      return;
+    }
+    var marker = label.closest(".sysmap-body");
+    var hasLeader = marker && marker.querySelector(".sysmap-label-leader");
+    var shifts = hasLeader ? [0] : [0, box.height * 0.9, -box.height * 0.9, box.height * 1.8, -box.height * 1.8];
+    for (var i = 0; i < shifts.length; i++) {
+      var trial = { x: box.x - 1, y: box.y + shifts[i] - 1, w: box.width + 2, h: box.height + 2 };
+      var clash = kept.some(function (other) { return boxesOverlap(trial, other); }) ||
+        circles.some(function (c) { return !(marker && marker.contains(c.el)) && circleHitsBox(c, trial); });
+      if (!clash) {
+        if (shifts[i]) {
+          label.setAttribute("transform", "translate(0 " + shifts[i].toFixed(1) + ")");
+        }
+        kept.push(trial);
+        return;
+      }
+    }
+    label.classList.add("sysmap-label-hidden");
+  });
+}
+
 // --- Measure distance -------------------------------------------------
 //
 // Real straight-line distance between any two bodies (star, planet, or
@@ -544,13 +614,7 @@ function formatDistanceKm(km) {
   return formatLadderKm(km);
 }
 
-// The distance from point (px, py) to the nearest point on segment AB --
-// used to test whether a straight-line route would pass through the
-// obstacle circle, centered anywhere -- NOT assumed to be the origin: a
-// close binary's own two stars each sit at their own small real offset
-// from the shared barycenter (see lib/systemmap.py's `_render_system_
-// scene`), not at (0, 0), so the obstacle's own real position has to be
-// a real point here, not a hard-coded one.
+// The distance from point (px, py) to the nearest point on segment AB.
 function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   var abx = bx - ax, aby = by - ay;
   var lengthSq = abx * abx + aby * aby;
@@ -560,73 +624,332 @@ function pointToSegmentDistance(px, py, ax, ay, bx, by) {
   return Math.hypot(px - cx, py - cy);
 }
 
-// The shortest path from A to B that never enters the circle of radius
-// `r` centered at the origin -- callers pass A/B already translated so
-// the obstacle's own real center sits at (0, 0) (see `computeMeasurement`,
-// which does that translation once for both this and
-// `pointToSegmentDistance` above). Tangent length from A
-// (sqrt(|OA|^2 - r^2)), tangent length from B, plus r times the angle
-// swept along the arc between the two tangent points. `null` if either
-// point is inside/on the obstacle itself (not expected for two real
-// orbiting bodies, but guarded rather than returning a nonsensical
-// result), or if the tangent lines alone already clear the obstacle
-// without needing any arc at all (possible right at the edge of
-// intersection, from floating-point rounding in the caller's own
-// clearance check).
-function routeAroundCircle(ax, ay, bx, by, r) {
-  var dA = Math.hypot(ax, ay), dB = Math.hypot(bx, by);
-  if (dA <= r || dB <= r) {
-    return null;
-  }
-  var tA = Math.sqrt(dA * dA - r * r);
-  var tB = Math.sqrt(dB * dB - r * r);
-  var theta = Math.acos(Math.max(-1, Math.min(1, (ax * bx + ay * by) / (dA * dB))));
-  var arcAngle = theta - Math.acos(r / dA) - Math.acos(r / dB);
-  if (arcAngle <= 0) {
-    return null;
-  }
-  return tA + tB + r * arcAngle;
+// How far a route keeps from each body, as a multiple of its radius: a
+// star gets a real safety margin, not just its surface; a planet or moon
+// only needs clearing.
+var STAR_CLEARANCE_RADII = 10;
+var BODY_CLEARANCE_RADII = 1.2;
+// Each keep-out circle becomes a regular polygon drawn just outside it, so
+// the shortest route is a shortest path through a visibility graph of
+// polygon corners (Dijkstra). 72 corners put the length within 0.07% of
+// the true tangent-and-arc route.
+var ROUTE_POLYGON_SIDES = 72;
+
+function markerKm(el) {
+  var x = parseFloat(el.dataset.xkm), y = parseFloat(el.dataset.ykm);
+  return { x: isFinite(x) ? x : 0, y: isFinite(y) ? y : 0 };
 }
 
-// TODO(web-pages #49): after the map loads and after each zoom step,
-// measure every .sysmap-label with getBBox() and move or hide any that
-// overlaps another label or a marker; the server placement stays the
-// no-script fallback.
+// The keep-out circles for a route from elA to elB in `sceneEl`: every
+// star, planet and moon in the scene except the two ends. A close pair's
+// two stars become one circle around both, so no route threads between
+// them, unless the route starts or ends at one of them.
+function routeObstacles(sceneEl, elA, elB) {
+  var obstacles = [];
+  var stars = [];
+  var bodies = sceneEl ? sceneEl.querySelectorAll('[data-kind="star"], [data-kind="planet"], [data-kind="moon"]') : [];
+  for (var i = 0; i < bodies.length; i++) {
+    var el = bodies[i];
+    var radius = parseFloat(el.dataset.radiuskm);
+    if (!isFinite(radius) || radius <= 0 || el.dataset.xkm == null) {
+      continue;
+    }
+    var p = markerKm(el);
+    var isStar = el.dataset.kind === "star";
+    var obstacle = {
+      x: p.x, y: p.y, bodyR: radius,
+      r: radius * (isStar ? STAR_CLEARANCE_RADII : BODY_CLEARANCE_RADII),
+      el: el, name: isStar ? "the star" : (el.dataset.name || "a body"),
+    };
+    // A drillable companion star (a wide pair's) is far away and stands
+    // on its own; the stars of a close pair (no data-scene) group up.
+    if (isStar && !el.dataset.scene) {
+      stars.push(obstacle);
+    } else if (el !== elA && el !== elB) {
+      obstacles.push(obstacle);
+    }
+  }
+  var endIsStar = stars.some(function (o) { return o.el === elA || o.el === elB; });
+  if (stars.length >= 2 && !endIsStar) {
+    var cx = 0, cy = 0;
+    stars.forEach(function (o) { cx += o.x / stars.length; cy += o.y / stars.length; });
+    var r = 0;
+    stars.forEach(function (o) { r = Math.max(r, Math.hypot(o.x - cx, o.y - cy) + o.r); });
+    obstacles.push({ x: cx, y: cy, r: r, bodyR: r, el: null, name: "the stars" });
+  } else {
+    stars.forEach(function (o) {
+      if (o.el !== elA && o.el !== elB) {
+        obstacles.push(o);
+      }
+    });
+  }
+  // A keep-out circle never swallows an end: shrink it to just short of
+  // the end, but never inside the body itself.
+  var ends = [markerKm(elA), markerKm(elB)];
+  obstacles.forEach(function (o) {
+    ends.forEach(function (e) {
+      var d = Math.hypot(e.x - o.x, e.y - o.y);
+      if (d < o.r) {
+        o.r = Math.max(o.bodyR, d * 0.98);
+      }
+    });
+  });
+  return obstacles;
+}
+
+function segmentClear(a, b, obstacles, skip) {
+  for (var i = 0; i < obstacles.length; i++) {
+    var o = obstacles[i];
+    if (o === skip) {
+      continue;
+    }
+    if (pointToSegmentDistance(o.x, o.y, a.x, a.y, b.x, b.y) < o.r * (1 - 1e-9)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// The shortest route from `a` to `b` (km) that stays out of every
+// obstacle circle: `{points: [{x, y, obstacle?}], km}`, or `null` when no
+// route exists (an end sealed inside other bodies' keep-out zones).
+function shortestRoute(a, b, obstacles) {
+  if (segmentClear(a, b, obstacles)) {
+    return { points: [a, b], km: Math.hypot(b.x - a.x, b.y - a.y) };
+  }
+  var nodes = [a, b];
+  var outward = 1 / Math.cos(Math.PI / ROUTE_POLYGON_SIDES) * (1 + 1e-6);
+  obstacles.forEach(function (o) {
+    for (var k = 0; k < ROUTE_POLYGON_SIDES; k++) {
+      var angle = (2 * Math.PI * k) / ROUTE_POLYGON_SIDES;
+      var node = { x: o.x + o.r * outward * Math.cos(angle), y: o.y + o.r * outward * Math.sin(angle), obstacle: o };
+      var inside = obstacles.some(function (other) {
+        return other !== o && Math.hypot(node.x - other.x, node.y - other.y) < other.r;
+      });
+      if (!inside) {
+        nodes.push(node);
+      }
+    }
+  });
+  var count = nodes.length;
+  var dist = new Float64Array(count).fill(Infinity);
+  var prev = new Int32Array(count).fill(-1);
+  var done = new Uint8Array(count);
+  dist[0] = 0;
+  for (;;) {
+    var u = -1;
+    for (var i = 0; i < count; i++) {
+      if (!done[i] && dist[i] < Infinity && (u < 0 || dist[i] < dist[u])) {
+        u = i;
+      }
+    }
+    if (u < 0 || u === 1) {
+      break;
+    }
+    done[u] = 1;
+    for (var v = 0; v < count; v++) {
+      if (done[v] || v === u) {
+        continue;
+      }
+      var step = Math.hypot(nodes[v].x - nodes[u].x, nodes[v].y - nodes[u].y);
+      if (dist[u] + step >= dist[v]) {
+        continue;
+      }
+      if (segmentClear(nodes[u], nodes[v], obstacles)) {
+        dist[v] = dist[u] + step;
+        prev[v] = u;
+      }
+    }
+  }
+  if (dist[1] === Infinity) {
+    return null;
+  }
+  var points = [];
+  for (var at = 1; at >= 0; at = prev[at]) {
+    points.unshift(nodes[at]);
+  }
+  return { points: points, km: dist[1] };
+}
+
+// What the route bends around, for the result panel.
+function routeAvoids(route) {
+  var names = [];
+  route.points.forEach(function (p) {
+    if (p.obstacle && names.indexOf(p.obstacle.name) < 0) {
+      names.push(p.obstacle.name);
+    }
+  });
+  return names;
+}
+
 function measurableLabel(el) {
   return el.dataset.name || "Unknown";
 }
 
-// `sceneEl` is the currently active body-marker `<svg class="sysmap-svg">`
-// (never an orbits-only layer -- see `initSystemMap`'s own comment on
-// why those are kept separate) -- its own center body is whichever of
-// `.sysmap-star` (a star-centered scene) or `[data-self="true"]` (a
-// moon-centered scene) it contains; never both, see `lib/systemmap.py`'s
-// own `is_self`/`_star_marker_svg` docstrings for why those two markers
-// are mutually exclusive across every scene this map ever builds.
+// Straight-line distance plus, when that line passes through or too near
+// any body in the scene (see `routeObstacles`), the shortest route that
+// keeps clear of all of them. `sceneEl` is the active body-marker
+// `<svg class="sysmap-svg">`.
 function computeMeasurement(elA, elB, sceneEl) {
-  var ax = parseFloat(elA.dataset.xkm), ay = parseFloat(elA.dataset.ykm);
-  var bx = parseFloat(elB.dataset.xkm), by = parseFloat(elB.dataset.ykm);
-  if (!isFinite(ax) || !isFinite(ay) || !isFinite(bx) || !isFinite(by)) {
+  var a = markerKm(elA), b = markerKm(elB);
+  if (!isFinite(parseFloat(elA.dataset.xkm)) || !isFinite(parseFloat(elB.dataset.xkm))) {
     return null;
   }
+  var result = { straightKm: Math.hypot(b.x - a.x, b.y - a.y), routeKm: null, routeLabel: null, route: null };
+  var route = shortestRoute(a, b, routeObstacles(sceneEl, elA, elB));
+  result.route = route || { points: [a, b], km: result.straightKm };
+  if (route && route.points.length > 2) {
+    result.routeKm = route.km;
+    result.routeLabel = "Route clear of " + routeAvoids(route).join(", ");
+  } else if (!route) {
+    result.routeLabel = "No clear route";
+  }
+  return result;
+}
 
-  var result = { straightKm: Math.hypot(bx - ax, by - ay), routeKm: null, routeLabel: null };
-  var obstacleEl = sceneEl && (sceneEl.querySelector(".sysmap-star") || sceneEl.querySelector('[data-self="true"]'));
-  var obstacleR = obstacleEl ? parseFloat(obstacleEl.dataset.radiuskm) : NaN;
-  if (obstacleEl && isFinite(obstacleR) && obstacleR > 0) {
-    var ocx = parseFloat(obstacleEl.dataset.xkm), ocy = parseFloat(obstacleEl.dataset.ykm);
-    if (!isFinite(ocx)) ocx = 0;
-    if (!isFinite(ocy)) ocy = 0;
-    var clearance = pointToSegmentDistance(ocx, ocy, ax, ay, bx, by);
-    if (clearance < obstacleR) {
-      var routeKm = routeAroundCircle(ax - ocx, ay - ocy, bx - ocx, by - ocy, obstacleR);
-      if (routeKm != null) {
-        result.routeKm = routeKm;
-        result.routeLabel = "Around " + (obstacleEl.dataset.kind === "star" ? "the star" : measurableLabel(obstacleEl));
+// --- Drawing the measured route ----------------------------------------
+//
+// The markers sit on a log radial scale around the scene's center
+// (lib/systemmap.py `_radial_px`, whose bounds the scene carries as
+// data-lokm/data-hikm), so a straight line in km is a curve on the map:
+// each leg is sampled and every sample mapped the same way the markers
+// were. The two ends snap to their markers' drawn centers (markers can be
+// nudged apart for legibility), and a bend around a body keeps outside
+// that body's drawn marker.
+
+var SVG_NS = "http://www.w3.org/2000/svg";
+
+function sceneScale(sceneEl) {
+  var lo = parseFloat(sceneEl.dataset.lokm), hi = parseFloat(sceneEl.dataset.hikm);
+  return {
+    lo: lo, hi: hi, c: parseFloat(sceneEl.dataset.cpx),
+    min: parseFloat(sceneEl.dataset.minpx), spread: parseFloat(sceneEl.dataset.spreadpx),
+    ok: isFinite(lo) && isFinite(hi) && lo > 0,
+  };
+}
+
+function kmToPx(scale, x, y) {
+  var d = Math.hypot(x, y);
+  if (d <= 0) {
+    return { x: scale.c, y: scale.c };
+  }
+  var r;
+  if (scale.hi <= scale.lo) {
+    r = scale.min + scale.spread;
+  } else {
+    var clamped = Math.max(scale.lo, Math.min(scale.hi, d));
+    r = scale.min + (Math.log10(clamped) - Math.log10(scale.lo)) / (Math.log10(scale.hi) - Math.log10(scale.lo)) * scale.spread;
+  }
+  return { x: scale.c + r * x / d, y: scale.c - r * y / d };
+}
+
+function markerCenterPx(el) {
+  var shape = el.querySelector("circle") || el;
+  try {
+    var box = shape.getBBox();
+    return { x: box.x + box.width / 2, y: box.y + box.height / 2, r: Math.max(box.width, box.height) / 2 };
+  } catch (e) {
+    return null;
+  }
+}
+
+function routePathPx(sceneEl, elA, elB, route) {
+  var scale = sceneScale(sceneEl);
+  var startPx = markerCenterPx(elA), endPx = markerCenterPx(elB);
+  if (!scale.ok || !startPx || !endPx) {
+    return null;
+  }
+  var obstaclePx = new Map();
+  function bendPx(p) {
+    var o = p.obstacle;
+    var mapped = kmToPx(scale, p.x, p.y);
+    if (!o) {
+      return mapped;
+    }
+    if (!obstaclePx.has(o)) {
+      obstaclePx.set(o, o.el ? markerCenterPx(o.el) : kmToPx(scale, o.x, o.y));
+    }
+    var center = obstaclePx.get(o);
+    if (!center) {
+      return mapped;
+    }
+    // Keep the bend outside the body's drawn marker, in the real direction.
+    var angle = Math.atan2(-(p.y - o.y), p.x - o.x);
+    var reach = Math.max(Math.hypot(mapped.x - center.x, mapped.y - center.y), (center.r || 0) + 6);
+    return { x: center.x + reach * Math.cos(angle), y: center.y + reach * Math.sin(angle) };
+  }
+  // Every drawn marker the route must not be seen crossing: the log scale
+  // can put a line that clears a body in km right over its (much larger)
+  // drawn marker, so samples inside one are pushed out to its edge.
+  var glyphs = [];
+  var bodies = sceneEl.querySelectorAll('[data-kind="star"], [data-kind="planet"], [data-kind="moon"]');
+  for (var g = 0; g < bodies.length; g++) {
+    if (bodies[g] !== elA && bodies[g] !== elB) {
+      var glyph = markerCenterPx(bodies[g]);
+      if (glyph) {
+        glyphs.push(glyph);
       }
     }
   }
-  return result;
+  function clearOfGlyphs(p) {
+    for (var k = 0; k < glyphs.length; k++) {
+      var c = glyphs[k], need = c.r + 5;
+      var dx = p.x - c.x, dy = p.y - c.y, d = Math.hypot(dx, dy);
+      if (d < need) {
+        if (d < 1e-6) {
+          dx = 1; dy = 0; d = 1;
+        }
+        p = { x: c.x + dx / d * need, y: c.y + dy / d * need };
+      }
+    }
+    return p;
+  }
+  var points = route.points;
+  var out = [startPx];
+  for (var i = 0; i < points.length - 1; i++) {
+    var p = points[i], q = points[i + 1];
+    var aroundOne = p.obstacle && p.obstacle === q.obstacle;
+    var steps = aroundOne ? 1 : 24;
+    for (var s = 1; s <= steps; s++) {
+      if (i === points.length - 2 && s === steps) {
+        out.push(endPx);
+      } else if (aroundOne || s === steps) {
+        out.push(bendPx(s === steps ? q : p));
+      } else {
+        var t = s / steps;
+        out.push(kmToPx(scale, p.x + (q.x - p.x) * t, p.y + (q.y - p.y) * t));
+      }
+    }
+  }
+  for (var j = 1; j < out.length - 1; j++) {
+    out[j] = clearOfGlyphs(out[j]);
+  }
+  return out;
+}
+
+function clearMeasurePath(root) {
+  var old = root.querySelectorAll(".sysmap-measure-path");
+  for (var i = 0; i < old.length; i++) {
+    old[i].remove();
+  }
+}
+
+function drawMeasurePath(root, sceneEl, elA, elB, measurement) {
+  clearMeasurePath(root);
+  if (!measurement || !measurement.route) {
+    return;
+  }
+  var pts = routePathPx(sceneEl, elA, elB, measurement.route);
+  if (!pts) {
+    return;
+  }
+  var line = document.createElementNS(SVG_NS, "polyline");
+  line.setAttribute("class", "sysmap-measure-path");
+  line.setAttribute("points", pts.map(function (p) { return p.x.toFixed(1) + "," + p.y.toFixed(1); }).join(" "));
+  // In the scene's orbits layer, under the sphere canvas, so the ends
+  // tuck under the two bodies' spheres (the layer is aria-hidden).
+  var layer = root.querySelector('.sysmap-orbits-layer[data-scene="' + sceneEl.dataset.scene + '"]') || sceneEl;
+  layer.appendChild(line);
 }
 
 function showMeasurementPrompt(panel, el) {
@@ -650,7 +973,11 @@ function showMeasurementResult(panel, elA, elB, measurement) {
   addField(dl, "Between", measurableLabel(elA) + " and " + measurableLabel(elB));
   addField(dl, "Straight-line", measurement ? formatDistanceKm(measurement.straightKm) : "unavailable");
   if (measurement && measurement.routeKm != null) {
-    addField(dl, measurement.routeLabel, formatDistanceKm(measurement.routeKm));
+    var detourKm = measurement.routeKm - measurement.straightKm;
+    addField(dl, measurement.routeLabel, formatDistanceKm(measurement.routeKm) +
+      (detourKm >= 1 ? " (" + formatDistanceKm(detourKm) + " longer)" : ""));
+  } else if (measurement && measurement.routeLabel) {
+    addField(dl, measurement.routeLabel, "every way passes too near a body");
   }
   panel.appendChild(dl);
 
@@ -735,6 +1062,7 @@ function initSystemMap(root) {
     }
 
     clearMeasureSelection();
+    layoutLabels(active);
 
     var self = active.querySelector('[data-self="true"]');
     if (self) {
@@ -759,6 +1087,7 @@ function initSystemMap(root) {
       el.classList.remove("sysmap-measure-selected");
     });
     measureSelection = [];
+    clearMeasurePath(root);
   }
 
   function setMeasureMode(on) {
@@ -800,6 +1129,7 @@ function initSystemMap(root) {
     var sceneEl = el.closest(".sysmap-svg");
     var measurement = computeMeasurement(measureSelection[0], measureSelection[1], sceneEl);
     showMeasurementResult(info, measureSelection[0], measureSelection[1], measurement);
+    drawMeasurePath(root, sceneEl, measureSelection[0], measureSelection[1], measurement);
   }
 
   if (measureBtn) {

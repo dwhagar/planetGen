@@ -134,7 +134,16 @@ class StarSystem:
             decided once at generation time (or None if the roll didn't select one).
     """
 
-    def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None):
+    runaway_class = None
+    """str or None: `"runaway"` or `"hypervelocity"` when the system moves
+    unusually fast through the galaxy (`generate.flag_fast_stars`, schema
+    v37); `None` for an ordinary one."""
+
+    runaway_speed_kms = None
+    """float or None: That speed, km/s; `None` unless `runaway_class`."""
+
+    def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None,
+                 primary_star_params=None):
         """
         Initializes a StarSystem object, generating a star and its planets.
 
@@ -190,6 +199,13 @@ class StarSystem:
                 `self.binary_type` stays `None` and `self.star` is exactly
                 `compact_remnant`, unwrapped. Used by
                 `phenomenonGen.py --anchor-system`.
+            primary_star_params (dict, optional): A
+                `stellarEvolution.star_params` dict to build the primary
+                from with `Star.from_params`, rolling nothing about it: a
+                pre-placed bright star, or a star drawn for its position's
+                stellar population (`stellarPopulation`). Everything else
+                (companion, planets, moons, belts, comets) is generated as
+                usual around it.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         # Rolled once here (not left for each Star/BinaryStarProxy to roll
@@ -202,6 +218,10 @@ class StarSystem:
         galactic_orbital_phase_deg = random.uniform(0, 360)
         if compact_remnant is not None:
             self.star = compact_remnant
+        elif primary_star_params is not None:
+            self.star = Star.from_params(primary_star_params, self.system_config, name=self.system_config.NAME,
+                                         galactic_center_dist_ly=galactic_center_dist_ly,
+                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg)
         else:
             with log.timed_phase("primary star generation"):
                 self.star = Star(self.system_config, name=self.system_config.NAME,
@@ -236,24 +256,31 @@ class StarSystem:
             original_large_star = self.system_config.LARGE_STAR
             self.system_config.LARGE_STAR = False
 
-            # Logic to generate a secondary star (e.g., random mass relative to primary)
-            # This is new generation logic, but contained.
-            # For simplicity, secondary mass is a fraction of primary mass.
-            secondary_mass_factor = random.uniform(0.1, 0.8)
-            secondary_mass = self.primary_star.mass * secondary_mass_factor
-            # Create secondary star, potentially with a different name or type if desired
+            if self.primary_star.initial_mass_sol is not None:
+                # A population-model primary: the secondary is born with it
+                # (same age) at a mass ratio q of its initial mass, and
+                # evolves by the same model -- so its class, luminosity and
+                # temperature follow from its own mass.
+                mass_ratio = random.uniform(*program_constants.BINARY_MASS_RATIO_RANGE)
+                star_kwargs = {"initial_mass_sol": self.primary_star.initial_mass_sol * mass_ratio,
+                               "age_gy": self.primary_star.age}
+            else:
+                # A specified-type primary: the secondary's mass is a
+                # fraction of the primary's, clamped into its own class.
+                star_kwargs = {"mass_override": self.primary_star.mass * random.uniform(0.1, 0.8)}
             with log.timed_phase("secondary star generation"):
                 # Named properly by assign_names below, once the pair's star words exist.
                 self.secondary_star = Star(self.system_config, name=self.primary_star.name,
-                                            mass_override=secondary_mass,
                                             galactic_center_dist_ly=galactic_center_dist_ly,
-                                            galactic_orbital_phase_deg=galactic_orbital_phase_deg)
+                                            galactic_orbital_phase_deg=galactic_orbital_phase_deg,
+                                            **star_kwargs)
             self.system_config.LARGE_STAR = original_large_star
-            # Star.generate_star clamps mass_override into the secondary's own
-            # (independently drawn) Yerkes class's mass range, so a subgiant or
-            # giant secondary can come out heavier than the primary. The primary
-            # is by definition the heavier star, so swap the pair's roles then;
-            # names come later from assign_names, so nothing else needs moving.
+            # A specified-type secondary's mass is clamped into its own class's
+            # range, and a population-model primary may already be a white
+            # dwarf lighter than its companion, so the secondary can come out
+            # heavier. The primary is by definition the heavier star, so swap
+            # the pair's roles then; names come later from assign_names, so
+            # nothing else needs moving.
             if self.secondary_star.mass > self.primary_star.mass:
                 log.choice("Binary primary", "swapped",
                            f"secondary {self.secondary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
@@ -332,6 +359,7 @@ class StarSystem:
                 # makes it a real possibility, so re-trim afterward using each
                 # body's own final position.
                 self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                self._apply_star_history(self.planets, self.star)
 
                 self.secondary_planets = []
                 if self.binary_type == "wide":
@@ -342,6 +370,7 @@ class StarSystem:
                     )
                     self.validate_system(self.secondary_planets)
                     self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                    self._apply_star_history(self.secondary_planets, self.secondary_star)
                     # Runs last, once both lists reflect their own truly final
                     # (post-validate_system, post-trim) positions -- see this
                     # method's own docstring.
@@ -588,14 +617,16 @@ class StarSystem:
         (close) binary's merged proxy, Holman & Wiegert's circumbinary
         critical semi-major axis (`utils.holman_wiegert_circumbinary_a_crit_au`,
         about 2-2.4 times the pair's separation), since anything closer is
-        inside, or torn apart by, the two stars' own orbit. 0 for any other
-        star.
+        inside, or torn apart by, the two stars' own orbit. At least
+        `_engulfment_radius_au` for any star, since a giant (or a white
+        dwarf's progenitor) has removed everything inside that.
         """
+        floor_au = self._engulfment_radius_au(star)
         separation_au = getattr(star, "binary_separation_au", None)
-        if separation_au is None:
-            return 0.0
-        masses = [s.mass for s in star.stars]
-        return holman_wiegert_circumbinary_a_crit_au(separation_au, min(masses) / sum(masses))
+        if separation_au is not None:
+            masses = [s.mass for s in star.stars]
+            floor_au = max(floor_au, holman_wiegert_circumbinary_a_crit_au(separation_au, min(masses) / sum(masses)))
+        return floor_au
 
     def _clear_circumbinary_floor(self, planets):
         """
@@ -855,6 +886,53 @@ class StarSystem:
             return star.system_perimeter
         return min(star.system_perimeter, star.a_crit_au)
 
+    @staticmethod
+    def _engulfment_radius_au(star):
+        """
+        The distance (AU) inside which `star`'s history has removed every
+        planet: `GIANT_ENGULFMENT_RADIUS_FACTOR` times the present radius of
+        a subgiant, giant or supergiant, and `WD_PROGENITOR_ENGULFMENT_AU`
+        around a population-model white dwarf (whose progenitor's giant
+        phases reached that far). A close binary's proxy takes the larger of
+        its two stars. 0 for anything else.
+        """
+        radius_au = 0.0
+        for member in getattr(star, "stars", None) or [star]:
+            yerkes = getattr(member, "yerkes_class", None)
+            if yerkes in ("VII", "D"):
+                if member.initial_mass_sol is not None:
+                    radius_au = max(radius_au, program_constants.WD_PROGENITOR_ENGULFMENT_AU)
+            elif yerkes not in (None, "V", "VI"):
+                radius_au = max(radius_au, program_constants.GIANT_ENGULFMENT_RADIUS_FACTOR
+                                * member.radius / physical_constants.AU_TO_KM)
+        return radius_au
+
+    def _apply_star_history(self, planets, star):
+        """
+        Removes, in place, the bodies `star`'s age and history rule out: a
+        star younger than `PLANET_MIN_STAR_AGE_GY` keeps its belts (a debris
+        disk) but no planets yet, and every body whose inner edge lies
+        inside `_engulfment_radius_au` is gone. An explicitly required
+        habitable world or `SLOTS` list overrides the age rule: a random
+        star is never that young when a habitable world is required
+        (`stellarEvolution.sample_living_star`), so this only lets a
+        specified young type (an O star) keep what was asked for.
+        """
+        engulfed_au = self._engulfment_radius_au(star)
+        explicit_request = self.system_config.HABITABLE_WORLD is True or bool(self.system_config.SLOTS)
+        too_young = (star.age is not None and star.age < program_constants.PLANET_MIN_STAR_AGE_GY
+                     and not explicit_request)
+        kept = []
+        for body in planets:
+            inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
+            if inner_edge < engulfed_au or (too_young and body.body_type != 'a'):
+                continue
+            kept.append(body)
+        if len(kept) != len(planets):
+            log.debug(f"Removed {len(planets) - len(kept)} bodies ruled out by the star's age or history "
+                      f"(age {star.age:.3g} Gy, engulfed inside {engulfed_au:.3g} AU)")
+        planets[:] = kept
+
     def _trim_to_orbit_ceiling(self, planets, orbit_ceiling_au):
         """
         Removes trailing planets/belts from `planets` that `validate_system`'s
@@ -1060,6 +1138,8 @@ class StarSystem:
             "binary_planetary_wobble_x": self.binary_planetary_wobble_x,
             "binary_planetary_wobble_y": self.binary_planetary_wobble_y,
             "binary_planetary_wobble_z": self.binary_planetary_wobble_z,
+            "runaway_class": self.runaway_class,
+            "runaway_speed_kms": self.runaway_speed_kms,
         }
 
     @classmethod
@@ -1172,6 +1252,8 @@ class StarSystem:
         )
 
         system.system_flavor_text = data.get("system_flavor_text")
+        system.runaway_class = data.get("runaway_class")
+        system.runaway_speed_kms = data.get("runaway_speed_kms")
         # Absent from an export written before bodyNames.py -- the star's
         # own name was the system name then.
         system._name = data.get("name") or star.name
@@ -1878,6 +1960,11 @@ class StarSystem:
             planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
             planetPhysics.update_orbital_position(planet)
 
+        if reclassified:
+            # A new class brings a new radius and mass, and so a new range
+            # of stable moon orbits.
+            planetPhysics.drop_unstable_moons(planet)
+
         for moon in planet.moons:
             moon_reclassified = planetPhysics.reconcile_zone_and_class(
                 moon, planet.mass, distance_override=planet.distance
@@ -1902,6 +1989,9 @@ class StarSystem:
             planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
                 planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
             )
+        elif reclassified:
+            # drop_unstable_moons may have removed every moon.
+            planet.reflex_offset_x = planet.reflex_offset_y = planet.reflex_offset_z = 0.0
 
         return reclassified
 

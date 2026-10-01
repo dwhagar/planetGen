@@ -1,5 +1,144 @@
 # Changelog
 
+## [7.23.0] - 2026-10-01
+
+### Changed
+- **Random stars are now drawn as physics: a mass, an age, then how the
+  star has evolved.** Masses come from the Kroupa (2001) initial mass
+  function and ages from a 0-10 Gy star-formation history; each star is
+  main sequence, subgiant, giant, supergiant or white dwarf according to
+  how far its age is into its own lifetime, and its spectral letter and
+  Yerkes class follow from its temperature and luminosity. Every O, B and
+  A star used to be a supergiant or subgiant and no white dwarfs or red
+  giants were ever made; now about 74% of stars are M dwarfs, 14% K,
+  5% white dwarfs, a quarter of a percent giants, and supergiants are
+  about one in a million, as in the real galaxy. `+large_star` uses the
+  same model above 1.4 Msun. A specified `--star-type` draws its
+  luminosity log-uniformly within its class instead of linearly.
+- **A binary's secondary is born with its primary.** It takes a mass
+  ratio of 0.1-1.0 of the primary's initial mass and the primary's age,
+  and evolves by the same model, so it's never brighter or hotter than
+  its mass allows.
+- **Planets follow their star's age and history.** A star younger than
+  10 Myr keeps belts only; no habitable-class world or moon forms around
+  a star younger than 0.1 Gy; a giant has engulfed everything inside
+  twice its radius, and a white dwarf's progenitor everything inside
+  1.5 AU. A required habitable world gets a star old enough to host one.
+
+### Added
+- **Stellar populations by position.** `galaxyDensity.population_densities`
+  splits a point's star density into young (0-0.1 Gy, a thin disk that
+  crowds the spiral arms), intermediate (0.1-3 Gy), old (3-10 Gy, the
+  thick disk) and bulge (8-12 Gy) stars, summing to the same total as
+  before. A system config's new `POPULATION` draws its star's age from
+  one, and `MAX_STAR_LUMINOSITY_SOL` keeps it dimmer than a threshold.
+- **Bright-star sampling for pre-placement.** `stellarPopulation` gives
+  the share of a population's stars at or above a luminosity
+  (`bright_star_fraction`), draws stars conditional on being that bright
+  (`sample_bright_stars`, exact and about 10 microseconds a star) or
+  dimmer (`sample_dim_star`), and `Star.from_params` /
+  `StarSystem(primary_star_params=...)` rebuild a stored star without
+  re-rolling it. `SpaceSector.add_preplaced_system` places one at its
+  stored position before the rest of the sector fills around it.
+
+## [7.22.1] - 2026-10-01
+
+### Changed
+- **Search's tag groups fold away.** Each "Browse by Tag" group is a
+  collapsible section showing how many tags it has; a group with a
+  selected tag starts open (and says how many are selected), the rest
+  start closed. Works without script.
+
+## [7.22.0] - 2026-10-01
+
+### Added
+
+- The System Map's Measure distance now draws its path on the map and routes it around every planet, moon and star in the way, keeping a wide berth from stars and never threading between the two stars of a close binary. The result shows how much longer the route is than the straight line.
+
+## [7.21.1] - 2026-10-01
+
+### Fixed
+
+- System Map names no longer overlap: the browser measures each name once a view is shown and moves or hides any that would collide. A hidden name still shows when its marker is hovered or focused.
+
+## [7.21.0] - 2026-10-01
+
+### Changed
+- **Times show in the viewer's own time zone.** Pages write every time
+  as UTC in a `<time>` element (labelled "UTC", so they read correctly
+  without script), and the new `static/localtime.js` rewrites each in the
+  browser's zone with its abbreviation: API key created/last used/revoked
+  times, the Stats page's activity times, and a Generate job's start
+  time. The database connection's session zone is now pinned to UTC, so
+  `TIMESTAMP` columns read back the same whatever the server's own zone
+  is, and the API's key times and the stats times end in `Z`.
+
+## [7.20.0] - 2026-10-01
+
+### Added
+- **The Systems page lists every system.** A new All Systems table pages
+  through every system 50 at a time, with its sector (linked) and
+  octant; standalone systems keep their own table below, each paging on
+  its own. `GET /api/systems` rows now carry `sector_name` and
+  `quadrant` too.
+
+## [7.19.1] - 2026-09-30
+
+### Fixed
+- **A binary's star word could be two words** (from the base name
+  "El Nath"), so the star's name no longer ended in its own word and a
+  naming test failed at random. Star words with a space are now redrawn.
+
+## [7.19.0] - 2026-09-30
+
+### Added
+
+- **Schema v38: letter classes for nebulae, supernova remnants and
+  asteroid fields.** Nebulae are classed A-Q and supernova remnants R-W
+  (`program_constants.NEBULA_CLASSES`), each with what fills it: dominant
+  species, particle density, temperature and optical extinction. A
+  remnant's class follows its progenitor and core (a Type Ia remnant is
+  always W; a pulsar wind nebula needs a pulsar). Asteroid fields get a
+  class made of a composition-and-density letter and a size digit, like
+  `C3`, with composition drawn from real asteroid families
+  (`ASTEROID_FIELD_COMPOSITIONS`). Nebulae gain a `diffuse` family.
+  Existing rows get the class they most likely are.
+
+## [7.18.1] - 2026-09-30
+
+### Fixed
+- **Moons could orbit outside their planet's Hill sphere, or inside the
+  planet itself.** Moons now orbit between the planet's surface (plus
+  room for the largest moon it can hold and its atmosphere) and the
+  prograde stability limit of about half the Hill radius (Domingos,
+  Winter & Yokoyama 2006). A planet whose class is regenerated after a
+  move drops the moons that no longer fit (TODO items 40 and 41).
+
+## [7.18.0] - 2026-09-30
+
+### Changed
+
+- **Schema v37: interstellar objects at real-world rates.** Each sector
+  now draws its phenomena per star from the research densities in
+  `docs/design/interstellar-object-rates.md`
+  (`program_constants.PHENOMENON_DENSITY_PC3`, with a
+  `PHENOMENON_RATE_SCALE` dial per type). Isolated asteroid fields are no
+  longer generated (they disperse), and planetary nebulae now appear.
+- Rogue planets are drawn from four mass bins (terrestrial, sub-Neptune,
+  Saturn-class, Jupiter-mass), so terrestrial rogues are now the most
+  common kind instead of almost never appearing.
+
+### Added
+
+- Free-floating brown dwarfs, stored as rogue planets with
+  `rogue_planets.mass_bin = 'brown-dwarf'`; the migration fills `mass_bin`
+  for existing rogues from their mass.
+- Runaway and hypervelocity stars: `star_systems.runaway_class` and
+  `runaway_speed_kms`, flagged on ordinary systems (hypervelocity stars
+  grow rarer with distance from the galactic center).
+- `queryDb.sector_detail` reports each sector's star count and its
+  estimated count of interstellar comets and planetesimals.
+
 ## [7.17.0] - 2026-09-30
 
 ### Changed

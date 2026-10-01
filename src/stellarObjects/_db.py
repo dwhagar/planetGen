@@ -83,7 +83,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 36
+SCHEMA_VERSION = 38
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -242,6 +242,11 @@ def _get_pool(config):
             charset="utf8mb4",
             cursorclass=pymysql.cursors.DictCursor,
             autocommit=False,
+            # TIMESTAMP columns are stored in UTC but read back in the
+            # session's zone; pinning it to UTC makes every time read the
+            # same whatever the server's own zone is (the pages convert to
+            # each viewer's zone in the browser).
+            init_command="SET time_zone = '+00:00'",
         )
     return _pools[key]
 
@@ -1597,14 +1602,17 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     cur = conn.execute(
         """
         INSERT INTO nebulae (
-            sector_id, name, nebula_type, radius_ly, composition, formation_cause,
+            sector_id, name, nebula_class, nebula_type, radius_ly, composition, formation_cause,
+            dominant_species, density_cm3, temperature_k, extinction_av,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, nebula.name, nebula.nebula_type, nebula.radius_ly, nebula.composition, nebula.formation_cause,
+            sector_id, nebula.name, nebula.nebula_class, nebula.nebula_type, nebula.radius_ly,
+            nebula.composition, nebula.formation_cause,
+            nebula.dominant_species, nebula.density_cm3, nebula.temperature_k, nebula.extinction_av,
             nebula.galactic_orbital_speed_kms, nebula.galactic_orbital_period_gy,
             nebula.galactic_orbital_phase_deg, nebula.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
@@ -1665,16 +1673,18 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     cur = conn.execute(
         """
         INSERT INTO supernova_remnants (
-            sector_id, name, morphology, age_years, radius_ly, progenitor_type,
+            sector_id, name, remnant_class, morphology, age_years, radius_ly, progenitor_type,
             compact_remnant_kind, compact_remnant_black_hole_id, compact_remnant_neutron_star_id,
+            dominant_species, density_cm3, temperature_k, extinction_av,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, remnant.name, remnant.morphology, remnant.age_years, remnant.radius_ly,
-            remnant.progenitor_type, compact_remnant_kind, black_hole_id, neutron_star_id,
+            sector_id, remnant.name, remnant.remnant_class, remnant.morphology, remnant.age_years,
+            remnant.radius_ly, remnant.progenitor_type, compact_remnant_kind, black_hole_id, neutron_star_id,
+            remnant.dominant_species, remnant.density_cm3, remnant.temperature_k, remnant.extinction_av,
             remnant.galactic_orbital_speed_kms, remnant.galactic_orbital_period_gy,
             remnant.galactic_orbital_phase_deg, remnant.galactic_min_update_interval_years,
             *_placement_values(placement),
@@ -1700,14 +1710,14 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     cur = conn.execute(
         """
         INSERT INTO rogue_planets (
-            sector_id, name, planet_type, mass_kg, radius_km, composition, has_internal_heat, has_moons,
+            sector_id, name, planet_type, mass_bin, mass_kg, radius_km, composition, has_internal_heat, has_moons,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, planet.name, planet.planet_type, planet.mass_kg, planet.radius_km,
+            sector_id, planet.name, planet.planet_type, planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
@@ -1785,14 +1795,15 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     cur = conn.execute(
         """
         INSERT INTO asteroid_fields (
-            sector_id, name, density, radius_ly, composition_summary,
+            sector_id, name, field_class, composition_family, density, radius_ly, composition_summary,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
-            sector_id, field.name, field.density, field.radius_ly, field.get_composition_summary(),
+            sector_id, field.name, field.field_class, field.composition_family, field.density,
+            field.radius_ly, field.get_composition_summary(),
             field.galactic_orbital_speed_kms, field.galactic_orbital_period_gy,
             field.galactic_orbital_phase_deg, field.galactic_min_update_interval_years,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
@@ -2262,8 +2273,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
             binary_secondary_mass_fraction,
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
-            system_flavor_text, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_flavor_text, runaway_class, runaway_speed_kms, schema_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
@@ -2273,7 +2284,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             *proxy_only_fields,
             *mutual_orbit_fields,
             *planetary_wobble_fields,
-            star_system.system_flavor_text, SCHEMA_VERSION,
+            star_system.system_flavor_text,
+            getattr(star_system, "runaway_class", None), getattr(star_system, "runaway_speed_kms", None),
+            SCHEMA_VERSION,
         ),
     )
     star_system_id = cur.lastrowid
@@ -3481,6 +3494,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         system.secondary_comets = []
 
     system.system_flavor_text = row["system_flavor_text"]
+    system.runaway_class = row["runaway_class"]
+    system.runaway_speed_kms = row["runaway_speed_kms"]
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
     system.hab_count, system.m_count = system.count_habitable()
     system.comet_count = system.count_comets()
@@ -5106,6 +5121,133 @@ def _migrate_v35_to_v36(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
 
 
+def _migrate_v36_to_v37(conn):
+    """
+    Adds `rogue_planets.mass_bin` and `star_systems.runaway_class`/
+    `runaway_speed_kms` -- see `schema.sql`'s "v37" header note -- and
+    fills `mass_bin` from each existing rogue's mass
+    (`roguePlanetData.infer_rogue_mass_bin`'s thresholds). Guarded per
+    column.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_column(conn, "rogue_planets", "mass_bin"):
+        conn.execute(
+            "ALTER TABLE rogue_planets ADD COLUMN mass_bin VARCHAR(16) NOT NULL DEFAULT 'terrestrial' AFTER planet_type"
+        )
+        earth = physical_constants.EARTH_MASS_TO_KG
+        bins = program_constants.ROGUE_PLANET_MASS_BINS
+        brown_dwarf_kg = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG
+        conn.execute(
+            "UPDATE rogue_planets SET mass_bin = CASE "
+            "WHEN mass_kg >= ? THEN 'brown-dwarf' WHEN mass_kg < ? THEN 'terrestrial' "
+            "WHEN mass_kg < ? THEN 'sub-neptune' WHEN mass_kg < ? THEN 'saturn' ELSE 'jupiter' END, "
+            "modified_at = modified_at",
+            (brown_dwarf_kg, bins["terrestrial"][1] * earth, bins["sub-neptune"][1] * earth,
+             bins["saturn"][1] * earth),
+        )
+    if not _has_column(conn, "star_systems", "runaway_class"):
+        conn.execute(
+            "ALTER TABLE star_systems ADD COLUMN runaway_class VARCHAR(16) AFTER system_flavor_text, "
+            "ADD COLUMN runaway_speed_kms DOUBLE AFTER runaway_class"
+        )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (37)")
+
+
+def _drop_checks_mentioning(conn, table, column):
+    """
+    Drops every CHECK constraint on `table` whose clause mentions
+    `column`, whatever the server named it (an inline column CHECK gets an
+    automatic name: `<table>_chk_<n>` on MySQL, the column's own name on
+    MariaDB).
+    """
+    rows = conn.execute(
+        "SELECT tc.constraint_name AS name FROM information_schema.table_constraints tc"
+        " JOIN information_schema.check_constraints cc"
+        "   ON cc.constraint_schema = tc.constraint_schema AND cc.constraint_name = tc.constraint_name"
+        " WHERE tc.table_schema = DATABASE() AND tc.table_name = ? AND tc.constraint_type = 'CHECK'"
+        "   AND cc.check_clause LIKE ?",
+        (table, f"%{column}%"),
+    ).fetchall()
+    for name in {row["name"] for row in rows}:
+        conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT `{name}`")
+
+
+def _migrate_v37_to_v38(conn):
+    """
+    Adds letter classes and contents to nebulae, supernova remnants and
+    asteroid fields -- see `schema.sql`'s "v38" header note. Existing rows
+    get the class their stored family, shape and size most likely mean
+    (`nebulaData.infer_nebula_class`, `supernovaRemnantData.
+    infer_remnant_class`; asteroid fields become the "mixed" family, since
+    their random mineral lists were exactly that) and that class's typical
+    contents. `nebulae.nebula_type`'s CHECK widens to the five families
+    (adding `diffuse`). Guarded per column.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    from .asteroidFieldData import asteroid_field_class
+    from .nebulaData import infer_nebula_class, typical_class_contents
+    from .supernovaRemnantData import infer_remnant_class
+
+    contents_columns = (
+        "ADD COLUMN dominant_species VARCHAR(255) NOT NULL DEFAULT '', "
+        "ADD COLUMN density_cm3 DOUBLE NOT NULL DEFAULT 0, "
+        "ADD COLUMN temperature_k DOUBLE NOT NULL DEFAULT 0, "
+        "ADD COLUMN extinction_av DOUBLE NOT NULL DEFAULT 0"
+    )
+    contents_update = (
+        "dominant_species = ?, density_cm3 = ?, temperature_k = ?, extinction_av = ?, modified_at = modified_at"
+    )
+
+    if not _has_column(conn, "nebulae", "nebula_class"):
+        _drop_checks_mentioning(conn, "nebulae", "nebula_type")
+        conn.execute(
+            "ALTER TABLE nebulae ADD COLUMN nebula_class CHAR(1) NOT NULL DEFAULT 'D' AFTER name, "
+            + contents_columns + ", "
+            "ADD CONSTRAINT chk_nebulae_type CHECK "
+            "(nebula_type IN ('diffuse', 'emission', 'reflection', 'planetary', 'dark'))"
+        )
+        for row in conn.execute("SELECT id, nebula_type, radius_ly FROM nebulae").fetchall():
+            letter = infer_nebula_class(row["nebula_type"], row["radius_ly"])
+            conn.execute(
+                f"UPDATE nebulae SET nebula_class = ?, {contents_update} WHERE id = ?",
+                (letter, *typical_class_contents(letter), row["id"]),
+            )
+
+    if not _has_column(conn, "supernova_remnants", "remnant_class"):
+        conn.execute(
+            "ALTER TABLE supernova_remnants ADD COLUMN remnant_class CHAR(1) NOT NULL DEFAULT 'S' AFTER name, "
+            + contents_columns
+        )
+        rows = conn.execute("SELECT id, morphology, progenitor_type, age_years FROM supernova_remnants").fetchall()
+        for row in rows:
+            letter = infer_remnant_class(row["morphology"], row["progenitor_type"], row["age_years"])
+            conn.execute(
+                f"UPDATE supernova_remnants SET remnant_class = ?, {contents_update} WHERE id = ?",
+                (letter, *typical_class_contents(letter), row["id"]),
+            )
+
+    if not _has_column(conn, "asteroid_fields", "field_class"):
+        conn.execute(
+            "ALTER TABLE asteroid_fields ADD COLUMN field_class VARCHAR(4) NOT NULL DEFAULT 'R1' AFTER name, "
+            "ADD COLUMN composition_family VARCHAR(16) NOT NULL DEFAULT 'mixed' AFTER field_class"
+        )
+        for row in conn.execute("SELECT id, density, radius_ly FROM asteroid_fields").fetchall():
+            conn.execute(
+                "UPDATE asteroid_fields SET field_class = ?, modified_at = modified_at WHERE id = ?",
+                (asteroid_field_class("mixed", row["density"], row["radius_ly"]), row["id"]),
+            )
+
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (38)")
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5172,6 +5314,8 @@ def _migration_steps():
         (34, _migrate_v33_to_v34),
         (35, _migrate_v34_to_v35),
         (36, _migrate_v35_to_v36),
+        (37, _migrate_v36_to_v37),
+        (38, _migrate_v37_to_v38),
     ]
 
 

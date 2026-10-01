@@ -445,11 +445,10 @@ def _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap):
     return (right - half_w * 2, cy - _LABEL_HALF_HEIGHT_PX, right, cy + _LABEL_HALF_HEIGHT_PX)
 
 
-# TODO(web-pages #49): names must never overlap. Widths here are estimated
-# (_label_half_width_px) and real text can run wider, so labels can still
-# collide. Make sure every star label and marker is in the collision set,
-# and have systemmap.js measure the real text (getBBox) after load and
-# each zoom step and nudge or hide any label that still overlaps.
+# The server's placement is the no-script layout; widths are estimated
+# (_label_half_width_px), so static/systemmap.js's layoutLabels measures
+# the real text once a scene is shown and nudges or hides any label that
+# still overlaps.
 def _label_sides_2d(entries, seed_rects=None):
     """
     Given `[(cx, cy, marker_r, name), ...]`, returns one
@@ -775,7 +774,7 @@ def _binary_star_positions_km(system, stars):
     }
 
 
-def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner):
+def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None):
     """
     Wraps a scene's own orbit-line markup and body-marker markup as TWO
     sibling `<svg data-scene="...">` elements sharing the same
@@ -816,10 +815,19 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner):
             `aria-hidden`, which must never contain focusable content.
         bodies_inner (str): This scene's own star/planet/moon/belt marker
             markup (already-built SVG fragments).
+        scale (tuple, optional): `(lo_km, hi_km)`, the scene's own
+            `_radial_scale_bounds`. Written onto the body-marker layer as
+            `data-lokm`/`data-hikm` (with `data-cpx`, the scene's center)
+            so `static/systemmap.js` can draw a measured route with the
+            same log scale the markers were placed with.
 
     Returns:
         str: Two concatenated sibling `<svg>` elements.
     """
+    scale_attrs = ""
+    if scale is not None:
+        scale_attrs = (f' data-lokm="{scale[0]:.6g}" data-hikm="{scale[1]:.6g}" data-cpx="{_CENTER_PX:.1f}"'
+                       f' data-minpx="{_MIN_RADIUS_PX:.1f}" data-spreadpx="{_RADIUS_SPREAD_PX:.1f}"')
     hidden_class = " sysmap-hidden" if hidden else ""
     view_box = f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}"'
     orbits_svg = (
@@ -828,7 +836,7 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner):
     )
     bodies_svg = (
         f'<svg class="sysmap-svg{hidden_class}" data-scene="{esc(scene_id)}" '
-        f'{view_box} role="group" aria-label="{esc(aria_label)}">{bodies_inner}</svg>'
+        f'{view_box}{scale_attrs} role="group" aria-label="{esc(aria_label)}">{bodies_inner}</svg>'
     )
     return orbits_svg + bodies_svg
 
@@ -942,6 +950,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svg/body_svgs) had.
         f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}',
+        scale=(lo, hi),
     )
 
 
@@ -1196,6 +1205,7 @@ def _render_system_scene(system, stars, planets, belts):
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
         f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}',
+        scale=(lo, hi),
     )
 
 
@@ -1230,7 +1240,10 @@ def _render_moon_scene(planet):
 
     center_svg = _body_marker_svg(
         _CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["planet_class"], planet["body_type"], planet["name"],
-        "sysmap-planet", _planet_attrs(planet), is_self=True,
+        # The drilled-into planet is this scene's origin: its moons'
+        # xkm/ykm are relative to it, so a measurement needs (0, 0) here,
+        # not its position around the star.
+        "sysmap-planet", dict(_planet_attrs(planet), xkm=0.0, ykm=0.0), is_self=True,
         has_life=bool(planet.get("life_chemical")),
     )
 
@@ -1261,6 +1274,7 @@ def _render_moon_scene(planet):
         f'planet-{planet["id"]}', f'Moons of {planet["name"]}', True,
         "".join(orbit_paths),
         f'{center_svg}{"".join(body_svgs)}',
+        scale=(lo, hi),
     )
 
 

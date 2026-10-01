@@ -40,13 +40,33 @@ def _sector_rows(sectors):
 
 
 def _system_rows(systems):
-    """Template-ready rows for the Standalone Systems table."""
+    """Template-ready rows for a systems table."""
     return [{
         "name": system["name"],
         "url": page_url("system", system_id=system["id"]),
         "is_binary": bool(system["is_binary"]),
         "star_summary": system["star_summary"],
+        "sector_name": system.get("sector_name"),
+        "sector_url": page_url("sector", sector_id=system["sector_id"]) if system.get("sector_id") else None,
+        "octant": system.get("quadrant"),
     } for system in systems]
+
+
+def _all_systems_panel(keep=None):
+    """One page of every system, in or out of a sector, plus its pager
+    (`?systems_page=N`)."""
+    db = db_name()
+    envelope, page = fetch_page(
+        lambda limit, offset: apiclient.get_systems(db, limit=limit, offset=offset),
+        parse_page(request.args.get("systems_page")),
+    )
+    return {
+        "rows": _system_rows(envelope["items"]),
+        "total": envelope["total"],
+        "page": page,
+        "pager": pager("systems_page", page, envelope["total"], anchor="all-systems",
+                       label="System pages", keep=keep),
+    }
 
 
 def _sectors_panel(keep=None):
@@ -112,19 +132,22 @@ def sectors():
     )
 
 
-# TODO(web-pages #46): list every system here, 50 a page through the shared
-# pager, with its sector and octant (apiclient.get_systems without
-# sector_id); keep standalone systems as their own panel or a filter.
 @bp.route("/systems")
 def systems():
-    """Every standalone system (one generated outside any sector)."""
+    """Every system, 50 a page with its sector and octant, and the
+    standalone ones (generated outside any sector) in their own panel;
+    each list pages on its own."""
+    systems_page = parse_page(request.args.get("systems_page"))
+    standalone_page = parse_page(request.args.get("standalone_page"))
+    all_systems = _all_systems_panel(keep={"standalone_page": standalone_page})
     return render_page(
         "systems.html",
         title="Systems",
         section="systems",
         breadcrumbs=[crumb("Systems")],
-        description="Every standalone star system in this generated galaxy.",
-        systems=_systems_panel(),
+        description="Every star system in this generated galaxy.",
+        all_systems=all_systems,
+        systems=_systems_panel(keep={"systems_page": systems_page}),
     )
 
 

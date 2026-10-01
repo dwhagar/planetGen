@@ -17,6 +17,11 @@ these values or tables are needed.
 from . import physical_constants as _physical_constants
 
 # --- Planet Generation Parameters ---
+# Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
+# around extrasolar giant planets" -- a prograde moon on a circular orbit
+# stays bound out to about 0.4895 of its planet's Hill radius; beyond that
+# the star strips it (planetPhysics.generate_moons' outer limit).
+MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
 # The average ratio of a gas giant's core mass to its total mass
 GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
@@ -410,6 +415,133 @@ SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G'
 BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
     'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
 }
+
+# --- Star population model (stellarEvolution.py) ---
+# A random star is drawn as physics, not from a letter table: a mass from
+# the initial mass function, an age from the star-formation history, and
+# the star's present state (main sequence, subgiant, giant, supergiant or
+# white dwarf) from how far that age is into its own lifetime. Its letter,
+# subclass and Yerkes class follow from the resulting temperature and
+# luminosity. SPECTRAL_PROBABILITIES_NORMAL above is kept as the census the
+# model is tested against, not as a draw.
+
+# Kroupa (2001), MNRAS 322:231 -- the initial mass function as a broken
+# power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
+# above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
+# the segment edges and IMF_SLOPES each segment's alpha.
+IMF_BREAKS_SOL = (0.08, 0.5, 150.0)
+IMF_SLOPES = (1.3, 2.3)
+
+# The default star-formation history: ages uniform over the thin disk's
+# 0-10 Gy. Population-dependent ages by position come on top of this (the
+# sector fill passes an age instead of letting the star draw one).
+STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
+
+# Post-main-sequence phases, as multiples of the main-sequence lifetime
+# (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
+# to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
+# phases take roughly 10-20% of the main-sequence time.
+SUBGIANT_PHASE_END_MS_FRACTION = 1.1
+GIANT_PHASE_END_MS_FRACTION = 1.2
+
+# Stars at or above this initial mass end as supergiants and then neutron
+# stars or black holes (core collapse); below it, as giants and white dwarfs.
+SUPERGIANT_MIN_MASS_SOL = 8.0
+# Giants at or above this initial mass are bright giants (II), not III.
+BRIGHT_GIANT_MIN_MASS_SOL = 4.0
+# Giant-branch luminosity (log-uniform, Lsun) and temperature (K) ranges.
+GIANT_LUMINOSITY_RANGE_SOL = (50.0, 1000.0)
+BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)
+GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
+# A subgiant brightens to about twice its main-sequence luminosity and
+# cools toward the base of the giant branch while crossing.
+SUBGIANT_MAX_BRIGHTENING = 2.0
+SUBGIANT_END_TEMPERATURE_K = 5000.0
+# Massive stars evolve at nearly constant luminosity; about a third of
+# observed supergiants are red (K/M), the rest blue or white (O/B/A).
+SUPERGIANT_LUMINOSITY_GROWTH_RANGE = (1.0, 1.5)
+RED_SUPERGIANT_FRACTION = 1 / 3
+RED_SUPERGIANT_TEMPERATURE_RANGE_K = (3500.0, 4500.0)
+BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
+# Supergiant Yerkes class by luminosity (Lsun, lowest first): below the
+# first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
+SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
+
+# Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
+# (Lsun, Msun), each piece for M below its max_mass_sol and the last one
+# open-ended (Duric 2004; Salaris & Cassisi 2005).
+MS_MASS_LUMINOSITY_PIECES = (
+    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
+    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
+    {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
+    {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
+)
+# Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
+# exponent changing at 1 Msun (Demircan & Kahraman 1991).
+MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
+MS_RADIUS_EXPONENT_ABOVE_1_SOL = 0.57
+# The Sun's effective temperature (IAU 2015 nominal), anchoring
+# Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
+SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
+
+# White dwarfs: final mass from the initial-final mass relation of
+# Kalirai et al. (2008), ApJ 676:594 (M_f = 0.109 M_i + 0.394), clamped to
+# the observed range; luminosity from Mestel cooling,
+# L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
+WD_IFMR_SLOPE = 0.109
+WD_IFMR_INTERCEPT_SOL = 0.394
+WD_MASS_RANGE_SOL = (0.5, 1.35)
+WD_COOLING_L0_SOL = 1.0e-3
+WD_COOLING_EXPONENT = -1.4
+WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 100.0)
+WD_MIN_COOLING_AGE_GY = 1.0e-4
+
+# `+large_star` draws from the same model with the IMF truncated below
+# this mass, and an age inside the star's own lifetime so it's still alive.
+LARGE_STAR_MIN_MASS_SOL = 1.4
+
+# A random primary that has already collapsed (a neutron star or black
+# hole) is redrawn: isolated remnants are generated as phenomena, so their
+# rates stay in one place. Caps the redraws.
+STAR_MODEL_MAX_REDRAWS = 1000
+
+# Planets by the star's age and history. A star younger than
+# PLANET_MIN_STAR_AGE_GY still has only a debris disk (planet formation
+# takes ~10 Myr), so it keeps belts at most; no habitable-class world is
+# drawn around a star younger than LIFE_MIN_STAR_AGE_GY (a crust and
+# oceans take ~0.1 Gy). A giant engulfs planets inside
+# GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
+# reaches a few stellar radii), and a population-model white dwarf's
+# progenitor, on its asymptotic giant branch, engulfed or drove off
+# everything inside WD_PROGENITOR_ENGULFMENT_AU.
+PLANET_MIN_STAR_AGE_GY = 0.01
+LIFE_MIN_STAR_AGE_GY = 0.1
+GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
+WD_PROGENITOR_ENGULFMENT_AU = 1.5
+
+# Stellar populations by age (galaxyDensity.population_densities,
+# stellarPopulation). Each has its own age range (uniform within it); the
+# three disk populations share the disk's star formation evenly in time,
+# so each one's share of disk stars is its age range's length over
+# STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
+# crowd the spiral arms; old stars are puffed up by billions of years of
+# scattering and spread evenly in azimuth. Scale heights are relative to
+# the galaxy's own disk scale height (the old disk's, ~350 pc in the Milky
+# Way: young ~80 pc, intermediate ~200 pc). The bulge is old (8-12 Gy).
+STELLAR_POPULATION_AGE_RANGES_GY = {
+    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
+}
+STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 80 / 350, "intermediate": 200 / 350, "old": 1.0}
+STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# Pre-placed bright stars (stellarPopulation.sample_bright_stars): the
+# mass grid, in log-spaced cells over the IMF's range, on which the chance
+# of a star being at least the threshold's brightness is tabulated.
+BRIGHT_STAR_MASS_GRID_CELLS = 4000
+
+# Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
+# find it close to flat); the secondary shares the primary's age.
+BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
 
 # --- Planet Classification Data ---
 
@@ -1522,58 +1654,181 @@ NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K = (5e4, 3e6)
 # (Population I/II), not primordial, remnants.
 COMPACT_REMNANT_AGE_RANGE_GY = (0.001, 10.0)
 
-# --- Nebulae (nebulaData.Nebula) ---
+# --- Nebulae and supernova remnants (nebulaData.Nebula,
+# supernovaRemnantData.SupernovaRemnant) ---
 #
-# Four standard ISM nebula classes (Osterbrock & Ferland 2006,
-# "Astrophysics of Gaseous Nebulae and Active Galactic Nuclei", 2nd ed.):
-# emission nebulae are ionized by nearby hot young stars (H II regions),
-# reflection nebulae merely scatter a nearby star's light off dust,
-# planetary nebulae are the expelled envelope of a dying low/intermediate
-# -mass star, and dark nebulae are dense molecular clouds seen in
-# silhouette against background starlight. Each entry's `radius_range_ly`
-# and `formation_cause` reflect real, characteristic scales/origins for
-# that class.
-# TODO(phenomena #28): replace these four types with NEBULA_CLASSES, a
-# letter-class table like PLANET_CLASSES (A-W draft in
-# docs/design/nebula-and-asteroid-field-classes.md: diffuse, H II,
-# reflection, planetary, molecular and supernova-remnant classes), each
-# with contents, radius, nH, temperature, extinction, central-object rule
-# (#27) and frequency.
-NEBULA_TYPES = {
+# Nebulae fall into five families (Osterbrock & Ferland 2006, "Astrophysics
+# of Gaseous Nebulae and Active Galactic Nuclei", 2nd ed.): diffuse
+# interstellar gas, emission (H II) regions ionized by hot young stars,
+# reflection nebulae scattering a nearby star's light off dust, planetary
+# nebulae expelled by a dying low/intermediate-mass star, and dark
+# (molecular) clouds seen in silhouette. `nebulae.nebula_type` stores the
+# family; the class letter below says what is actually in the cloud.
+NEBULA_FAMILIES = {
+    "diffuse": {
+        "composition": "thin, warm interstellar gas, mostly hydrogen and helium",
+        "formation_cause": "the galaxy's general interstellar medium, stirred and heated by starlight and old supernova blasts",
+    },
     "emission": {
-        "radius_range_ly": (10.0, 200.0),
         "composition": "ionized hydrogen (H II) glowing under ultraviolet radiation from nearby hot young stars",
         "formation_cause": "ultraviolet radiation from newly-formed O and B class stars ionizing the surrounding hydrogen cloud",
     },
     "reflection": {
-        "radius_range_ly": (1.0, 20.0),
         "composition": "fine interstellar dust scattering the blue light of an adjacent bright star",
         "formation_cause": "a bright star passing through or forming within a dense dust cloud, illuminating it by reflection rather than ionization",
     },
     "planetary": {
-        "radius_range_ly": (0.1, 3.0),
         "composition": "ionized gas shells of hydrogen, helium, oxygen, and nitrogen expelled by a dying star",
         "formation_cause": "a low-to-intermediate-mass star shedding its outer envelope at the end of its asymptotic giant branch phase, exposing a hot white dwarf core",
     },
     "dark": {
-        "radius_range_ly": (1.0, 50.0),
         "composition": "dense molecular hydrogen and cold dust grains, opaque to visible light",
         "formation_cause": "a cold, dense molecular cloud that has not yet collapsed to form stars, visible only in silhouette against background starlight",
     },
 }
 
-# --- Supernova Remnants (supernovaRemnantData.SupernovaRemnant) ---
+# Nebula and supernova remnant classes, one letter each like
+# PLANET_CLASSES (TODO item 28; reasoning, sources and the family tables in
+# docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
+# they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
+# supernova remnants ("stellar remnants" means supernova remnants only,
+# Boss 2026-09-30; compact objects keep their own tables).
 #
-# Three standard morphological classes (Vink 2012, A&A Rev 20:49,
-# "Supernova remnants: the X-ray perspective"): a shell (limb-
-# brightened ring of shocked ejecta/ISM), a plerion/"crab-like" remnant
-# (centrally-filled by a pulsar wind nebula, e.g. the Crab Nebula), and
-# a composite remnant showing both a shell and a central pulsar wind
-# nebula.
-# TODO(phenomena #28): these become supernova-remnant classes R-W in
-# NEBULA_CLASSES (young ejecta-dominated, shell, plerion, composite, old
-# radiative, thermonuclear).
+# Each class: `name`, `family` (a NEBULA_FAMILIES key, or
+# "supernova-remnant"), `species` (dominant contents), `density_range_cm3`
+# (particle density nH, log-uniform), `temperature_range_k` (log-uniform),
+# `extinction_range_av` (optical extinction in magnitudes, log-uniform
+# unless the low end is 0), `center` (the central-object rule item 27
+# builds on), and `frequency` (relative weight within its family group).
+# Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
+# age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
+# shell/plerion/composite shape), `age_range_years` and `compact` (which
+# compact remnants the class allows: "neutron_star", "black_hole", None).
+NEBULA_CLASSES = {
+    "A": {"name": "Diffuse neutral cloud", "family": "diffuse",
+          "species": "neutral hydrogen and helium with trace ions",
+          "radius_range_ly": (10.0, 150.0), "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (6000.0, 10000.0), "extinction_range_av": (0.0, 0.1),
+          "center": "none", "frequency": 3.0},
+    "B": {"name": "Diffuse ionized gas", "family": "diffuse",
+          "species": "ionized hydrogen and free electrons",
+          "radius_range_ly": (20.0, 200.0), "density_range_cm3": (0.1, 1.0),
+          "temperature_range_k": (8000.0, 10000.0), "extinction_range_av": (0.0, 0.1),
+          "center": "none nearby", "frequency": 2.0},
+    "C": {"name": "Compact H II region", "family": "emission",
+          "species": "ionized gas still inside its dusty birth cloud",
+          "radius_range_ly": (0.3, 3.0), "density_range_cm3": (1e3, 1e4),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (1.0, 10.0),
+          "center": "one young O or early-B star", "frequency": 1.0},
+    "D": {"name": "Classical H II region", "family": "emission",
+          "species": "H+, e-, O2+, N+ and S+",
+          "radius_range_ly": (10.0, 100.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a small O/B cluster", "frequency": 2.0},
+    "E": {"name": "Giant H II complex", "family": "emission",
+          "species": "H+, e-, O2+, N+ and S+ in many nested shells",
+          "radius_range_ly": (50.0, 200.0), "density_range_cm3": (10.0, 1e3),
+          "temperature_range_k": (8000.0, 12000.0), "extinction_range_av": (0.0, 1.0),
+          "center": "a young massive cluster", "frequency": 0.5},
+    "F": {"name": "Reflection nebula", "family": "reflection",
+          "species": "silicate grains, PAHs, carbon soot and ices in neutral gas",
+          "radius_range_ly": (1.0, 20.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (10.0, 100.0), "extinction_range_av": (0.5, 3.0),
+          "center": "a B or A star", "frequency": 2.0},
+    "G": {"name": "Emission-reflection nebula", "family": "emission",
+          "species": "ionized core inside a dusty rim",
+          "radius_range_ly": (2.0, 20.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (50.0, 10000.0), "extinction_range_av": (0.5, 3.0),
+          "center": "an early-B star", "frequency": 1.0},
+    "H": {"name": "Young planetary nebula", "family": "planetary",
+          "species": "ionized hydrogen, carbon, nitrogen, oxygen and neon",
+          "radius_range_ly": (0.1, 0.5), "density_range_cm3": (1e4, 1e5),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a hot central star", "frequency": 1.0},
+    "J": {"name": "Evolved planetary nebula", "family": "planetary",
+          "species": "thinning ionized hydrogen, carbon, nitrogen, oxygen and neon",
+          "radius_range_ly": (0.5, 3.0), "density_range_cm3": (1e2, 1e3),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a white dwarf", "frequency": 2.0},
+    "K": {"name": "Carbon-rich planetary nebula", "family": "planetary",
+          "species": "ionized gas with carbon-rich dust and PAHs",
+          "radius_range_ly": (0.1, 2.0), "density_range_cm3": (1e2, 1e4),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a central star from a 1.5-3 Msun progenitor", "frequency": 1.0},
+    "L": {"name": "Nitrogen-rich bipolar planetary nebula", "family": "planetary",
+          "species": "nitrogen- and helium-enriched gas in bipolar lobes",
+          "radius_range_ly": (0.2, 3.0), "density_range_cm3": (1e2, 1e4),
+          "temperature_range_k": (10000.0, 20000.0), "extinction_range_av": (0.0, 0.3),
+          "center": "a central star from a 3-8 Msun progenitor, often binary", "frequency": 1.0},
+    "M": {"name": "Giant molecular cloud", "family": "dark",
+          "species": "H2, He, CO, PAHs, silicates",
+          "radius_range_ly": (20.0, 150.0), "density_range_cm3": (1e2, 1e6),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (10.0, 100.0),
+          "center": "none; embedded young clusters possible", "frequency": 1.0},
+    "N": {"name": "Dark cloud", "family": "dark",
+          "species": "H2, CO, cold dust",
+          "radius_range_ly": (1.0, 50.0), "density_range_cm3": (1e3, 1e5),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (5.0, 50.0),
+          "center": "none", "frequency": 3.0},
+    "P": {"name": "Bok globule", "family": "dark",
+          "species": "H2, CO, organics and dust",
+          "radius_range_ly": (0.3, 3.0), "density_range_cm3": (1e4, 1e5),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (5.0, 50.0),
+          "center": "none or one protostar", "frequency": 2.0},
+    "Q": {"name": "Star-forming core", "family": "dark",
+          "species": "H2 with outflows, Herbig-Haro jets and masers",
+          "radius_range_ly": (0.1, 1.0), "density_range_cm3": (1e5, 1e6),
+          "temperature_range_k": (10.0, 30.0), "extinction_range_av": (10.0, 100.0),
+          "center": "embedded protostars", "frequency": 1.0},
+    "R": {"name": "Young ejecta-dominated remnant", "family": "supernova-remnant",
+          "species": "Fe, Si, S and O ejecta",
+          "morphology": "shell", "age_range_years": (50.0, 3000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (0.1, 100.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star or black hole", "frequency": 1.0},
+    "S": {"name": "Shell remnant", "family": "supernova-remnant",
+          "species": "shocked interstellar gas and ejecta",
+          "morphology": "shell", "age_range_years": (50.0, 100000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star, black hole or nothing", "frequency": 3.0},
+    "T": {"name": "Pulsar wind nebula (plerion)", "family": "supernova-remnant",
+          "species": "relativistic electrons in a magnetic field",
+          "morphology": "plerion", "age_range_years": (50.0, 20000.0),
+          "compact": ("neutron_star",),
+          "density_range_cm3": (0.01, 1.0),
+          "temperature_range_k": (1e4, 1e6), "extinction_range_av": (0.0, 0.1),
+          "center": "a pulsar (required)", "frequency": 1.0},
+    "U": {"name": "Composite remnant", "family": "supernova-remnant",
+          "species": "a shocked shell around a pulsar wind nebula",
+          "morphology": "composite", "age_range_years": (1000.0, 30000.0),
+          "compact": ("neutron_star",),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "a pulsar", "frequency": 1.0},
+    "V": {"name": "Old radiative remnant", "family": "supernova-remnant",
+          "species": "a cooling shell merging with the interstellar medium",
+          "morphology": "shell", "age_range_years": (20000.0, 100000.0),
+          "compact": ("neutron_star", "black_hole", None),
+          "density_range_cm3": (1.0, 100.0),
+          "temperature_range_k": (1e4, 1e6), "extinction_range_av": (0.0, 0.1),
+          "center": "a neutron star far off-center, or nothing", "frequency": 2.0},
+    "W": {"name": "Thermonuclear remnant", "family": "supernova-remnant",
+          "species": "iron-rich ejecta with no hydrogen",
+          "morphology": "shell", "age_range_years": (50.0, 100000.0),
+          "compact": (None,),
+          "density_range_cm3": (0.1, 10.0),
+          "temperature_range_k": (1e6, 1e7), "extinction_range_av": (0.0, 0.1),
+          "center": "nothing (a Type Ia supernova leaves no core)", "frequency": 1.0},
+}
+
 SUPERNOVA_REMNANT_MORPHOLOGIES = ("shell", "plerion", "composite")
+"""tuple: The remnant shapes `supernova_remnants.morphology` allows (Vink
+2012, A&A Rev 20:49): a limb-brightened shell, a plerion (filled by a
+pulsar wind nebula, like the Crab), or a composite of both. Each remnant
+class in `NEBULA_CLASSES` fixes its own."""
 
 # Sedov-Taylor phase expansion coefficient and exponent: R(t) = C *
 # t^(2/5), the self-similar blast-wave solution for a remnant that has
@@ -1619,12 +1874,36 @@ SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE = 0.15
 # (Strigari et al. 2012, MNRAS 423:1856, order-of-magnitude population
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
-# TODO(phenomena #6): replace this range with ROGUE_PLANET_MASS_BINS
-# (min M_earth, max M_earth, per-star rate): terrestrial 0.1-2 at 5,
-# sub-Neptune 2-20 at 1, Saturn-class 20-318 at 0.25, Jupiter-mass
-# 1-13 Mjup at 0.25 (Mroz et al. 2017 upper limit). Their sum is the
-# rogue-planet rate. See docs/design/interstellar-object-rates.md.
-ROGUE_PLANET_MASS_RANGE_JUPITER = (0.0005, 10.0)
+# Mass bins (Boss's research, 2026-09-30; docs/design/
+# interstellar-object-rates.md): a rogue planet draws a bin by its
+# per-star rate, then a mass log-uniformly inside it. Low-mass rogues
+# dominate -- disk scattering ejects small bodies while giants stay bound
+# -- and no single power law fits both ends, hence bins.
+#   - terrestrial 0.1-2 Earth masses, 5 per star (2-10; Johnson et al.
+#     2020, AJ 160:123; Mroz et al. 2020, ApJL 903:L11);
+#   - sub-Neptune / ice giant 2-20, 1 per star (a default: Sumi et al.
+#     2023 find Neptune-mass candidates but give no rate);
+#   - Saturn-class 20 Earth masses to 1 Jupiter mass, 0.25 per star (a
+#     default filling the gap);
+#   - Jupiter-mass 1-13 Jupiter masses, 0.25 per star (Mroz et al. 2017,
+#     Nature 548:183, superseding Sumi et al. 2011's 1.8).
+# Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
+ROGUE_PLANET_MASS_BINS = {
+    "terrestrial": (0.1, 2.0, 5.0),
+    "sub-neptune": (2.0, 20.0, 1.0),
+    "saturn": (20.0, 317.8, 0.25),
+    "jupiter": (317.8, 13 * 317.8, 0.25),
+}
+"""dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
+The rates' sum is the rogue-planet rate per star (6.5)."""
+
+ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (13.0, 80.0)
+"""tuple: A free-floating brown dwarf, between the deuterium-burning
+(~13 Mjup) and hydrogen-burning (~80 Mjup) limits. Stored as a
+`rogue_planets` row with `mass_bin = 'brown-dwarf'` (schema v37)."""
+
+ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
+"""tuple: Every `rogue_planets.mass_bin` value."""
 
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
 # planet is treated as a gas giant rather than terrestrial -- roughly
@@ -1805,13 +2084,83 @@ SYSTEM_COMET_COUNT_RANGE = (1, 3)
 # scale (~30-50 AU, ~0.0005-0.0008 ly) -- a field with no central star to
 # hold it together can plausibly be spread far wider by galactic tidal
 # shear over billions of years -- while the upper bound stays below a
-# planetary nebula's own radius range (NEBULA_TYPES["planetary"], 0.1-3
+# planetary nebula's own radius range (NEBULA_CLASSES "H"-"L", 0.1-3
 # ly) so the two remain visually/narratively distinct phenomena.
-# TODO(phenomena #31): add ASTEROID_FIELD_CLASSES, letters A-Z from
-# composition and density (draft in
-# docs/design/nebula-and-asteroid-field-classes.md); size goes in the
-# designation digit (#30).
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
+
+# Asteroid field classes (TODO item 31, Boss 2026-09-30: "a digit and part
+# of the class"). The letter comes from composition and density, following
+# asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
+# V basaltic; Bus & Binzel 2002, Icarus 158:146; DeMeo et al. 2009, Icarus
+# 202:160); the digit is the field's size, floor(log10(radius in AU)), so a
+# 0.001-1 ly field is 1-4. A full class reads like "C3". V-Z are reserved.
+#
+# Each composition family: `letters` keyed by density (`sparse`, `typical`,
+# `dense`), `components` (what its bodies are made of, sampled for the
+# composition text), `description`, and `frequency` (relative weight).
+ASTEROID_FIELD_COMPOSITIONS = {
+    "carbonaceous": {
+        "letters": {"sparse": "A", "typical": "B", "dense": "C"},
+        "components": ["carbon", "serpentine", "magnetite", "silicon carbide", "sulfur",
+                       "phosphorus", "olivine", "troilite"],
+        "description": "dark carbon-rich bodies with hydrated clays",
+        "frequency": 30.0,
+    },
+    "stony": {
+        "letters": {"sparse": "D", "typical": "E", "dense": "F"},
+        "components": ["olivine", "pyroxene", "plagioclase feldspars", "silicon", "magnesium",
+                       "troilite", "iron", "silicon dioxide"],
+        "description": "silicate rock with flecks of metal",
+        "frequency": 20.0,
+    },
+    "metallic": {
+        "letters": {"sparse": "G", "typical": "H", "dense": "J"},
+        "components": ["iron", "nickel", "kamacite", "taenite", "schreibersite", "cohenite",
+                       "iridium", "platinum", "osmiridium"],
+        "description": "iron-nickel cores of shattered bodies",
+        "frequency": 8.0,
+    },
+    "icy": {
+        "letters": {"sparse": "K", "typical": "L", "dense": "M"},
+        "components": ["water ice", "carbon dioxide ice", "ammonia ice", "amorphous carbon",
+                       "complex organic compounds", "silicate dust", "serpentine"],
+        "description": "volatile-rich primitive bodies, ices bound in dark crusts",
+        "frequency": 20.0,
+    },
+    "basaltic": {
+        "letters": {"sparse": "N", "typical": "N", "dense": "P"},
+        "components": ["pyroxene", "plagioclase feldspars", "olivine", "ilmenite", "chromite",
+                       "magnesium", "calcium"],
+        "description": "basalt from a differentiated body's crust",
+        "frequency": 4.0,
+    },
+    "mixed": {
+        "letters": {"sparse": "Q", "typical": "R", "dense": "S"},
+        "components": None,
+        "description": "a mix of rock, metal and carbonaceous bodies",
+        "frequency": 10.0,
+    },
+    "dust": {
+        "letters": {"sparse": "T", "typical": "T", "dense": "T"},
+        "components": ["silicon dioxide", "carbon", "olivine", "pyroxene", "magnetite"],
+        "description": "mostly dust and gravel, with few large bodies",
+        "frequency": 5.0,
+    },
+    "collisional": {
+        "letters": {"sparse": "U", "typical": "U", "dense": "U"},
+        "components": None,
+        "description": "fragments of one parent body broken apart in a collision",
+        "frequency": 3.0,
+    },
+}
+"""dict: See the comment above. The icy family borrows cometary ices
+(`COMET_COMPOSITION`); `components` None means sample from all of
+`ASTEROID_COMPONENTS` (a mixed field, or a collisional family whose
+parent body could have been anything)."""
+
+ASTEROID_FIELD_SIZE_DIGIT_RANGE = (1, 4)
+"""tuple: The size digit's clamp -- floor(log10(radius in AU)) over
+`ASTEROID_FIELD_RADIUS_RANGE_LY` (63 AU to 63,241 AU)."""
 
 # --- Quasars (quasarData.Quasar) ---
 #
@@ -1821,7 +2170,7 @@ ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 # There is exactly one such nucleus per galaxy, at its dynamical center,
 # so the generator only ever places a quasar there (see
 # `generate.add_galactic_nucleus`), never scattered
-# through ordinary sectors the way `PHENOMENON_RATE_PER_STAR_SYSTEM`'s
+# through ordinary sectors the way `PHENOMENON_DENSITY_PC3`'s
 # types are.
 
 QUASAR_ACTIVE_NUCLEUS_CHANCE = 0.1
@@ -1931,91 +2280,103 @@ generated when asked for by name.
 
 # --- Sector-Level Exotic Phenomena (sectorGen.py/galaxyGen.py) ---
 #
-# Every generated sector (and therefore every sector galaxyGen.py generates,
-# since it calls straight into sectorGen.generate_sector) now also seeds a
-# realistically sparse population of phenomenonGen.py's own seven exotic
-# phenomenon types, sampled independently per type via a Poisson draw
-# (spaceSector._sample_poisson_count) whose mean is this rate times however
-# many star systems the sector actually ended up with -- so a denser sector
-# (see --density) gets proportionally more, exactly like star-system count
-# itself scales with density.
+# Every generated sector seeds a population of exotic phenomena, sampled
+# independently per type via a Poisson draw (spaceSector.
+# _sample_poisson_count, generate.generate_sector_phenomena).
 #
-# Each rate is expressed as an expected count PER STAR SYSTEM, derived by
-# dividing a real (or, where flagged, a deliberately conservative
-# order-of-magnitude) total galactic population estimate by ~2x10^11 total
-# stars in the Milky Way -- a commonly cited middle figure for the
-# oft-quoted "100-400 billion stars" range -- the same "ratio of two real
-# numbers" derivation spaceSector.py's own module docstring uses for local
-# stellar density itself. At this generator's sector scale (~1,521 ly^3, a
-# handful of star systems), most of these rates are small enough that a
-# typical sector shows none at all, which is realistic: real space this
-# size is usually devoid of black holes, neutron stars, and visible
-# nebulae, exactly as it is of Alpha-Centauri-close neighbors (see
-# spaceSector.py's own module docstring).
-# TODO(phenomena #5): replace with PHENOMENON_DENSITY_PC3 (per pc^3 at
-# REFERENCE_STELLAR_DENSITY_PC3 = 0.14, scaled by the sector's own
-# stellar density) from Boss's 2026-09-30 research: terrestrial rogues
-# 0.7, Jupiter-mass rogues 0.035, brown dwarfs 0.03, runaway stars 2.1e-3,
-# neutron stars 1e-3, black holes 1e-4, planetary nebulae 3e-8, remnants
-# 1e-8, isolated asteroid fields 0; molecular clouds by filling factor,
-# hypervelocity stars by r_GC^-2, comets as notable ones at a design rate.
-# Add a PHENOMENON_RATE_SCALE per type (default 1.0). See docs/TODO.md
-# item 5 and docs/design/interstellar-object-rates.md.
-PHENOMENON_RATE_PER_STAR_SYSTEM = {
-    # ~100 million stellar-mass black holes in the Milky Way is a commonly
-    # cited estimate (e.g. Lamberts et al. 2018, MNRAS 480:2704,
-    # extrapolating the galaxy's star-formation history through the
-    # stellar initial mass function's high-mass end).
-    "black-hole": 100e6 / 2e11,
-    # ~1 billion neutron stars is a commonly cited Milky Way estimate (e.g.
-    # Sartore et al. 2010, A&A 510:A23) -- roughly 10x more common than
-    # black holes, consistent with the initial mass function producing far
-    # more ~8-20 solar-mass (neutron-star) progenitors than >20-25
-    # solar-mass (black-hole) ones.
-    "neutron-star": 1e9 / 2e11,
-    # Frew & Parker (2010, PASA 27:129) estimate ~10,000-23,000 true
-    # planetary nebulae exist in the Galaxy at any time (a short
-    # ~10,000-25,000 year visible lifetime); NEBULA_TYPES below also covers
-    # emission/reflection/dark nebulae (giant molecular clouds and similar,
-    # of which several thousand more are cataloged), so the combined rate
-    # used here sits a bit above the planetary-nebula-only figure alone.
-    "nebula": 5e4 / 2e11,
-    # The Milky Way's supernova rate is ~2-3 per century (Diehl et al.
-    # 2006, Nature 439:45, from Galactic 26Al gamma-ray emission), and a
-    # remnant stays detectable for roughly ~100,000 years before dispersing
-    # into the interstellar medium -- rate * lifetime gives a standing
-    # population on the order of a couple thousand (well above Green's
-    # ~300-object observed catalog, most of the rest obscured by dust).
-    "supernova-remnant": 2000 / 2e11,
-    # Gravitational-microlensing surveys (Sumi et al. 2011, Nature 473:349;
-    # refined by Mroz et al. 2017, Nature 548:183) suggest free-floating,
-    # planetary-mass objects unbound to any star are plausibly comparable
-    # in number to stars themselves, though with wide uncertainty and later
-    # analyses trending the estimate down substantially -- a deliberately
-    # conservative order-of-magnitude figure is used here, the same
-    # precedent this package already sets for handling wide real
-    # uncertainty conservatively (e.g. SYSTEM_COMET_CHANCE below).
-    "rogue-planet": 0.1,
-    # No established observational population estimate exists for
-    # genuinely unbound interstellar comets at rest between stars (as
-    # opposed to the transient handful passing through the Solar System's
-    # own volume at any instant, e.g. 1I/'Oumuamua, 2I/Borisov -- a flux
-    # measurement, not the standing-population one this per-sector model
-    # needs). Set to the same order of magnitude as this package's own
-    # per-system SYSTEM_COMET_CHANCE below, scaled down since these are
-    # specifically unbound wanderers rather than a system's own reservoir.
-    "comet": 0.05,
-    # Likewise no established population estimate exists for standalone
-    # (non-star-orbiting) asteroid fields -- kept at the same
-    # narrative-flavor order of magnitude as "comet" above, for the same
-    # reason ASTEROID_FIELD_RADIUS_RANGE_LY above is a narrative choice
-    # rather than a derived one.
-    "asteroid-field": 0.05,
+# Rates come from Boss's research of 2026-09-30 (docs/design/
+# interstellar-object-rates.md): each type has a local number density
+# n_i0 (objects per pc^3) at the solar neighborhood's stellar density
+# n_*0 = REFERENCE_STELLAR_DENSITY_PC3, and scales with the local stellar
+# density, n_i = n_i0 * n_* / n_*0. A sector's star count already follows
+# n_* * V, so that is a fixed rate per STAR, n_i0 / n_*0, times the
+# sector's own star count (`phenomenon_rate_per_star`).
+
+REFERENCE_STELLAR_DENSITY_PC3 = 0.14
+"""float: Stars per pc^3 in the solar neighborhood (0.10-0.14 in the
+literature), the density every PHENOMENON_DENSITY_PC3 figure is quoted at."""
+
+PHENOMENON_DENSITY_PC3 = {
+    # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (6.5) at n_*0.
+    # Terrestrial alone: 0.7 pc^-3 (0.5-1.4), Jupiter-mass 0.035.
+    "rogue-planet": sum(rate for _lo, _hi, rate in ROGUE_PLANET_MASS_BINS.values()) * REFERENCE_STELLAR_DENSITY_PC3,
+    # 0.025-0.035 (Kirkpatrick et al. 2021, ApJS 253:7), ~1 per 4.7 stars.
+    "brown-dwarf": 0.03,
+    # Stars moving > 30 km/s, 1-2% of stars (Tauris 2015, MNRAS 448:L6).
+    # A flag on an ordinary generated system, not a phenomenon row.
+    "runaway-star": 2.1e-3,
+    # Stars moving > 500 km/s, ejected by the central black hole, at
+    # HVS_REFERENCE_RADIUS_PC; scales as r_GC^-2 (Brown 2015, ARA&A
+    # 53:15). The research's 5e-9 implies ~4e5 out to 100 kpc against a
+    # stated 1e3-1e4 total; 1e-10 matches the total. Also a system flag.
+    "hypervelocity-star": 1e-10,
+    # ~1e9 isolated neutron stars and ~1e8 black holes galaxy-wide
+    # (Sartore et al. 2010, A&A 510:A23; Olejak et al. 2020, A&A 638:A94;
+    # Sahu et al. 2022, ApJ 933:83). Tuned to the star model's own remnant
+    # shares (docs: galaxy-studies star-fix spec, 2026-09-30): a Kroupa IMF
+    # with a 10 Gy thin disk leaves ~0.5% of stars as neutron stars and
+    # ~0.1% as black holes, i.e. 0.005 and 0.001 per star at n*0 = 0.14.
+    "neutron-star": 7e-4,
+    "black-hole": 1.4e-4,
+    # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
+    # 50:531), really placed by filling factor inside the arms
+    # (GMC_ARM_FILLING_FACTOR); TODO item 27 generates them.
+    "molecular-cloud": 5e-6,
+    # ~20,000 planetary nebulae galaxy-wide (Frew & Parker 2010, PASA
+    # 27:129).
+    "planetary-nebula": 3e-8,
+    # 1e-8 to 1e-7, really n_* * rho_gas (Draine 2011); 1e-8 counts
+    # faint remnants too (~1,000 are detectable, ~1.5e-9).
+    "supernova-remnant": 1e-8,
+    # Notable interstellar comets kept as rows, a design rate (today's
+    # 0.05 per star). The real population of comets and planetesimals,
+    # INTERSTELLAR_DEBRIS_DENSITY_PC3, is a computed sector figure.
+    "comet": 0.007,
+    # Free asteroid fields disperse in 1e6-1e7 years (Raymond et al.
+    # 2020, ApJL 894:L22), so none are generated; the type stays for
+    # hand-made fields and facilities.
+    "asteroid-field": 0.0,
 }
-"""
-dict: `PHENOMENON_TYPE_CHOICES` entry -> expected count per star system, for
-`sectorGen.generate_sector_phenomena`'s per-sector Poisson sampling.
-"""
+"""dict: Local number density per pc^3 at REFERENCE_STELLAR_DENSITY_PC3,
+the research value for each kind (see the design doc's table)."""
+
+PHENOMENON_RATE_SCALE = {kind: 1.0 for kind in PHENOMENON_DENSITY_PC3}
+"""dict: A multiplier per kind (default 1.0) to dial a rate up or down
+without touching its research value -- e.g. 0.1 for "rogue-planet" gives
+about 6 rogues per local sector instead of about 58 (Boss chose the full
+rate on 2026-09-30)."""
+
+GMC_ARM_FILLING_FACTOR = 0.015
+"""float: Share of spiral-arm volume inside a giant molecular cloud
+(0.01-0.02), for TODO item 27's cloud placement."""
+
+GMC_GAS_DENSITY_EXPONENT = 1.4
+"""float: Molecular clouds scale with gas density to this power
+(Schmidt-Kennicutt), for TODO item 27."""
+
+HVS_REFERENCE_RADIUS_PC = 8000.0
+"""float: Galactic radius the "hypervelocity-star" density is quoted at."""
+
+INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
+"""float: Interstellar comets and planetesimals (m-km) per pc^3 at
+REFERENCE_STELLAR_DENSITY_PC3, 1e11-1e14 (Engelhardt et al. 2017, AJ
+153:133; Seligman & Laughlin 2020, ApJL 896:L8) -- far too many for rows,
+so a sector shows it as a figure (`queryDb.interstellar_debris_count`)."""
+
+RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
+"""tuple: A runaway star's speed relative to its neighbors, km/s
+(log-uniform; Tauris 2015)."""
+
+HYPERVELOCITY_STAR_SPEED_RANGE_KMS = (500.0, 1000.0)
+"""tuple: A hypervelocity star's speed, km/s (Brown 2015)."""
+
+
+def phenomenon_rate_per_star(kind):
+    """Expected count of `kind` (a PHENOMENON_DENSITY_PC3 key) per star:
+    its density over REFERENCE_STELLAR_DENSITY_PC3, times its
+    PHENOMENON_RATE_SCALE."""
+    return PHENOMENON_DENSITY_PC3[kind] * PHENOMENON_RATE_SCALE.get(kind, 1.0) / REFERENCE_STELLAR_DENSITY_PC3
+
 
 # --- Galaxy Random-Start Generation (galaxyGen.py) ---
 

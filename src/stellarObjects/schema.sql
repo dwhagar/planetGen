@@ -795,6 +795,25 @@
 --   fills it from each existing row's mass. Intermediate-mass black holes
 --   now span 1e2-1e5 Msun (log-uniform).
 --
+-- v37: research-based interstellar rates (docs/design/
+--   interstellar-object-rates.md). `rogue_planets.mass_bin` records the
+--   mass bin a rogue was drawn from ('terrestrial', 'sub-neptune',
+--   'saturn', 'jupiter') or 'brown-dwarf' (free-floating brown dwarfs
+--   share the table); `star_systems.runaway_class`/`runaway_speed_kms`
+--   flag runaway and hypervelocity stars. `_migrate_v36_to_v37` fills
+--   `mass_bin` from each existing row's mass.
+--
+-- v38: letter classes (docs/design/nebula-and-asteroid-field-classes.md).
+--   `nebulae.nebula_class` (A-Q) and `supernova_remnants.remnant_class`
+--   (R-W) come from program_constants.NEBULA_CLASSES, each with its
+--   contents: `dominant_species`, `density_cm3` (nH), `temperature_k` and
+--   `extinction_av` (magnitudes). `nebula_type` is now the class's family
+--   and gains 'diffuse' (its CHECK is named chk_nebulae_type). Asteroid
+--   fields get `field_class`, a letter from composition and density plus
+--   a size digit (e.g. 'C3'), and `composition_family`.
+--   `_migrate_v37_to_v38` infers classes for existing rows and fills
+--   each class's typical contents.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1120,6 +1139,11 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_planetary_wobble_z_km    DOUBLE,
 
     system_flavor_text   TEXT,
+    -- v37: 'runaway' (> 30 km/s) or 'hypervelocity' (> 500 km/s) when the
+    -- system moves unusually fast (generate.flag_fast_stars); NULL
+    -- together otherwise.
+    runaway_class        VARCHAR(16),
+    runaway_speed_kms    DOUBLE,
     schema_version       INT NOT NULL DEFAULT 1,
 
     -- No stored page text since v29: wikitext/Markdown are rendered on
@@ -1670,9 +1694,6 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 -- (v21 on) sectorGen.py's own per-sector generation -- see this file's
 -- "v18"/"v21" header notes.
 -- ---------------------------------------------------------------------
--- TODO(phenomena #28): add nebula_class plus contents columns (dominant
--- species, density_cm3, temperature_k, extinction_av); the same on
--- supernova_remnants.
 -- TODO(phenomena #29): add a nullable nebula_id (innermost containing
 -- nebula or supernova remnant) here, for nesting, and on star_systems,
 -- rogue_planets, interstellar_comets, black_holes, neutron_stars,
@@ -1685,10 +1706,18 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- iff center_x/y/z_pc are NULL (never placed in the galaxy at all).
     sector_id         BIGINT UNSIGNED,
     name              VARCHAR(255) NOT NULL,
-    nebula_type       VARCHAR(16) NOT NULL CHECK (nebula_type IN ('emission', 'reflection', 'planetary', 'dark')),
+    -- v38: letter class A-Q (program_constants.NEBULA_CLASSES); nebula_type
+    -- is the class's family.
+    nebula_class      CHAR(1) NOT NULL,
+    nebula_type       VARCHAR(16) NOT NULL,
     radius_ly         DOUBLE NOT NULL,
     composition       TEXT NOT NULL,
     formation_cause   TEXT NOT NULL,
+    -- v38: the class's contents -- see the header comment's "v38" note.
+    dominant_species  VARCHAR(255) NOT NULL,
+    density_cm3       DOUBLE NOT NULL,
+    temperature_k     DOUBLE NOT NULL,
+    extinction_av     DOUBLE NOT NULL,
     -- v17: always populated (a nebula is always standalone). See this
     -- file's "v17" header note.
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
@@ -1714,6 +1743,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- an opaque, position-dependent auto-generated name (`nebulae_chk_2`,
     -- shifting if another CHECK is ever added/removed above it), which a
     -- migration step has no reliable way to reproduce or later reference.
+    CONSTRAINT chk_nebulae_type CHECK (nebula_type IN ('diffuse', 'emission', 'reflection', 'planetary', 'dark')),
     CONSTRAINT chk_nebulae_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1741,6 +1771,9 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     id                                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id                         BIGINT UNSIGNED,
     name                              VARCHAR(255) NOT NULL,
+    -- v38: letter class R-W (program_constants.NEBULA_CLASSES); the class
+    -- fixes the morphology.
+    remnant_class                     CHAR(1) NOT NULL,
     morphology                        VARCHAR(16) NOT NULL CHECK (morphology IN ('shell', 'plerion', 'composite')),
     age_years                         DOUBLE NOT NULL,
     radius_ly                         DOUBLE NOT NULL,
@@ -1748,6 +1781,11 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     compact_remnant_kind              VARCHAR(16) CHECK (compact_remnant_kind IN ('black_hole', 'neutron_star')),
     compact_remnant_black_hole_id     BIGINT UNSIGNED,
     compact_remnant_neutron_star_id   BIGINT UNSIGNED,
+    -- v38: the class's contents, as on nebulae.
+    dominant_species                  VARCHAR(255) NOT NULL,
+    density_cm3                       DOUBLE NOT NULL,
+    temperature_k                     DOUBLE NOT NULL,
+    extinction_av                     DOUBLE NOT NULL,
     -- v17: always populated (a supernova remnant is always standalone).
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
@@ -1838,6 +1876,9 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
     planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    -- v37: the mass bin it was drawn from (program_constants.
+    -- ROGUE_PLANET_MASS_BINS), or 'brown-dwarf' (13-80 Mjup).
+    mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',
     mass_kg             DOUBLE NOT NULL,
     radius_km           DOUBLE NOT NULL,
     composition         TEXT NOT NULL,
@@ -1949,15 +1990,18 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- exactly (same per-component/concentration shape -- both are generated
 -- via the same shared `asteroidData.generate_asteroid_composition`).
 -- ---------------------------------------------------------------------
--- TODO(phenomena #31): add asteroid_field_class (A-Z) and the designation
--- (#30). Asteroid fields can sit inside a nebula (nebula_id, #29) but never
--- contain anything.
+-- TODO(phenomena #30): add the designation. Asteroid fields can sit inside
+-- a nebula (nebula_id, #29) but never contain anything.
 CREATE TABLE IF NOT EXISTS asteroid_fields (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
     -- see nebulae's identical "v18" column comment above.
     sector_id             BIGINT UNSIGNED,
     name                  VARCHAR(255) NOT NULL,
+    -- v38: letter (composition and density) plus size digit, e.g. 'C3'
+    -- (program_constants.ASTEROID_FIELD_COMPOSITIONS).
+    field_class           VARCHAR(4) NOT NULL,
+    composition_family    VARCHAR(16) NOT NULL,
     density               VARCHAR(16) NOT NULL CHECK (density IN ('dense', 'sparse', 'typical')),
     radius_ly             DOUBLE NOT NULL,
     composition_summary   TEXT NOT NULL,

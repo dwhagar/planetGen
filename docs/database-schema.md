@@ -338,7 +338,8 @@ existing rows, so it backfills real values rather than leaving them NULL.
 
 v21 gave every generated sector its own realistically sparse population of
 exotic phenomena (`generate.generate_sector_phenomena`, sampled from
-`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`) instead of leaving
+`program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`, replaced in v37 by
+per-star research densities) instead of leaving
 all seven types reachable only through `generate.py phenomenon`'s separate,
 on-demand CLI. `nebulae`/`supernova_remnants`/`rogue_planets`/
 `interstellar_comets`/`asteroid_fields` needed no schema change at all —
@@ -490,6 +491,24 @@ supermassive black hole there instead, so every galaxy has one.
 `black_holes.mass_class` records whether a row is stellar-mass,
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
+
+**Letter classes (v38).** Nebulae (A-Q) and supernova remnants (R-W)
+get a class from `program_constants.NEBULA_CLASSES` with their contents
+(`dominant_species`, `density_cm3`, `temperature_k`, `extinction_av`),
+and asteroid fields a `field_class` such as `C3` (letter from composition
+and density, digit from size). `_migrate_v37_to_v38` infers classes for
+existing rows (old asteroid fields become the `mixed` family) and fills
+each class's typical contents. See
+`docs/design/nebula-and-asteroid-field-classes.md`.
+
+**Research-based interstellar rates (v37).** Phenomena are now drawn per
+star from Boss's research densities (`program_constants.
+PHENOMENON_DENSITY_PC3`, `docs/design/interstellar-object-rates.md`).
+`rogue_planets.mass_bin` records a rogue's mass bin (`terrestrial`,
+`sub-neptune`, `saturn`, `jupiter`) or `brown-dwarf` (free-floating brown
+dwarfs share the table), and `star_systems.runaway_class`/
+`runaway_speed_kms` flag runaway and hypervelocity stars.
+`_migrate_v36_to_v37` fills `mass_bin` from each existing row's mass.
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
@@ -788,6 +807,8 @@ One row per generated system (single-star or binary).
 | `binary_planetary_wobble_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. NULL unless `binary_configuration = 'close'`. Additional pair-wide wobble from circumbinary planets (`planets.star_id IS NULL`) — modeled as one shared wobble applied to the whole pair rather than split unevenly between primary/secondary, which would need a real 3+-body solve. |
 | `binary_table_type`, `_mass`, `_lum`, `_hab`, `_separation`, `_loc` | TEXT | nullable | The "Binary System Data" table (`doubleStar.py:158-170`), one column per key. This is the *only* properties table with no owning row elsewhere — `BinaryStarProxy` is never itself stored as a `stars` row (see below). All NULL unless `is_binary`. |
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
+| `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
+| `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
@@ -1080,7 +1101,9 @@ sector-context encounter through v17, unused (always NULL) by
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- a convenience "home" link, not this nebula's real geometry (its sphere may overlap several sectors, or none). NULL iff `center_x/y/z_pc` are NULL. `ON DELETE SET NULL` (not `CASCADE`, unlike v16/v17): deleting that sector doesn't delete a nebula that merely happens to be near it. |
 | `name` | TEXT | NOT NULL | |
-| `nebula_type` | TEXT | NOT NULL, CHECK IN ('emission','reflection','planetary','dark') | |
+| `nebula_class` | CHAR(1) | NOT NULL | Added in v38: letter class A-Q (`program_constants.NEBULA_CLASSES`). |
+| `nebula_type` | TEXT | NOT NULL, CHECK IN ('diffuse','emission','reflection','planetary','dark') | The class's family (`diffuse` added in v38). |
+| `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38: what the cloud holds, its particle density nH (cm⁻³), gas temperature (K) and optical extinction (magnitudes). |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition`, `formation_cause` | TEXT | NOT NULL | Descriptive strings, one per `nebula_type` (`program_constants.NEBULA_TYPES`). |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a nebula is always standalone). See `stars`' identical columns above. |
@@ -1100,7 +1123,9 @@ white dwarf).
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
-| `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | |
+| `remnant_class` | CHAR(1) | NOT NULL | Added in v38: letter class R-W (`program_constants.NEBULA_CLASSES`). |
+| `morphology` | TEXT | NOT NULL, CHECK IN ('shell','plerion','composite') | Fixed by the class since v38. |
+| `dominant_species`, `density_cm3`, `temperature_k`, `extinction_av` | VARCHAR(255) / DOUBLE | NOT NULL | Added in v38, as on `nebulae`. |
 | `age_years` | DOUBLE | NOT NULL | |
 | `radius_ly` | DOUBLE | NOT NULL | Derived from `age_years` via the Sedov-Taylor blast-wave relation (`radius ∝ age^(2/5)`). |
 | `progenitor_type` | TEXT | NOT NULL, CHECK IN ('Type Ia','core-collapse') | |
@@ -1121,6 +1146,7 @@ from any star.
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | The sector it was generated as part of (`generate.py sector`) or placed near (`generate.py phenomenon --sector-id`); NULL for one generated standalone. |
 | `name` | TEXT | NOT NULL | |
 | `planet_type` | TEXT | NOT NULL, CHECK IN ('t','g') | Same letters as `planets.body_type`. |
+| `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
 | `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
@@ -1192,6 +1218,8 @@ v18 gave it one.
 | `id` | INTEGER | PK | |
 | `sector_id` | INTEGER | FK -> `sectors.id`, `ON DELETE SET NULL`, nullable | v18: the nearest already-generated sector to `center_x/y/z_pc` below -- see `nebulae`'s identical "v18" column note above. |
 | `name` | TEXT | NOT NULL | |
+| `field_class` | VARCHAR(4) | NOT NULL | Added in v38: letter from composition and density plus a size digit, floor(log10(radius in AU)), e.g. `C3` (`program_constants.ASTEROID_FIELD_COMPOSITIONS`). |
+| `composition_family` | VARCHAR(16) | NOT NULL | Added in v38: `carbonaceous`, `stony`, `metallic`, `icy`, `basaltic`, `mixed`, `dust` or `collisional`. |
 | `density` | TEXT | NOT NULL, CHECK IN ('dense','sparse','typical') | Same three levels `asteroid_belts.density` uses. |
 | `radius_ly` | DOUBLE | NOT NULL | |
 | `composition_summary` | TEXT | NOT NULL | Human-readable summary, same role as `asteroid_belts.composition_summary` — generated via the same shared `asteroidData.generate_asteroid_composition`/`format_composition_summary` helpers. |

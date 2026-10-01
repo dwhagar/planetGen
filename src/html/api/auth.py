@@ -196,9 +196,10 @@ def list_api_keys():
         {
             "id": row["id"],
             "label": row["label"],
-            "created_at": row["created_at"].isoformat() if row["created_at"] else None,
-            "last_used_at": row["last_used_at"].isoformat() if row["last_used_at"] else None,
-            "revoked_at": row["revoked_at"].isoformat() if row["revoked_at"] else None,
+            # UTC (the connection's zone), with an explicit offset.
+            "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
+            "last_used_at": row["last_used_at"].isoformat() + "Z" if row["last_used_at"] else None,
+            "revoked_at": row["revoked_at"].isoformat() + "Z" if row["revoked_at"] else None,
         }
         for row in rows
     ]})

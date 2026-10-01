@@ -183,6 +183,25 @@ class SystemConfig:
         None.
         """
 
+        self.POPULATION = None
+        """
+        str or None: The stellar population a random primary star is drawn
+        from ("young", "intermediate", "old" or "bulge"; see
+        `stellarEvolution.population_age_range_gy`), which sets its age
+        range; a galaxy sector picks one per system from
+        `galaxyDensity.population_densities` at its position
+        (`stellarPopulation.pick_population`). None draws from the whole
+        disk's history. Not saved with the config: the star keeps its age.
+        """
+
+        self.MAX_STAR_LUMINOSITY_SOL = None
+        """
+        float or None: A random primary star is redrawn until it is dimmer
+        than this (Lsun): a sector whose bright stars were pre-placed fills
+        the rest with dimmer ones only. None for no limit. Not saved with
+        the config.
+        """
+
     def to_dict(self):
         """
         Returns a JSON-serializable dict of this config's settings, in the

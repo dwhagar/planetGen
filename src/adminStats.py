@@ -54,7 +54,9 @@ _CANDIDATE_CHUNK = 1000
 
 
 def _format_time(value):
-    return value.strftime("%Y-%m-%d %H:%M:%S") if value is not None else None
+    """A UTC `TIMESTAMP` (the connection's zone is UTC) as ISO 8601 with
+    an explicit `Z`."""
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ") if value is not None else None
 
 
 def server_info(conn):

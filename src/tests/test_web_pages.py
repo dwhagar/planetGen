@@ -492,3 +492,18 @@ def test_page_views_are_not_rate_limited(db_client, mysql_config):
         assert direct[-1] == 429
     finally:
         limiter.reset()
+
+
+def test_systems_page_lists_every_system_with_sector_and_octant(client, fake):
+    in_sector = dict(_system(1, name="Inner"), sector_id=7, sector_name="Home <Sector>", quadrant="III")
+    fake.systems = [in_sector] + [_system(i) for i in range(2, 60)]
+    html = client.get("/systems").get_data(as_text=True)
+    assert 'id="all-systems"' in html and 'id="standalone-systems"' in html
+    assert '<a href="/sector/7">Home &lt;Sector&gt;</a>' in html and "<td>III</td>" in html
+    assert "Standalone" in html
+    # Both lists page on their own: the all-systems pager keeps the other page.
+    assert ("get_systems", DB, None, 50, 0) in fake.calls
+    assert ("get_systems", DB, "none", 50, 0) in fake.calls
+    page2 = client.get("/systems?systems_page=2&standalone_page=2").get_data(as_text=True)
+    assert ("get_systems", DB, None, 50, 50) in fake.calls
+    assert "standalone_page=2" in page2
