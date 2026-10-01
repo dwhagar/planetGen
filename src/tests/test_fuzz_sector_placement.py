@@ -38,7 +38,6 @@ import contextlib
 import json
 import math
 import random
-import secrets
 import signal
 import time
 from unittest import mock
@@ -54,7 +53,7 @@ from stellarObjects.galaxyGeometry import SectorCell, ring_sector_count
 from stellarObjects.spaceSector import SpaceSector, distance_between, required_separation_ly
 from stellarObjects.systemData import StarSystem
 
-from tests.fuzz_support import any_float, hostile_text, scaled
+from tests.fuzz_support import any_float, deterministic_entropy as _seeded_generation, hostile_text, scaled
 
 DEFAULT_EDGE = prog.DEFAULT_SECTOR_EDGE_LY
 SEEDS = st.integers(min_value=0, max_value=2**64 - 1)
@@ -483,18 +482,6 @@ def _real_system(index):
         with _seeded_generation(index):
             _POOL[index] = (StarSystem(system_config=cfg), cfg)
     return _POOL[index]
-
-
-@contextlib.contextmanager
-def _seeded_generation(seed):
-    """Generation also draws from `secrets` (see
-    test_fuzz_system_generation.py's `_deterministic_entropy`)."""
-    entropy = random.Random(seed)
-    with mock.patch.object(secrets, "randbits", entropy.getrandbits), \
-            mock.patch.object(secrets, "randbelow", entropy.randrange), \
-            mock.patch.object(secrets, "choice", entropy.choice):
-        random.seed(seed)
-        yield
 
 
 def _real_phenomenon(kind, seed):

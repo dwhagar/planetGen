@@ -6,6 +6,7 @@
 {% block main_class %} app-main-wide{% endblock %}
 {% block head %}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges"><span class="badge">{{ num(placed_count) }} placed sector{{ "" if placed_count == 1 else "s" }}</span></p>

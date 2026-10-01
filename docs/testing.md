@@ -6,8 +6,30 @@ repository root (`pytest.ini` puts `.`, `src` and `src/html` on the path).
 ```sh
 pip install -e ".[test,api]"
 python -m nltk.downloader words
-pytest
+pytest -n auto
 ```
+
+## Running in parallel
+
+`-n auto` (pytest-xdist, part of the `test` extra) runs one worker process
+per core. Plain `pytest` still runs everything serially in one process,
+which is easier to read when debugging a single failure. On a 4-core
+machine with the database tests on, the whole suite took 17 min 21 s
+serially and 5 min 57 s with `-n 4` (2026-10-01).
+
+Workers never share database state:
+
+- each test that uses `mysql_config` gets its own uniquely named database;
+- each worker process gets its own control database
+  (`PLANETGEN_CONTROL_DATABASE` is set to `pgtest_control_<worker>_<random>`
+  by `conftest.py`, overriding any value in your environment, and dropped
+  at the end of the run), so nothing in the suite touches
+  `planetgen_control` or a real control schema;
+- generation runs in-process (`PLANETGEN_WORKERS=1`), so a test's
+  patched functions are the ones that run.
+
+`--dist worksteal` (what CI uses) lets idle workers take queued tests from
+busy ones, which helps when a few slow tests land on the same worker.
 
 ## The database tests
 
@@ -25,9 +47,8 @@ Each one falls back to the matching `PLANETGEN_MYSQL_*` variable, then to
 the built-in default (`127.0.0.1:3306`, user `planetgen`).
 
 The user needs to create and drop databases: each test gets its own
-uniquely named, throwaway database. Run the suite serially (no `pytest -n`)
-when these are set; a few API tests share server-wide state and can trip
-over each other under parallel workers.
+uniquely named, throwaway database, so the database tests are safe under
+`pytest -n auto` (see "Running in parallel" above).
 
 ## Kinds of test
 
@@ -127,3 +148,30 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 profile each Monday, and can be started by hand from the Actions tab
 (**Deep fuzz** > **Run workflow**, optionally with a number of examples).
 A red deep run is a real bug report: its log carries the shrunk input.
+
+## CI runners
+
+Every workflow job picks its runner from a repository variable (Settings >
+Secrets and variables > Actions > Variables). Each holds JSON: a label
+list such as `["self-hosted", "Linux", "X64"]`, or a hosted runner name in
+quotes such as `"ubuntu-latest"`. Unset, a job uses the default below.
+
+| Variable | Jobs | Default |
+|---|---|---|
+| `RUNNER_LINUX` | tests, browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` |
+| `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` |
+| `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` (GitHub-hosted) |
+| `RUNNER_WINDOWS_INSTALLERS` | `install.ps1` on Windows | `"windows-latest"` (GitHub-hosted) |
+
+The installer jobs stay on GitHub's throwaway machines by default because
+they install planetGen as a system service (launchd daemons, scheduled
+tasks, a server on port 8000) with sudo or admin rights, which would stay
+behind on a machine of your own.
+
+A self-hosted Linux runner needs Docker (the MySQL 8 service container) and
+passwordless `sudo` for `playwright install --with-deps`. The MySQL
+container gets a free host port, so several jobs (or a MySQL of your own
+on 3306) can share a machine. Each job installs into its own virtualenv
+under `RUNNER_TEMP`, so packages don't carry over between jobs.
+`actions/setup-python` downloads the Python versions the jobs ask for
+(3.9 and 3.12) into the runner's tool cache on first use.

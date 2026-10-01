@@ -15,8 +15,8 @@ Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 | Map Generate buttons and the light-year radius dialog | 6 | MAP.20 (map side) | 7.53.0, PR #177 |
 | Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.21 | 7.58.0, PR #178 |
 | Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.20 | not built |
-| NAV page pickers | 9 | MAP.22 | not built |
-| Bookmarks | 8.2 | MAP.23 | not built |
+| NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | this change (the picks earlier) |
+| Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, Ctrl+1-9 | 8.2 | MAP.23 | this change |
 | "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | not built (`?sector=` itself works) |
 
 Later requests changed this design, and the sections below describe the
@@ -217,8 +217,12 @@ sectors of its children.
 
 ## 4. The stages
 
-The whole galaxy and its quarters are seen from straight above and
-can't be turned (MAP.17). Below them (once an arc is picked, and inside
+The whole galaxy is seen from straight above and can't be turned
+(MAP.17). Every view below it, from a quarter down, opens at an
+isometric slant (Boss, 2026-10-01, "turn the angle to be isometric so
+that the user can select layers easier"), so layers can be clicked on
+the map as well as picked from the strip; a quarter itself still can't
+be turned. Below the quarters (once an arc is picked, and inside
 every block) the view can be turned, moved and zoomed freely, to make
 layers, blocks and sectors easier to pick (Boss, 2026-10-01, section
 5.1); each step still opens on its own view. A stage is a container (the galaxy or
@@ -237,6 +241,11 @@ The picks go:
   the view has fewer rings or blocks across), so each arc is about a
   third of the wedge in view. A block belongs to the cell its middle
   falls in. The map zooms into the region picked.
+- A quarter or region reaches as far as its blocks do, not just its
+  even share of the bearings (Boss, 2026-10-01): near the core a block
+  sits between meridians that run all the way in and can be wider than
+  the share (quarter 0°–90° holds the 0°–120° core wedge), so the
+  highlight, the label and the zoom all follow the real wedge.
 
 They alternate: after the quarter, a layer, then a region, then a layer
 and so on (galaxystages.nextPickKind). A layer comes next whenever the
@@ -297,8 +306,10 @@ of a level-3 block.
   every step to another stage (into a pick, Up, Back, a crumb) opens on
   that stage's own view. At the galaxy and its quarters the wheel
   scrolls the page.
-- **Wedge lines** (MAP.44) are kept to the part of the galaxy in view
-  and 15% of its size past each side, and stop there sharply. Over the
+- **Only the wedge in view shows** (MAP.44; Boss, 2026-10-01: "only show
+  the wedge"): the wedge lines, stars and clouds are kept to the part of
+  the galaxy in view (its rings, bearings and layers) and stop there
+  sharply. Over the
   whole galaxy they run to its edge (MAP.43) and carry their bearing
   labels. Ring boundaries are the faces of the blocks in view, so they
   never reach past it.
@@ -316,13 +327,17 @@ of a level-3 block.
   Inside a block, a click on a bright star or a small cloud shows it
   instead; over the whole galaxy and its quarters the stars are too
   thick for that.
-- **The layer strip:** while a layer is to be picked, a list beside the
-  map with one row per choice, top first, each with its layer range and
-  a bar of its generated share. Hovering or focusing a row dims the
-  other layers on the map; clicking takes it. At other stages the strip
-  says which layers the view holds. This is the paper's elevation panel,
-  and it gives keyboard and screen-reader users the same choice.
-- Choices are big: four quarters, at most three layers, at most nine
+- **The slab slider (MAP.30):** while a layer is to be picked, a
+  vertical slider to the right of the map, top slab at the top, with one
+  step per slab of the view (not thirds), and under it the slab's name
+  and a bar of its generated share. Dragging it or its arrow keys dim
+  the other slabs on the map; letting go, Enter or its Open button takes
+  the slab, and hovering a slab on the map moves the slider there. At
+  other stages it says which layers the view holds. This is the paper's
+  elevation panel, and it gives keyboard and screen-reader users the
+  same choice. The map beside it is 4:3 and no taller than the window
+  (1:1 on a phone).
+- Choices are big: four quarters, one slab at a time, at most nine
   arcs, so each is at least about a ninth of the map, finger-sized on
   a phone.
 - **Touch:** the first tap highlights a choice and a second tap on it
@@ -505,29 +520,43 @@ one: `{ring, layer, slot, id, name, system_count}`.
 
 ### 8.2 Bookmarks
 
-Not built yet (MAP.23).
+Built (MAP.23), with decision 4's default: per browser, no migration.
 
-- A ☆ button on the breadcrumb and on each info panel saves the current
-  stage, sector, system or phenomenon:
+- A ☆ button on the map's breadcrumb (`galaxystageview.js`) saves the
+  selected sector, or else the current stage; a ☆ Bookmark button on the
+  system, phenomenon and sector pages (`templates/partials/bookmark.html`,
+  its entry from `web.helpers.bookmark`) saves that page. An entry is
   `{name, kind: "stage"|"sector"|"system"|<phenomenon type>, value, created}`,
-  where `value` is a stage URL, a designation or a NAV endpoint
-  (`system:12`).
+  where `value` is a stage URL (path and query), a sector designation (a
+  sector with no galaxy address uses its page URL) or a NAV endpoint
+  (`system:12`, `nebula:3`, from `nav_page.endpoint`), plus `url`, the
+  page it opens, and `sectorId` for a generated sector. Kind and value
+  identify it, so the map's ☆ and the sector page's button find the same
+  sector. A saved place shows ★ ("Bookmarked"); pressing it again asks
+  to remove it.
 - Stored per browser in `localStorage["planetgen.bookmarks.<db name>"]`,
   up to 100 entries, with every read and write wrapped so that a browser
-  with storage blocked just shows no bookmarks. Shared bookmarks in the
-  database are a separate option (decision 4).
-- A Bookmarks menu sits on the map. Ctrl+1 to Ctrl+9 open the first
-  nine. Bookmarks can be renamed and deleted from the menu.
-- The NAV pickers list system and phenomenon bookmarks (section 9). A
-  sector bookmark opens the system picker for that sector.
-- One module, `static/bookmarks.js`, is shared by the map, the Sector
-  Map and the NAV page.
+  with storage blocked just shows no bookmarks (and saving says so). The
+  database name reaches the script as `data-bookmark-db` on the button,
+  the menu or the NAV form. Shared bookmarks in the database remain the
+  option decision 4 leaves for later.
+- A Bookmarks menu (a `<details>`) sits in the map's controls row and
+  opens in the row's flow, a full row wide, so it fits a phone. Each
+  entry is a link with Rename (in place: Enter saves, Escape cancels) and
+  Delete; Escape closes the menu. Ctrl+1 to Ctrl+9 open the first nine
+  while the map page has the focus, but not from a text box or select.
+  Browsers that keep Ctrl+digit for switching tabs win over the page.
+- The NAV page's Bookmarks select lists system and phenomenon bookmarks
+  (section 9). A sector bookmark opens the system picker for that sector.
+- One module, `static/bookmarks.js`, serves the map, the system,
+  phenomenon and sector pages and the NAV page; importing it wires
+  whatever each page has, with no inline script. The Sector Map's own
+  info panel has no ☆ yet; its page's button covers the sector.
 
 ## 9. NAV integration
 
 The NAV page keeps its sector-then-system dropdowns. Each endpoint gains
-the following (the NAV page part, MAP.22, is not built yet; 9.1 to 9.4
-are):
+the following (all built: MAP.22, with sections 9.1 to 9.4):
 
 1. **Pick on Galaxy Map**, which links to `/galaxy?pick=from&to=system:40`
    (or `pick=to&from=...`), carrying the other endpoint along.
@@ -540,7 +569,12 @@ are):
 2. **Pick in this sector** appears once the other endpoint is known. It
    opens that endpoint's own sector straight in pick mode, so a pick
    inside one sector uses only the sector interface.
-3. **Bookmarks:** a select listing the system and phenomenon bookmarks.
+3. **Bookmarks:** a select listing the system and phenomenon bookmarks
+   (`nav_page._bookmark_pick`, filled by `static/bookmarks.js`), beside
+   the map picks at each step, hidden while there are none it can use.
+   "Use as start" (or destination) goes to `/nav` with that endpoint set
+   and the other one kept; a sector bookmark goes to its system picker
+   (`from_sector` / `to_sector`).
 
 ### 9.1 Sector Map pick mode
 
@@ -648,8 +682,8 @@ Each has a default, and work can start on it.
 | MAP.16 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.28, MAP.29, MAP.3 |
 | MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177**; `--block`, the form and progress open | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
 | MAP.21 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
-| MAP.22 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | MAP.16, MAP.21 |
-| MAP.23 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.16 |
+| MAP.22 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9). **Built** | Web | MAP.16, MAP.21 |
+| MAP.23 | Bookmarks (section 8.2). **Built** | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.16 |
 | MAP.24 | Address bar (section 9.3). **Built, 7.50.0, PR #172** | Galaxy Map | MAP.16 |
 | MAP.25 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | MAP.16's URL format |
 | MAP.27 | Course on the Galaxy Map (section 9.4). **Built, 7.52.0, PR #176** | Galaxy Map and Web | MAP.16, MAP.22 |
@@ -658,9 +692,8 @@ Each has a default, and work can start on it.
 
 MAP.3 (the bigger map) shipped in 7.55.0. MAP.27 shipped before MAP.22, using
 the NAV result's link rather than the NAV pickers. What is left is MAP.20's
-`--block` mode, MAP.22, MAP.23 and MAP.25, and the two bugs MAP.17 and MAP.26, which
-change sections 4, 5 and 8.1 once Boss's open questions in them are
-answered.
+`--block` mode; MAP.22 and MAP.23 are built (bookmarks per browser,
+decision 4's default).
 
 ## 13. Sources
 

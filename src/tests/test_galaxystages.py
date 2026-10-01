@@ -188,15 +188,21 @@ console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.ring, s.layer,
 def test_the_ladder_is_quarter_then_layer_then_arc():
     """MAP.17/MAP.19 (Boss's "Layer + arc"): the galaxy offers four
     quarters, then a layer (at most three choices, lowest first), then an
-    arc of the ring band in view (at most a 3 by 3 grid, each arc a third
-    of the view), and the choices together hold every block in view."""
+    arc of the ring band in view (at most a 3 by 3 grid, sorted into thirds
+    of the view), and the choices together hold every block in view. A
+    choice's bearings reach as far as its blocks do: near the core a wedge
+    is wider than a quarter, and the quarter zooms into that wedge."""
     out = _run("""
 const top = S.settleStage({at: null, picks: []}, outline, edge);
 const quarter = S.settleStage({at: null, picks: [top.options[1].pick]}, outline, edge);
 const layer = S.settleStage({at: null, picks: [top.options[1].pick, quarter.options[1].pick]}, outline, edge);
 const covers = r => r.options.reduce((n, o) => n + o.blocks.length, 0) === r.view.blocks.length;
 const span = r => r.view.a1 - r.view.a0;
+const inside = (o, t) => { const d = ((t - o.a0 + 1e-9) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); return d <= o.a1 - o.a0 + 2e-9; };
+const holds = o => o.blocks.every(b => inside(o, b.bounds.t0) && inside(o, b.bounds.t1));
+const tight = o => [o.a0, o.a1].every(a => o.blocks.some(b => Math.abs(Math.cos(b.bounds.t0) - Math.cos(a)) + Math.abs(Math.sin(b.bounds.t0) - Math.sin(a)) < 1e-9 || Math.abs(Math.cos(b.bounds.t1) - Math.cos(a)) + Math.abs(Math.sin(b.bounds.t1) - Math.sin(a)) < 1e-9));
 console.log(JSON.stringify({
+  wedges: top.options.concat(layer.options).map(o => holds(o) && tight(o)),
   top: [top.kind, top.options.length, covers(top)],
   quarter: [quarter.kind, quarter.options.length, covers(quarter), span(quarter)],
   layers: quarter.options.map(o => [o.pick.lo, o.pick.hi]),
@@ -207,12 +213,13 @@ console.log(JSON.stringify({
     assert out["top"] == ["quadrant", 4, True]
     kind, count, covers, quarter_span = out["quarter"]
     assert kind == "layer" and 2 <= count <= 3 and covers
-    assert quarter_span == pytest.approx(math.pi / 2)
+    assert quarter_span > math.pi / 2
+    assert all(out["wedges"])
     los = [lo for lo, _hi in out["layers"]]
     assert los == sorted(los)
     kind, count, covers, _span = out["layer"]
     assert kind == "region" and 2 <= count <= 9 and covers
-    assert all(share == pytest.approx(1 / 3) for share in out["arcs"])
+    assert all(share >= 1 / 3 - 1e-9 for share in out["arcs"])
 
 
 def test_sector_links_open_the_layer_that_shows_the_sector():

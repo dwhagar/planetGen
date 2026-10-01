@@ -374,11 +374,16 @@ def test_shell_mode_needs_limit_or_yes_when_large(mysql_config):
 
 
 def test_single_address_with_radius_also_generates_its_neighborhood(mysql_config):
+    # Ring 30 rather than the toy shape's dense bulge (ring 2 built a
+    # neighborhood of thousands of systems, over a minute) -- the same
+    # neighborhood logic, at a density that builds in a couple of seconds.
     _plan_wide_galaxy(mysql_config)
-    _run_cli(["--ring", "2", "--layer", "0", "--slot", "4", "--radius-pc", "5"] + _mysql_argv(mysql_config))
+    _run_cli(["--ring", "30", "--layer", "0", "--slot", "4", "--radius-pc", "5"] + _mysql_argv(mysql_config))
     addresses = {_address(row) for row in _all_sectors(mysql_config)}
-    assert (2, 0, 4) in addresses
+    assert (30, 0, 4) in addresses
     assert len(addresses) > 1
+    center = sector_position_pc(30, 0, 4, EDGE_PC)
+    assert addresses <= {(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(center, 5.0, EDGE_PC)}
 
 
 @pytest.mark.parametrize("argv", [

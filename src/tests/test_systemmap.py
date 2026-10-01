@@ -479,7 +479,7 @@ def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():
 
 def test_planet_attrs_formats_surface_temperature():
     attrs = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, surface_temperature_k=287.6))
-    assert attrs["surfacetemp"] == "288 K"
+    assert attrs["surfacetemp"] == "288 K (14 °C, 58 °F)"
     assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, surface_temperature_k=None))["surfacetemp"] is None
 
 
@@ -524,7 +524,7 @@ def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
     assert f'data-color="{sm._class_color("J")}"' in html
     assert 'data-hasatmosphere="true"' in html
     assert 'data-atmosphere="Hydrogen-Helium"' in html
-    assert 'data-surfacetemp="165 K"' in html
+    assert 'data-surfacetemp="165 K (-108 °C, -163 °F)"' in html
     assert 'data-composition="hydrogen and helium"' in html
 
 

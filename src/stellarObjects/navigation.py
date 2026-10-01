@@ -63,7 +63,7 @@ import math
 from collections import namedtuple
 
 from . import program_constants
-from .utils import years_to_time_string
+from .utils import format_period_years
 
 FRAME_GALACTIC = "galactic"
 """str: The Galactic Standard Frame (North = the galactic core)."""
@@ -110,7 +110,7 @@ Attributes:
                                     multiple of light-speed.
     years (float): Travel time in years for the distance given to
                    `warp_travel_times`.
-    formatted (str): `years`, formatted via `utils.years_to_time_string`.
+    formatted (str): `years`, formatted via `utils.format_period_years`.
 """
 
 
@@ -261,7 +261,7 @@ def _travel_times(distance_ly, factors, speed_c, make_leg):
     for factor in factors:
         speed = speed_c(factor)
         years = distance_ly / speed
-        legs.append(make_leg(factor, speed, years, years_to_time_string(years)))
+        legs.append(make_leg(factor, speed, years, format_period_years(years)))
     return legs
 
 

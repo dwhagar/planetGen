@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
+MAP, NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
 
 ## Background
 
@@ -98,16 +98,15 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 14:41Z) set the next round, run as parallel threads:
 
 1. **First:** PERF.5 (scatter bright stars in stages).
-2. **Galaxy Map and units:** UX.13, UX.14, MAP.30 (now a layer slider to
-   the right of the Galaxy Map), MAP.15, GEN.23 and what is left of
-   MAP.2.
+2. **Galaxy Map and units:** GEN.23 (UX.13, UX.14, MAP.15, MAP.30 and
+   MAP.2 shipped in PR #234).
 3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
    and PERF.10.
-4. **Admin editing:** ADM.1 and its subitems, starting with the validate
-   module (ADM.5).
+4. **Admin editing:** ADM.1 and its subitems, on the validate module
+   (ADM.5, done in PR #235).
 
 Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
-bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
+user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
 
@@ -160,54 +159,6 @@ with `clamp()`.
   (they would need to write the same lock and progress file)? What does
   it say when there's no ETA yet?
 
-- [ ] **UX.13 One meaningful-unit ladder for speeds**
-  Boss (2026-10-01):
-  "standardization with speeds, similar to what we do with distances
-  to make them always meaningful, speeds should always be meaningful.
-  Going from km/h on the low speed end to mm/s on the high speed end."
-  Distances already work this way: every page passes them through
-  `stellarObjects.utils.format_distance_m` (and its `_km`/`_au`/`_ly`
-  wrappers, `html/lib/fmt.py`), mirrored by `static/distance.js` for
-  the maps, which picks the largest unit the value is at least 1 of.
-  Speeds have no such function; each page formats its own (km/s on
-  system and facility pages, multiples of c for warp and fold in
-  `stellarObjects/navigation.py`'s `warp_speed_c` and travel tables).
-  Done: one shared speed formatter in Python with a JavaScript mirror,
-  with a fixed ladder of units, used by every page, API text field
-  and map that shows a speed, and the existing call sites converted.
-  Open questions: the ladder reads reversed as written (mm/s is slower
-  than km/h), so what is the intended order from slowest to fastest?
-  For example mm/s, m/s, km/h, km/s, then fractions and multiples of
-  c, with warp and fold factors shown alongside rather than replacing
-  them. Where it switches units (at 1 of the next unit, as distances
-  do, or another rule), and whether it adds a parenthetical in a
-  second unit the way distances add ly or AU. Where it lives
-  (`stellarObjects/utils.py` next to `format_distance_m`, and a
-  `static/speed.js` or a section of `distance.js`).
-
-- [ ] **UX.14 One meaningful-unit ladder for time periods**
-  Boss
-  (2026-10-01): "Same for orbital periods, galactic, lunar, planetary,
-  we should tie all those into a function to do the same. For slowest
-  (measured in Gy) to fastest (measured in microseconds). Those are 2
-  seperate TODO items." Today orbital periods go through
-  `stellarObjects.utils.years_to_time_string` ("x years y days z hours
-  m minutes", via `html/lib/tabledisplay.format_period`), which gets
-  long for galactic orbits and loses anything under a minute; star
-  ages and lifespans are shown in Gy elsewhere, and the admin pages
-  have their own `format_duration`. Done: one shared period formatter
-  in Python with a JavaScript mirror, picking a meaningful unit from
-  Gy at the slow end down to microseconds at the fast end, used for
-  planetary, lunar and galactic orbital periods (and rotation periods,
-  ages and other durations where it fits), with the existing call
-  sites converted. Open questions: the ladder (for example Gy, My, ky,
-  years, days, hours, minutes, seconds, ms, µs) and where it switches;
-  one unit with decimals ("1.88 years") or a mixed form ("1 year 321
-  days") for everyday periods; rounding and significant figures; which
-  year length it uses (Julian 365.25 days, as `years_to_time_string`
-  does); and whether elapsed-time and ETA displays for jobs (PERF.3,
-  UX.3 and PERF.4) and the admin pages use the same function.
-
 - [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls**
   Boss (2026-10-01 14:58Z): "clean up the web interface, still have
   buttons overlapping, we have +/- buttons that don't do anything
@@ -239,126 +190,26 @@ with `clamp()`.
   units as well as a secondary to help contextualize the metric values
   given." Today only distance has a ladder (`format_distance_m` and
   friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
-  by `static/distance.js`), with speed (UX.13) and time periods (UX.14)
-  being built. Done: one ladder per quantity, in Python with a JavaScript
+  by `static/distance.js`), speed (UX.13: `format_speed_kms`,
+  `static/speed.js`) and durations (UX.14: `format_duration_seconds`,
+  `format_period_years`, `static/period.js`). Done: one ladder per quantity, in Python with a JavaScript
   mirror, picking a meaningful unit the same way, and every page, map
   panel and form converted to it: mass (kg, Earth, Jupiter and solar
   masses), distance, time, speed, temperature, pressure, gravity,
   density, luminosity, power and any other quantity shown with a unit.
   Surface conditions show temperature in K, °C and °F; atmospheric
   pressure and the other surface conditions show a customary unit
-  (such as atm, psi or g) beside the metric value. The UX thread was
-  asked (2026-10-01 15:10Z) to add the K/°C/°F temperature display now;
-  this item covers the rest. Open questions: the ladder and switch
+  (such as atm, psi or g) beside the metric value. Surface
+  temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
+  #234; this item covers the rest. Open questions: the ladder and switch
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-- [ ] **MAP.2 Drill-down navigation**
-
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
-
-  Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In
-  3D, pick a slab; it is pulled out and shown from above; pick a block;
-  its contents fill the view as blocks 1/9 the size; repeat until single
-  sectors, where a click opens the sector. The ladder is 243 -> 27 -> 3
-  -> 1 sectors a side ("the bigger targets"), eight clicks from the
-  galaxy to a sector. Admins can generate a sector, a layer or a
-  neighborhood (radius asked in light-years) at the sector level, and
-  the NAV page can pick its start and destination on the map or in a
-  sector. Everything below is specified, with the math, in the design
-  doc; each subitem names its section. Shipped: the nested ladder
-  (MAP.28, `stellarObjects/galaxyDrill.py`), the stage contents API
-  (MAP.29, `GET /api/galaxy/stage`), the stages (MAP.16,
-  `static/galaxystages.js`, `static/galaxystageview.js`, stage URLs
-  `/galaxy?at=&p=` and `?sector=<designation>`), the Sector Map pick
-  mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the course
-  overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from the
-  map (MAP.20), the "Show on Galaxy Map" links (MAP.25) and the top-down
-  drill-down (quarter, layer, arc, ..., sector; MAP.17, MAP.18, MAP.19,
-  MAP.44, MAP.26). Since Boss's change of 2026-10-01 09:16Z the camera
-  is locked top-down only at the full galaxy and its quarters, and turns
-  and moves freely from an arc down (PR #219).
-
-  - [ ] **MAP.22 NAV page picks on the map**
-
-    Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
-
-    Boss: "from the nav
-    menu select start and destination using either the text dropdowns as
-    we have now or the galactic map interface to select. If it's within
-    sector then it'll just use the sector interface." Done: beside each
-    dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
-    forced on, ending in MAP.21's Sector Map pick mode), "Pick in this
-    sector" once the other end is known, and a Bookmarks select. The
-    Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
-    to NAV, keeps "Generated only" on, and a sector click opens that
-    sector in pick mode. The NAV page's side is in too: "Pick on Galaxy
-    Map" and "Pick in this sector" at each step. Only the Bookmarks
-    select is left, and it waits on MAP.23.
-
-  - [ ] **MAP.23 Bookmarks**
-
-    Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 8.2
-
-    Done: a ☆ on the breadcrumb and
-    info panels saves a stage, sector, system or phenomenon in
-    `static/bookmarks.js` (per browser, up to 100, storage failures
-    tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
-    entries offered by the NAV pickers. Shared bookmarks need Boss's
-    decision 4 and a migration.
-
-- [x] **MAP.3 A bigger Galaxy Map with controls underneath**
-  Done in 7.55.0 (PR #178); kept as the parent of MAP.30.
-  - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
-    Boss (2026-10-01): "slab selection goes to the left of the galactic
-    map if there is room, given the galactic map shoul dhave a 3:4 aspect
-    ratio to its window or 1:1 if necessary, like in mobile view
-    perhaps." Today the Galaxy Map's viewport (`.galaxymap3d-panel
-    .starmap-viewport` in `static/style.css`) is the full width with a
-    height of `min(100svh - 9rem, max(20rem, 75vw))`, and the stage
-    view's slab list (`.galaxy-slab-row` rows, `static/galaxystageview.js`)
-    sits with the other controls below the map. Done: the map keeps a
-    3:4 aspect ratio within its window, falling back to 1:1 where the
-    window can't fit 3:4 (as on phones); when there's room beside the
-    map, the slab list moves to its left; when there isn't, it stays
-    under the map with the other controls; no layout jump as stages
-    change. The list is now the layer strip of the top-down drill-down
-    (MAP.17): it offers layers when a layer is to be picked
-    and follows the Responsive Web Design Standards notes in the UX
-    section (size classes, container queries). Open questions: is 3:4
-    width to height (taller than wide) or height to width (4:3, wider
-    than tall, close to today's 75vw height)? At what width does the
-    list move to the left (the standards' expanded class, 840 px and up,
-    or whenever a readable list column fits)? Does the rest of MAP.3's
-    controls row stay under the map, or join the list on the left?
-
-- [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
-  Boss (2026-10-01): "make the stars in a sector more realistic
-  sizes with bright auras, I prefer the tiny point of light in the map
-  for stars, same for any stellar phenomena which has a glow / emits
-  light, it should be a point of glowing light. Still make brightness
-  and size relevant just more like a point of light." Today
-  `static/sectormap.js` draws each star (and black hole, neutron star,
-  quasar, rogue planet, interstellar comet) as a textured sphere with a
-  fresnel glow shell (`bodyRendering.js`), sized in scene units so it
-  looks like a ball; the Galaxy Map draws its bright stars as a tiny
-  core with a soft halo at a fixed pixel size (`galaxymap3d.js`,
-  "Bright stars", `STAR_MIN_PX` to `STAR_MAX_PX`). Done: on the Sector
-  Map, stars and every light-emitting phenomenon draw as a tiny bright
-  point with a glowing aura, like the Galaxy Map's bright stars, with
-  brightness and halo size still scaling with luminosity (and color
-  with spectral type), so they read as points of light rather than
-  balls; clicking one still selects it. Open questions: does the size
-  stay fixed in pixels at every zoom (as on the Galaxy Map) or grow a
-  little as the camera gets close? Is the textured sphere kept for a
-  close-up (the System Map still shows bodies as spheres)? How is a
-  binary's pair kept distinguishable? Which phenomena count as
-  emitting light (quasars, neutron stars and accreting black holes
-  yes; quiescent black holes and rogue planets, which MAP.46 must
-  keep findable, probably not)?
+No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
+MAP.30) shipped in PR #234.
 
 ## GEN: Generation and physics
 
@@ -509,6 +360,87 @@ with `clamp()`.
     run around the core too, as they do around any generated sector.
   - Fill from ring 0 outward, so a run that stops early (or hits
     `--limit`) still leaves a solid disc around the nucleus.
+
+- [ ] **GEN.25 A moon reclassified after its planet moves can be too large for its planet (bug)**
+  Found by the ADM.1 thread with ADM.5's validator (PR #235):
+  `stellarObjects/validation.check_star_system` reports "moon too large
+  for its planet" on about 3 of 1,000 generated systems with moons.
+  Start in `validation.reconcile_moved_planet` and
+  `planetPhysics.reconcile_zone_and_class`, which re-roll a moon's
+  class without checking `max_moon_radius_km` (planet radius /
+  10^(1/3)) or mass <= planet mass / 10. Done: 1,000 generated systems
+  pass `check_star_system` with no moon-size problems.
+
+- [ ] **GEN.26 Rogue planet surface conditions**
+  Boss (2026-10-01): "I also want to calculate surface conditions,
+  knowing they will be extremely cold with no star to warm the
+  surface", with his pasted research: an energy balance with internal
+  heat flux plus the cosmic microwave background, radiogenic and
+  primordial heat, and three outcomes (frozen atmosphere, hydrogen
+  envelope, ocean under an ice lid), with adiabats for gas giants.
+  Being built by the GEN.8 thread as schema v48. `has_internal_heat`
+  stops being a 40% roll (`ROGUE_PLANET_INTERNAL_HEAT_CHANCE` goes): it
+  is computed, true when heat flow is at least 0.04 W/m2 and always for
+  giants. Its design document (`docs/design/rogue-planet-surface.md`)
+  arrives with its PR.
+
+- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
+  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
+  appears in the habitable zone and adjust so that it fits there." P is
+  already ecosphere-only (`h` False, `e` True, `c` False in
+  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
+  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
+  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
+  put P outside the ecosphere, and its placement, albedo, greenhouse
+  and atmosphere are tuned so a glaciated world with life is
+  consistent at the outer edge of the habitable zone. Evidence: the
+  planet class gap report
+  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
+
+- [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
+  Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
+  letter class gaps sequentially. For the subsurface ocean moon, split
+  this so that we have the one the size of a class D (moon / pseudo
+  planet) and one similar to a terrestrial world (a modification of
+  Class C), for lifeless temperate world, don't we have a class for
+  that already? If not, I approve adding one." There is none: every
+  ecosphere rocky class with air carries life, and C (the only lifeless
+  rocky one) is airless. Proposed mapping, in letter order (the build
+  can adjust):
+  - R Sub-Neptune: rock and ice core under a hydrogen-helium envelope,
+    1.8-4 Earth radii, 3-20 Earth masses, hot, ecosphere and cold. The
+    most common real planet type, missing today; consider whether T
+    (gas dwarf, 0.05% of planets) merges into it.
+  - S Rocky super-Earth: barren, 1.2-1.8 Earth radii, 2-10 Earth
+    masses, hot, ecosphere and cold (a hot one can be a lava world). V
+    stays the life-bearing super-Earth.
+  - U Icy world (ice dwarf or large icy moon): water ice over rock,
+    500-3,000 km, cold (Ganymede, Callisto, Triton, Pluto, Eris).
+  - W Small subsurface ocean body, Class D sized (moon or pseudo-planet,
+    about 50-500 km): Enceladus analog.
+  - X Subsurface ocean world, terrestrial sized (a modified Class C,
+    about 500-10,000 km): Europa analog and larger.
+  - Y Titan-like world: thick nitrogen atmosphere, methane rain,
+    hydrocarbon lakes, 1,500-4,000 km, cold.
+  - Z Lifeless temperate world: rocky, with an atmosphere, ecosphere,
+    no life.
+  Done: each class has zone flags, weights, radius and mass ranges,
+  atmosphere, moon eligibility and a GEN.8 rogue `"r"` flag decision,
+  and shows on the class reference pages. R, W, X and Y belonged to
+  classes removed in early September, so no old rows or tests may
+  still expect those letters. Evidence: the planet class gap report
+  (link in GEN.27).
+
+- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
+  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
+  sure they all make sense logically once the new classes are in
+  place." After GEN.28. Done: every class's description, composition,
+  zones, sizes, weights, temperatures and atmosphere agree with each
+  other. Known oddities to settle: D allowed in the hot zone (icy
+  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
+  generated (weight 0.0001, and orbits are circular); V's composition
+  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
+  at 376-414 K, above water's boiling point at 0.6 bar.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -696,23 +628,6 @@ with `clamp()`.
 - [ ] **ADM.1 Admin editing: overrides, delete and regenerate**
   Boss asked for these on 2026-10-01 (quoted where it matters). None is
   designed yet; the open questions are listed in each subitem.
-
-  - [ ] **ADM.5 Central validate module in `stellarObjects`**
-    Boss: "we should
-    get a whole set of validate functions in their own file within the
-    stellarObjects class (if we don't already) so that we can have a
-    central place to validate a system (lunar system, star system) which
-    includes validating planets." There isn't one today; validation is
-    spread out: `SystemData.validate_system`,
-    `_validate_cross_star_clearance` and `_trim_to_orbit_ceiling`
-    (`systemData.py`) for orbits, the `_validate_*` checks in
-    `planetPhysics.py` for a planet's class/radius/mass, and
-    `moon_orbit_bounds_km`/`drop_unstable_moons` (`planetPhysics.py`)
-    for moons. Done: one module (for example
-    `stellarObjects/validation.py`) that validates a planet, a lunar
-    system and a star system, which generation and ADM.6 and ADM.7
-    both call, with existing behavior unchanged. Prerequisite for
-    ADM.6 and ADM.7.
 
   - [ ] **ADM.6 Admin override of a planet's or moon's class**
     Boss: "it should
@@ -974,7 +889,7 @@ clears each one.
   `calculate_distance_for_class`, `_forced_habitable_distance`,
   `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
   `_clear_circumbinary_floor` and the `from_dict` error; these are what
-  ADM.5's validate module will wrap. [GEN]
+  ADM.5's validate module (`stellarObjects/validation.py`) wraps. [GEN]
 
 - [ ] **TEST.33 Moon stability helpers**
   `moon_orbit_bounds_km`, `drop_unstable_moons`, `update_hill_sphere`
@@ -1133,6 +1048,75 @@ clears each one.
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
+
+- [ ] **TEST.63 Math check that runs first**
+  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
+  before other tests that basically validates the math works, before
+  batch generation, we need to verify the actual math works." One
+  module, `src/stellarObjects/mathCheck.py`: pure functions, no
+  database, network or files, fixed seeds, under 5 seconds. Each check
+  has a name, the function it calls, the expected value, a tolerance and
+  the source of the expected value (a textbook figure, a paper's table,
+  or an exact identity). The same module is used three ways: pytest runs
+  it first, `generate.py` and the Generate page run it before bulk
+  generation, and `update.sh` runs it after an update. The coverage
+  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
+  the reference-value gate in front of them, and TEST.34's Kepler
+  reference values move here.
+
+  Default taken: no skip switch for the bulk gate, since it costs under
+  5 seconds. Open questions for Boss: should there be an emergency skip
+  flag anyway? Should the web app also run it at startup and show admins
+  a warning if it fails? Should the one-off system generator run it too,
+  or only bulk paths?
+
+  - [ ] **TEST.64 Reference values**
+    Known answers from real astronomy, each within a stated tolerance.
+    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
+    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
+    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
+    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
+    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
+    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
+    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
+    230 My); Holman-Wiegert critical radii from the paper's table; the
+    Kepler and Barker equations against known solutions.
+
+  - [ ] **TEST.65 Identities and invariants**
+    Things that must be exactly or nearly true for any input. Every unit
+    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
+    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
+    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
+    mismatch); luminosity rises and lifetime falls with mass; orbital
+    energy is conserved around a Kepler orbit; the sector grid's cell
+    volumes add up to each ring's annulus,
+    `sector_address_at(sector_position_pc(...))` returns the same
+    address, and ring sector counts match `ring_sector_count`; density
+    is normalised to 1 where the code says it is; no NaN or infinity
+    over a fixed sweep of inputs.
+
+  - [ ] **TEST.66 Distributions match their targets**
+    With fixed seeds, a few thousand draws of the IMF, star ages, the
+    Poisson sector counts, the bounded bell and the planet class table
+    land on their intended shares within a statistical tolerance (for
+    example a chi-square test), so a broken sampler fails even when
+    every single value looks fine.
+
+  - [ ] **TEST.67 Runs first in the suite and in CI**
+    A `mathcheck` marker (TEST.1 adds the markers); `conftest.py` moves
+    those tests to the front and stops the run if any fails, saying the
+    math is broken and the rest would be noise; CI runs it as its own
+    quick first job that the other jobs wait on.
+
+  - [ ] **TEST.68 Gate before bulk generation**
+    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
+    `sector` over many sectors, `plan`, `population`, the Generate
+    page's jobs and the map's block and neighbourhood generation) runs
+    it first and refuses to start if a check fails, naming the failed
+    check and writing nothing; the Generate page shows the result as the
+    job's first step; `update.sh` runs it after updating and warns on
+    failure.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -1241,7 +1225,10 @@ clears each one.
     users also add notes? What else a user can do that an anonymous
     visitor can't (is the site still public to read, or sign-in only?)?
     Do bookmarks survive a galaxy regenerate (object ids change), and if
-    not, what does a broken bookmark show?
+    not, what does a broken bookmark show? Per-browser bookmarks
+    (`static/bookmarks.js`, MAP.23) shipped in PR #234; storing them in
+    the database still needs decision 4 of the drill-down design and a
+    migration.
 
 ## OPS: Installers, hosting, CI, releases
 
