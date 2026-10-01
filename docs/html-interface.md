@@ -177,6 +177,7 @@ URLs" below).
 | `/classes/<type>` | (new) | One type's classes, each linking to its page, plus notes (an asteroid field's size digit, for one). `<type>` is `star-spectral`, `star-luminosity`, `planet`, `nebula`, `supernova-remnant`, `asteroid-field`, `black-hole`, `rogue-planet` or `comet`; anything else is a 404. |
 | `/classes/<type>/<code>` | (new) | One class's facts, e.g. `/classes/planet/M`, `/classes/star-luminosity/IA+`, `/classes/comet/halley_type`. An unknown code is a 404. The system page links a star's type and a planet's or comet's class here, and the phenomenon page its Class (an asteroid field's `C3` by its letter) and a rogue planet's Mass Class. |
 | `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
+| `/sector/<id>/galaxy`, `/system/<id>/galaxy` | (new) | Redirect to `/galaxy?sector=<designation>` (the map's stage 8 holding that sector, selected), or to the plain map for a sector with no galaxy address or a standalone system. Search results link here; the sector page links straight to the map. |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
 | `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). |

@@ -301,6 +301,7 @@ def _rows(panel, rows):
         item = dict(row)
         if panel == "sectors":
             item["url"] = page_url("sector", sector_id=row["id"])
+            item["galaxy_url"] = page_url("sector_on_galaxy_map", sector_id=row["id"])
         elif panel == "phenomena":
             item["url"] = page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])
             item["type_label"] = PHENOMENON_TYPE_LABELS.get(row["type"], row["type"])
@@ -308,6 +309,8 @@ def _rows(panel, rows):
         elif panel == "systems":
             item["url"] = page_url("system", system_id=row["id"])
             item["sector_url"] = _sector_cell(row["sector_id"])
+            if row["sector_id"] is not None:
+                item["galaxy_url"] = page_url("sector_on_galaxy_map", sector_id=row["sector_id"])
         else:
             item["system_url"] = page_url("system", system_id=row["star_system_id"])
             item["sector_url"] = _sector_cell(row["sector_id"])

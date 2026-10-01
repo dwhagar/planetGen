@@ -164,7 +164,13 @@ stages themselves don't need it.
     sector then it'll just use the sector interface." Done: beside each
     dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
     forced on, ending in 74's Sector Map pick mode), "Pick in this
-    sector" once the other end is known, and a Bookmarks select.
+    sector" once the other end is known, and a Bookmarks select. Web's
+    part is built: the NAV page offers "Pick on Galaxy Map"
+    (`/galaxy?pick=from&to=...` or `pick=to&from=...`) and "Pick in this
+    sector" (74's `/sector/<id>?pick=...`) at each step. Still open: the
+    Galaxy Map reading `?pick=` (banner, generated-only forced on, a stage
+    8 sector click going to `/sector/<id>?pick=...`; Galaxy Map's), and
+    the Bookmarks select, which waits on 76.
 
 76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
     info panels saves a stage, sector, system or phenomenon in
@@ -172,10 +178,6 @@ stages themselves don't need it.
     tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
     entries offered by the NAV pickers. Shared bookmarks need Boss's
     decision 4 and a migration.
-
-78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
-    link goes to the Quadrant table today. Done: sector, system and
-    search pages link to `/galaxy?sector=<designation>`.
 
 100. [ ] **Bug: no free camera; drill down from a top-down view by
     wedge, slice and block.** Boss (2026-10-01): "bugfix, remove the
