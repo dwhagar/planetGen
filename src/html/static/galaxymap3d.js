@@ -95,6 +95,17 @@ function cssVar(name, fallback) {
   return value || fallback;
 }
 
+// Whether the map's background (--bg-subtle, the light or dark theme) is
+// light, from its computed color.
+function isLightBackground() {
+  var probe = document.createElement("span");
+  probe.style.color = cssVar("--bg-subtle", "#000");
+  document.body.appendChild(probe);
+  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
+  probe.remove();
+  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
+}
+
 function addField(dl, label, value) {
   if (!value && value !== 0) {
     return;
@@ -584,6 +595,9 @@ function initGalaxyMap3d(canvasEl, data) {
   var WHEEL_MAX_PX = 200;
   var PINCH_BOOST = 4;
   var GALAXY_RADIUS = data.galaxyRadiusPc || data.maxViewRadiusPc;
+  // The galaxy's real edge (its outermost ring, unpadded): the wedge
+  // lines stop here (MAP.43).
+  var GALAXY_EDGE = data.galaxyEdgePc || GALAXY_RADIUS;
   var KEY_ROTATE_STEP = THREE.MathUtils.degToRad(6);
   var ROTATE_SENSITIVITY = THREE.MathUtils.degToRad(0.4);
   var DRAG_CLICK_THRESHOLD_PX = 4;
@@ -655,8 +669,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Wedge lines ---------------------------------------------------------
   //
   // The master lines of the sector grid (galaxyprisms.wedgeLines): lines in
-  // the galactic plane out past the edge, 3 from the core, then 6, 12, ...
-  // each starting where its zone does. The coarsest are labelled with their
+  // the galactic plane out to the galaxy's edge (its outermost ring, not
+  // past it: MAP.43), 3 from the core, then 6, 12, ... each starting where
+  // its zone does. The coarsest are labelled with their
   // bearing (degrees counterclockwise from +X, the zero meridian), so a
   // view can be placed around the galaxy at a glance. Each zone's lines
   // show only while they are at least WEDGE_MIN_GAP_PX apart on screen
@@ -674,9 +689,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // [{masters, r0, objects: [LineSegments, label sprites...]}], coarsest first.
   var wedgeLevels = [];
   (function buildWedgeLines() {
-    var reach = GALAXY_RADIUS * 1.02;
+    var reach = GALAXY_EDGE;
     var byMasters = new Map();
-    wedgeLines(data.edgePc || 1, GALAXY_RADIUS).forEach(function (line) {
+    wedgeLines(data.edgePc || 1, GALAXY_EDGE).forEach(function (line) {
+      // A zone starting at (or past) the edge has nothing to draw.
+      if (line.r0 >= reach) {
+        return;
+      }
       if (!byMasters.has(line.masters)) {
         byMasters.set(line.masters, []);
       }
@@ -727,7 +746,7 @@ function initGalaxyMap3d(canvasEl, data) {
   //   hatch toward the horizon.
   function updateWedgeLevels(pcPerPixel) {
     var focusR = Math.hypot(target.x, target.y);
-    var reachR = Math.min(GALAXY_RADIUS, focusR + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
+    var reachR = Math.min(GALAXY_EDGE, focusR + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
     wedgeLevels.forEach(function (level) {
       var labelled = level.masters <= WEDGE_LABEL_MAX_MASTERS;
       var gapPx = (2 * Math.PI * Math.max(level.r0, labelled ? reachR : focusR)) / level.masters / pcPerPixel;
@@ -756,7 +775,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var far = 0;
       if (disc > 0) {
         near = Math.max(line.r0, along - Math.sqrt(disc));
-        far = Math.max(near, along + Math.sqrt(disc));
+        far = Math.max(near, Math.min(GALAXY_EDGE, along + Math.sqrt(disc)));
       }
       points.set([near * cos, near * sin, 0, far * cos, far * sin, 0], 6 * n);
     });
@@ -802,7 +821,13 @@ function initGalaxyMap3d(canvasEl, data) {
   //   reads as a ball.
   // `fade` scales a whole set's opacity, for crossfades. The logdepthbuf
   // chunks match the renderer's logarithmic depth buffer.
-  var FILLED_TINT = new THREE.Color(PLACED_HIGH_DENSITY_COLOR);
+  // Filled blocks (MAP.37: "a much higher contrast"): a saturated amber
+  // over most of the face and on the edges, nothing like the blue-white
+  // density ramp, the same for one generated sector as for many (their
+  // opacity still tells them apart). A deeper shade on the light theme's
+  // pale background.
+  var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
+  var FILLED_FACE_MIX = 0.85;
   var EDGE_FADE_START = 0.6;
   var EDGE_FADE_END = 1.0;
 
@@ -861,7 +886,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "  #include <logdepthbuf_fragment>",
         "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
         "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
-        "  vec3 face = mix(vColor, filledTint, 0.35 * vFill);",
+        "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
         "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha * fade);",
         "  #include <colorspace_fragment>",
@@ -1814,12 +1839,22 @@ function initGalaxyMap3d(canvasEl, data) {
   var STAR_LOG_LUMINOSITY = [Math.log10(500), Math.log10(1e6)];
   // A click within this many pixels of a star's center picks it.
   var STAR_PICK_PX = 7;
+  // Stars new to the view fade in over this long (MAP.48: nothing pops
+  // in); with reduced motion they just appear.
+  var STAR_FADE_IN_MS = reducedMotion ? 0 : 300;
 
   var starMaterial = new THREE.ShaderMaterial({
-    uniforms: { pixelRatio: { value: renderer.getPixelRatio() } },
+    uniforms: {
+      pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
+      fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
+    },
     vertexShader: [
       "#include <common>",
       "#include <logdepthbuf_pars_vertex>",
+      "attribute float starBorn;",
+      "uniform float now;",
+      "uniform float fadeIn;",
+      "varying float vShown;",
       "attribute float starSize;",
       "attribute float starCore;",
       "attribute float starGlow;",
@@ -1832,6 +1867,7 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vColor = starColor;",
       "  vCore = starCore / starSize;",
       "  vGlow = starGlow;",
+      "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
       "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
       "  gl_PointSize = starSize * pixelRatio;",
       "  #include <logdepthbuf_vertex>",
@@ -1843,13 +1879,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
+      "varying float vShown;",
       "void main() {",
       "  #include <logdepthbuf_fragment>",
       "  float r = length(gl_PointCoord * 2.0 - 1.0);",
       "  if (r > 1.0) discard;",
       "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
       "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.75), clamp(core + halo, 0.0, 1.0));",
+      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.75), clamp(core + halo, 0.0, 1.0) * vShown);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -1860,11 +1897,27 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.frustumCulled = false;
   scene.add(starPoints);
   var starList = [];
+  // When each drawn star first showed (seconds, performance.now's clock),
+  // so a star already on screen never fades in again.
+  var starBornAt = new Map();
+
+  function starClock() {
+    return performance.now() / 1000;
+  }
 
   // Draws exactly `stars` (one entry per id).
   function setStars(stars) {
     starList = stars;
     var n = stars.length;
+    var now = starClock();
+    var born = new Float32Array(n);
+    var bornAt = new Map();
+    stars.forEach(function (star, i) {
+      var at = starBornAt.has(star.id) ? starBornAt.get(star.id) : now;
+      bornAt.set(star.id, at);
+      born[i] = at;
+    });
+    starBornAt = bornAt;
     var positions = new Float32Array(3 * n);
     var colors = new Float32Array(3 * n);
     var sizes = new Float32Array(n);
@@ -1885,6 +1938,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starSize", new THREE.BufferAttribute(sizes, 1));
     geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
     geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
+    geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
   }
@@ -1922,6 +1976,53 @@ function initGalaxyMap3d(canvasEl, data) {
   var filledSignature = "";
   var starSignature = "";
 
+  // A tile's box, [lo, hi] in parsecs.
+  function tileBox(key) {
+    var parts = key.split("/").map(Number);
+    var edge = tileEdge(parts[0]);
+    var origin = -TILE_ROOT / 2;
+    var lo = [origin + parts[1] * edge, origin + parts[2] * edge, origin + parts[3] * edge];
+    return [lo, [lo[0] + edge, lo[1] + edge, lo[2] + edge]];
+  }
+
+  function inBox(box, star) {
+    return star.x >= box[0][0] && star.x < box[1][0] && star.y >= box[0][1] && star.y < box[1][1]
+      && star.z >= box[0][2] && star.z < box[1][2];
+  }
+
+  // The nearest cached tile holding `key`'s box (a coarser level), or
+  // undefined. Looks in memory only, without touching its LRU order.
+  function cachedAncestor(key) {
+    var parts = key.split("/").map(Number);
+    for (var level = parts[0] - 1; level >= 0; level--) {
+      var shift = Math.pow(2, parts[0] - level);
+      var tile = tileMemory.get(level + "/" + Math.floor(parts[1] / shift) + "/" + Math.floor(parts[2] / shift)
+        + "/" + Math.floor(parts[3] / shift));
+      if (tile !== undefined) {
+        return tile;
+      }
+    }
+    return undefined;
+  }
+
+  // Stars to show in a tile that hasn't arrived yet (MAP.48): the ones
+  // already drawn there, and a cached coarser tile's there, so a zoom
+  // keeps what was on screen instead of blanking until the new tiles come.
+  function carriedStars(key, into) {
+    var box = tileBox(key);
+    starList.forEach(function (star) {
+      if (!into.has(star.id) && inBox(box, star)) {
+        into.set(star.id, star);
+      }
+    });
+    var ancestor = cachedAncestor(key);
+    (ancestor && ancestor.stars || []).forEach(function (star) {
+      if (!into.has(star.id) && inBox(box, star)) {
+        into.set(star.id, star);
+      }
+    });
+  }
+
   // Takes the filled sectors from whatever of the needed tiles is already
   // cached (the blocks are rebuilt from them when they change); returns
   // what's still missing.
@@ -1951,6 +2052,9 @@ function initGalaxyMap3d(canvasEl, data) {
       (tile.stars || []).forEach(function (star) {
         stars.set(star.id, star);
       });
+    });
+    missing.forEach(function (key) {
+      carriedStars(key, stars);
     });
     var starKeys = currentStamp + "|" + Array.from(stars.keys()).sort().join(",");
     if (starKeys !== starSignature) {
@@ -3076,6 +3180,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!stageMode) {
       syncBlocks();
     }
+    starMaterial.uniforms.now.value = starClock();
     updateClouds();
     updateHighlightScale();
     updateWedgeLabels();
