@@ -174,13 +174,15 @@ export function createStageView(host) {
     return !r.stage.at && r.view.a1 - r.view.a0 >= TWO_PI - 1e-9;
   }
 
-  // The bounds a set of blocks covers in the plane, bearings counted on
-  // from `a0`: {r0, r1, t0, t1, z1}.
-  function spanOf(blocks, a0) {
+  // The bounds a set of blocks covers in the plane, bearings counted
+  // either way from `mid` (the middle of the view's bearings, so a block
+  // reaching a little before the view's first bearing doesn't wrap all the
+  // way round): {r0, r1, t0, t1, z1}.
+  function spanOf(blocks, mid) {
     const span = { r0: Infinity, r1: 0, t0: Infinity, t1: -Infinity, z1: -Infinity };
     blocks.forEach(function (block) {
       const b = block.bounds;
-      const t0 = a0 + ((((b.t0 - a0 + 1e-9) % TWO_PI) + TWO_PI) % TWO_PI) - 1e-9;
+      const t0 = mid + wrapAngle(b.t0 - mid);
       span.r0 = Math.min(span.r0, b.r0);
       span.r1 = Math.max(span.r1, b.r1);
       span.t0 = Math.min(span.t0, t0);
@@ -334,7 +336,7 @@ export function createStageView(host) {
       host.setWedgeClip(null);
       return;
     }
-    const span = spanOf(r.view.blocks, r.view.a0);
+    const span = spanOf(r.view.blocks, (r.view.a0 + r.view.a1) / 2);
     host.setWedgeClip({ r0: span.r0, r1: span.r1, a0: span.t0, a1: span.t1 });
   }
 
@@ -551,7 +553,7 @@ export function createStageView(host) {
     });
     if (!animation) setDisplayFade(display, 1);
     if (index >= 0 && resolved.kind !== "layer" && display.options[index]) {
-      outlineSpan(spanOf(display.options[index].blocks, resolved.view.a0));
+      outlineSpan(spanOf(display.options[index].blocks, (display.options[index].a0 + display.options[index].a1) / 2));
     } else {
       clearOutline();
     }
@@ -615,7 +617,7 @@ export function createStageView(host) {
     const sum = sumOf(option.blocks, data);
     const counts = S.formatInt(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated";
     if (option.pick && option.pick.kind === "layer") return layerText(option.pick) + ", " + counts;
-    const span = spanOf(option.blocks, resolved.view.a0);
+    const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
     return (option.pick ? S.pickLabel(option.pick, stage.at, option) : "Here") + ", "
       + Math.round(span.r0) + "–" + Math.round(span.r1) + " pc from the core, " + counts;
   }
