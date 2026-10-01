@@ -16,6 +16,7 @@ subcommand:
     generate.py plan [options]        -- the galaxy's density skeleton
     generate.py phenomenon [options]  -- one exotic stellar phenomenon
     generate.py population [options]  -- species, civilizations and territories
+    generate.py check-math            -- the math check bulk runs start with
 
 Run `generate.py <command> --help` for that command's own full option
 list. This replaces the five separate scripts this project used to ship
@@ -90,8 +91,8 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, generationLimits, generationStats, log, physical_constants, population, program_constants, progressFile,
-    progressRate, workQueue,
+    _db, activitylog, brightStars, generationLimits, generationStats, log, mathCheck, physical_constants, population,
+    program_constants, progressFile, progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -2596,6 +2597,28 @@ class GenerationRefused(RuntimeError):
     message says why and how much it needs."""
 
 
+class MathCheckFailed(RuntimeError):
+    """TEST.68: the math check (`stellarObjects.mathCheck`) failed, so a
+    bulk generation was refused before writing anything; the message
+    names the failed checks."""
+
+
+def require_math_check():
+    """
+    The gate in front of every bulk generation (TEST.68): runs the math
+    check once per process (`mathCheck.startup_failures`, cached after
+    that) and raises if any check failed.
+
+    Raises:
+        MathCheckFailed: Naming the failed checks.
+    """
+    failed = mathCheck.startup_failures()
+    if failed:
+        raise MathCheckFailed(
+            f"the math check failed ({', '.join(r.name for r in failed)}), so nothing was generated. "
+            f"Run 'generate.py check-math' for details.")
+
+
 def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
@@ -2631,6 +2654,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         GenerationRefused: The database disk can't hold it (nothing was
                    written).
         RuntimeError: If the galaxy's skeleton has never been built.
+        MathCheckFailed: If the math check failed (a real run only);
+            nothing is written.
     """
     edge_pc = _edge_pc()
     radius_pc = (
@@ -2638,6 +2663,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
     config = config or _db.DEFAULT_MYSQL_CONFIG
+    if not estimate_only:
+        require_math_check()
 
     conn = _db.get_connection(config)
     try:
@@ -3987,6 +4014,15 @@ def build_parser():
         help="Generate a single exotic stellar phenomenon.")
     add_phenomenon_arguments(phenomenon_parser)
 
+    check_math_parser = subparsers.add_parser(
+        'check-math',
+        description="Runs the math check (stellarObjects/mathCheck.py): reference values from real "
+                    "astronomy, identities and sampler distributions. Exits 1 if any check fails.",
+        help="Check the generator's math before generating.")
+    check_math_parser.add_argument('-v', '--verbose', action='store_true',
+                                   help="List every check, not only the failures.")
+    add_logging_arguments(check_math_parser)
+
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
@@ -4000,6 +4036,7 @@ def build_parser():
         'plan': plan_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
+        'check-math': check_math_parser,
     }
 
 
@@ -4041,7 +4078,32 @@ def process_args():
     return args
 
 
+def run_check_math(args):
+    """`generate.py check-math`: prints the math check's report and exits
+    1 if any check failed (TEST.68)."""
+    results = mathCheck.run_all()
+    report = mathCheck.format_report(results, verbose=args.verbose)
+    if mathCheck.failures(results):
+        log.error(report)
+        raise SystemExit(1)
+    log.normal(report)
+
+
+BULK_COMMANDS = ("galaxy", "plan", "population")
+"""tuple: Subcommands that always generate in bulk, so the math check runs
+first (TEST.68); `sector` joins them when it makes more than one sector
+(`is_bulk_run`)."""
+
+
+def is_bulk_run(args):
+    """Whether this run is a bulk generation the math check must gate."""
+    if args.command in BULK_COMMANDS:
+        return True
+    return args.command == "sector" and (getattr(args, "num_sectors", 1) or 1) > 1
+
+
 _COMMAND_HANDLERS = {
+    'check-math': run_check_math,
     'system': run_system,
     'sector': run_sector,
     'galaxy': run_galaxy,
@@ -4079,9 +4141,18 @@ def main():
     log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
               f"option exists to reproduce this run).")
 
+    # TEST.68: a bulk run checks the math first and writes nothing at all
+    # (not even the activity log's start line) when it fails.
+    if is_bulk_run(args):
+        try:
+            require_math_check()
+        except MathCheckFailed as exc:
+            _fatal(str(exc))
+
     # One start and one finish line per run in the activity log (SEC.28);
-    # a `system --output` run writes no database, so it isn't logged.
-    logged = not getattr(args, "output", None)
+    # a `system --output` run writes no database, so it isn't logged, nor
+    # is `check-math`, which writes nothing.
+    logged = not getattr(args, "output", None) and args.command != "check-math"
     try:
         database = _db.mysql_config_from_args(args).database
     except AttributeError:  # a subcommand without the --mysql-* options

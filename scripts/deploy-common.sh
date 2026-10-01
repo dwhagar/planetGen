@@ -231,6 +231,22 @@ migrate_or_reset_db() {
     "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
 }
 
+# The math check (`generate.py check-math`, TEST.68): known answers from
+# real astronomy, identities and sampler distributions. A failure only
+# warns -- the update carries on and the site keeps serving -- but sets
+# MATH_CHECK_FAILED=1, so offer_population_pass skips the population pass
+# (which would refuse anyway) and the closing message repeats the warning.
+MATH_CHECK_FAILED=0
+check_math() {
+    if "$PYTHON" "$SCRIPT_DIR/generate.py" check-math; then
+        MATH_CHECK_FAILED=0
+    else
+        MATH_CHECK_FAILED=1
+        echo "warning: the math check failed (above). Bulk generation refuses to start until it passes;" >&2
+        echo "         run '$PYTHON generate.py check-math -v' for every check." >&2
+    fi
+}
+
 # Optionally runs the population pass (`generate.py population`: species,
 # civilizations and territories, docs/design/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
@@ -239,6 +255,10 @@ migrate_or_reset_db() {
 # `generate.py population` can always be run by hand later.
 offer_population_pass() {
     local answer=""
+    if [[ "${MATH_CHECK_FAILED:-0}" == 1 ]]; then
+        echo "Skipping the population pass: the math check failed."
+        return 0
+    fi
     case "${POPULATION:-}" in
         1|[Yy]|[Yy][Ee][Ss]) answer="y" ;;
         *)
