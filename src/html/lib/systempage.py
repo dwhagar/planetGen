@@ -215,8 +215,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
     """
     A planet's (or moon's) row: its class, one type chip, a "Habitable
     moon" chip when one of its moons is habitable, "Inhabited" when it is,
-    and the zone, distance, period and gravity the old Planets & Moons
-    table showed. A planet's moons follow in their own "N moons" group
+    and its distance, period and gravity. The zone is left to the body's
+    own page. A planet's moons follow in their own "N moons" group
     right under its row, collapsed, needing no script.
     """
     moons = [] if is_moon else (body.get("moons") or [])
@@ -229,7 +229,6 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
     if body["inhabited"]:
         stats.append('<span class="flag flag-yes">Inhabited</span>')
     stats += [
-        _stat(esc(body.get("zone") or "")),
         # Not esc()'d: built from floats and fixed unit literals.
         _stat(format_body_distance(body["distance_km"], is_moon)),
         _stat(format_period(body["period_years"]) if body.get("period_years") is not None else ""),
@@ -258,15 +257,30 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
                      links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])))
 
 
+BELT_TOP_MINERALS = 3
+"""int: How many of a belt's components its row names (largest share first)."""
+
+
+def _belt_minerals_text(composition):
+    """A belt's top components as "Iron, nickel, olivine", or `""`."""
+    names = [part["component"] for part in (composition or [])[:BELT_TOP_MINERALS]]
+    return esc(", ".join(names).capitalize()) if names else ""
+
+
 def _belt_row_html(belt, sections, by_host=None):
+    """
+    A belt's row: its density, its range (the nominal distance only when
+    the range is missing) and its top minerals.
+    """
+    if belt.get("lower_limit_km") is not None and belt.get("upper_limit_km") is not None:
+        where = f'{format_distance_km(belt["lower_limit_km"])} to {format_distance_km(belt["upper_limit_km"])}'
+    else:
+        where = format_distance_km(belt["distance_km"])
     stats = [
         _stat(esc(belt["density"]).capitalize() if belt.get("density") else ""),
-        _stat(format_distance_km(belt["distance_km"])),
+        _stat(where),
+        _stat(_belt_minerals_text(belt.get("composition"))),
     ]
-    if belt.get("lower_limit_km") is not None and belt.get("upper_limit_km") is not None:
-        stats.append(_stat(
-            f'{format_distance_km(belt["lower_limit_km"])} to {format_distance_km(belt["upper_limit_km"])}'
-        ))
     return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])),
                      facilities=(by_host or {}).get(("asteroid_belt", belt["id"])))
 

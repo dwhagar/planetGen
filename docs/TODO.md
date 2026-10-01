@@ -105,9 +105,9 @@ of the SEC section.
    3. MAP.49: planet orbits drawn inside an asteroid belt on the System
       Map.
    4. MAP.50: names running off the edge of the map.
-   5. UX.19 (belt rows and no Zone column in the object list), UX.20
-      (scientific notation past 4 digits) and ADM.9 (the "place a
-      facility" form).
+   5. Done: UX.19 (belt rows and no Zone column in the object list).
+      Then UX.20 (scientific notation past 4 digits) and ADM.9 (the
+      "place a facility" form).
    6. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
@@ -165,23 +165,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.19 (bug) Asteroid belt rows in a system's object list: density, range and top minerals; no Zone column**
-  Boss (2026-10-01): "asteroid belts in the system object list should
-  just list their range, right now it says "Sparse" and "Distance" then
-  "Distance to Distance", only the "Sparse" (or whatever density) and
-  distance along with the top minerals found too should also be in the
-  row. Zone need not be in the rows for planets or moons or anything."
-  Today `html/lib/systempage.py` builds a belt's row from its density,
-  its nominal distance (`distance_km`) and then its range
-  (`lower_limit_km` to `upper_limit_km`), so the distance shows twice,
-  and every planet and moon row has a zone cell (`body.get("zone")`).
-  Done: a belt's row shows its density, its range ("2.1 AU to 3.3 AU")
-  and its top minerals (from `asteroid_belt_composition`, through the
-  existing `format_composition_summary`), and nothing else; no row in
-  the list (planets, moons, belts, comets, facilities) shows the zone;
-  the zone stays on each object's own page. Settled by Boss
-  (2026-10-01): "top" means the three largest minerals by share.
 
 - [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
   Boss (2026-10-01): "anything over 4 digits to the left of the decimal

@@ -132,7 +132,8 @@ connectivity to that specific schema rather than the default one.
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`), `belts`, `comets`, `sector_siblings`
+  or `null` — and `inhabited`), `belts` (each with its `composition`,
+  `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
   systems, nearest first, from the stored `nearest_systems` rows (schema
