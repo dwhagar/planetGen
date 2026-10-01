@@ -212,6 +212,20 @@ or so, so it follows the run's current speed and doesn't jump about when
 several workers finish at once. The Generate page shows the same
 estimate ("about 4 m 10 s left").
 
+The bright-star bar ("Bright stars (12 of 1,271 layers)") shows a share
+done rather than a count: before the scatter starts, every layer gets an
+expected star count from the same density model the scatter draws from
+(a quick sample of its rings, a second or two for a whole galaxy), plus
+five stars' worth per ring walked, so the nearly empty layers at the top
+and bottom of the disk count for little and the dense middle for a lot.
+Layers in progress report their stars a few times a second and the bar
+moves with them, so the time left follows the work left rather than the
+layers left. While layers take longer than 30 seconds each, a second bar
+appears under it with the stars of the layers being drawn, done of their
+estimate, and its own time left ("Layer 0: stars"); it goes again once
+layers finish faster than one every 20 seconds. Sector fill keeps its one
+bar. The Generate page shows both lines too.
+
 Only one run's workers use the machine at a time: a run started while
 another is generating (from the command line or the Generate page) says
 it's waiting and starts when the other finishes. The control database

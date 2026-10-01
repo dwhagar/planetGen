@@ -100,8 +100,8 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 1. **First:** PERF.5 (scatter bright stars in stages), done in PR #229.
 2. **Galaxy Map and units:** GEN.23 (UX.13, UX.14, MAP.15, MAP.30 and
    MAP.2 shipped in PR #234).
-3. **Generation estimates and progress:** PERF.4 and PERF.9 (PERF.3 and
-   PERF.10 done in PR #238).
+3. **Generation estimates and progress:** done (PERF.3 and PERF.10 in
+   PR #238, PERF.4 and PERF.9 in PR #258).
 4. **Admin editing:** ADM.1 and its subitems, on the validate module
    (ADM.5, done in PR #235).
 
@@ -350,67 +350,6 @@ MAP.30) shipped in PR #234.
   starts, progress while it runs, speed records, and parallel work. The
   code is mostly `generate.py`, `web/generate_page.py`, `web/jobs.py` and
   `stellarObjects/brightStars.py`.
-
-  - [ ] **PERF.4 A second progress bar for slow layers in the plan**
-    Boss
-    (2026-10-01): "For building the layers, when the rate drops below 1
-    layer per 30 seconds, which is calculated on every star system
-    generated, then it should double up the progress bars intelligently
-    (they should still not cause any flicker and should stay at the
-    bottom while the text above scrolls) that has the ETA for the layer
-    being generated based on the estimated number of stars remaining.
-    This means the system should estimate the stars remaining every time
-    a new star is generated during the plan." Today the plan's bright-star
-    scatter (`generate.py`, the "Bright stars (layers)" task) shows one
-    bar that moves once per finished layer (`brightStars.scatter`'s
-    `on_layer` callback), so a slow layer looks stalled. The display is
-    `_generation_progress()` (rich `Progress`, with every log line routed
-    through `progress.console` so the bars stay pinned at the bottom
-    without flicker). Done: after every star the plan generates, it
-    recomputes the layer rate and the current layer's estimated stars
-    remaining; while the rate is below 1 layer per 30 seconds, a second
-    bar appears under the layers bar showing the current layer's stars
-    done of its estimate with that layer's ETA, and it goes away when the
-    rate recovers; no flicker, bars stay at the bottom, log lines keep
-    scrolling above, and the web job's `progress.json` carries the same
-    numbers. Open questions: what "estimated stars remaining" is based on
-    (the layer's expected count from the density skeleton and the bright
-    fraction, then updated as it goes?); hysteresis so the second bar
-    doesn't flash on and off near the 30-second line (the old per-sector
-    bar was removed for exactly that); and whether the same rule applies
-    to sector fill (`Sectors (ring … layer …)`), where PERF.3's rate is
-    measured.
-
-  - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
-    Boss
-    (2026-10-01): "so that the bright stars ETA takes into account the
-    shape of what's being generated (ie that at layer 0 and 635 take very
-    little time)". Today the plan's scatter (`brightStars.scatter`) walks
-    the layers in `extents` order and calls `on_layer(done, total)` once
-    per layer, so the "Bright stars (layers)" bar in `generate.py` counts
-    every layer the same. The thin layers at the edges finish almost at
-    once and the dense middle layers take most of the time, so the ETA
-    swings badly. Done: the bar and its ETA count expected work, not
-    layers. Before the scatter starts, each layer gets an expected star
-    count from the same density model the scatter uses
-    (`_ring_bins` × `expected_at_density_1` × the bright fraction for the
-    chosen threshold), and progress and the ETA are measured in expected
-    stars done out of the expected total, so a run through the sparse
-    edge layers no longer makes the rest look quick or slow. Ties in with
-    PERF.3 (the up-front time estimate uses the same per-layer
-    weights), UX.3 and PERF.4 (the banner's ETA, and PERF.4's
-    stars-remaining estimate for the current layer), PERF.5 (a staged
-    scatter weights only the new luminosity band), and PERF.7 and
-    PERF.8 (the decaying-average rate and the parallel tasks). Open
-    questions: is the weight the expected star count alone, or does it
-    also count rings and slots walked (an empty edge layer still costs
-    some loop time)? How does the weighting combine with PERF.7's
-    decaying average: the average measured in expected stars per second,
-    or in layers per second and then scaled? Is the per-layer expected
-    count worked out in a quick pre-pass at the start of every plan, or
-    stored with the galaxy skeleton? Once PERF.8 runs layers in
-    parallel and out of order, does the ETA add up the expected work
-    still queued rather than following the layer order?
 
   - [ ] **PERF.11 Store each sector's expected and actual density**
     Boss

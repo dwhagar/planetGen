@@ -404,7 +404,9 @@ passed to the child as `PLANETGEN_MYSQL_*` environment variables (so the
 MySQL account needs the generator's grants, including `DROP` for
 `TRUNCATE`). One job runs at a time; the page shows its step, a progress
 bar (from `generate.py`'s `PLANETGEN_PROGRESS_FILE`, see
-`stellarObjects/progressFile.py`), elapsed time and live output
+`stellarObjects/progressFile.py`; the bright-star scatter's bar shows a
+share done, with a second line for slow layers' stars, PERF.4 and PERF.9),
+elapsed time and live output
 (`static/generatejobs.js` polls `/admin/generate/status`), with a Cancel
 button. The last jobs are listed with their full output at
 `/admin/generate/jobs/<id>`.
