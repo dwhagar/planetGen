@@ -99,12 +99,17 @@ _PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "schema.sql")
 """str: Path to the DDL file applied by `_ensure_schema`."""
 
-CONTROL_SCHEMA_VERSION = 4
+NAMED_LOCK_TIMEOUT_S = 50
+"""int: How long `Connection.lock_until_commit` waits for a named lock,
+matching InnoDB's default `innodb_lock_wait_timeout`."""
+
+CONTROL_SCHEMA_VERSION = 5
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
 separate schema with its own versioning. v2 added `login_throttle`
-(SEC.1, SEC.21); every control-schema change so far is a new table,
+(SEC.1, SEC.21), v5 the work queue's `work_jobs`/`work_tasks`/
+`work_lease` (PERF.8); every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema by itself."""
 
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
@@ -603,6 +608,7 @@ class Connection:
         self._batch_depth = 0
         self.prereserved_names = None
         self.deferred_name_confirmations = None
+        self._txn_locks = []
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -717,18 +723,49 @@ class Connection:
                 self._conn.cursor().execute(statement)
         self._conn.commit()
 
+    def lock_until_commit(self, name, timeout_s=NAMED_LOCK_TIMEOUT_S):
+        """
+        Takes the MySQL named lock `name` (`GET_LOCK`) and holds it until
+        this connection's next commit or rollback, so whatever the
+        transaction reads after this is read with every other holder's
+        work committed. A no-op when already held.
+
+        Raises:
+            pymysql.err.OperationalError: 1205 when `timeout_s` passes
+                first (retried by `save_sector`, like a row lock wait).
+        """
+        if name in self._txn_locks:
+            return
+        row = self.execute("SELECT GET_LOCK(?, ?) AS ok", (name, timeout_s)).fetchone()
+        if row["ok"] != 1:
+            raise pymysql.err.OperationalError(1205, f"Lock wait timeout exceeded waiting for lock {name!r}")
+        self._txn_locks.append(name)
+
+    def _release_txn_locks(self):
+        while self._txn_locks:
+            name = self._txn_locks.pop()
+            try:
+                self._run("SELECT RELEASE_LOCK(?)", (name,))
+            except pymysql.err.MySQLError:  # a lost session has already dropped it
+                pass
+
     def commit(self):
         self.flush()
         self._conn.commit()
+        self._release_txn_locks()
 
     def rollback(self):
         if self._batch:
             self._batch = {}
-        self._conn.rollback()
+        try:
+            self._conn.rollback()
+        finally:
+            self._release_txn_locks()
 
     def close(self):
         self._batch = None
         self._batch_depth = 0
+        self._release_txn_locks()
         self._conn.close()
 
     def __enter__(self):
@@ -1530,8 +1567,9 @@ def reserve_system_names(conn, candidate_names):
     decorations are exhausted is drawn again (`_regenerate_star_name`)
     and goes round once more.
 
-    Locking: the sector registry is read first (shared locks, the same
-    sector-then-system order `reserve_sector_name` takes), then one
+    Locking: the sector registry is read without locks (a locking read
+    there waited on, and deadlocked with, other writers' uncommitted new
+    sector names, a few times per 30 sectors with three workers), then one
     multi-row `INSERT ... ON DUPLICATE KEY UPDATE occurrence_count =
     occurrence_count + k` in sorted base-name order claims every base
     name (row locks, always taken in the same order; no gap locks, which
@@ -1571,8 +1609,7 @@ def reserve_system_names(conn, candidate_names):
         for first in range(0, len(keys), _NAME_BATCH):
             chunk = [spelled[key] for key in keys[first:first + _NAME_BATCH]]
             sector_hits.update(row["base_name"].casefold() for row in conn.execute(
-                f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})"
-                " LOCK IN SHARE MODE",
+                f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
                 tuple(chunk),
             ).fetchall())
         for first in range(0, len(keys), _NAME_BATCH):
@@ -3236,7 +3273,8 @@ class _SystemGrid:
 
     def __init__(self, systems):
         self.cells = {}
-        for system_id, point in systems:
+        self.systems = list(systems)
+        for system_id, point in self.systems:
             self.cells.setdefault(self._key(point), []).append((system_id, point))
 
     @staticmethod
@@ -3249,6 +3287,16 @@ class _SystemGrid:
         cx, cy, cz = self._key(point)
         best = []
         max_shell = int(math.ceil(limit_pc / _NEAREST_GRID_CELL_PC)) + 1
+        if len(self.systems) < (2 * max_shell + 1) ** 3:
+            # Fewer systems than cells to visit (one new sector's systems,
+            # merged into its neighbors' lists): checking each is cheaper
+            # than walking mostly empty shells.
+            best = sorted(
+                (distance, system_id)
+                for system_id, other in self.systems
+                if system_id != exclude and (distance := math.dist(point, other)) <= limit_pc
+            )
+            return best[:count]
         for shell in range(max_shell + 1):
             if len(best) >= count and best[count - 1][0] <= (shell - 1) * _NEAREST_GRID_CELL_PC:
                 break
@@ -4209,6 +4257,12 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
 
     if galaxy_position is not None:
+        # Containment and nearest-neighbor lists read the sectors around
+        # this one and rewrite theirs, so two neighbors saved at once
+        # (parallel generation, PERF.7) would each miss the other. One
+        # writer at a time does this last step, holding the lock until
+        # commit; the slower part above still runs side by side.
+        conn.lock_until_commit(_neighbor_lock_name(conn))
         refresh_containment(conn, [sector_id])
         _add_sector_to_nearest(conn, sector_id)
 
@@ -4822,6 +4876,14 @@ def _sector_names(sector):
         if core is not None:
             objects.append(core)
     return [(obj, obj.name) for obj in objects]
+
+
+def _neighbor_lock_name(conn):
+    """The named lock `insert_sector` holds while it links a placed
+    sector to its neighbors: one per database (names are server-wide,
+    at most 64 characters)."""
+    database = conn._config.database if conn._config is not None else ""
+    return f"planetgen.neighbors.{database}"[:64]
 
 
 def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:

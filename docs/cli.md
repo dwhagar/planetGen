@@ -180,6 +180,31 @@ at most 100,000, and `--limit` at most the slot count of ring 100,000.
 The web Generate page and the API check the same bounds
 (`src/stellarObjects/generationLimits.py`).
 
+### Parallel generation
+
+`generate.py sector` (with `--num-sectors`) and every `generate.py galaxy`
+mode fill several sectors at once, each in its own worker process: by
+default 80% of the machine's cores, one fewer when MySQL runs on the same
+machine (3 workers on 4 cores without a local MySQL, 2 with one). Workers
+run at a lower priority (`nice` 10 on Linux and macOS, below normal on
+Windows), so the web site and anything else on the machine come first.
+Each worker generates a whole sector and saves it in one transaction;
+the run prints each sector as it's saved, so sectors can finish out of
+order. `--workers N` sets the count (`PLANETGEN_WORKERS` does the same for
+every run), and `--workers 1` generates one sector at a time in the run's
+own process, as before. On a 4-core machine with MySQL local, 60 sectors
+of ring 2000 took 16.5 s on one worker and 9.8 s on the default two.
+
+Only one run's workers use the machine at a time: a run started while
+another is generating (from the command line or the Generate page) says
+it's waiting and starts when the other finishes. The control database
+keeps the lease and one row per run and per sector (`work_jobs`,
+`work_tasks`, see [`database-schema.md`](database-schema.md)); without
+it (before `update.sh` has created the tables) runs don't wait for each
+other. A run stopped with Ctrl-C, or Cancel on the Generate page, lets
+the sectors already being saved finish and queues nothing more; a run
+that was killed outright frees the lease after 30 seconds.
+
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
 row plus one row per layer, from the top of the galaxy to the bottom, naming

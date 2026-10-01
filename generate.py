@@ -86,6 +86,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 
 from stellarObjects import (
     _db, activitylog, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
+    workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -704,6 +705,11 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
+    parser.add_argument('--workers', type=int, default=None,
+                        help="How many sectors to generate at once, each in its own low-priority worker "
+                             "process. Default: 80%% of this machine's cores (one fewer when MySQL runs "
+                             "here too), or PLANETGEN_WORKERS; 1 generates one sector at a time in this "
+                             "process.")
     parser.add_argument('--population', action='store_true',
                         help="Also run the population pass (species, civilizations, territories) "
                              "after the sectors are saved. Off by default; 'generate.py population' "
@@ -727,6 +733,8 @@ def validate_shared_generation_args(args, parser):
     """
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
 
     if args.density is not None and args.density <= 0:
         parser.error("--density must be a positive number.")
@@ -1370,25 +1378,40 @@ def run_sector(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "sector"`).
     """
-    for _i in range(args.num_sectors):
-        _sector_name, sector = generate_sector(args)
-        systems = [entry.star_system for entry in sector.entries]
+    mysql_config = _db.mysql_config_from_args(args)
 
-        mysql_config = _db.mysql_config_from_args(args)
-        sector_id = _db.save_sector(sector, config=mysql_config)
-        _count_sector(sector)
-
-        phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
+    def saved(result, _seconds, _weight):
+        if queue.parallel:
+            RUN_COUNTS["sectors"] += 1
+            RUN_COUNTS["systems"] += result["systems"]
+            RUN_COUNTS["phenomena"] += result["phenomena"]
+        phenomena_note = f", {result['phenomena']} phenomena" if result["phenomena"] else ""
         log.normal(
-            f"Saved sector '{sector.name}' to the database (sector_id={sector_id}, "
-            f"{len(systems)} systems{phenomena_note}, "
+            f"Saved sector '{result['name']}' to the database (sector_id={result['sector_id']}, "
+            f"{result['systems']} systems{phenomena_note}, "
             f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
         )
-        log.normal(sector_generation_summary_lines(sector, args))
+        log.normal(result["summary"])
+
+    with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
+        for index in range(args.num_sectors):
+            queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
     run_population_after(args)
+
+
+def _unplaced_sector_task(args):
+    """One `sector` subcommand sector, generated and saved -- a work queue
+    task (see `_fill_sector_task`)."""
+    _sector_name, sector = generate_sector(args)
+    sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args))
+    _count_sector(sector)
+    return {
+        "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
+        "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, args),
+    }
 
 
 # ===========================================================================
@@ -1879,13 +1902,78 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
-def _log_saved(sector_id, sector_name, sector, sector_args, address, suffix=""):
+def _log_saved(saved, address, suffix=""):
     designation = provisional_sector_designation(*address)
     log.normal(
-        f"Saved sector '{sector_name}' [{designation}] at {_format_address(address)}{suffix} "
-        f"(sector_id={sector_id})."
+        f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
+        f"(sector_id={saved['sector_id']})."
     )
-    log.normal(sector_generation_summary_lines(sector, sector_args))
+    log.normal(saved["summary"])
+
+
+def _log_level(args):
+    """The console severity `main` configured from `--quiet`/`--debug`,
+    for the work queue's workers."""
+    if getattr(args, "quiet", False):
+        return log.SILENT
+    if getattr(args, "debug", None) is not None:
+        return log.DEBUG
+    return log.NORMAL
+
+
+def _work_queue(args, title):
+    """
+    The `workQueue.WorkQueue` a run hands its sectors to (PERF.8):
+    `--workers` (or `PLANETGEN_WORKERS`) worker processes, by default 80%
+    of the cores less one when MySQL runs on this machine, with the
+    control database's lease so only one run's workers use the machine
+    at a time. One worker generates every sector right here, in order.
+    """
+    mysql_config = _db.mysql_config_from_args(args)
+    workers = workQueue.worker_count(getattr(args, "workers", None), mysql_config.host)
+    log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
+    return workQueue.WorkQueue(
+        title, workers=workers,
+        control_config=_db.control_mysql_config(mysql_config) if workers > 1 else None,
+        log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
+    )
+
+
+def _fill_sector_task(payload):
+    """
+    One galaxy sector, start to finish -- a work queue task (PERF.8): runs
+    in a worker process (or in this one, with one worker), generates the
+    sector in its grid cell and saves it in one transaction, and returns
+    what the run reports for it.
+
+    Returns:
+        dict: `sector_id`, `name` (as saved), `systems`, `phenomena` and
+            `summary` (`sector_generation_summary_lines`).
+    """
+    sector_args = payload["args"]
+    sector_id, sector_name, sector = generate_and_save_sector_at(
+        sector_args, payload["address"], payload["position_pc"], payload["edge_pc"],
+    )
+    return {
+        "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
+        "phenomena": len(sector.phenomena), "summary": sector_generation_summary_lines(sector, sector_args),
+    }
+
+
+def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=""):
+    """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
+    advances `task` and logs it."""
+    def saved(result, _seconds, _weight):
+        if queue.parallel:
+            # A worker's own RUN_COUNTS die with it; the run's are here.
+            RUN_COUNTS["sectors"] += 1
+            RUN_COUNTS["systems"] += result["systems"]
+            RUN_COUNTS["phenomena"] += result["phenomena"]
+        progress.update(task, advance=1)
+        _log_saved(result, address, suffix=suffix)
+
+    payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc}
+    queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
 
 
 def _require_inside(bounds, ring_index, layer_index, what):
@@ -1947,27 +2035,26 @@ def run_ring_batch(args, edge_pc, progress):
 
     generated = 0
     skipped = 0
-    for slot_index in range(total_slots):
-        if args.limit is not None and generated >= args.limit:
-            break
-        address = (ring_index, layer_index, slot_index)
-        if address in occupied:
-            continue
+    with _work_queue(args, f"Sectors (ring {ring_index} layer {layer_index})") as queue:
+        for slot_index in range(total_slots):
+            if args.limit is not None and generated >= args.limit:
+                break
+            address = (ring_index, layer_index, slot_index)
+            if address in occupied:
+                continue
 
-        position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
-            skipped += 1
-            progress.update(outer_task, advance=1)
-            continue
+            position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
+            sector_args = batch_density.resolve(args, address, position_pc)
+            if sector_args is None:
+                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                          f"outside its layer's stored extent)")
+                skipped += 1
+                progress.update(outer_task, advance=1)
+                continue
 
-        log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        generated += 1
-        progress.update(outer_task, advance=1)
-        _log_saved(sector_id, sector_name, sector, sector_args, address)
+            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, outer_task)
+            generated += 1
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
@@ -2061,26 +2148,25 @@ def run_local_neighborhood(args, edge_pc, progress):
     generated = 0
     skipped = 0
     already_existed = 0
-    for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
-        address = (ring_index, layer_index, slot_index)
-        if address in occupied:
-            already_existed += 1
-            continue
+    with _work_queue(args, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})") as queue:
+        for ring_index, layer_index, slot_index, x, y, z, distance_pc in candidates:
+            address = (ring_index, layer_index, slot_index)
+            if address in occupied:
+                already_existed += 1
+                continue
 
-        sector_args = batch_density.resolve(args, address, (x, y, z))
-        if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
-            skipped += 1
-            progress.update(outer_task, advance=1)
-            continue
+            sector_args = batch_density.resolve(args, address, (x, y, z))
+            if sector_args is None:
+                log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
+                          f"outside its layer's stored extent)")
+                skipped += 1
+                progress.update(outer_task, advance=1)
+                continue
 
-        log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, (x, y, z), edge_pc)
-        generated += 1
-        progress.update(outer_task, advance=1)
-        _log_saved(sector_id, sector_name, sector, sector_args, address,
-                   suffix=f", {distance_pc:.2f} pc from sector_id={args.center_sector}")
+            log.debug(f"{_format_address(address)}: generating (density={sector_args.density})")
+            _submit_sector(queue, sector_args, address, (x, y, z), edge_pc, progress, outer_task,
+                           suffix=f", {distance_pc:.2f} pc from sector_id={args.center_sector}")
+            generated += 1
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
@@ -2327,18 +2413,18 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
     limit = getattr(args, "limit", None)
     task = progress.add_task(f"Sectors ({what})", total=len(pending))
     generated = skipped = 0
-    for address in pending:
-        if limit is not None and generated >= limit:
-            break
-        position_pc = sector_position_pc(*address, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
-        progress.update(task, advance=1)
-        if sector_args is None:
-            skipped += 1
-            continue
-        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-        generated += 1
-        _log_saved(sector_id, sector_name, sector, sector_args, address)
+    with _work_queue(args, f"Sectors ({what})") as queue:
+        for address in pending:
+            if limit is not None and generated >= limit:
+                break
+            position_pc = sector_position_pc(*address, edge_pc)
+            sector_args = batch_density.resolve(args, address, position_pc)
+            if sector_args is None:
+                skipped += 1
+                progress.update(task, advance=1)
+                continue
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task)
+            generated += 1
 
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
