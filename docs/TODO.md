@@ -318,6 +318,36 @@ for a mouse; spacing and type sized with `clamp()`.
     to sector fill (`Sectors (ring … layer …)`), where item 86's rate is
     measured.
 
+89. [ ] **Scatter bright stars in stages, one luminosity band at a
+    time.** Boss (2026-10-01): "let's do a default of 100 solar
+    luminosities for the star map, but then add to the TODO.md to allow
+    us to add another layer down (i.e. so when I generate I do say 500
+    solar luminosities because I want to be quick and do testing but then
+    after I want to generate down to 100 solar luminosities, so we have
+    to make sure when I do that, it only generates between the limits
+    (i.e. doesn't generate more brighter stars). Probably add a value for
+    the star-fill level." The default threshold
+    (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`, 500 today) is
+    being changed to 100 separately. Today the plan's scatter
+    (`generate.py`, `--bright-star-min-luminosity`) clears `bright_stars`
+    and redraws everything at or above the threshold, and refuses when
+    any sector is already filled unless `--force` leaves those sectors
+    out. Done: the galaxy stores its current star-fill level (the lowest
+    luminosity already scattered); a scatter to a lower threshold keeps
+    the existing bright stars and adds only stars from the new threshold
+    up to (not including) the stored level, then lowers the stored
+    level; asking for a level at or above the stored one does nothing
+    (or says so); the Generate page and the CLI show the current level
+    and offer "go down to N"; and item 86's size and time estimates cover
+    just the new band. Open questions: where the level is stored (the
+    control database, a `galaxy` row next to the skeleton, or derived
+    from `MIN(luminosity_w)` in `bright_stars`)? What happens to sectors
+    already filled when new, dimmer bright stars land in them: add the
+    stars and build their systems in place, skip those sectors, or mark
+    them for item 60's regenerate? Must the new band draw from the same
+    random stream, so a 500-then-100 galaxy matches a straight-to-100
+    one?
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
