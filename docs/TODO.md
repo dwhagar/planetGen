@@ -1202,6 +1202,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
 
+- [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
+  Boss (2026-10-01 22:13Z): "make the GEN.30 backfill parallelized and
+  use the work queue." Today `backfill_bright_stars_around`
+  (`generate.py`) runs in one process, one block at a time: after a
+  sector run, in the block top-up loop in `add_bright_star_band`, and
+  inline inside web requests (the map visit and the API neighborhood
+  route). Each block takes a row lock and commits on its own, so blocks
+  can be separate work-queue tasks. Done: the backfill's blocks run as
+  tasks on the work queue (`stellarObjects/workQueue.py`, PERF.8) with
+  the run's worker count, giving the same stars as the one-process
+  backfill for the same seed, and the in-request backfills queue their
+  work instead of doing it inside the request. The bright-star scatter
+  already runs per layer in parallel (PERF.7) but stays serial within a
+  layer.
+
+- [ ] **PERF.19 Everything the API or web site starts runs on the work queue (investigate)**
+  Boss (2026-10-01 22:13Z): "I want _everything_ that communicates
+  with the API to use the work queue whenever possible. Add a TODO item
+  about that and about we need to investigate that." Investigate first:
+  list every generation or database-write path the API and web site
+  trigger (API routes, remote generate, uploads, map-visit and
+  neighborhood backfills, admin edits and regenerates, Generate page
+  jobs), whether each runs inside the request or on the work queue
+  today, and which should move. Done: the audit, written up with a plan
+  that Boss approves; the moves themselves are filed as their own items
+  from that plan.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152).
