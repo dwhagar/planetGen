@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.52 |
+| MAP | MAP.53 |
 | NAV | NAV.3 |
 | GEN | GEN.30 |
 | PERF | PERF.18 |
@@ -494,6 +494,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
+| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
