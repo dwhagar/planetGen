@@ -563,6 +563,17 @@ function layoutLabels(sceneEl) {
       // Not rendered: nothing to avoid.
     }
   });
+  // Labels stay inside the scene's viewBox (MAP.50): a label crossing a
+  // side edge slides back in sideways, one crossing the top or bottom
+  // slides back in vertically, and a vertical nudge that would leave the
+  // view isn't tried.
+  var view = sceneEl.viewBox && sceneEl.viewBox.baseVal;
+  var margin = 2;
+  function slideIn(lo, hi, min, max) {
+    if (lo < min) { return min - lo; }
+    if (hi > max) { return max - hi; }
+    return 0;
+  }
   var kept = [];
   labels.forEach(function (label) {
     label.removeAttribute("transform");
@@ -578,14 +589,24 @@ function layoutLabels(sceneEl) {
     }
     var marker = label.closest(".sysmap-body");
     var hasLeader = marker && marker.querySelector(".sysmap-label-leader");
+    var dx = 0, dy = 0;
+    if (view && view.width) {
+      dx = slideIn(box.x, box.x + box.width, view.x + margin, view.x + view.width - margin);
+      dy = slideIn(box.y, box.y + box.height, view.y + margin, view.y + view.height - margin);
+    }
     var shifts = hasLeader ? [0] : [0, box.height * 0.9, -box.height * 0.9, box.height * 1.8, -box.height * 1.8];
     for (var i = 0; i < shifts.length; i++) {
-      var trial = { x: box.x - 1, y: box.y + shifts[i] - 1, w: box.width + 2, h: box.height + 2 };
+      var trialY = box.y + dy + shifts[i];
+      if (i && view && view.height &&
+          (trialY < view.y + margin || trialY + box.height > view.y + view.height - margin)) {
+        continue;
+      }
+      var trial = { x: box.x + dx - 1, y: trialY - 1, w: box.width + 2, h: box.height + 2 };
       var clash = kept.some(function (other) { return boxesOverlap(trial, other); }) ||
         circles.some(function (c) { return !(marker && marker.contains(c.el)) && circleHitsBox(c, trial); });
       if (!clash) {
-        if (shifts[i]) {
-          label.setAttribute("transform", "translate(0 " + shifts[i].toFixed(1) + ")");
+        if (dx || dy + shifts[i]) {
+          label.setAttribute("transform", "translate(" + dx.toFixed(1) + " " + (dy + shifts[i]).toFixed(1) + ")");
         }
         kept.push(trial);
         return;

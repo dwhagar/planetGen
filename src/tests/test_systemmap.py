@@ -17,6 +17,8 @@ Run with: pytest src/tests/test_systemmap.py
 """
 import math
 import os
+import random
+import re
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -205,13 +207,45 @@ def test_label_sides_2d_cycles_through_all_four_cardinal_directions():
     # above, right, left in that order before needing to push any of them
     # into a diagonal spot.
     placements = sm._label_sides_2d([
-        (100.0, 100.0, 10.0, "AAAAAAAAAA"),
-        (100.0, 100.0, 10.0, "BBBBBBBBBB"),
-        (100.0, 100.0, 10.0, "CCCCCCCCCC"),
-        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
+        (350.0, 350.0, 10.0, "AAAAAAAAAA"),
+        (350.0, 350.0, 10.0, "BBBBBBBBBB"),
+        (350.0, 350.0, 10.0, "CCCCCCCCCC"),
+        (350.0, 350.0, 10.0, "DDDDDDDDDD"),
     ])
     assert [p["direction"] for p in placements] == ["below", "above", "right", "left"]
     assert all(not p["pushed"] for p in placements)
+
+
+@pytest.mark.parametrize("cx, cy", [
+    (8.0, 350.0), (692.0, 350.0), (350.0, 8.0), (350.0, 692.0),
+    (8.0, 8.0), (692.0, 8.0), (8.0, 692.0), (692.0, 692.0),
+])
+def test_label_sides_2d_keeps_every_label_inside_the_view(cx, cy):
+    # MAP.50: names near any edge or corner of the map stay on screen,
+    # even when neighbors take the first choices (a label with no room
+    # left is dropped, never drawn off the edge).
+    placements = sm._label_sides_2d([(cx, cy, 10.0, "A Very Long Planet Name %d" % n) for n in range(4)])
+    assert placements[0] is not None and placements[1] is not None
+    for placement in filter(None, placements):
+        x1, y1, x2, y2 = placement["rect"]
+        assert 0 <= x1 and x2 <= sm._VIEW_SIZE_PX and 0 <= y1 and y2 <= sm._VIEW_SIZE_PX, placement
+
+
+def test_rendered_label_is_slid_inside_the_view():
+    # An outer planet due west with a long name: its label's drawn text
+    # (middle-anchored below/above, or start/end-anchored beside) stays
+    # within the 700 px frame.
+    name = "Very Long Outer Planet Name"
+    planets = [_planet(1, 10, -30.0 * AU_KM, 0.0), _planet(2, 10, 1.0 * AU_KM, 0.0)]
+    planets[0]["name"] = name
+    html = sm.render_system_map_panel({"name": "Edge", "binary_configuration": None}, [_star(10)], planets, [])
+    match = re.search(r'<text class="sysmap-label" x="([\d.-]+)" y="[\d.-]+" text-anchor="(\w+)">'
+                      + re.escape(name), html)
+    assert match
+    x, anchor = float(match.group(1)), match.group(2)
+    width = 2 * sm._label_half_width_px(name)
+    left = {"start": x, "middle": x - width / 2, "end": x - width}[anchor]
+    assert left >= 0 and left + width <= sm._VIEW_SIZE_PX
 
 
 def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it():
@@ -224,11 +258,11 @@ def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it(
     # width-independent by construction (see _LABEL_PUSH_DIRECTIONS'
     # own comment), so this must still succeed regardless of name length.
     placements = sm._label_sides_2d([
-        (100.0, 100.0, 10.0, "AAAAAAAAAA"),
-        (100.0, 100.0, 10.0, "BBBBBBBBBB"),
-        (100.0, 100.0, 10.0, "CCCCCCCCCC"),
-        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
-        (100.0, 100.0, 10.0, "EEEEEEEEEE"),
+        (350.0, 350.0, 10.0, "AAAAAAAAAA"),
+        (350.0, 350.0, 10.0, "BBBBBBBBBB"),
+        (350.0, 350.0, 10.0, "CCCCCCCCCC"),
+        (350.0, 350.0, 10.0, "DDDDDDDDDD"),
+        (350.0, 350.0, 10.0, "EEEEEEEEEE"),
     ])
     fifth = placements[4]
     assert fifth is not None
@@ -302,6 +336,66 @@ def test_belt_renders_as_a_ring_not_a_directional_band():
     html = sm.render_system_map_panel(system, [_star(10)], [], [belt])
     assert '<circle class="sysmap-belt"' in html
     assert 'data-kind="belt"' in html
+
+
+def _drawn_orbits_and_belts(html):
+    orbits = [float(r) for r in re.findall(r'class="sysmap-orbit" cx="[\d.]+" cy="[\d.]+" r="([\d.]+)"', html)]
+    belts = [(float(r), float(w)) for r, w in
+             re.findall(r'class="sysmap-belt"[^>]*? r="([\d.]+)" stroke-width="([\d.]+)"', html)]
+    return orbits, belts
+
+
+def test_belt_ring_runs_from_its_inner_to_its_outer_edge_on_the_orbit_scale():
+    # A belt's distance_km is its inner edge (as generation stores it).
+    belt = _belt(1, 10, AU_KM * 2.0, AU_KM * 2.0, AU_KM * 3.6)
+    lo, hi = sm._radial_scale_bounds([AU_KM, 2.0 * AU_KM, 3.6 * AU_KM, 6.0 * AU_KM])
+    center, width = sm._belt_band(belt, lo, hi)
+    assert center - width / 2 == pytest.approx(sm._radial_px(2.0 * AU_KM, lo, hi))
+    assert center + width / 2 == pytest.approx(sm._radial_px(3.6 * AU_KM, lo, hi))
+
+
+def test_thin_belt_is_widened_but_never_over_a_neighboring_orbit():
+    belt = _belt(1, 10, AU_KM * 2.0, AU_KM * 2.0, AU_KM * 2.001)
+    lo, hi = sm._radial_scale_bounds([AU_KM, 2.0 * AU_KM, 6.0 * AU_KM])
+    inner = sm._radial_px(2.0 * AU_KM, lo, hi)
+    center, width = sm._belt_band(belt, lo, hi)
+    assert width == pytest.approx(sm._BELT_MIN_BAND_PX)
+    center, width = sm._belt_band(belt, lo, hi, [inner - 3.0, inner + 5.0])
+    assert center - width / 2 >= inner - 3.0 + sm._BELT_ORBIT_GAP_PX - 1e-9
+    assert center + width / 2 <= inner + 5.0 - sm._BELT_ORBIT_GAP_PX + 1e-9
+
+
+@pytest.mark.parametrize("seed", range(40))
+def test_no_planet_orbit_is_drawn_inside_a_belt(seed):
+    # MAP.49: planets that really orbit clear of a belt (generation keeps
+    # them clear) are never drawn inside its ring -- including planets
+    # on inclined orbits just past the belt's outer edge, and belts close
+    # to their inner neighbor.
+    rng = random.Random(seed)
+    star_id = 10
+    planets, belts, r_au, next_id = [], [], 0.3, 1
+    for _ in range(rng.randint(3, 9)):
+        r_au *= rng.uniform(1.3, 2.2)
+        if rng.random() < 0.35:
+            upper = r_au * rng.uniform(1.001, 2.0)
+            belts.append(_belt(next_id, star_id, r_au * AU_KM, r_au * AU_KM, upper * AU_KM))
+            r_au = upper
+        else:
+            angle, tilt = rng.uniform(0, 2 * math.pi), math.radians(rng.uniform(0, 8))
+            d = r_au * AU_KM
+            planet = _planet(next_id, star_id, d * math.cos(tilt) * math.cos(angle),
+                             d * math.cos(tilt) * math.sin(angle), distance_km=d)
+            planet["position_z_km"] = d * math.sin(tilt)
+            planets.append(planet)
+        r_au *= 1.02
+        next_id += 1
+    system = {"name": "Belt Test", "binary_configuration": None}
+    html = sm.render_system_map_panel(system, [_star(star_id)], planets, belts)
+    orbits, drawn_belts = _drawn_orbits_and_belts(html)
+    assert len(drawn_belts) == len(belts)
+    for center, width in drawn_belts:
+        for orbit in orbits:
+            assert not (center - width / 2 < orbit < center + width / 2), (orbit, center, width)
 
 
 def test_close_binary_places_both_stars_and_shares_planets_at_the_barycenter():

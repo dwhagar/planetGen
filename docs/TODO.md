@@ -102,20 +102,15 @@ of the SEC section.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. MAP.49: planet orbits drawn inside an asteroid belt on the System
-      Map.
-   4. MAP.50: names running off the edge of the map.
-   5. UX.19 (belt rows and no Zone column in the object list), UX.20
+   3. UX.19 (belt rows and no Zone column in the object list), UX.20
       (scientific notation past 4 digits) and ADM.9 (the "place a
       facility" form).
-   6. The drill-down rework, built together: MAP.17 and MAP.19 (no free
-      camera; big wedge, layer and region picks), with MAP.18 (dim
-      everything but the hovered pick) and MAP.44 (lines kept to the
-      zoomed block), then MAP.26 (open at the sector; the map's own Back
-      and Forward). Boss chose "Layer + arc" (2026-10-01): a slice is a
-      layer of the disk, a region an arc of the ring band in view.
+   4. Done: the drill-down rework (MAP.17, MAP.19, MAP.18, MAP.44,
+      MAP.26), built as Boss's "Layer + arc".
 2. **Security, in this order** (login blocking first):
-   1. SEC.20: log every failed and locked login with its address.
+   1. SEC.28: an always-on log in the standard log location (logins,
+      logouts, database changes, authorization failures), with SEC.20
+      (failed and locked logins with their address) as its first part.
    2. SEC.1: the per-IP lockout in the control database, with SEC.21
       (the per-username backoff moved into the same table).
    3. SEC.23 (bug): a wrong current password on `/account` isn't
@@ -125,9 +120,10 @@ of the SEC section.
    5. SEC.24 (common and breached password blocklist), then SEC.25
       (check the hashing cost, re-hash on login).
    6. SEC.26: two-factor sign-in for admins.
-   7. SEC.27: the fail2ban recipe in the deployment docs.
+   7. SEC.27: the fail2ban filter and jail (examples written out under
+      the item) in the deployment docs.
 
-   SEC.20 and SEC.23 are small and touch different files from the bugs,
+   SEC.23 is small and touch different files from the bugs,
    so they can run alongside step 1 if Boss wants.
 3. **Database calls, the next update after bugs and security** (Boss,
    2026-10-01), in this order:
@@ -310,121 +306,16 @@ MAP.48 and MAP.37, all fixed.
   `stellarObjects/galaxyDrill.py`), the stage contents API (MAP.29,
   `GET /api/galaxy/stage`), the stages (MAP.16,
   `static/galaxystages.js` and `static/galaxystageview.js`, with stage
-  URLs `/galaxy?slab=`, `?at=`, `?sector=<designation>`), the Sector Map
+  URLs `/galaxy?at=&p=`, `?sector=<designation>`), the Sector Map
   pick mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the
   course overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from
   the map (MAP.20) and the "Show on Galaxy Map" links (MAP.25) have
-  shipped. The old free camera stays behind the map's Free look button
-  until MAP.17 removes it; Boss settled decision 2 (section 11) that
-  way.
+  shipped, and so has the top-down drill-down with no free camera
+  (quarter, layer, arc, ..., sector; MAP.17, MAP.19, MAP.18, MAP.44,
+  MAP.26, decisions 2 and 8 of section 11).
 
   - [x] **MAP.16 Drill-down stages**
-    Done in 7.44.0 (PR #171); kept as the parent of its bug.
-    - [ ] **MAP.17 (bug) No free camera; drill down from a top-down view by wedge, slice and block**
-
-      Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 5, 10 and 11
-
-      Boss (2026-10-01): "bugfix, remove the
-      ability to free form select a point to center on. Instead, we'll
-      start at a top-down view. The user will select the wedge (quarter)
-      aligned with the wedge lines, that we then zoom in on. From there
-      the user select a slice of blocks that fit the current zoom level.
-      It is selected by the mouse and it should be clearly highlighted the
-      slice the user is going to click on and make sure the block size is
-      such that the user can easily operate it via the correct method
-      (responsive design, if a touch sized screen make sure the user can
-      easily tap with a finger, but if it's a computer then the user is
-      probably using a mouse). Once selected the user can choose any block
-      in that slice. Once selected, the user zooms into that block, they
-      can then see the next group of slices and the process repeats. This
-      occurs until we get to the sector level. At no point can the user
-      free rotate the map anymore." This settles decision 2 of the design
-      doc (section 11, "Free camera"): no free look and no free rotation,
-      not even the default's drag-rotate inside the 3D stages. Today the
-      old free camera (click any point to center on it, drag to rotate)
-      stays behind the map's Free look button (added with MAP.16, PR
-      #171), and the 3D stages (1, 3, 5, 7, section 5.1) can be
-      drag-rotated. Done:
-      - The Free look button, free-camera picking and every drag-rotate
-        are removed; the map can't be rotated at any stage.
-      - The map opens top-down on the whole galaxy; the user picks a
-        wedge (a quarter, its edges on the wedge lines) and the map zooms
-        in on it.
-      - At each level the user picks a slice of blocks sized to the
-        current zoom, then any block in that slice, and the map zooms
-        into that block and shows its slices; this repeats down to the
-        sector level, where a click opens the sector.
-      - The slice (and then the block) under the pointer is clearly
-        highlighted before the click.
-      - Blocks and slices are sized for the input: big enough to tap with
-        a finger on touch screens (`pointer: coarse`), mouse-sized on a
-        computer (the Responsive Web Design Standards' 44-48 px touch
-        targets, under the UX section).
-      - The design doc's sections 5 and 10-11 are updated to match, and
-        breadcrumb, Back, stage URLs (`/galaxy?slab=`, `?at=`), bookmarks
-        (MAP.23), the address bar (MAP.24) and the NAV course (MAP.27)
-        keep working with the new steps.
-
-      Builds on the fixed map bugs (wedge lines stop at the galaxy's
-      edge, which matters more once wedges are what the user picks, and
-      the filled blocks' contrast applies to the slices and blocks).
-      Open questions: how the "wedge (quarter)" maps onto the design's
-      nested ladder (243 -> 27 -> 3 ->
-      1, section 3): is the first pick always one of four quarters, or
-      one of the master wedges at that ring? What a "slice" is: a ring
-      band, a layer (the current 3D stages pick a slab, a layer), or a
-      row of blocks along the wedge? With no 3D view, how does the user
-      pick a layer above or below the galactic plane (a side view, a
-      layer list, or slices that run through the disk's thickness)? What
-      replaces the free camera for MAP.20's neighborhood generate and
-      MAP.22's NAV picking, which may want an arbitrary point?
-
-    - [ ] **MAP.18 (bug) The block under the pointer is too hard to see from above**
-      Boss (2026-10-01): "selection of blocks from top-down doesn't show
-      highlight well enough, needs to be more obvious, when selecting
-      everything but what your mouse is over should be dimmed". Today, in
-      the top-down stages (2, 4, 6, 8), hovering a block only draws an
-      outline around it (`galaxystageview.js`, `applyHover` ->
-      `outlineBlock`), and nothing else changes; the 3D stages already
-      fade the other slabs (`OTHER_SLAB_FADE`). Done: while the user is
-      picking, everything except the block (or slice) under the pointer
-      is dimmed, and the hovered one stands out clearly, in both themes,
-      with the same look for a first tap on touch screens and for
-      keyboard focus; the dimming clears when the pointer leaves the map.
-      Goes with MAP.17 (the wedge, slice and block picks all need this
-      highlight); unfilled blocks are now drawn much more transparent,
-      which the dimming must still read against. Open
-      questions: how dim the rest goes (say 25-40% opacity)? Does the
-      hovered block also brighten or get a thicker outline? Does it
-      animate (a short fade) or switch instantly, and does
-      `prefers-reduced-motion` turn the fade off?
-
-    - [ ] **MAP.19 (bug) Pick big wedges, not single blocks, between zooms**
-      Boss (2026-10-01): "When selecting regions in the galactic map,
-      selecting bigger arcs between zooms. Even if we can select a
-      single block, that might be too small. So, have the user select
-      large wedges and zoom into that wedge. Same plan: quadrant, layer,
-      region, layer, region, ... , layer, sector. This might be a
-      duplicate or need to enhance a bugfix." It refines MAP.17 (the
-      wedge, slice and block drill-down) rather than duplicating it, and
-      the two should be built together: MAP.17 says what to remove
-      (free camera and rotation) and that picks go wedge, slice, block;
-      this item sets the size of each pick. Today each top-down stage
-      picks one block of the 243 -> 27 -> 3 -> 1 ladder (MAP.28), which
-      can be a small target. Done: every pick is a large wedge (an arc
-      of the ring band in view) that the map then zooms into, following
-      the ladder quadrant, layer, region, layer, region, and so on, down
-      to layer and sector; each pick stays large on screen at every
-      stage (and finger-sized on touch, as MAP.17 asks); the
-      highlight follows MAP.18. Open questions: how a "region" maps
-      onto the nested ladder (one of the 3x3 = 9 children of a block, a
-      wider arc across several blocks, or a new level between); whether
-      the layer pick alternates with every region pick, as the ladder
-      reads, or only where the disk is thick enough to have several
-      layers; and whether MAP.17's "slice" is the same as this
-      item's "layer" (if so, MAP.17's open question on what a slice
-      is is settled).
-
+    Done in 7.44.0 (PR #171); its bugs MAP.17-19 are fixed too.
   - [ ] **MAP.22 NAV page picks on the map**
 
     Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
@@ -454,41 +345,7 @@ MAP.48 and MAP.37, all fixed.
     decision 4 and a migration.
 
   - [x] **MAP.25 "Show on Galaxy Map" links**
-    Done (PR #188); kept as the parent of its bug.
-    - [ ] **MAP.26 (bug) "Show on Galaxy Map" should open at the sector, and the map needs its own Back and Forward**
-
-      Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 8
-
-      Boss (2026-10-01): "when the
-      user clicks "Show on Galaxy" It should be zoomed in to the sector
-      level of the slice that we can see that sector, and back and forward
-      buttons to travel ones own history on the map display". Today
-      `/galaxy?sector=<designation>` opens the sector's stage 8
-      (`galaxystages.parseStageQuery`), and the sector and system pages
-      and search results link to it (MAP.25), but the NAV result's link
-      opens the course overlay (`/galaxy?course=<from>,<to>`, MAP.27)
-      over the galaxy. The map has no Back or Forward of its own; moving
-      between stages relies on the breadcrumb and the browser's Back
-      button. Done:
-      - Every "Show on Galaxy Map" link (sector, system and search pages,
-        the NAV result) opens the map zoomed in to the sector level of
-        the slice holding that sector, with the sector in view and
-        highlighted.
-      - The map display has Back and Forward buttons that step through
-        the user's own history on the map (each stage or position they
-        visited), separate from but consistent with the browser's
-        history and the stage URLs.
-
-      This follows the wedge, slice and block drill-down of MAP.17
-      (the "slice" here is MAP.17's slice), and builds on MAP.25's
-      links. Open questions: for the NAV result, which sector is shown
-      (the start, the destination, or a view that fits both, as
-      MAP.27's course does today)? Is the map's history its own list or
-      the browser's history (`history.pushState` per stage) with the
-      buttons calling `history.back()`/`forward()`? Does it survive a
-      page reload or a visit to a sector page and back? How far back
-      does it go?
-
+    Done (PR #188); its bug MAP.26 is fixed too.
 - [x] **MAP.3 A bigger Galaxy Map with controls underneath**
   Done in 7.55.0 (PR #178); kept as the parent of its subitem.
   - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
@@ -504,8 +361,8 @@ MAP.48 and MAP.37, all fixed.
     window can't fit 3:4 (as on phones); when there's room beside the
     map, the slab list moves to its left; when there isn't, it stays
     under the map with the other controls; no layout jump as stages
-    change. Goes with MAP.17 (once the drill-down picks wedges and
-    slices, the left-hand list holds whatever the current stage offers)
+    change. The list is now the layer strip of the top-down drill-down
+    (MAP.17): it offers layers when a layer is to be picked
     and follows the Responsive Web Design Standards notes in the UX
     section (size classes, container queries). Open questions: is 3:4
     width to height (taller than wide) or height to width (4:3, wider
@@ -523,24 +380,6 @@ MAP.48 and MAP.37, all fixed.
     Done in 7.25.0 (PR #142).
   - [x] **MAP.42 Wedge lines from the center**
     Done in 7.9.0 (PR #120).
-
-    - [ ] **MAP.44 (bug) Wedge lines and ring circles run far past a zoomed-in block**
-      Boss (2026-10-01): "when zoomed in to a sector block it the radial
-      lines should only be contained within the block and just a little
-      beyond, and that should also be cylindar boundaries about the
-      same." Today the wedge lines (`galaxymap3d.js`, `updateWedgeLevels`
-      and `clipWedgeLevel`) are clipped only to the view ball around the
-      camera's target, so when the drill-down (MAP.2) is zoomed in to a
-      block they still run across the whole view, and the cylinder
-      (ring) boundaries do the same. Done: zoomed in to a block, the
-      wedge lines and the ring boundaries are drawn only across that
-      block and a small margin past its edges, at every drill-down stage;
-      zoomed out, they stop at the galaxy's edge as now.
-      Open questions: how big "a little beyond" is (a fixed fraction of
-      the block, such as 10-20%, or a few pixels on screen)? Do the lines
-      fade out across the margin or stop sharply? Does the same apply to
-      the 3D stages while MAP.17 still has them, or only to the
-      top-down ones?
 
 - [x] **MAP.11 Every kind of phenomenon on the Sector Map, clickable**
   Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
@@ -595,45 +434,6 @@ MAP.48 and MAP.37, all fixed.
   yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
 
-- [ ] **MAP.49 (bug) The System Map shows planet orbits inside an asteroid belt**
-  Boss (2026-10-01): "the system view still is showing orbits of
-  planets inside the orbit of an asteroid belt." Generation already
-  keeps planets clear of belts (a planet after a belt keeps 5 Hill
-  radii clear of its outer edge, and belts can't overlap the next
-  planet out, per the CHANGELOG), so the first lead is the drawing:
-  `html/lib/systemmap.py` places every orbit on a shared log scale
-  (`_radial_px`), but `_belt_band_px` draws the belt's ring width
-  linearly (`radius_px * (upper - lower) / distance`) and clamps it to
-  9-40 px, so on the log scale the drawn band can reach past a
-  neighboring planet's orbit. Second lead: systems stored before those
-  generation fixes, which a regenerate would clear. Done: the belt's
-  ring is drawn from its inner and outer edges mapped through the same
-  log scale as the orbits (with a minimum visible width that never
-  crosses a neighbor's orbit), on the System Map and in the 3D system
-  view if it draws belts too; a test checks that no drawn planet orbit
-  falls inside a drawn belt band for systems with belts; and a check
-  over the stored data reports any planet whose orbit really is inside
-  a belt (if there are any, that is a generation bug to fix too).
-
-- [ ] **MAP.50 (bug) Names run off the edge of the map**
-  Boss (2026-10-01): "names should not run off the screen edge." Taken
-  to mean the name labels on the maps, the System Map first. Lead:
-  `html/lib/systemmap.py` draws into a fixed 700 x 700 viewBox and
-  places each label with `_label_sides_2d`, which tries below, above,
-  right and left to avoid other labels and markers but never checks the
-  candidate against the viewBox edges, so a name near the edge (an
-  outer planet, a long name) is cut off; `static/systemmap.js`'s
-  `layoutLabels` measures the real text the same way. Done: on the
-  System Map (and its moon views), a label that would cross an edge
-  picks a direction that fits, or is shifted inward, so every name is
-  fully on screen at every size class; the Sector Map's and Galaxy
-  Map's name labels are checked for the same problem and fixed if they
-  have it; a test places labels for bodies near every edge and checks
-  each label rectangle lies inside the view. Open question: when no
-  direction fits, shift the label inward along the edge, or shorten it
-  with an ellipsis and show the full name on hover? Default: shift it
-  inward.
-
 ## GEN: Generation and physics
 
 - [ ] **GEN.8 Give rogue planets a planet class, with a rogue flag in the class constants**
@@ -682,6 +482,81 @@ MAP.48 and MAP.37, all fixed.
   catalogued galaxies) or generated? Does every row get a galaxy id, or
   only the top-level ones (sectors, the skeleton)? Is a second galaxy
   in the same database or a second database chosen at login?
+
+- [ ] **GEN.23 Generate a smaller sphere, then backfill bright stars around it per sector block**
+  Boss (2026-10-01): "right now the way it's set up, the default is
+  about 100 light-years around a new sector. When the galaxy is
+  generated I want to reduce that and make the default sector
+  generation sphere about 10 pc, rounded up. Then use the
+  100-light-year default to rerun the large star generation on the
+  100-light-year area around the generated sector, skipping over
+  sectors that already have stars of the required brightness or lower.
+  When this happens we're going to generate all the stars that are 100
+  luminosities or larger, up to what has already been generated. Again
+  it's going to be bound by the lower and upper limit. This means we're
+  going to have to extend the star generation storage for the lowest
+  level of stars generated for a region. For the sector blocks we'll
+  group to make the calculations easier and such. We won't do this per
+  sector; we'll do this per sector block, each containing a 3x3 cube.
+  For that block we will store the star minimum and maximum generated.
+  We'll store it, say, if all stars 100 solar luminosities or higher
+  have been generated. I guess we only need to store the data
+  pertaining to the dimmest luminosity already generated. It will skip
+  over any sectors that have already been filled. This is only for the
+  logic for unfilled sectors surrounding the filled sector space."
+  Today `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY` (100 ly,
+  about 30.7 pc) is the sphere filled by `generate.py galaxy`'s random
+  start, and the default of `POST /api/sectors/<id>/generate-neighborhood`
+  (the Generate page and the map's neighborhood generation, MAP.20);
+  `--center-sector` has no default and requires `--radius-pc`. The
+  plan's bright-star scatter (`brightStars.scatter`) draws every star at
+  or above one galaxy-wide threshold
+  (`BRIGHT_STAR_MIN_LUMINOSITY_SOL`, default 500 L_sun, stored in
+  `galaxy_shape.bright_star_min_luminosity_sol`) into `bright_stars`.
+  Done: the default generation sphere is about 10 pc, rounded up; after
+  that sphere is filled, a bright-star backfill runs over the 100 ly
+  sphere around the same center, adding only the stars from 100 L_sun up
+  to (not including) the luminosity already scattered there, so no
+  brighter star is drawn twice; the backfill works per sector block (a
+  3x3x3 cube of sectors) and stores, for each block, the dimmest
+  luminosity already generated in it, so a block already down to 100
+  L_sun is skipped; filled sectors are skipped, since this is only for
+  the unfilled sectors around the filled space; and the new stars show
+  on the Galaxy Map like the existing bright stars. Open questions:
+  - "10 pc, rounded up": to the next whole sector (sectors are 4 pc, so
+    12 pc), to whole sector blocks, or to a round number of light-years?
+    Does the smaller default apply to every generate-around entry point
+    (random start, the API and the Generate page, `--center-sector`
+    gaining a default) or only to the random start?
+  - Where the per-block dimmest luminosity is stored: a new table keyed
+    by block (ring/layer/slot of the block's corner or center, and a
+    schema version bump), a column on an existing block table if there
+    is one, or derived from `MIN(luminosity)` of `bright_stars` in the
+    block (which can't tell "no star that dim landed here" from "not
+    generated yet")? Boss asked for the minimum and maximum, then only
+    the dimmest; is the maximum needed at all, since the upper bound is
+    the galaxy-wide scatter level?
+  - How this fits PERF.5 (staged bright-star layers, a galaxy-wide
+    star-fill level): is the per-block level PERF.5's level stored per
+    block instead of per galaxy, so a galaxy-wide "go down to N" and
+    this local backfill share one mechanism? A block's level could then
+    be lower than the galaxy's, and the galaxy-wide pass skips it.
+  - "Up to what has already been generated": the upper limit is the
+    galaxy's current scatter level (500 by default), or the block's own
+    level when it has one? And "the lower and upper limit" means the
+    100 L_sun floor and that level?
+  - Is 100 L_sun fixed, a constant in `program_constants`, or a config
+    or Generate page option? Is the 100 ly backfill radius the existing
+    `RANDOM_START_NEIGHBORHOOD_RADIUS_LY` reused, or its own constant?
+  - Must the backfilled stars come from the same random stream as a
+    galaxy-wide scatter (PERF.5's question), so a block backfilled now
+    matches the stars a later galaxy-wide pass to 100 L_sun would draw?
+  - A block that is partly filled: backfill only its unfilled sectors
+    and record the block's level anyway, or leave its level unset so a
+    later pass knows the filled sectors never got the dimmer stars?
+  - Does the backfill run inside the same job and progress bars as the
+    sphere's generation (PERF.4, the Generate page), and do PERF.3's
+    size and time estimates include it?
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -1172,30 +1047,87 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
 
 The login protection research of 2026-10-01 (what's built today, the
 gaps found, standard methods compared, and the recommended design) is in
-the design doc above; its section numbers are cited below. Order: SEC.20,
-SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25, SEC.26, SEC.27.
+the design doc above; its section numbers are cited below. Order: SEC.28
+(with SEC.20), SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25,
+SEC.26, SEC.27.
 
-- [ ] **SEC.20 Log every failed and locked login with its address**
+- [ ] **SEC.28 An always-on log in the standard log location**
+  Boss (2026-10-01): "Implement a full logging suite that will log to
+  the standard log location. If it's on Windows then it should just do
+  its root folder and a subdirectory for logs but on other platforms it
+  should do the standard log directory. We already have two output
+  levels but I want to make sure that login, logout, database reads and
+  writes can be viewed. Not so much reads, but database changes should
+  be written to the log file and authorization errors, like missed
+  authorizations, should be logged to that file." Today the only file
+  log is the debug log (`stellarObjects/log.py`): written only when
+  `config.json`'s `"debug"` is on, at DEBUG severity, to
+  `/var/log/planetgen.log` (`appconfig.log_file_path`), with every SQL
+  statement and random roll. With debug off nothing is written to a
+  file. Done:
+  - A second, always-on log file, separate from the debug log, at INFO
+    severity, in the platform's standard place: Linux
+    `/var/log/planetgen/planetgen.log`; macOS
+    `/Library/Logs/planetgen/planetgen.log`; Windows `logs\planetgen.log`
+    under the install's root folder. `config.json`'s `"log_dir"` (and an
+    environment variable) can move it. The installers (`install.sh`,
+    `install.ps1`, the macOS path) create the directory with the web
+    server's user able to write and others unable to read (0750 / 0640),
+    and rotate it (logrotate on Linux, the existing hourly cron;
+    a size-based rotating handler on Windows and macOS).
+  - What it records, one line per event, each with the time (UTC), the
+    process, the client address, the user (or API key label) and the
+    outcome; never a password, token or key:
+    - logins (success, failure, lock), logouts, session expiry and
+      credential changes (SEC.20 is the login part);
+    - authorization failures: a request with no or an expired session,
+      a bad or revoked API key, a failed CSRF check, an admin-only page
+      or route refused;
+    - database changes: every write the web interface or API makes
+      (create, update, delete, regenerate, rename, facility placement,
+      with the target and who did it, alongside the existing
+      `admin_audit_log` row), every migration, and each generation run
+      or job as one start and one finish line with its counts, not one
+      line per row (sector fill writes millions of rows);
+    - database reads only as a count per request at DEBUG, which stays in
+      the debug log.
+  - One fixed line format, documented in `docs/config.md`, so tools can
+    match it, for example
+    `2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"`
+    (the address always comes before any user-supplied text, which is
+    quoted and escaped so it can't fake a field). SEC.27's fail2ban
+    filter matches this format.
+  - The debug log keeps working as it does; with debug on it also gets
+    every always-on line.
 
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
+  Open questions: is the Linux location `/var/log/planetgen/` (a
+  directory, so the web user can own it) acceptable, or should it stay
+  the single file `/var/log/planetgen.log` the debug log uses? Default:
+  the directory. Does it also go to syslog or the Windows Event Log?
+  Default: no, file only. How long rotated logs are kept? Default: 30
+  days.
 
-  Today nothing records a failed or locked login: `admin_audit_log` only
-  gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
-  wrong password on the web `/login` form answers 200 with an error
-  message (`web/admin_pages.py`, `login`), so Apache's access log can't
-  tell it from a page view. Done: every failed login, every lock (per
-  username today, per address with SEC.1) and every wrong current
-  password (SEC.23) writes one log line with the time, client address
-  (`request.remote_addr`) and username, and a row in `admin_audit_log`
-  (`login.failed`, `login.locked`; the username as typed, capped in
-  length; never the password); the `/login` form answers 401 for a wrong
-  password and 429 for a lock; the admin stats page shows recent
-  failures. The log line's format is fixed and documented, so SEC.27's
-  fail2ban filter can match it. Open questions: the debug log (only
-  written when `debug` is on) or a separate always-on auth log file, and
-  where it lives (next to the debug log, mode 0640)? How long audit rows
-  for failures are kept (a flood of failures shouldn't grow the table
-  without bound: prune after 90 days, or cap the count)?
+  - [ ] **SEC.20 Log every failed and locked login with its address**
+
+    Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
+
+    Today nothing records a failed or locked login: `admin_audit_log` only
+    gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
+    wrong password on the web `/login` form answers 200 with an error
+    message (`web/admin_pages.py`, `login`), so Apache's access log can't
+    tell it from a page view. Done: every failed login, every lock (per
+    username today, per address with SEC.1) and every wrong current
+    password (SEC.23) writes one log line with the time, client address
+    (`request.remote_addr`) and username, and a row in `admin_audit_log`
+    (`login.failed`, `login.locked`; the username as typed, capped in
+    length; never the password); the `/login` form answers 401 for a wrong
+    password and 429 for a lock; the admin stats page shows recent
+    failures. The log line's format is fixed and documented, so SEC.27's
+    fail2ban filter can match it. The log line goes to SEC.28's always-on
+    log (settled by Boss's request of 2026-10-01), not the debug log.
+    Open question: how long audit rows for failures are kept (a flood of
+    failures shouldn't grow the table without bound)? Default: prune
+    after 90 days.
 
 - [ ] **SEC.1 Lock out an IP address after failed logins**
 
@@ -1319,17 +1251,69 @@ SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25, SEC.26, SEC.27.
   command line? Is "remember this device for 30 days" (tied to SEC.22's
   cookie) allowed?
 
-- [ ] **SEC.27 A fail2ban recipe in the deployment docs**
+- [ ] **SEC.27 A fail2ban filter and jail for login brute force**
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 9)
 
-  Done: `docs/deployment/` gets an optional Linux section with a
-  fail2ban filter matching SEC.20's log line and a jail that bans an
-  address at the firewall after repeated failures (ignoring the server's
-  own addresses and SEC.1's allowlist), and how to check and lift a ban;
-  a short note on Apache-level options (mod_evasive, mod_security) and
-  why they're optional. Nothing is installed by `install.sh`. Waits on
-  SEC.20.
+  Boss (2026-10-01): "generate a fail-to-ban filter example and jail
+  example to help prevent logins or brute-force attack logins." Done:
+  `docs/deployment/` gets an optional Linux section with the filter and
+  jail below (adjusted to SEC.28's final line format), how to install
+  them (`/etc/fail2ban/filter.d/planetgen.conf`,
+  `/etc/fail2ban/jail.d/planetgen.local`), test the filter
+  (`fail2ban-regex /var/log/planetgen/planetgen.log planetgen`), and
+  check or lift a ban (`fail2ban-client status planetgen-login`,
+  `fail2ban-client set planetgen-login unbanip <address>`); and a short
+  note on Apache-level options (mod_evasive, mod_security) and why
+  they're optional. Nothing is installed by `install.sh`. Waits on
+  SEC.28 and SEC.20 (the lines it matches). The proxy caveat from SEC.1
+  applies: behind a reverse proxy, the log must carry the real client
+  address (`proxy_fix`), or fail2ban would ban the proxy.
+
+  Example filter, `/etc/fail2ban/filter.d/planetgen.conf`:
+
+  ```ini
+  # Matches SEC.28's always-on log lines, for example:
+  # 2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+  [Definition]
+  # Failed passwords, locked usernames and wrong current passwords on
+  # /account. The address comes before any user-supplied text, so a
+  # crafted username can't steer the match.
+  failregex = ^\s*planetgen\[\d+\]: AUTH (?:login\.failed|login\.locked|password\.failed) ip=<HOST>(?:\s|$)
+  ignoreregex =
+
+  [Init]
+  # ISO 8601 UTC at the start of each line; fail2ban cuts the date off
+  # before applying failregex, hence the ^\s* above.
+  datepattern = {^LN-BEG}%%Y-%%m-%%dT%%H:%%M:%%SZ
+  ```
+
+  Example jail, `/etc/fail2ban/jail.d/planetgen.local`:
+
+  ```ini
+  [planetgen-login]
+  enabled  = true
+  filter   = planetgen
+  logpath  = /var/log/planetgen/planetgen.log
+  port     = http,https
+  backend  = auto
+  # 5 failures within 10 minutes bans the address for 1 hour; repeat
+  # offenders get longer bans, up to 1 week.
+  maxretry = 5
+  findtime = 10m
+  bantime  = 1h
+  bantime.increment = true
+  bantime.factor    = 2
+  bantime.maxtime   = 1w
+  # Never ban the server itself or the admin's own addresses (match
+  # SEC.1's allowlist).
+  ignoreip = 127.0.0.1/8 ::1
+  ```
+
+  An optional second jail can watch authorization failures (SEC.28's
+  `AUTHZ` lines: bad API keys, refused admin routes) with a higher
+  `maxretry` (for example 20 in 10 minutes), since browsers hit those by
+  accident more often than a login form.
 
 ## USR: User accounts
 

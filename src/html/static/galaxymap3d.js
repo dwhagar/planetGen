@@ -22,17 +22,14 @@
 // way this map's own former flat SVG projection (a legacy "+y is down on
 // screen" convention) needed one.
 //
-// One content tier: the galaxy's sector grid drawn as a solid of lit
-// cylindrical segment blocks -- single sectors up close, blocks of m x m x
-// ~m whole sectors (m a power of three) further out, sized so a block
-// stays a few pixels across (see ./galaxyprisms.js). Density is computed
-// right here from the galaxy's own analytic shape, not fetched, and colors
-// each block. Unfilled space is translucent; each tile's `filled` summary
-// says how many generated sectors every block holds, and a block grows
-// more solid with that share, fully solid once every sector in it is
-// generated. Clicking a block (or empty space, which is the sector there)
-// shows its address or ranges, counts, coordinates and 8 corners; at one
-// sector per block, a generated sector's panel links to its page.
+// The galaxy's sector grid is drawn as blocks of whole sectors, one
+// drill-down stage at a time (./galaxystageview.js, rules in
+// ./galaxystages.js), always from straight above: the visitor picks a
+// quarter, a layer, an arc, a layer, an arc, ... down to a sector, and
+// there is no free camera (MAP.17). Density is computed right here from
+// the galaxy's own analytic shape, not fetched, and colors each block.
+// Unfilled space is mostly see-through; a block holding generated
+// sectors is amber and grows more solid with their share (MAP.37).
 //
 // Nebulae and supernova remnants are drawn over the blocks as soft
 // translucent spheres their real size (each tile lists the ones reaching
@@ -41,21 +38,6 @@
 // Pre-placed bright stars (every star of 500 L☉ or more) are points of
 // light a few pixels across with a big soft glow, the same size at every
 // zoom; clicking one shows it -- see "Bright stars".
-//
-// Zooming stays smooth: the blocks for a view are built in a Web Worker
-// (./galaxyblocks.js), built views are kept and the next zoom step's are
-// prepared ahead, zoom steps glide instead of jumping, and a change of
-// block size crossfades -- see "Block sets" and the zoom glide below.
-//
-// Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
-// below interpolates between lib/galaxymap3d.py's own
-// clickZoomFactorMin/Max by the camera's CURRENT distance in log space,
-// recomputed fresh on every click -- big multiplicative jumps while
-// zoomed out over the whole galaxy, small fine ones once close to a
-// single sector, so a handful of clicks crosses the galaxy without ever
-// needing so fine a step that reaching the core takes dozens of clicks,
-// and without a step so coarse up close that it blows past the one
-// sector being approached.
 
 // Sibling modules are imported with this module's own `?v=<version>`
 // query (html/lib/fmt.py's `static_url`), so they are cached and
@@ -66,11 +48,11 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  blockAt, blockSectorCount, blockSectorRanges, blockSizeForScale, blockSlotRange, cellCoordinates, cellVertices,
-  drillBlockBounds, drillSlotRange, sectorAddressAt, sectorCellBounds, wedgeLines,
+  blockSectorCount, blockSectorRanges, blockSlotRange, cellCoordinates, cellVertices, drillBlockBounds, drillSlotRange,
+  sectorAddressAt, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
-const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
+const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
@@ -584,28 +566,12 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var MIN_RADIUS = data.minViewRadiusPc;
   var MAX_RADIUS = data.maxViewRadiusPc;
-  var CLICK_FACTOR_MIN = data.clickZoomFactorMin || 1.15;
-  var CLICK_FACTOR_MAX = data.clickZoomFactorMax || 4.0;
-  // Wheel zoom scales with how far the wheel actually moved (normalized
-  // to pixels): one ~100 px mouse-wheel notch is a ~1.28x step, while a
-  // trackpad's stream of tiny deltas zooms smoothly instead of taking a
-  // full step on every event. Pinch-zoom arrives as ctrl+wheel with even
-  // smaller deltas, hence the boost.
-  var WHEEL_ZOOM_PER_PX = 0.0025;
-  var WHEEL_MAX_PX = 200;
-  var PINCH_BOOST = 4;
   var GALAXY_RADIUS = data.galaxyRadiusPc || data.maxViewRadiusPc;
   // The galaxy's real edge (its outermost ring, unpadded): the wedge
   // lines stop here (MAP.43).
   var GALAXY_EDGE = data.galaxyEdgePc || GALAXY_RADIUS;
-  var KEY_ROTATE_STEP = THREE.MathUtils.degToRad(6);
-  var ROTATE_SENSITIVITY = THREE.MathUtils.degToRad(0.4);
-  var DRAG_CLICK_THRESHOLD_PX = 4;
-  var MIN_POLAR = THREE.MathUtils.degToRad(2);
-  var MAX_POLAR = THREE.MathUtils.degToRad(178);
 
   var target = new THREE.Vector3(data.initialCenter[0], data.initialCenter[1], data.initialCenter[2]);
-  var initialTarget = target.clone();
   var initialRadius = data.initialRadiusPc;
 
   // theta: azimuth from +x in the xy-plane; phi: polar angle from +z --
@@ -613,7 +579,6 @@ function initGalaxyMap3d(canvasEl, data) {
   // system.md and stellarObjects.galaxyGeometry.sector_position_pc use,
   // deliberately not THREE.Spherical (which assumes a +y-up world).
   var orbit = { radius: initialRadius, theta: THREE.MathUtils.degToRad(-32), phi: THREE.MathUtils.degToRad(60) };
-  var initialOrbit = { radius: orbit.radius, theta: orbit.theta, phi: orbit.phi };
 
   function offsetFromOrbit(o) {
     var sinPhi = Math.sin(o.phi);
@@ -634,38 +599,6 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   applyCamera();
 
-  // --- Logarithmic click-zoom factor ------------------------------------
-  //
-  // See this file's own module docstring. Computed fresh from whatever
-  // radius is passed in (always the CURRENT orbit.radius, before it
-  // changes) -- never cached, since the whole point is that it shrinks
-  // as the camera gets closer.
-  function clickZoomFactor(currentRadius) {
-    if (MAX_RADIUS <= MIN_RADIUS) {
-      return CLICK_FACTOR_MIN;
-    }
-    var clamped = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, currentRadius));
-    var t = (Math.log(clamped) - Math.log(MIN_RADIUS)) / (Math.log(MAX_RADIUS) - Math.log(MIN_RADIUS));
-    return CLICK_FACTOR_MIN + t * (CLICK_FACTOR_MAX - CLICK_FACTOR_MIN);
-  }
-
-  function setRadius(radius) {
-    orbit.radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius));
-    applyCamera();
-    updateScaleBar();
-  }
-
-  function resetView() {
-    zoomAnimation = null;
-    target.copy(initialTarget);
-    orbit.radius = initialOrbit.radius;
-    orbit.theta = initialOrbit.theta;
-    orbit.phi = initialOrbit.phi;
-    applyCamera();
-    updateScaleBar();
-    scheduleFetch(true);
-  }
-
   // --- Wedge lines ---------------------------------------------------------
   //
   // The master lines of the sector grid (galaxyprisms.wedgeLines): lines in
@@ -678,6 +611,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // (updateWedgeLevels). Drawn over everything (no depth test) and never
   // picked. The Wedges button hides them.
   var wedgeColor = new THREE.Color(cssVar("--text", "#e6e8f0"));
+  // Guide lines only: mostly see-through, just visible enough to follow
+  // (Boss, 2026-10-01). The bearing labels stay fully readable.
+  var WEDGE_LINE_OPACITY = 0.22;
   var wedgeGroup = new THREE.Group();
   wedgeGroup.renderOrder = 2;
   scene.add(wedgeGroup);
@@ -702,7 +638,7 @@ function initGalaxyMap3d(canvasEl, data) {
       byMasters.get(line.masters).push(line);
     });
     var material = new THREE.LineBasicMaterial({
-      color: wedgeColor, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false,
+      color: wedgeColor, transparent: true, opacity: WEDGE_LINE_OPACITY, depthTest: false, depthWrite: false,
     });
     byMasters.forEach(function (lines, masters) {
       var level = { masters: masters, r0: lines[0].r0, lines: lines, objects: [], segments: null };
@@ -735,48 +671,62 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   })();
 
+  // The part of the galaxy the drill-down shows ({r0, r1, a0, a1}: radii
+  // in pc, bearings in radians), or null for the whole galaxy. Zoomed in,
+  // the wedge lines are kept to it and a margin of WEDGE_CLIP_MARGIN of
+  // its size around it (MAP.44); zoomed out to the galaxy they run to its
+  // edge (MAP.43).
+  var wedgeClip = null;
+  var WEDGE_CLIP_MARGIN = 0.15;
+
+  function setWedgeClip(clip) {
+    wedgeClip = clip;
+    updateWedgeLevels(pcPerPixelAtTarget());
+  }
+
   // Shows each zone's lines while neighbours in that zone are at least
-  // WEDGE_MIN_GAP_PX apart on screen.
-  // - Labelled zones run out to the galaxy's edge. The gap is measured
-  //   where the view reaches farthest out (the focus's radius plus half
-  //   the screen's height), or at the zone's start.
-  // - Finer zones are measured at the focus (or the zone's start) and are
-  //   clipped to the view ball (fadeRadius around the target, in the
-  //   plane): drawn out to the edge, their far ends would converge into a
-  //   hatch toward the horizon.
+  // WEDGE_MIN_GAP_PX apart on screen, measured where the view reaches
+  // farthest out (the focus's radius plus half the screen's height), or at
+  // the zone's start. The bearing labels only show over the whole galaxy.
   function updateWedgeLevels(pcPerPixel) {
     var focusR = Math.hypot(target.x, target.y);
     var reachR = Math.min(GALAXY_EDGE, focusR + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
     wedgeLevels.forEach(function (level) {
-      var labelled = level.masters <= WEDGE_LABEL_MAX_MASTERS;
-      var gapPx = (2 * Math.PI * Math.max(level.r0, labelled ? reachR : focusR)) / level.masters / pcPerPixel;
+      var gapPx = (2 * Math.PI * Math.max(level.r0, reachR)) / level.masters / pcPerPixel;
       var show = level.masters === wedgeLevels[0].masters || gapPx >= WEDGE_MIN_GAP_PX;
-      level.objects.forEach(function (object) { object.visible = show; });
-      if (show && !labelled) {
+      level.objects.forEach(function (object) {
+        object.visible = show && (object === level.segments || !wedgeClip);
+      });
+      if (show) {
         clipWedgeLevel(level);
       }
     });
   }
 
-  // Each of a zone's lines as the part inside the circle where the view
-  // ball meets the plane, from where the line starts.
+  // Each of a zone's lines from where it starts to the galaxy's edge, or
+  // with a clip, only the part across the clip and its margin (none for a
+  // line whose bearing is outside them).
   function clipWedgeLevel(level) {
-    var radius = Math.sqrt(Math.max(0, fadeRadius * fadeRadius - target.z * target.z));
-    var cx = target.x;
-    var cy = target.y;
     var attribute = level.segments.geometry.getAttribute("position");
     var points = attribute.array;
+    var c = wedgeClip;
+    var marginR = c ? WEDGE_CLIP_MARGIN * Math.max(c.r1 - c.r0, ((c.r0 + c.r1) / 2) * (c.a1 - c.a0)) : 0;
+    var marginA = c ? Math.max(WEDGE_CLIP_MARGIN * (c.a1 - c.a0), marginR / Math.max(c.r1, 1)) : 0;
     level.lines.forEach(function (line, n) {
       var cos = Math.cos(line.angleRad);
       var sin = Math.sin(line.angleRad);
-      var along = cos * cx + sin * cy;
-      var disc = along * along - (cx * cx + cy * cy) + radius * radius;
-      var near = 0;
-      var far = 0;
-      if (disc > 0) {
-        near = Math.max(line.r0, along - Math.sqrt(disc));
-        far = Math.max(near, Math.min(GALAXY_EDGE, along + Math.sqrt(disc)));
+      var near = line.r0;
+      var far = GALAXY_EDGE;
+      if (c) {
+        var off = (((line.angleRad - c.a0 + marginA) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+        if (off > c.a1 - c.a0 + 2 * marginA) {
+          far = near;
+        } else {
+          near = Math.max(near, c.r0 - marginR);
+          far = Math.min(far, c.r1 + marginR);
+        }
       }
+      far = Math.max(near, far);
       points.set([near * cos, near * sin, 0, far * cos, far * sin, 0], 6 * n);
     });
     attribute.needsUpdate = true;
@@ -794,33 +744,17 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- The block solid -------------------------------------------------------
   //
-  // Everything is drawn as one solid of blocks (galaxyprisms.js). Blocks
-  // fill their whole cell, so the galaxy reads as one solid; a thin
+  // A stage's blocks (galaxyprisms.js) fill their whole cells; a thin
   // brighter outline along each face's own edges (found from the face's
   // 0..1 uv, about a screen pixel wide) keeps neighboring blocks apart.
-  //
-  // One built view (a "block set", see "Block sets" below) is two meshes
-  // sharing one shader:
+  // Each part is two meshes sharing one shader:
   // - solid: blocks whose every sector is generated, opaque;
   // - glass: everything else, translucent (no depth writes), its blocks
   //   sorted back to front from the camera when built. Unfilled space is
-  //   half to 80% opaque by density, and a block grows more solid with
-  //   its filled share (galaxyblocks.blockOpacity).
-  // Blocks holding filled sectors also get a warm tint on their faces and
-  // warm, stronger face edges, in step with their filled share
-  // (galaxyblocks.blockFillStep), so they can be picked out even where the
-  // opacity step alone is small.
-  // Two things depend on where the camera is, so the shader does them and
-  // a set built once stays right while the camera zooms and turns:
-  // - whole blocks close to the camera are dropped (nearCut, tested on
-  //   each block's own center), so flying through the disk shows what's
-  //   ahead instead of a wall of the nearest blocks;
-  // - blocks darken toward the rim of the view ball (fadeCenter,
-  //   fadeRadius: EDGE_FADE_START to EDGE_FADE_END of the way out), so the
-  //   solid fades out instead of stopping at a hard spherical rim the eye
-  //   reads as a ball.
-  // `fade` scales a whole set's opacity, for crossfades. The logdepthbuf
-  // chunks match the renderer's logarithmic depth buffer.
+  //   10% to 30% opaque by density, and a block grows more solid with its
+  //   filled share (galaxyblocks.blockOpacity).
+  // `fade` scales a mesh's opacity (the drill-down's fades and dimming).
+  // The logdepthbuf chunks match the renderer's logarithmic depth buffer.
   // Filled blocks (MAP.37: "a much higher contrast"): a saturated amber
   // over most of the face and on the edges, nothing like the blue-white
   // density ramp, the same for one generated sector as for many (their
@@ -828,25 +762,22 @@ function initGalaxyMap3d(canvasEl, data) {
   // pale background.
   var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
   var FILLED_FACE_MIX = 0.85;
-  var EDGE_FADE_START = 0.6;
-  var EDGE_FADE_END = 1.0;
+  // How far an unfilled block's edges brighten toward white: the ring,
+  // wedge and layer boundaries of the grid, kept faint like the wedge
+  // lines (a filled block's amber edges add up to 0.7 more).
+  var GRID_EDGE_MIX = 0.1;
 
   function makeBlockMaterial(translucent) {
     return new THREE.ShaderMaterial({
       uniforms: {
-        nearCut: { value: 0 }, filledTint: { value: FILLED_TINT }, fade: { value: 1 },
-        fadeCenter: { value: new THREE.Vector3() }, fadeRadius: { value: 0 },
+        filledTint: { value: FILLED_TINT }, fade: { value: 1 },
       },
       transparent: translucent,
       depthWrite: !translucent,
       vertexShader: [
         "#include <common>",
         "#include <logdepthbuf_pars_vertex>",
-        "uniform float nearCut;",
-        "uniform vec3 fadeCenter;",
-        "uniform float fadeRadius;",
         "attribute vec3 prismColor;",
-        "attribute vec3 prismCenter;",
         "attribute float prismAlpha;",
         "attribute float prismFill;",
         "attribute vec2 faceUv;",
@@ -854,18 +785,11 @@ function initGalaxyMap3d(canvasEl, data) {
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
-        "varying float vKeep;",
         "void main() {",
-        "  float rim = 0.0;",
-        "  if (fadeRadius > 0.0) {",
-        "    rim = clamp((distance(prismCenter, fadeCenter) / fadeRadius - " + EDGE_FADE_START.toFixed(3) + ") / "
-          + (EDGE_FADE_END - EDGE_FADE_START).toFixed(3) + ", 0.0, 1.0);",
-        "  }",
-        "  vColor = prismColor * (0.25 + 0.75 * (1.0 - rim * rim * (3.0 - 2.0 * rim)));",
+        "  vColor = prismColor;",
         "  vAlpha = prismAlpha;",
         "  vFill = prismFill;",
         "  vUv = faceUv;",
-        "  vKeep = step(nearCut, distance(cameraPosition, prismCenter));",
         "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
         "  gl_Position = projectionMatrix * mvPosition;",
         "  #include <logdepthbuf_vertex>",
@@ -880,15 +804,13 @@ function initGalaxyMap3d(canvasEl, data) {
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
-        "varying float vKeep;",
         "void main() {",
-        "  if (vKeep < 0.5) discard;",
         "  #include <logdepthbuf_fragment>",
         "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
         "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
         "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha * fade);",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade);",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),
@@ -920,80 +842,10 @@ function initGalaxyMap3d(canvasEl, data) {
     highlightSprite.scale.set(size, size, 1);
   }
 
-  // The radius of the view ball around the target (the fetched tiles'
-  // reach, which the solid fades out toward): set by renderFromCache.
-  var fadeRadius = 0;
-
-  // --- Filled sectors --------------------------------------------------------
-  //
-  // Every tile carries a `filled` summary (queryDb.galaxy_filled_in_box):
-  // at g = 1 each generated sector's address, id, name and system count;
-  // coarser, counts per cell g sectors a side. renderFromCache turns them
-  // into points (a sector's center, or a cell's middle) with counts, and
-  // galaxyblocks.js sums those into the blocks it draws. A cell never
-  // spans more than one block ring or layer (g divides m), so only a
-  // cell's wedge can straddle two blocks, and its count goes to the one
-  // holding its middle.
-  var filledPoints = [];
-  var filledVersion = 0;
-
-  function filledPointsOf(filled) {
-    var out = [];
-    if (!filled || !filled.cells) {
-      return out;
-    }
-    var g = filled.g || 1;
-    filled.cells.forEach(function (cell) {
-      if (g === 1) {
-        var bounds = sectorCellBounds(cell[0], cell[1], cell[2], edgePc);
-        var c = cellCoordinates(bounds).cartesian;
-        out.push({
-          x: c[0], y: c[1], z: c[2], count: 1,
-          sector: {
-            id: cell[3], system_count: cell[4], name: cell[5],
-            ring_index: cell[0], layer_index: cell[1], ring_slot_index: cell[2],
-            designation: sectorDesignation(cell[0], cell[1], cell[2]),
-            galactic_radius_pc: Math.hypot(c[0], c[1], c[2]), edge_ly: data.edgeLy,
-          },
-        });
-        return;
-      }
-      var wedges = Math.max(3, Math.round(2 * Math.PI * (cell[0] + 0.5)));
-      var r = (cell[0] + 0.5) * g * edgePc;
-      var t = ((cell[2] + 0.5) * 2 * Math.PI) / wedges;
-      out.push({ x: r * Math.cos(t), y: r * Math.sin(t), z: cell[1] * g * edgePc, count: cell[3] });
-    });
-    return out;
-  }
-
-  // The filled points as galaxyblocks.js takes them (POINT_STRIDE numbers
-  // each).
-  function packFilledPoints(points) {
-    var packed = new Float64Array(points.length * POINT_STRIDE);
-    points.forEach(function (point, n) {
-      var o = n * POINT_STRIDE;
-      packed[o] = point.x;
-      packed[o + 1] = point.y;
-      packed[o + 2] = point.z;
-      packed[o + 3] = point.count;
-      packed[o + 4] = point.sector ? 1 : 0;
-      var relative = point.sector ? placedRelativeDensity(point.sector, data.referenceDensityPerLy3) : null;
-      packed[o + 5] = relative == null ? NaN : relative;
-    });
-    return packed;
-  }
-
-  // With the slice on (the default), blocks above the focus's own layer
-  // are left out, so the view looks down on the solid's cut face -- the
-  // arms and whatever layer the focus is in -- instead of its outside.
-  var sliceAtFocus = true;
   // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
   var PRISM_DIM = new THREE.Color(0x1d2340);
   var PRISM_ACCENT = new THREE.Color(accentColor);
   var PRISM_HOT = new THREE.Color(0xeef0ff);
-  // Blocks centered nearer the camera than this x the orbit radius (the
-  // camera's distance to the target) aren't drawn.
-  var NEAR_CUT = 0.4;
   var galaxyShape = data.densityShape || null;
   var edgePc = data.edgePc || 1;
   // How many sectors a side the drawn blocks are.
@@ -1012,42 +864,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return ((radius || orbit.radius) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
   }
 
-  // --- Block sets ------------------------------------------------------------
+  // --- Blocks ------------------------------------------------------------------
   //
-  // galaxyblocks.js builds a view's blocks; a Web Worker runs it, so a
-  // zoom step never stalls the page. The first frame is built right here
-  // (it must not wait on the worker), and so is everything when a worker
-  // can't start.
-  //
-  // A built view is kept as a block set, keyed so that one set serves
-  // every nearby camera position (blockViewFor):
-  // - the block size m and the view ball's radius, rounded up to one of
-  //   VIEW_BUCKETS_PER_DOUBLING steps per doubling;
-  // - the ball's center, snapped to a grid VIEW_SNAP_FRACTION of that
-  //   radius (the ball grows by the snap's reach, so it still covers the
-  //   view);
-  // - the slice's block layer and the block layer the camera is in (which
-  //   decides the top and bottom faces it can see).
-  // The most recent sets stay ready (up to BLOCK_SET_MAX_VERTICES in
-  // all), so zooming back is instant. While the page is idle, the worker
-  // prebuilds the views one zoom step in and out, and the nearest views
-  // with the next finer and coarser block size. When the needed set isn't
-  // built yet, the last one stays on screen until it is. A new set with a
-  // different block size crossfades in over CROSSFADE_MS; one with the
-  // same size (the same blocks, a little more or less of them) swaps.
-  // When the generated sectors change (new tiles), a set already built
-  // still shows at once and is rebuilt in the background.
-  var VIEW_BUCKETS_PER_DOUBLING = 8;
-  var VIEW_SNAP_FRACTION = 1 / 32;
-  var BLOCK_SET_MAX_VERTICES = 4000000;
-  var CROSSFADE_MS = 220;
-  // A padded ball holds more blocks than the view's own, so its budget
-  // (galaxyprisms.blocksForView's) grows by the same share of surface,
-  // and the block size stays what the view's own ball would get.
-  var VIEW_BUCKET_STEP = Math.pow(2, 1 / VIEW_BUCKETS_PER_DOUBLING);
-  var VIEW_PAD = VIEW_BUCKET_STEP * (1 + VIEW_SNAP_FRACTION * Math.sqrt(3) / 2);
-  var VIEW_BUDGET = Math.round((data.blockBudget || 60000) * VIEW_PAD * VIEW_PAD);
-
+  // The drill-down (galaxystageview.js) draws each stage's blocks with
+  // galaxyblocks.js's scene and the block shader above.
   var reducedMotion = typeof window.matchMedia === "function"
     && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -1060,57 +880,11 @@ function initGalaxyMap3d(canvasEl, data) {
     },
   };
   var localBlockScene = createBlockScene(blockSceneConfig);
-  var localFilledVersion = -1;
 
   // The view ball for the camera at orbit radius `radius` around `center`
   // (the fetched tiles' reach).
   function viewRadiusFor(radius) {
     return Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, radius * FETCH_RADIUS_FACTOR));
-  }
-
-  // The block set the camera at orbit radius `radius` around `center`
-  // (current angles) needs: {key, m, view}, view as galaxyblocks' build
-  // takes it.
-  function blockViewFor(radius, center) {
-    var pcPerPixel = pcPerPixelAtTarget(radius);
-    var m = blockSizeForScale(pcPerPixel, edgePc, data.blockMinPx, GALAXY_RADIUS);
-    var size = m * edgePc;
-    var bucket = Math.ceil(Math.log2(viewRadiusFor(radius)) * VIEW_BUCKETS_PER_DOUBLING - 1e-9);
-    var ball = Math.pow(2, bucket / VIEW_BUCKETS_PER_DOUBLING);
-    var snap = ball * VIEW_SNAP_FRACTION;
-    var c = [Math.round(center.x / snap) * snap, Math.round(center.y / snap) * snap, Math.round(center.z / snap) * snap];
-    var slice = sliceAtFocus ? Math.round(center.z / size) : null;
-    var eye = offsetFromOrbit({ radius: radius, theta: orbit.theta, phi: orbit.phi }).add(center);
-    var viewerLayer = Math.floor(eye.z / size + 0.5);
-    return {
-      key: [m, bucket, c.join(","), slice, viewerLayer].join(":"),
-      m: m,
-      view: {
-        center: c, viewRadius: ball + snap * Math.sqrt(3) / 2, pcPerPixel: pcPerPixel,
-        sliceZ: slice === null ? null : slice * size, viewerZ: viewerLayer * size, budget: VIEW_BUDGET,
-        eye: [eye.x, eye.y, eye.z],
-      },
-    };
-  }
-
-  var blockSets = new Map();
-  var blockSetVertices = 0;
-  var shownSet = null;
-  var fadingSet = null;
-  var fadeStartedAt = 0;
-
-  // A block set from galaxyblocks' build result: [solid mesh, glass mesh],
-  // each keeping its packed part (for picking) and the filled points the
-  // build counted (a sector's panel comes from them).
-  function makeBlockSet(key, built, version, points) {
-    var set = { key: key, m: built.m, version: version, points: points, meshes: [], vertexCount: 0 };
-    [built.solid, built.glass].forEach(function (part, n) {
-      var mesh = makeBlockMesh(part, n === 1);
-      mesh.userData.set = set;
-      set.meshes.push(mesh);
-      set.vertexCount += part.vertexCount;
-    });
-    return set;
   }
 
   // One packed part (galaxyblocks' pack) as a mesh with the block shader,
@@ -1129,280 +903,6 @@ function initGalaxyMap3d(canvasEl, data) {
     mesh.visible = part.vertexCount > 0;
     mesh.userData.part = part;
     return mesh;
-  }
-
-  function disposeSet(set) {
-    set.meshes.forEach(function (mesh) {
-      mesh.geometry.dispose();
-      mesh.material.dispose();
-    });
-  }
-
-  // Takes a set off screen, and frees it unless the cache still holds it.
-  function retireSet(set) {
-    set.meshes.forEach(function (mesh) { scene.remove(mesh); });
-    if (blockSets.get(set.key) !== set) {
-      disposeSet(set);
-    }
-  }
-
-  function cacheSet(set) {
-    var old = blockSets.get(set.key);
-    if (old) {
-      blockSets.delete(set.key);
-      blockSetVertices -= old.vertexCount;
-      if (old !== shownSet && old !== fadingSet) {
-        disposeSet(old);
-      }
-    }
-    blockSets.set(set.key, set);
-    blockSetVertices += set.vertexCount;
-    // Oldest first, never what's on screen.
-    var keys = Array.from(blockSets.keys());
-    for (var i = 0; i < keys.length && blockSetVertices > BLOCK_SET_MAX_VERTICES; i++) {
-      var doomed = blockSets.get(keys[i]);
-      if (doomed === set || doomed === shownSet || doomed === fadingSet) {
-        continue;
-      }
-      blockSets.delete(keys[i]);
-      blockSetVertices -= doomed.vertexCount;
-      disposeSet(doomed);
-    }
-  }
-
-  function cachedSet(key) {
-    return memoryGet(blockSets, key);
-  }
-
-  // Puts a set on screen: crossfading from the last one when the block
-  // size changed (and motion is welcome), else swapping.
-  function showSet(set) {
-    if (set === shownSet) {
-      return;
-    }
-    if (fadingSet) {
-      retireSet(fadingSet);
-      fadingSet = null;
-    }
-    var old = shownSet;
-    shownSet = set;
-    set.meshes.forEach(function (mesh) { scene.add(mesh); });
-    if (old) {
-      if (old.m !== set.m && !reducedMotion) {
-        fadingSet = old;
-        fadeStartedAt = performance.now();
-      } else {
-        retireSet(old);
-      }
-    }
-    stepCrossfade(performance.now());
-    if (drawnSectorsPerPrism !== set.m) {
-      drawnSectorsPerPrism = set.m;
-      updateScaleBar();
-    }
-  }
-
-  // Fades the shown set in and the last one out. While a set fades, even
-  // its solid blends, and the outgoing one draws last and writes no depth.
-  function stepCrossfade(now) {
-    if (!shownSet) {
-      return;
-    }
-    var t = fadingSet ? Math.min(1, (now - fadeStartedAt) / CROSSFADE_MS) : 1;
-    setFade(shownSet, t, false);
-    if (fadingSet) {
-      if (t >= 1) {
-        retireSet(fadingSet);
-        fadingSet = null;
-      } else {
-        setFade(fadingSet, 1 - t, true);
-      }
-    }
-  }
-
-  function setFade(set, fade, outgoing) {
-    set.meshes.forEach(function (mesh, n) {
-      var translucent = n === 1;
-      mesh.material.uniforms.fade.value = fade;
-      mesh.material.transparent = translucent || fade < 1;
-      mesh.material.depthWrite = !translucent && !outgoing;
-      // Opaque first, then the translucent shell over it; an outgoing
-      // set over both.
-      mesh.renderOrder = (outgoing ? 2 : 0) + n;
-    });
-  }
-
-  // The camera-dependent uniforms, on every set on screen.
-  function updateBlockUniforms() {
-    [shownSet, fadingSet].forEach(function (set) {
-      if (!set) {
-        return;
-      }
-      set.meshes.forEach(function (mesh) {
-        var uniforms = mesh.material.uniforms;
-        // Inside the solid, the slice is the main answer; this near cut
-        // stays for views where the camera is below the cut (or the slice
-        // is off).
-        uniforms.nearCut.value = orbit.radius * NEAR_CUT;
-        uniforms.fadeCenter.value.copy(target);
-        uniforms.fadeRadius.value = fadeRadius;
-      });
-    });
-  }
-
-  var blockWorker = startBlockWorker();
-  var workerFilledVersion = -1;
-  var buildInFlight = null;
-  var nextBuildId = 1;
-
-  function startBlockWorker() {
-    if (typeof Worker === "undefined") {
-      return null;
-    }
-    var worker;
-    try {
-      worker = new Worker(new URL("./galaxyblocks.js" + VERSION_QUERY, import.meta.url), { type: "module" });
-    } catch (err) {
-      return null;
-    }
-    worker.onmessage = function (event) {
-      var message = event.data;
-      if (!buildInFlight || message.id !== buildInFlight.id) {
-        return;
-      }
-      var job = buildInFlight;
-      buildInFlight = null;
-      if (message.type === "built") {
-        var set = makeBlockSet(job.key, message.result, job.version, job.points);
-        cacheSet(set);
-        if (job.ahead && !zoomAnimation) {
-          warmUp(set);
-        }
-      } else {
-        abandonWorker();
-      }
-    };
-    worker.onerror = function () {
-      abandonWorker();
-    };
-    worker.postMessage({ type: "init", config: blockSceneConfig });
-    return worker;
-  }
-
-  // From here on every set is built on the page.
-  function abandonWorker() {
-    if (blockWorker) {
-      blockWorker.terminate();
-    }
-    blockWorker = null;
-    buildInFlight = null;
-  }
-
-  function buildHere(wanted) {
-    if (localFilledVersion !== filledVersion) {
-      localFilledVersion = filledVersion;
-      localBlockScene.setFilled(packFilledPoints(filledPoints));
-    }
-    var set = makeBlockSet(wanted.key, localBlockScene.build(wanted.view), filledVersion, filledPoints);
-    cacheSet(set);
-    return set;
-  }
-
-  // A set's geometry goes to the GPU the first time it's drawn, which for
-  // a big set takes a frame or more: a set built ahead is drawn once into
-  // a 1-pixel target right away, while the page is idle, so showing it
-  // later costs nothing.
-  var warmTarget = new THREE.WebGLRenderTarget(1, 1);
-  var warmScene = new THREE.Scene();
-
-  function warmUp(set) {
-    set.meshes.forEach(function (mesh) { warmScene.add(mesh); });
-    var previous = renderer.getRenderTarget();
-    renderer.setRenderTarget(warmTarget);
-    renderer.render(warmScene, camera);
-    renderer.setRenderTarget(previous);
-    set.meshes.forEach(function (mesh) { warmScene.remove(mesh); });
-  }
-
-  // Asks the worker for a set (`ahead`: one the camera may need next),
-  // one at a time: by the time one comes back the camera may have moved
-  // on, and the next frame asks for whatever is needed then.
-  function buildInWorker(wanted, ahead) {
-    if (buildInFlight) {
-      return;
-    }
-    if (workerFilledVersion !== filledVersion) {
-      workerFilledVersion = filledVersion;
-      var packed = packFilledPoints(filledPoints);
-      blockWorker.postMessage({ type: "filled", points: packed }, [packed.buffer]);
-    }
-    buildInFlight = { id: nextBuildId++, key: wanted.key, version: filledVersion, points: filledPoints, ahead: !!ahead };
-    blockWorker.postMessage({ type: "build", id: buildInFlight.id, view: wanted.view });
-  }
-
-  // The orbit radii worth having ready: one view step and one click-zoom
-  // step each way, and the nearest radii with the next finer and coarser
-  // block size.
-  function neighborRadii() {
-    var r = orbit.radius;
-    var factor = clickZoomFactor(r);
-    var radii = [r / VIEW_BUCKET_STEP, r * VIEW_BUCKET_STEP, r / factor, r * factor];
-    var m = blockViewFor(r, target).m;
-    [1 / VIEW_BUCKET_STEP, VIEW_BUCKET_STEP].forEach(function (step) {
-      for (var k = 1, at = r * step; k <= 4 * VIEW_BUCKETS_PER_DOUBLING; k++, at *= step) {
-        if (at < MIN_RADIUS || at > MAX_RADIUS) {
-          break;
-        }
-        if (blockViewFor(at, target).m !== m) {
-          radii.push(at);
-          break;
-        }
-      }
-    });
-    return radii.filter(function (radius) { return radius >= MIN_RADIUS && radius <= MAX_RADIUS; });
-  }
-
-  // Not while tiles are on their way: their sectors would make the set
-  // the view needs wait behind a build that's already out of date.
-  function prebuildNeighbors() {
-    if (!blockWorker || buildInFlight || fetchTimer || activeAbort
-        || blockSetVertices + (shownSet ? shownSet.vertexCount : 0) > BLOCK_SET_MAX_VERTICES) {
-      return;
-    }
-    var radii = neighborRadii();
-    for (var i = 0; i < radii.length; i++) {
-      var wanted = blockViewFor(radii[i], target);
-      if (!blockSets.has(wanted.key)) {
-        buildInWorker(wanted, true);
-        return;
-      }
-    }
-  }
-
-  // Every frame: shows the set the camera needs if it's built, and asks
-  // for it (or, once it's showing and current, its neighbours) if not.
-  function syncBlocks() {
-    var wanted = blockViewFor(orbit.radius, target);
-    var set = cachedSet(wanted.key);
-    if (!set && (!shownSet || !blockWorker)) {
-      if (blockWorker || !zoomAnimation) {
-        set = buildHere(wanted);
-      }
-    }
-    if (set) {
-      showSet(set);
-    }
-    if (blockWorker) {
-      if (!set || set.version !== filledVersion) {
-        buildInWorker(wanted);
-      } else {
-        prebuildNeighbors();
-      }
-    } else if (set && set.version !== filledVersion && !zoomAnimation) {
-      showSet(buildHere(wanted));
-    }
-    stepCrossfade(performance.now());
-    updateBlockUniforms();
   }
 
   // --- Cube tiles ----------------------------------------------------------
@@ -1971,9 +1471,6 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Drawing from tiles --------------------------------------------------
 
-  // Filled points per tile object (a refetched tile is a new object).
-  var filledPointsByTile = new WeakMap();
-  var filledSignature = "";
   var starSignature = "";
 
   // A tile's box, [lo, hi] in parsecs.
@@ -2027,9 +1524,6 @@ function initGalaxyMap3d(canvasEl, data) {
   // cached (the blocks are rebuilt from them when they change); returns
   // what's still missing.
   function renderFromCache(need) {
-    fadeRadius = need.viewRadius;
-    var points = [];
-    var present = [];
     var missing = [];
     var clouds = new Map();
     var stars = new Map();
@@ -2039,13 +1533,6 @@ function initGalaxyMap3d(canvasEl, data) {
         missing.push(key);
         return;
       }
-      var tilePoints = filledPointsByTile.get(tile);
-      if (!tilePoints) {
-        tilePoints = filledPointsOf(tile.filled);
-        filledPointsByTile.set(tile, tilePoints);
-      }
-      present.push(key + "=" + tilePoints.length);
-      Array.prototype.push.apply(points, tilePoints);
       (tile.clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
       });
@@ -2065,12 +1552,6 @@ function initGalaxyMap3d(canvasEl, data) {
     if (cloudKeys !== cloudSignature) {
       cloudSignature = cloudKeys;
       setClouds(Array.from(clouds.values()));
-    }
-    var signature = currentStamp + "|" + present.join(",");
-    if (signature !== filledSignature) {
-      filledSignature = signature;
-      filledPoints = points;
-      filledVersion++;
     }
     return missing;
   }
@@ -2121,14 +1602,6 @@ function initGalaxyMap3d(canvasEl, data) {
     fetchTimer = null;
     var need = neededTiles();
     var missing = renderFromCache(need);
-    // Mid-glide, the tiles where the zoom is headed too.
-    if (zoomAnimation) {
-      neededTiles(zoomAnimation.to).keys.forEach(function (key) {
-        if (missing.indexOf(key) < 0 && getTile(key) === undefined) {
-          missing.push(key);
-        }
-      });
-    }
     if (!missing.length) {
       prefetchTiles();
       return;
@@ -2178,17 +1651,19 @@ function initGalaxyMap3d(canvasEl, data) {
       });
   }
 
-  // The tiles one click-zoom step in and out, fetched at low priority once
+  // The tiles one pick in and out (each about PREFETCH_ZOOM times closer
+  // or farther), fetched at low priority once
   // the view's own are in. One prefetch runs at a time and a real fetch
   // never waits on or cancels it (or the other way round); its tiles just
   // land in the cache.
   var prefetching = false;
+  var PREFETCH_ZOOM = 3;
 
   function prefetchTiles() {
     if (prefetching || activeAbort) {
       return;
     }
-    var factor = clickZoomFactor(orbit.radius);
+    var factor = PREFETCH_ZOOM;
     var missing = [];
     [orbit.radius / factor, orbit.radius * factor].forEach(function (radius) {
       neededTiles(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius))).keys.forEach(function (key) {
@@ -2471,12 +1946,9 @@ function initGalaxyMap3d(canvasEl, data) {
   //
   // The map opens on the drill-down (galaxystageview.js): the galaxy in
   // level-243 blocks, a slab of them from above, a block's level-27
-  // children, and so on down to a sector. The Free look button switches
-  // to the free camera above (and back). While stages show, the free
-  // view's block sets are put away and pointer, wheel and key input goes
-  // to the stage view; tiles (stars, clouds) and the wedge lines follow
-  // the camera as before.
-  var stageMode = true;
+  // children, and so on down to a sector, always from straight above.
+  // Pointer and key input goes to the stage view; tiles (stars, clouds)
+  // and the wedge lines follow the camera.
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
@@ -2484,7 +1956,6 @@ function initGalaxyMap3d(canvasEl, data) {
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
     setCamera: function (v) {
-      zoomAnimation = null;
       target.set(v.target[0], v.target[1], v.target[2]);
       orbit.radius = v.dist;
       orbit.theta = v.theta;
@@ -2509,6 +1980,8 @@ function initGalaxyMap3d(canvasEl, data) {
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
+    showPointAt: function (x, y) { return showPointAt(x, y); },
+    setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     locate: function (name) {
       return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
@@ -2529,199 +2002,21 @@ function initGalaxyMap3d(canvasEl, data) {
       notice: document.getElementById("galaxymap3d-notice"),
       address: document.getElementById("galaxymap3d-address"),
       matches: document.getElementById("galaxymap3d-matches"),
+      controls: document.getElementById("galaxymap3d-controls"),
     },
   });
 
-  // Puts the free view's blocks away (stage mode draws its own).
-  function hideFreeBlocks() {
-    if (fadingSet) {
-      retireSet(fadingSet);
-      fadingSet = null;
-    }
-    if (shownSet) {
-      retireSet(shownSet);
-      shownSet = null;
-    }
-    highlightSprite.visible = false;
-  }
-
-  function setStageMode(on) {
-    stageMode = on;
-    if (on) {
-      hideFreeBlocks();
-      stageView.openFromLocation();
-      stageView.setActive(true);
-    } else {
-      stageView.setActive(false);
-      resetView();
-      showHint("Click a block for details, or double-click it to zoom in there.", false);
-    }
-    if (controlsEl) {
-      controlsEl.querySelectorAll("[data-stage-only]").forEach(function (el) { el.hidden = !on; });
-      controlsEl.querySelectorAll("[data-free-only]").forEach(function (el) { el.hidden = on; });
-      var free = controlsEl.querySelector('[data-action="free-look"]');
-      if (free) {
-        free.setAttribute("aria-pressed", String(!on));
-      }
-    }
-  }
-
-  canvasEl.addEventListener("pointerleave", function (event) {
-    if (stageMode) {
-      stageView.onPointerLeave(event);
-    }
-  });
-
-  // --- Pointer/keyboard interaction --------------------------------------
-
-  var dragging = false;
-  var dragDistance = 0;
-  var lastClientX = 0;
-  var lastClientY = 0;
-  var suppressNextClick = false;
-
-  canvasEl.addEventListener("pointerdown", function (event) {
-    if (stageMode) {
-      stageView.onPointerDown(event);
-      return;
-    }
-    if (event.button !== 0) {
-      return;
-    }
-    dragging = true;
-    dragDistance = 0;
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-    try {
-      canvasEl.setPointerCapture(event.pointerId);
-    } catch (err) {
-      // Not essential -- dragging still works via ordinary bubbling.
-    }
-  });
-
-  canvasEl.addEventListener("pointermove", function (event) {
-    if (stageMode) {
-      stageView.onPointerMove(event);
-      return;
-    }
-    if (!dragging) {
-      return;
-    }
-    var deltaX = event.clientX - lastClientX;
-    var deltaY = event.clientY - lastClientY;
-    dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-
-    orbit.theta -= deltaX * ROTATE_SENSITIVITY;
-    orbit.phi = Math.max(MIN_POLAR, Math.min(MAX_POLAR, orbit.phi - deltaY * ROTATE_SENSITIVITY));
-    applyCamera();
-  });
-
-  function endDrag(event) {
-    if (stageMode) {
-      stageView.onPointerUp(event);
-      return;
-    }
-    if (!dragging) {
-      return;
-    }
-    dragging = false;
-    if (dragDistance > DRAG_CLICK_THRESHOLD_PX) {
-      suppressNextClick = true;
-      setTimeout(function () {
-        suppressNextClick = false;
-      }, 0);
-      scheduleFetch(false);
-    }
-    dragDistance = 0;
-    try {
-      canvasEl.releasePointerCapture(event.pointerId);
-    } catch (err) {
-      // Already released/invalid.
-    }
-  }
-  canvasEl.addEventListener("pointerup", endDrag);
-  canvasEl.addEventListener("pointercancel", endDrag);
-
-  // Wheel, button and double-click zooms glide to the new radius over
-  // ZOOM_MS (evenly in log space, easing out) instead of jumping; another
-  // step mid-glide starts from where the camera is, toward the new goal.
-  // With prefers-reduced-motion they jump.
-  var ZOOM_MS = 160;
-  var zoomAnimation = null;
-
-  // Where the camera is headed: the end of the glide, or where it is.
-  function zoomGoal() {
-    return zoomAnimation ? zoomAnimation.to : orbit.radius;
-  }
-
-  function zoomTo(radius) {
-    radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius));
-    if (reducedMotion) {
-      zoomAnimation = null;
-      setRadius(radius);
-      return;
-    }
-    zoomAnimation = { from: orbit.radius, to: radius, startedAt: performance.now() };
-  }
-
-  function stepZoom(now) {
-    if (!zoomAnimation) {
-      return;
-    }
-    var t = Math.min(1, (now - zoomAnimation.startedAt) / ZOOM_MS);
-    var eased = 1 - Math.pow(1 - t, 3);
-    setRadius(zoomAnimation.from * Math.pow(zoomAnimation.to / zoomAnimation.from, eased));
-    if (t >= 1) {
-      zoomAnimation = null;
-    }
-  }
-
-  canvasEl.addEventListener(
-    "wheel",
-    function (event) {
-      event.preventDefault();
-      if (stageMode) {
-        stageView.onWheel(event);
-        return;
-      }
-      var deltaPx = event.deltaY;
-      if (event.deltaMode === 1) {
-        deltaPx *= 33;
-      } else if (event.deltaMode === 2) {
-        deltaPx *= canvasEl.clientHeight || 400;
-      }
-      if (event.ctrlKey) {
-        deltaPx *= PINCH_BOOST;
-      }
-      deltaPx = Math.max(-WHEEL_MAX_PX, Math.min(WHEEL_MAX_PX, deltaPx));
-      if (!deltaPx) {
-        return;
-      }
-      zoomTo(zoomGoal() * Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
-      scheduleFetch(false);
-    },
-    { passive: false }
-  );
-
-  canvasEl.addEventListener("keydown", function (event) {
-    if (stageMode) {
-      stageView.onKey(event);
-      return;
-    }
-    var key = event.key;
-    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") {
-      return;
-    }
-    event.preventDefault();
-    if (key === "ArrowLeft") orbit.theta += KEY_ROTATE_STEP;
-    if (key === "ArrowRight") orbit.theta -= KEY_ROTATE_STEP;
-    if (key === "ArrowUp") orbit.phi = Math.max(MIN_POLAR, orbit.phi - KEY_ROTATE_STEP);
-    if (key === "ArrowDown") orbit.phi = Math.min(MAX_POLAR, orbit.phi + KEY_ROTATE_STEP);
-    applyCamera();
-    scheduleFetch(false);
-  });
+  // --- Pointer and keys ------------------------------------------------------
+  //
+  // Everything goes to the drill-down: there is no free camera (MAP.17).
+  // A click on a bright star or a cloud small enough to aim at shows it
+  // instead of picking what's under it.
+  canvasEl.addEventListener("pointerdown", function (event) { stageView.onPointerDown(event); });
+  canvasEl.addEventListener("pointermove", function (event) { stageView.onPointerMove(event); });
+  canvasEl.addEventListener("pointerup", function (event) { stageView.onPointerUp(event); });
+  canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
+  canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
+  canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
 
   var raycaster = new THREE.Raycaster();
 
@@ -2730,264 +2025,27 @@ function initGalaxyMap3d(canvasEl, data) {
     if (rect.width === 0 || rect.height === 0) {
       return null;
     }
-    return new THREE.Vector2(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1
-    );
+    return new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
   }
 
-  // The block under a screen point, as showCellInfo's cell, plus the point
-  // to recenter on (the mean of its filled sectors, or its middle) -- or
-  // null. Along the ray, the nearest block holding filled sectors wins over
-  // the translucent space in front of it, so clicking finds what's
-  // generated. Blocks hidden by the near cut (NEAR_CUT) are skipped.
-  function cellAtClientPoint(clientX, clientY) {
-    var meshes = shownSet ? shownSet.meshes.filter(function (mesh) { return mesh.visible; }) : [];
-    if (!meshes.length) {
-      return null;
-    }
-    var ndc = ndcFromClientPoint(clientX, clientY);
-    if (!ndc) {
-      return null;
-    }
-    raycaster.setFromCamera(ndc, camera);
-    var hits = raycaster.intersectObjects(meshes, false);
-    var nearCut = orbit.radius * NEAR_CUT;
-    var first = null;
-    for (var i = 0; i < hits.length; i++) {
-      var face = hits[i].face;
-      if (!face) {
-        continue;
-      }
-      var mesh = hits[i].object;
-      var cellData = blockRecord(mesh.userData.set, mesh.userData.part, mesh.userData.part.owners[face.a]);
-      if (!cellData) {
-        continue;
-      }
-      var coords = cellCoordinates(cellData).cartesian;
-      if (new THREE.Vector3(coords[0], coords[1], coords[2]).distanceTo(camera.position) < nearCut) {
-        continue;
-      }
-      if (cellData.filled > 0) {
-        return blockHit(cellData);
-      }
-      if (!first) {
-        first = cellData;
-      }
-    }
-    return first ? blockHit(first) : null;
-  }
-
-  // Block `index` of one mesh of a block set, the way the listing gives
-  // blocks (bounds, density, meanDensity) plus its m, filled, total,
-  // centroid and generated sector -- or null.
-  function blockRecord(set, part, index) {
-    var rec = part.cells;
-    var o = index * CELL_STRIDE;
-    if (!(o + CELL_STRIDE <= rec.length)) {
-      return null;
-    }
-    var block = blockAt(rec[o], rec[o + 1], rec[o + 2], set.m, edgePc, null, null);
-    block.m = set.m;
-    block.density = isNaN(rec[o + 3]) ? null : rec[o + 3];
-    block.meanDensity = isNaN(rec[o + 4]) ? null : rec[o + 4];
-    block.filled = rec[o + 5];
-    block.total = rec[o + 6];
-    if (!isNaN(rec[o + 7])) {
-      block.centroid = [rec[o + 7], rec[o + 8], rec[o + 9]];
-    }
-    if (!isNaN(rec[o + 10])) {
-      var point = set.points[rec[o + 10]];
-      block.sector = point && point.sector ? point.sector : null;
-    }
-    return block;
-  }
-
-  function blockHit(cellData) {
-    var m = cellData.m;
-    var at = cellData.centroid || cellCoordinates(cellData).cartesian;
-    var cell = {
-      m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, seg: cellData.seg, slab: cellData.slab,
-      edgePc: edgePc, shape: galaxyShape, filled: cellData.filled || 0, sector: cellData.sector || null,
-    };
-    if (m === 1) {
-      cell.address = { ring: cellData.ring, layer: cellData.slab, slot: cellData.seg };
-    }
-    return { point: new THREE.Vector3(at[0], at[1], at[2]), cell: cell };
-  }
-
-  // The sector cell holding a galaxy-frame point -- every point in space
-  // has one, whether or not anything was ever generated there.
-  function sectorCellAt(point) {
-    var a = sectorAddressAt(point.x, point.y, point.z, edgePc);
-    return { m: 1, address: a, bounds: sectorCellBounds(a.ring, a.layer, a.slot, edgePc), density: null };
-  }
-
-  // Empty-space click target: where the click's ray meets the plane
-  // through the current target parallel to the galactic disk -- so
-  // clicking empty space over a spiral arm lands ON the arm, the point
-  // you see under the cursor, rather than above or below it. When the
-  // disk is seen nearly edge-on that ray can run off almost parallel to
-  // the plane, so a hit farther than DISK_PICK_MAX_RADII orbit radii from
-  // the target falls back to the plane through the target facing the
-  // camera (the depth the camera is looking at). Either way the point is
-  // kept inside the galaxy -- within GALAXY_RADIUS of the core across the
-  // disk and a tenth of that above or below it -- so a click can never
-  // recenter the view out in the void.
-  //
-  // (This used to intersect a sphere of the orbit radius around the
-  // target -- but the camera sits ON that sphere, so the ray's nearest
-  // hit was the camera itself or the sphere's far side, and a click
-  // moved the view thousands of parsecs away from where it landed.)
-  var DISK_PICK_MAX_RADII = 2;
-  var GALAXY_HALF_THICKNESS = GALAXY_RADIUS / 10;
-
-  function depthPointAtClientPoint(clientX, clientY) {
-    var ndc = ndcFromClientPoint(clientX, clientY);
-    if (!ndc) {
-      return null;
-    }
-    raycaster.setFromCamera(ndc, camera);
-    var ray = raycaster.ray;
-    var hitPoint = new THREE.Vector3();
-    var diskPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), -target.z);
-    var hit = ray.intersectPlane(diskPlane, hitPoint);
-    if (!hit || hitPoint.distanceTo(target) > orbit.radius * DISK_PICK_MAX_RADII) {
-      var facing = new THREE.Vector3().subVectors(camera.position, target).normalize();
-      var focalPlane = new THREE.Plane().setFromNormalAndCoplanarPoint(facing, target);
-      hit = ray.intersectPlane(focalPlane, hitPoint);
-    }
-    if (!hit) {
-      return null;
-    }
-    var across = Math.hypot(hitPoint.x, hitPoint.y);
-    if (across > GALAXY_RADIUS) {
-      hitPoint.x *= GALAXY_RADIUS / across;
-      hitPoint.y *= GALAXY_RADIUS / across;
-    }
-    var maxZ = Math.max(GALAXY_HALF_THICKNESS, Math.abs(target.z));
-    hitPoint.z = Math.max(-maxZ, Math.min(maxZ, hitPoint.z));
-    return hitPoint;
-  }
-
-  // Shows a block's info and rings it: a generated sector's own panel (with
-  // its link) at one sector per block, otherwise the block's.
-  function selectCell(point, cell, cloud, star) {
-    if (star) {
-      highlightPosition(point.x, point.y, point.z);
-      showStarInfo(star);
-      return;
-    }
-    if (cloud) {
-      highlightPosition(point.x, point.y, point.z);
-      showCloudInfo(cloud);
-      return;
-    }
-    if (!cell) {
-      return;
-    }
-    highlightPosition(point.x, point.y, point.z);
-    if (cell.sector) {
-      showPlacedInfo(cell.sector);
-    } else {
-      showCellInfo(cell);
-    }
-  }
-
-  // Single click: re-centers the view on the clicked block (and shows its
-  // info) WITHOUT zooming -- deliberately not
-  // "click to zoom" any more (see this file's own module docstring's
-  // former "Click-to-zoom is LOGARITHMIC" note, now double-click's own
-  // job below). Centering alone, with no zoom commitment, is what makes
-  // it possible to walk the camera across the galaxy toward a small/
-  // distant block over several clicks without a bad click also zooming
-  // into empty space you didn't mean to approach.
-  function centerOn(point, cell, cloud, star) {
-    target.copy(point);
-    applyCamera();
-    updateScaleBar();
-    selectCell(point, cell, cloud, star);
-    scheduleFetch(true);
-  }
-
-  // Double click: centers AND zooms in by one clickZoomFactor step. A
-  // double-click's first click has already centered on the point (see the
-  // click handler), so this zooms in on that same point rather than
-  // re-picking under the cursor, which by now is over something else.
-  function zoomInOnTarget() {
-    zoomTo(zoomGoal() / clickZoomFactor(zoomGoal()));
-    scheduleFetch(true);
-  }
-
-  // Resolves a click/double-click's target point the same way for both:
-  // a bright star clicked on (it is only a few pixels wide, so a click
-  // that close means it), else a cloud small enough to aim at, clicked
-  // near its middle (its center),
-  // else a hit block holding generated sectors (their mean position, so a
-  // double-click zooms in toward them), else such a cloud clicked
-  // anywhere, else any hit block, or (empty space)
-  // depthPointAtClientPoint -- shared so the click handlers below never
-  // have to duplicate the raycast-then-fall-back logic.
-  function resolveClickTarget(clientX, clientY) {
+  // The star or cloud a click at a screen point means, shown in the panel
+  // and ringed: true when there was one.
+  function showPointAt(clientX, clientY) {
     var star = starAtClientPoint(clientX, clientY);
     if (star) {
-      return { point: new THREE.Vector3(star.x, star.y, star.z), cell: null, cloud: null, star: star };
+      highlightPosition(star.x, star.y, star.z);
+      showStarInfo(star);
+      return true;
     }
-    var hit = cellAtClientPoint(clientX, clientY);
     var found = cloudAtClientPoint(clientX, clientY);
-    if (found && (found.core || !(hit && hit.cell.filled > 0))) {
-      var cloud = found.cloud;
-      return { point: new THREE.Vector3(cloud.x, cloud.y, cloud.z), cell: null, cloud: cloud };
+    if (found && found.core) {
+      highlightPosition(found.cloud.x, found.cloud.y, found.cloud.z);
+      showCloudInfo(found.cloud);
+      return true;
     }
-    if (hit) {
-      return hit;
-    }
-    var depthPoint = depthPointAtClientPoint(clientX, clientY);
-    return depthPoint ? { point: depthPoint, cell: galaxyShape ? sectorCellAt(depthPoint) : null } : null;
+    highlightSprite.visible = false;
+    return false;
   }
-
-  // Only a double-click's FIRST click recenters (event.detail counts the
-  // clicks in a burst): the second one lands at the same screen spot,
-  // which after the first recenter shows a different point, and
-  // recentering again there walked the view off in that direction.
-  var lastCenterClickAt = 0;
-
-  canvasEl.addEventListener("click", function (event) {
-    if (stageMode) {
-      return;
-    }
-    if (suppressNextClick) {
-      suppressNextClick = false;
-      return;
-    }
-    if (event.detail > 1) {
-      return;
-    }
-    var resolved = resolveClickTarget(event.clientX, event.clientY);
-    if (resolved) {
-      centerOn(resolved.point, resolved.cell, resolved.cloud, resolved.star);
-      lastCenterClickAt = Date.now();
-    }
-  });
-
-  canvasEl.addEventListener("dblclick", function (event) {
-    if (stageMode) {
-      return;
-    }
-    if (suppressNextClick) {
-      suppressNextClick = false;
-      return;
-    }
-    // Normally the first click just centered the view (see above); if it
-    // didn't (a browser that skipped it), center here first.
-    if (Date.now() - lastCenterClickAt > 1000) {
-      var resolved = resolveClickTarget(event.clientX, event.clientY);
-      if (resolved) {
-        centerOn(resolved.point, resolved.cell, resolved.cloud, resolved.star);
-      }
-    }
-    zoomInOnTarget();
-  });
 
   // No right-click action any more (see this file's own module
   // docstring) -- the browser's own default context menu is left alone,
@@ -2995,15 +2053,11 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var controlsEl = document.getElementById("galaxymap3d-controls");
   if (controlsEl) {
-    // Five buttons: let them wrap rather than run off the side panel.
+    // Several buttons: let them wrap rather than run off the side panel.
     controlsEl.style.flexWrap = "wrap";
     controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
       button.addEventListener("click", function () {
         var action = button.dataset.action;
-        if (action === "free-look") {
-          setStageMode(!stageMode);
-          return;
-        }
         if (action === "territories") {
           setTerritories(button.getAttribute("aria-pressed") !== "true", button);
           button.setAttribute("aria-pressed", String(territoryWanted));
@@ -3015,29 +2069,15 @@ function initGalaxyMap3d(canvasEl, data) {
           stageView.setGeneratedOnly(on);
           return;
         }
-        if (stageMode && (action === "zoom-in" || action === "zoom-out" || action === "reset")) {
-          if (action === "reset") {
-            stageView.home();
-          } else {
-            stageView.zoomBy(action === "zoom-in" ? 0.8 : 1.25);
-          }
-          return;
-        }
-        if (action === "zoom-in") {
-          zoomTo(zoomGoal() / clickZoomFactor(zoomGoal()));
-          scheduleFetch(true);
-        } else if (action === "zoom-out") {
-          zoomTo(zoomGoal() * clickZoomFactor(zoomGoal()));
-          scheduleFetch(true);
+        if (action === "back" || action === "forward") {
+          stageView.travel(action === "back" ? -1 : 1);
+        } else if (action === "up") {
+          stageView.up();
         } else if (action === "reset") {
-          resetView();
+          stageView.home();
         } else if (action === "wedges") {
           wedgeGroup.visible = !wedgeGroup.visible;
           button.setAttribute("aria-pressed", String(wedgeGroup.visible));
-        } else if (action === "slice") {
-          // The next frame picks the block set for the new slice.
-          sliceAtFocus = !sliceAtFocus;
-          button.setAttribute("aria-pressed", String(sliceAtFocus));
         }
       });
     });
@@ -3152,22 +2192,19 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // The drill-down first, at the stage the URL names.
-  setStageMode(true);
+  // The drill-down, at the stage the URL names.
+  stageView.openFromLocation();
+  stageView.setActive(true);
 
-  // Every frame: the zoom glide, then (when the view moved) the filled
-  // sectors from cached tiles, a fetch for missing ones and the wedge
-  // lines, then the block set for the view.
+  // Every frame: the drill-down's camera move, then (when the view moved)
+  // the stars and clouds from cached tiles, a fetch for missing ones and
+  // the wedge lines.
   var lastViewSignature = "";
 
   (function animate(now) {
     requestAnimationFrame(animate);
     now = now || performance.now();
-    if (stageMode) {
-      stageView.step(now);
-    } else {
-      stepZoom(now);
-    }
+    stageView.step(now);
     var viewSignature = [target.x, target.y, target.z, orbit.radius, canvasEl.clientHeight].join(",");
     if (viewSignature !== lastViewSignature) {
       lastViewSignature = viewSignature;
@@ -3176,9 +2213,6 @@ function initGalaxyMap3d(canvasEl, data) {
         scheduleFetch(false);
       }
       updateWedgeLevels(pcPerPixelAtTarget());
-    }
-    if (!stageMode) {
-      syncBlocks();
     }
     starMaterial.uniforms.now.value = starClock();
     updateClouds();

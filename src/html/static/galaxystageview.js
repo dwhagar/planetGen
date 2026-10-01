@@ -1,60 +1,50 @@
 // html/static/galaxystageview.js
 //
 // The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
-// sections 4, 5 and 8.1), drawn and driven: eight stages from the galaxy
-// to a sector, alternating a 3D view of a container's children (pick a
-// slab) and a top-down view of one slab (pick a block). galaxystages.js
-// has the rules; this file has the scene, the camera moves, the
-// breadcrumb, the slab strip, the tooltip, keys, touch and the stage URLs.
-// galaxymap3d.js creates it (createStageView) and hands it the pointer,
-// wheel and key events while the map is in stage mode, and calls step()
-// every frame.
+// sections 4, 5, 8.1 and 10-11), drawn and driven. Always from straight
+// above, with no free camera: the galaxy's quarters, then a layer of the
+// disk (picked from the strip beside the map), then an arc of the ring
+// band in view (clicked on the map), then a layer, an arc, ... down to a
+// sector. galaxystages.js has the rules; this file has the scene, the
+// camera moves, the breadcrumb, the layer strip, the tooltip, keys,
+// touch, the stage URLs and the map's own Back and Forward.
+// galaxymap3d.js creates it (createStageView), hands it the pointer and
+// key events and calls step() every frame.
 //
 // host (from galaxymap3d.js):
 // - THREE, scene, camera, canvasEl;
-// - edgePc, shape (or null), galaxyRadius, reducedMotion;
+// - edgePc, shape (or null), galaxyRadius, reducedMotion, accentColor;
 // - blockScene: galaxyblocks' scene (buildCells);
 // - makeBlockMesh(part, translucent): a mesh with the map's block shader;
 // - setCamera({target: [x, y, z], dist, theta, phi}): moves the camera
 //   (and the tiles, scale bar and wedge lines with it);
-// - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a query
-//   ("?at=m.ring.wedge.slab", or "" for the galaxy);
+// - setWedgeClip(clip): the wedge lines kept to {r0, r1, a0, a1} (null:
+//   the whole galaxy, with its bearing labels);
+// - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
+//   container ("?at=m.ring.wedge.slab", or "" for the galaxy);
 // - setBlockSize(m): the scale readout's "1 block = m sectors";
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
-//   generated, hint, enter} -- enter() flies into it, null for the block
-//   the stage shows);
-// - canGenerate: whether the visitor gets Generate buttons (a sector's
-//   at stage 8, and a 3-block's and its layer's at stages 7-8, which
-//   showBlockInfo's info carries as `generate`);
-// - sectorUrl(id): a generated sector's page;
-// - locate(name): a Promise of GET /galaxy/locate's matches for a name
-//   (the address bar);
-// - els: {crumbs, slabs, tooltip, notice, address, matches} (any may be
-//   missing).
+//   generated, hint, enter, generate});
+// - showPointAt(clientX, clientY): shows a bright star or cloud under a
+//   click, true when there was one;
+// - canGenerate, courseSectors, sectorUrl(id), locate(name);
+// - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
+//   (any may be missing).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const S = await import(`./galaxystages.js${VERSION_QUERY}`);
 
-// The 3D stages' tilt from straight down, and the top-down views' (not
-// quite 0: the camera keeps galactic north as its up vector, which needs
-// the view direction off vertical by a hair).
+// Not quite 0: the camera keeps galactic north as its up vector, which
+// needs the view direction off vertical by a hair.
 const TOP_DOWN_PHI = 1e-3;
-// Other slabs, while one is hovered.
-const OTHER_SLAB_FADE = 0.35;
-// The 3D stages' rotation limits and drag speed.
-const MIN_TILT = (8 * Math.PI) / 180;
-const MAX_TILT = (82 * Math.PI) / 180;
-const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
-// Wheel zoom inside a stage: 3D views from fitting the container to 1.5
-// times closer; stage 2 (the galaxy's slab) up to 4 times.
-const ZOOM_3D = 1.5;
-const ZOOM_GALAXY_SLAB = 4;
-const WHEEL_ZOOM_PER_PX = 0.0025;
+// The other choices while one is hovered (MAP.18).
+const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
-const DRAG_CLICK_PX = 4;
+const DRAG_CLICK_PX = 6;
+const TWO_PI = 2 * Math.PI;
 
 export function createStageView(host) {
   const THREE = host.THREE;
@@ -66,22 +56,24 @@ export function createStageView(host) {
 
   let active = false;
   let outline = null;
-  const childCache = new Map();
   const dataCache = new Map();
-  let stage = { at: null, slab: null };
+  let stage = { at: null, picks: [] };
+  let resolved = null;
   let selectedSector = null;
   let display = null;
   let leaving = [];
   let animation = null;
+  // {option (index into display.options), sticky}
   let hover = null;
   let generatedOnly = false;
-  // The camera as the stage left it, and the fit it zooms within.
   let view = null;
-  // Bumped by every go(), so a stage whose data arrives after a newer
-  // go() is dropped.
   let goToken = 0;
+  // The map's own history (Back and Forward buttons): this entry's index,
+  // and the furthest one known.
+  let mapIndex = 0;
+  let maxIndex = 0;
 
-  // --- The outline and the children --------------------------------------
+  // --- The outline and the stage API's counts ----------------------------
 
   function getOutline() {
     if (!outline) {
@@ -91,28 +83,20 @@ export function createStageView(host) {
     return outline;
   }
 
-  function containerKey(at) {
-    return at ? [at.m, at.ring, at.wedge, at.slab].join(".") : "galaxy";
+  function resolve(s) {
+    return S.settleStage(s, getOutline(), edgePc);
   }
 
-  function childrenOf(at) {
-    const key = containerKey(at);
-    let groups = childCache.get(key);
-    if (!groups) {
-      groups = S.stageChildren(at, getOutline(), edgePc);
-      childCache.set(key, groups);
-    }
-    return groups;
+  function containerKey(at) {
+    return at ? S.formatDrillKey(at) : "galaxy";
   }
 
   // The stage API's answer for container `at`, as {generated: Map(key ->
   // count), sectors: Map("ring/slot/layer" -> sector)}; null while it
   // loads (and on an error, which leaves counts at 0).
   function dataFor(at) {
-    const key = containerKey(at);
-    const cached = dataCache.get(key);
-    if (cached && cached.ready) return cached.value;
-    return null;
+    const cached = dataCache.get(containerKey(at));
+    return cached && cached.ready ? cached.value : null;
   }
 
   function loadData(at) {
@@ -120,7 +104,7 @@ export function createStageView(host) {
     let entry = dataCache.get(key);
     if (!entry) {
       entry = { ready: false, value: null };
-      entry.promise = host.fetchStage(at ? S.stageQuery({ at: at, slab: null }) : "").then(function (payload) {
+      entry.promise = host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "").then(function (payload) {
         const generated = new Map();
         (payload.children || []).forEach(function (child) {
           generated.set(child.ring + "/" + child.wedge + "/" + child.slab, child.generated);
@@ -159,37 +143,73 @@ export function createStageView(host) {
     return data.generated.get(block.ring + "/" + block.wedge + "/" + block.slab) || 0;
   }
 
-  // The groups a stage shows: every slab in 3D, the one slab top-down.
-  // Without an outline (no shape yet), only blocks holding generated
-  // sectors.
-  function stageGroups(s, data) {
-    let groups = childrenOf(s.at);
-    if (s.slab != null) groups = groups.filter(function (g) { return g.slab === s.slab; });
+  function sumOf(blocks, data) {
+    let generated = 0;
+    let total = 0;
+    blocks.forEach(function (block) {
+      generated += generatedOf(block, data);
+      total += block.total || 0;
+    });
+    return { generated: generated, total: total };
+  }
+
+  // The choices a stage offers: [{pick, blocks, a0, a1}], or, once there
+  // is nothing left to pick, the view's blocks as one. Without an outline
+  // (no shape yet), only blocks holding generated sectors.
+  function choicesOf(r, data) {
+    let options = r.kind ? r.options : [{ pick: null, blocks: r.view.blocks, a0: r.view.a0, a1: r.view.a1 }];
     if (getOutline().shapeless) {
-      groups = groups.map(function (g) {
-        return { slab: g.slab, blocks: g.blocks.filter(function (b) { return generatedOf(b, data) > 0; }) };
-      }).filter(function (g) { return g.blocks.length; });
+      options = options.map(function (o) {
+        return Object.assign({}, o, { blocks: o.blocks.filter(function (b) { return generatedOf(b, data) > 0; }) });
+      }).filter(function (o) { return o.blocks.length; });
     }
-    return groups;
+    return options;
+  }
+
+  function isSectorView(r) {
+    return !!(r && r.view && r.view.blocks.length && r.view.blocks[0].m === 1);
+  }
+
+  function isWholeGalaxy(r) {
+    return !r.stage.at && r.view.a1 - r.view.a0 >= TWO_PI - 1e-9;
+  }
+
+  // The bounds a set of blocks covers in the plane, bearings counted
+  // either way from `mid` (the middle of the view's bearings, so a block
+  // reaching a little before the view's first bearing doesn't wrap all the
+  // way round): {r0, r1, t0, t1, z1}.
+  function spanOf(blocks, mid) {
+    const span = { r0: Infinity, r1: 0, t0: Infinity, t1: -Infinity, z1: -Infinity };
+    blocks.forEach(function (block) {
+      const b = block.bounds;
+      const t0 = mid + wrapAngle(b.t0 - mid);
+      span.r0 = Math.min(span.r0, b.r0);
+      span.r1 = Math.max(span.r1, b.r1);
+      span.t0 = Math.min(span.t0, t0);
+      span.t1 = Math.max(span.t1, t0 + (b.t1 - b.t0));
+      span.z1 = Math.max(span.z1, b.z1);
+    });
+    return span;
   }
 
   // --- Drawing a stage ---------------------------------------------------------
 
-  // One stage's meshes: a group per slab (so a slab can rise and the
-  // others fade), with the blocks behind each mesh for picking.
-  function buildDisplay(s) {
-    const data = dataFor(s.at);
-    const groups = stageGroups(s, data);
+  // One stage's meshes: a group per choice (so the hovered one stays and
+  // the others fade), with each cell's choice behind the meshes for
+  // picking.
+  function buildDisplay(r) {
+    const data = dataFor(r.stage.at);
+    const options = choicesOf(r, data);
     const root = new THREE.Group();
-    const slabs = [];
+    const groups = [];
     const eye = camera.position.toArray();
-    groups.forEach(function (g) {
-      const cells = g.blocks.map(function (block) {
+    options.forEach(function (option, index) {
+      const cells = option.blocks.map(function (block) {
         const b = block.bounds;
         return {
           ring: block.ring, seg: block.wedge, slab: block.slab,
           r0: b.r0, r1: b.r1, t0: b.t0, t1: b.t1, z0: b.z0, z1: b.z1,
-          filled: generatedOf(block, data), total: block.total, block: block,
+          filled: generatedOf(block, data), total: block.total, block: block, option: index,
         };
       });
       const dim = generatedOnly ? function (cell) { return !(cell.filled > 0); } : null;
@@ -205,17 +225,17 @@ export function createStageView(host) {
         meshes.push(mesh);
       });
       root.add(group);
-      slabs.push({ slab: g.slab, blocks: g.blocks, group: group, meshes: meshes, fade: 1 });
+      groups.push({ option: option, meshes: meshes, fade: 1 });
     });
     host.scene.add(root);
-    return { stage: s, root: root, slabs: slabs, fade: 1, data: data };
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data };
   }
 
   function disposeDisplay(d) {
     if (!d) return;
     host.scene.remove(d.root);
-    d.slabs.forEach(function (slab) {
-      slab.meshes.forEach(function (mesh) {
+    d.groups.forEach(function (group) {
+      group.meshes.forEach(function (mesh) {
         mesh.geometry.dispose();
         mesh.material.dispose();
       });
@@ -224,11 +244,11 @@ export function createStageView(host) {
 
   function setDisplayFade(d, fade) {
     d.fade = fade;
-    d.slabs.forEach(function (slab) {
-      slab.meshes.forEach(function (mesh, n) {
-        const value = fade * slab.fade;
+    d.groups.forEach(function (group) {
+      group.meshes.forEach(function (mesh) {
+        const value = fade * group.fade;
         mesh.material.uniforms.fade.value = value;
-        mesh.material.transparent = n === 1 || mesh.userData.cells === undefined || value < 1 || mesh.renderOrder === 1;
+        mesh.material.transparent = mesh.renderOrder === 1 || value < 1;
         mesh.material.depthWrite = mesh.renderOrder === 0 && value >= 1;
       });
     });
@@ -236,13 +256,7 @@ export function createStageView(host) {
 
   function rebuildDisplay() {
     const old = display;
-    display = buildDisplay(stage);
-    if (old) {
-      display.slabs.forEach(function (slab) {
-        const before = old.slabs.find(function (o) { return o.slab === slab.slab; });
-        if (before) slab.fade = before.fade;
-      });
-    }
+    display = buildDisplay(resolved);
     setDisplayFade(display, 1);
     disposeDisplay(old);
     applyHover();
@@ -257,49 +271,26 @@ export function createStageView(host) {
     return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
   }
 
-  function zRange(groups) {
-    let z0 = Infinity;
-    let z1 = -Infinity;
-    groups.forEach(function (g) {
-      g.blocks.forEach(function (block) {
-        z0 = Math.min(z0, block.bounds.z0);
-        z1 = Math.max(z1, block.bounds.z1);
-      });
-    });
-    return [z0, z1];
-  }
-
-  function containerTheta(at) {
-    if (!at) return null;
-    const b = S.drillBlockBounds(at, edgePc);
-    return (b.t0 + b.t1) / 2 + Math.PI;
-  }
-
-  // The camera a stage starts from: {target, dist, theta, phi}.
-  function cameraFor(s, groups) {
-    groups = groups || stageGroups(s, dataFor(s.at));
-    const blocks = [];
-    groups.forEach(function (g) { Array.prototype.push.apply(blocks, g.blocks); });
+  // The camera for a stage, from straight above with the view's middle
+  // bearing pointing up the screen (galactic north up for the whole
+  // galaxy): {target, dist, theta, phi}.
+  function cameraFor(r) {
+    const blocks = r.view.blocks;
     if (!blocks.length) {
-      return { target: [0, 0, 0], dist: host.galaxyRadius * 2.4, theta: -Math.PI * 32 / 180, phi: (S.STAGE_TILT_DEG * Math.PI) / 180 };
+      return { target: [0, 0, 0], dist: host.galaxyRadius * 2.4, theta: -Math.PI / 2, phi: TOP_DOWN_PHI };
     }
     const fp = S.footprint(blocks);
-    const z = zRange(groups);
-    const half = fovHalf();
-    if (s.slab != null) {
-      const theta = s.at ? containerTheta(s.at) : -Math.PI / 2;
-      return {
-        target: [fp.center[0], fp.center[1], (z[0] + z[1]) / 2],
-        dist: (S.FIT_MARGIN * fp.radius) / Math.tan(half) + (z[1] - z[0]) / 2,
-        theta: theta, phi: TOP_DOWN_PHI,
-      };
-    }
-    const radius = Math.hypot(fp.radius, (z[1] - z[0]) / 2);
-    const theta = s.at ? containerTheta(s.at) : (view && !view.stage.at ? view.theta : (-32 * Math.PI) / 180);
+    let z0 = Infinity;
+    let z1 = -Infinity;
+    blocks.forEach(function (block) {
+      z0 = Math.min(z0, block.bounds.z0);
+      z1 = Math.max(z1, block.bounds.z1);
+    });
+    const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
     return {
-      target: [fp.center[0], fp.center[1], (z[0] + z[1]) / 2],
-      dist: (S.FIT_MARGIN * radius) / Math.sin(half),
-      theta: theta, phi: (S.STAGE_TILT_DEG * Math.PI) / 180,
+      target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
+      dist: (S.FIT_MARGIN * fp.radius) / Math.tan(fovHalf()) + (z1 - z0) / 2,
+      theta: theta, phi: TOP_DOWN_PHI,
     };
   }
 
@@ -307,37 +298,28 @@ export function createStageView(host) {
     host.setCamera({ target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi });
   }
 
-  // --- Moving between stages -------------------------------------------------
-
-  function childM(at) {
-    return at ? at.m / (at.m === 3 ? 3 : 9) : 243;
-  }
-
   function wrapAngle(a) {
     return Math.atan2(Math.sin(a), Math.cos(a));
   }
 
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
-  // path in the plane, easing the height, tilt and turn alongside; calls
+  // path in the plane, easing the height and turn alongside; calls
   // progress(t) each frame (t 0..1) and done() at the end.
-  function flyCamera(from, to, ms, progress, done) {
+  function flyCamera(from, to, progress, done) {
     const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const path = S.flightPath(from.target, 2 * from.dist * tanHalf, to.target, 2 * to.dist * tanHalf);
-    const duration = ms != null ? ms : S.flightMs(path.S);
     const turn = wrapAngle(to.theta - from.theta);
     animation = {
       startedAt: performance.now(),
-      duration: host.reducedMotion ? 0 : duration,
+      duration: host.reducedMotion ? 0 : S.flightMs(path.S),
       frame: function (t) {
         const e = S.easeInOut(t);
         const p = path.at(path.S * t);
         view = {
-          stage: view ? view.stage : stage,
           target: [p.center[0], p.center[1], from.target[2] + (to.target[2] - from.target[2]) * e],
           dist: p.w / (2 * tanHalf),
           theta: from.theta + turn * e,
-          phi: from.phi + (to.phi - from.phi) * e,
-          fit: to.fit,
+          phi: to.phi,
         };
         applyView();
         if (progress) progress(t);
@@ -346,112 +328,95 @@ export function createStageView(host) {
     };
   }
 
-  // Goes to stage `next`. A 3D stage's own slab is pulled out (it rises
-  // while the others fade, the camera turns to look straight down); any
-  // other move flies there. push: record it in the browser history.
+  // --- Moving between stages -------------------------------------------------
+
+  function setWedgeClip(r) {
+    if (!host.setWedgeClip) return;
+    if (!r.view.blocks.length || isWholeGalaxy(r)) {
+      host.setWedgeClip(null);
+      return;
+    }
+    const span = spanOf(r.view.blocks, (r.view.a0 + r.view.a1) / 2);
+    host.setWedgeClip({ r0: span.r0, r1: span.r1, a0: span.t0, a1: span.t1 });
+  }
+
+  // Goes to stage `next` (carried on through any choice of one). push:
+  // record it in the browser history (default yes).
   function go(next, options) {
     options = options || {};
     if (animation) finishAnimation();
-    const problem = S.validStage(next, getOutline(), edgePc);
-    if (problem) {
-      notice(problem);
+    const r = resolve(next);
+    if (r.problem) {
+      notice(r.problem);
       return;
     }
     notice("");
     if (!options.keepSector) selectedSector = null;
-    const previous = stage;
-    const token = ++goToken;
-    const query = options.query || S.stageQuery(next);
-    if (options.push !== false && (!S.sameStage(previous, next) || query !== location.search)) {
-      history.pushState({ galaxyStage: true }, "", location.pathname + query + location.hash);
+    if (r.sector && !selectedSector) {
+      selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
     }
-    loadData(next.at).then(function () {
-      if (!active || token !== goToken) return;
-      if (animation) finishAnimation();
-      if (next.slab != null && S.sameBlock(previous.at, next.at) && previous.slab == null && display
-          && S.sameStage(display.stage, previous)) {
-        pullOut(next);
-      } else {
-        flyTo(next);
-      }
-    });
-    stage = next;
+    const token = ++goToken;
+    const query = options.query || S.stageQuery(r.stage);
+    if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
+      mapIndex += 1;
+      maxIndex = mapIndex;
+      history.pushState({ galaxyStage: true, mapIndex: mapIndex }, "", location.pathname + query + location.hash);
+    }
+    stage = r.stage;
+    resolved = r;
     renderCrumbs();
     renderStrip();
-    host.setBlockSize(childM(next.at));
-  }
-
-  function pullOut(next) {
-    const slabInfo = display.slabs.find(function (s) { return s.slab === next.slab; });
-    const from = currentView();
-    const to = cameraFor(next);
-    const thickness = slabInfo ? slabInfo.blocks[0].bounds.z1 - slabInfo.blocks[0].bounds.z0 : 0;
-    const old = display;
-    to.fit = to.dist;
-    flyCamera(from, to, S.PULL_OUT_MS, function (t) {
-      const e = S.easeInOut(t);
-      old.slabs.forEach(function (slab) {
-        if (slab.slab === next.slab) {
-          slab.group.position.z = 0.6 * thickness * e;
-          slab.fade = 1;
-        } else {
-          slab.fade = 1 - e;
-        }
-      });
-      setDisplayFade(old, 1);
-    }, function () {
-      view.stage = next;
-      display = null;
-      disposeDisplay(old);
-      display = buildDisplay(next);
-      setDisplayFade(display, 1);
-      view = Object.assign({}, to, { stage: next, fit: to.dist });
-      applyView();
-      afterArrival();
+    renderTravel();
+    hover = null;
+    showTooltip("", 0, 0);
+    host.setBlockSize(r.view.blocks.length ? r.view.blocks[0].m : 243);
+    loadData(r.stage.at).then(function () {
+      if (!active || token !== goToken) return;
+      if (animation) finishAnimation();
+      flyTo(r);
     });
   }
 
-  function flyTo(next) {
-    const from = display ? currentView() : null;
-    const to = cameraFor(next);
-    to.fit = to.dist;
+  function flyTo(r) {
+    const from = display && view ? { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi } : null;
+    const to = cameraFor(r);
     const old = display;
-    const incoming = buildDisplay(next);
+    const incoming = buildDisplay(r);
+    setWedgeClip(r);
     setDisplayFade(incoming, from ? 0 : 1);
+    display = incoming;
     if (!from) {
-      display = incoming;
-      view = Object.assign({}, to, { stage: next });
+      view = to;
       applyView();
       afterArrival();
       return;
     }
-    flyCamera(from, to, null, function (t) {
+    if (old) leaving.push(old);
+    flyCamera(from, to, function (t) {
       const ms = animation ? animation.duration : 0;
       const fadeStart = ms > 0 ? Math.max(0, 1 - FADE_IN_MS / ms) : 0;
       const f = fadeStart >= 1 ? 1 : Math.max(0, (t - fadeStart) / (1 - fadeStart));
       setDisplayFade(incoming, f);
       if (old) setDisplayFade(old, 1 - f);
     }, function () {
-      display = incoming;
       setDisplayFade(display, 1);
-      view = Object.assign({}, to, { stage: next });
+      view = to;
       applyView();
       afterArrival();
     });
-    display = incoming;
-    if (old) leaving.push(old);
   }
 
   function afterArrival() {
     leaving.forEach(function (d) { if (d && d !== display) disposeDisplay(d); });
     leaving = [];
     hover = null;
-    applyHover();
     renderStrip();
-    if (selectedSector) {
-      const block = sectorBlock(selectedSector);
-      if (block) setHover({ block: block, sticky: true });
+    const index = selectedSector ? sectorOption(selectedSector) : -1;
+    if (index >= 0) {
+      setHover({ option: index, sticky: true });
+      showSectorInfo(display.options[index].blocks[0]);
     } else {
+      applyHover();
       showStageInfo();
     }
   }
@@ -461,11 +426,6 @@ export function createStageView(host) {
     animation = null;
     a.frame(1);
     a.done();
-  }
-
-  function currentView() {
-    if (view) return { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi };
-    return cameraFor(stage);
   }
 
   // Every frame: the running move, if any.
@@ -481,36 +441,69 @@ export function createStageView(host) {
   }
 
   function up() {
-    const parent = S.parentStage(stage);
+    if (selectedSector && !resolved.sector) {
+      selectedSector = null;
+      go(stage);
+      return;
+    }
+    const parent = S.parentStage(stage, getOutline(), edgePc);
     if (parent) go(parent);
+  }
+
+  function home() {
+    go({ at: null, picks: [] });
+  }
+
+  // The map's Back and Forward: the browser's own history, kept to this
+  // map's stages.
+  function travel(direction) {
+    if (direction < 0 && mapIndex > 0) history.back();
+    else if (direction > 0 && mapIndex < maxIndex) history.forward();
+  }
+
+  function renderTravel() {
+    if (!els.controls) return;
+    const back = els.controls.querySelector('[data-action="back"]');
+    const forward = els.controls.querySelector('[data-action="forward"]');
+    const upButton = els.controls.querySelector('[data-action="up"]');
+    if (back) back.disabled = mapIndex <= 0;
+    if (forward) forward.disabled = mapIndex >= maxIndex;
+    if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
   }
 
   // --- Picking and hover -----------------------------------------------------
 
   const raycaster = new THREE.Raycaster();
 
-  // The block under a screen point: {block, slab} or null. Dimmed blocks
-  // ("Generated only") can't be picked.
-  function blockAt(clientX, clientY) {
-    if (!display) return null;
+  // Whether choice `index` can be picked: not while it holds nothing
+  // generated with "Generated only" on.
+  function pickable(index) {
+    if (!display || !display.options[index]) return false;
+    if (!generatedOnly) return true;
+    const data = display.data;
+    return display.options[index].blocks.some(function (b) { return generatedOf(b, data) > 0; });
+  }
+
+  // The choice under a screen point (an index into display.options), or
+  // -1. Layers are picked from the strip, not the map: from above, one
+  // covers the others.
+  function optionAt(clientX, clientY) {
+    if (!display || !resolved || resolved.kind === "layer") return -1;
     const rect = canvasEl.getBoundingClientRect();
-    if (!rect.width || !rect.height) return null;
+    if (!rect.width || !rect.height) return -1;
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
     raycaster.setFromCamera(ndc, camera);
     const meshes = [];
-    display.slabs.forEach(function (slab) {
-      if (slab.fade > 0.05) Array.prototype.push.apply(meshes, slab.meshes);
-    });
+    display.groups.forEach(function (group) { Array.prototype.push.apply(meshes, group.meshes); });
     const hits = raycaster.intersectObjects(meshes, false);
     for (let n = 0; n < hits.length; n++) {
       const hit = hits[n];
-      const owners = hit.object.userData.part.owners;
-      const cell = hit.object.userData.cells[owners[hit.face.a]];
+      const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
       if (!cell) continue;
       if (generatedOnly && !(cell.filled > 0)) continue;
-      return { block: cell.block, slab: cell.slab, cell: cell };
+      return cell.option;
     }
-    return null;
+    return -1;
   }
 
   let outlineLine = null;
@@ -524,20 +517,18 @@ export function createStageView(host) {
     }
   }
 
-  // An accent outline around a block's top face (top-down stages).
-  function outlineBlock(block) {
+  // An accent outline around a choice's area, seen from above (MAP.18).
+  function outlineSpan(span) {
     clearOutline();
-    const b = block.bounds;
-    const steps = Math.max(2, Math.ceil((b.t1 - b.t0) / (Math.PI / 90)));
+    const steps = Math.max(2, Math.ceil((span.t1 - span.t0) / (Math.PI / 90)));
     const points = [];
-    const z = b.z1;
     for (let k = 0; k <= steps; k++) {
-      const t = b.t0 + ((b.t1 - b.t0) * k) / steps;
-      points.push(new THREE.Vector3(b.r1 * Math.cos(t), b.r1 * Math.sin(t), z));
+      const t = span.t0 + ((span.t1 - span.t0) * k) / steps;
+      points.push(new THREE.Vector3(span.r1 * Math.cos(t), span.r1 * Math.sin(t), span.z1));
     }
     for (let k = steps; k >= 0; k--) {
-      const t = b.t0 + ((b.t1 - b.t0) * k) / steps;
-      points.push(new THREE.Vector3(b.r0 * Math.cos(t), b.r0 * Math.sin(t), z));
+      const t = span.t0 + ((span.t1 - span.t0) * k) / steps;
+      points.push(new THREE.Vector3(span.r0 * Math.cos(t), span.r0 * Math.sin(t), span.z1));
     }
     outlineLine = new THREE.LineLoop(
       new THREE.BufferGeometry().setFromPoints(points),
@@ -552,54 +543,21 @@ export function createStageView(host) {
     applyHover();
   }
 
+  // The hovered choice stays as it is and the others fade (a layer
+  // hovered in the strip too); a choice on the map gets an outline.
   function applyHover() {
     if (!display) return;
-    const topDown = stage.slab != null;
-    display.slabs.forEach(function (slab) {
-      if (!topDown && !animation) {
-        slab.fade = hover && hover.slab != null && hover.slab !== slab.slab ? OTHER_SLAB_FADE : 1;
-      }
+    const index = hover ? hover.option : -1;
+    display.groups.forEach(function (group, n) {
+      group.fade = index >= 0 && n !== index ? OTHER_FADE : 1;
     });
     if (!animation) setDisplayFade(display, 1);
-    if (topDown && hover && hover.block) outlineBlock(hover.block);
-    else clearOutline();
-    markStripRow(hover ? hover.slab : null);
-    if (hover && hover.sticky) showInfo(hover);
-  }
-
-  function slabSummary(slab) {
-    const group = display && display.slabs.find(function (s) { return s.slab === slab; });
-    const data = dataFor(stage.at);
-    let generated = 0;
-    let total = 0;
-    (group ? group.blocks : []).forEach(function (block) {
-      generated += generatedOf(block, data);
-      total += block.total || 0;
-    });
-    return { generated: generated, total: total };
-  }
-
-  function slabText(at, slab) {
-    const layers = S.slabLayers(at, slab);
-    const z0 = (layers.first - 0.5) * edgePc;
-    const z1 = (layers.last + 0.5) * edgePc;
-    const where = z1 <= 0 ? Math.round(-z1) + "–" + Math.round(-z0) + " pc below the plane"
-      : z0 >= 0 ? Math.round(z0) + "–" + Math.round(z1) + " pc above the plane"
-        : "across the plane";
-    const span = layers.first === layers.last ? "layer " + layers.first : "layers " + layers.first + " to " + layers.last;
-    return S.slabNoun(at) + " " + slab + ": " + span + ", " + where;
-  }
-
-  function blockText(block, data) {
-    const b = block.bounds;
-    const bearing = S.bearingRange(b);
-    const generated = generatedOf(block, data);
-    const parts = [(block.m === 1 ? "Sector " : "Block ") + S.blockLabel(block),
-      "bearing " + bearing[0].toFixed(1) + "°–" + bearing[1].toFixed(1) + "°",
-      Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
-    if (block.m === 1) parts.push(generated > 0 ? "generated" : "not generated");
-    else parts.push(S.formatInt(generated) + (block.total != null ? " of " + S.formatInt(block.total) : "") + " sectors generated");
-    return parts.join(", ");
+    if (index >= 0 && resolved.kind !== "layer" && display.options[index]) {
+      outlineSpan(spanOf(display.options[index].blocks, (display.options[index].a0 + display.options[index].a1) / 2));
+    } else {
+      clearOutline();
+    }
+    markStripRow(index);
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -618,45 +576,60 @@ export function createStageView(host) {
     tip.style.top = Math.max(4, y) + "px";
   }
 
-  function hoverText(found) {
-    if (stage.slab == null) {
-      const summary = slabSummary(found.slab);
-      return slabText(stage.at, found.slab) + ", " + S.formatInt(summary.generated)
-        + (getOutline().shapeless ? "" : " of " + S.formatInt(summary.total)) + " sectors generated";
-    }
-    return blockText(found.block, dataFor(stage.at));
+  // The tooltip beside a choice picked by keyboard: at its middle on
+  // screen.
+  function tooltipAtOption(index) {
+    const option = display.options[index];
+    const fp = S.footprint(option.blocks);
+    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1).project(camera);
+    const rect = canvasEl.getBoundingClientRect();
+    showTooltip(optionText(index), rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
   }
 
-  // The info panel for the selected block (top-down stages; a 3D stage's
-  // slabs have the strip).
-  function showInfo(h) {
-    const data = dataFor(stage.at);
-    if (stage.slab == null || !h.block) return;
-    const block = h.block;
-    if (block.m === 1) {
-      const sector = data && data.sectors.get(block.ring + "/" + block.wedge + "/" + block.slab);
-      if (sector) {
-        host.showPlacedInfo(sectorEntry(block, sector));
-      } else {
-        host.showCellInfo({ m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0 });
-      }
-      return;
-    }
-    host.showBlockInfo({
-      block: block, generated: generatedOf(block, data), total: block.total,
-      enter: function () { go({ at: S.stripBlock(block), slab: null }); },
-    });
+  function blockText(block, data) {
+    const b = block.bounds;
+    const bearing = S.bearingRange(b);
+    const generated = generatedOf(block, data);
+    const parts = [(block.m === 1 ? "Sector " : "Block ") + S.blockLabel(block),
+      "bearing " + bearing[0].toFixed(1) + "°–" + bearing[1].toFixed(1) + "°",
+      Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
+    if (block.m === 1) parts.push(generated > 0 ? "generated" : "not generated");
+    else parts.push(S.formatInt(generated) + (block.total != null ? " of " + S.formatInt(block.total) : "") + " sectors generated");
+    return parts.join(", ");
+  }
+
+  function layerText(pick) {
+    const first = S.slabLayers(stage.at, pick.lo).first;
+    const last = S.slabLayers(stage.at, pick.hi).last;
+    const z0 = (first - 0.5) * edgePc;
+    const z1 = (last + 0.5) * edgePc;
+    const where = z1 <= 0 ? Math.round(-z1) + "–" + Math.round(-z0) + " pc below the plane"
+      : z0 >= 0 ? Math.round(z0) + "–" + Math.round(z1) + " pc above the plane"
+        : "across the plane";
+    const span = first === last ? "layer " + first : "layers " + first + " to " + last;
+    return S.pickLabel(pick, stage.at, resolved.view) + ": " + span + ", " + where;
+  }
+
+  function optionText(index) {
+    const option = display.options[index];
+    const data = display.data;
+    if (option.blocks.length === 1) return blockText(option.blocks[0], data);
+    const sum = sumOf(option.blocks, data);
+    const counts = S.formatInt(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated";
+    if (option.pick && option.pick.kind === "layer") return layerText(option.pick) + ", " + counts;
+    const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
+    return (option.pick ? S.pickLabel(option.pick, stage.at, option) : "Here") + ", "
+      + Math.round(span.r0) + "–" + Math.round(span.r1) + " pc from the core, " + counts;
   }
 
   // The panel on arrival: the stage's own block (its hint under it), or
   // just the hint at the galaxy.
   function showStageInfo() {
-    const hint = hintFor(stage);
+    const hint = hintFor(resolved);
     if (!stage.at) {
       host.showHint(hint);
       return;
     }
-    // Its generated sectors are its children's.
     const data = dataFor(stage.at);
     let generated = 0;
     if (data) data.generated.forEach(function (n) { generated += n; });
@@ -664,25 +637,26 @@ export function createStageView(host) {
     host.showBlockInfo({
       block: stage.at, total: total,
       generated: data ? generated : null, hint: hint, enter: null,
-      generate: generateOffer(stage, total, data ? generated : null),
+      generate: generateOffer(total, data ? generated : null),
     });
   }
 
-  // Stages 7-8 (a 3-block, and one of its sector layers) for an admin:
-  // {block, layer} for the "Generate this layer" and "Generate this
-  // block" buttons (generatebuttons.js's blockGenerateButtons), with
-  // `layer` null or left out once nothing in it is left to generate.
-  // Null when there is nothing to offer.
-  function generateOffer(s, total, generated) {
-    if (!host.canGenerate || !s.at || s.at.m !== 3) return null;
+  // In a 3-block, for an admin: {block, layer, wholeBlock} for the
+  // "Generate this layer" and "Generate this block" buttons
+  // (generatebuttons.js's blockGenerateButtons), `layer` set while one
+  // layer of sectors is shown and not all generated. Null when there is
+  // nothing to offer.
+  function generateOffer(total, generated) {
+    if (!host.canGenerate || !stage.at || stage.at.m !== 3) return null;
     const blockDone = total != null && generated != null && total > 0 && generated >= total;
-    let layer = s.slab;
+    const blocks = resolved.view.blocks;
+    let layer = isSectorView(resolved) && blocks.every(function (b) { return b.slab === blocks[0].slab; }) ? blocks[0].slab : null;
     if (layer != null && !getOutline().shapeless) {
-      const summary = slabSummary(layer);
-      if (summary.total > 0 && summary.generated >= summary.total) layer = null;
+      const sum = sumOf(blocks, dataFor(stage.at));
+      if (sum.total > 0 && sum.generated >= sum.total) layer = null;
     }
     if (blockDone && layer == null) return null;
-    return { block: S.formatDrillKey(s.at), layer: layer, wholeBlock: !blockDone };
+    return { block: S.formatDrillKey(stage.at), layer: layer, wholeBlock: !blockDone };
   }
 
   function sectorEntry(block, sector) {
@@ -698,112 +672,109 @@ export function createStageView(host) {
     };
   }
 
+  function sectorRecord(block) {
+    const data = dataFor(stage.at);
+    return data ? data.sectors.get(block.ring + "/" + block.wedge + "/" + block.slab) : null;
+  }
+
+  function showSectorInfo(block) {
+    const sector = sectorRecord(block);
+    if (sector) host.showPlacedInfo(sectorEntry(block, sector));
+    else host.showCellInfo({ m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0 });
+  }
+
   // A stage's own hint in the info panel.
-  function hintFor(s) {
-    if (s.slab == null) {
-      return "Hover a " + S.slabNoun(s.at).toLowerCase() + " to see it, click it (or pick it in the list) to pull it out"
-        + " and look at it from above. Drag to turn the view.";
+  function hintFor(r) {
+    if (!r || !r.kind) return "";
+    if (r.kind === "layer") {
+      return "Pick a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) from the list beside the map.";
     }
-    if (s.at && s.at.m === 3) {
+    if (r.kind === "quadrant") return "Click a quarter of the galaxy to look at it more closely.";
+    if (isSectorView(r)) {
       return "Click a sector to open it; a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it." : ".");
     }
-    return "Click a block to fly into it.";
+    return "Click an arc of the map to zoom into it.";
   }
 
-  // --- Acting on a block or slab -------------------------------------------
+  // --- Acting on a choice ----------------------------------------------------
 
-  function act(found) {
-    if (stage.slab == null) {
-      go({ at: stage.at, slab: found.slab });
-      return;
-    }
-    const block = found.block;
-    if (block.m === 1) {
-      const data = dataFor(stage.at);
-      const sector = data && data.sectors.get(block.ring + "/" + block.wedge + "/" + block.slab);
+  function act(index) {
+    if (!pickable(index)) return;
+    const option = display.options[index];
+    if (option.blocks.length === 1 && option.blocks[0].m === 1) {
+      const block = option.blocks[0];
+      const sector = sectorRecord(block);
       if (sector && host.sectorUrl(sector.id)) {
         window.location.assign(host.sectorUrl(sector.id));
         return;
       }
       selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
-      setHover({ block: block, slab: block.slab, sticky: true });
+      setHover({ option: index, sticky: true });
+      showSectorInfo(block);
       renderCrumbs();
+      renderTravel();
       return;
     }
-    go({ at: S.stripBlock(block), slab: null });
+    if (!option.pick) return;
+    go({ at: stage.at, picks: stage.picks.concat([option.pick]) });
   }
 
-  function sectorBlock(sector) {
-    if (!display) return null;
-    for (const slab of display.slabs) {
-      const found = slab.blocks.find(function (b) {
-        return b.ring === sector.ring && b.wedge === sector.slot && b.slab === sector.layer;
-      });
-      if (found) return found;
-    }
-    return null;
+  function sectorOption(sector) {
+    if (!display) return -1;
+    return display.options.findIndex(function (option) {
+      return option.blocks.length === 1 && option.blocks[0].m === 1 && option.blocks[0].ring === sector.ring
+        && option.blocks[0].wedge === sector.slot && option.blocks[0].slab === sector.layer;
+    });
   }
 
   // --- Input -------------------------------------------------------------------
 
   let pointer = null;
-  let touchPending = null;
+  let touchPending = -1;
 
   function onPointerDown(event) {
     if (event.button !== 0) return;
-    pointer = { x: event.clientX, y: event.clientY, moved: 0, id: event.pointerId, type: event.pointerType };
-    try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* not essential */ }
+    pointer = { x0: event.clientX, y0: event.clientY, id: event.pointerId, type: event.pointerType };
   }
 
   function onPointerMove(event) {
-    if (pointer && event.pointerId === pointer.id) {
-      const dx = event.clientX - pointer.x;
-      const dy = event.clientY - pointer.y;
-      pointer.moved += Math.abs(dx) + Math.abs(dy);
-      pointer.x = event.clientX;
-      pointer.y = event.clientY;
-      if (pointer.moved > DRAG_CLICK_PX && !animation && view) {
-        drag(dx, dy);
-        showTooltip("", 0, 0);
-      }
-      return;
-    }
-    if (animation || event.pointerType === "touch") return;
-    const found = blockAt(event.clientX, event.clientY);
-    if (!found) {
+    if (animation || event.pointerType === "touch" || (pointer && event.pointerId === pointer.id)) return;
+    const index = optionAt(event.clientX, event.clientY);
+    if (index < 0) {
       if (hover && !hover.sticky) setHover(null);
       showTooltip("", 0, 0);
       return;
     }
-    if (!hover || hover.sticky || hover.slab !== found.slab || hover.block !== found.block) {
-      setHover({ block: found.block, slab: found.slab });
-    }
-    showTooltip(hoverText(found), event.clientX, event.clientY);
+    if (!hover || hover.option !== index) setHover({ option: index });
+    showTooltip(optionText(index), event.clientX, event.clientY);
   }
 
   function onPointerUp(event) {
     if (!pointer || event.pointerId !== pointer.id) return;
-    const wasClick = pointer.moved <= DRAG_CLICK_PX;
+    const moved = Math.abs(event.clientX - pointer.x0) + Math.abs(event.clientY - pointer.y0);
     const type = pointer.type;
     pointer = null;
-    try { canvasEl.releasePointerCapture(event.pointerId); } catch (err) { /* already released */ }
-    if (!wasClick || animation) return;
-    const found = blockAt(event.clientX, event.clientY);
-    if (!found) return;
-    if (type === "touch") {
-      // First tap highlights, a second on the same thing acts.
-      const key = stage.slab == null ? "slab:" + found.slab : "block:" + S.blockLabel(found.block);
-      if (touchPending !== key) {
-        touchPending = key;
-        setHover({ block: found.block, slab: found.slab, sticky: true });
-        showTooltip(hoverText(found), event.clientX, event.clientY);
-        return;
-      }
-      touchPending = null;
+    if (moved > DRAG_CLICK_PX || animation) return;
+    // Inside a container, a bright star or cloud under the click is shown
+    // rather than the block picked (over the whole galaxy and its
+    // quarters the stars are too thick for that).
+    if (stage.at && host.showPointAt && host.showPointAt(event.clientX, event.clientY)) {
+      showTooltip("", 0, 0);
+      return;
     }
+    const index = optionAt(event.clientX, event.clientY);
+    if (index < 0) return;
+    if (type === "touch" && touchPending !== index) {
+      // First tap highlights, a second on the same thing acts.
+      touchPending = index;
+      setHover({ option: index, sticky: true });
+      showTooltip(optionText(index), event.clientX, event.clientY);
+      return;
+    }
+    touchPending = -1;
     showTooltip("", 0, 0);
-    act(found);
+    act(index);
   }
 
   function onPointerLeave() {
@@ -811,54 +782,9 @@ export function createStageView(host) {
     if (hover && !hover.sticky) setHover(null);
   }
 
-  // Drag: turns a 3D stage; pans the galaxy's slab (stage 2) when zoomed
-  // in; does nothing on the other top-down stages, which fit the canvas.
-  function drag(dx, dy) {
-    if (stage.slab == null) {
-      view.theta -= dx * ROTATE_PER_PX;
-      view.phi = Math.max(MIN_TILT, Math.min(MAX_TILT, view.phi - dy * ROTATE_PER_PX));
-      applyView();
-      return;
-    }
-    if (stage.at) return;
-    const heightPx = canvasEl.clientHeight || 1;
-    const perPx = (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
-    const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
-    const upward = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
-    view.target[0] -= (right.x * dx - upward.x * dy) * perPx;
-    view.target[1] -= (right.y * dx - upward.y * dy) * perPx;
-    const reach = host.galaxyRadius;
-    const r = Math.hypot(view.target[0], view.target[1]);
-    if (r > reach) {
-      view.target[0] *= reach / r;
-      view.target[1] *= reach / r;
-    }
-    applyView();
-  }
-
-  function zoomBy(factor) {
-    if (!view || animation) return;
-    const closest = view.fit / (stage.slab == null ? ZOOM_3D : stage.at ? 1 : ZOOM_GALAXY_SLAB);
-    view.dist = Math.max(closest, Math.min(view.fit, view.dist * factor));
-    applyView();
-  }
-
-  function onWheel(event) {
-    let deltaPx = event.deltaY;
-    if (event.deltaMode === 1) deltaPx *= 33;
-    else if (event.deltaMode === 2) deltaPx *= canvasEl.clientHeight || 400;
-    deltaPx = Math.max(-200, Math.min(200, deltaPx));
-    if (deltaPx) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
-  }
-
-  // The blocks of the top-down slab in ring order, for the arrow keys.
-  function slabBlocks() {
-    if (!display || !display.slabs.length) return [];
-    return display.slabs[0].blocks.filter(function (b) {
-      return !generatedOnly || generatedOf(b, dataFor(stage.at)) > 0;
-    });
-  }
-
+  // Arrow keys move among the choices: Left and Right through them in
+  // order, Up and Down to the next one along the same arc (or the next
+  // layer up or down); Enter takes it.
   function onKey(event) {
     const key = event.key;
     if (key === "Escape" || key === "Backspace") {
@@ -868,66 +794,40 @@ export function createStageView(host) {
     }
     if (key === "Home") {
       event.preventDefault();
-      go({ at: null, slab: null });
+      home();
       return;
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
     event.preventDefault();
-    if (animation || !display) return;
-    if (stage.slab == null) {
-      const slabs = display.slabs.map(function (s) { return s.slab; });
-      if (key === "Enter") {
-        if (hover && hover.slab != null) go({ at: stage.at, slab: hover.slab });
-        return;
-      }
-      if (key === "ArrowUp" || key === "ArrowDown") {
-        const n = hover && hover.slab != null ? slabs.indexOf(hover.slab) : -1;
-        const next = n < 0 ? (key === "ArrowUp" ? slabs.length - 1 : 0) : Math.max(0, Math.min(slabs.length - 1, n + (key === "ArrowUp" ? 1 : -1)));
-        setHover({ slab: slabs[next], sticky: true });
-        return;
-      }
-      // Left/right: the neighbouring block, or turn the galaxy.
-      if (stage.at) {
-        const siblings = S.crumbSiblings(stage, getOutline(), edgePc);
-        const n = siblings.findIndex(function (s) { return S.sameStage(s.stage, stage); });
-        const next = siblings[(n + (key === "ArrowRight" ? 1 : -1) + siblings.length) % siblings.length];
-        if (next) go(next.stage);
-      } else {
-        view.theta += key === "ArrowLeft" ? 0.1 : -0.1;
-        applyView();
-      }
-      return;
-    }
-    const blocks = slabBlocks();
-    if (!blocks.length) return;
-    let current = hover && hover.block ? hover.block : null;
+    if (animation || !display || !display.options.length) return;
+    const options = display.options;
+    const current = hover ? hover.option : -1;
     if (key === "Enter") {
-      if (current) act({ block: current, slab: current.slab });
+      if (current >= 0) act(current);
       return;
     }
-    if (!current) {
-      setHover({ block: blocks[0], slab: blocks[0].slab, sticky: true });
-      return;
-    }
-    let next = null;
-    if (key === "ArrowLeft" || key === "ArrowRight") {
-      const same = blocks.filter(function (b) { return b.ring === current.ring; });
-      const n = same.indexOf(current);
-      next = same[(n + (key === "ArrowLeft" ? 1 : -1) + same.length) % same.length];
+    let next = -1;
+    if (current < 0) {
+      next = 0;
+    } else if (resolved.kind === "layer" || key === "ArrowLeft" || key === "ArrowRight") {
+      const forward = key === "ArrowRight" || key === "ArrowUp";
+      next = (current + (forward ? 1 : -1) + options.length) % options.length;
     } else {
-      const ring = current.ring + (key === "ArrowUp" ? 1 : -1);
-      const mid = (current.bounds.t0 + current.bounds.t1) / 2;
-      blocks.forEach(function (b) {
-        if (b.ring !== ring) return;
-        const d = Math.abs(wrapAngle((b.bounds.t0 + b.bounds.t1) / 2 - mid));
-        if (!next || d < next.d) next = { block: b, d: d };
-      });
-      next = next ? next.block : null;
+      const a0 = options[current].a0;
+      const order = key === "ArrowUp" ? 1 : -1;
+      for (let n = current + order; n >= 0 && n < options.length; n += order) {
+        if (Math.abs(options[n].a0 - a0) < 1e-9) {
+          next = n;
+          break;
+        }
+      }
     }
-    if (next) setHover({ block: next, slab: next.slab, sticky: true });
+    if (next < 0) return;
+    setHover({ option: next, sticky: true });
+    tooltipAtOption(next);
   }
 
-  // --- Breadcrumb, slab strip, notice ------------------------------------
+  // --- Breadcrumb, layer strip, notice ---------------------------------------
 
   function notice(text) {
     if (!els.notice) return;
@@ -940,8 +840,8 @@ export function createStageView(host) {
     if (!nav) return;
     nav.textContent = "";
     const list = document.createElement("ol");
-    const items = S.crumbs(stage);
-    if (selectedSector) {
+    const items = S.crumbs(stage, getOutline(), edgePc);
+    if (selectedSector && !(resolved && resolved.sector)) {
       items.push({ label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }), last: true, sector: true });
       items[items.length - 2].last = false;
     }
@@ -960,118 +860,87 @@ export function createStageView(host) {
         button.addEventListener("click", function () { go(crumb.stage); });
         item.appendChild(button);
       }
-      if (crumb.stage && (crumb.stage.at || crumb.stage.slab != null)) {
-        const siblings = S.crumbSiblings(crumb.stage, getOutline(), edgePc);
-        if (siblings.length > 1) item.appendChild(siblingMenu(crumb, siblings));
-      }
       list.appendChild(item);
     });
     nav.appendChild(list);
   }
 
-  function siblingMenu(crumb, siblings) {
-    const menu = document.createElement("details");
-    menu.className = "galaxy-crumb-menu";
-    const summary = document.createElement("summary");
-    summary.textContent = "▾";
-    summary.setAttribute("aria-label", "Others beside " + crumb.label);
-    menu.appendChild(summary);
-    const list = document.createElement("ul");
-    siblings.forEach(function (sibling) {
-      const item = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = sibling.label;
-      if (S.sameStage(sibling.stage, crumb.stage)) button.setAttribute("aria-current", "true");
-      button.addEventListener("click", function () {
-        menu.open = false;
-        go(sibling.stage);
-      });
-      item.appendChild(button);
-      list.appendChild(item);
-    });
-    menu.appendChild(list);
-    return menu;
-  }
-
-  // The slab strip: one row per child slab of the container, top first,
-  // with its generated share. In 3D, hovering a row highlights the slab
-  // and clicking pulls it out; top-down, clicking moves to that slab.
+  // The layer strip (MAP.17): while the next pick is a layer, one row per
+  // choice, top first, with its generated share; hovering a row fades the
+  // others on the map, clicking takes it. Otherwise it says which layers
+  // the view holds.
   function renderStrip() {
     const box = els.slabs;
-    if (!box) return;
+    if (!box || !resolved || !resolved.view) return;
     box.textContent = "";
     const heading = document.createElement("h3");
     heading.textContent = S.slabNoun(stage.at) + "s";
     box.appendChild(heading);
-    const data = dataFor(stage.at);
-    const groups = childrenOf(stage.at).slice().reverse();
+    const slabs = Array.from(new Set(resolved.view.blocks.map(function (b) { return b.slab; }))).sort(function (p, q) { return p - q; });
+    if (resolved.kind !== "layer" || !display || display.resolved !== resolved) {
+      const note = document.createElement("p");
+      note.className = "galaxy-slab-note";
+      if (slabs.length) {
+        note.textContent = "Showing " + S.pickLabel({ kind: "layer", lo: slabs[0], hi: slabs[slabs.length - 1] }, stage.at, resolved.view).toLowerCase()
+          + (resolved.kind === "layer" ? "." : "; pick an arc on the map.");
+      }
+      box.appendChild(note);
+      return;
+    }
+    const data = display.data;
     const list = document.createElement("ul");
-    groups.forEach(function (g) {
-      if (getOutline().shapeless && !g.blocks.some(function (b) { return generatedOf(b, data) > 0; })) return;
-      let generated = 0;
-      let total = 0;
-      g.blocks.forEach(function (block) {
-        generated += generatedOf(block, data);
-        total += block.total || 0;
-      });
+    display.options.map(function (option, index) { return index; }).reverse().forEach(function (index) {
+      const option = display.options[index];
+      const sum = sumOf(option.blocks, data);
       const item = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
       button.className = "galaxy-slab-row";
-      button.dataset.slab = String(g.slab);
-      const layers = S.slabLayers(stage.at, g.slab);
+      button.dataset.option = String(index);
       const name = document.createElement("span");
-      name.textContent = S.slabNoun(stage.at) + " " + g.slab
-        + (layers.first === layers.last ? "" : " · layers " + layers.first + " to " + layers.last);
+      name.textContent = S.pickLabel(option.pick, stage.at, resolved.view);
       const bar = document.createElement("span");
       bar.className = "galaxy-slab-bar";
       const fill = document.createElement("span");
-      fill.style.width = total > 0 ? Math.max(generated > 0 ? 2 : 0, (100 * generated) / total).toFixed(1) + "%" : "0%";
+      fill.style.width = sum.total > 0 ? Math.max(sum.generated > 0 ? 2 : 0, (100 * sum.generated) / sum.total).toFixed(1) + "%" : "0%";
       bar.appendChild(fill);
       const count = document.createElement("span");
       count.className = "galaxy-slab-count";
-      count.textContent = S.formatInt(generated) + (total > 0 ? " / " + S.formatInt(total) : "");
+      count.textContent = S.formatInt(sum.generated) + (sum.total > 0 ? " / " + S.formatInt(sum.total) : "");
       button.appendChild(name);
       button.appendChild(bar);
       button.appendChild(count);
-      button.setAttribute("aria-label", slabText(stage.at, g.slab) + ", " + S.formatInt(generated)
-        + (total > 0 ? " of " + S.formatInt(total) : "") + " sectors generated");
-      if (stage.slab === g.slab) button.setAttribute("aria-current", "true");
-      button.addEventListener("mouseenter", function () {
-        if (stage.slab == null && !animation) setHover({ slab: g.slab });
-      });
-      button.addEventListener("focus", function () {
-        if (stage.slab == null && !animation) setHover({ slab: g.slab, sticky: true });
-      });
-      button.addEventListener("click", function () {
-        go({ at: stage.at, slab: g.slab });
-      });
+      button.setAttribute("aria-label", optionText(index));
+      button.disabled = !pickable(index);
+      button.addEventListener("mouseenter", function () { if (!animation) setHover({ option: index }); });
+      button.addEventListener("mouseleave", function () { if (hover && !hover.sticky) setHover(null); });
+      button.addEventListener("focus", function () { if (!animation) setHover({ option: index, sticky: true }); });
+      button.addEventListener("click", function () { act(index); });
       item.appendChild(button);
       list.appendChild(item);
     });
     box.appendChild(list);
   }
 
-  function markStripRow(slab) {
+  function markStripRow(index) {
     if (!els.slabs) return;
     els.slabs.querySelectorAll(".galaxy-slab-row").forEach(function (row) {
-      row.classList.toggle("is-hovered", slab != null && row.dataset.slab === String(slab));
+      row.classList.toggle("is-hovered", index >= 0 && row.dataset.option === String(index));
     });
   }
 
   // --- The address bar (section 9.3) -----------------------------------------
 
-  // Flies to sector {ring, layer, slot}'s stage 8 and selects it.
+  // Flies to the stage showing sector {ring, layer, slot} among its
+  // layer's neighbours (MAP.26) and selects it.
   function locate(sector) {
-    const next = S.sectorStage(sector.ring, sector.layer, sector.slot);
-    const problem = S.validStage(next, getOutline(), edgePc);
-    if (problem) {
+    const next = S.sectorStage(sector.ring, sector.layer, sector.slot, getOutline(), edgePc);
+    if (!next) {
       notice("Sector " + S.blockLabel({ m: 1, ring: sector.ring, wedge: sector.slot, slab: sector.layer })
         + " is outside the galaxy.");
       return false;
     }
-    selectedSector = sector;
+    selectedSector = { ring: sector.ring, layer: sector.layer, slot: sector.slot };
     go(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.ring, sector.layer, sector.slot) });
     return true;
   }
@@ -1142,14 +1011,14 @@ export function createStageView(host) {
 
   if (els.address) els.address.addEventListener("submit", onAddress);
 
-  // --- Turning on and off ------------------------------------------------------
+  // --- Turning on, and the URL -----------------------------------------------
 
   function setActive(on) {
     if (on === active) return;
     active = on;
     [els.crumbs, els.slabs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
-    if (!on) clearMatches();
     if (!on) {
+      clearMatches();
       if (animation) finishAnimation();
       disposeDisplay(display);
       display = null;
@@ -1159,43 +1028,72 @@ export function createStageView(host) {
       notice("");
       return;
     }
-    renderCrumbs();
-    loadData(stage.at).then(function () {
+    const r = resolved || resolve(stage);
+    loadData(r.stage.at).then(function () {
       if (!active) return;
       display = null;
-      flyTo(stage);
-      renderStrip();
+      flyTo(r);
     });
   }
 
-  // Opens the stage the URL asks for (or the galaxy, with a notice).
-  // With a NAV course and no stage in the URL, the smallest stage
-  // showing the whole course (section 9.4).
-  function openFromLocation(push) {
+  // The stage a URL's query asks for: {stage, sector, problem}. ?sector=
+  // opens the stage showing that sector; with a NAV course and no stage
+  // asked for, the smallest stage showing the whole course (section 9.4).
+  function stageFromLocation(useCourse) {
     const parsed = S.parseStageQuery(location.search);
-    let next = parsed.stage;
-    if (!parsed.sector && !next.at && next.slab == null && host.courseSectors && host.courseSectors.length) {
-      next = S.courseStage(host.courseSectors);
+    if (parsed.problem) return { stage: { at: null, picks: [] }, sector: null, problem: parsed.problem };
+    if (parsed.sector) {
+      const s = parsed.sector;
+      const next = S.sectorStage(s.ring, s.layer, s.slot, getOutline(), edgePc);
+      if (!next) {
+        return {
+          stage: { at: null, picks: [] }, sector: null,
+          problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
+        };
+      }
+      return { stage: next, sector: s, problem: null };
     }
-    let problem = parsed.problem || S.validStage(next, getOutline(), edgePc);
-    if (problem) next = { at: null, slab: null };
-    selectedSector = parsed.sector && !problem ? parsed.sector : null;
-    stage = next;
+    let next = parsed.stage;
+    if (useCourse && !next.at && !next.picks.length && host.courseSectors && host.courseSectors.length) {
+      next = S.courseStage(host.courseSectors, getOutline(), edgePc);
+    }
+    return { stage: next, sector: null, problem: null };
+  }
+
+  // Opens the stage the URL asks for (or the galaxy, with a notice).
+  function openFromLocation() {
+    const state = history.state && history.state.galaxyStage ? history.state : null;
+    mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
+    maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
+    history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    const asked = stageFromLocation(true);
+    let r = resolve(asked.stage);
+    let problem = asked.problem || r.problem;
+    if (r.problem) r = resolve({ at: null, picks: [] });
+    selectedSector = asked.sector || (r.sector ? { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge } : null);
+    stage = r.stage;
+    resolved = r;
     renderCrumbs();
     renderStrip();
-    host.setBlockSize(childM(next.at));
-    if (push === false && display) {
-      go(next, { push: false, keepSector: true });
-    }
+    renderTravel();
+    host.setBlockSize(r.view.blocks.length ? r.view.blocks[0].m : 243);
     notice(problem || "");
   }
 
-  function onPopState() {
+  function onPopState(event) {
     if (!active) return;
-    const parsed = S.parseStageQuery(location.search);
-    const problem = parsed.problem || S.validStage(parsed.stage, getOutline(), edgePc);
-    selectedSector = parsed.sector && !problem ? parsed.sector : null;
-    go(problem ? { at: null, slab: null } : parsed.stage, { push: false, keepSector: true });
+    const state = event.state && event.state.galaxyStage ? event.state : null;
+    mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
+    maxIndex = Math.max(maxIndex, mapIndex);
+    const asked = stageFromLocation(false);
+    if (asked.problem) {
+      selectedSector = null;
+      go({ at: null, picks: [] }, { push: false });
+      notice(asked.problem);
+      return;
+    }
+    selectedSector = asked.sector;
+    go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);
 
@@ -1214,11 +1112,10 @@ export function createStageView(host) {
     onPointerMove: onPointerMove,
     onPointerUp: onPointerUp,
     onPointerLeave: onPointerLeave,
-    onWheel: onWheel,
     onKey: onKey,
-    zoomBy: zoomBy,
-    home: function () { go({ at: null, slab: null }); },
+    home: home,
     up: up,
+    travel: travel,
     setGeneratedOnly: setGeneratedOnly,
     stage: function () { return stage; },
     go: go,

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 7.58.2 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.72.174 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -93,7 +93,7 @@ Once installed, the site's front page leads to:
   a Territories overlay shows who holds what. As an admin, click an
   empty sector to generate it, a neighborhood of a radius you choose,
   its column or its whole shell, or generate a whole small block or one
-  of its layers. Free look keeps the old free camera.
+  of its layers.
 - **Sectors** and **Systems**: every generated sector and every system,
   50 to a page. A sector has a 3D Sector Map (with the same Generate
   buttons for admins, and Nav from/to on any system) and a Contents
