@@ -2,7 +2,7 @@
 
 """
 White dwarf and giant systems render on the system page and System Map
-(TODO 55: until the star population fix, no white dwarf or K/M giant had
+(the star-type study of 2026-09-30: until the star population fix, no white dwarf or K/M giant had
 ever been generated, so these paths were untested), and the Sector Map's
 star dots keep them visibly apart in size.
 """

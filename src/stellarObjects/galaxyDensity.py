@@ -38,6 +38,8 @@ analysis figure), and own persistence, if any.
 import math
 from collections import namedtuple
 
+from . import program_constants
+
 GalaxyShape = namedtuple(
     "GalaxyShape",
     [
@@ -119,6 +121,67 @@ def _raw_density(position_pc, shape):
         arm_factor = 1.0
 
     return bulge + disk_radial * f_z * arm_factor
+
+
+def _arm_cosine(x, y, shape):
+    """`cos(arm_count * (theta - theta_arm))` at `(x, y)`: 1 on an arm's
+    crest, -1 midway between arms; 0 at the center, where arms are
+    undefined."""
+    r_cyl = math.hypot(x, y)
+    if r_cyl <= 1e-9:
+        return 0.0
+    theta = math.atan2(y, x)
+    theta_arm = (
+        shape.spiral_reference_angle_rad
+        + math.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
+    )
+    return math.cos(shape.arm_count * (theta - theta_arm))
+
+
+def population_densities(position_pc, shape):
+    """
+    `relative_density` at `position_pc` split by stellar population
+    (young, intermediate, old disk stars and bulge stars; see
+    `program_constants.STELLAR_POPULATION_*`), so a sector can draw each
+    system's age from the mix where it sits.
+
+    The components always sum to `relative_density`, so no sector's total
+    changes. The bulge term is the "bulge" population. The disk term is
+    shared among the three disk populations in proportion to how many
+    stars each would put here: its share of disk star formation (the
+    length of its age range), times its own vertical profile
+    (`sech^2(z/h)/h`, a thinner disk for younger stars) and its own arm
+    contrast (`1 + A cos(arm phase)`, strongest for young stars). So young
+    stars crowd the arms near the plane, and far off the plane or in the
+    bulge nearly every star is old.
+
+    Returns:
+        dict: `{"young", "intermediate", "old", "bulge"}` -> density, each
+              `>= 0`, summing to `relative_density(position_pc, shape)`.
+    """
+    x, y, z = position_pc
+    r_3d = math.sqrt(x * x + y * y + z * z)
+    bulge = shape.k_norm * shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
+    disk = relative_density(position_pc, shape) - bulge
+
+    ages = program_constants.STELLAR_POPULATION_AGE_RANGES_GY
+    formation_span = program_constants.STAR_FORMATION_AGE_RANGE_GY[1] - program_constants.STAR_FORMATION_AGE_RANGE_GY[0]
+    arm_cos = _arm_cosine(x, y, shape)
+    weights = {}
+    for name, ratio in program_constants.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+        height = shape.disk_scale_height_pc * ratio
+        share = (ages[name][1] - ages[name][0]) / formation_span
+        weights[name] = (share * _sech_squared(z / height) / height
+                         * (1 + program_constants.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
+    total = sum(weights.values())
+    if total <= 0.0:
+        # Far enough off the plane that every profile underflows: the
+        # thickest (old) disk is all that's left.
+        weights, total = {name: 0.0 for name in weights}, 1.0
+        weights["old"] = 1.0
+    densities = {name: max(disk, 0.0) * weight / total for name, weight in weights.items()}
+    densities["bulge"] = bulge
+    return densities
 
 
 def relative_density(position_pc, shape):

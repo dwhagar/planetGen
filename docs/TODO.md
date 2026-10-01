@@ -351,6 +351,25 @@ Low priority; nobody is waiting on these.
     means `DELETE` then `POST` (regenerate). It may never need solving;
     kept here in case it does.
 
+### Star population (from the galaxy studies of 2026-09-30)
+
+The random star model (mass from the Kroupa IMF, an age, then evolution:
+`stellarObjects/stellarEvolution.py`), secondaries from a mass ratio at
+the primary's age, planet/life gating by star age and engulfment, the
+bright/dim sampling API (`stellarObjects/stellarPopulation.py`),
+population densities (`galaxyDensity.population_densities`) and
+`SpaceSector.add_preplaced_system` have shipped (bugs S1-S8 of the
+project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
+`bright-star-preplacement-plan.md`). What's left:
+
+55. [ ] **Use population ages at sector fill (S7 call site).** In
+    `generate.py`'s `generate_sector`, set each system's
+    `SystemConfig.POPULATION` to
+    `stellarPopulation.pick_population(galaxyDensity.population_densities(position_pc, shape))`
+    for a galaxy-placed sector, so O/B stars and supergiants sit in the
+    arms near the plane and the bulge has none (Database/Web own that
+    file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
+    way).
 
 ## Population and Politics
 

@@ -525,10 +525,15 @@ class SectorSystemEntry:
                                       and later rebuilt from the same recipe.
     """
 
-    def __init__(self, star_system, position, system_config=None):
+    preplaced = False
+    """bool: Whether this system was built around a star pre-placed at plan
+    time (`SpaceSector.add_preplaced_system`) rather than placed at fill."""
+
+    def __init__(self, star_system, position, system_config=None, preplaced=False):
         self.star_system = star_system
         self.position = tuple(position)
         self.system_config = system_config if system_config is not None else star_system.system_config
+        self.preplaced = preplaced
 
     def distance_to(self, other):
         """
@@ -574,12 +579,15 @@ class SectorSystemEntry:
         if config_dict.get("name") is None:
             config_dict["name"] = self.star_system.name
 
-        return {
+        data = {
             "name": self.star_system.name,
             "position": list(self.position),
             "config": config_dict,
             "generated": self.star_system.to_dict(),
         }
+        if self.preplaced:
+            data["preplaced"] = True
+        return data
 
 
 class SectorPhenomenonEntry:
@@ -830,6 +838,46 @@ class SpaceSector:
         self.entries.append(entry)
         log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
                   f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
+        return entry
+
+    def add_preplaced_system(self, star_system, position, system_config=None):
+        """
+        Adds a system built around a star pre-placed at plan time (the
+        galaxy's bright stars; see `stellarPopulation.sample_bright_stars`)
+        at the star's stored position. A sector places these first, so
+        every system added afterward (`add_system`, `grow_from_seed`) keeps
+        clear of their Hill spheres like any other.
+
+        Pre-placed stars were scattered without knowing each other's final
+        systems, so two in one sector can (very rarely) sit closer than
+        their Hill spheres allow; the stored position still wins, since it
+        is what the galaxy map already shows, and the overlap is logged.
+
+        Args:
+            star_system (StarSystem): The system, whose primary is the
+                pre-placed star.
+            position (tuple): The stored sector-local `(x, y, z)`, in
+                light-years; it must lie inside the sector.
+            system_config (SystemConfig, optional): As in `add_system`.
+
+        Returns:
+            SectorSystemEntry: The new entry, with `preplaced` set.
+
+        Raises:
+            ValueError: If `position` isn't three finite numbers inside the
+                sector.
+        """
+        position = self._check_explicit_position(position)
+        if not self.contains(position):
+            raise ValueError(f"Sector {self.name!r}: pre-placed position {_fmt_position(position)} is outside the sector")
+        for neighbor, neighbor_position in self._massive_neighbors():
+            required = required_separation_ly(star_system, neighbor)
+            if distance_between(position, neighbor_position) < required:
+                log.debug(f"Sector {self.name!r}: pre-placed system {_system_name(star_system)!r} at "
+                          f"{_fmt_position(position)} is inside {required:.3f} ly of a neighbor at "
+                          f"{_fmt_position(neighbor_position)}; kept at its stored position")
+        entry = self.add_system(star_system, position=position, system_config=system_config)
+        entry.preplaced = True
         return entry
 
     def add_home_system(self, star_system, system_config=None,
@@ -1194,6 +1242,7 @@ class SpaceSector:
                 star_system = StarSystem(system_config=config)
             sector.entries.append(SectorSystemEntry(
                 star_system, system_data["position"], system_config=config,
+                preplaced=bool(system_data.get("preplaced", False)),
             ))
 
         for phenomenon_data in data.get("phenomena", []):
