@@ -17,7 +17,11 @@
 - **A fill after a failed bright-star scatter could place the same bright
   stars twice.** The backfill now clears unbuilt leftovers in the cells it
   draws for when no scatter threshold was recorded.
-- **Two colony and population tests failed on about 2% of draws (TEST.69).**
-  One searched the page for a planet name with an apostrophe without
-  escaping it; the other let a second capital keep random ages, which
+- **A habitable world with no viable life chemistry could still found a
+  civilization.** It got an evolutionary timeline anyway, so the population
+  pass gave it a species that its system page never showed. Such a world now
+  gets no timeline.
+- **Three colony and population tests failed on some draws (TEST.69).**
+  Two searched a page for a generated name with an apostrophe without
+  escaping it; the third let a second capital keep random ages, which
   sometimes founded a polity with no systems.

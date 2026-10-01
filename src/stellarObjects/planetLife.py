@@ -192,8 +192,11 @@ def apply_life_data(planet):
     # Determine the evolutionary speed based on the star and chosen chemical
     planet.evolutionary_speed = get_evolutionary_speed(planet, spectral_class)
 
-    # Generate evolutionary timeline data if the planet is habitable and not a moon
-    if planet.zone == 'e' and not planet.is_moon: # Only for habitable planets
+    # Generate evolutionary timeline data if the planet is habitable, has a
+    # life chemistry and is not a moon. Without a chemistry nothing lives
+    # there, so no timeline (a lifeless world used to get one, and the
+    # population pass then gave it a species no page would show).
+    if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
         planet.evolutionary_data = get_evolutionary_timeline(planet.star, planet.planet_class)
 
 

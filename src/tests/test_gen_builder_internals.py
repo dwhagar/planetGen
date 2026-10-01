@@ -369,3 +369,28 @@ def test_from_dict_rejects_a_newer_schema_before_reading_anything_else():
     the clear error rather than a KeyError."""
     with pytest.raises(ValueError, match="is newer than this code understands"):
         StarSystem.from_dict({"schema_version": 10 ** 6})
+
+
+# ---------------------------------------------------------------------------
+# Life data: no chemistry, no timeline
+# ---------------------------------------------------------------------------
+
+def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch):
+    """A habitable-zone planet whose class and star share no life chemical
+    is lifeless, so it gets no evolutionary timeline; it used to get one,
+    and the population pass then gave it a species no page showed."""
+    from stellarObjects import planetLife
+
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.HABITABLE_WORLD = True
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    planet = next(p for p in system.planets if getattr(p, "zone", None) == "e" and not p.is_moon)
+    assert planet.evolutionary_data
+
+    monkeypatch.setattr(planetLife, "get_viable_life_chemicals", lambda *args, **kwargs: {})
+    planet.evolutionary_data = []
+    planetLife.apply_life_data(planet)
+    assert planet.life_chemical is None
+    assert planet.evolutionary_data == []
