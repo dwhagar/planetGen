@@ -502,8 +502,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   arc, layer, arc) down to single sectors &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
   Whole galaxy starts over &middot; arrow keys and Enter pick too &middot; blocks are colored by predicted density
   (brighter = denser): unfilled space is see-through, and a block with generated sectors is amber, more solid the
-  more of them are generated &middot; glowing points are the brightest stars (500 L&#9737; and up), placed before
-  their sectors are generated; click one (inside a quarter's block) to see it &middot; wedge lines follow the
+  more of them are generated &middot; glowing points are stars, sized by the star, colored by its temperature and
+  brighter the more luminous: the brightest (500 L&#9737; and up) everywhere, placed before their sectors are
+  generated, and generated systems' stars fainter and fainter as you zoom in; click one (inside a quarter's block)
+  to see it &middot; wedge lines follow the
   sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing (degrees
   counterclockwise from +X, ring slot 0)</span>
 </div>
