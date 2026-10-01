@@ -348,6 +348,96 @@ for a mouse; spacing and type sized with `clamp()`.
     random stream, so a 500-then-100 galaxy matches a straight-to-100
     one?
 
+90. [ ] **Rate-limit SQL calls and make each call do more.** Boss
+    (2026-10-01): "ratelimiting calls to the sql database and seeing if
+    we can investigate some way to make our DB calls more efficient, do
+    more with less calls without impacting performance." Today every
+    database call goes through `stellarObjects/_db.py`'s `PooledDB`
+    (one pool per config, `maxconnections=10`, `blocking=True`), with no
+    limit on how often calls are made, and the Database thread measured
+    about 60% of generation time going to per-row planet and moon saves.
+    Done: an investigation first, written up before any code changes,
+    that lists the hottest call sites (per-row inserts during sector
+    fill, per-row reads on the web pages) and for each one whether it can
+    be batched (`executemany`, multi-row `INSERT`, one save per system
+    instead of per body, fewer round trips per page); then the batching
+    changes that measure faster, and a rate limit on calls to the
+    database. Open questions: what the rate limit protects against (the
+    MySQL server being swamped by item 92's parallel workers, or web
+    users hammering the API), and so whether it is a calls-per-second cap,
+    a cap on concurrent connections, or both; whether it is one limit
+    shared by generation and the web site or separate ones; how it
+    interacts with the pool size once item 92 runs several workers at
+    once (each process gets its own pool today); and what benchmark
+    decides "without impacting performance" (a fixed test sector timed
+    before and after?).
+
+91. [ ] **Parallelize sector and system generation, with stable
+    progress bars.** Boss (2026-10-01): "add a TODO item to parallelize
+    sector and system generation and update the progress bars so that
+    they stay stable, I want to keep the ETA until done and elapsed time
+    and I know that'll require some customization of the status bar code
+    as time estimates are to be calculated from a decaying average based
+    on number of runs per second." This is the first user of item 92's
+    work queue. Today `generate.py` fills sectors one after another in a
+    single process, and `_generation_progress()` (rich `Progress`) shows
+    elapsed time and rich's own ETA. Done: sector fill and the plan's
+    bright-star scatter run through item 92's queue; the bars stay
+    pinned at the bottom without flicker (as item 88 requires) even with
+    many workers reporting at once; every bar keeps elapsed time and an
+    ETA until done; and the ETA comes from a custom column that uses a
+    decaying (exponentially weighted) average of tasks finished per
+    second rather than rich's built-in estimate. Item 86's measured stars
+    per second and item 88's slow-layer bar use the same rate. Open
+    questions: the decay constant (how fast the average forgets older
+    runs); whether the rate is counted in systems, stars or sectors
+    (sectors differ a lot in size, so systems per second may be steadier);
+    and whether `progress.json` for the web jobs reports the same decayed
+    rate so the Generate page and item 87's banner show the same ETA.
+
+92. [ ] **A parallel background work queue in the API.** Boss
+    (2026-10-01): "I also want to do it in a specific way, ideally how it
+    would work is we'd have a work queue... In fact new TODO item,
+    implement a parallel background work cue in the API. So in the plan
+    phase we'll parallelize the bright star generation for any selected
+    level. Each star generation will be a task there. Then a sector will
+    be one task, but that task will be running until it finished filling
+    the sector. Each star system generated will be it's own task that the
+    API will paralleize, the sending task will get a signal that the
+    parallel task is done when it's finished and will be able to use that
+    information to calculate how long it iwll take to complete a given
+    series of tasks that got handed out. We'll also need limits so the
+    system never uses more than 80% of the total CPU power and defers to
+    other running processes in process scheduling." Today background work
+    is `web/jobs.py`'s one-job-at-a-time runner (an `active` lock,
+    `state.json`, `progress.json`) launching `generate.py`, which does
+    everything serially. Done:
+    - A work queue the API owns, with a pool of workers.
+    - Plan phase: each bright star generated for the selected level
+      (item 89's band) is one task.
+    - Sector fill: each sector is one parent task that stays running
+      until its sector is full; each star system in it is its own child
+      task that the queue runs in parallel.
+    - When a child task finishes, its parent gets a signal, and the
+      parent uses those signals to work out how long its handed-out
+      tasks will take to finish (feeding item 91's ETA).
+    - Limits: the workers never use more than 80% of total CPU, and they
+      run at a lower scheduling priority (for example `nice` on Linux and
+      macOS, below-normal priority on Windows) so other processes on the
+      machine come first.
+    Open questions: processes or threads (Python's GIL means CPU-bound
+    generation needs processes, which then each need their own database
+    connections, so the pool size and item 90's rate limit have to fit
+    the worker count); how 80% is enforced (a worker count of 80% of the
+    cores, or measuring load and throttling); whether the queue lives
+    inside the API process or in a separate worker service the API talks
+    to, and how command-line `generate.py` runs use it; how random seeds
+    are handed to tasks so a galaxy comes out the same however many
+    workers ran it and in whatever order they finished; how two systems
+    in one sector avoid clashing on names and positions when they are
+    built at the same time; and what happens to queued and half-done
+    tasks when the server restarts or a job is cancelled.
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
