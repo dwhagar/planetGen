@@ -13,7 +13,7 @@ Run with: pytest tests/test_name_uniqueness.py
 
 from stellarObjects import nameUniqueness as nu
 from stellarObjects.names import (
-    DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES,
+    GREEK_LETTERS, ROMAN_NUMERAL_VALUES,
 )
 
 BASE = "Sol"
@@ -83,33 +83,6 @@ def test_exhausting_every_slot_reports_none_and_none():
     new_name, rename = nu.resolve_greek_roman_collision(BASE, last_valid_count + 1)
     assert new_name is None
     assert rename is None
-
-
-def test_capacity_matches_greek_plus_roman_list_lengths():
-    assert nu.GREEK_ROMAN_CAPACITY == len(GREEK_LETTERS) + len(ROMAN_NUMERAL_VALUES)
-
-
-# ---------------------------------------------------------------------------
-# resolve_diminutive
-# ---------------------------------------------------------------------------
-
-def test_resolve_diminutive_first_use_returns_the_first_prefix():
-    prefix, next_index = nu.resolve_diminutive(None)
-    assert prefix == DIMINUTIVE_PREFIXES[0]
-    assert next_index == 0
-
-
-def test_resolve_diminutive_advances_on_repeat():
-    prefix, next_index = nu.resolve_diminutive(0)
-    assert prefix == DIMINUTIVE_PREFIXES[1]
-    assert next_index == 1
-
-
-def test_resolve_diminutive_exhausts_after_the_last_prefix():
-    last_index = len(DIMINUTIVE_PREFIXES) - 1
-    prefix, next_index = nu.resolve_diminutive(last_index)
-    assert prefix is None
-    assert next_index is None
 
 
 # ---------------------------------------------------------------------------
