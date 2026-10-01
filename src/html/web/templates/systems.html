@@ -1,7 +1,32 @@
 {% extends "base.html" %}
 {% block subhead %}
-<p class="badges"><span class="badge">{{ "{:,}".format(systems.total) }} standalone system{{ "" if systems.total == 1 else "s" }}</span></p>
+<p class="badges">
+  <span class="badge">{{ "{:,}".format(all_systems.total) }} system{{ "" if all_systems.total == 1 else "s" }}</span>
+  <span class="badge">{{ "{:,}".format(systems.total) }} standalone</span>
+</p>
 {% endblock %}
 {% block content %}
+<section class="panel" id="all-systems" aria-labelledby="all-systems-heading">
+  <div class="panel-header">
+    <h2 id="all-systems-heading">All Systems</h2>
+  </div>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Sector</th><th scope="col">Octant</th><th scope="col">Binary</th><th scope="col">Star type</th></tr></thead>
+    <tbody>
+      {%- for row in all_systems.rows %}
+      <tr>
+        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{% if row.sector_url %}<a href="{{ row.sector_url }}">{{ row.sector_name }}</a>{% else %}Standalone{% endif %}</td>
+        <td>{{ row.octant or "–" }}</td>
+        <td>{{ "Yes" if row.is_binary else "No" }}</td>
+        <td>{{ row.star_summary }}</td>
+      </tr>
+      {%- else %}
+      <tr><td colspan="5"><em>None</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ all_systems.pager }}
+</section>
 {% include "partials/systems_panel.html" %}
 {% endblock %}

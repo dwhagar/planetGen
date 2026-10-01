@@ -9,6 +9,7 @@ module only ever operates on plain values already handed back as JSON,
 never a database row or connection.
 """
 
+import datetime as _dt
 import html
 import math
 import os
@@ -224,6 +225,41 @@ def format_distance_pc(distance_pc):
     if distance_pc is None:
         return "&ndash;"
     return _ladder_pc(distance_pc)
+
+
+def utc_time_html(value):
+    """
+    A time for a page: `<time datetime="...Z" data-local-time>` whose text
+    reads in UTC ("2026-09-30 21:26 UTC"), which `static/localtime.js`
+    rewrites in the viewer's own time zone. Without script the page still
+    reads correctly, labelled UTC.
+
+    Args:
+        value: A Unix time (int/float), a `datetime` (naive ones are UTC,
+            the database connection's zone), or an ISO 8601 string (no
+            offset means UTC). `None` or `""` gives `""`.
+
+    Returns:
+        str: HTML-safe markup, or `""`; an unreadable string comes back
+             escaped as-is.
+    """
+    if value is None or value == "":
+        return ""
+    if isinstance(value, (int, float)):
+        moment = _dt.datetime.fromtimestamp(value, _dt.timezone.utc)
+    elif isinstance(value, _dt.datetime):
+        moment = value
+    else:
+        text = str(value).strip()
+        try:
+            moment = _dt.datetime.fromisoformat(text[:-1] + "+00:00" if text.endswith("Z") else text)
+        except ValueError:
+            return esc(text)
+    if moment.tzinfo is None:
+        moment = moment.replace(tzinfo=_dt.timezone.utc)
+    moment = moment.astimezone(_dt.timezone.utc)
+    return (f'<time datetime="{moment.strftime("%Y-%m-%dT%H:%M:%SZ")}" data-local-time>'
+            f'{moment.strftime("%Y-%m-%d %H:%M")} UTC</time>')
 
 
 def format_density(edge_ly, system_count):

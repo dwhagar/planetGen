@@ -441,7 +441,7 @@ def test_admin_lists_keys(client, fake):
     assert resp.status_code == 200
     assert resp.headers["Cache-Control"] == "no-store"
     assert "key 001" in html and "key 002" in html
-    assert "revoked 2026-02-01 00:00:00" in html
+    assert 'revoked <time datetime="2026-02-01T00:00:00Z" data-local-time>2026-02-01 00:00 UTC</time>' in html
     # One revoke form (the active key), carrying the CSRF token.
     assert html.count('value="revoke_key"') == 1
     revoke = re.search(r'<form method="post" action="/admin" class="table-form">.*?</form>', html, re.S).group(0)

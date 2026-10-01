@@ -110,19 +110,19 @@
 {%- endif %}
 
 <section class="panel" aria-labelledby="tags-heading">
-  {# TODO(search #4): make each tag group collapsible (<details><summary>
-     with the group title and its active-tag count) so the page isn't
-     overwhelming; keep a group open when one of its tags is selected. #}
   <h2 id="tags-heading">Browse by Tag</h2>
+  {#- Each group folds away (no script needed); one with a selected tag
+      starts open. -#}
   {%- for group in tag_groups %}
-  <div class="tag-group">
-    <h3>{{ group.title }}</h3>
+  {%- set active = group.options | selectattr("active") | list | length %}
+  <details class="tag-group"{% if active %} open{% endif %}>
+    <summary><h3>{{ group.title }}</h3><span class="tag-group-meta">{{ group.options | length }} tag{{ "" if group.options | length == 1 else "s" }}{% if active %}, {{ active }} selected{% endif %}</span></summary>
     <div class="tag-list">
       {%- for option in group.options %}
       <a class="tag{% if option.active %} active{% endif %}" href="{{ option.url }}"{% if option.tooltip %} title="{{ option.tooltip }}"{% endif %}>{% if option.active %}<span class="sr-only">Selected: </span>{% endif %}{{ option.label }} <span class="tag-count">{{ option.count }}</span></a>
       {%- endfor %}
     </div>
-  </div>
+  </details>
   {%- else %}
   <p class="hint">Nothing has been generated yet.</p>
   {%- endfor %}

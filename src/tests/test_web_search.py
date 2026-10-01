@@ -139,6 +139,11 @@ def test_repeated_tag_params_and_toggle_links(client, fake):
     assert '<input type="hidden" name="spectral" value="G">' in html
     assert '<input type="hidden" name="spectral" value="K">' in html
     assert '<a class="clear-filters" href="/search">Clear all</a>' in html
+    # Tag groups fold away; only a group with a selected tag starts open.
+    groups = re.findall(r'<details class="tag-group"( open)?>\s*<summary><h3>([^<]+)</h3>'
+                        r'<span class="tag-group-meta">([^<]+)</span>', html)
+    assert groups and all(bool(is_open) == ("selected" in meta) for is_open, _t, meta in groups)
+    assert any(is_open and "2 selected" in meta for is_open, _t, meta in groups)
 
 
 def test_sizes_are_parsed_and_bad_numbers_ignored(client, fake):

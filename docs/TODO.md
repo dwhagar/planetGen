@@ -37,8 +37,7 @@ renumber when items are added or finished.
    a small web change;
    5-7 change generation constants; the frequency research for 5 and 6
    is in `docs/design/interstellar-object-rates.md`.
-- **Extend the cache (8)**, then do the System Map route (9). The
-   local-time change (22) is small and can go in any time.
+- **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work items 15-18 in order (13, pixel-sized blocks, and 14, the solid and its slice, have shipped). 12 (the
@@ -49,8 +48,7 @@ renumber when items are added or finished.
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 29, 30 and 35
    are schema changes; 28 and 31 (classes) shipped in schema v38.
-- **More pages (46, 47, 49)**: the full systems list, the Sector Map
-   wireframe and non-overlapping System Map names are small and can go in any time.
+- **More pages (47)**: the Sector Map wireframe is small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -66,8 +64,8 @@ renumber when items are added or finished.
    isn't overwhelming, add stellar phenomena types to its search list.
    I can't find any nebulae on the phenomena page and they aren't
    searchable."
-   - `search.html` "Browse by Tag": each group becomes a
-     `<details>`, open when one of its tags is active.
+   - Done: each "Browse by Tag" group is a `<details>`, open when one
+     of its tags is active. Left: the phenomenon facet, after item 28.
    - `searchpage.TAG_FACETS`/`RESULT_PANELS` and
      `queryDb.SEARCH_TAG_FACETS`: add a phenomenon-type facet and a
      Phenomena result panel (none exists today).
@@ -86,19 +84,6 @@ renumber when items are added or finished.
    changes`, from the v27 `modified_at` columns). Extend that pattern to
    the other pages, invalidating each page from its own rows'
    `modified_at`.
-
-### System Map (`lib/systemmap.py`, `static/systemmap.js`)
-
-9. [ ] **Draw the Measure distance path and route it around obstacles.**
-   "Measure distance" ([5.46.32]) reports a straight-line distance plus,
-   when the line crosses the scene's central body, a tangent-and-arc
-   detour around that one body (`computeMeasurement`,
-   `routeAroundCircle`). It should also draw the path on the map, and the
-   route should avoid every body it would pass through (planets, moons,
-   either star of a binary), keep a safe distance from stars rather than
-   just clearing the surface, and not thread between the two stars of a
-   close binary. Done means the drawn path and reported distance agree
-   and both respect those clearances.
 
 ### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
@@ -191,31 +176,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
-22. [ ] **Show every timestamp in the viewer's own time zone.** Boss asked
-    for this on 2026-09-30. Today, times are shown in whatever zone they
-    were stored or formatted in.
-    - Server-rendered pages. Examples:
-      - `generate_page.py`'s job `created_text`, formatted with the
-        server's `time.localtime`;
-      - `admin_pages.py`'s API key `created_at` and the stats page's
-        "Last system change", "Newest system" and "Last sector change";
-      - `errors.py`'s error-page time.
-    - API responses, such as `api/auth.py`'s key `created_at`,
-      `last_used_at` and `revoked_at`. These should stay UTC ISO 8601 with
-      an explicit offset, since clients convert them.
-    - Job status in `static/generatejobs.js`, and any time the Galaxy Map
-      shows.
-
-    Approach: the server always emits UTC as `<time datetime="...Z">` with
-    a UTC fallback text, and one small script (like `theme.js`) rewrites
-    each one with `Intl.DateTimeFormat` in the browser's zone
-    (`Intl.DateTimeFormat().resolvedOptions().timeZone`), also showing the
-    zone's abbreviation. Pages still read correctly without JavaScript
-    (UTC, labelled). MySQL `DATETIME` columns carry no zone, so first
-    confirm the server session's `time_zone` is UTC or convert on read.
-    Done means no page shows a bare, zone-less time, and tests pin the UTC
-    markup.
-
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 23. [ ] **Generate a column and a shell.** Boss defined them on
@@ -242,6 +202,14 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column and shell
       (#23); the buttons post a CSRF-protected form that
       starts the job with the address filled in.
+
+55. [ ] **Star dots sized to real giants and white dwarfs.** From the
+    star-type study (2026-09-30): `lib/starmap.py _star_dot_radius`
+    caps at 14 px, so every giant and supergiant draws the same size.
+    Once the star population fix adds real giants (10-200 solar radii)
+    and white dwarfs (0.01), size the Sector Map dots on a log scale so
+    a giant is visibly larger than a dwarf, and check that white dwarf
+    and giant systems render on the system page and System Map.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
@@ -424,15 +392,6 @@ Low priority; nobody is waiting on these.
 
 ### More pages (Boss's notes, 2026-09-30)
 
-46. [ ] **A paginated list of every system on the Systems page.** Boss:
-    "the systems page should have a paginated list of all systems."
-    Today `/systems` (`views.systems`, `_systems_panel`) lists only
-    standalone systems (`sector_id="none"`). List every system, 50 rows
-    a page through the shared pager (`html/lib/pagination.py`), with
-    its sector and octant; keep the standalone list as its own panel or
-    a filter. `apiclient.get_systems` without `sector_id` already pages
-    all systems.
-
 47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
     that we have defined arc segments let's add a wireframe to the
     sector map." The server still sends the cell outline
@@ -443,22 +402,6 @@ Low priority; nobody is waiting on these.
     12 straight edges between 8 corners, thin and low-contrast so the
     stars stay the focus, in both themes. Consider faint outlines of
     the neighboring cells (ring, slot and layer boundaries) too.
-
-49. [ ] **System Map names never overlap.** Boss: "we need to make sure
-    names on the system map clickable interface do not overlap."
-    - Today `systemmap._label_sides_2d` places each label (4 directions,
-      then a pushed "below"/"above" with a leader line, else dropped)
-      against the others (plus seeded star-label rects) using an
-      estimated width (`_label_half_width_px`: character count times a
-      fixed width). Real text can run wider than the estimate, so
-      labels can still collide.
-    - Fix: make sure every star label and marker is in the collision
-      set; measure the real text in the browser
-      (`getBBox()` in `systemmap.js` after load and after each zoom
-      step in `mapzoom.js`) and nudge or hide labels that still
-      overlap, keeping the server placement as the no-script fallback.
-    - Check every scene: single star, close and wide binaries, and the
-      moon-centered scenes, at 390 px and 1280 px.
 
 ## Population and Politics
 

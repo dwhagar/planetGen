@@ -75,7 +75,7 @@
     <thead><tr><th scope="col">Table</th><th scope="col">Newest row created</th><th scope="col">Last modified</th></tr></thead>
     <tbody>
       {%- for row in database.timestamps %}
-      <tr><td><code>{{ row.table }}</code></td><td>{{ row.newest_created_at or "none" }}</td><td>{{ row.last_modified_at or "never" }}</td></tr>
+      <tr><td><code>{{ row.table }}</code></td><td>{% if row.newest_created_at %}{{ utc_time(row.newest_created_at) }}{% else %}none{% endif %}</td><td>{% if row.last_modified_at %}{{ utc_time(row.last_modified_at) }}{% else %}never{% endif %}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
