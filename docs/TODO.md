@@ -103,8 +103,8 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
    MAP.2.
 3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
    and PERF.10.
-4. **Admin editing:** ADM.1 and its subitems, starting with the validate
-   module (ADM.5).
+4. **Admin editing:** ADM.1 and its subitems, on the validate module
+   (ADM.5, done in PR #235).
 
 Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
 bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
@@ -510,6 +510,16 @@ with `clamp()`.
   - Fill from ring 0 outward, so a run that stops early (or hits
     `--limit`) still leaves a solid disc around the nucleus.
 
+- [ ] **GEN.25 A moon reclassified after its planet moves can be too large for its planet (bug)**
+  Found by the ADM.1 thread with ADM.5's validator (PR #235):
+  `stellarObjects/validation.check_star_system` reports "moon too large
+  for its planet" on about 3 of 1,000 generated systems with moons.
+  Start in `validation.reconcile_moved_planet` and
+  `planetPhysics.reconcile_zone_and_class`, which re-roll a moon's
+  class without checking `max_moon_radius_km` (planet radius /
+  10^(1/3)) or mass <= planet mass / 10. Done: 1,000 generated systems
+  pass `check_star_system` with no moon-size problems.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -714,23 +724,6 @@ with `clamp()`.
 - [ ] **ADM.1 Admin editing: overrides, delete and regenerate**
   Boss asked for these on 2026-10-01 (quoted where it matters). None is
   designed yet; the open questions are listed in each subitem.
-
-  - [ ] **ADM.5 Central validate module in `stellarObjects`**
-    Boss: "we should
-    get a whole set of validate functions in their own file within the
-    stellarObjects class (if we don't already) so that we can have a
-    central place to validate a system (lunar system, star system) which
-    includes validating planets." There isn't one today; validation is
-    spread out: `SystemData.validate_system`,
-    `_validate_cross_star_clearance` and `_trim_to_orbit_ceiling`
-    (`systemData.py`) for orbits, the `_validate_*` checks in
-    `planetPhysics.py` for a planet's class/radius/mass, and
-    `moon_orbit_bounds_km`/`drop_unstable_moons` (`planetPhysics.py`)
-    for moons. Done: one module (for example
-    `stellarObjects/validation.py`) that validates a planet, a lunar
-    system and a star system, which generation and ADM.6 and ADM.7
-    both call, with existing behavior unchanged. Prerequisite for
-    ADM.6 and ADM.7.
 
   - [ ] **ADM.6 Admin override of a planet's or moon's class**
     Boss: "it should
@@ -992,7 +985,7 @@ clears each one.
   `calculate_distance_for_class`, `_forced_habitable_distance`,
   `_trim_to_orbit_ceiling`, `_reconcile_moved_planet`,
   `_clear_circumbinary_floor` and the `from_dict` error; these are what
-  ADM.5's validate module will wrap. [GEN]
+  ADM.5's validate module (`stellarObjects/validation.py`) wraps. [GEN]
 
 - [ ] **TEST.33 Moon stability helpers**
   `moon_orbit_bounds_km`, `drop_unstable_moons`, `update_hill_sphere`
