@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, API, SEC, DOC and POP have no open items today.
+MAP, NAV, DB, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -365,6 +365,123 @@ MAP.30) shipped in PR #234.
     and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
 
+## API: The JSON API
+
+- [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
+  Boss (2026-10-01 19:22Z): "using an API key add a remote-generate
+  option where I can use generate.py with the right command lines to
+  have my local system (much faster than the server-side) generate
+  whatever I want and use the API to add it into the system once it's
+  generated. Do not implement yet." Today `generate.py` writes straight
+  to a MySQL/MariaDB database it can reach, and the API's write routes
+  (`api/edits.py`, API.1's create-a-system route from PR #170) take one
+  system or body at a time with an admin's API key. Done: `generate.py`
+  gets a remote mode (for example `--remote URL --api-key KEY`) for the
+  same commands and options as a local run (`sector`, `galaxy` modes,
+  `plan`, the bright-star scatter and backfill, `population`); it asks
+  the server for what it needs first (the galaxy's seed and skeleton,
+  which sectors are already filled, the id and name state), generates
+  on the local machine with all its workers, then uploads the results
+  in batches to new API routes that check the key, validate each batch
+  (ADM.5's validator), refuse sectors that were filled meanwhile, save
+  them the same way a server-side run does (names, ids, bright-star
+  levels, caches and tiles invalidated), and report what was added. A
+  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  a server-side one. Boss's answers (2026-10-01 19:28Z):
+  - Generate and keep in memory: the local machine needs no database of
+    its own.
+  - The name indexes and id state are downloaded from the API once, for
+    local use, so the run doesn't keep calling the API for them (the
+    server reserves id blocks and claims the sectors for the run).
+  - Uploads and downloads are compressed (gzip, bz2 or similar): some
+    compression time is worth faster transfers.
+  - Fully resumable: the local machine caches on disk every API call it
+    means to send until the server confirms it; the server keeps a
+    buffer of everything it receives, stages it, and writes to the
+    database in a controlled way only complete units (a complete star
+    system, a complete sector). This probably needs database changes
+    so staged data can be stored and flagged incomplete until it is.
+  - The local version must match the server's API version (API.4 and
+    API.5).
+  Boss's answers (2026-10-01 19:32Z):
+  - Only an admin's API key can upload; user-level keys can read but
+    never upload (API.6).
+  - Upload limits are investigated and planned separately (API.7).
+  - Reserved ids and claimed sectors stay reserved until the upload
+    finishes or an admin clears it; nothing else may use them in the
+    meantime. Admins see and clear incomplete uploads on their own page
+    (ADM.13).
+  - The server checks every upload and has the final say on what is
+    written to the database (API.8).
+
+- [ ] **API.4 API compatibility data in the docs**
+  Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
+  that in the docs as another TODO item to add but not do yet." Done:
+  the API has a version of its own, separate from the release number,
+  and the docs carry a compatibility table: each API version, the
+  release that introduced it, the routes and payload formats it
+  changed, and which client versions (`generate.py` remote mode,
+  API.3, and the web pages' `lib/apiclient.py`) can talk to which
+  server versions. The table is updated in the same PR as any API
+  change. Open question: is the API version bumped by hand, or by a
+  release note kind like `changes/<name>.api.md`?
+
+- [ ] **API.5 API version and compatibility checking**
+  Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
+  compatibility checking so that we make sure the server knows how to
+  take data from different client versions." Done: every API request
+  carries the client's API version (a header); the server answers with
+  its own version and the range it accepts (`/api/health`), refuses a
+  client outside that range with a clear message saying which version
+  to install, and, inside the range, reads older clients' payloads
+  through converters so it knows how to take data from each supported
+  version. `generate.py`'s remote mode (API.3) checks before it starts
+  generating, not after. Built on API.4's compatibility data. Open
+  question: how many older versions the server keeps accepting.
+
+- [ ] **API.6 Admin-created user-level API keys that can read but not upload**
+  Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
+  create user-level API keys that can access but not upload." Today
+  API keys (`admin_api_keys`) belong to admins and carry every admin
+  right. Done: an admin can create, name, list and revoke user-level
+  API keys; a user-level key can use the read routes (and anything
+  later granted to users) but every write route, the remote upload
+  routes of API.3 above all, answers 403 for it; an admin key keeps
+  every right. Ties in with USR.1 and USR.2 (user accounts and roles)
+  and TEST.44 (what an API key may do). Open question: does a
+  user-level key belong to a user account (USR.1) or stand alone until
+  user accounts exist?
+
+- [ ] **API.7 Investigate and plan upload limits**
+  Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
+  investigate and plan." Done: a plan, agreed with Boss, for the limits
+  on API.3's uploads: the largest request and batch (compressed and
+  uncompressed), how many uploads may run at once per key and in all,
+  the rate per key, the server's staging-space cap, and what the
+  client does when it hits one (wait and retry, shrink the batch).
+  Measured against real sectors and the web server's own limits
+  (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
+  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  (`api/limiter.py`). The plan only; building the limits is a later
+  item.
+
+- [ ] **API.8 Verify uploaded data before it is finalized**
+  Boss (2026-10-01 19:32Z): "the API will have to have a reliable method
+  of syncing and making sure uploaded data is verified good before it
+  is finalized in the DB, the server has the final say in how items are
+  added to the database." Done: the client and server agree, by batch
+  and by unit (a star system, a sector), on what has been sent and
+  received, with checksums, so nothing is lost or written twice; every
+  staged unit is checked on the server before it is finalized
+  (complete, well formed, inside its reserved sector and id block,
+  names unique, and the physics checks of ADM.5's validator); the
+  server finalizes a unit in one transaction or rejects it with the
+  reasons, and may correct what it can (renaming a clashing name,
+  re-running derived values) rather than trusting the client's copy.
+  Open question: which corrections the server makes on its own, and
+  which reject the unit so the client regenerates it.
+
+
 ## ADM: Admin tools
 
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
@@ -467,6 +584,20 @@ MAP.30) shipped in PR #234.
   long finished trees are kept (today `KEEP_DAYS`), and whether their
   timings are summarized into speed records before they are pruned;
   whether a web job (`web/jobs.py`) becomes the root node of its tree.
+
+- [ ] **ADM.13 Incomplete uploads page**
+  Boss (2026-10-01 19:32Z): "Admin will have to have a page where they
+  can see incomplete uploads and clear them but reserved sectors by ID
+  cannot be used if an upload isn't finished." Done: an admin-only page
+  lists the remote uploads of API.3 that have not finished: who started
+  them, when, the sectors and id blocks they reserved, how much is
+  staged and verified (API.8), and when the client last sent anything.
+  Clearing one, confirmed and written to the admin activity log, throws
+  away its staged data and releases its sectors and id blocks; until
+  then nothing else (a server-side run, another upload) may use them.
+  Part of, or linked from, the job page (ADM.10). Open question: should
+  an upload with no contact for a long time be flagged as stale on the
+  page?
 
 ## SEC: Security
 
