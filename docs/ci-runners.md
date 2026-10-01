@@ -127,7 +127,11 @@ Only the Generate page job runs here (`windows-jobs`).
    ```powershell
    git config --system core.longpaths true
    New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
+   Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force
    ```
+
+   The last line lets PowerShell run scripts. Windows blocks them by
+   default, and `actions/setup-python` installs Python with one.
 
 2. **Register the runner.** In GitHub, go to Settings > Actions > Runners
    > New self-hosted runner > Windows, and run the commands in an
@@ -137,7 +141,9 @@ Only the Generate page job runs here (`windows-jobs`).
      `X64`;
    - run as service: **Y**;
    - service account: a dedicated local account, or the default
-     `NT AUTHORITY\NETWORK SERVICE`.
+     `NT AUTHORITY\NETWORK SERVICE`. Avoid running it as your own login
+     (or from `run.cmd` in your own session): every job would then run
+     with access to your files.
 
 3. **Python.** `actions/setup-python` installs Python 3.12 into the tool
    cache on first use, and on Windows that installer needs administrator
@@ -198,6 +204,7 @@ wipe, such as a VM you restore to a snapshot after each run.
 | `docker: command not found`, or `permission denied` on `/var/run/docker.sock` | Install Docker and add the runner user to the `docker` group, then restart the service (`sudo ./svc.sh stop && sudo ./svc.sh start`). |
 | A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` by hand as the runner user to see the error. |
 | setup-python can't find 3.9 or 3.12 | Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM. |
+| setup-python fails on Windows with "running scripts is disabled on this system" | PowerShell's execution policy is still Restricted. In an administrator PowerShell: `Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force`, then re-run the job. |
 | setup-python fails on Windows with "access denied" | The service account isn't an administrator. See step 3 under [Windows runner](#windows-runner). |
 | The browser job fails with missing `.so` libraries | Chromium's system libraries aren't installed. See step 4 under [Linux runner](#linux-runner). |
 | "Filename too long" on Windows | Enable long paths (step 1 under [Windows runner](#windows-runner)). |
