@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.61.174] - 2026-10-01
+
+### Added
+- The Galaxy Map gives an admin "Generate this block" on a 3-sector block and "Generate this layer" on one of its layers (drill-down stages 7 and 8). Each button starts the Generate page's block job.
+
 ## [7.60.174] - 2026-10-01
 
 ### Added
