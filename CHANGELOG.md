@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.21.1] - 2026-10-01
+
+### Fixed
+
+- System Map names no longer overlap: the browser measures each name once a view is shown and moves or hides any that would collide. A hidden name still shows when its marker is hovered or focused.
+
 ## [7.21.0] - 2026-10-01
 
 ### Changed
