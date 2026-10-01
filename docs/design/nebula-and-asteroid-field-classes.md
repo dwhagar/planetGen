@@ -121,7 +121,7 @@ compact objects keep their own tables and need no letters.
   system text, habitability, and the navigation hand-off radius (item
   33 uses a fixed ~120 AU heliopause today).
 
-## Naming (item 30)
+## Naming (item 30, built in v40)
 
 - Nebulae, supernova remnants, neutron stars, black holes, quasars and
   rogue planets are named the way star systems are: through the
@@ -131,10 +131,11 @@ compact objects keep their own tables and need no letters.
 - Comets and asteroid fields get standardized designations. Draft,
   modeled on IAU prefixes:
   - Star-bound comet: `P/<system>-<n>` for periodic (period under 200
-    years), `C/<system>-<n>` for long-period, numbered in order within
-    the system. Example: `P/Veranthi-2`.
+    years), `C/<system>-<n>` otherwise, numbered in order around each
+    star. A wide binary's comets carry their own star's name. Example:
+    `P/Veranthi-2`. They follow a rename of their system or star.
   - Interstellar comet: `I/<sector designation>-<n>`. Example:
-    `I/4F2A1-3`.
+    `I/4F2A1-3`. A sector outside the grid is named instead.
   - Asteroid field: `AF <class><size>-<sector designation>-<n>`, where
     class is the letter from item 31 and size is floor(log10(radius in
     AU)) (a 0.001-1 ly field is 1-4). Example: `AF E3-4F2A1-02`.

@@ -114,8 +114,8 @@ class SupernovaRemnant:
         """
         reseed_rng()
         self.system_config = system_config
-        # TODO(phenomena #30): name remnants through the system-name
-        # registry, like star systems.
+        # A draft name: `_db.insert_supernova_remnant` reserves it through
+        # the system-name registry (v40), and the core follows.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
         is_type_ia = random.random() < program_constants.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE

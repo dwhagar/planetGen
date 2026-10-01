@@ -50,6 +50,7 @@ import os
 import random
 import re
 import time
+from types import SimpleNamespace
 from collections import namedtuple
 
 import pymysql
@@ -59,19 +60,19 @@ from dbutils.pooled_db import PooledDB
 from . import keplerMotion, log, physical_constants, program_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
-from .asteroidFieldData import AsteroidField
+from .asteroidFieldData import AsteroidField, asteroid_field_designation
 from .compactRemnant import BlackHole, NeutronStar
-from .cometData import Comet
+from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
-from .galaxyGeometry import SectorCell, local_to_galaxy_pc
+from .galaxyGeometry import SectorCell, local_to_galaxy_pc, provisional_sector_designation
 from .bodyNames import rename_prefix
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
 from .nebulaData import Nebula
 from .planetData import Planet
-from .roguePlanetData import InterstellarComet, RoguePlanet
+from .roguePlanetData import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .quasarData import Quasar
@@ -83,7 +84,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 39
+SCHEMA_VERSION = 40
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -818,6 +819,16 @@ def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
             renamed = rename_prefix(row["name"], old_prefix, new_prefix)
             if renamed is not None and renamed != row["name"]:
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, row["id"]))
+    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix)
+
+
+def _rename_comets(conn, where, params, old_host, new_host):
+    """Moves the comets matching `where` whose designation
+    (`cometData.comet_designation`) names `old_host` over to `new_host`."""
+    for row in conn.execute(f"SELECT id, name FROM comets WHERE {where}", params).fetchall():
+        renamed = rename_comet_designation(row["name"], old_host, new_host)
+        if renamed is not None and renamed != row["name"]:
+            conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
 
 
 def rename_star_system(conn, star_system_id, new_name):
@@ -866,6 +877,8 @@ def rename_star(conn, star_id, new_name):
             renamed = rename_prefix(body["name"], row["name"], new_name)
             if renamed is not None:
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, body["id"]))
+    _rename_comets(conn, "star_system_id = ? AND star_id = ?", (row["star_system_id"], star_id),
+                   row["name"], new_name)
     touch_star_system(conn, row["star_system_id"])
     return True
 
@@ -888,19 +901,25 @@ def rename_body(conn, table, body_id, new_name):
     return True
 
 
-UNIQUE_NAME_TABLES = ("sectors", "star_systems", "stars")
+UNIQUE_NAME_TABLES = (
+    "sectors", "star_systems", "stars",
+    "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets", "quasars",
+)
 """tuple: The tables whose names must be unique across the galaxy --
-what `name_in_use` searches. Planets and moons never are."""
+what `name_in_use` searches (the uniquely named phenomena since v40).
+Planets, moons, comets and asteroid fields never are."""
 
 
 def name_in_use(conn, name, exclude=None):
     """
-    Whether any uniquely named object -- a sector, system or star -- is
+    Whether any uniquely named object -- a sector, system, star or
+    uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`) -- is
     already called exactly `name`, the check a rename runs before it goes
     ahead. Planets and moons are left out (Boss, 2026-09-30): their names
     come from their star's (`bodyNames.py`), so they're unique whenever
     it is, and a body renamed by hand may share another body's name.
-    Each table's `name` column is indexed, so this is three index lookups.
+    Each table's `name` column is indexed, so this is one index lookup
+    per table.
 
     Args:
         conn (Connection): An open connection.
@@ -909,9 +928,8 @@ def name_in_use(conn, name, exclude=None):
             being renamed, which may already carry `name`.
 
     Returns:
-        str or None: The table holding the clash (`'sectors'`,
-            `'star_systems'` or `'stars'`), or `None` when the name is
-            free.
+        str or None: The table holding the clash (one of
+            `UNIQUE_NAME_TABLES`), or `None` when the name is free.
     """
     exclude = {tuple(pair) for pair in (exclude or ())}
     for table in UNIQUE_NAME_TABLES:
@@ -941,7 +959,8 @@ def _rename_existing_system_for_diminutive(conn, base_name):
             entirely fresh sector name instead.
     """
     row = conn.execute(
-        "SELECT first_star_system_id, diminutive_index FROM system_name_registry WHERE base_name = ? FOR UPDATE",
+        "SELECT first_star_system_id, first_object_table, first_object_id, diminutive_index "
+        "FROM system_name_registry WHERE base_name = ? FOR UPDATE",
         (base_name,),
     ).fetchone()
     if row is None:
@@ -951,12 +970,10 @@ def _rename_existing_system_for_diminutive(conn, base_name):
     if prefix is None:
         return False
 
-    current = conn.execute(
-        "SELECT name FROM star_systems WHERE id = ?", (row["first_star_system_id"],),
-    ).fetchone()
+    current = _registry_holder_name(conn, row)
     if current is not None:
-        rename_star_system(conn, row["first_star_system_id"], f"{prefix} {current['name']}")
-    # else: that system row was since deleted -- nothing left to rename,
+        _rename_registry_holder(conn, row, f"{prefix} {current}")
+    # else: that holder was since deleted -- nothing left to rename,
     # but diminutive_index still advances below so a later collision on
     # this base name doesn't reuse the same prefix.
     conn.execute(
@@ -1030,9 +1047,68 @@ def _regenerate_star_name():
     return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
 
-# TODO(phenomena #30): nebulae, supernova remnants, neutron stars, black
-# holes, quasars and rogue planets reserve their names here too, so they
-# are unique alongside star systems.
+NAMED_PHENOMENON_TABLES = (
+    "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets", "quasars",
+)
+"""tuple: The phenomenon tables whose names are drawn through
+`system_name_registry` alongside star systems (v40, Boss 2026-09-30):
+the uniquely named objects. Comets and asteroid fields get designations
+(`comet_designation`, `asteroid_field_designation`) instead, and planets
+and moons are named from their star."""
+
+
+def _registry_holder_name(conn, row):
+    """The current name of a `system_name_registry` row's first holder --
+    a star system, or a phenomenon (v40) -- or `None` once it's deleted."""
+    if row["first_star_system_id"] is not None:
+        table, holder_id = "star_systems", row["first_star_system_id"]
+    elif row["first_object_table"] in NAMED_PHENOMENON_TABLES:
+        table, holder_id = row["first_object_table"], row["first_object_id"]
+    else:
+        return None
+    current = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (holder_id,)).fetchone()
+    return None if current is None else current["name"]
+
+
+def _rename_registry_holder(conn, row, new_name):
+    """Renames a `system_name_registry` row's first holder: a star system
+    (`rename_star_system`) or a phenomenon (`rename_phenomenon`)."""
+    if row["first_star_system_id"] is not None:
+        rename_star_system(conn, row["first_star_system_id"], new_name)
+    elif row["first_object_table"] in NAMED_PHENOMENON_TABLES:
+        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name)
+
+
+def rename_phenomenon(conn, table, object_id, new_name):
+    """
+    Renames one uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`). A
+    supernova remnant's collapsed core, named `"<remnant> Core"`, follows
+    it.
+
+    Returns:
+        bool: `False` if no such row exists.
+    """
+    if table not in NAMED_PHENOMENON_TABLES:
+        raise ValueError(f"not a named phenomenon table: {table!r}")
+    row = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (object_id,)).fetchone()
+    if row is None:
+        return False
+    conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, object_id))
+    if table == "supernova_remnants":
+        core = conn.execute(
+            "SELECT compact_remnant_black_hole_id, compact_remnant_neutron_star_id "
+            "FROM supernova_remnants WHERE id = ?", (object_id,),
+        ).fetchone()
+        for core_table, core_id in (("black_holes", core["compact_remnant_black_hole_id"]),
+                                    ("neutron_stars", core["compact_remnant_neutron_star_id"])):
+            if core_id is not None:
+                conn.execute(
+                    f"UPDATE {core_table} SET name = ? WHERE id = ? AND name = ?",
+                    (f"{new_name} Core", core_id, f"{row['name']} Core"),
+                )
+    return True
+
+
 def reserve_system_name(conn, candidate_name):
     """
     Phase 1 of system name-uniqueness reservation -- resolves a
@@ -1059,7 +1135,7 @@ def reserve_system_name(conn, candidate_name):
     while True:
         base = candidate_name
         row = conn.execute(
-            "SELECT occurrence_count, diminutive_index, first_star_system_id "
+            "SELECT occurrence_count, diminutive_index, first_star_system_id, first_object_table, first_object_id "
             "FROM system_name_registry WHERE base_name = ? FOR UPDATE",
             (base,),
         ).fetchone()
@@ -1071,6 +1147,7 @@ def reserve_system_name(conn, candidate_name):
             candidate_name = _regenerate_star_name()
             continue
         if rename is not None:
+            # The first holder may be a phenomenon (v40); matched by id.
             # Matched by id (row["first_star_system_id"]), not by the
             # rename tuple's assumed old-name string -- that row may
             # already carry its own diminutive decoration (an earlier
@@ -1081,7 +1158,7 @@ def reserve_system_name(conn, candidate_name):
             # uniqueness still holds either way (the Greek-decorated name
             # is still distinct from the sector's own bare one).
             _old_name, renamed_to = rename
-            rename_star_system(conn, row["first_star_system_id"], renamed_to)
+            _rename_registry_holder(conn, row, renamed_to)
 
         sector_hit = conn.execute(
             "SELECT 1 FROM sector_name_registry WHERE base_name = ?", (base,),
@@ -1110,6 +1187,28 @@ def confirm_system_name(conn, base_name, star_system_id, diminutive_index):
         "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, diminutive_index = VALUES(diminutive_index)",
         (base_name, star_system_id, diminutive_index),
     )
+
+
+def confirm_object_name(conn, base_name, table, object_id, diminutive_index):
+    """`confirm_system_name`'s counterpart for a uniquely named phenomenon
+    (`NAMED_PHENOMENON_TABLES`, v40): the registry row, when this is the
+    base name's first holder, points at `table`/`object_id`."""
+    conn.execute(
+        "INSERT INTO system_name_registry "
+        "(base_name, occurrence_count, first_object_table, first_object_id, diminutive_index) "
+        "VALUES (?, 1, ?, ?, ?) "
+        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, diminutive_index = VALUES(diminutive_index)",
+        (base_name, table, object_id, diminutive_index),
+    )
+
+
+def _reserve_phenomenon_name(conn, obj):
+    """Reserves `obj.name` (`reserve_system_name`), sets it to the final
+    name, and returns `(base_name, diminutive_index)` for
+    `confirm_object_name`."""
+    final_name, base, diminutive_index = reserve_system_name(conn, obj.name)
+    obj.name = final_name
+    return base, diminutive_index
 
 
 def insert_star(conn, star, star_system_id, role) -> int:
@@ -1459,7 +1558,8 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
     return comet_id
 
 
-def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None, placement=None) -> int:
+def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None, placement=None,
+                      register_name=True) -> int:
     """
     Inserts a `black_holes` row (see `schema.sql`'s "v16"/"v17"/"v21"
     header notes).
@@ -1492,10 +1592,17 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             (`phenomenonGen.py`'s own standalone `--sector-id` use, which
             has no specific in-sector position to convert). `None` to
             leave this black hole unplaced.
+        register_name (bool): Reserve the name through
+            `system_name_registry` (v40). Skipped for an anchored black
+            hole (its system holds the name) and a supernova remnant's
+            core (`insert_supernova_remnant` passes `False`).
 
     Returns:
         int: The new `black_holes.id`.
     """
+    registered = register_name and star_id is None
+    if registered:
+        name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             black_hole.galactic_orbital_speed_kms, black_hole.galactic_orbital_period_gy,
@@ -1523,10 +1630,13 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
+    if registered:
+        confirm_object_name(conn, name_base, "black_holes", cur.lastrowid, diminutive_index)
     return cur.lastrowid
 
 
-def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id=None, placement=None) -> int:
+def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id=None, placement=None,
+                        register_name=True) -> int:
     """
     Inserts a `neutron_stars` row (see `schema.sql`'s "v16"/"v17"/"v21"
     header notes).
@@ -1544,10 +1654,14 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             neutron star.
         sector_id (int, optional): As in `insert_black_hole`.
         placement (dict, optional): As in `insert_black_hole`.
+        register_name (bool): As in `insert_black_hole`.
 
     Returns:
         int: The new `neutron_stars.id`.
     """
+    registered = register_name and star_id is None
+    if registered:
+        name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             neutron_star.galactic_orbital_speed_kms, neutron_star.galactic_orbital_period_gy,
@@ -1575,6 +1689,8 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
+    if registered:
+        confirm_object_name(conn, name_base, "neutron_stars", cur.lastrowid, diminutive_index)
     return cur.lastrowid
 
 
@@ -1598,6 +1714,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `nebulae.id`.
     """
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, nebula)
     placement = placement or {}
     cur = conn.execute(
         """
@@ -1619,6 +1736,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
+    confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
 
@@ -1657,6 +1775,11 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     Returns:
         int: The new `supernova_remnants.id`.
     """
+    old_name = remnant.name
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, remnant)
+    core = remnant.compact_remnant
+    if core is not None and core.name == f"{old_name} Core":
+        core.name = f"{remnant.name} Core"
     compact_remnant_kind = None
     black_hole_id = None
     neutron_star_id = None
@@ -1670,12 +1793,12 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     if isinstance(remnant.compact_remnant, BlackHole):
         compact_remnant_kind = "black_hole"
         black_hole_id = insert_black_hole(
-            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement,
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement, register_name=False,
         )
     elif isinstance(remnant.compact_remnant, NeutronStar):
         compact_remnant_kind = "neutron_star"
         neutron_star_id = insert_neutron_star(
-            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement,
+            conn, remnant.compact_remnant, sector_id=sector_id, placement=core_placement, register_name=False,
         )
 
     cur = conn.execute(
@@ -1698,6 +1821,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
             *_placement_values(placement),
         ),
     )
+    confirm_object_name(conn, name_base, "supernova_remnants", cur.lastrowid, diminutive_index)
     _refresh_containment_around(conn, placement, remnant.radius_ly)
     return cur.lastrowid
 
@@ -1716,6 +1840,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     Returns:
         int: The new `rogue_planets.id`.
     """
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, planet)
     cur = conn.execute(
         """
         INSERT INTO rogue_planets (
@@ -1733,7 +1858,39 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
             *_placement_values(placement),
         ),
     )
+    confirm_object_name(conn, name_base, "rogue_planets", cur.lastrowid, diminutive_index)
     return cur.lastrowid
+
+
+def sector_code(conn, sector_id):
+    """
+    How a designation names a sector (v40): its grid designation
+    (`galaxyGeometry.provisional_sector_designation`) when it sits in the
+    cylindrical grid, else its name. `None` for no sector.
+    """
+    if sector_id is None:
+        return None
+    row = conn.execute(
+        "SELECT name, ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?", (sector_id,),
+    ).fetchone()
+    if row is None:
+        return None
+    if None not in (row["ring_index"], row["layer_index"], row["ring_slot_index"]):
+        try:
+            return provisional_sector_designation(row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        except ValueError:
+            pass
+    return row["name"]
+
+
+def _next_in_sector(conn, table, sector_id):
+    """How many `table` rows `sector_id` (or no sector, for `None`)
+    already has, plus one -- the next designation number."""
+    if sector_id is None:
+        row = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE sector_id IS NULL").fetchone()
+    else:
+        row = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE sector_id = ?", (sector_id,)).fetchone()
+    return row["n"] + 1
 
 
 def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, placement=None) -> int:
@@ -1751,6 +1908,9 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
     Returns:
         int: The new `interstellar_comets.id`.
     """
+    comet.name = interstellar_comet_designation(
+        sector_code(conn, sector_id), _next_in_sector(conn, "interstellar_comets", sector_id),
+    )
     cur = conn.execute(
         """
         INSERT INTO interstellar_comets (
@@ -1800,6 +1960,9 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     Returns:
         int: The new `asteroid_fields.id`.
     """
+    field.name = asteroid_field_designation(
+        field.field_class, sector_code(conn, sector_id), _next_in_sector(conn, "asteroid_fields", sector_id),
+    )
     placement = placement or {}
     cur = conn.execute(
         """
@@ -1859,6 +2022,7 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `quasars.id`.
     """
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, quasar)
     cur = conn.execute(
         """
         INSERT INTO quasars (
@@ -1876,6 +2040,7 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
             *_placement_values(GALACTIC_CENTER_PLACEMENT if placement is not None else None),
         ),
     )
+    confirm_object_name(conn, name_base, "quasars", cur.lastrowid, diminutive_index)
     return cur.lastrowid
 
 
@@ -2159,6 +2324,23 @@ def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     return _format_location_string(sector.name, neighbor_info)
 
 
+def _designate_comets(star_system):
+    """
+    Gives every comet in `star_system` its designation
+    (`cometData.comet_designation`, v40), numbered per host star: the
+    system's name for a single star or close pair, each star's own name
+    for a wide pair.
+    """
+    if getattr(star_system, "binary_type", None) == "wide":
+        hosts = [(star_system.primary_star.name, star_system.comets),
+                 (star_system.secondary_star.name, star_system.secondary_comets)]
+    else:
+        hosts = [(star_system.name, star_system.comets)]
+    for host_name, comets in hosts:
+        for index, comet in enumerate(comets, start=1):
+            comet.name = comet_designation(host_name, index, comet)
+
+
 def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfig,
                         sector_id=None, position=None, location=None) -> int:
     """
@@ -2263,6 +2445,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # object matches what's stored.
     final_name, name_base, diminutive_index = reserve_system_name(conn, star_system.name)
     star_system.assign_names(final_name)
+    _designate_comets(star_system)
 
     cur = conn.execute(
         """
@@ -5465,6 +5648,87 @@ def _migrate_v38_to_v39(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (39)")
 
 
+def _migrate_v39_to_v40(conn):
+    """
+    Names under one standard -- see `schema.sql`'s "v40" header note.
+    Lets `system_name_registry` point at a phenomenon, indexes each
+    uniquely named phenomenon table's `name`, then reserves every
+    existing uniquely named phenomenon's name (renaming the ones that
+    clash) and gives every comet and asteroid field its designation.
+    Guarded per step.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    if not _has_column(conn, "system_name_registry", "first_object_table"):
+        conn.execute(
+            "ALTER TABLE system_name_registry MODIFY first_star_system_id BIGINT UNSIGNED NULL, "
+            "ADD COLUMN first_object_table VARCHAR(32), ADD COLUMN first_object_id BIGINT UNSIGNED"
+        )
+    for table in NAMED_PHENOMENON_TABLES:
+        if not _has_index(conn, table, f"idx_{table}_name"):
+            conn.execute(f"ALTER TABLE {table} ADD KEY idx_{table}_name (name)")
+
+    registered = conn.execute(
+        "SELECT first_object_table, first_object_id FROM system_name_registry WHERE first_object_table IS NOT NULL"
+    ).fetchall()
+    registered = {(row["first_object_table"], row["first_object_id"]) for row in registered}
+    cores = {("black_holes", row["compact_remnant_black_hole_id"]) for row in conn.execute(
+        "SELECT compact_remnant_black_hole_id FROM supernova_remnants WHERE compact_remnant_black_hole_id IS NOT NULL"
+    ).fetchall()}
+    cores |= {("neutron_stars", row["compact_remnant_neutron_star_id"]) for row in conn.execute(
+        "SELECT compact_remnant_neutron_star_id FROM supernova_remnants WHERE compact_remnant_neutron_star_id IS NOT NULL"
+    ).fetchall()}
+    for table in NAMED_PHENOMENON_TABLES:
+        anchored = " WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
+        for row in conn.execute(f"SELECT id, name FROM {table}{anchored} ORDER BY id").fetchall():
+            if (table, row["id"]) in cores or (table, row["id"]) in registered:
+                continue
+            final_name, base, diminutive_index = reserve_system_name(conn, row["name"])
+            if final_name != row["name"]:
+                rename_phenomenon(conn, table, row["id"], final_name)
+            confirm_object_name(conn, base, table, row["id"], diminutive_index)
+
+    _designate_existing_comets(conn)
+    for table in ("interstellar_comets", "asteroid_fields"):
+        extra = ", field_class" if table == "asteroid_fields" else ""
+        counts = {}
+        codes = {}
+        for row in conn.execute(f"SELECT id, sector_id{extra} FROM {table} ORDER BY id").fetchall():
+            sector_id = row["sector_id"]
+            counts[sector_id] = counts.get(sector_id, 0) + 1
+            if sector_id not in codes:
+                codes[sector_id] = sector_code(conn, sector_id)
+            if table == "interstellar_comets":
+                name = interstellar_comet_designation(codes[sector_id], counts[sector_id])
+            else:
+                name = asteroid_field_designation(row["field_class"], codes[sector_id], counts[sector_id])
+            conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (name, row["id"]))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (40)")
+
+
+def _designate_existing_comets(conn):
+    """Gives every stored star-bound comet its designation
+    (`cometData.comet_designation`) -- `_designate_comets`' counterpart
+    for rows, for `_migrate_v39_to_v40`."""
+    rows = conn.execute(
+        "SELECT c.id, c.star_system_id, c.star_id, c.orbit_type, c.orbital_period_years, "
+        "ss.name AS system_name, s.name AS star_name, s.role AS star_role "
+        "FROM comets c JOIN star_systems ss ON ss.id = c.star_system_id "
+        "LEFT JOIN stars s ON s.id = c.star_id ORDER BY c.id"
+    ).fetchall()
+    counts = {}
+    for row in rows:
+        host = row["star_name"] if row["star_id"] is not None and row["star_role"] != "single" else row["system_name"]
+        key = (row["star_system_id"], host)
+        counts[key] = counts.get(key, 0) + 1
+        comet = SimpleNamespace(orbit_type=row["orbit_type"], orbital_period_years=row["orbital_period_years"])
+        conn.execute("UPDATE comets SET name = ? WHERE id = ?",
+                     (comet_designation(host, counts[key], comet), row["id"]))
+
+
 def touch_star_system(conn, star_system_id):
     """
     Bumps one `star_systems` row's `modified_at` to now -- how a change to
@@ -5534,6 +5798,7 @@ def _migration_steps():
         (37, _migrate_v36_to_v37),
         (38, _migrate_v37_to_v38),
         (39, _migrate_v38_to_v39),
+        (40, _migrate_v39_to_v40),
     ]
 
 

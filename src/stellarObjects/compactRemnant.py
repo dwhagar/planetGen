@@ -77,9 +77,9 @@ class CompactRemnant(Star):
     Not instantiated directly -- always `BlackHole` or `NeutronStar`.
     """
 
-    # TODO(phenomena #30): black holes and neutron stars are named through
-    # the system-name registry, like star systems (quasars and rogue
-    # planets too).
+    # A standalone black hole's or neutron star's name is a draft:
+    # `_db.insert_black_hole`/`insert_neutron_star` reserve it through the
+    # system-name registry (v40), as quasars and rogue planets do.
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None):
         """
         Args:
