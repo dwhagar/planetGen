@@ -260,7 +260,7 @@ class _StandIn:
 
 def recommended_classes(system, body, owner):
     """
-    The classes `body` could take without moving anything ("recommended",
+    The classes `body` could take without moving any other planet ("recommended",
     ADM.6), best first by how common they are: valid in its zone, not a
     habitable class where the system rules those out, and -- for a planet
     -- at a typical mass for the class still clear of its neighbors, and

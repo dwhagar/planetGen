@@ -287,7 +287,7 @@ def _edit_rows(system, class_options=None):
     """The admin "Edit" panel's rows (ADM.8): every planet with its moons
     right after it, then every asteroid belt, as `{"target", "label",
     "kind", "indent"}`; planets and moons also carry `recommended` (the
-    classes it can take without moving anything) and `forced` (every other
+    classes it can take without moving any other planet) and `forced` (every other
     class) for the Change class menu (ADM.6), from `class_options`
     (`edit_actions.class_options`)."""
     rows = []

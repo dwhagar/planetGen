@@ -901,10 +901,11 @@ shape as above.
 - **Class (ADM.6).** `GET /api/systems/<id>/class-options` answers
   `{"recommended": {"planet:<id>" or "moon:<id>": [classes]}, "all":
   [classes]}`: for each planet and moon, the classes it could take where
-  it is without moving anything (valid in its zone, at a typical mass
+  it is without moving any other planet (valid in its zone, at a typical mass
   for the class still clear of its neighbors and able to hold its moons;
   for a moon, a class its planet can hold), most common first, its own
-  class left out. `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
+  class left out (a planet's own moons may still be re-spaced for its new
+  size). `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
   `{"class": "M", "force": false}` re-rolls the body as that class at
   the same orbit, keeping its name, row and moons. Without `force` only a
   recommended class is accepted (`409` otherwise); with `"force": true`
