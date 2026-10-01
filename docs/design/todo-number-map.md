@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.29 |
 | TEST | TEST.74 |
 | USR | USR.8 |
-| OPS | OPS.7 |
+| OPS | OPS.9 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -584,6 +584,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.4 | Generate page jobs on native Windows | 54 (2026-09-30 20:48Z); 55 (2026-09-30 20:48Z to 22:12Z) | done in 7.9.2, PR #124 |
 | OPS.5 | Install and update check the log locations and say how to fix them | none | done, PR #288 |
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | open |
+| OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
+| OPS.8 | Update reloads Apache itself when run as root | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |

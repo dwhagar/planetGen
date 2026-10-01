@@ -1621,6 +1621,30 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   rejects anything outside 1 to 65535 with a clear argument error
   before connecting, with a test in `test_admin_script_cli.py`.
 
+- [ ] **OPS.7 Update asks to fill a wiped database with population data (bug)**
+  Boss (2026-10-01): "if in the update the user selects to wipe the DB,
+  don't then ask to fill it with population data, in fact, remove that
+  question entirely from the update." Today step 5 of `update.sh` runs
+  `migrate_or_reset_db` and then `offer_population_pass`, so a user who
+  just chose to delete the database is asked to run the population pass
+  over an empty galaxy; `update.ps1` does the same through
+  `Invoke-OptionalPopulation`. Done: neither `update.sh` nor `update.ps1`
+  asks about or runs the population pass (the prompt, the `POPULATION=1`
+  variable and the `-Population` switch are gone from the update, with
+  their usage and header comments), and the closing message says to run
+  `generate.py population` by hand when wanted. The installers keep their
+  own prompt unless Boss says otherwise.
+
+- [ ] **OPS.8 Update reloads Apache itself when run as root**
+  Boss (2026-10-01): "it should just automatically reload apache2 if
+  it's running as root." Today `update.sh` ends by printing
+  `sudo systemctl reload apache2` (or `restart` after enabling a module)
+  for the user to run. Done: when the update runs as root on Linux and
+  apache2 is running, it reloads Apache itself (restarts it when a module
+  was just enabled) and says so; when not root, or Apache isn't running,
+  it prints the command as today. macOS (gunicorn) and Windows stay as
+  they are unless Boss asks.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
