@@ -708,7 +708,7 @@ MAP.48 and MAP.37, all fixed.
       names.
 
     - [x] **PERF.15 Fewer queries per web page**
-      Done (PR #PR2): search facets and autocomplete lists (12 queries
+      Done (PR #223): search facets and autocomplete lists (12 queries
       per request, including `COUNT(*)` of every star, planet and moon)
       are cached for up to 10 minutes, and dropped as soon as a sector or
       system is added or changed; `system_detail` loads moons once per
@@ -721,7 +721,7 @@ MAP.48 and MAP.37, all fixed.
       of a subquery per sector (a stored count waits for PERF.11).
 
     - [x] **PERF.16 Search names without scanning every row**
-      Done (PR #PR2, schema v46): a FULLTEXT index on `name` in
+      Done (PR #223, schema v46): a FULLTEXT index on `name` in
       sectors, star_systems, stars, planets and moons. Search matches
       whole words (boolean mode, every word required), so "ara" no
       longer finds "Kemaral". Words shorter than the server's
@@ -732,7 +732,7 @@ MAP.48 and MAP.37, all fixed.
       stop at 300 (shown as "300+").
 
     - [x] **PERF.17 A time limit on web database statements**
-      Done (PR #PR2): the web's read pool sets `max_statement_time`
+      Done (PR #223): the web's read pool sets `max_statement_time`
       (MariaDB) or `MAX_EXECUTION_TIME` (MySQL) on each connection,
       default 10 s, `mysql.statement_timeout_seconds` in `config.json`
       (0 turns it off). A timed-out query returns a 504 "Took too long"
