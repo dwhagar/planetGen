@@ -456,6 +456,19 @@ runner sees it within a quarter second and stops the running step's
 whole process tree (`os.killpg` on POSIX, `taskkill /T /F` on Windows).
 Liveness comes from `/proc` on Linux, `os.kill(pid, 0)` on other POSIX
 systems, and `OpenProcess`/`GetExitCodeProcess` on Windows.
+So closing the browser never stops a job (ADM.11): the Sector Map's
+"Generate the neighborhood" button also starts a Generate page job
+rather than running inside the request. To restart the web server
+without stopping a running job, use `systemctl reload apache2` (what
+`update.sh` suggests); after a full restart, retry the interrupted job
+from Admin, Queue. Only one job runs at a time: the `active` lock in
+the jobs directory is written with the job id already in it (a hard
+link of a finished temporary file, or an exclusive create where there
+are no hard links), and a stale lock is cleared under an
+`active.clearing` mark, so two admins starting a job at the same moment
+start exactly one (TEST.40). A lock naming no readable job is treated
+as a job still starting for `STARTING_GRACE_SECONDS`, then as stale.
+Pruning old jobs never removes the one the lock names.
 Jobs live under `jobs.dir` (`docs/config.md`). A visitor who isn't a
 logged-in admin is sent to the login page, and POSTs and status requests
 without an admin session get a 403.

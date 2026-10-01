@@ -33,8 +33,10 @@ What this adds over the seeded `test_bughunt_*.py` files and
   outside the binary's own orbit) rather than by mirroring
   `validate_system`'s own formula.
 
-Real bugs found here are kept as `xfail(strict=True)` tests named after
-the invariant they break, each with a minimal reproduction in its reason.
+A real bug found here gets a test named after the invariant it breaks,
+kept as `xfail(strict=True)` (with a minimal reproduction in its reason)
+until it is fixed. The moon, circumbinary, belt and binary-mass bugs below
+are all fixed; their sweeps now run hard over hundreds of seeds (TEST.4).
 """
 
 import json
@@ -541,7 +543,8 @@ def test_generation_is_reproducible_under_deterministic_entropy(seed):
 
 
 # ---------------------------------------------------------------------------
-# Real bugs (strict xfail): moons and circumbinary orbits
+# Fixed bugs, kept as wide seed sweeps: moons, circumbinary orbits, belts
+# and binary masses
 # ---------------------------------------------------------------------------
 
 def _moon_pairs(system):
@@ -564,7 +567,7 @@ def _moon_heavy_system(seed):
 
 def test_moons_orbit_inside_their_parents_hill_sphere():
     bad = []
-    for seed in range(5):
+    for seed in range(300):
         for planet, moon in _moon_pairs(_moon_heavy_system(seed)):
             if moon.distance * pc.AU_TO_KM > planet.hill_radius:
                 bad.append((seed, planet.planet_class, moon.distance * pc.AU_TO_KM, planet.hill_radius))
@@ -573,7 +576,7 @@ def test_moons_orbit_inside_their_parents_hill_sphere():
 
 def test_moons_orbit_outside_their_parents_body():
     bad = []
-    for seed in range(5):
+    for seed in range(300):
         for planet, moon in _moon_pairs(_moon_heavy_system(seed)):
             if moon.distance * pc.AU_TO_KM <= planet.radius + moon.radius:
                 bad.append((seed, planet.planet_class, planet.radius, moon.distance * pc.AU_TO_KM))
@@ -582,7 +585,7 @@ def test_moons_orbit_outside_their_parents_body():
 
 def test_circumbinary_bodies_orbit_outside_the_binary():
     bad = []
-    for seed in range(60):
+    for seed in range(600):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = False
@@ -597,7 +600,7 @@ def test_circumbinary_bodies_orbit_outside_the_binary():
 
 def test_planet_hill_sphere_clears_the_belt_inside_it():
     bad = []
-    for seed in range(40):
+    for seed in range(400):
         system = _generate(SystemConfig(), seed)
         for planets in _all_planet_lists(system):
             for prev, cur in zip(planets, planets[1:]):
@@ -609,7 +612,7 @@ def test_planet_hill_sphere_clears_the_belt_inside_it():
 
 def test_binary_secondary_is_never_heavier_than_primary():
     bad = []
-    for seed in range(200):
+    for seed in range(600):
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = True
         cfg.WIDE_BINARY = seed % 2 == 0

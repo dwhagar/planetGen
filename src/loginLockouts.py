@@ -27,6 +27,8 @@ import getpass
 import sys
 import time
 
+import pymysql
+
 from stellarObjects import activitylog, adminAuth, loginThrottle
 from stellarObjects._db import add_mysql_connection_args, control_mysql_config, get_control_connection, \
     mysql_config_from_args
@@ -52,7 +54,11 @@ def main(argv=None):
     add_mysql_connection_args(parser)
     args = parser.parse_args(argv)
 
-    conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
+    try:
+        conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
+    except pymysql.MySQLError as exc:
+        print(f"error: could not open the control database ({exc}).", file=sys.stderr)
+        return 1
     try:
         store = loginThrottle.DbStore(conn)
         if args.reset_two_factor:
@@ -76,7 +82,7 @@ def main(argv=None):
         if args.all:
             lifted = store.lift()
             target = "all"
-        elif args.ip:
+        elif args.ip is not None:
             subject = loginThrottle.ip_subject(args.ip)
             if subject is None:
                 parser.error(f"{args.ip!r} is not an address that can be locked (invalid or loopback).")

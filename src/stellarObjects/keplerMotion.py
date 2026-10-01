@@ -117,9 +117,21 @@ def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max
         tolerance (float, optional): Convergence tolerance, in radians.
         max_iterations (int, optional): Maximum Newton-Raphson iterations.
 
+    If Newton-Raphson hasn't converged within `max_iterations`, this falls
+    back to bisection on `[0, 2*pi]` (Kepler's equation is monotonic there
+    for `e < 1`, so bisection always converges) rather than returning the
+    last, unconverged iterate.
+
     Returns:
         float: The eccentric anomaly `E`, in radians.
+
+    Raises:
+        ValueError: If `eccentricity` is outside `[0, 1)`.
     """
+    if not (0 <= eccentricity < 1):
+        raise ValueError(
+            f"solve_eccentric_anomaly: eccentricity ({eccentricity}) must be in [0, 1) for Kepler's equation."
+        )
     m = mean_anomaly_rad % TWO_PI
     eccentric_anomaly = m if eccentricity < 0.8 else math.pi
     for _ in range(max_iterations):
@@ -128,8 +140,27 @@ def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max
         )
         eccentric_anomaly -= delta
         if abs(delta) < tolerance:
+            return eccentric_anomaly
+    return _bisect_eccentric_anomaly(m, eccentricity, tolerance)
+
+
+def _bisect_eccentric_anomaly(m, eccentricity, tolerance):
+    """
+    Bisection fallback for `solve_eccentric_anomaly`: `E - e*sin(E) - m`
+    rises monotonically from `-m <= 0` at `E = 0` to `2*pi - m > 0` at
+    `E = 2*pi`, so halving that bracket always converges (to `tolerance`,
+    or until the bracket can't shrink any further in floating point).
+    """
+    lo, hi = 0.0, TWO_PI
+    while hi - lo > tolerance:
+        mid = (lo + hi) / 2
+        if mid in (lo, hi):
             break
-    return eccentric_anomaly
+        if mid - eccentricity * math.sin(mid) - m < 0:
+            lo = mid
+        else:
+            hi = mid
+    return (lo + hi) / 2
 
 
 @finite_domain()

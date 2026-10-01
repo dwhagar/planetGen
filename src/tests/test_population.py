@@ -318,7 +318,11 @@ def test_api(mysql_config, galaxy, client):
     try:
         population.run_pass(conn)
         with conn:
+            # Both capitals, not just A: B left alone keeps its drawn ages,
+            # and two spacefaring species there found two polities with one
+            # capital, the second owning no system (TEST.69).
             _set_age(conn, galaxy["a"], 1e6)
+            _set_age(conn, galaxy["b"], 4000)
         population.run_pass(conn)
         homeworld = conn.execute("SELECT homeworld_planet_id FROM species WHERE star_system_id = ? "
                                  "AND spacefaring = 1", (galaxy["a"],)).fetchone()["homeworld_planet_id"]

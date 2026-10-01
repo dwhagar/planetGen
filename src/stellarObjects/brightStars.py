@@ -105,6 +105,10 @@ def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_
             if pick < weight:
                 break
             pick -= weight
+        else:
+            # Rounding left `pick` past every bin: the last one with any
+            # weight, never a trailing zero-weight one (TEST.24).
+            k = max(index for index, weight in enumerate(weights) if weight > 0)
         theta = (k + rng.random()) * bin_width
         slot = min(int(theta / slot_width), slots - 1)
         if not _qualifies(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape, expected_at_density_1):

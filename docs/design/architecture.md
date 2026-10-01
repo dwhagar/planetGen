@@ -236,7 +236,6 @@ from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 | `src/adminStats.py` | Read-only statistics about a database (table sizes, schema version, decorated names, `bright_star_counts`) for the admin stats page. |
 | `src/dedupeNames.py` | One-off backfill that resolves duplicate sector and system names in an older database. |
 | `src/checkRenderParity.py` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
-| `src/migrateSqliteToMysql.py` | One-time import of a pre-MySQL SQLite database. |
 
 ### src/wikiClient/
 

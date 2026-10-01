@@ -164,8 +164,11 @@ also hit; `docs/design/archive/galaxy-disk-density-rev2.md`, section 5).
 Other servers such as PostgreSQL are not discussed anywhere in the
 repository.
 
-**Cost:** SQLite's in-place v1 to v5 migrations were removed; a one-time
-`src/migrateSqliteToMysql.py` imports an old SQLite database.
+**Cost:** SQLite's in-place v1 to v5 migrations were removed. The one-time
+SQLite import script (`src/migrateSqliteToMysql.py`) was retired too
+(TEST.61): it only took a file at the current schema version, which no
+SQLite database ever reached (SQLite stopped at v5, and MySQL migrations
+start at v8), so it could never run.
 
 ---
 

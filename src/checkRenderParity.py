@@ -41,6 +41,8 @@ import os
 import re
 import sys
 
+import pymysql
+
 from stellarObjects._db import (
     add_mysql_connection_args, get_connection, load_star_system, mysql_config_from_args,
 )
@@ -119,7 +121,11 @@ def main():
     args = parser.parse_args()
     config = mysql_config_from_args(args)
 
-    conn = get_connection(config, ensure_schema=False)
+    try:
+        conn = get_connection(config, ensure_schema=False)
+    except pymysql.MySQLError as exc:
+        print(f"error: could not open the database ({exc}).", file=sys.stderr)
+        sys.exit(1)
     try:
         columns = {r["Field"] for r in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
         if "markdown_content" not in columns:

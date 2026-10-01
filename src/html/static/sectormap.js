@@ -679,10 +679,13 @@ function makeTextSprite(text, color) {
 
 // --- Scene setup ---------------------------------------------------------
 
-function initStarmap(canvasEl, data) {
+// `options.renderer` stands in for the WebGL renderer: the page never
+// passes it; tests/js/sectormap.test.mjs does, where there is no WebGL.
+export function initStarmap(canvasEl, data, options) {
   var viewport = canvasEl.closest(".starmap-viewport");
 
-  var renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true, logarithmicDepthBuffer: true });
+  var renderer = (options && options.renderer)
+    || new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true, logarithmicDepthBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
   if (THREE.SRGBColorSpace) {

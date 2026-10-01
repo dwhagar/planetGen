@@ -1,5 +1,108 @@
 # Changelog
 
+## [7.124.339] - 2026-10-01
+
+### Added
+
+- **Install and update set up and check both logs on every OS (OPS.5).**
+  On Linux and macOS, `install.sh` and `update.sh` (through
+  `examples/apache/setup-debug-log.sh` and the new
+  `examples/apache/log-locations.py`) now prepare the debug log whether or
+  not `debug` is on, and the activity log's folder, wherever
+  `PLANETGEN_LOG_FILE`/`log_file` and `PLANETGEN_LOG_DIR`/`log_dir` put
+  them, and check that the web server's user and its group can really
+  write each one. On Windows, `install.ps1` and `update.ps1` check that the
+  app's account can write both logs' folders. Anything they can't set up
+  (no rights, a read-only or missing drive, a folder in the way that is a
+  file, a user that doesn't exist yet) only warns, with the exact
+  `mkdir`/`chown`/`chmod` or `New-Item`/`icacls` commands that fix it, or
+  how to point the setting somewhere writable; a log never stops an
+  install or update.
+- **CI runs `install.sh` and `update.sh` against a live database (TEST.62).**
+  A new `linux-update` job runs both for real on Linux: a fresh install,
+  an update with nothing new, a database that needs migrating, one newer
+  than the code, an unreachable server and a failed migration. The shared
+  database step is also tested on every database engine in pytest.
+- **Command-line tests for the admin scripts (TEST.60):** `queryDb`,
+  `adminStats`, `checkRenderParity`, `dedupeNames`, `resetDb`,
+  `updateOrbits` and `loginLockouts`, including a bad port, an unknown
+  database and an empty password against the environment for each.
+
+### Changed
+
+- **A database newer than the code is refused (TEST.10).** `migrateDb.py`
+  (and so install and update), `migrateDb.py --status` and every
+  read-write connection now stop with a clear message when the galaxy
+  database or the control schema is at a higher version than this code
+  knows, instead of carrying on (and before this code's older
+  `schema.sql` touches it). `/api/health` says the database is newer than
+  the code rather than telling you to run `migrateDb.py`.
+- **`migrateDb.py --status` no longer changes anything:** it reads the
+  version without laying down the schema, so it works with a read-only
+  account, and reports a new empty database as current.
+
+### Fixed
+
+- `set-permissions.sh`, `create-cache-dir.sh` and `setup-debug-log.sh`
+  stopped silently (exit 1, no message) on a Debian or Ubuntu server with
+  Apache installed: reading `/etc/apache2/envvars` under `set -u` hit its
+  unset `$APACHE_CONFDIR` and killed the user/group lookup. It is read
+  safely now, and a lookup that still fails says so.
+
+- `checkRenderParity.py`, `dedupeNames.py`, `resetDb.py` and
+  `loginLockouts.py` print `error: ...` and exit 1 on a database they
+  can't reach instead of a traceback.
+- `updateOrbits.py` no longer fails every run with "elapsed_years must be
+  >= 0" after the database server's clock went back; it moves nothing and
+  restarts the clock from now.
+- `loginLockouts.py --ip ""` is a usage error instead of quietly listing
+  the lockouts.
+
+### Removed
+
+- `src/migrateSqliteToMysql.py` (TEST.61). It only accepted a SQLite file
+  already at the current schema version, which no SQLite database ever
+  reached (SQLite stopped at v5 and the MySQL migrations start at v8), so
+  it could never import anything.
+
+## [7.123.339] - 2026-10-01
+
+### Changed
+- **The tests now check that HEAD on the Generate page answers like a
+  normal page load.** The bug was fixed in ADM.4; the test that pinned it
+  as a known failure now checks the fix instead.
+
+## [7.122.329] - 2026-10-01
+
+### Fixed
+
+- Galaxy Map: moving the view (right-drag or Shift-drag) now stops one and a half views from where the stage opened, as intended; before, nothing held it and the view could slide away for good.
+- Galaxy Map: reloading the page after the map's Back button keeps Forward working.
+
+### Added
+
+- Tests for the page scripts under node (`src/tests/js`, run by `test_js_unit.py`): the Galaxy Map's drill-down, history, address bar, zoom, pan and tilt limits and buttons; the Sector Map's zoom, turning and picking; the phenomenon diagram's zoom; the Generate page's job panel; the facility form (TEST.57, TEST.58).
+- Browser tests: every map button changes the view, the System Map's selection and measuring, the Galaxy Map drill-down by clicks with Back and Forward and the free camera (TEST.55, TEST.58, TEST.59), and no overlapping or off-screen controls on any page at 390, 600, 820 and 1280 px in both themes (TEST.56). The large-nebula diagram's dead "-" button is pinned as a known failure for UX.21.
+
+## [7.121.284] - 2026-10-01
+
+### Fixed
+
+- A parallel run no longer stops when the control database drops mid-run: the task rows are only a record, so the run finishes its sectors and its lease goes stale on its own (TEST.20).
+- When a worker process dies, the tasks it never got are recorded as cancelled and the ones in flight as failed, instead of being left as running (TEST.20).
+- Cancelling a parallel run from the Generate page (or any SIGTERM to its process group) now ends it as cancelled: each worker rolls back its unfinished sector and the pool stays whole, instead of the workers being killed and the run recorded as failed (TEST.21).
+
+## [7.120.278] - 2026-10-01
+
+### Changed
+
+- "Generate the neighborhood" on the Sector Map now starts a background job (followed on the Generate page and Admin, Queue) instead of running inside the page request, so closing the browser no longer matters (ADM.11).
+
+### Fixed
+
+- Two admins starting a job at the same moment could both start one: the job lock was briefly empty and the second caller cleared it as stale. The lock now appears with the job id in it, and only one caller clears a stale lock (TEST.40).
+- A job id drawn twice in the same second gets a fresh one, and pruning old jobs never removes the running one (TEST.41).
+
 ## [7.119.271] - 2026-10-01
 
 ### Changed
