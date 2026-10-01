@@ -94,7 +94,7 @@ def pytest_collection_modifyitems(config, items):
         name = item.path.name
         if name.startswith(("test_fuzz_", "test_bughunt_")):
             item.add_marker(pytest.mark.slow)
-        if name == "test_web_a11y.py":
+        if name == "test_web_a11y.py" or name.startswith("test_web_browser"):
             item.add_marker(pytest.mark.browser)
 
 
