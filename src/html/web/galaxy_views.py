@@ -111,6 +111,16 @@ def _quadrant_sector_rows(sectors, quadrant, page):
     return rows, page, len(members)
 
 
+def _has_territories(db):
+    """Whether population has made any polities yet. Without one the map
+    leaves out its Territories button, as the site does every population
+    page; an API failure counts as none."""
+    try:
+        return apiclient.get_polities(db, limit=1)["total"] > 0
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return False
+
+
 @bp.route("/galaxy")
 @page_limit("galaxy")
 def galaxy():
@@ -129,7 +139,7 @@ def galaxy():
         fetch_path=url_for("web.galaxy_tiles"),
         stage_path=url_for("web.galaxy_stage"),
         locate_path=url_for("web.galaxy_locate"),
-        territory_path=url_for("web.galaxy_territories"),
+        territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
