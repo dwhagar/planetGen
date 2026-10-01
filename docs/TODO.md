@@ -1230,6 +1230,19 @@ DB.1 shipped in 7.35.0 (PR #152).
   is detected from the table shape (which tables and columns exist), the
   needed migrations run, and a test covers it.
 
+- [ ] **DB.5 Several first connections to an empty database race to create the schema (bug)**
+  Found by the parallel, population and navigation tests thread
+  (2026-10-01), which worked around it in its tests: when several
+  connections reach an empty database at once, each runs
+  `_ensure_schema`, and one fails with IntegrityError 1062 "Duplicate
+  entry '49' for key 'PRIMARY'" on `schema_migrations`; in a test run,
+  that connection's teardown then left `DROP DATABASE` hanging. Real
+  runs aren't hit today because the main process creates the schema
+  before workers start. Done: schema creation is safe when several
+  connections start at once (one creates it under a lock, the others
+  wait and then see it current), with a test that opens several first
+  connections together.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
