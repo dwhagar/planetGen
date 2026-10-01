@@ -16,7 +16,10 @@ Admin actions are POST forms to the same URL, each carrying
   yet): `POST /api/sectors/<id>/wiki` with the chosen `backend` and
   optional `path`.
 - `generate_neighborhood` (an admin whose credentials are current, on a
-  galaxy-placed sector): `POST /api/sectors/<id>/generate-neighborhood`.
+  galaxy-placed sector): the size and time first (`POST
+  /api/sectors/<id>/generate-neighborhood` with `estimate_only`), then,
+  confirmed, a Generate page job (`generate.py galaxy --center-sector`,
+  ADM.11) that keeps running when the page is closed.
 - The Delete and Regenerate buttons (ADM.8) post an `edit_action`
   instead, handled by `web/edit_actions.py`: delete the sector with
   everything in it, or delete it and generate its slot again.
@@ -30,7 +33,7 @@ an unknown `action`, just redirects back to the page.
 import math
 import re
 
-from flask import flash, get_flashed_messages, redirect, request, url_for
+from flask import current_app, flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
 from fmt import (
@@ -43,10 +46,11 @@ from starmap import render_map_panel
 from systempage import facility_kind_label
 
 from api.common import is_http_url
+from stellarObjects import activitylog, log, program_constants
 from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 
-from . import bp, edit_actions
+from . import bp, edit_actions, generate_page, jobs
 from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
@@ -291,22 +295,40 @@ def _handle_post(sector_id, admin):
             except apiclient.ApiError as exc:
                 return "neighborhood", _api_message(exc)
             return "neighborhood_estimate", result["estimate"]
-        try:
-            result = apiclient.generate_sector_neighborhood(cookie_header, sector_id)
-        except apiclient.NotFoundError as exc:
-            # e.g. "this sector was never placed in a galaxy": shown on
-            # the page rather than as a 404 for an existing sector.
-            return "neighborhood", str(exc)
-        except apiclient.ApiError as exc:
-            return "neighborhood", _api_message(exc)
-        flash(
-            f'Generated {result["generated"]} new sector(s) ({result["already_existed"]} already '
-            f'existed, {result["candidates"]} candidate slot(s) within radius).',
-            _FLASH_CATEGORY,
-        )
+        # ADM.11: a background job, like the Generate page's, so it runs
+        # to the end whether or not this page stays open.
+        error = _start_neighborhood_job(sector_id, admin)
+        if error:
+            return "neighborhood", error
+        flash("Started generating the sectors around this one. It keeps running if you close this page; "
+              "follow it on the Generate page.", _FLASH_CATEGORY)
         return page_again
 
     return page_again
+
+
+def _start_neighborhood_job(sector_id, admin):
+    """Starts `generate.py galaxy --center-sector <id>` over the default
+    radius as a Generate page job (`web/jobs.py`). Returns an error
+    message, or `None` once it has started."""
+    database = db_name()
+    form = {"mode": "center", "center_sector": str(sector_id),
+            "center_radius_pc": str(program_constants.DEFAULT_GENERATE_RADIUS_PC)}
+    try:
+        kind, title, steps = generate_page.build_job("galaxy", form, database)
+        env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
+        job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
+    except generate_page.FormError as exc:
+        return str(exc)
+    except jobs.JobBusy as exc:
+        running = exc.job["title"] if exc.job else "Another job"
+        return f"{running} is still running. Wait for it to finish, or cancel it on the Generate page."
+    except OSError as exc:
+        log.error(f"Could not start the neighborhood job for sector {sector_id}: {exc}")
+        return f"The job could not be started: {exc}"
+    activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
+                      title=title)
+    return None
 
 
 def _with_bright_stars(neighbors):

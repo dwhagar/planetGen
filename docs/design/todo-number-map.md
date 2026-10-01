@@ -14,13 +14,13 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.58 |
+| MAP | MAP.61 |
 | NAV | NAV.3 |
 | GEN | GEN.33 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.9 |
-| ADM | ADM.14 |
+| ADM | ADM.15 |
 | SEC | SEC.29 |
 | TEST | TEST.70 |
 | USR | USR.8 |
@@ -392,7 +392,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.1 | Admin editing: overrides, delete, regenerate (new parent) | none | done (all subitems: PRs #235, #244, #260) |
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
-| ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
+| ADM.4 | Collapsible Generate page sections; pick the center sector | none | done, PR #279 |
 | ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | done, PR #235 |
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
@@ -402,6 +402,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.11 | Jobs keep running after the browser closes | none | open |
 | ADM.12 | Jobs as a tree, with timing for every node | none | open |
 | ADM.13 | Incomplete uploads page | none | open |
+| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
@@ -503,6 +504,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
+| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
+| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
+| MAP.60 | Galaxy Map scale readout: one scale line | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |

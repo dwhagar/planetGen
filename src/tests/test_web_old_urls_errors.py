@@ -202,6 +202,7 @@ def _page_paths(app, ids):
         "sector_id": ids["sector_id"], "system_id": ids["system_ids"][0], "phenomenon_type": "nebula",
         "phenomenon_id": ids["nebula_id"], "name": "index", "type_slug": "stars", "code": "G",
         "job_id": "0" * 32, "species_id": 1, "polity_id": 1,
+        "node_id": "20260101-000000-00000000", "action": "queue-pause",
     }
     paths = []
     for rule in sorted(app.url_map.iter_rules(), key=lambda r: r.rule):
