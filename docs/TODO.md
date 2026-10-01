@@ -611,7 +611,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window is resized. Under MAP.58's locked zoom, the locked level is
   this whole-wedge fit, not a closer one.
 
-- [ ] **MAP.79 Rogue planets clog the Sector Map: a show/hide button per kind of object (bug)**
+- [ ] **MAP.79 Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug)**
   Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,
   make each dim, visible but the points for stars, comets, and other
   objects should shine through. Or let's say provide a button that
@@ -624,9 +624,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   all on by default; turning one off hides those points, their rings
   and their labels, and hidden kinds can't be hovered or picked. The
   choice is kept in the URL so a bookmark keeps it. Ties in with
-  MAP.61 (one control set for both maps). Open question: should rogue
-  planets also be drawn dimmer by default (no ring, a faint point that
-  stars show through), as in Boss's first wording?
+  MAP.61 (one control set for both maps). Boss (21:17Z): "Toggle and
+  dim", so rogue planets are also drawn dim by default (a faint point,
+  no bright glow or ring) while they are on, and stars, comets and
+  other objects show through them.
 
 - [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
   Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
@@ -639,8 +640,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of its stars and every pulsar, quasar and black hole in it, as close
   as the Sector Map shows them; the thinning only applies farther out.
   Ties in with MAP.66 (the sector as the drill-down's last stage).
-  Open question, read from Boss's wording: is this the fix wanted, or
-  is it a note that the level of detail already does this?
+  Boss (21:17Z) confirmed it is a fix: "fix it".
 
 ## NAV: Navigation and courses
 
@@ -948,6 +948,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
   rather than as a separate copy; until then each map fix must be
   checked in pick mode too.
+
+- [ ] **NAV.33 After picking one end of a course, stay at that zoom level (bug)**
+  Boss (2026-10-01 21:17Z): "when nevigating via the picker, when we
+  pick a start or destination first, it should keep us at that zoom
+  level and let the user zoom out to find their destination via the
+  picker." Today picking one end of a course moves the user to the NAV
+  page's own pickers, away from the map view where they picked it.
+  Done: after the first end is picked (with NAV.29's Start Here or End
+  Here, or the existing "Use as start" and "Use as destination"
+  buttons), the view stays where it was, at the same zoom level, with
+  that end marked; the user zooms or steps out from there (NAV.13) to
+  find the other end with the same picker, and the course is shown
+  once both ends are set. Ties in with NAV.3, NAV.29 and NAV.32.
 
 ## GEN: Generation and physics
 
