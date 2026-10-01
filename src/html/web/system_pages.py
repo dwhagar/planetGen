@@ -506,6 +506,7 @@ FIELD_SPECS = {
     ],
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
+        ("planet_class", "Planet Class", str),
         ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
@@ -543,6 +544,7 @@ CLASS_COLUMNS = {
     "field_class": "asteroid-field",
     "mass_class": "black-hole",
     "mass_bin": "rogue-planet",
+    "planet_class": "planet",
 }
 """dict: The columns whose value is a class, and the class type
 (`lib/classref.py`) whose page it links to. An asteroid field's "C3"

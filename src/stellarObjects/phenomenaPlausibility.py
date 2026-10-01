@@ -46,7 +46,7 @@ from .config import SystemConfig
 from .nebulaData import Nebula
 from .plausibility import iqr_bounds
 from .quasarData import Quasar
-from .roguePlanetData import InterstellarComet, RoguePlanet
+from .roguePlanetData import InterstellarComet, RoguePlanet, rogue_planet_classes
 from .supernovaRemnantData import SupernovaRemnant
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
@@ -265,6 +265,7 @@ def _extract_record(phenomenon_type, obj):
             "mass_kg": obj.mass_kg,
             "radius_km": obj.radius_km,
             "planet_type": obj.planet_type,
+            "planet_class": obj.planet_class,
         })
     elif phenomenon_type == "comet":
         record.update({
@@ -457,6 +458,9 @@ def check_hard_invariants(record):
             issues.append("planet_type is 'g' but mass is below the gas-giant threshold")
         elif record["planet_type"] == 't' and mass_jupiter >= prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             issues.append("planet_type is 't' but mass is at/above the gas-giant threshold")
+        if record["planet_type"] in ('t', 'g') and record["planet_class"] not in rogue_planet_classes(record["planet_type"]):
+            issues.append(f"planet_class={record['planet_class']!r} is not a rogue-eligible (\"r\") class "
+                          f"of type {record['planet_type']!r}")
         if not (math.isfinite(record["radius_km"]) and record["radius_km"] > 0):
             issues.append(f"radius_km={record['radius_km']!r} is not a finite, positive value")
 

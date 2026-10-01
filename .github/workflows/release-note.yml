@@ -10,7 +10,7 @@ on:
 
 jobs:
   release-note:
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
     steps:
       - uses: actions/checkout@v4
         with:

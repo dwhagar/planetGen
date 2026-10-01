@@ -922,7 +922,11 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
         data["typeLabel"] = f'Supernova Remnant ({descriptor.capitalize()})' if descriptor else "Supernova Remnant"
     elif phenomenon_type == "rogue_planet":
         data["kind"] = "roguePlanet"
-        data["typeLabel"] = f'Rogue Planet ({descriptor.capitalize()})' if descriptor else "Rogue Planet"
+        # GEN.8: its planet class first, e.g. "Rogue Planet (Class C, terrestrial)".
+        bits = [f'Class {phenomenon["class"]}' if phenomenon.get("class") else None,
+                descriptor.capitalize() if not phenomenon.get("class") else descriptor]
+        bits = [bit for bit in bits if bit]
+        data["typeLabel"] = f'Rogue Planet ({", ".join(bits)})' if bits else "Rogue Planet"
     elif phenomenon_type == "interstellar_comet":
         data["kind"] = "interstellarComet"
         data["typeLabel"] = f'Interstellar Comet ({descriptor.capitalize()})' if descriptor else "Interstellar Comet"

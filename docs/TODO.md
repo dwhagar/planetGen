@@ -740,24 +740,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.1 Test category and suite markers**
-  Add TEST to `test_todo_tags.py`; register `db`, `slow`, `browser`
-  markers in `pytest.ini` so fast/no-DB, DB and browser runs can be
-  picked separately. [infra]
-
-- [ ] **TEST.2 Parallel test runs**
-  Add pytest-xdist, give each worker its own control database name
-  (today `configured_control_database()` defaults to one fixed name),
-  and a session-scoped template schema so each test doesn't rebuild
-  `schema.sql` from scratch; goal: the 17-22 minute suite well under 10.
-  [infra]
-
-- [ ] **TEST.3 MariaDB in CI**
-  Add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
-  is MySQL 8.0 only, so the engine-specific paths in `_db.py` (statement
-  timeout via `max_statement_time`, the ALGORITHM fallbacks, the
-  CTE-in-UPDATE workaround) only run on Boss's server. [infra, DB]
-
 - [ ] **TEST.4 Revive and widen the known-bug tests**
   The "Real bugs (strict xfail)" block in
   `test_fuzz_system_generation.py` (about line 562) now passes on 5-200
@@ -1121,7 +1103,7 @@ clears each one.
     every single value looks fine.
 
   - [ ] **TEST.67 Runs first in the suite and in CI**
-    A `mathcheck` marker (TEST.1 adds the markers); `conftest.py` moves
+    A `mathcheck` marker (next to the `db`, `slow` and `browser` markers TEST.1 added); `conftest.py` moves
     those tests to the front and stops the run if any fails, saying the
     math is broken and the rest would be noise; CI runs it as its own
     quick first job that the other jobs wait on.
