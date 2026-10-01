@@ -32,13 +32,14 @@ import time
 from flask import abort, current_app, jsonify, make_response, redirect, request, url_for
 
 import apiclient
+from fmt import utc_time_html
 from stellarObjects import log
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
 
 from . import bp, jobs
-from .helpers import crumb, current_admin, db_name, page_url, render_page
+from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
 
 # ---------------------------------------------------------------------
 # Form fields
@@ -246,8 +247,11 @@ def _job_view(job):
     view["progress_completed"] = progress.get("completed")
     view["progress_total"] = progress.get("total")
     view["progress_description"] = progress.get("description")
-    view["created_text"] = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(job["created_at"])) \
+    # Plain UTC text for the JSON status; the page shows `created_html`,
+    # which static/localtime.js turns into the viewer's own zone.
+    view["created_text"] = time.strftime("%Y-%m-%d %H:%M UTC", time.gmtime(job["created_at"])) \
         if job.get("created_at") else ""
+    view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
     return view
 

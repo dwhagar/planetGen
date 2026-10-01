@@ -605,6 +605,8 @@ def _star_color(star_type, temperature_k, luminosity_w):
     return fill, stroke
 
 
+# TODO(sector-map #55): the 14 px cap draws every giant the same size; use
+# a log scale so giants (10-200 solar radii) read larger than dwarfs.
 def _star_dot_radius(radius_km):
     """Maps a star's physical radius to a dot radius in scene units --
     square-root scaled against the Sun's radius (linear scaling would make

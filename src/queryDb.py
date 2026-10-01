@@ -221,7 +221,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
-                           `sector_id`, `is_binary`, and `star_summary`
+                           `sector_id`, `sector_name`, `quadrant` (its
+                           octant in the sector), `is_binary`, and `star_summary`
                            (the single star's `star_type`, or a binary's
                            `binary_type` -- what `html/browse.py`/
                            `html/search.py` show as a system's "Star type"
@@ -229,7 +230,9 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
     query = f"""
-        SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type,
+        SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
+               ss.binary_type,
+               (SELECT sec.name FROM sectors sec WHERE sec.id = ss.sector_id) AS sector_name,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'single' LIMIT 1)
                    AS single_star_type,
                (SELECT s.star_type FROM stars s WHERE s.star_system_id = ss.id AND s.role = 'primary' LIMIT 1)
@@ -246,8 +249,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     rows = conn.execute(query, params).fetchall()
     return [
         {
-            "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
-            "star_summary": _star_summary(r),
+            "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
+            "quadrant": r["quadrant"], "is_binary": r["is_binary"], "star_summary": _star_summary(r),
         }
         for r in rows
     ]
