@@ -180,8 +180,8 @@ with `clamp()`.
   and its top minerals (from `asteroid_belt_composition`, through the
   existing `format_composition_summary`), and nothing else; no row in
   the list (planets, moons, belts, comets, facilities) shows the zone;
-  the zone stays on each object's own page. Open question: how many
-  minerals count as "top"? Default: the three largest by share.
+  the zone stays on each object's own page. Settled by Boss
+  (2026-10-01): "top" means the three largest minerals by share.
 
 - [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
   Boss (2026-10-01): "anything over 4 digits to the left of the decimal
@@ -194,10 +194,10 @@ with `clamp()`.
   shows any number with 5 or more digits before the decimal point as
   scientific notation (for example 1.23 × 10⁶), on every page, map
   panel and API text field that shows a number, with the existing call
-  sites converted. Open questions: does it cover counts (systems, stars)
-  as well as measurements? Default: yes. How many significant figures?
-  Default: 3. Exempt: IDs, years in dates, designations and raw JSON
-  numbers in the API (only display text changes).
+  sites converted. Settled by Boss (2026-10-01): it covers counts
+  (systems, stars) as well as measurements, with 3 significant figures;
+  IDs, years in dates, designations and raw JSON numbers in the API are
+  exempt (only display text changes).
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
@@ -1174,12 +1174,11 @@ MAP.48 and MAP.37, all fixed.
     random angle) and an orbital velocity around the star from that
     radius, stored on the facility, and `updateOrbits.py`'s
     `advance_facility_orbits` moves it along with orbital facilities.
-  Open questions: may the admin pick where in the belt, or is it always
-  random? Default: random, with the chosen radius shown. For a star,
-  what is the outer end of the slider (the system's outermost body, or
-  the heliopause)? Default: the heliopause. Does a belt facility need a
-  migration for its position columns? (If so, it goes through the
-  Database workstream's next version.)
+  Settled by Boss (2026-10-01): a belt facility's place in the belt is
+  random, with the chosen radius shown; for a star, the slider runs out
+  to the heliopause. Still to find out while building: whether a belt
+  facility needs a migration for its position columns (if so, it takes
+  the next schema version).
 
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be
