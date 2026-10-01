@@ -227,6 +227,48 @@ for a mouse; spacing and type sized with `clamp()`.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
+86. [ ] **Estimate size and time before bulk generation, and refuse
+    what won't fit.** Boss (2026-10-01): "any directive to generate
+    sectors in bulk should have a size estimate calculated +10% and make
+    sure that it warns the user approximate size of the generated content
+    before it generates it. Same for time, which means we'll have to
+    store in the control database somewhere how fast stars are generated
+    in exact terms as we can, which we'll get from the generate phase,
+    not from the plan, but from when we start generating sectors, have
+    the program keep track of it's average stars per second and then
+    we'll use the expected stellar density of all the sectors being asked
+    to generate to determine the amount of time it is estimated to take.
+    Also it should refuse to generate anything that would take more than
+    1/4 of the total disk space OR would leave less than 5 GB of space
+    estimated to be left." Today nothing estimates size or time up front:
+    `generate.py` only shows elapsed time and a running ETA once
+    generation has started, and `stellarObjects/generationLimits.py`
+    caps input sizes (radius, ring counts, orbits), not output size.
+    Done, for every bulk path (`generate.py galaxy`/`sector` over many
+    sectors, the admin Generate page's jobs, item 73's slice and
+    neighborhood generation, item 60's sector regenerate, and the Galaxy
+    Map's Generate buttons):
+    - Before starting, compute the expected star count from the expected
+      stellar density of the requested sectors, then an estimated size
+      (bytes per star from measured data, plus 10%) and an estimated
+      time (stars / measured stars per second), and show both to the
+      user, who confirms before anything is written.
+    - Measure speed during sector fill, not during the plan: the program
+      tracks its average stars per second while generating sectors and
+      stores it in the control database (a new table or row next to
+      `admin_users` in `control_schema.sql`), updated after each run.
+    - Refuse when the estimate would use more than 1/4 of the total disk
+      or leave less than 5 GB free, saying why and how much space it
+      needs.
+    Open questions: which disk counts (the MySQL data directory's volume,
+    which may be another machine, or the planetGen host); how bytes per
+    star are calibrated (measured from the database's own table sizes
+    after each run, or fixed from the 2026-09-30 galaxy-size study in the
+    project's `galaxy-studies/`); what rate to use before any run has
+    been measured (a conservative default?); whether the rate is kept per
+    server or per kind of sector (bright-star and bulge sectors cost
+    more per star); and whether an admin can override the refusal.
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
