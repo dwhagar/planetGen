@@ -238,6 +238,83 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picks (regions inside the wedge) follow the same cursor-centered
   rule?
 
+- [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
+  Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
+  around once it's zoomed into the wedge and zoom in more based on
+  window size." Today the wedge zoom of PR #243 fits the real wedge at
+  a fixed orientation and scale. Done: once zoomed into a wedge, the
+  user can rotate the view around it (drag, keys, and a touch gesture,
+  like the free camera below quarter level), and the zoom fits the
+  wedge to the map's actual size, so a bigger window shows it larger;
+  it refits when the window is resized or rotated. Ties in with MAP.52
+  (the 40-degree wedge pick). Boss (19:44Z): "Slabs will rotate
+  around their immediate center", so the view turns about the middle
+  of what is shown (the wedge, or the slab), not the galaxy's center.
+  Open question: is the rotation kept in the URL and bookmarks?
+
+- [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
+  Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
+  have a line going from each slab on the map (dynamically rendered to
+  always point where it needs to) from the button for that slab to the
+  slab itself on the map." Today slabs are picked with the slab slider
+  beside the map (MAP.30, shipped as a slider in PR #234,
+  `galaxystageview.js`). Done: the slider is replaced by one button per
+  slab, and each button has a line drawn from it to its slab on the
+  map; the lines are redrawn whenever the view rotates, zooms, pans or
+  the window resizes, so they always point at the slab; hovering or
+  focusing a button highlights its line and slab, and clicking picks
+  the slab as the slider does today. MAP.30 stays done; this item
+  replaces its slider. Open questions: how the lines stay readable with
+  many slabs (thin lines, only the hovered one drawn bright, or
+  grouping); how crossing or overlapping lines are kept apart; and
+  where the buttons sit on a phone-width screen. Default taken: a slab
+  should always be on screen after the zoom-fit, but if one ever falls
+  outside the frame (the isometric tilt, a very tall stack of slabs, a
+  small window), its line ends at the window's edge with an arrow
+  pointing toward it and its button still works; this may never happen
+  in practice. A slab hidden behind another keeps its line, drawn to
+  the visible part.
+
+- [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
+  Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
+  be under a menu except for back, forward, up, and reset. Reset and
+  whole galaxy do the same thing. Remove the wedges button entirely,
+  and bookmarks should be next to the back, forward, up, reset, and
+  bookmarks. Sector sell should go next to the galaxy map if there's
+  room right next to the slab buttons." Today the Galaxy Map's controls
+  (`galaxystageview.js`, `galaxymap3d.js`) are one row of buttons.
+  Done: only back, forward, up, reset and the bookmark button stay in
+  view, in that row; every other control moves into one menu button
+  beside them (keyboard and screen-reader friendly); "Whole galaxy" is
+  removed, since reset does the same; the Wedges button is removed
+  entirely; the "Sector cell" info panel (`#galaxymap3d-info`, showing
+  a picked sector's address and designation) sits beside the map next
+  to the slab buttons (MAP.54) when there is room, and below the map
+  when there isn't. Ties in with UX.21 (overlapping buttons). Open
+  question: what is in the menu and in what order?
+
+- [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
+  Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
+  of blocks should be selectable by the user, it isn't, so lets take
+  that back to the select-slab, zoom in, select segment of slab."
+  Today the drill-down (`galaxystages.js`) alternates layer and region
+  picks (MAP.19, PR #208: "quadrant, layer, region, layer, region, ...,
+  layer, sector"), and a region pick offers up to 3 x 3 options (a
+  third of the rings across, a third of the arc along, `PICK_SPLIT`).
+  Done: the region (3 x 3) pick is removed; the ladder becomes the
+  wedge pick (MAP.52), then select a slab (the slab buttons and lines
+  of MAP.54), then the view zooms to that slab (fitted to the window
+  and rotatable, MAP.53), then select a segment of the slab, repeating
+  slab and segment inside each smaller block down to a sector. Default
+  taken: a segment is one drill block of the next level inside the
+  slab (27 or 3 sectors a side), picked directly on the zoomed slab
+  with the same hover highlight as today's blocks; no existing item
+  defines it further. The URL and breadcrumb forms of a region pick
+  ("r4") go away; old links with one open at the nearest valid stage.
+  MAP.19's big targets still apply. Open question: should a segment be
+  one block, or a run of blocks along the arc when a block is too small
+  to click on a small screen?
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**

@@ -213,8 +213,8 @@ CREATE TABLE IF NOT EXISTS work_jobs (
     id               VARCHAR(32) NOT NULL PRIMARY KEY,
     title            VARCHAR(255) NOT NULL,
     holder           VARCHAR(255) NOT NULL,   -- host:pid:token of the run
-    state            VARCHAR(16) NOT NULL,    -- waiting, running, done, failed, cancelled
-    workers          INT UNSIGNED NOT NULL,
+    state            VARCHAR(16) NOT NULL,    -- waiting, running, paused, done, failed, cancelled
+    workers          INT UNSIGNED NOT NULL,   -- pool size, 0 for a node with no pool of its own
     tasks_queued     INT UNSIGNED NOT NULL DEFAULT 0,
     tasks_done       INT UNSIGNED NOT NULL DEFAULT 0,
     tasks_failed     INT UNSIGNED NOT NULL DEFAULT 0,
@@ -222,10 +222,35 @@ CREATE TABLE IF NOT EXISTS work_jobs (
     started_at       DATETIME(6) NULL,
     finished_at      DATETIME(6) NULL,
     heartbeat_at     DATETIME(6) NOT NULL,
+    -- v7 (ADM.12): the job tree, see the comment after this table.
+    parent_id        VARCHAR(32) NULL,
+    root_id          VARCHAR(32) NULL,
+    kind             VARCHAR(32) NOT NULL DEFAULT 'queue',
+    seconds          DOUBLE NULL,             -- finished_at - started_at
+    tasks_total      INT UNSIGNED NULL,       -- tasks the run said it would queue
+    web_job_id       VARCHAR(32) NULL,        -- the Generate page's job (web/jobs.py)
+    database_name    VARCHAR(64) NULL,        -- the galaxy database it wrote
+    argv             TEXT NULL,               -- JSON command line, without --mysql-* options
+    control          VARCHAR(16) NULL,        -- ADM.10: 'pause' or 'cancel', asked from the web
 
     KEY idx_work_jobs_state (state),
-    KEY idx_work_jobs_created_at (created_at)
+    KEY idx_work_jobs_created_at (created_at),
+    KEY idx_work_jobs_root (root_id),
+    CONSTRAINT fk_work_jobs_parent FOREIGN KEY (parent_id) REFERENCES work_jobs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v7 (ADM.12): every job is a tree. A `generate.py` run is the root
+-- (`kind` = its command), or, when the Generate page started it, a
+-- child of that page job's "step" node, whose parent is the page job
+-- itself (`kind` 'web-job', `web_job_id` its directory). Phases of a run
+-- (the skeleton, the bright stars, population) are nodes under it, and
+-- each work queue (`kind` 'queue') is a node whose leaves are its
+-- `work_tasks` rows (a sector, a layer of bright stars). Every node keeps
+-- its own start, end and `seconds`; a parent's totals are added up from
+-- its children when the tree is read (`workQueue.load_tree`), so writing
+-- a task touches only its own queue's row. `root_id` fetches a whole
+-- tree at once; deleting a root deletes its subtree and tasks. `control`
+-- is how the admin queue page (ADM.10) asks a node to pause or cancel.
 
 CREATE TABLE IF NOT EXISTS work_tasks (
     id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -249,7 +274,12 @@ CREATE TABLE IF NOT EXISTS work_lease (
     id               TINYINT UNSIGNED NOT NULL PRIMARY KEY,   -- always 1
     holder           VARCHAR(255) NULL,       -- NULL: free
     job_id           VARCHAR(32) NULL,
-    heartbeat_at     DATETIME(6) NULL
+    heartbeat_at     DATETIME(6) NULL,
+    -- v7 (ADM.10): "Pause the queue": while set, no run takes the lease
+    -- or hands out a task, until an admin resumes the queue.
+    paused           TINYINT(1) NOT NULL DEFAULT 0,
+    paused_by        VARCHAR(64) NULL,
+    paused_at        DATETIME(6) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v6 (PERF.3, PERF.10): how fast this server generates and how much

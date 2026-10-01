@@ -1507,6 +1507,7 @@ def run_sector(args):
 
     try:
         with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
+            queue.expect(args.num_sectors)
             for index in range(args.num_sectors):
                 queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
     finally:
@@ -2156,14 +2157,15 @@ def _work_queue(args, title):
     `--workers` (or `PLANETGEN_WORKERS`) worker processes, by default 80%
     of the cores less one when MySQL runs on this machine, with the
     control database's lease so only one run's workers use the machine
-    at a time. One worker generates every sector right here, in order.
+    at a time. One worker generates every sector right here, in order
+    (still recorded in the job tree, ADM.12, without the lease).
     """
     mysql_config = _db.mysql_config_from_args(args)
     workers = _worker_count(args)
     log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
     return workQueue.WorkQueue(
         title, workers=workers,
-        control_config=_db.control_mysql_config(mysql_config) if workers > 1 else None,
+        control_config=_db.control_mysql_config(mysql_config),
         log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
     )
 
@@ -2340,6 +2342,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, task):
     """Queues every `(address, position_pc, sector_args, suffix)` of
     `batch` (`_submit_sector`) and waits for them."""
     with _work_queue(args, title) as queue:
+        queue.expect(len(batch))
         for address, position_pc, sector_args, suffix in batch:
             _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=suffix)
 
@@ -3535,6 +3538,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drain.start()
                     else:
                         channel = _DirectChannel(tracker)
+                    queue.expect(len(layers))
                     for layer_index, outer_ring in layers:
                         payload = {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
@@ -3689,12 +3693,15 @@ def run_plan(args):
             "plan"`).
     """
     if getattr(args, "bright_stars_down_to", None) is not None:
-        add_bright_star_band(args)
+        with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
+            add_bright_star_band(args)
         return
     if getattr(args, "bright_stars_only", False):
-        scatter_bright_stars(args)
+        with workQueue.job_node("bright-stars", "Bright stars"):
+            scatter_bright_stars(args)
         return
-    summary = build_skeleton(args)
+    with workQueue.job_node("skeleton", "Galaxy skeleton"):
+        summary = build_skeleton(args)
     if summary["layer_count"]:
         layers = f"{summary['layer_count']} layers ({summary['top_layer_index']} to {-summary['top_layer_index']})"
     else:
@@ -3710,7 +3717,8 @@ def run_plan(args):
             f"parameters really do produce a galaxy this large."
         )
     if summary["layer_count"] and not getattr(args, "no_bright_stars", False):
-        scatter_bright_stars(args)
+        with workQueue.job_node("bright-stars", "Bright stars"):
+            scatter_bright_stars(args)
 
 
 # ===========================================================================
@@ -3941,7 +3949,8 @@ def run_population_after(args):
         return
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
-        counts = population.run_pass(conn)
+        with workQueue.job_node("population", "Population pass"):
+            counts = population.run_pass(conn)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -4152,6 +4161,7 @@ def main():
     if logged:
         activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
+    root = _open_run_node(args, database) if logged else None
     try:
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
@@ -4164,11 +4174,60 @@ def main():
     except KeyboardInterrupt:
         status = "interrupted"
         raise
+    except SystemExit as exc:
+        # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
+        if isinstance(exc.code, int) and exc.code >= 128:
+            status = "interrupted"
+        elif exc.code in (None, 0):
+            status = "ok"
+        raise
     finally:
+        if root is not None:
+            workQueue.close_node(root, {"ok": "done", "interrupted": "cancelled"}.get(status, "failed"))
         if logged:
             activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
+
+
+RUN_ARGV_WITHHELD = ("--mysql-host", "--mysql-port", "--mysql-user", "--mysql-password", "--mysql-database",
+                     "--debug")
+"""tuple: Options left out of the command line a run records in its job
+tree root (`_run_argv`): the database is the site's own when the admin
+page runs it again, and a password never goes in the control database."""
+
+
+def _run_argv(argv):
+    """`argv` (after the script name) without `RUN_ARGV_WITHHELD`'s
+    options and their values."""
+    kept, skip = [], None
+    for arg in argv:
+        if skip == "value" or (skip == "optional" and not arg.startswith("-")):
+            skip = None
+            continue
+        skip = None
+        name = arg.split("=", 1)[0]
+        if name in RUN_ARGV_WITHHELD:
+            if "=" not in arg:
+                skip = "optional" if name == "--debug" else "value"
+            continue
+        kept.append(arg)
+    return kept
+
+
+def _open_run_node(args, database):
+    """The job tree root of this run (ADM.12): its command, what it was
+    asked to do, and the command line that would run it again. A run the
+    Generate page started goes under that page job's step
+    (`workQueue.PARENT_ENV_VAR`). Recorded in the control database when
+    there is one; never stops the run."""
+    argv = _run_argv(sys.argv[1:])
+    title = " ".join(["generate.py", *argv])[:255]
+    try:
+        control = _db.control_mysql_config(_db.mysql_config_from_args(args))
+    except AttributeError:  # a subcommand without the --mysql-* options
+        control = _db.control_mysql_config()
+    return workQueue.open_node(args.command, title, control, argv=argv, database=database)
 
 
 def _run_user():

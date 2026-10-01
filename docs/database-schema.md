@@ -757,6 +757,24 @@ which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
   30 s belongs to a run that died: the next run takes the lease and
   marks that run's unfinished tasks cancelled. Jobs older than a week
   are deleted with their tasks.
+- **Job tree columns** (v7, ADM.12) — every job is a tree. `work_jobs`
+  gained `parent_id` (the node above, deleting a node deletes its
+  subtree), `root_id` (the top of its tree), `kind` (`web-job` for a
+  Generate page job, `step` for one of its steps, a `generate.py`
+  command such as `plan` or `galaxy` for a run, a phase such as
+  `skeleton`, `bright-stars` or `population`, and `queue` for a work
+  queue, whose leaves are its `work_tasks`), `seconds` (its own
+  duration), `tasks_total` (tasks the queue said it would queue, for
+  the ETA), `web_job_id`, `database_name`, `argv` (the run's command
+  line as JSON, without the `--mysql-*` and `--debug` options) and
+  `control` (`pause` or `cancel`, asked from the admin queue page).
+  Every node, not only those with workers, is recorded and timed; a
+  parent's totals are added up from its children when the tree is read
+  (`workQueue.load_tree`). A node whose run stopped refreshing it for
+  30 s reads as interrupted. Finished trees older than a week are
+  deleted whole. `work_lease` gained `paused`, `paused_by` and
+  `paused_at` for "Pause the queue" (ADM.10). The columns are added to
+  an older control schema by `update.sh` (`_db._add_control_columns`).
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`stellarObjects/generationStats.py`, see
