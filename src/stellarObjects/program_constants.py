@@ -2556,22 +2556,29 @@ not-yet-generated sector this close to their center. Boss (GEN.23,
 its bright stars (`BRIGHT_STAR_BACKFILL_RADIUS_LY`).
 """
 
-BRIGHT_STAR_BACKFILL_RADIUS_LY = 100.0
+BRIGHT_STAR_BACKFILL_TIERS = ((10.0, 100.0), (25.0, 250.0), (50.0, 500.0), (100.0, 750.0))
 """
-float: Every time a galaxy sector is generated, the sector blocks (3x3x3
-sectors, `galaxyDrill`'s level-3 blocks) reaching within this many
-light-years of it get every star down to
-`BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL` (GEN.23, `generate.py`'s
+tuple: The bright-star backfill around a generated sector (GEN.23,
+tiered by GEN.30), as `(out_to_ly, min_luminosity_sol)` pairs, nearest
+first. Every time a galaxy sector is generated, each sector block (3x3x3
+sectors, `galaxyDrill`'s level-3 blocks) with a sector within the last
+tier's distance of it gets every star down to the floor of the first tier
+its nearest sector falls in: under 10 ly, 100 L_sun; 10 to under 25 ly,
+250; 25 to under 50 ly, 500; 50 to 100 ly, 750 (Boss, 2026-10-01). A block
+keeps the dimmest level it has been filled to (`bright_star_blocks`), so a
+block a nearer sector reaches later is topped up with only the band it
+lacks, and no star is drawn twice (`generate.py`'s
 `backfill_bright_stars`).
 """
 
-BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL = 100.0
-"""
-float: How dim the bright-star backfill around a generated sector goes,
-in solar luminosities (GEN.23). A block keeps the dimmest level it has
-been filled to (`bright_star_blocks`), so it is only ever drawn once per
-luminosity band.
-"""
+BRIGHT_STAR_BACKFILL_RADIUS_LY = BRIGHT_STAR_BACKFILL_TIERS[-1][0]
+"""float: How far the bright-star backfill reaches, light-years: the last
+tier of `BRIGHT_STAR_BACKFILL_TIERS` (100 ly)."""
+
+BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL = BRIGHT_STAR_BACKFILL_TIERS[0][1]
+"""float: The dimmest the bright-star backfill goes, solar luminosities:
+the nearest tier's floor in `BRIGHT_STAR_BACKFILL_TIERS` (100 L_sun), so
+what a sector's own block holds."""
 
 RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
 """
@@ -2727,12 +2734,15 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 500.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 1000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `generate.py plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. Boss, 2026-09-30; kept at 500 on 2026-10-01 rather than 100,
-which would add ~35 GB. `--bright-star-min-luminosity` lowers it (down to
+which would add ~35 GB; raised to 1000 the same day (GEN.30), with the
+dimmer stars filled in near generated sectors by the tiered backfill
+(`BRIGHT_STAR_BACKFILL_TIERS`). A galaxy already scattered keeps the level
+it was scattered at. `--bright-star-min-luminosity` lowers it (down to
 the brightest white dwarf, `WD_LUMINOSITY_RANGE_SOL`'s top, 100). The value a
 scatter used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
 filling reads that, not this, so retuning it can't make a fill

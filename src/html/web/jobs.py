@@ -352,6 +352,29 @@ def active_job(root=None):
     return job
 
 
+def remaining_steps(job_id, root=None):
+    """
+    What Retry on the admin queue page (ADM.10) runs again for a finished
+    job that didn't succeed: its steps from the one that failed, was
+    cancelled or was cut off, onward (a step that already succeeded
+    isn't run twice).
+
+    Returns:
+        tuple | None: `(job, steps)` -- the `get_job` dict and the
+            `{"label", "argv"}` steps -- or `None` for an unknown,
+            running or succeeded job.
+    """
+    root = root or jobs_dir()
+    job = get_job(job_id, root)
+    if job is None or not job["finished"] or job["status"] == "succeeded":
+        return None
+    spec = _read_json(os.path.join(_job_dir(root, job_id), "job.json")) or {}
+    steps = spec.get("steps") or []
+    first = max(int(job.get("step") or 1), 1) - 1
+    remaining = steps[first:]
+    return (job, remaining) if remaining else None
+
+
 def log_tail(job_id, max_bytes=64 * 1024, root=None):
     """
     The last `max_bytes` of a job's output, as text, with rich's carriage
