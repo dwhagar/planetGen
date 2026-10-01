@@ -25,8 +25,12 @@ Two profiles, picked with `PLANETGEN_FUZZ_PROFILE`:
 `PLANETGEN_FUZZ_EXAMPLES` overrides the example count of either profile.
 """
 
+import contextlib
 import math
 import os
+import random
+import secrets
+from unittest import mock
 
 from hypothesis import HealthCheck, settings
 from hypothesis import strategies as st
@@ -49,6 +53,20 @@ settings.register_profile(
     print_blob=True,
 )
 settings.load_profile(os.environ.get("PLANETGEN_FUZZ_PROFILE") or "ci")
+
+
+@contextlib.contextmanager
+def deterministic_entropy(seed):
+    """Seeds the global `random` module AND routes every `secrets` call the
+    generators make through one seeded `random.Random`, so a whole system
+    (planet classes, moon coin-flips, `reseed_rng()` reseeds, flavor text)
+    is a pure function of `seed` for the duration of the block."""
+    rng = random.Random(seed)
+    with mock.patch.object(secrets, "randbits", rng.getrandbits), \
+            mock.patch.object(secrets, "randbelow", rng.randrange), \
+            mock.patch.object(secrets, "choice", rng.choice):
+        random.seed(seed)
+        yield rng
 
 
 def scaled(n):
