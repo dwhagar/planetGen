@@ -26,7 +26,7 @@ from .bodyNames import generate_star_word, name_bodies
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from . import log, physical_constants, planetLife, planetPhysics, program_constants
+from . import log, physical_constants, planetLife, program_constants, validation
 from .planetData import Planet
 from .starData import Star, compressed_heliosphere_radius
 from .utils import (
@@ -36,7 +36,6 @@ from .utils import (
     holman_wiegert_circumbinary_a_crit_au,
     isolation_mass_kg,
     mmsn_surface_density_gcm2,
-    mutual_hill_radius_au,
     snow_line_au,
     to_paragraph,
 )
@@ -101,8 +100,7 @@ def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
     Returns:
         bool: True if `obj` extends past `orbit_ceiling_au`.
     """
-    outer_edge = obj.upper_limit if obj.body_type == 'a' else obj.distance + obj.min_orbit_distance
-    return outer_edge > orbit_ceiling_au
+    return validation.exceeds_orbit_ceiling(obj, orbit_ceiling_au)
 
 
 class StarSystem:
@@ -889,9 +887,7 @@ class StarSystem:
         Returns:
             float: The orbit ceiling, in AU.
         """
-        if star.a_crit_au is None:
-            return star.system_perimeter
-        return min(star.system_perimeter, star.a_crit_au)
+        return validation.orbit_ceiling_au(star)
 
     @staticmethod
     def _engulfment_radius_au(star):
@@ -963,8 +959,7 @@ class StarSystem:
             orbit_ceiling_au (float): The boundary to check against, in AU
                 (see `_orbit_ceiling_au`).
         """
-        while planets and _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
-            planets.pop()
+        validation.trim_to_orbit_ceiling(planets, orbit_ceiling_au)
 
     def _validate_cross_star_clearance(self):
         """
@@ -1046,41 +1041,7 @@ class StarSystem:
         Mutates `self.planets`/`self.secondary_planets` in place. No-op if
         `binary_type != "wide"` or either list is empty.
         """
-        if self.binary_type != "wide" or not self.planets or not self.secondary_planets:
-            return
-
-        a_bin = self.wide_binary.separation_au
-        central_mass_kg = self.primary_star.mass + self.secondary_star.mass
-
-        def edge_au(obj):
-            return obj.upper_limit if obj.body_type == 'a' else obj.distance
-
-        def outermost(planet_list):
-            return max(planet_list, key=edge_au)
-
-        while self.planets and self.secondary_planets:
-            outer_p = outermost(self.planets)
-            outer_s = outermost(self.secondary_planets)
-
-            worst_case_gap_au = a_bin - edge_au(outer_p) - edge_au(outer_s)
-
-            if outer_p.body_type == 'a' or outer_s.body_type == 'a':
-                threshold_au = program_constants.MIN_ASTEROID_BELT_SEPARATION
-            else:
-                r_h_mutual_au = mutual_hill_radius_au(
-                    outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg
-                )
-                threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
-
-            if worst_case_gap_au >= threshold_au:
-                break
-
-            primary_room = self.primary_star.a_crit_au - edge_au(outer_p)
-            secondary_room = self.secondary_star.a_crit_au - edge_au(outer_s)
-            if primary_room <= secondary_room:
-                self.planets.remove(outer_p)
-            else:
-                self.secondary_planets.remove(outer_s)
+        validation.cross_star_clearance(self)
 
     def to_dict(self):
         """
@@ -1771,72 +1732,7 @@ class StarSystem:
         """
         if planets is None:
             planets = self.planets
-        if len(planets) < 2:
-            return
-
-        for i in range(1, len(planets)):
-            planet = planets[i]
-            last_planet = planets[i - 1]
-
-            if last_planet.body_type == 'a':
-                distance_to_last = planet.distance - last_planet.upper_limit
-            else:
-                distance_to_last = planet.distance - last_planet.distance
-
-            if distance_to_last < 0:
-                # abs(distance_to_last) alone is exactly enough to cancel
-                # the negative gap and land `planet` right on
-                # `last_planet`'s own edge (upper_limit for a belt,
-                # distance for a planet) -- the real minimum separation
-                # (MIN_ASTEROID_BELT_SEPARATION or min_orbit_distance) is
-                # then added on top of THIS corrected position by the
-                # branches below. An earlier version of this line also
-                # added `last_planet.distance`, double-counting that
-                # offset on top of the already-correct cancellation and
-                # roughly doubling the corrected distance instead of
-                # nudging it just past the obstruction.
-                additional_correction = abs(distance_to_last)
-            else:
-                additional_correction = 0
-
-            if planet.body_type == 'a':
-                if last_planet.body_type == 'a':
-                    if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
-                        planet.distance += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planet.upper_limit += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                        planet.lower_limit += program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction
-                elif distance_to_last < last_planet.min_orbit_distance:
-                    planet.distance += last_planet.min_orbit_distance + additional_correction
-                    planet.upper_limit += last_planet.min_orbit_distance + additional_correction
-                    planet.lower_limit += last_planet.min_orbit_distance + additional_correction
-            else:
-                if last_planet.body_type == 'a':
-                    # Same bounded retry as the planet-planet case below: a
-                    # reclassification changes the mass the Hill sphere
-                    # depends on.
-                    for _ in range(3):
-                        min_distance = self._min_distance_past_belt_au(planet, last_planet)
-                        if planet.distance >= min_distance:
-                            break
-                        planet.distance = min_distance
-                        if not self._reconcile_moved_planet(planet):
-                            break
-                else:
-                    # Bounded, not a single shot: reclassifying `planet`
-                    # (inside `_reconcile_moved_planet`) can change its own
-                    # `mass`, which the mutual Hill radius depends on --
-                    # re-deriving the requirement against the *new* mass
-                    # can call for a further push, so retry until a push
-                    # doesn't trigger another reclassification (in
-                    # practice at most 2 iterations; the cap is just a
-                    # guard against a pathological cycle).
-                    for _ in range(3):
-                        min_distance = self._mutual_min_distance_au(planet, last_planet)
-                        if planet.distance >= min_distance:
-                            break
-                        planet.distance = min_distance
-                        if not self._reconcile_moved_planet(planet):
-                            break
+        validation.space_orbits(planets)
 
     @staticmethod
     def _min_distance_past_belt_au(planet, belt):
@@ -1852,9 +1748,7 @@ class StarSystem:
         so a body heavy enough to make that unsolvable still gets a large
         but finite distance.
         """
-        c = (planet.hill_radius / physical_constants.AU_TO_KM) / planet.distance
-        k = min(5 * c, 0.9)
-        return (belt.upper_limit + program_constants.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
+        return validation.min_distance_past_belt_au(planet, belt)
 
     def _mutual_min_distance_au(self, planet, last_planet):
         """
@@ -1903,16 +1797,7 @@ class StarSystem:
             float: The minimum distance (AU) `planet` can sit at,
                   measured from the star -- not a gap.
         """
-        kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
-            (planet.mass + last_planet.mass) / (3 * planet.star.mass)
-        ) ** (1 / 3)
-        # A pair whose combined mass is a large enough fraction of the
-        # star's own that kappa approaches/exceeds 2 has no finite stable
-        # separation under this linear model at all -- clamp well short
-        # of that so the formula below always returns a large-but-finite,
-        # rather than negative or infinite, distance.
-        kappa = min(kappa, 1.8)
-        return last_planet.distance * (1 + kappa / 2) / (1 - kappa / 2)
+        return validation.mutual_min_distance_au(planet, last_planet)
 
     def _reconcile_moved_planet(self, planet):
         """
@@ -1958,49 +1843,7 @@ class StarSystem:
                  spacing check, which depends on both planets' masses);
                  False if its existing class remained valid.
         """
-        reclassified = planetPhysics.reconcile_zone_and_class(planet, planet.star.mass)
-        if not reclassified:
-            # The Hill sphere grows with distance, so a moved planet's own
-            # clearance (and the next body's spacing) must follow it.
-            planetPhysics.update_hill_sphere(planet)
-            planetPhysics.calculate_atmospheric_conditions(planet)
-            planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
-            planetPhysics.update_orbital_position(planet)
-
-        if reclassified:
-            # A new class brings a new radius and mass, and so a new range
-            # of stable moon orbits.
-            planetPhysics.drop_unstable_moons(planet)
-
-        for moon in planet.moons:
-            moon_reclassified = planetPhysics.reconcile_zone_and_class(
-                moon, planet.mass, distance_override=planet.distance
-            )
-            if not moon_reclassified:
-                planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
-                if reclassified:
-                    moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
-                    planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
-
-        # v20: planet.reflex_offset_x/y/z (this planet's own wobble from
-        # its moons -- see Planet.reflex_offset_x's docstring) depends on
-        # planet.mass and every moon's own mass/position, any of which the
-        # reconciliation above may just have changed (a reclassified
-        # planet gets a new mass; a reclassified moon gets a new mass; a
-        # moon whose period got refreshed above gets a new position via
-        # generate_orbital_motion_properties). Recomputed unconditionally
-        # here rather than only in the specific branches that changed
-        # something, the same "cheap, always recompute from current state"
-        # treatment _db.advance_orbital_phases gives this same value.
-        if planet.moons:
-            planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
-                planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
-            )
-        elif reclassified:
-            # drop_unstable_moons may have removed every moon.
-            planet.reflex_offset_x = planet.reflex_offset_y = planet.reflex_offset_z = 0.0
-
-        return reclassified
+        return validation.reconcile_moved_planet(planet)
 
     def summary_paragraph(self):
         """
