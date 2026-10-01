@@ -23,7 +23,7 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import log, physical_constants, program_constants
+from . import log, physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
@@ -67,6 +67,83 @@ def infer_rogue_mass_bin(mass_kg):
     return "jupiter"
 
 
+def rogue_planet_classes(planet_type):
+    """Every `PLANET_CLASSES` class a rogue planet of `planet_type`
+    (`'t'` or `'g'`) may have: those flagged `"r": True` (GEN.8), whose
+    own `"type"` matches."""
+    return [code for code, data in program_constants.PLANET_CLASSES.items()
+            if data.get("r") and data["type"] == planet_type]
+
+
+def rogue_planet_class_candidates(planet_type, radius_km, mass_kg):
+    """
+    The rogue-eligible classes (`rogue_planet_classes`) a rogue planet
+    fits: its radius inside the class's `radius_range` and its mass inside
+    the class's mass range (`planetPhysics.planet_mass_ranges`). When none
+    fits -- a rogue super-Earth past class C's 10,000 km ceiling, say --
+    the eligible class whose radius range is nearest (in log radius), so
+    every rogue planet still gets a class.
+
+    Args:
+        planet_type (str): `'t'` or `'g'`.
+        radius_km (float): Radius in kilometers.
+        mass_kg (float): Mass in kilograms.
+
+    Returns:
+        list: Class codes, never empty for `'t'` or `'g'`.
+    """
+    eligible = rogue_planet_classes(planet_type)
+    fitting = [
+        code for code in eligible
+        if program_constants.PLANET_CLASSES[code]["radius_range"][0] <= radius_km
+        <= program_constants.PLANET_CLASSES[code]["radius_range"][1]
+        and planetPhysics.planet_mass_ranges[code][0] <= mass_kg <= planetPhysics.planet_mass_ranges[code][1]
+    ]
+    if fitting or not eligible:
+        return fitting
+
+    def gap(code):
+        low, high = program_constants.PLANET_CLASSES[code]["radius_range"]
+        return max(math.log(low / radius_km), math.log(radius_km / high), 0.0)
+    return [min(eligible, key=gap)]
+
+
+def choose_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
+    """
+    Draws a rogue planet's class (GEN.8) from `rogue_planet_class_candidates`,
+    weighted by `PLANET_CLASS_PROBABILITIES` like a star's planet. A
+    brown dwarf is a failed star, not a planet, so it gets none.
+
+    Returns:
+        str or None: The class code, or `None` for a brown dwarf.
+    """
+    if mass_bin == "brown-dwarf":
+        return None
+    candidates = rogue_planet_class_candidates(planet_type, radius_km, mass_kg)
+    if not candidates:
+        return None
+    if len(candidates) == 1:
+        # No draw, so a lone candidate leaves the random stream as it was.
+        log.choice("Rogue planet class", candidates[0], "the only rogue class that fits its type, radius and mass")
+        return candidates[0]
+    return planetPhysics._choose_weighted_planet_class(candidates)
+
+
+def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
+    """
+    `choose_rogue_planet_class` without the draw: the most probable
+    candidate. For rows saved before rogue planets had a class (schema
+    v48) and dicts written before it, so a reload gives the same answer
+    every time.
+    """
+    if mass_bin == "brown-dwarf":
+        return None
+    candidates = rogue_planet_class_candidates(planet_type, radius_km, mass_kg)
+    if not candidates:
+        return None
+    return max(candidates, key=lambda code: program_constants.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
+
+
 class RoguePlanet:
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
@@ -77,6 +154,8 @@ class RoguePlanet:
         planet_type (str): `'t'` (terrestrial/icy) or `'g'` (gas giant),
             the same letters `Planet.body_type` uses, chosen by mass
             relative to `program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`.
+        planet_class (str or None): Its `PLANET_CLASSES` letter (GEN.8),
+            drawn from the classes flagged `"r"`; `None` for a brown dwarf.
         mass_kg (float): Mass in kilograms.
         radius_km (float): Radius in kilometers.
         composition (str): A descriptive bulk-composition string.
@@ -86,7 +165,7 @@ class RoguePlanet:
     """
 
     SERIALIZABLE_FIELDS = [
-        "name", "planet_type", "mass_bin", "mass_kg", "radius_km", "composition",
+        "name", "planet_type", "planet_class", "mass_bin", "mass_kg", "radius_km", "composition",
         "has_internal_heat", "has_moons",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
@@ -173,6 +252,8 @@ class RoguePlanet:
             else:
                 self.composition = "rock, metal, and (at the lower end of its mass range) ice, similar in bulk composition to Earth or Mars"
 
+        self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
+
         self.has_internal_heat = random.random() < program_constants.ROGUE_PLANET_INTERNAL_HEAT_CHANCE
         self.has_moons = random.random() < program_constants.ROGUE_PLANET_MOON_CHANCE
 
@@ -209,6 +290,9 @@ class RoguePlanet:
         fields_from_dict(planet, data, cls.SERIALIZABLE_FIELDS)
         if getattr(planet, "mass_bin", None) is None:
             planet.mass_bin = infer_rogue_mass_bin(planet.mass_kg)
+        if "planet_class" not in data:
+            planet.planet_class = default_rogue_planet_class(
+                planet.planet_type, planet.radius_km, planet.mass_kg, planet.mass_bin)
         return planet
 
     @property
@@ -230,6 +314,8 @@ class RoguePlanet:
         """
         header_level = '##' if self.system_config.MARKDOWN else '=='
         kind_label = self.kind_label
+        if getattr(self, "planet_class", None):
+            kind_label += f", Class {self.planet_class}"
         header = f"{header_level} {self.name} (Rogue {kind_label}) {header_level if not self.system_config.MARKDOWN else ''}".rstrip()
 
         what = "brown dwarf" if self.kind_label == "Brown Dwarf" else "planet"
