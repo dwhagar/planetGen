@@ -147,7 +147,10 @@ def test_config_population_and_luminosity_cap_steer_random_stars():
     for _ in range(200):
         star = Star(cfg)
         assert star.age < se.population_age_range_gy("young")[1]
-        assert star.luminosity < phys_c.SOLAR_LUMINOSITY
+        # White dwarfs are exempt from the cap (`sample_living_star`): a
+        # young massive star's remnant can still be brighter than the Sun.
+        if star.yerkes_class != "VII":
+            assert star.luminosity < phys_c.SOLAR_LUMINOSITY
 
 
 @pytest.mark.parametrize("population, flag", [("bulge", "LARGE_STAR"), ("young", "HABITABLE_WORLD")])

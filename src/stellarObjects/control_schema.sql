@@ -142,3 +142,57 @@ CREATE TABLE IF NOT EXISTS login_throttle (
     KEY idx_login_throttle_locked_until (locked_until),
     KEY idx_login_throttle_last_failure_at (last_failure_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v3 (SEC.22): trusted devices. A successful login gives the browser a
+-- long-lived device cookie (only its SHA-256 hash stored here); a login
+-- from a browser holding a valid one for that username skips the
+-- per-username lock, so someone failing on purpose can't lock the real
+-- admin out (the per-address lock still applies). Changing credentials
+-- deletes the admin's rows.
+CREATE TABLE IF NOT EXISTS admin_devices (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_user_id    BIGINT UNSIGNED NOT NULL,
+    token_hash       CHAR(64) NOT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    expires_at       TIMESTAMP NOT NULL,
+    last_used_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_admin_devices_admin_user
+        FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE,
+    UNIQUE (token_hash),
+    KEY idx_admin_devices_admin_user_id (admin_user_id),
+    KEY idx_admin_devices_expires_at (expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v4 (SEC.26): optional two-factor sign-in. One row per admin who has
+-- started setting up an authenticator app; `enabled_at` is NULL until the
+-- first code confirms it. `secret` is the base32 TOTP key itself (an
+-- authenticator code can't be checked against a hash of it), so this
+-- table is as sensitive as the database password. `last_step` is the
+-- newest 30-second step a code was accepted for; older or equal ones are
+-- refused, so no code works twice.
+CREATE TABLE IF NOT EXISTS admin_totp (
+    admin_user_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    secret           VARCHAR(64) NOT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    enabled_at       TIMESTAMP NULL,
+    last_step        BIGINT NOT NULL DEFAULT 0,
+
+    CONSTRAINT fk_admin_totp_admin_user
+        FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v4 (SEC.26): single-use recovery codes, shown once when two-factor
+-- sign-in is turned on; only their SHA-256 hashes are kept.
+CREATE TABLE IF NOT EXISTS admin_recovery_codes (
+    id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    admin_user_id    BIGINT UNSIGNED NOT NULL,
+    code_hash        CHAR(64) NOT NULL,
+    created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    used_at          TIMESTAMP NULL,
+
+    CONSTRAINT fk_admin_recovery_codes_admin_user
+        FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE,
+    UNIQUE (code_hash),
+    KEY idx_admin_recovery_codes_admin_user_id (admin_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

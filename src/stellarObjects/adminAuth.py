@@ -10,8 +10,8 @@ Session tokens and API keys are `secrets.token_urlsafe` values, shown to
 the caller exactly once (at login / at key creation) and never persisted
 -- only their SHA-256 hash (`_hash_token`) is stored, so a database read
 alone can't be used to impersonate either. Passwords are hashed with
-`werkzeug.security.generate_password_hash` (salted, whichever algorithm
-the installed `werkzeug` version defaults to), imported lazily inside the
+`werkzeug.security.generate_password_hash` (salted, PBKDF2-SHA256 with
+600,000 rounds: `PASSWORD_HASH_METHOD`), imported lazily inside the
 two functions that need it rather than at module import time, so this
 module (and everything in `stellarObjects` that imports it transitively)
 stays importable without the `api` extra installed -- matching this
@@ -25,7 +25,10 @@ opening its own, the same division of responsibility `_db.py`'s own
 lifetime/pooling.
 """
 
+import gzip
 import hashlib
+import os
+import re
 import secrets
 
 from . import _db
@@ -77,12 +80,30 @@ class WrongPasswordError(AuthError):
     change, so the caller can count it as a failed sign-in (SEC.20)."""
 
 
+PASSWORD_HASH_METHOD = "pbkdf2:sha256:600000"
+"""str: How new password hashes are made (SEC.25): PBKDF2-HMAC-SHA256 with
+600,000 rounds, OWASP's recommendation. werkzeug's default until
+2026-10-01 was scrypt with N = 2^15 (about 100 ms here, under OWASP's
+N = 2^17 minimum); N = 2^17 needs 128 MiB per check, which the web
+server's five threads at once could turn into a memory spike on a host
+that has already been OOM-killed once, so PBKDF2 at about the same cost
+in time and next to nothing in memory was chosen instead. A successful
+login re-hashes a password stored with any other method
+(`needs_rehash`)."""
+
+
 def hash_password(password):
     """Returns a salted hash of `password` (`werkzeug.security.
-    generate_password_hash`) -- never the plaintext, never a reversible
-    encoding."""
+    generate_password_hash` with `PASSWORD_HASH_METHOD`) -- never the
+    plaintext, never a reversible encoding."""
     from werkzeug.security import generate_password_hash
-    return generate_password_hash(password)
+    return generate_password_hash(password, method=PASSWORD_HASH_METHOD)
+
+
+def needs_rehash(password_hash):
+    """Whether a stored hash was made with settings other than
+    `PASSWORD_HASH_METHOD` (an older install's scrypt, for example)."""
+    return not (password_hash or "").startswith(PASSWORD_HASH_METHOD + "$")
 
 
 def verify_password(password, password_hash):
@@ -103,17 +124,61 @@ def _new_token():
     return secrets.token_urlsafe(32)
 
 
+COMMON_PASSWORDS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "common_passwords.txt.gz")
+"""str: The bundled blocklist (SEC.24): every password of 12 or more
+characters in the "xato-net 10 million passwords" top 1,000,000 and the
+UK NCSC's 100,000 most common (Have I Been Pwned) lists, as published in
+SecLists (https://github.com/danielmiessler/SecLists, MIT licence),
+case-folded, one per line, gzipped. Shorter ones are refused by length
+anyway. Checked offline: nothing is sent anywhere."""
+
+SITE_WORDS = ("planetgen", "password", "admin")
+"""tuple: Words a password may not be built around (with the username):
+what's left once they are taken out must be at least
+`MIN_LEFT_AFTER_SITE_WORDS` characters."""
+
+MIN_LEFT_AFTER_SITE_WORDS = 8
+
+_common_passwords = None
+
+
+def _load_common_passwords():
+    global _common_passwords
+    if _common_passwords is None:
+        try:
+            with gzip.open(COMMON_PASSWORDS_PATH, "rt", encoding="utf-8") as f:
+                _common_passwords = frozenset(line.rstrip("\n") for line in f if line.strip())
+        except OSError:
+            _common_passwords = frozenset()
+    return _common_passwords
+
+
+def is_common_password(password):
+    """Whether `password` (case-insensitively) is on the bundled blocklist."""
+    return password.casefold() in _load_common_passwords()
+
+
 def validate_password_policy(password, username=None):
     """
-    Raises `AuthError` if `password` fails the minimum policy: at least
-    `MIN_PASSWORD_LENGTH` characters and not (case-insensitively) equal
-    to `username` -- the weakest, most-guessable choices an admin could
-    otherwise pick.
+    Raises `AuthError` if `password` fails the policy: at least
+    `MIN_PASSWORD_LENGTH` characters, not (case-insensitively) the
+    username, not on the bundled list of common and breached passwords
+    (SEC.24, NIST SP 800-63B-4), and not just the username or a site word
+    (`SITE_WORDS`) with a few characters added. No composition rules
+    (NIST advises against them).
     """
     if not isinstance(password, str) or len(password) < MIN_PASSWORD_LENGTH:
         raise AuthError(f"password must be at least {MIN_PASSWORD_LENGTH} characters")
     if username and password.lower() == username.lower():
         raise AuthError("password must not match the username")
+    if is_common_password(password):
+        raise AuthError("that password is on a list of common or breached passwords; choose another")
+    words = [w for w in (*SITE_WORDS, (username or "").strip().casefold()) if len(w) >= 3]
+    left = password.casefold()
+    for word in sorted(words, key=len, reverse=True):
+        left = left.replace(word, "")
+    if len(re.sub(r"\s", "", left)) < MIN_LEFT_AFTER_SITE_WORDS:
+        raise AuthError("password is too close to the username or the site's name; choose another")
 
 
 def bootstrap_control_schema(config=None):
@@ -257,6 +322,10 @@ def authenticate(conn, username, password):
         raise AuthError("invalid username or password")
     if not verify_password(password, row["password_hash"]):
         raise AuthError("invalid username or password")
+    if needs_rehash(row["password_hash"]):
+        # Stored with older settings (SEC.25): re-hash now, while the
+        # plaintext is at hand.
+        conn.execute("UPDATE admin_users SET password_hash = ? WHERE id = ?", (hash_password(password), row["id"]))
     conn.execute("UPDATE admin_users SET last_login_at = CURRENT_TIMESTAMP WHERE id = ?", (row["id"],))
     conn.commit()
     # Re-fetched rather than patched onto the pre-update `row` in memory --
@@ -455,7 +524,194 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
         (new_username, hash_password(new_password), admin_user_id),
     )
     conn.execute("DELETE FROM admin_sessions WHERE admin_user_id = ?", (admin_user_id,))
+    revoke_devices(conn, admin_user_id, commit=False)
     conn.commit()
+
+
+DEVICE_TTL_DAYS = 90
+"""int: How long a trusted-device cookie (SEC.22) lasts. Fixed at
+creation, like a session; each successful login from that browser issues
+a fresh one."""
+
+
+def create_device(conn, admin_user_id):
+    """
+    Records a trusted device for `admin_user_id` (SEC.22), deleting that
+    admin's expired ones.
+
+    Returns:
+        str: The raw device token, for the cookie only; the database keeps
+            its hash.
+    """
+    raw_token = _new_token()
+    conn.execute("DELETE FROM admin_devices WHERE admin_user_id = ? AND expires_at <= CURRENT_TIMESTAMP",
+                 (admin_user_id,))
+    conn.execute(
+        "INSERT INTO admin_devices (admin_user_id, token_hash, expires_at) "
+        "VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? DAY))",
+        (admin_user_id, _hash_token(raw_token), DEVICE_TTL_DAYS),
+    )
+    conn.commit()
+    return raw_token
+
+
+def device_username(conn, raw_token):
+    """
+    The username of the admin a still-valid device token belongs to, or
+    `None` (missing, unknown or expired token -- never raises).
+    """
+    if not raw_token or not isinstance(raw_token, str):
+        return None
+    row = conn.execute(
+        "SELECT u.username FROM admin_devices d JOIN admin_users u ON u.id = d.admin_user_id "
+        "WHERE d.token_hash = ? AND d.expires_at > CURRENT_TIMESTAMP",
+        (_hash_token(raw_token),),
+    ).fetchone()
+    return row["username"] if row else None
+
+
+def revoke_device(conn, raw_token):
+    """Deletes one device token's row (a replaced cookie)."""
+    if raw_token and isinstance(raw_token, str):
+        conn.execute("DELETE FROM admin_devices WHERE token_hash = ?", (_hash_token(raw_token),))
+        conn.commit()
+
+
+def revoke_devices(conn, admin_user_id, commit=True):
+    """Deletes every trusted device of `admin_user_id` (on a credentials
+    change, or from the command line). Returns how many."""
+    cur = conn.execute("DELETE FROM admin_devices WHERE admin_user_id = ?", (admin_user_id,))
+    if commit:
+        conn.commit()
+    return cur.rowcount
+
+
+RECOVERY_CODE_COUNT = 10
+"""int: Recovery codes made when two-factor sign-in is turned on."""
+
+_RECOVERY_ALPHABET = "abcdefghjkmnpqrstuvwxyz23456789"
+
+
+def _new_recovery_code():
+    """`xxxxx-xxxxx` from an alphabet without look-alikes (about 49 bits)."""
+    chars = "".join(secrets.choice(_RECOVERY_ALPHABET) for _ in range(10))
+    return f"{chars[:5]}-{chars[5:]}"
+
+
+def _normalize_recovery_code(code):
+    return code.strip().lower().replace(" ", "").replace("-", "") if isinstance(code, str) else ""
+
+
+def totp_status(conn, admin_user_id):
+    """`{"enabled": bool, "recovery_codes_left": int}` for one admin's
+    two-factor sign-in (SEC.26)."""
+    row = conn.execute("SELECT enabled_at FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,)).fetchone()
+    left = conn.execute(
+        "SELECT COUNT(*) AS n FROM admin_recovery_codes WHERE admin_user_id = ? AND used_at IS NULL",
+        (admin_user_id,)).fetchone()["n"]
+    return {"enabled": bool(row and row["enabled_at"]), "recovery_codes_left": int(left)}
+
+
+def totp_enabled(conn, admin_user_id):
+    row = conn.execute("SELECT enabled_at FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,)).fetchone()
+    return bool(row and row["enabled_at"])
+
+
+def begin_totp_setup(conn, admin_user_id):
+    """
+    Starts (or restarts) setting up an authenticator app: stores a new
+    secret, not yet enabled, and returns it. Refused while two-factor
+    sign-in is already on (turn it off first).
+    """
+    from . import totp
+    if totp_enabled(conn, admin_user_id):
+        raise AuthError("two-factor sign-in is already on")
+    secret = totp.new_secret()
+    conn.execute("DELETE FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,))
+    conn.execute("INSERT INTO admin_totp (admin_user_id, secret) VALUES (?, ?)", (admin_user_id, secret))
+    conn.commit()
+    return secret
+
+
+def pending_totp_secret(conn, admin_user_id):
+    """The secret of a setup not yet confirmed, or `None`."""
+    row = conn.execute("SELECT secret, enabled_at FROM admin_totp WHERE admin_user_id = ?",
+                       (admin_user_id,)).fetchone()
+    return row["secret"] if row and not row["enabled_at"] else None
+
+
+def confirm_totp_setup(conn, admin_user_id, code):
+    """
+    Turns two-factor sign-in on once `code` matches the pending secret.
+
+    Returns:
+        list[str]: The new recovery codes, to show once.
+
+    Raises:
+        AuthError: No setup started, or the code doesn't match.
+    """
+    from . import totp
+    secret = pending_totp_secret(conn, admin_user_id)
+    if secret is None:
+        raise AuthError("start setting up two-factor sign-in first")
+    step = totp.verify(secret, code)
+    if step is None:
+        raise AuthError("that code doesn't match; check the app's clock and try the newest code")
+    conn.execute("UPDATE admin_totp SET enabled_at = CURRENT_TIMESTAMP, last_step = ? WHERE admin_user_id = ?",
+                 (step, admin_user_id))
+    codes = _replace_recovery_codes(conn, admin_user_id)
+    conn.commit()
+    return codes
+
+
+def _replace_recovery_codes(conn, admin_user_id):
+    conn.execute("DELETE FROM admin_recovery_codes WHERE admin_user_id = ?", (admin_user_id,))
+    codes = [_new_recovery_code() for _ in range(RECOVERY_CODE_COUNT)]
+    for code in codes:
+        conn.execute("INSERT INTO admin_recovery_codes (admin_user_id, code_hash) VALUES (?, ?)",
+                     (admin_user_id, _hash_token(_normalize_recovery_code(code))))
+    return codes
+
+
+def check_second_factor(conn, admin_user_id, code):
+    """
+    Whether `code` is a current authenticator code (not used before) or
+    an unused recovery code for this admin; using either uses it up.
+
+    Returns:
+        str or None: `"totp"` or `"recovery"`, or `None` for a wrong code.
+    """
+    from . import totp
+    row = conn.execute("SELECT secret, last_step FROM admin_totp WHERE admin_user_id = ? AND enabled_at IS NOT NULL "
+                       "FOR UPDATE", (admin_user_id,)).fetchone()
+    if row is None:
+        conn.rollback()
+        return None
+    step = totp.verify(row["secret"], code, last_step=row["last_step"])
+    if step is not None:
+        conn.execute("UPDATE admin_totp SET last_step = ? WHERE admin_user_id = ?", (step, admin_user_id))
+        conn.commit()
+        return "totp"
+    normalized = _normalize_recovery_code(code)
+    if normalized:
+        cur = conn.execute(
+            "UPDATE admin_recovery_codes SET used_at = CURRENT_TIMESTAMP "
+            "WHERE admin_user_id = ? AND code_hash = ? AND used_at IS NULL",
+            (admin_user_id, _hash_token(normalized)))
+        if cur.rowcount:
+            conn.commit()
+            return "recovery"
+    conn.rollback()
+    return None
+
+
+def disable_totp(conn, admin_user_id):
+    """Turns two-factor sign-in off for one admin (and drops its recovery
+    codes). Returns whether it was on or being set up."""
+    cur = conn.execute("DELETE FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,))
+    conn.execute("DELETE FROM admin_recovery_codes WHERE admin_user_id = ?", (admin_user_id,))
+    conn.commit()
+    return bool(cur.rowcount)
 
 
 def record_audit(conn, admin_user_id, admin_username, action, target=None, detail=None):
@@ -484,7 +740,7 @@ def record_audit(conn, admin_user_id, admin_username, action, target=None, detai
     conn.commit()
 
 
-LOGIN_FAILURE_ACTIONS = ("login.failed", "login.locked", "password.failed")
+LOGIN_FAILURE_ACTIONS = ("login.failed", "login.locked", "password.failed", "totp.failed")
 """tuple: The `admin_audit_log` actions a refused sign-in writes (SEC.20):
 a wrong username or password, a locked login, and a wrong current
 password on a credential change."""

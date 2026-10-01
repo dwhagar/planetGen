@@ -199,9 +199,9 @@ URLs" below).
 | `/sector/<id>/galaxy`, `/system/<id>/galaxy` | (new) | Redirect to `/galaxy?sector=<designation>` (the map's stage 8 holding that sector, selected), or to the plain map for a sector with no galaxy address or a standalone system. Search results link here; the sector page links straight to the map. |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
-| `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). |
+| `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). An admin with two-factor sign-in on is then asked for the authenticator or recovery code, which `POST`s to `/login/code`. |
 | `/logout` | `logout.py` | `GET` asks to confirm and changes nothing; the button `POST`s to end the session. |
-| `/account` | `changecreds.py` | Change the admin username and password. |
+| `/account` | `changecreds.py` | Change the admin username and password, and turn two-factor sign-in on or off (QR code, then recovery codes shown once; forms `POST` to `/account/two-factor`). |
 | `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
 | `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), and the newest failed sign-ins. |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |

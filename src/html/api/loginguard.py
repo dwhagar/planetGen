@@ -94,13 +94,17 @@ class LoginGuard:
     """The lockout checks for one sign-in attempt by `username` from this
     request's address."""
 
-    def __init__(self, username, admin_user_id=None):
+    def __init__(self, username, admin_user_id=None, trusted_device=False):
         self.username = username
         self.admin_user_id = admin_user_id
         self.enabled = current_app.config.get("LOGIN_BACKOFF_ENABLED", True)
         self.address = request.remote_addr
         self.ip = loginThrottle.ip_subject(self.address, allowlist()) if self.enabled else None
-        self.user = loginThrottle.normalize_username(username) if self.enabled else None
+        # A browser holding this admin's device cookie (SEC.22) is neither
+        # held back nor counted by the per-username lock, so failures on
+        # purpose from elsewhere can't lock the real admin out; the
+        # per-address lock still applies to it.
+        self.user = loginThrottle.normalize_username(username) if self.enabled and not trusted_device else None
 
     def refusal(self):
         """

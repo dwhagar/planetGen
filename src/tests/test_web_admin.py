@@ -89,7 +89,7 @@ class FakeAuth:
         self.calls.append(("auth_me", cookie_header))
         return self.admin
 
-    def auth_login(self, username, password):
+    def auth_login(self, username, password, cookie_header=None):
         self.calls.append(("auth_login", username, password))
         if self.login_error:
             raise self.login_error
@@ -142,6 +142,10 @@ class FakeAuth:
         self.calls.append(("admin_login_failures",))
         return self.failures
 
+    def auth_totp_status(self, cookie_header):
+        self.calls.append(("auth_totp_status",))
+        return {"enabled": False, "recovery_codes_left": 0}
+
     def called(self, name):
         return [call for call in self.calls if call[0] == name]
 
@@ -149,7 +153,7 @@ class FakeAuth:
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
           "admin_duplicate_names", "admin_login_failures", "admin_lockouts",
-          "admin_lift_lockout")
+          "admin_lift_lockout", "auth_totp_status")
 
 
 @pytest.fixture

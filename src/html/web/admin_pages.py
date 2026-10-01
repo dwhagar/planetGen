@@ -199,12 +199,20 @@ def _render(template, flashed=False, **kwargs):
 # /login, /logout, /account
 # ---------------------------------------------------------------------
 
-def _login_page(next_url, error=None, username="", status=200):
+def _login_page(next_url, error=None, username="", status=200, pending=None):
     return _render(
         "login.html", title="Admin Login", section="login", breadcrumbs=[crumb("Login")],
         description="Sign in to administer this planetGen site.",
-        error=error, username=username, next_url=next_url, status=status,
+        error=error, username=username, next_url=next_url, status=status, pending=pending,
     )
+
+
+def _signed_in(result, set_cookie_headers, next_url):
+    if result.get("must_change_credentials"):
+        destination = url_for("web.account", next=next_url)
+    else:
+        destination = next_url
+    return _relay(_see_other(destination), set_cookie_headers)
 
 
 @bp.route("/login", methods=["GET", "POST"])
@@ -223,29 +231,52 @@ def login():
     if not username.strip() or not password:
         return _login_page(next_url, error="Enter a username and password.", username=username)
     try:
-        result, set_cookie_headers = apiclient.auth_login(username, password)
+        result, set_cookie_headers = apiclient.auth_login(username, password, _cookie_header())
     except apiclient.ApiError as exc:
         if exc.status_code == 401:
             # 401, not 200, so the web server's access log shows a failed
             # login too (SEC.20).
             return _login_page(next_url, error="Invalid username or password.", username=username, status=401)
         if exc.status_code == 429:
-            message = _api_message(exc)
-            if "try again in" in message:
-                # A lockout (per address or per username, loginguard.py),
-                # which names its wait.
-                error = message[0].upper() + message[1:].replace("; try", ". Try") + "."
-            else:
-                error = "Too many login attempts. Wait a minute, then try again."
-            return _login_page(next_url, error=error, username=username, status=429)
+            return _login_page(next_url, error=_too_many_message(exc), username=username, status=429)
         if exc.status_code == 400:
             return _login_page(next_url, error=_api_message(exc), username=username)
         raise
-    if result.get("must_change_credentials"):
-        destination = url_for("web.account", next=next_url)
-    else:
-        destination = next_url
-    return _relay(_see_other(destination), set_cookie_headers)
+    if result.get("totp_required"):
+        # Right password; now the authenticator code (SEC.26).
+        return _login_page(next_url, username=username, pending=result["pending"])
+    return _signed_in(result, set_cookie_headers, next_url)
+
+
+@bp.route("/login/code", methods=["POST"])
+def login_code():
+    """The second step of a two-factor login: the authenticator (or
+    recovery) code, with the signed `pending` value the first step gave."""
+    next_url = safe_next(request.values.get("next"))
+    pending = request.form.get("pending", "")
+    code = request.form.get("code", "")
+    username = request.form.get("username", "")
+    if not pending:
+        return _login_page(next_url, error="Enter your username and password first.", username=username)
+    if not code.strip():
+        return _login_page(next_url, error="Enter the code from your authenticator app.", username=username,
+                           pending=pending)
+    try:
+        result, set_cookie_headers = apiclient.auth_login_totp(pending, code, _cookie_header())
+    except apiclient.ApiError as exc:
+        if exc.status_code == 401:
+            message = _api_message(exc)
+            if "password" in message:
+                return _login_page(next_url, error=message[0].upper() + message[1:] + ".", username=username,
+                                   status=401)
+            return _login_page(next_url, error="That code isn't right. Try the newest one.", username=username,
+                               pending=pending, status=401)
+        if exc.status_code == 429:
+            return _login_page(next_url, error=_too_many_message(exc), username=username, status=429)
+        if exc.status_code == 400:
+            return _login_page(next_url, error=_api_message(exc), username=username, pending=pending)
+        raise
+    return _signed_in(result, set_cookie_headers, next_url)
 
 
 @bp.route("/logout", methods=["GET", "POST"])
@@ -260,14 +291,75 @@ def logout():
     return _relay(_see_other(url_for("web.index")), set_cookie_headers)
 
 
-def _account_page(admin, next_url, error=None, new_username=None):
+def _too_many_message(exc):
+    """The message for a 429 from a password check: a lockout (per address
+    or per username, `api/loginguard.py`) names its wait; the per-address
+    rate limit doesn't."""
+    message = _api_message(exc)
+    if "try again in" in message:
+        return message[0].upper() + message[1:].replace("; try", ". Try") + "."
+    return "Too many login attempts. Wait a minute, then try again."
+
+
+def _account_page(admin, next_url, error=None, new_username=None, status=200, totp=None):
+    """`totp`: what the two-factor section shows -- `error`, `message`,
+    `setup` (the API's setup response), `recovery_codes`."""
+    totp = dict(totp or {})
+    if not admin.get("must_change_credentials"):
+        try:
+            totp.setdefault("status", apiclient.auth_totp_status(_cookie_header()))
+        except apiclient.ApiError:
+            totp["status"] = None  # e.g. before update.sh made admin_totp
+    if totp.get("setup", {}).get("qr_svg"):
+        totp["qr"] = trusted_html(totp["setup"]["qr_svg"])
     return _render(
         "account.html", title="Change Credentials", section="account",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Account")],
         admin=admin, error=error, next_url=next_url,
         new_username=admin["username"] if new_username is None else new_username,
-        forced=bool(admin.get("must_change_credentials")),
+        forced=bool(admin.get("must_change_credentials")), status=status, totp=totp,
     )
+
+
+@bp.route("/account/two-factor", methods=["POST"])
+def account_two_factor():
+    """Turn two-factor sign-in on (set up, then confirm with a code) or
+    off (SEC.26)."""
+    admin, bounce = _require_admin(fresh=True)
+    if bounce is not None:
+        return bounce
+    next_url = safe_next(request.values.get("next"))
+    action = request.form.get("action")
+    cookies = _cookie_header()
+    try:
+        if action == "setup":
+            setup = apiclient.auth_totp_setup(cookies, request.form.get("current_password", ""))
+            return _account_page(admin, next_url, totp={"setup": setup})
+        if action == "confirm":
+            codes = apiclient.auth_totp_confirm(cookies, request.form.get("code", ""))["recovery_codes"]
+            return _account_page(admin, next_url, totp={"recovery_codes": codes,
+                                                        "message": "Two-factor sign-in is on."})
+        if action == "disable":
+            apiclient.auth_totp_disable(cookies, request.form.get("current_password", ""),
+                                        request.form.get("code", ""))
+            return _account_page(admin, next_url, totp={"message": "Two-factor sign-in is off."})
+    except apiclient.ApiError as exc:
+        if exc.status_code == 429:
+            return _account_page(admin, next_url, totp={"error": _too_many_message(exc)}, status=429)
+        if exc.status_code in (400, 401):
+            message = _api_message(exc)
+            totp = {"error": message[0].upper() + message[1:] + "."}
+            if action == "confirm":
+                # Show the same QR code again (the pending secret is
+                # unchanged); the form carried it back.
+                secret = request.form.get("secret", "")
+                if secret:
+                    from stellarObjects import totp as totp_codes
+                    uri = totp_codes.provisioning_uri(secret, admin["username"])
+                    totp["setup"] = {"secret": secret, "uri": uri, "qr_svg": totp_codes.qr_svg(uri)}
+            return _account_page(admin, next_url, totp=totp, status=400)
+        raise
+    return _account_page(admin, next_url, totp={"error": "Unknown action."}, status=400)
 
 
 @bp.route("/account", methods=["GET", "POST"])
@@ -292,6 +384,10 @@ def account():
     except apiclient.ApiError as exc:
         if exc.status_code in (400, 401):
             return _account_page(admin, next_url, error=_api_message(exc), new_username=new_username)
+        if exc.status_code == 429:
+            # A wrong current password counts as a failed login (SEC.23).
+            return _account_page(admin, next_url, error=_too_many_message(exc), new_username=new_username,
+                                 status=429)
         raise
     response = _see_other(next_url)
     if next_url.split("?", 1)[0] == url_for("web.admin"):
@@ -571,6 +667,7 @@ _FAILURE_LABELS = {
     "login.failed": "Wrong username or password",
     "login.locked": "Refused while locked",
     "password.failed": "Wrong current password (account page)",
+    "totp.failed": "Wrong two-factor code",
 }
 
 

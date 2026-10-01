@@ -482,12 +482,20 @@ forced credential change. They back the admin stats page
   `{"all": true}` — lifts lockouts and forgets their counts; returns
   `{"lifted": n}`; audited as `lockout.lift`. From a shell (for an admin
   locked out of the site itself): `python3 src/loginLockouts.py` lists
-  them, `--ip <address>`, `--user <name>` or `--all` lifts them.
+  them, `--ip <address>`, `--user <name>` or `--all` lifts them, and
+  `--forget-devices <name>` revokes that admin's trusted-device cookies.
 
 ### Authentication
 
 - `POST /api/auth/login` `{"username", "password"}` — sets the session
-  cookie (`pg_admin_session`; `HttpOnly`/`Secure`/`SameSite=Strict`).
+  cookie (`pg_admin_session`; `HttpOnly`/`Secure`/`SameSite=Strict`) and
+  a trusted-device cookie (`pg_admin_device`, the same flags, 90 days;
+  SEC.22). A login or change-credentials from a browser holding a valid
+  device cookie for that username skips the per-username lock below (it
+  is neither held back nor counted by it), so someone failing on purpose
+  can't lock the real admin out; the per-address lock and rate limit
+  still apply. Each successful login replaces the device cookie, and a
+  credentials change revokes every device of that admin.
   Returns `{"username", "must_change_credentials"}`. `401` for a wrong
   username or password (same message either way — this never reveals
   whether a username exists; an unknown username costs the same password
@@ -508,13 +516,37 @@ forced credential change. They back the admin stats page
   `ip` or `user`) and a `Retry-After` header, before the password is
   checked. Until `update.sh` has created `login_throttle`, the counts are
   kept in memory per worker process (with one warning in the error log).
+- Two-factor sign-in (SEC.26, optional per admin): for an admin who
+  has turned it on, a right password at `POST /api/auth/login` answers
+  `{"totp_required": true, "pending"}` and sets no session yet. Then
+  `POST /api/auth/login/totp` `{"pending", "code"}` (within 5 minutes;
+  `code` is a current authenticator code or an unused recovery code)
+  sets the session like a login. A wrong code is a `401` and counts as a
+  failed login (`totp.failed`) for the address and username, exactly as
+  a wrong password does; a stale or forged `pending`, or one made before
+  a password change, is a `401` asking to sign in again. API keys never
+  need a code.
+- `GET /api/auth/totp` — `{"enabled", "recovery_codes_left"}`.
+- `POST /api/auth/totp/setup` `{"current_password"}` — `{"secret", "uri",
+  "qr_svg"}` for an authenticator app; nothing changes at sign-in yet.
+- `POST /api/auth/totp/confirm` `{"code"}` — turns it on once a code
+  from the app matches; returns `{"recovery_codes": [...]}`, shown only
+  this once (10 codes, each good for one sign-in).
+- `POST /api/auth/totp/disable` `{"current_password", "code"}` — turns
+  it off. Lost the phone and the recovery codes? From a shell:
+  `python3 src/loginLockouts.py --reset-two-factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`
   `{"current_password", "new_username", "new_password"}` — always
   requires the current password, regardless of whether
   `must_change_credentials` is set. `new_password` must be at least 12
-  characters and not equal to the username. On success every one of that
+  characters, not equal to the username, not on the bundled list of
+  common and breached passwords, and not just the username, "planetgen",
+  "password" or "admin" with fewer than 8 other characters (a `400`
+  saying which). A wrong `current_password` counts as a failed login for
+  the address and the username, is a `429` while either is locked, and
+  the route is limited to 10/minute/IP like login. On success every one of that
   admin's sessions ends (other browsers are logged out) and the caller
   gets a fresh session cookie; API keys keep working.
 - `GET /api/auth/api-keys` — the calling admin's own API keys (label/

@@ -109,7 +109,8 @@ every change to the database. It is on whatever `debug` says; with
 `debug` on, each line is copied into the debug log too. Passwords,
 session tokens and API keys are never written.
 
-Every line has the same shape, so a tool such as fail2ban can match it:
+Every line has the same shape, so a tool such as fail2ban can match it
+([`deployment/fail2ban.md`](deployment/fail2ban.md) has a ready filter and jail):
 
 ```text
 2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
@@ -129,9 +130,9 @@ at 200 characters.
 
 | Category | Events |
 |---|---|
-| `AUTH` | `login.ok`; `login.failed` (wrong username or password); `login.locked` (refused unchecked while the address or username is locked, with `scope=ip` or `scope=user` and `retry_after=`); `lockout.start` (a failure that started a lock, with `scope=`, `subject=` and `seconds=`); `login.ratelimited` (past the per-address limit); `logout`; `credentials.changed` (with `old_user=` after a rename); `password.failed` (a wrong current password on `/account`); `apikey.create`, `apikey.revoke` |
+| `AUTH` | `login.ok`; `login.failed` (wrong username or password); `login.locked` (refused unchecked while the address or username is locked, with `scope=ip` or `scope=user` and `retry_after=`); `lockout.start` (a failure that started a lock, with `scope=`, `subject=` and `seconds=`); `login.ratelimited` (past the per-address limit); `logout`; `credentials.changed` (with `old_user=` after a rename); `password.failed` (a wrong current password on `/account`); `login.password_ok` (right password, two-factor code still to come); `totp.failed` (a wrong two-factor code); `totp.recovery_used` (with `left=`); `totp.enabled`, `totp.disabled`; `apikey.create`, `apikey.revoke` |
 | `AUTHZ` | `login.required` (an admin route with no session or key); `session.invalid` (an expired, ended or unknown session cookie); `apikey.invalid` (an unknown or revoked API key); `credentials.unchanged` (an admin route refused until the first credentials are changed); `admin.required` (an admin-only page action refused); `csrf.failed` (a form token that doesn't match); each with `path=` |
-| `DB` | every write through the web interface or API (`sector.create`, `system.update`, `star.rename`, `facility.create`, `lockout.lift`, ...: the same action names as `admin_audit_log`, with `target=` and `detail=`; `src/loginLockouts.py` writes `lockout.lift` too); `migrate` (each schema migration step, `db=`, `from_version=`, `to_version=`) |
+| `DB` | every write through the web interface or API (`sector.create`, `system.update`, `star.rename`, `facility.create`, `lockout.lift`, ...: the same action names as `admin_audit_log`, with `target=` and `detail=`; `src/loginLockouts.py` writes `lockout.lift`, `devices.revoke` and `totp.reset` too); `migrate` (each schema migration step, `db=`, `from_version=`, `to_version=`) |
 | `GEN` | `generate.start` and `generate.finish` for each `generate.py` run that writes the database (`command=`, `db=`; the finish line adds `status=ok/failed/interrupted`, `seconds=`, `sectors=`, `systems=`, `phenomena=`); `job.start` and `job.cancel` for the admin Generate page |
 
 Failed and locked sign-ins and wrong current passwords also go into the

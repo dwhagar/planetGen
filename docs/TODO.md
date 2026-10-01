@@ -1230,7 +1230,11 @@ SEC.26, SEC.27.
     15 min) and the same rule that unknown usernames are counted like
     real ones; `LOGIN_BACKOFF_ENABLED` still turns it off for tests.
 
-  - [ ] **SEC.22 A trusted-device cookie so lockouts can't shut out the real admin**
+  - [x] **SEC.22 A trusted-device cookie so lockouts can't shut out the real admin**
+    Done (PR #221): `pg_admin_device` cookie, table `admin_devices`
+    (control schema v3). Defaults taken: 90 days; skips only the
+    per-username lock, not the per-address one; `src/loginLockouts.py
+    --forget-devices <user>` revokes them.
 
     Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 4)
 
@@ -1246,7 +1250,8 @@ SEC.26, SEC.27.
     (default 90 days); whether a device cookie also skips SEC.1's
     per-address lock (default: no).
 
-- [ ] **SEC.23 (bug) Wrong current passwords on `/account` aren't counted**
+- [x] **SEC.23 (bug) Wrong current passwords on `/account` aren't counted**
+  Done (PR #221).
   `POST /api/auth/change-credentials` re-checks the current password,
   but a wrong one isn't counted by the login backoff, and the web
   `/account` form only falls under the shared page limit (300 a minute;
@@ -1258,7 +1263,11 @@ SEC.26, SEC.27.
   per-IP limit as login (`auth.LOGIN_RATE_LIMIT`). Can ship before SEC.1
   using the in-memory backoff.
 
-- [ ] **SEC.24 Refuse common and breached passwords**
+- [x] **SEC.24 Refuse common and breached passwords**
+  Done (PR #221). Defaults taken: minimum 12; offline only; about
+  47,000 passwords of 12+ characters from SecLists (MIT): xato-net top
+  1,000,000 and NCSC top 100,000. Also refused: the username or
+  "planetgen", "password", "admin" with fewer than 8 other characters.
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 2 and 3 (step 6)
 
@@ -1274,7 +1283,10 @@ SEC.26, SEC.27.
   I Been Pwned's k-anonymity API? Default: offline only. Which list and
   its license (for example the top 100,000 of a public corpus)?
 
-- [ ] **SEC.25 Check the password hashing cost and re-hash on login**
+- [x] **SEC.25 Check the password hashing cost and re-hash on login**
+  Done (PR #221). Default taken: werkzeug's built-ins, now PBKDF2-SHA256
+  at 600,000 rounds (about 175 ms, next to no memory) instead of scrypt
+  N = 2^17 (128 MiB per check); older hashes are re-hashed at login.
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 7)
 
@@ -1288,7 +1300,12 @@ SEC.26, SEC.27.
   dependency (argon2-cffi) acceptable, or stay with werkzeug's built-ins?
   Default: werkzeug's built-ins.
 
-- [ ] **SEC.26 Two-factor sign-in (TOTP) for admins**
+- [x] **SEC.26 Two-factor sign-in (TOTP) for admins**
+  Done (PR #221): `stellarObjects/totp.py`, tables `admin_totp` and
+  `admin_recovery_codes` (control schema v4). Defaults taken: optional
+  per admin; only the command line resets another admin's
+  (`src/loginLockouts.py --reset-two-factor <user>`); a trusted device
+  does not skip the code.
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 8)
 
@@ -1303,7 +1320,10 @@ SEC.26, SEC.27.
   command line? Is "remember this device for 30 days" (tied to SEC.22's
   cookie) allowed?
 
-- [ ] **SEC.27 A fail2ban filter and jail for login brute force**
+- [x] **SEC.27 A fail2ban filter and jail for login brute force**
+  Done (PR #221): `examples/fail2ban/`, guide in
+  `docs/deployment/fail2ban.md` (the filter also matches `totp.failed`;
+  the jail is named `planetgen`).
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 9)
 
