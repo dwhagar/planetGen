@@ -19,7 +19,7 @@ on:
 
 jobs:
   fuzz:
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
     timeout-minutes: 300
 
     services:

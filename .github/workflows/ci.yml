@@ -16,17 +16,19 @@ concurrency:
   group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# Where jobs run: see docs/ci-runners.md. Each job's runs-on
-# reads a repository variable (Settings > Secrets and variables > Actions
-# > Variables) holding a JSON label list or runner name, and falls back to
-# the default written next to it. A pull request from a fork always runs
-# on GitHub's machines: this repository is public, and a fork's code must
-# never run on one of our own computers (docs/ci-runners.md, "Security").
+# Where jobs run: see docs/ci-runners.md. Every job runs on GitHub's
+# machines (ubuntu-latest, windows-latest, macos-latest) unless the
+# repository variable SELF_HOSTED is set to true (Settings > Secrets and
+# variables > Actions > Variables); then each job reads its RUNNER_*
+# variable, a JSON label list or runner name, or falls back to the
+# self-hosted labels written next to it. A pull request from a fork always
+# runs on GitHub's machines: this repository is public, and a fork's code
+# must never run on one of our own computers (docs/ci-runners.md, "Security").
 
 jobs:
   test:
     name: test (${{ matrix.python-version }}, ${{ matrix.db-image }})
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
     # The whole suite takes about 4 minutes on 4 cores; a run past an hour
     # is stuck, and would otherwise hold a self-hosted runner for 6 hours.
     timeout-minutes: 60
@@ -116,7 +118,7 @@ jobs:
     # phone and desktop widths, light and dark -- axe-core (vendored under
     # src/tests/vendor/), horizontal overflow, console/CSP errors, skip
     # link. It skips in the `test` job above, which has no browser.
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
 
     services:
       mysql:
@@ -202,7 +204,7 @@ jobs:
     # spawning the runner detached, liveness through OpenProcess, Cancel
     # through the job's cancel file and taskkill /T, and the state file
     # write retry. No MySQL here; the one database test skips.
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"windows-latest"') || vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]')) || '"windows-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -273,7 +275,7 @@ jobs:
     # ships it: the venv from Homebrew's python3, the _www permissions,
     # newsyslog, and gunicorn under launchd answering on 127.0.0.1:8000.
     # No database here (--skip-database).
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"macos-latest"') || vars.RUNNER_MACOS_INSTALLERS || '"macos-latest"') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && vars.RUNNER_MACOS_INSTALLERS) || '"macos-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -323,7 +325,7 @@ jobs:
     # database (-SkipDatabase), waitress answering from the venv it made,
     # and install-maintenance-task.ps1's Task Scheduler tasks. The job
     # runner itself is covered by windows-jobs above.
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"windows-latest"') || vars.RUNNER_WINDOWS_INSTALLERS || '"windows-latest"') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && vars.RUNNER_WINDOWS_INSTALLERS) || '"windows-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -366,7 +368,7 @@ jobs:
           Get-Content "$env:RUNNER_TEMP\pgdata\tasks\orbits-ci_test.cmd"
 
   dependency-audit:
-    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
