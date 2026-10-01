@@ -437,6 +437,34 @@ with `clamp()`.
     sphere's generation (PERF.4, the Generate page), and do PERF.3's
     size and time estimates include it?
 
+- [ ] **GEN.24 Generate the galactic core on layer 0**
+  Boss (2026-10-01): "Add a new TODO item to TODO.md (don't start
+  implementing yet) so that we have an option to create the galactic
+  core sectors (everything in the central core of the galaxy layer 0
+  (i.e. middle)." Today layer 0 is the 4 pc slab centered on the
+  galactic plane, and ring 0, layer 0, slot 0 holds the galaxy's
+  nucleus (the quasar or quiescent supermassive black hole,
+  `add_galactic_nucleus`). `generate.py galaxy` can fill one ring on
+  one layer (`--ring I --layer J`), a ring through every layer
+  (`--shell`), a block, or a sphere around a sector, but nothing fills
+  "the core" in one go. Done: one option on the CLI and on the admin
+  Generate page generates every not-yet-generated sector of the core on
+  layer 0, nucleus sector included, with the same size warning,
+  confirmation, `--limit` and progress as the other bulk modes (PERF.3
+  estimates). Open questions:
+  - How big is "the core": a fixed radius (the bulge scale radius,
+    200 pc by default, which is about 50 rings and roughly 7,900
+    sectors on layer 0), a radius the admin types, or a number of
+    rings?
+  - Only layer 0, or every layer the bulge reaches (a cylinder or a
+    sphere around the center)? Boss said layer 0, so that is the
+    default.
+  - Does it run with the plan's bright stars already in place, and
+    does GEN.23's smaller sphere and bright-star backfill apply around
+    it?
+  - Order of generation: ring 0 outward, so a partial run (or
+    `--limit`) leaves a filled disc around the nucleus?
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
