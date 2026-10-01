@@ -210,9 +210,39 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Use the machine's Python 3.12
+      - name: Find or install Python 3.12 without administrator rights
+        # In order: a copy this step installed before, the py launcher, an
+        # all-users install, else python.org's installer run per-user into
+        # the tool cache (no administrator rights needed; reused next time).
+        # The runner's service account can't see a Python installed only
+        # for your own login, so that one doesn't count.
         if: steps.setup-python.outcome == 'failure'
-        run: py -3.12 -c "import os, sys; open(os.environ['GITHUB_PATH'], 'a').write(os.path.dirname(sys.executable) + '\n')"
+        run: |
+          $own = Join-Path $env:RUNNER_TOOL_CACHE 'python-3.12-user'
+          $python = $null
+          if (Test-Path "$own\python.exe") { $python = "$own\python.exe" }
+          if (-not $python -and (Get-Command py -ErrorAction SilentlyContinue)) {
+            $found = & py -3.12 -c "import sys; print(sys.executable)" 2>$null
+            if ($LASTEXITCODE -eq 0 -and $found) { $python = $found.Trim() }
+          }
+          if (-not $python) {
+            foreach ($dir in @("$env:ProgramFiles\Python312", "C:\Python312")) {
+              if (Test-Path "$dir\python.exe") { $python = "$dir\python.exe"; break }
+            }
+          }
+          if (-not $python) {
+            $installer = Join-Path $env:RUNNER_TEMP 'python-3.12-amd64.exe'
+            Invoke-WebRequest 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe' -OutFile $installer
+            $opts = @('/quiet', 'InstallAllUsers=0', "TargetDir=`"$own`"", 'Include_launcher=0',
+                      'Include_test=0', 'Shortcuts=0', 'AssociateFiles=0', 'PrependPath=0')
+            $p = Start-Process -FilePath $installer -ArgumentList $opts -Wait -PassThru
+            if ($p.ExitCode -ne 0 -or -not (Test-Path "$own\python.exe")) {
+              throw "Python 3.12 installer failed (exit $($p.ExitCode)); see docs/ci-runners.md, Windows runner"
+            }
+            $python = "$own\python.exe"
+          }
+          & $python --version
+          Split-Path $python | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
 
       - name: Private virtualenv for this job
         # Self-hosted runners keep their Python between jobs; installing

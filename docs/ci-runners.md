@@ -145,13 +145,15 @@ Only the Generate page job runs here (`windows-jobs`).
      (or from `run.cmd` in your own session): every job would then run
      with access to your files.
 
-3. **Python 3.12.** Install it from python.org with "Install for all
-   users" and the `py` launcher ticked. `actions/setup-python` tries to
-   put its own copy in the runner's tool cache first, which on Windows
-   needs administrator rights; when the service account isn't an
-   administrator that step fails and the job carries on with this
-   installed Python (`py -3.12`). The failed step shows a warning, not a
-   red job.
+3. **Python.** Nothing to install. `actions/setup-python` puts Python
+   3.12 in the runner's tool cache when the service account is an
+   administrator. When it isn't, the job finds Python 3.12 itself: an
+   all-users install (`py -3.12`, or `C:\Program Files\Python312`), or
+   else it runs python.org's installer just for the runner's own account
+   into `_work\_tool\python-3.12-user` (no administrator rights needed)
+   and reuses that copy from then on. A Python installed only for your
+   own login (including the one the "Python install manager" sets up)
+   isn't visible to the runner service and doesn't count.
 
 ## macOS
 
@@ -207,7 +209,7 @@ wipe, such as a VM you restore to a snapshot after each run.
 | A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` by hand as the runner user to see the error. |
 | setup-python can't find 3.9 or 3.12 | Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM. |
 | setup-python fails on Windows with "running scripts is disabled on this system" | PowerShell's execution policy is still Restricted. In an administrator PowerShell: `Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force`, then re-run the job. |
-| setup-python fails on Windows with "access denied" or "Requested registry access is not allowed" | The service account isn't an administrator. The job then uses the machine's Python; if the next step fails with "No suitable Python runtime found", install Python 3.12 for all users (step 3 under [Windows runner](#windows-runner)). |
+| setup-python fails on Windows with "access denied" or "Requested registry access is not allowed" | The service account isn't an administrator. Expected: the next step finds or installs Python 3.12 itself (step 3 under [Windows runner](#windows-runner)). If that step fails too, the machine can't reach python.org, or install Python 3.12 from python.org with "Install for all users" and restart the runner service. |
 | Hundreds of jobs queued, new ones wait for hours | Runs queued before the runners came online are worked through oldest first. Cancel the stale ones: Actions tab > filter "is:queued" > open each run > Cancel workflow run. |
 | Old pull requests' "Release note" check fails saying the PR "changes the version" | A run that waited in the queue was comparing against today's main. Fixed: the check now compares against the base the run started from. Re-run it, or ignore it on merged PRs. |
 | The browser job fails with missing `.so` libraries | Chromium's system libraries aren't installed. See step 4 under [Linux runner](#linux-runner). |
