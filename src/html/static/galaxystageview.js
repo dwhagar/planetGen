@@ -594,7 +594,7 @@ export function createStageView(host) {
       "bearing " + bearing[0].toFixed(1) + "°–" + bearing[1].toFixed(1) + "°",
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
     if (block.m === 1) parts.push(generated > 0 ? "generated" : "not generated");
-    else parts.push(S.formatInt(generated) + (block.total != null ? " of " + S.formatInt(block.total) : "") + " sectors generated");
+    else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors generated");
     return parts.join(", ");
   }
 
@@ -615,7 +615,7 @@ export function createStageView(host) {
     const data = display.data;
     if (option.blocks.length === 1) return blockText(option.blocks[0], data);
     const sum = sumOf(option.blocks, data);
-    const counts = S.formatInt(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated";
+    const counts = S.formatCount(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatCount(sum.total)) + " sectors generated";
     if (option.pick && option.pick.kind === "layer") return layerText(option.pick) + ", " + counts;
     const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
     return (option.pick ? S.pickLabel(option.pick, stage.at, option) : "Here") + ", "
@@ -906,7 +906,7 @@ export function createStageView(host) {
       bar.appendChild(fill);
       const count = document.createElement("span");
       count.className = "galaxy-slab-count";
-      count.textContent = S.formatInt(sum.generated) + (sum.total > 0 ? " / " + S.formatInt(sum.total) : "");
+      count.textContent = S.formatCount(sum.generated) + (sum.total > 0 ? " / " + S.formatCount(sum.total) : "");
       button.appendChild(name);
       button.appendChild(bar);
       button.appendChild(count);

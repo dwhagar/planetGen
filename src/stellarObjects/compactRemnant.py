@@ -45,7 +45,7 @@ from .config import SystemConfig
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (calculate_habitable_zone, format_age_string, format_body_radius_km, format_distance_km,
+from .utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
                     format_galactic_orbit, format_length_km, format_relative_to_sol,
                     generate_galactic_orbit_fields, properties_to_string, reseed_rng)
 
@@ -362,7 +362,7 @@ class BlackHole(CompactRemnant):
             paragraphs.append(
                 f"{self.name} is the supermassive black hole at the heart of the galaxy, around which every "
                 f"star in it ultimately orbits. Its nucleus is quiescent: a thin, hot accretion flow feeds it at a "
-                f"tiny fraction of its Eddington limit, glowing at roughly {self.temperature:,.0f} K."
+                f"tiny fraction of its Eddington limit, glowing at roughly {format_number(self.temperature, ',.0f')} K."
             )
             return paragraphs
         if self.mass_class == "intermediate":
@@ -376,7 +376,7 @@ class BlackHole(CompactRemnant):
         if self.has_accretion_disk:
             sentence += (
                 f" A faint accretion disk of infalling matter still surrounds it, its inner edge glowing at "
-                f"roughly {self.temperature:,.0f} K."
+                f"roughly {format_number(self.temperature, ',.0f')} K."
             )
         else:
             sentence += " No companion star or debris disk remains; only its gravity betrays its presence."
@@ -481,7 +481,7 @@ class NeutronStar(CompactRemnant):
             "radius": radius_string,
             "spin_period": f"{self.spin_period_ms:.2f} ms",
             "magnetic_field": f"{self.magnetic_field_gauss:.2e} G",
-            "surface_temp": f"{self.surface_temperature_k:,.0f} K",
+            "surface_temp": f"{format_number(self.surface_temperature_k, ',.0f')} K",
             "orbit": orbit_string,
             "loc": self.name,
         }

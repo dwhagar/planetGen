@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block subhead %}
-<p class="badges"><span class="badge">{{ "{:,}".format(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span></p>
+<p class="badges"><span class="badge">{{ num(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span></p>
 {% endblock %}
 {% block content %}
 {% include "partials/sectors_panel.html" %}

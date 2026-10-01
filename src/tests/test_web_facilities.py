@@ -203,7 +203,7 @@ def test_system_page_lists_facilities(client, fake):
     html = client.get("/system/5").get_data(as_text=True)
     panel = _panel(html)
     assert "High &lt;Yard&gt;" in panel and "<Yard>" not in html
-    for text in ("Starbase", "Jove (planet)", "In orbit", "420,000 km", "3.07 km/s",
+    for text in ("Starbase", "Jove (planet)", "In orbit", "4.20 × 10⁵ km", "3.07 km/s",
                  "Mining colony", "Asteroid belt", "Among the asteroids", "On the surface", "Luna (moon)"):
         assert text in panel, text
     # Visitors get no form and no Remove buttons.

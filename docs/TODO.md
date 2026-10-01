@@ -102,9 +102,9 @@ of the SEC section.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. Done: UX.19 (belt rows and no Zone column in the object list) and
-      ADM.9 (the "place a facility" form). Next: UX.20 (scientific
-      notation past 4 digits).
+   3. Done: UX.19 (belt rows and no Zone column in the object list),
+      ADM.9 (the "place a facility" form) and UX.20 (scientific notation
+      past 4 digits).
    4. Done: the drill-down rework (MAP.17, MAP.19, MAP.18, MAP.44,
       MAP.26), built as Boss's "Layer + arc".
 2. **Security, in this order** (login blocking first):
@@ -161,22 +161,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
-  Boss (2026-10-01): "anything over 4 digits to the left of the decimal
-  point and it should use scientific notation." Today each page formats
-  its own numbers (`html/lib/fmt.py`'s distance formatters use `{:,}`
-  separators, `tabledisplay.py` and the templates do their own), so a
-  value like 1,234,567 km shows in full. Done: one shared number
-  formatter in Python with a JavaScript mirror (next to UX.13's and
-  UX.14's ladders, which pick units so most values stay short anyway)
-  shows any number with 5 or more digits before the decimal point as
-  scientific notation (for example 1.23 × 10⁶), on every page, map
-  panel and API text field that shows a number, with the existing call
-  sites converted. Settled by Boss (2026-10-01): it covers counts
-  (systems, stars) as well as measurements, with 3 significant figures;
-  IDs, years in dates, designations and raw JSON numbers in the API are
-  exempt (only display text changes).
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the

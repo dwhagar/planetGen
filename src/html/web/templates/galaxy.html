@@ -8,7 +8,7 @@
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
 {% endblock %}
 {% block subhead %}
-<p class="badges"><span class="badge">{{ "{:,}".format(placed_count) }} placed sector{{ "" if placed_count == 1 else "s" }}</span></p>
+<p class="badges"><span class="badge">{{ num(placed_count) }} placed sector{{ "" if placed_count == 1 else "s" }}</span></p>
 {% endblock %}
 {% block content %}
 {{ map_html }}

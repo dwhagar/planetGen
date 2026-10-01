@@ -65,13 +65,13 @@
 {%- else %}
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">
-  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ "{:,}".format(p.total) }})</span></h2>
+  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ num(p.total) }})</span></h2>
   <div class="table-scroll"><table>
     {%- if p.panel == "sectors" %}
     <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th><th scope="col">Galaxy Map</th></tr></thead>
     <tbody>
       {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ "{:,.2f}".format(row.edge_mpc) }} mpc</td><td><a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a></td></tr>
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ num(row.edge_mpc, ",.2f") }} mpc</td><td><a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a></td></tr>
       {%- else %}<tr><td colspan="3"><em>None</em></td></tr>{% endfor %}
     </tbody>
     {%- elif p.panel == "systems" %}

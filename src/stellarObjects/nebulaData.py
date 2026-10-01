@@ -20,7 +20,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields,
+from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
@@ -269,8 +269,8 @@ class Nebula:
         )
         contents = (
             f"It is a class {self.nebula_class} nebula ({self.class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {self.density_cm3:,.3g} particles per cubic centimeter "
-            f"and {self.temperature_k:,.0f} K, dimming the stars behind it by "
+            f"{self.dominant_species}, at about {format_number(self.density_cm3, ',.3g')} particles per cubic centimeter "
+            f"and {format_number(self.temperature_k, ',.0f')} K, dimming the stars behind it by "
             f"{self.extinction_av:.2g} magnitudes."
         )
 

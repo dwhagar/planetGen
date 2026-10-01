@@ -118,13 +118,13 @@ def test_class_pages_show_the_constants(client):
     planet = program_constants.PLANET_CLASSES["M"]
     html = _html(client, "/classes/planet/M")
     low, high = planet["radius_range"]
-    assert f"{low:,} to {high:,} km" in html
+    assert f"{classref.number(low)} to {classref.number(high)} km" in html  # UX.20: 1 × 10⁴ km
     assert "<th scope=\"row\">Habitable</th><td>Yes</td>" in html
     assert planet["composition"][1:] in html
 
     low_k, high_k = physical_constants.TEMP_RANGES["G"]
     html = _html(client, "/classes/star-spectral/G")
-    assert f"{low_k:,} to {high_k:,} K" in html
+    assert f"{classref.number(low_k)} to {classref.number(high_k)} K" in html
     assert physical_constants.SPECTRAL_CLASS_COLORS["G"] in html
 
     html = _html(client, "/classes/star-luminosity/IA+")
@@ -145,7 +145,7 @@ def test_class_pages_show_the_constants(client):
     assert "10^d to 10^(d+1) AU" in html
 
     low, high = program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
-    assert f"{low:,.0f} to {high:,.0f} solar masses" in _html(client, "/classes/black-hole/intermediate")
+    assert f"{classref.number(low)} to {classref.number(high)} solar masses" in _html(client, "/classes/black-hole/intermediate")
 
     low, high = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     assert f"{low:.0f} to {high:.0f} Jupiter masses" in _html(client, "/classes/rogue-planet/brown-dwarf")

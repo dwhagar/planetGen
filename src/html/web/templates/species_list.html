@@ -2,7 +2,7 @@
 {% extends "base.html" %}
 {% block subhead %}
 <p class="badges">
-  <span class="badge">{{ "{:,}".format(total) }} species</span>
+  <span class="badge">{{ num(total) }} species</span>
   {%- if polities_url %}<span class="badge"><a href="{{ polities_url }}">Polities</a></span>{% endif %}
 </p>
 {% endblock %}

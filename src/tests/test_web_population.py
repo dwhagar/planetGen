@@ -100,7 +100,7 @@ def _planet(planet_id, name, life=None):
 def test_format_years():
     assert format_years(None) == ""
     assert format_years(342) == "about 340 years"
-    assert format_years(12_345) == "about 12,300 years"
+    assert format_years(12_345) == "about 1.23 × 10⁴ years"
     assert format_years(3.4e6) == "about 3.4 million years"
     assert format_years(2.2e9) == "about 2.2 billion years"
 

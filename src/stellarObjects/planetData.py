@@ -27,7 +27,7 @@ import secrets
 from .config import SystemConfig
 from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_body_radius_km, format_distance_au, format_distance_km,
+from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
                     years_to_time_string)
 
@@ -481,13 +481,13 @@ class Planet:
         core_pressure_gpa = (math.pi * physical_constants.G * self.mass ** 2 / (8 * radius_m ** 4)) / 1e9
 
         if depth_km > 0:
-            depth_sentence = f"That's about {depth_km:.0f} km below the 1 atmosphere level, where pressure roughly doubles every {doubling_km:.0f} km."
+            depth_sentence = f"That's about {format_number(depth_km)} km below the 1 atmosphere level, where pressure roughly doubles every {format_number(doubling_km)} km."
         else:
-            depth_sentence = f"That's about {abs(depth_km):.0f} km above the 1 atmosphere level, where pressure roughly doubles every {doubling_km:.0f} km with depth."
+            depth_sentence = f"That's about {format_number(abs(depth_km))} km above the 1 atmosphere level, where pressure roughly doubles every {format_number(doubling_km)} km with depth."
 
         return [
             depth_sentence,
-            f"Around {transition_depth_km:.0f} km down, rising pressure would compress the atmosphere into a liquid metallic state near {transition_temperature_c:.0f} degrees C.",
+            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_number(transition_temperature_c)} degrees C.",
             f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {core_pressure_gpa:.0f} GPa.",
         ]
 

@@ -21,7 +21,7 @@ every link is a plain GET link (`page_url`).
 from flask import abort, redirect, request
 import apiclient
 from fmt import (
-    runaway_text,
+    format_number, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
     nearest_systems_html,
 )
@@ -392,9 +392,9 @@ def _cloud_class_text(value):
 # unset value is stored as 0 or ''; those rows are left out.
 _CLOUD_CONTENTS = [
     ("dominant_species", "Dominant Species", lambda v: v or None),
-    ("density_cm3", "Density", lambda v: f"{v:,.3g} particles/cm\u00b3" if v else None),
-    ("temperature_k", "Gas Temperature", lambda v: f"{v:,.0f} K" if v else None),
-    ("extinction_av", "Extinction", lambda v: f"{v:,.2f} magnitudes (visual)" if v else None),
+    ("density_cm3", "Density", lambda v: f"{format_number(v, ',.3g')} particles/cm\u00b3" if v else None),
+    ("temperature_k", "Gas Temperature", lambda v: f"{format_number(v, ',.0f')} K" if v else None),
+    ("extinction_av", "Extinction", lambda v: f"{format_number(v, ',.2f')} magnitudes (visual)" if v else None),
 ]
 
 
@@ -407,8 +407,8 @@ def _optional(fmt):
     return lambda v: fmt(v) if v is not None else None
 
 
-_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{v:,.1f} km/s")
-_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{v:,.2f} Gy")
+_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{format_number(v, ',.1f')} km/s")
+_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{format_number(v, ',.2f')} Gy")
 
 FIELD_SPECS = {
     "nebula": [
@@ -430,25 +430,25 @@ FIELD_SPECS = {
     ],
     "black_hole": [
         ("mass_class", "Class", _title_case),
-        ("mass_solar", "Mass", lambda v: f"{v:,.2f} solar masses"),
+        ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
         ("temperature_k", "Hawking Temperature", lambda v: f"{v:.2e} K"),
-        ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
-        ("age_gy", "Age", lambda v: f"{v:,.2f} Gy"),
+        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
     "neutron_star": [
-        ("mass_solar", "Mass", lambda v: f"{v:,.2f} solar masses"),
+        ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
         ("radius_km", "Radius", _km),
-        ("spin_period_ms", "Spin Period", lambda v: f"{v:,.2f} ms"),
+        ("spin_period_ms", "Spin Period", lambda v: f"{format_number(v, ',.2f')} ms"),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
-        ("surface_temperature_k", "Surface Temperature", lambda v: f"{v:,.0f} K"),
-        ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
-        ("age_gy", "Age", lambda v: f"{v:,.2f} Gy"),
+        ("surface_temperature_k", "Surface Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
+        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
@@ -456,7 +456,7 @@ FIELD_SPECS = {
         ("remnant_class", "Class", _cloud_class_text),
         ("morphology", "Morphology", _title_case),
         ("progenitor_type", "Progenitor Type", _progenitor_text),
-        ("age_years", "Age", lambda v: f"{v:,.0f} years"),
+        ("age_years", "Age", lambda v: f"{format_number(v, ',.0f')} years"),
         ("radius_ly", "Radius", _ly),
         ("compact_remnant_kind", "Compact Remnant Left Behind", _title_case),
         *_CLOUD_CONTENTS,
@@ -474,22 +474,22 @@ FIELD_SPECS = {
     ],
     "interstellar_comet": [
         ("nucleus_diameter_km", "Nucleus Diameter", _km),
-        ("velocity_kms", "Velocity", lambda v: f"{v:,.1f} km/s"),
+        ("velocity_kms", "Velocity", lambda v: f"{format_number(v, ',.1f')} km/s"),
         ("is_active", "Active", _bool_text),
         ("composition_summary", "Composition", str),
         _SPEED, _PERIOD,
     ],
     # No galactic-orbit rows: a quasar sits at the galactic center.
     "quasar": [
-        ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{v:.2e} solar masses"),
+        ("black_hole_mass_solar", "Black Hole Mass", lambda v: f"{format_number(v, '.2e')} solar masses"),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
-        ("luminosity_w", "Luminosity", lambda v: f"{v:.2e} W"),
+        ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
         ("eddington_ratio", "Eddington Ratio", lambda v: f"{v:.0%}"),
-        ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{v:,.2f} solar masses/year"),
+        ("accretion_rate_solar_per_year", "Accretion Rate", lambda v: f"{format_number(v, ',.2f')} solar masses/year"),
         ("broad_line_region_light_days", "Broad-Line Region Radius", _light_days),
         ("is_radio_loud", "Radio-Loud (Jets)", _bool_text),
         ("jet_length_ly", "Jet Length", _ly),
-        ("active_age_years", "Active For", lambda v: f"{v:,.0f} years"),
+        ("active_age_years", "Active For", lambda v: f"{format_number(v, ',.0f')} years"),
     ],
 }
 """dict: (column, label, formatter) per type. A formatter returns plain

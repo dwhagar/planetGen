@@ -45,7 +45,7 @@ from flask import current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 import apiclient
-from fmt import utc_time_html
+from fmt import format_number, utc_time_html
 import tilecache
 from pagination import fetch_page, page_slice, parse_page
 
@@ -414,7 +414,7 @@ def format_duration(seconds):
 
 
 def format_count(value):
-    return "unknown" if value is None else f"{value:,}"
+    return "unknown" if value is None else format_number(value)
 
 
 def tile_cache_info():

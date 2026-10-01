@@ -48,7 +48,7 @@ if _LIB_DIR not in sys.path:
 import apiclient  # noqa: E402
 import classref  # noqa: E402
 import pagecache  # noqa: E402
-from fmt import STATIC_VERSION, utc_time_html  # noqa: E402
+from fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
@@ -116,6 +116,9 @@ def _template_globals():
         "current_admin": current_admin,
         "csrf_field": csrf.csrf_field,
         "utc_time": lambda value: Markup(utc_time_html(value)),
+        # UX.20: every count or measurement a template shows, `num(x)` or
+        # `num(x, ",.2f")` -- scientific past 4 whole digits.
+        "num": format_number,
     }
 
 

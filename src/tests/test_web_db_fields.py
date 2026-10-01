@@ -45,8 +45,8 @@ def test_runaway_text():
 def test_debris_html():
     assert sector_page.debris_html(0) is None
     assert str(sector_page.debris_html(7.2e12)) == \
-        "About 7&times;10<sup>12</sup> interstellar comets and planetesimals (estimated)"
-    assert str(sector_page.debris_html(9.7e12)).startswith("About 1&times;10<sup>13</sup>")
+        "About 7.20 × 10¹² interstellar comets and planetesimals (estimated)"
+    assert str(sector_page.debris_html(9.7e12)).startswith("About 9.70 × 10¹²")
     assert str(sector_page.debris_html(250)).startswith("About 250 ")
 
 

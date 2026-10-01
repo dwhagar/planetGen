@@ -25,7 +25,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nebulaData import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields,
+from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
@@ -258,7 +258,7 @@ class SupernovaRemnant:
 
         description = (
             f"{self.name} is a {self.morphology} supernova remnant, the expanding wreckage of a "
-            f"{self.progenitor_type} supernova approximately {self.age_years:,.0f} years ago. It now reaches "
+            f"{self.progenitor_type} supernova approximately {format_number(self.age_years, ',.0f')} years ago. It now reaches "
             f"about {format_distance_ly(self.radius_ly)} from its center, and still orbits the galactic center at "
             f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )
@@ -266,8 +266,8 @@ class SupernovaRemnant:
         class_name = program_constants.NEBULA_CLASSES[self.remnant_class]["name"]
         paragraphs = [header, description, (
             f"It is a class {self.remnant_class} remnant ({class_name.lower()}): mostly "
-            f"{self.dominant_species}, at about {self.density_cm3:,.3g} particles per cubic centimeter "
-            f"and {self.temperature_k:,.3g} K."
+            f"{self.dominant_species}, at about {format_number(self.density_cm3, ',.3g')} particles per cubic centimeter "
+            f"and {format_number(self.temperature_k, ',.3g')} K."
         )]
 
         if self.compact_remnant is not None:

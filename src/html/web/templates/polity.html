@@ -17,7 +17,7 @@
       <tr><th scope="row">Government</th><td>{{ polity.government }}</td></tr>
       <tr><th scope="row">Capital</th><td>{% if polity.capital_url %}<a href="{{ polity.capital_url }}">{{ polity.capital }}</a>{% else %}{{ polity.capital }}{% endif %}</td></tr>
       <tr><th scope="row">Reach</th><td>{{ polity.reach }}</td></tr>
-      <tr><th scope="row">Systems held</th><td>{{ "{:,}".format(polity.systems) }}</td></tr>
+      <tr><th scope="row">Systems held</th><td>{{ num(polity.systems) }}</td></tr>
     </tbody>
   </table></div>
 </section>

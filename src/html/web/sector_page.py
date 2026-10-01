@@ -31,7 +31,7 @@ from flask import flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
 from fmt import (
-    esc, format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html,
+    esc, format_number, format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html,
     runaway_text,
 )
 from galaxymap import sector_quadrant
@@ -102,15 +102,10 @@ def _map_system(row):
 def debris_html(count):
     """The sector's estimated interstellar comets and planetesimals
     (`queryDb.interstellar_debris_count`, a computed figure, not rows) as
-    "About 7&times;10<sup>13</sup> ...", or `None` for an empty sector."""
+    "About 7.00 × 10¹³ ...", or `None` for an empty sector."""
     if not count or count < 1:
         return None
-    exponent = int(math.floor(math.log10(count)))
-    mantissa = round(count / 10 ** exponent)
-    if mantissa == 10:
-        mantissa, exponent = 1, exponent + 1
-    figure = f"{round(count):,}" if exponent < 4 else f"{mantissa}&times;10<sup>{exponent}</sup>"
-    return trusted_html(f"About {figure} interstellar comets and planetesimals (estimated)")
+    return trusted_html(f"About {esc(format_number(round(count)))} interstellar comets and planetesimals (estimated)")
 
 
 def _rogue_group_row(rogues):

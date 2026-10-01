@@ -1,7 +1,7 @@
 {#- The phenomena list (/phenomena, web/system_pages.py). -#}
 {% extends "base.html" %}
 {% block subhead %}
-<p class="badges"><span class="badge">{{ "{:,}".format(total) }} phenomen{{ "on" if total == 1 else "a" }}</span></p>
+<p class="badges"><span class="badge">{{ num(total) }} phenomen{{ "on" if total == 1 else "a" }}</span></p>
 {% endblock %}
 {% block content %}
 <section class="panel" id="phenomena-list" aria-labelledby="phenomena-heading">

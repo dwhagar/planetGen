@@ -77,7 +77,7 @@ import colorsys
 import math
 import statistics
 
-from fmt import esc, format_distance_km
+from fmt import esc, format_distance_km, format_number
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -864,7 +864,7 @@ def _facility_marker_svg(cx, cy, facility):
         "distance": format_distance_km(facility["orbit_distance_km"]) if orbital else None,
         "period": format_period(facility["orbit_period_years"])
         if orbital and facility.get("orbit_period_years") is not None else None,
-        "speed": f'{facility["orbital_speed_kms"]:,.2f} km/s'
+        "speed": f'{format_number(facility["orbital_speed_kms"], ",.2f")} km/s'
         if orbital and facility.get("orbital_speed_kms") is not None else None,
     }
     h = _FACILITY_HALF_PX

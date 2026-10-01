@@ -27,6 +27,8 @@ from html.parser import HTMLParser
 from unittest import mock
 
 import pytest
+
+from stellarObjects.utils import format_number
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
@@ -215,7 +217,7 @@ def test_format_distance_ly_never_raises(distance):
 @given(edge=st.floats(min_value=1e-3, max_value=1e6), count=st.integers(0, 10**7))
 def test_format_density_for_realistic_sectors(edge, count):
     out = fmt.format_density(edge, count)
-    assert out.startswith(f"{count / edge / edge / edge:.5f} systems/ly&sup3;")
+    assert out.startswith(f"{format_number(count / edge / edge / edge, '.5f')} systems/ly&sup3;")
 
 
 @given(edge=st.one_of(st.just(0), st.just(0.0), st.just(None), st.just(-0.0), st.floats(max_value=-1e-3),

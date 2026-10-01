@@ -37,7 +37,7 @@ import re
 from flask import abort, redirect, request
 
 import apiclient
-from fmt import format_distance_km
+from fmt import format_distance_km, format_number
 from systempage import facility_kind_label, facility_row
 from tabledisplay import format_period
 
@@ -218,7 +218,7 @@ def _preview_orbit(host, distance_km):
     return {
         "distance": trusted_html(format_distance_km(orbit["distance_km"])),
         "period": format_period(orbit["period_years"]),
-        "speed": f'{orbit["orbital_speed_kms"]:,.2f} km/s',
+        "speed": f'{format_number(orbit["orbital_speed_kms"], ",.2f")} km/s',
     }, None
 
 

@@ -9,6 +9,9 @@
 // own page just stops polling. Without JavaScript the page still works:
 // reload it to see progress.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+
 const POLL_MS = 2000;
 
 const panel = document.getElementById("current-job");
@@ -19,7 +22,7 @@ function setText(selector, text) {
 }
 
 function number(value) {
-  return Math.round(value).toLocaleString("en-US");
+  return formatNumber(Math.round(value));
 }
 
 function render(job, log) {

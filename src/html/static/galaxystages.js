@@ -11,6 +11,7 @@
 // A stage is {at, picks}: see "Stages" below.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
   drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlabs, drillSlotRange, drillWedgeCount,
@@ -552,8 +553,15 @@ export function parseStageQuery(search) {
 
 // --- Labels -------------------------------------------------------------------
 
+// A label's whole number, never scientific (ring, wedge and slot numbers
+// are addresses, not amounts).
 export function formatInt(n) {
   return Math.round(n).toLocaleString("en-US");
+}
+
+// A count of sectors: scientific past 4 digits (UX.20).
+export function formatCount(n) {
+  return formatNumber(Math.round(n));
 }
 
 // "7·14": a block's ring and wedge; a sector's "1,705·-20·3,225"
