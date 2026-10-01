@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.29 |
 | TEST | TEST.70 |
 | USR | USR.8 |
-| OPS | OPS.5 |
+| OPS | OPS.6 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -493,6 +493,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
 | OPS.4 | Generate page jobs on native Windows | 54 (2026-09-30 20:48Z); 55 (2026-09-30 20:48Z to 22:12Z) | done in 7.9.2, PR #124 |
+| OPS.5 | Install and update check the log locations and say how to fix them | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
