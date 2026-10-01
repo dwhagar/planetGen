@@ -350,6 +350,32 @@ MAP.14.2 and MAP.5.6.1 below.
       animate (a short fade) or switch instantly, and does
       `prefers-reduced-motion` turn the fade off?
 
+    - [ ] **MAP.2.1.3 (bug) Pick big wedges, not single blocks, between zooms**
+      Boss (2026-10-01): "When selecting regions in the galactic map,
+      selecting bigger arcs between zooms. Even if we can select a
+      single block, that might be too small. So, have the user select
+      large wedges and zoom into that wedge. Same plan: quadrant, layer,
+      region, layer, region, ... , layer, sector. This might be a
+      duplicate or need to enhance a bugfix." It refines MAP.2.1.1 (the
+      wedge, slice and block drill-down) rather than duplicating it, and
+      the two should be built together: MAP.2.1.1 says what to remove
+      (free camera and rotation) and that picks go wedge, slice, block;
+      this item sets the size of each pick. Today each top-down stage
+      picks one block of the 243 -> 27 -> 3 -> 1 ladder (MAP.2.9), which
+      can be a small target. Done: every pick is a large wedge (an arc
+      of the ring band in view) that the map then zooms into, following
+      the ladder quadrant, layer, region, layer, region, and so on, down
+      to layer and sector; each pick stays large on screen at every
+      stage (and finger-sized on touch, as MAP.2.1.1 asks); the
+      highlight follows MAP.2.1.2. Open questions: how a "region" maps
+      onto the nested ladder (one of the 3x3 = 9 children of a block, a
+      wider arc across several blocks, or a new level between); whether
+      the layer pick alternates with every region pick, as the ladder
+      reads, or only where the disk is thick enough to have several
+      layers; and whether MAP.2.1.1's "slice" is the same as this
+      item's "layer" (if so, MAP.2.1.1's open question on what a slice
+      is is settled).
+
   - [ ] **MAP.2.4 NAV page picks on the map**
 
     Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
@@ -627,6 +653,29 @@ MAP.14.2 and MAP.5.6.1 below.
   generated: a migration that assigns classes from their stored mass
   and type, or a regenerate? Does a rogue class change its rendering
   (it has no star to light it)?
+
+- [ ] **GEN.9 Plan for more than one galaxy in the database**
+  Boss (2026-10-01): "Lay the groundwork for different galaxies within
+  the same DB, this is a planning item. Develop a plan to have multiple
+  galaxies first as objects in the neighborhood (i.e. we can see
+  Andromeda from Earth kind of thing) but also I might need to have
+  another galaxy at some point. So just plan and save as a planning
+  document." Today the database holds one galaxy: one galaxy skeleton
+  (`galaxy_shape`, `galaxy_layer`), one sector grid, and coordinates in
+  that galaxy's own frame. This item is a plan only, no code. Done: a
+  planning document in `docs/design/` (linked here on a "Design:" line
+  once it exists) covering two stages: first, other galaxies as
+  objects seen from this one (direction, distance, size, brightness and
+  type, so a planet's sky (VIEW) or a map can show them, like Andromeda
+  from Earth); later, a second fully generated galaxy with its own
+  skeleton, sectors and systems. It says what each stage needs in the
+  schema (a galaxy id on which tables), the frames and coordinates
+  between galaxies, the URLs and pages, generation and the Galaxy Map,
+  and how an existing single-galaxy database migrates. Open questions
+  for the plan: are neighboring galaxies real (the Local Group's
+  catalogued galaxies) or generated? Does every row get a galaxy id, or
+  only the top-level ones (sectors, the skeleton)? Is a second galaxy
+  in the same database or a second database chosen at login?
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -995,6 +1044,25 @@ MAP.14.2 and MAP.5.6.1 below.
     placed facilities (DB.1), or replace everything? Does regenerating
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
+
+- [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
+  Boss (2026-10-01): "In generation screen each section should be
+  collapsible and generate around a sector should have the option to
+  locate an existing filled sector or put in the coordinates." Today
+  the admin Generate page (`web/templates/generate.html`) shows every
+  section (Current job, One-off system, New galaxy, Generate sectors,
+  Plan the galaxy, Rebuild the bright stars, Reset) open, one after
+  another, and "around a sector" (`mode == "center"`) asks for a
+  numeric sector ID and a radius. Done: each section can be collapsed
+  and expanded (a `<details>` or a heading button, keyboard and screen
+  reader friendly); "around a sector" lets the admin either find an
+  existing filled sector (search by name or designation, or pick it on
+  the Galaxy Map or from a list) or type coordinates (a ring, layer and
+  slot address, or galaxy-frame x, y, z). Open questions: which
+  sections start open (only Current job, or the last one used,
+  remembered per browser)? Which coordinates: a sector address, a
+  position in pc or ly, or both? Does "locate" reuse the Galaxy Map's pick
+  mode (MAP.2.3) or the address bar's `/galaxy/locate` (MAP.2.6)?
 
 ## SEC: Security
 

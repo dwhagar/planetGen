@@ -758,9 +758,11 @@ TODO.md, since finished items are deleted):
   finished after 7.58.2. Then 109 to 111 (after `main` at 05:56Z,
   PR #187) became MAP.3.1 (under the finished MAP.3), MAP.5.11.2 and
   MAP.2.1.2 (bugs).
-- Added after the renumbering: UX.0.2 (bug, button spacing).
+- Added after the renumbering: UX.0.2 (bug, button spacing); MAP.2.1.3
+  (bug, big wedge picks), GEN.9 (multiple galaxies plan) and ADM.4
+  (collapsible Generate page sections).
 - So the next free IDs are: UX.15, UX.0.3, MAP.16, MAP.2.11,
-  MAP.2.1.3, MAP.3.2, MAP.5.11.3, MAP.11.3, GEN.9, NAV.3, DB.2, ADM.4,
+  MAP.2.1.4, MAP.3.2, MAP.5.11.3, MAP.11.3, GEN.10, NAV.3, DB.2, ADM.5,
   OPS.5, SEC.3, PERF.3, PERF.1.10, API.3, USR.2, DOC.4, VIEW.2, POP.7.
 - `.0` ("Bugs and small fixes") is used so far only by UX.0.1 and UX.0.2. Finished
   bugs got their own IDs (for example GEN.5.x, MAP.6 to MAP.9) so they
