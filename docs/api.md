@@ -195,7 +195,7 @@ connectivity to that specific schema rather than the default one.
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
   `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...},
-  "clouds": [...]}}, "edge_pc": ..., "has_shape": ...}`:
+  "clouds": [...], "stars": [...]}}, "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
@@ -211,7 +211,12 @@ connectivity to that specific schema rather than the default one.
   The Galaxy Map sums these into its blocks. `clouds` lists the placed
   nebulae and supernova remnants whose sphere reaches into the tile
   (`queryDb.galaxy_clouds_in_box`), largest first, at most 200:
-  `{type, id, name, descriptor, class, radius_pc, x, y, z}`. Predicted density isn't
+  `{type, id, name, descriptor, class, radius_pc, x, y, z}`. `stars`
+  lists the tile's pre-placed bright stars (`bright_stars`, filled or
+  not; `queryDb.galaxy_bright_stars_in_box`), most luminous first, at
+  most 400: `{id, x, y, z, luminosity_sol, temperature_k, star_type,
+  yerkes_class, ring_index, layer_index, ring_slot_index, system_id}`
+  (`system_id` is `null` until the star's sector is filled). Predicted density isn't
   served: the page evaluates the galaxy's shape itself
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the

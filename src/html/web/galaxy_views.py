@@ -49,6 +49,14 @@ def sector_url_template():
     return page_url("sector", sector_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
 
 
+def system_url_template():
+    """
+    The URL of a star system page with `{id}` where the id goes, for
+    `static/galaxymap3d.js`'s "View system" link on a filled bright star.
+    """
+    return page_url("system", system_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
+
+
 def phenomenon_url_template():
     """
     The URL of a phenomenon page with `{type}` and `{id}` where they go,
@@ -121,6 +129,7 @@ def galaxy():
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         phenomenon_url=phenomenon_url_template(),
+        system_url=system_url_template(),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}

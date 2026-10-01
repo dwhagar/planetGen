@@ -838,6 +838,70 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     assert [c["id"] for c in capped] == [nebula_id]
 
 
+def _bright_row(position_pc, luminosity_sol, edge_pc):
+    from stellarObjects.galaxyGeometry import sector_address_at
+
+    ring, layer, slot = sector_address_at(position_pc, edge_pc)
+    return (ring, layer, slot, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
+            15000.0, luminosity_sol * 3.82e26, 0.05, 0.1, 8.0, None, 1)
+
+
+@pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])
+def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, monkeypatch, outline, ranges_per_ring):
+    """Every box -- small (exact address ranges, or one range per ring),
+    wrapped past +X, around the axis, or most of the galaxy (the
+    luminosity index) -- lists exactly the most luminous stars inside it."""
+    import random
+
+    if ranges_per_ring:
+        monkeypatch.setattr(queryDb, "BRIGHT_STAR_MAX_EXACT_RANGES", 1)
+
+    edge = 3.5
+    rng = random.Random(7)
+    stars = []
+    for _ in range(1500):
+        r, theta = 180.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
+        stars.append(((r * math.cos(theta), r * math.sin(theta), rng.uniform(-20.0, 20.0)), rng.uniform(500, 5e5)))
+    if outline:
+        rings = int(200 / edge) + 1
+        _db.replace_galaxy_layers([(j, rings) for j in range(-7, 8)], config=mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        _db.insert_bright_stars(conn, (_bright_row(p, lum, edge) for p, lum in stars))
+        conn.commit()
+        ids = [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
+        boxes = [((-300, -300, -300), (300, 300, 300)), ((-5, -5, -5), (5, 5, 5)), ((50, -20, -30), (90, 20, 30)),
+                 ((-100, 40, -2), (-60, 80, 2)), ((0, 0, 0), (200, 200, 200)), ((100, -1, -30), (180, 0.5, 30))]
+        for _ in range(30):
+            size = rng.choice([4.0, 16.0, 64.0, 256.0])
+            corner = tuple(rng.uniform(-200, 200 - size) for _ in range(3))
+            boxes.append((corner, tuple(c + size for c in corner)))
+        for lo, hi in boxes:
+            for limit in (5, 400):
+                got = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=limit)
+                inside = [
+                    (-lum, star_id) for star_id, (p, lum) in zip(ids, stars)
+                    if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))
+                ]
+                assert [s["id"] for s in got] == [star_id for _l, star_id in sorted(inside)[:limit]], (lo, hi, limit)
+        top = queryDb.galaxy_bright_stars_in_box(conn, (-300, -300, -300), (300, 300, 300), edge, limit=1)[0]
+    finally:
+        conn.close()
+    best = max(range(len(stars)), key=lambda i: stars[i][1])
+    assert top["id"] == ids[best]
+    assert top["luminosity_sol"] == pytest.approx(stars[best][1])
+    assert (top["x"], top["y"], top["z"]) == pytest.approx(stars[best][0], abs=1e-3)
+    assert top["temperature_k"] == 15000.0 and top["yerkes_class"] == "III" and top["system_id"] is None
+
+
+def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert queryDb.galaxy_bright_stars_in_box(conn, (-10, -10, -10), (10, 10, 10), 3.5) == []
+    finally:
+        conn.close()
+
+
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;

@@ -135,6 +135,30 @@ def axe_source():
 
 # --- Database and server ----------------------------------------------------------------
 
+def _add_bright_stars(config, count=300):
+    """A few hundred pre-placed bright stars within 300 pc of the core
+    (`bright_stars`), as a scatter would write them."""
+    import math
+
+    from stellarObjects.galaxyGeometry import sector_address_at
+
+    rng = random.Random(5)
+    conn = _db.get_connection(config)
+    try:
+        edge_pc = _db.get_galaxy_shape(conn).edge_pc
+        rows = []
+        for _ in range(count):
+            r, theta = 300.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
+            point = (r * math.cos(theta), r * math.sin(theta), rng.uniform(-30.0, 30.0))
+            rows.append((*sector_address_at(point, edge_pc), *(int(round(v * 1000)) for v in point), "young", "B",
+                         "III", 2e31, 1e7, rng.uniform(3000.0, 30000.0), rng.uniform(500.0, 1e6) * 3.82e26,
+                         0.05, 0.1, 10.0, None, 1))
+        _db.insert_bright_stars(conn, rows)
+        conn.commit()
+    finally:
+        conn.close()
+
+
 @pytest.fixture(scope="module")
 def site_db(_mysql_server_available):
     """A throwaway database with a small generated galaxy in it, for the
@@ -154,7 +178,11 @@ def site_db(_mysql_server_available):
         random.seed(20260924)
         try:
             target = mysql_argv(config)
-            run_cli("plan", ["--quiet"] + target)
+            # The real scatter places tens of millions of stars over the
+            # whole galaxy; a few hundred near the core are enough for the
+            # Galaxy Map to draw some.
+            run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
+            _add_bright_stars(config)
             run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "+planets", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
