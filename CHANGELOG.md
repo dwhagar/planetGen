@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.42.1] - 2026-10-01
+
+### Changed
+- **Lighter Galaxy Map meshes where sectors are generated.** Blocks whose sectors are all generated (drawn solid) no longer draw the faces they share with each other, which nobody can see. A fully generated neighborhood now needs about a twentieth of the vertices it did, which matters most on phones. Translucent blocks keep every face, since those faces draw the block grid you see through the glass.
+
 ## [7.42.0] - 2026-10-01
 
 ### Added
