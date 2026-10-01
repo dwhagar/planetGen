@@ -196,6 +196,45 @@ console.log(JSON.stringify({code, back: S.parseSectorDesignation(code), parsed, 
     assert crumbs[1].startswith("Slab ") and crumbs[2].startswith("Block ")
 
 
+@pytest.mark.parametrize("text, expected", [
+    ("312/-3/1042", {"ring": 312, "layer": -3, "slot": 1042}),
+    ("ring 312 layer -3 slot 1042", {"ring": 312, "layer": -3, "slot": 1042}),
+    ("  RING 312, LAYER -3, SLOT 1042 ", {"ring": 312, "layer": -3, "slot": 1042}),
+    ("0/0/0", {"ring": 0, "layer": 0, "slot": 0}),
+])
+def test_the_address_bar_reads_an_address(text, expected):
+    out = _run(f"console.log(JSON.stringify(S.parseAddress({json.dumps(text)}, edge)));")
+    assert out["sector"] == expected
+    assert "problem" not in out
+
+
+def test_the_address_bar_reads_a_point_and_a_designation():
+    out = _run("""
+console.log(JSON.stringify({
+  point: S.parseAddress("(100.5, -20, 3) pc", edge),
+  loose: S.parseAddress("100.5 -20 3", edge),
+  code: S.parseAddress(S.sectorDesignation(1705, -20, 3225), edge),
+  cell: P.sectorAddressAt(100.5, -20, 3, edge),
+}));
+""")
+    assert out["point"]["sector"] == out["cell"]
+    assert out["point"]["point"] == [100.5, -20, 3]
+    assert out["loose"]["sector"] == out["cell"]
+    assert out["code"]["sector"] == {"ring": 1705, "layer": -20, "slot": 3225}
+
+
+@pytest.mark.parametrize("text, kind", [
+    ("Belcana Scaonon", "name"),
+    ("Bead", "name"),          # short enough that it is not a designation
+    ("5/0/999", "problem"),    # ring 5 has no slot 999
+    ("   ", "problem"),
+])
+def test_the_address_bar_tells_names_from_bad_addresses(text, kind):
+    out = _run(f"console.log(JSON.stringify(S.parseAddress({json.dumps(text)}, edge)));")
+    assert kind in out and out[kind]
+    assert "sector" not in out
+
+
 def test_parent_stages_walk_back_to_the_galaxy():
     out = _run("""
 const stage = S.sectorStage(900, 4, 2000);

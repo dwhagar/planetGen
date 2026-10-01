@@ -58,6 +58,7 @@ from queryDb import (
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_locate,
     galaxy_stage,
     galaxy_tiles,
     list_phenomena,
@@ -760,6 +761,17 @@ def galaxy_tiles_route():
         return jsonify(galaxy_tiles(get_db(), tile_keys))
     except ValueError as exc:
         raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/locate")
+def galaxy_locate_route():
+    """
+    The Galaxy Map address bar's name lookup: `?q=<part of a name>`.
+    Returns `{"matches": [...]}`, sectors and systems whose name contains
+    it, each with its sector address -- see `queryDb.galaxy_locate`.
+    Called by `/galaxy/locate` (`html/web/galaxy_views.py`).
+    """
+    return jsonify({"matches": galaxy_locate(get_db(), request.args.get("q") or "")})
 
 
 @bp.route("/galaxy/stage")

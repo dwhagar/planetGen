@@ -2278,3 +2278,47 @@ body.app {
   white-space: normal;
   max-width: 18rem;
 }
+
+/* The Galaxy Map's address bar (drill-down section 9.3). */
+.galaxy-address {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0 0 0.5rem;
+}
+
+.galaxy-address input {
+  flex: 1 1 14rem;
+  min-width: 0;
+  font: inherit;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.galaxy-address-matches ul {
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.galaxy-address-matches button {
+  font: inherit;
+  font-size: 0.85rem;
+  background: var(--bg-subtle);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.2rem 0.5rem;
+  cursor: pointer;
+}
+
+.galaxy-address-matches button:hover {
+  border-color: var(--accent);
+}

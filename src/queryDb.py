@@ -2619,6 +2619,65 @@ def _stage_children(counts):
     ]
 
 
+GALAXY_LOCATE_LIMIT = 8
+"""int: Most matches `galaxy_locate` returns."""
+
+
+def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
+    """
+    Sectors and star systems whose name contains `term`, with each one's
+    sector address, for the Galaxy Map's address bar (the drill-down's
+    section 9.3): picking a match flies to that sector. Exact names come
+    first, then names that start with `term`, then the rest, by name.
+    Sectors without an address (placed before the cylindrical grid) and
+    systems outside a sector are left out.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        term (str): Part of a name; blank finds nothing.
+        limit (int): Most matches to return.
+
+    Returns:
+        list[dict]: `{kind ("sector" or "system"), id, name, sector_id,
+            sector_name, ring, layer, slot}`.
+    """
+    term = (term or "").strip()
+    if not term:
+        return []
+    pattern = _search_like_pattern(term)
+    order = "CASE WHEN {col} = ? THEN 0 WHEN {col} LIKE ? ESCAPE '\\\\' THEN 1 ELSE 2 END, {col}, id"
+    prefix = _search_like_pattern(term)[1:]
+    sectors = conn.execute(
+        "SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors "
+        "WHERE ring_index IS NOT NULL AND name LIKE ? ESCAPE '\\\\' "
+        f"ORDER BY {order.format(col='name')} LIMIT ?",
+        (pattern, term, prefix, limit),
+    ).fetchall()
+    systems = conn.execute(
+        "SELECT ss.id, ss.name, s.id AS sector_id, s.name AS sector_name, "
+        "s.ring_index, s.layer_index, s.ring_slot_index "
+        "FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id "
+        "WHERE s.ring_index IS NOT NULL AND ss.name LIKE ? ESCAPE '\\\\' "
+        f"ORDER BY {order.format(col='ss.name').replace(', id', ', ss.id')} LIMIT ?",
+        (pattern, term, prefix, limit),
+    ).fetchall()
+    found = [{
+        "kind": "sector", "id": r["id"], "name": r["name"], "sector_id": r["id"], "sector_name": r["name"],
+        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+    } for r in sectors] + [{
+        "kind": "system", "id": r["id"], "name": r["name"], "sector_id": r["sector_id"],
+        "sector_name": r["sector_name"],
+        "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
+    } for r in systems]
+    lowered = term.lower()
+
+    def rank(match):
+        name = (match["name"] or "").lower()
+        return (0 if name == lowered else 1 if name.startswith(lowered) else 2, name, match["kind"], match["id"])
+
+    return sorted(found, key=rank)[:limit]
+
+
 def galaxy_stage_keys(ring, layer, slot):
     """The stage keys a change to sector `(ring, layer, slot)` makes stale:
     `"galaxy"` and its level-243, 27 and 3 blocks."""

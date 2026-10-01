@@ -127,6 +127,7 @@ def galaxy():
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
         stage_path=url_for("web.galaxy_stage"),
+        locate_path=url_for("web.galaxy_locate"),
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         phenomenon_url=phenomenon_url_template(),
@@ -217,3 +218,25 @@ def galaxy_stage():
 
 
 galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/locate")
+@page_limit("search")
+def galaxy_locate():
+    """
+    JSON for the map's address bar: `?q=<part of a name>`. Returns
+    `{"matches": [...]}` (`queryDb.galaxy_locate`), an API failure a 502
+    as `{"error": ...}` JSON.
+    """
+    q = (request.args.get("q") or "").strip()[:200]
+    if not q:
+        return jsonify({"matches": []})
+    try:
+        matches = apiclient.get_galaxy_locate(db_name(), q)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while looking up a name for the galaxy map: {exc}")
+        return _json_error("The lookup failed. Please try again shortly.", 502)
+    return jsonify({"matches": matches})
+
+
+galaxy_locate.json_only = True  # not a page: tests/test_web_a11y.py skips it

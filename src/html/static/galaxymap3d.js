@@ -2166,11 +2166,25 @@ function initGalaxyMap3d(canvasEl, data) {
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
+    locate: function (name) {
+      return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
+        headers: { Accept: "application/json" },
+      })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        })
+        .then(function (payload) { return payload.matches || []; });
+    },
     els: {
       crumbs: document.getElementById("galaxymap3d-crumbs"),
       slabs: document.getElementById("galaxymap3d-slabs"),
       tooltip: document.getElementById("galaxymap3d-tooltip"),
       notice: document.getElementById("galaxymap3d-notice"),
+      address: document.getElementById("galaxymap3d-address"),
+      matches: document.getElementById("galaxymap3d-matches"),
     },
   });
 

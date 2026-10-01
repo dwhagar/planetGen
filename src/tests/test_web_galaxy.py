@@ -306,6 +306,35 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
     assert fake.stage_calls == []
 
 
+# --- /galaxy/locate ----------------------------------------------------------------------
+
+def test_locate_endpoint_passes_the_name_through(client, fake, monkeypatch):
+    calls = []
+
+    def fake_locate(db, q):
+        calls.append((db, q))
+        return [{"kind": "sector", "id": 3, "name": "Belcana", "sector_id": 3, "sector_name": "Belcana",
+                 "ring": 7, "layer": 0, "slot": 2}]
+
+    monkeypatch.setattr(apiclient, "get_galaxy_locate", fake_locate)
+    body = client.get("/galaxy/locate?q=  Belcana  ").get_json()
+    assert [m["name"] for m in body["matches"]] == ["Belcana"]
+    assert calls == [(DB, "Belcana")]
+    # A blank query asks the API nothing.
+    assert client.get("/galaxy/locate?q=   ").get_json() == {"matches": []}
+    assert len(calls) == 1
+
+
+def test_locate_endpoint_reports_an_api_failure(client, fake, monkeypatch):
+    def fail(db, q):
+        raise apiclient.ApiError("down")
+
+    monkeypatch.setattr(apiclient, "get_galaxy_locate", fail)
+    resp = client.get("/galaxy/locate?q=Belcana")
+    assert resp.status_code == 502
+    assert "error" in resp.get_json()
+
+
 # --- Old CGI URLs ---------------------------------------------------------------------------
 
 def test_old_galaxy_url_redirects(client):

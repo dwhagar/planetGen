@@ -299,7 +299,8 @@ def _json_script(data):
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
-                              system_url=None, stage_path="/galaxy/stage"):
+                              system_url=None, stage_path="/galaxy/stage",
+                              locate_path="/galaxy/locate"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -350,6 +351,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         stage_path (str): The drill-down's stage endpoint
             (`/galaxy/stage`), which the map opens on
             (`static/galaxystageview.js`).
+        locate_path (str): The address bar's name lookup
+            (`/galaxy/locate`).
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -361,6 +364,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "storageKey": db_name,
         "fetchPath": fetch_path,
         "stagePath": stage_path,
+        "locatePath": locate_path,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -425,6 +429,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
 {shape_hint}
+<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
+  <label for="galaxymap3d-address-input">Go to</label>
+  <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
+         placeholder="Designation, ring/layer/slot, x, y, z pc, or a name">
+  <button type="submit" class="starmap-btn">Go</button>
+</form>
+<div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
 <p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
 <nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 <div class="starmap-layout">
