@@ -355,7 +355,7 @@ editable install with the test extras:
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[test,api]"
-pytest
+pytest -n auto
 python3 src/html/wsgi.py      # the site at http://127.0.0.1:5000/
 ```
 

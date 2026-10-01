@@ -58,7 +58,9 @@ jobs:
         run: python -m nltk.downloader words
 
       - name: Run tests
-        run: pytest
+        # One worker per core (docs/testing.md, "Running in parallel");
+        # worksteal rebalances the few minute-long tests across workers.
+        run: pytest -n auto --dist worksteal
 
   browser-a11y:
     # tests/test_web_a11y.py: every Flask page in headless Chromium at
