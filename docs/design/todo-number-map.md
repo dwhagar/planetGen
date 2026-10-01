@@ -22,7 +22,7 @@ release is stamped.
 | API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
-| TEST | TEST.73 |
+| TEST | TEST.74 |
 | USR | USR.8 |
 | OPS | OPS.7 |
 | DOC | DOC.4 |
@@ -775,15 +775,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.16 | Id blocks after reset and rollback | none | done, PR #315 |
 | TEST.17 | Batched writes at the limits | none | done, PR #315 |
 | TEST.18 | Full-text search edge cases | none | done, PR #315 |
-| TEST.19 | Same galaxy at any worker count | none | open |
+| TEST.19 | Same galaxy at any worker count | none | done, PR #321 |
 | TEST.20 | Work queue failure paths | none | done, PR #305 |
 | TEST.21 | Cancelling a run | none | done, PR #305 |
-| TEST.22 | Every bulk mode in parallel | none | open |
+| TEST.22 | Every bulk mode in parallel | none | done, PR #321 |
 | TEST.23 | Resume after an interrupted fill | none | done, PR #303 |
 | TEST.24 | Bright-star scatter edge cases | none | done, PR #303 |
 | TEST.25 | Interrupted bright-star scatter | none | done, PR #303 |
 | TEST.26 | `--force` scatter then fill | none | done, PR #303 |
-| TEST.27 | Progress and ETA under bad clocks | none | open |
+| TEST.27 | Progress and ETA under bad clocks | none | done, PR #321 |
 | TEST.28 | CLI errors by message | none | done, PR #303 |
 | TEST.29 | Limits stay consistent | none | done, PR #303 |
 | TEST.30 | Grid seams and the nucleus | none | done, PR #303 |
@@ -793,9 +793,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.34 | Kepler solver extremes | none | done, PR #303 |
 | TEST.35 | Star and evolution helpers | none | done, PR #303 |
 | TEST.36 | Phenomenon class helpers | none | done, PR #303 |
-| TEST.37 | Names under parallel saves | none | open |
-| TEST.38 | Population incremental rescans | none | open |
-| TEST.39 | Navigation graph | none | open |
+| TEST.37 | Names under parallel saves | none | done, PR #321 |
+| TEST.38 | Population incremental rescans | none | done, PR #321 |
+| TEST.39 | Navigation graph | none | done, PR #321 |
 | TEST.40 | Two admins start a job at once | none | done, PR #302 |
 | TEST.41 | Job files damaged | none | done, PR #302 |
 | TEST.42 | Pages fresh after a CLI write | none | done, PR #293 |
@@ -829,6 +829,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.70 | Tests for the map JavaScript | none | open |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
+| TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

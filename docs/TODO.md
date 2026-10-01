@@ -1464,39 +1464,19 @@ clears each one.
   cause is fixed in the test or in the code it found, and the test
   passes on every run tried. [infra, SEC]
 
+- [ ] **TEST.73 Intermittent failure in the parallel galaxy-run interrupt test (bug)**
+  `test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[2-True]`
+  failed once in a full suite run under load and 1 time in 12 targeted
+  runs, with a job not in state `cancelled` (reported by the parallel,
+  population and navigation tests thread, PR #321, 2026-10-01). It's a
+  timing problem in the parallel (two-worker) path; #321 only changed
+  the one-worker path. Done: the race is found, the cause is fixed in
+  the test or in the work queue's interrupt handling, and the test
+  passes on every run tried. [infra, PERF]
+
 ### Database and migrations
 
 ### Generation and the work queue
-
-- [ ] **TEST.19 Same galaxy at any worker count**
-  One seed generates identical sectors with `--workers 1`, 2 and N
-  (suspected bug: the one-worker path in `workQueue.submit` never calls
-  `random.seed(task_seed(...))`; the parallel path does, and the only
-  test compares 2 with 3). [GEN, PERF]
-
-- [ ] **TEST.22 Every bulk mode in parallel**
-  `--shell`, `--block`, `--column`, `--center-sector`, random start and
-  `sector --num-sectors N` with `--workers 2`, checking run counts and
-  that no sector is filled twice. [PERF, GEN]
-
-- [ ] **TEST.27 Progress and ETA under bad clocks**
-  `DecayingRate` with time going backwards, NaN or infinite amounts,
-  many adds at one instant, a tiny rate; workers never write the
-  progress file. [PERF]
-
-- [ ] **TEST.37 Names under parallel saves**
-  Two workers saving systems and sectors with the same base name at
-  once; the diminutive tier filling under parallel saves; the species
-  name race and "could not find a free species name". [GEN, DB]
-
-- [ ] **TEST.38 Population incremental rescans**
-  `scan_life_worlds`, `refresh_civilizations`, `refresh_territories` and
-  the watermark path; a rescan after new fills adds only the new worlds.
-  [POP]
-
-- [ ] **TEST.39 Navigation graph**
-  K-d tree neighbours checked against brute force, duplicate
-  coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
 
 ### Web, API and jobs
 
