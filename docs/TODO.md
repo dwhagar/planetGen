@@ -301,8 +301,10 @@ for a mouse; spacing and type sized with `clamp()`.
       atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
       fall back to a fixed reference vector. Boss's `compute_course`
       pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the heliopause (~120
-      AU); galactic frame when crossing a sector boundary (> 4 pc).
+    - Hand-offs: star to sector barycenter past the system's own
+      heliopause (`queryDb.system_detail`'s `heliopause_au`, pressed in
+      by any nebula around it); galactic frame when crossing a sector
+      boundary (> 4 pc).
     - Today `navigation.course_between` returns azimuth/altitude on the
       galactic plane and `nav.html` shows them as separate rows.
     - **Questions for Boss:**

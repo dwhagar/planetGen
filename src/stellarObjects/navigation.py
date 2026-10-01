@@ -27,7 +27,9 @@ reference plane:
       system's angular momentum (ecliptic normal). Used inside a system's
       heliopause. NAV endpoints today are whole systems and phenomena, so
       every course leaves the heliopause and this frame is never chosen;
-      `compute_course` supports it for in-system navigation.
+      `compute_course` supports it for in-system navigation. The edge is
+      the system's own heliopause, squeezed by any cloud around it
+      (`queryDb.system_detail`'s `heliopause_au`).
 
 With D = target - ship, U the frame's unit up vector, N the ship-to-center
 vector with its U part removed (normalized), and E = N x U:
