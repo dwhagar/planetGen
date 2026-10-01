@@ -39,8 +39,11 @@
 #   6. Ownership/permissions for Apache (`examples/apache/set-permissions.sh`),
 #      since a pull leaves new and changed files owned by root.
 #   7. The tile cache and Generate jobs directories
-#      (`examples/apache/create-cache-dir.sh`) and the debug log
-#      (`examples/apache/setup-debug-log.sh`).
+#      (`examples/apache/create-cache-dir.sh`), and the debug and activity
+#      logs (`examples/apache/setup-debug-log.sh`): each one's folder,
+#      file, owner and mode, wherever config.json or the environment puts
+#      it, and whether Apache's user can write it. A log it can't set up
+#      only warns, with the commands that fix it (OPS.5).
 #   8. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
@@ -163,7 +166,10 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/set-permissions.sh" "$HTML_DIR" "$
 echo
 echo "== 7/8: Checking the cache, jobs and debug log locations =="
 PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
-PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+# The logs never stop an update (OPS.5): setup-debug-log.sh warns, with
+# the commands that fix it, for anything it can't set up itself.
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
+    || echo "warning: the log setup didn't finish (see above); the update carries on." >&2
 
 echo
 echo "== 8/8: Checking that the web app imports =="

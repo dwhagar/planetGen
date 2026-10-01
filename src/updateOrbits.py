@@ -182,6 +182,12 @@ def main():
             print("No previous orbit update found for this database -- establishing a starting point now "
                   "(nothing to advance yet; run this again later to actually move anything).")
             elapsed_years = 0.0
+        elif elapsed_years < 0:
+            # The server's clock went back since the last run: never move
+            # anything backwards; this run restarts the clock from now.
+            print(f"The last orbit update is {-elapsed_years:.6f} years in the future (the database server's "
+                  "clock moved back?) -- moving nothing and restarting the clock from now.")
+            elapsed_years = 0.0
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 

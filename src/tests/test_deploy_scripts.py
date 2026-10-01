@@ -10,6 +10,9 @@ The root-run deployment scripts in `examples/apache/` (called by
 - `create-cache-dir.sh` imports nothing from the repo: it reads its paths
   with `deploy-paths.py` under `python3 -I`.
 - `setup-debug-log.sh` makes the debug log 0660, never world-writable.
+- `log-locations.py` (OPS.5) sets both logs up wherever they're
+  configured, checks the web server's user and group can write them, and
+  for anything it can't fix only warns, with the commands that would.
 
 The scripts that only touch a directory they're given run for real
 against a throwaway tree when the tests run as root and a `www-data`
@@ -20,6 +23,7 @@ tests are skipped.
 import grp
 import json
 import os
+import pathlib
 import pwd
 import shutil
 import stat
@@ -125,6 +129,7 @@ def test_root_helpers_run_python_isolated():
     assert '"$PYTHON" -I "$APACHE_DIR/deploy-paths.py"' in code
     assert "sys.path" not in code and "import tilecache" not in code and "appconfig" not in code
     assert '"$PYTHON" -I -' in _code_lines("setup-debug-log.sh")
+    assert '"$PYTHON" -I "$APACHE_DIR/log-locations.py"' in _code_lines("setup-debug-log.sh")
 
 
 # --- setup-debug-log.sh ------------------------------------------------------
@@ -132,8 +137,154 @@ def test_root_helpers_run_python_isolated():
 def test_debug_log_is_0660_never_world_writable():
     code = _code_lines("setup-debug-log.sh")
     assert "0666" not in code
-    assert 'chmod 0660 "$LOG_FILE"' in code
     assert "create 0660 $APACHE_USER $APACHE_GROUP" in code
+    helper = _read("log-locations.py")
+    assert "0o666" not in helper and "0o777" not in helper
+    assert "os.chmod, path, 0o660" in helper
+
+
+def test_the_log_setup_never_stops_an_install_or_update():
+    for script in ("install.sh", "update.sh"):
+        with open(os.path.join(REPO_DIR, script), encoding="utf-8") as f:
+            text = f.read()
+        assert 'setup-debug-log.sh" \\\n    || echo "warning:' in text, script
+    code = _code_lines("setup-debug-log.sh")
+    assert "exit 1" not in code.split("# Prints")[-1].split("$EUID")[-1].replace("    exit 1\nfi", "", 2)
+
+
+# --- log-locations.py (OPS.5), run as the current user -----------------------
+
+LOG_LOCATIONS = os.path.join(APACHE_DIR, "log-locations.py")
+
+
+def _me():
+    return pwd.getpwuid(os.getuid()).pw_name, grp.getgrgid(os.getgid()).gr_name
+
+
+def _run_log_locations(tmp_path, user=None, group=None, config=None, **env_overrides):
+    """Runs log-locations.py against a fake checkout holding the real
+    appconfig.py and, when given, a config.json."""
+    repo = tmp_path / "repo"
+    package = repo / "src" / "stellarObjects"
+    package.mkdir(parents=True, exist_ok=True)
+    shutil.copy(os.path.join(REPO_DIR, "src", "stellarObjects", "appconfig.py"), package / "appconfig.py")
+    if config is not None:
+        (repo / "config.json").write_text(json.dumps(config))
+    me_user, me_group = _me()
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    env.update(env_overrides)
+    return subprocess.run([sys.executable, "-I", LOG_LOCATIONS, str(repo), user or me_user, group or me_group],
+                          env=env, capture_output=True, text=True, check=False)
+
+
+@pytest.fixture
+def open_dir():
+    """A folder every user can pass through (pytest's own tmp_path sits
+    in a 0700 folder, which the group check rightly reports)."""
+    import tempfile
+    path = tempfile.mkdtemp(prefix="planetgen-logs-", dir="/tmp")
+    os.chmod(path, 0o755)
+    yield pathlib.Path(path)
+    shutil.rmtree(path, ignore_errors=True)
+
+
+def test_log_locations_sets_up_both_logs_from_config(tmp_path, open_dir):
+    logs = open_dir / "logs"
+    result = _run_log_locations(tmp_path, config={"log_file": str(logs / "debug" / "planetgen.log"),
+                                                  "log_dir": str(logs / "activity")})
+    assert result.returncode == 0
+    assert result.stderr == ""
+    assert f'Debug log: {logs / "debug" / "planetgen.log"} (from "log_file" in config.json; debug is off' \
+        in result.stdout
+    assert f'Activity log: {logs / "activity" / "planetgen.log"} (from "log_dir" in config.json' in result.stdout
+    for path in (logs / "debug" / "planetgen.log", logs / "activity" / "planetgen.log"):
+        info = os.stat(path)
+        assert stat.S_IMODE(info.st_mode) == 0o660, path
+        assert (info.st_uid, info.st_gid) == (os.getuid(), os.getgid())
+    assert stat.S_IMODE(os.stat(logs / "activity").st_mode) == 0o2770
+    # Run again: nothing to change, still quiet.
+    again = _run_log_locations(tmp_path, config={"log_file": str(logs / "debug" / "planetgen.log"),
+                                                 "log_dir": str(logs / "activity")})
+    assert again.returncode == 0 and again.stderr == ""
+
+
+def test_log_locations_says_where_each_setting_came_from(tmp_path, open_dir):
+    result = _run_log_locations(tmp_path, PLANETGEN_LOG_FILE=str(open_dir / "env.log"),
+                                PLANETGEN_LOG_DIR=str(open_dir / "envdir"))
+    assert "(from PLANETGEN_LOG_FILE;" in result.stdout
+    assert "(from PLANETGEN_LOG_DIR;" in result.stdout
+
+
+def test_an_unusable_log_path_only_warns_with_the_commands(tmp_path):
+    blocker = tmp_path / "not-a-folder"
+    blocker.write_text("")
+    result = _run_log_locations(tmp_path, PLANETGEN_LOG_FILE=str(blocker / "debug.log"),
+                                PLANETGEN_LOG_DIR=str(blocker / "activity"))
+    assert result.returncode == 0
+    user, group = _me()
+    err = result.stderr
+    assert f"warning: the debug log {blocker / 'debug.log'}" in err
+    assert f"{blocker} is a file, not a folder" in err
+    assert f"sudo mkdir -p {blocker}" in err
+    assert f"sudo chown {user}:{group} {blocker / 'debug.log'}" in err
+    assert f"sudo chmod 0660 {blocker / 'debug.log'}" in err
+    assert '"log_file" in config.json (or PLANETGEN_LOG_FILE)' in err
+    assert f"warning: the activity log {blocker / 'activity' / 'planetgen.log'}" in err
+    assert f"sudo chown root:{group} {blocker / 'activity'}" in err
+    assert f"sudo chmod 2770 {blocker / 'activity'}" in err
+    assert '"log_dir" in config.json (or PLANETGEN_LOG_DIR)' in err
+    assert "Traceback" not in err
+
+
+def test_a_web_server_user_that_does_not_exist_only_warns(tmp_path):
+    result = _run_log_locations(tmp_path, user="planetgen-no-such-user", group="planetgen-no-such-group",
+                                PLANETGEN_LOG_FILE=str(tmp_path / "d" / "debug.log"),
+                                PLANETGEN_LOG_DIR=str(tmp_path / "a"))
+    assert result.returncode == 0
+    assert "the web server's user 'planetgen-no-such-user' doesn't exist" in result.stderr
+    assert "the web server's group 'planetgen-no-such-group' doesn't exist" in result.stderr
+    assert f"sudo chown planetgen-no-such-user:planetgen-no-such-group {tmp_path / 'd' / 'debug.log'}" \
+        in result.stderr
+
+
+def test_a_broken_config_only_warns(tmp_path):
+    result = _run_log_locations(tmp_path, config={"log_dir": 42})
+    assert result.returncode == 0
+    assert "couldn't work out where the logs go" in result.stderr
+    assert '"log_dir" must be a string' in result.stderr
+
+
+def _load_log_locations():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("log_locations", LOG_LOCATIONS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_can_write_follows_every_folder_on_the_way(open_dir):
+    module = _load_log_locations()
+    folder = open_dir / "private"
+    folder.mkdir()
+    log = folder / "planetgen.log"
+    log.write_text("")
+    os.chmod(log, 0o660)
+    owner, group = os.stat(log).st_uid, os.stat(log).st_gid
+    other_uid, other_gid = owner + 4242, group + 4242
+    os.chmod(folder, 0o700)
+    # Neither a stranger nor the file's group gets through a 0700 folder...
+    assert module.can_write(str(log), other_uid, {group}) == (False, str(folder))
+    assert module.can_write(str(log), None, {group})[0] is False
+    # ...the owner does, and root always does.
+    assert module.can_write(str(log), owner, {group}) == (True, None)
+    assert module.can_write(str(log), 0, set()) == (True, None)
+    os.chmod(folder, 0o2770)
+    assert module.can_write(str(log), other_uid, {group}) == (True, None)
+    assert module.can_write(str(log), other_uid, {other_gid}) == (False, str(folder))
+    os.chmod(folder, 0o755)
+    os.chmod(log, 0o640)
+    assert module.can_write(str(log), other_uid, {group}) == (False, str(log))
+    assert module.can_write(str(folder / "missing.log"), owner, {group}) == (False, str(folder / "missing.log"))
 
 
 # --- set-permissions.sh / create-cache-dir.sh, run for real ------------------
