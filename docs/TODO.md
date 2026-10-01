@@ -385,26 +385,51 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5. **Tint.** The picked slab gets a color band that differs from a
      whole wedge, kept the same at every depth.
 
-  Recommendation: options 1 and 3 together. The ghost keeps the shape
-  of the whole wedge on screen, so the slab is plainly one layer of it,
-  and the header names the slab and its height in words. Add 2 as part
-  of 1 (the solid slab gets edge lines). Leave 4 and 5 out unless 1 and
-  3 aren't enough, since 4 takes room the slab buttons of MAP.54 and
-  the info panel of MAP.55 need on small screens.
+  Boss's answers (2026-10-01 20:50Z): "Ghost of the other wedges should
+  be just wire lines and faint and yes I want to implement a mini map
+  that shows the segment of the whole galaxy. When we zoom in to a slab
+  off to the side, have a locked view in isometric form of the block,
+  highlighting which slab we're in. Then add navigation tools so that
+  if the user goes and clicks on another slab in the isometric view, it
+  switches to the slab in the main view", and for the height: "both".
+  So the build is options 1, 2, 3 and 4.
 
-  Done (recommended form): with a slab picked, the parent wedge's other
-  slabs are drawn as faint outlines around the solid, edge-lined picked
-  slab. The ghost is not clickable and doesn't block clicks on the slab
-  or its segments. A header over the map and the breadcrumb read "Slab
-  N of M" with its height range above or below the galactic plane in
-  the map's chosen units (pc or ly, the units setting of PR #234). Both rotate and zoom
-  with the view. The same applies one level down (a layer inside a
-  block, "Layer N of M"). Ties in with MAP.53 (rotation keeps the ghost
-  aligned), MAP.54 (the picked slab's button and line stay
-  highlighted), MAP.56 (the segment pick happens on the solid slab) and
-  MAP.58. Open questions for Boss: ghost outlines only, or also a faint
-  fill? Is the side-view inset (option 4) wanted as well? Should the
-  height be shown from the galactic plane or as layer numbers, or both?
+  Done:
+  - **Ghost:** with a slab picked, the rest of the wedge or block is
+    drawn as faint wire lines only, with no fill, around the solid,
+    edge-lined picked slab. The ghost is not clickable and doesn't block
+    clicks on the slab or its segments.
+  - **Mini map:** beside the main view sits a small, locked isometric
+    view of the whole block (or wedge) the slab belongs to, showing
+    every slab of it with the current one highlighted, and where that
+    block sits in the whole galaxy. It doesn't rotate or zoom. Clicking
+    (or tapping, or picking with the keyboard) another slab in it
+    switches the main view to that slab, the same way picking a slab
+    does today, with the URL and breadcrumb following.
+  - **Header and breadcrumb:** "Slab N of M" with its height both ways:
+    the distance above or below the galactic plane in the map's chosen
+    units (pc or ly, the units setting of PR #234) and its sector layer
+    numbers, e.g. "Slab 3 of 9 · 120 to 160 pc above the plane · layers
+    25 to 33". The same applies one level down ("Layer N of M" inside a
+    block).
+  - Everything stays aligned when the main view rotates or zooms.
+
+  Ties in with MAP.53 (rotation keeps the ghost aligned), MAP.54 (the
+  picked slab's button and line stay highlighted; the mini map is a
+  second way to pick a slab), MAP.55 (where the mini map sits next to
+  the slab buttons and the Sector cell panel, and below the map on a
+  phone), MAP.56 (the segment pick happens on the solid slab) and
+  MAP.58 (the mini map is never zoomable).
+
+- [ ] **MAP.60 Galaxy Map scale readout: one scale line**
+  Boss (2026-10-01 20:50Z): "I want to trim the scale information from
+  the galactic map so that it just has one scale line." Today the
+  readout under the Galaxy Map (`updateScaleBar` in `galaxymap3d.js`,
+  `#galaxymap3d-scale`) stacks three lines: "1 px ≈" (what one screen
+  pixel spans), "1 block =" (the size of one drawn block) and a scale
+  bar of about 70 px with its length. Done: only the scale bar and its
+  length remain, on one line, in the map's chosen units (sectors and pc
+  or ly, as now).
 
 ## GEN: Generation and physics
 
