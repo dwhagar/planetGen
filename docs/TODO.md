@@ -207,6 +207,25 @@ with `clamp()`.
   does); and whether elapsed-time and ETA displays for jobs (PERF.3,
   UX.3 and PERF.4) and the admin pages use the same function.
 
+- [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls**
+  Boss (2026-10-01 14:58Z): "clean up the web interface, still have
+  buttons overlapping, we have +/- buttons that don't do anything
+  anymore, etc. Don't start it yet, but it needs to be done." UX.16
+  (PR #195) added space between buttons, but some still overlap, and
+  some controls survived the map rewrites without anything wired to
+  them. Done: a pass over every page (public, admin, and the Galaxy,
+  Sector, System and phenomenon maps) at each size class (compact,
+  medium, expanded, desktop) in light and dark: no buttons or labels
+  overlap or run off their panel; every button, toggle and link does
+  something, and dead ones (such as the +/- zoom buttons Boss saw) are
+  wired up or removed, along with any hint text that names them;
+  controls follow the section's rules above (touch targets, spacing).
+  Before/after screenshots of each fixed spot go with the PR. Open
+  question: which page shows the dead +/- buttons (the Sector Map and
+  phenomenon maps still render `starmap-btn` zoom-out/zoom-in buttons
+  from `lib/starmap.py` and `lib/phenomenonmap.py`; the pass checks
+  each).
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 - [ ] **MAP.2 Drill-down navigation**
