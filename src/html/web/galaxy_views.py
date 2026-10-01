@@ -18,6 +18,8 @@ own copy in `localStorage`, keyed as before, so a visitor's cached tiles
 survive the move.
 """
 
+from urllib.parse import urlencode
+
 from flask import jsonify, request, url_for
 
 import apiclient
@@ -111,6 +113,25 @@ def _quadrant_sector_rows(sectors, quadrant, page):
     return rows, page, len(members)
 
 
+def _pick_from_args():
+    """
+    The NAV page's "Pick on Galaxy Map" (`?pick=from&to=...` or
+    `?pick=to&from=...`, design doc section 9): the Sector Map's own pick
+    mode (`sector_page._pick_mode`) plus `query`, the `?pick=...` a
+    sector link carries so the pick continues on that sector's page.
+    `None` outside pick mode.
+    """
+    from .sector_page import _pick_mode  # a page module like this one; imported where used
+
+    pick = _pick_mode(request.args)
+    if pick is None:
+        return None
+    params = {"pick": pick["pick"]}
+    if pick["other"]:
+        params["to" if pick["pick"] == "from" else "from"] = pick["other"]
+    return dict(pick, query="?" + urlencode(params, safe=":"))
+
+
 def _has_territories(db):
     """Whether population has made any polities yet. Without one the map
     leaves out its Territories button, as the site does every population
@@ -134,6 +155,7 @@ def galaxy():
     _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
     initial_view = fetch_tiles(db, initial_tile_request(max_radius))
     course = _course_from_args()
+    pick = _pick_from_args()
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
@@ -141,8 +163,9 @@ def galaxy():
         locate_path=url_for("web.galaxy_locate"),
         territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
-        sector_url=sector_url_template(),
+        sector_url=sector_url_template() + (pick["query"] if pick else ""),
         generate=generate_target(current_admin()),
+        pick=pick,
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
     )

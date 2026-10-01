@@ -164,7 +164,10 @@ stages themselves don't need it.
     sector then it'll just use the sector interface." Done: beside each
     dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
     forced on, ending in 74's Sector Map pick mode), "Pick in this
-    sector" once the other end is known, and a Bookmarks select.
+    sector" once the other end is known, and a Bookmarks select. The
+    Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
+    to NAV, keeps "Generated only" on, and a sector click opens that
+    sector in pick mode.
 
 76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
     info panels saves a stage, sector, system or phenomenon in

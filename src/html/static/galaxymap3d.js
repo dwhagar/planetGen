@@ -3036,6 +3036,18 @@ function initGalaxyMap3d(canvasEl, data) {
   resize();
   window.addEventListener("resize", resize);
 
+  // NAV's "Pick on Galaxy Map": endpoints live only in generated
+  // sectors, so "Generated only" stays on (design doc section 9).
+  if (data.pick) {
+    stageView.setGeneratedOnly(true);
+    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="generated-only"]');
+    if (onlyButton) {
+      onlyButton.setAttribute("aria-pressed", "true");
+      onlyButton.disabled = true;
+      onlyButton.title = "Always on while choosing a NAV start or destination";
+    }
+  }
+
   // The drill-down first, at the stage the URL names.
   setStageMode(true);
 
