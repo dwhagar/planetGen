@@ -902,6 +902,28 @@ def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
         conn.close()
 
 
+def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        body = client.get("/api/galaxy/shape").get_json()
+        assert body["shape"] is None
+        assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
+                                        "default_min_luminosity_sol": 500.0}
+        with conn:
+            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
+                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
+                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
+                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
+            _db.record_bright_star_scatter(conn, 500.0, 1234)
+    finally:
+        conn.close()
+    body = client.get("/api/galaxy/shape").get_json()
+    assert body["shape"]["edge_pc"] == 4
+    assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
+                                    "default_min_luminosity_sol": 500.0}
+
+
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;

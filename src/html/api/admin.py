@@ -78,7 +78,8 @@ def stats():
     """
     `GET /api/admin/stats[?db=]` -- health of the API process and the
     MySQL server, plus statistics about the selected database: size and
-    estimated rows per table, exact sector/system counts, schema version,
+    estimated rows per table, exact sector/system counts, bright-star
+    placed/filled counts (`adminStats.bright_star_counts`), schema version,
     newest/last-modified row times, and how many names the uniqueness
     rules had to decorate (the list itself is `/api/admin/duplicate-names`).
 
@@ -108,6 +109,7 @@ def stats():
         "schema_current": version == _db.SCHEMA_VERSION,
         "size_bytes": sum(t["data_bytes"] + t["index_bytes"] for t in tables),
         "counts": adminStats.exact_counts(conn),
+        "bright_stars": adminStats.bright_star_counts(conn),
         "tables": tables,
         "timestamps": adminStats.timestamp_stats(conn),
         "name_collisions": adminStats.name_collision_summary(conn),
