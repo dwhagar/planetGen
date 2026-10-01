@@ -151,6 +151,25 @@ lot with a much higher contrast."
     margin or stop sharply? Does the same apply to the 3D stages while
     item 100 still has them, or only to the top-down ones?
 
+111. [ ] **Bug: the block under the pointer is too hard to see from
+    above.** Boss (2026-10-01): "selection of blocks from top-down
+    doesn't show highlight well enough, needs to be more obvious, when
+    selecting everything but what your mouse is over should be dimmed".
+    Today, in the top-down stages (2, 4, 6, 8), hovering a block only
+    draws an outline around it (`galaxystageview.js`, `applyHover` ->
+    `outlineBlock`), and nothing else changes; the 3D stages already
+    fade the other slabs (`OTHER_SLAB_FADE`). Done: while the user is
+    picking, everything except the block (or slice) under the pointer
+    is dimmed, and the hovered one stands out clearly, in both themes,
+    with the same look for a first tap on touch screens and for keyboard
+    focus; the dimming clears when the pointer leaves the map. Goes with
+    item 100 (the wedge, slice and block picks all need this highlight)
+    and item 99 (unfilled blocks drawn much more transparent, which the
+    dimming must still read against). Open questions: how dim the rest
+    goes (say 25-40% opacity)? Does the hovered block also brighten or
+    get a thicker outline? Does it animate (a short fade) or switch
+    instantly, and does `prefers-reduced-motion` turn the fade off?
+
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
 Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
