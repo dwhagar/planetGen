@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.48.0] - 2026-10-01
+
+### Added
+- Sector Contents rows for phenomena show their octant and their three nearest star systems, linked. Systems list their nearest systems across sector boundaries, and phenomenon pages show their octant and nearest systems. `GET /api/phenomena/<type>/<id>` gains `nearest`.
+
 ## [7.47.0] - 2026-10-01
 
 ### Added
