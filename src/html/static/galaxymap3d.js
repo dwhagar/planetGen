@@ -246,7 +246,8 @@ function showCellInfo(cell) {
   // (sceneData.generate, set by lib/galaxymap3d.py only then), the same
   // Generate buttons the Sector Map gives a neighbor.
   if (single && !(cell.filled > 0) && sceneData.generate) {
-    panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot));
+    panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot,
+      sceneData.edgeLy));
   }
 }
 

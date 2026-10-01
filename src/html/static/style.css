@@ -1687,6 +1687,30 @@ code {
   margin: 0;
 }
 
+/* The neighborhood form asks for its radius above its button. */
+.starmap-generate-form .starmap-generate-radius {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.starmap-generate-form .starmap-generate-radius input {
+  width: 5rem;
+  font: inherit;
+  padding: 0.2rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.starmap-generate-form .hint {
+  display: block;
+  margin: 0 0 0.3rem;
+}
+
 /* Phones: the page gets a 1rem gutter each side. Wide tables and
    code scroll inside their own box (.table-scroll/.code-view) instead of
    widening the page. */
