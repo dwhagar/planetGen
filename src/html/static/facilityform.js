@@ -14,7 +14,9 @@
 //   of `facilities.distance_from_step`; the period is Kepler's third law,
 //   as `facilities.orbit_for` works it out.
 
-import { formatDistanceKm } from "./distance.js";
+// This module's own `?v=`, so the sibling loads at the same version.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { formatDistanceKm } = await import(`./distance.js${VERSION_QUERY}`);
 
 const G = 6.6743e-11; // m^3 kg^-1 s^-2
 const SECONDS_PER_DAY = 86400;
