@@ -188,7 +188,7 @@ def _placed_count(html):
 
 def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     _plan_galaxy(mysql_config)
-    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1", "--backfill-from", "none")
     [first] = _sectors(mysql_config)
 
     tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
@@ -200,7 +200,7 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     assert site.get(tiles_url).get_json()["cached"] == 1
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [first["id"]]
 
-    _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1")
+    _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1", "--backfill-from", "none")
     sectors = _sectors(mysql_config)
     assert len(sectors) == 3
     all_ids = sorted(row["id"] for row in sectors)

@@ -23,11 +23,16 @@
 {%- macro skip_scatter(id) -%}
 <label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
   {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
-  <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy right after the plan; its sector is filled later, around it.</span></label>
+  <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy: right after the plan, or on a new galaxy once its first sectors are generated, leaving them out.</span></label>
 {%- endmacro -%}
 {%- macro scatter_threshold() -%}
 {{ field("bright_min_luminosity", bright_threshold_label, placeholder=num(bright_min_luminosity, ",.0f"), min=1,
          hint="Every star this bright or brighter is placed galaxy-wide. Blank means " ~ num(bright_min_luminosity, ",.0f") ~ ". Around each generated sector, dimmer ones are added later, " ~ backfill_text ~ ".") }}
+{%- endmacro -%}
+{%- macro backfill_choice(id) -%}
+<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="backfill_all" value="1"
+  {%- if form and form.get("backfill_all") %} checked{% endif %}> Backfill from every generated sector (farthest out)</span>
+  <span class="field-hint">Once the sectors are generated, the bright stars are backfilled around the requested sector only, {{ backfill_text }}. Tick this to backfill around every sector the run generated, reaching 100 ly past the farthest one. Generated sectors never get backfilled stars.</span></label>
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
@@ -127,6 +132,7 @@
                hint="1.0 is as dense as the Sun's neighborhood.") }}
       {{ scatter_threshold() }}
       {{ skip_scatter("new-galaxy-skip-bright") }}
+      {{ backfill_choice("new-galaxy-backfill-all") }}
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
     <div class="search-actions">
@@ -180,6 +186,9 @@
       </div>
     </fieldset>
     {%- endfor %}
+    <div class="search-fields">
+      {{ backfill_choice("galaxy-backfill-all") }}
+    </div>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Generate</button>
     </div>
@@ -189,8 +198,7 @@
 <section class="panel" id="plan" aria-labelledby="plan-heading">
   <h2 id="plan-heading">Plan the galaxy</h2>
   <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist, then
-  scatters the bright stars. Sectors already generated stay as they are, but the scatter is refused while
-  any exist (they would never get their bright stars); rebuild the bright stars below to leave them out.</p>
+  scatters the bright stars. Sectors already generated stay as they are, and the scatter leaves them out.</p>
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="plan">
@@ -208,7 +216,7 @@
 <section class="panel" id="bright-stars" aria-labelledby="bright-stars-heading">
   <h2 id="bright-stars-heading">Rebuild the bright stars</h2>
   <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
-  Needs a plan.</p>
+  Sectors already generated are always left out. Needs a plan.</p>
   {%- if summary.bright %}
   <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ num(summary.bright.min_luminosity_sol, ",.0f") }}
   solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}
@@ -219,8 +227,6 @@
     <input type="hidden" name="action" value="bright_stars">
     <div class="search-fields">
       {{ scatter_threshold() }}
-      <label class="search-field generate-check"><span><input type="checkbox" id="bright-force" name="bright_force" value="1"> Leave filled sectors out</span>
-        <span class="field-hint">Without this, the rebuild is refused once any sector has been generated.</span></label>
     </div>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Rebuild bright stars</button>

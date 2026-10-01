@@ -6,19 +6,22 @@ needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
 - New galaxy: wipe the database (`src/resetDb.py --yes`), build the
-  density skeleton (`generate.py plan --no-bright-stars`), scatter the
-  bright stars (`generate.py plan --bright-stars-only`), then generate a
-  first neighborhood around a random start (`generate.py galaxy`).
+  density skeleton (`generate.py plan --no-bright-stars`), then generate
+  a first neighborhood around a random start and only then scatter the
+  bright stars, leaving those sectors out (`generate.py galaxy
+  --then-scatter`, GEN.30).
 - Plan: rebuild the density skeleton, then scatter the bright stars.
   The scatter is its own step so the job shows its progress bar and the
   count it placed; a checkbox on either form skips it.
-- Rebuild bright stars: the scatter alone, on the stored plan
-  (`--force` leaves already filled sectors out instead of refusing).
+- Rebuild bright stars: the scatter alone, on the stored plan (filled
+  sectors are always left out).
 - Add a dimmer layer: keep the bright stars already placed and add only
   those from a lower level up to the current one
   (`generate.py plan --bright-stars-down-to N`).
 - Generate sectors: `generate.py galaxy` in any of its four modes
-  (random start, a whole ring, around a sector, one address).
+  (random start, a whole ring, around a sector, one address). The
+  bright-star backfill runs once the sectors are done, around the
+  requested sector, or around every generated one when ticked.
 - Reset: wipe the database only.
 
 New galaxy and Reset delete every generated sector and system, so both
@@ -116,6 +119,10 @@ CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 BAND_LABEL = "Add a dimmer layer of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
+
+NEW_GALAXY_SCATTER_LABEL = "Generate sectors around a random start, then scatter the bright stars"
+"""str: New galaxy's last step (GEN.30): the sectors first, then the
+galaxy-wide scatter, which leaves them out, then the backfill."""
 
 BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
@@ -336,6 +343,15 @@ def scatter_argv(form):
     return argv
 
 
+def backfill_argv(form):
+    """
+    `generate.py galaxy --backfill-from all` when the form's "backfill
+    from every generated sector" box is ticked (GEN.30); nothing
+    otherwise, so the backfill runs from the requested sector only.
+    """
+    return ["--backfill-from", "all"] if form.get("backfill_all") else []
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
@@ -378,19 +394,19 @@ def _build_job_steps(action, form):
     generate = [python, jobs.GENERATE_SCRIPT]
     reset_step = {"label": "Reset the galaxy", "argv": [python, jobs.RESET_SCRIPT, "--yes"]}
     if action == "new_galaxy":
-        plan = plan_steps(generate, form)
-        start = random_start_argv(form)
-        return "new_galaxy", "New galaxy", [
-            reset_step,
-            *plan,
-            {"label": "Generate sectors around a random start", "argv": generate + ["galaxy"] + start},
-        ]
+        # GEN.30: the scatter runs after the sectors (`galaxy
+        # --then-scatter`), so it leaves out every sector just filled.
+        plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}
+        argv = generate + ["galaxy"] + random_start_argv(form) + backfill_argv(form)
+        label = "Generate sectors around a random start"
+        if not form.get("skip_bright_stars"):
+            argv += ["--then-scatter"] + scatter_argv(form)[2:]
+            label = NEW_GALAXY_SCATTER_LABEL
+        return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
     if action == "bright_stars":
         argv = generate + scatter_argv(form)
-        if form.get("bright_force"):
-            argv.append("--force")
         return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
     if action == "bright_band":
         down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
@@ -399,7 +415,7 @@ def _build_job_steps(action, form):
     if action == "galaxy":
         argv, description = galaxy_argv(form)
         label = f"Generate sectors {description}"
-        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv}]
+        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + backfill_argv(form)}]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     raise FormError("Unknown action.")

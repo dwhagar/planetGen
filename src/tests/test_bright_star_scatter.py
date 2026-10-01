@@ -167,16 +167,16 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
         assert row["built"] == pytest.approx(row["stored_w"])
 
 
-def test_scatter_refuses_a_galaxy_with_filled_sectors_unless_forced(mysql_config):
+def test_scatter_always_leaves_filled_sectors_out(mysql_config):
+    # GEN.30: no refusal and no --force needed; a filled sector never gets stars.
     _seed_galaxy(mysql_config)
     args = generate._default_generation_args(config=mysql_config)
     args.num_systems = 1
     address = (0, 0, 0)
     generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
 
-    assert generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only")) is None
-    forced = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--force"))
-    assert forced["total"] > 0
+    summary = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    assert summary["total"] > 0
     conn = _db.get_connection(mysql_config)
     try:
         assert _db.bright_stars_for_sector(conn, *address) == []
@@ -404,14 +404,38 @@ def test_going_down_a_layer_gives_backfilled_blocks_only_what_they_lack(mysql_co
         assert row["luminosity_w"] < partial * physical_constants.SOLAR_LUMINOSITY
 
 
-def test_generating_a_sector_backfills_around_it_and_fills_down_to_the_floor(mysql_config):
+def _block_key(address):
+    from stellarObjects.galaxyDrill import drill_parent
+    ring, layer, slot = address
+    block = drill_parent(DrillBlock(1, ring, slot, layer))
+    return (block.ring, block.wedge, block.slab)
+
+
+def _database_now(mysql_config):
+    conn = _db.get_connection(mysql_config)
+    try:
+        return _db.database_now(conn)
+    finally:
+        conn.close()
+
+
+def test_the_backfill_waits_for_the_run_and_fills_down_to_the_floor(mysql_config):
     _seed_galaxy(mysql_config)  # no plan scatter: the backfill has no ceiling
     args = generate._default_generation_args(config=mysql_config)
     args.num_systems = 0
     address = (3, 0, 4)
     position = sector_position_pc(*address, EDGE_PC)
+    started = _database_now(mysql_config)
     _sector_id, _name, sector = generate.generate_and_save_sector_at(args, address, position, EDGE_PC)
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert _block_rows(conn) == {}  # GEN.30: nothing until the run is done
+    finally:
+        conn.close()
 
+    args.ring, args.layer, args.slot = address
+    summary = generate.backfill_after_run(args, EDGE_PC, started)
+    assert summary["blocks"] > 0
     conn = _db.get_connection(mysql_config)
     try:
         levels = _block_rows(conn)
@@ -423,7 +447,8 @@ def test_generating_a_sector_backfills_around_it_and_fills_down_to_the_floor(mys
         assert _db.bright_stars_for_sector(conn, *address) == []
     finally:
         conn.close()
-    assert len([entry for entry in sector.entries if entry.preplaced]) == own
+    assert own == 0  # the generated sector itself never gets backfilled stars
+    assert not [entry for entry in sector.entries if entry.preplaced]
 
     # The generated sector's own block is within 10 ly (100 L_sun); the
     # next slot's sector is about 13 ly away, the 250 L_sun tier, unless
@@ -538,4 +563,48 @@ def test_a_block_takes_its_nearest_sectors_tier_and_a_nearer_sector_tops_it_up(m
         assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY * 0.99
     # Blocks it reached only at the 300 tier were already that deep.
     assert all(after[key] <= levels.get(key, math.inf) for key in after)
+
+
+def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
+    _seed_galaxy(mysql_config)
+    args = generate._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    near, far = (2, 0, 0), (7, 0, 20)
+    started = _database_now(mysql_config)
+    for address in (near, far):
+        generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    args.ring, args.layer, args.slot = near
+
+    args.backfill_from = "none"
+    assert generate.backfill_after_run(args, EDGE_PC, started) == {"blocks": 0, "stars": 0}
+
+    args.backfill_from = "requested"
+    generate.backfill_after_run(args, EDGE_PC, started)
+    conn = _db.get_connection(mysql_config)
+    try:
+        requested = _block_rows(conn)
+    finally:
+        conn.close()
+    assert requested[_block_key(near)] == FLOOR
+    assert requested.get(_block_key(far), math.inf) > FLOOR
+
+    args.backfill_from = "all"
+    generate.backfill_after_run(args, EDGE_PC, started)
+    conn = _db.get_connection(mysql_config)
+    try:
+        every = _block_rows(conn)
+        assert _db.bright_stars_for_sector(conn, *far) == []
+        assert _db.bright_stars_for_sector(conn, *near) == []
+    finally:
+        conn.close()
+    assert every[_block_key(far)] == FLOOR
+    assert set(requested) <= set(every)
+
+
+def test_the_requested_sector_of_a_many_sector_run_is_the_one_nearest_the_middle():
+    args = argparse.Namespace(block=None, column=False, shell=False, slot=None, ring=4, center_sector=None)
+    points = [(0.0, 0.0, 0.0), (10.0, 0.0, 0.0), (20.0, 0.0, 0.0)]
+    assert generate._requested_center(args, points, EDGE_PC, None) == (10.0, 0.0, 0.0)
+    args = argparse.Namespace(block=None, column=False, shell=False, slot=3, ring=2, layer=0, center_sector=None)
+    assert generate._requested_center(args, points, EDGE_PC, None) == sector_position_pc(2, 0, 3, EDGE_PC)
 
