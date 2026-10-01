@@ -264,6 +264,30 @@ stages themselves don't need it.
     calling `history.back()`/`forward()`? Does it survive a page reload
     or a visit to a sector page and back? How far back does it go?
 
+109. [ ] **Slab list to the left of the map, and a 3:4 map.** Boss
+    (2026-10-01): "slab selection goes to the left of the galactic map
+    if there is room, given the galactic map shoul dhave a 3:4 aspect
+    ratio to its window or 1:1 if necessary, like in mobile view
+    perhaps." Today (after item 63, which put the controls underneath
+    the map) the Galaxy Map's viewport (`.galaxymap3d-panel
+    .starmap-viewport` in `static/style.css`) is the full width with a
+    height of `min(100svh - 9rem, max(20rem, 75vw))`, and the stage
+    view's slab list (`.galaxy-slab-row` rows, `static/galaxystageview.js`)
+    sits with the other controls below the map. Done: the map keeps a
+    3:4 aspect ratio within its window, falling back to 1:1 where the
+    window can't fit 3:4 (as on phones); when there's room beside the
+    map, the slab list moves to its left; when there isn't, it stays
+    under the map with the other controls; no layout jump as stages
+    change. Goes with item 100 (once the drill-down picks wedges and
+    slices, the left-hand list holds whatever the current stage offers)
+    and follows the Responsive Web Design Standards notes above item 62
+    (size classes, container queries). Open questions: is 3:4 width to
+    height (taller than wide) or height to width (4:3, wider than tall,
+    close to today's 75vw height)? At what width does the list move to
+    the left (the standards' expanded class, 840 px and up, or whenever
+    a readable list column fits)? Does the rest of item 63's controls
+    row stay under the map, or join the list on the left?
+
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
 Web workstream. Boss's UX reference for both items below is
