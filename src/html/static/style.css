@@ -505,6 +505,26 @@ tbody tr:last-child td {
   margin-bottom: 0.4rem;
 }
 
+/* The facility form's orbit slider (ADM.9): the full row, hidden unless
+   the placement is "in orbit" (static/facilityform.js toggles `hidden`;
+   `.search-field`'s own display would otherwise override it). */
+.search-field.facility-orbit {
+  flex: 1 1 100%;
+}
+
+.search-field.facility-orbit[hidden] {
+  display: none;
+}
+
+.facility-orbit input[type="range"] {
+  width: 100%;
+}
+
+.facility-orbit output {
+  font-weight: 400;
+  color: var(--text);
+}
+
 .facility-preview {
   border-left: 3px solid var(--accent);
   padding: 0.25rem 0.75rem;

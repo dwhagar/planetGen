@@ -1971,6 +1971,7 @@ def test_facility_routes(admin_client, mysql_config):
 
     orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={moon_id}").get_json()
     assert orbit["period_years"] > 0 and orbit["orbital_speed_kms"] > 0
+    assert 0 < orbit["min_distance_km"] < orbit["distance_km"] <= orbit["max_distance_km"]
     assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=999999999").status_code == 404
 
     response = admin_client.post("/api/facilities", json={

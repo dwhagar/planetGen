@@ -1676,13 +1676,16 @@ def system_detail(conn, system_id):
         dict: `id`, `name`, `sector_id`, `quadrant`, `location`,
             `is_binary`, `binary_type`, `binary_configuration` (`'close'`,
             `'wide'`, or `None` -- see `schema.sql`'s "v15" note),
+            `binary_separation_km` and `binary_heliosphere_radius_km` (a
+            close pair's, for orbits around it),
             `binary_mutual_position_x/y/z_km` (the secondary's position
             relative to the primary -- NULL for a single star; see
             `schema.sql`'s "v14"/"v15" notes), `wikijs_url`/`mediawiki_url`
             (`star_systems.wikijs_url`/`mediawiki_url` -- `None` for
             whichever wiki (or both) this system hasn't been uploaded to
             yet; see `schema.sql`'s "v22" header note), `stars` (id/role/name/
-            star_type/mass_kg/radius_km/temperature_k/luminosity_w --
+            star_type/mass_kg/radius_km/temperature_k/luminosity_w/
+            heliosphere_radius_km --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
@@ -1710,7 +1713,7 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w"
+        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
         (system_id,),
@@ -1766,6 +1769,8 @@ def system_detail(conn, system_id):
         "quadrant": system["quadrant"], "location": system["location"],
         "is_binary": system["is_binary"], "binary_type": system["binary_type"],
         "binary_configuration": system["binary_configuration"],
+        "binary_separation_km": system["binary_separation_km"],
+        "binary_heliosphere_radius_km": system["binary_heliosphere_radius_km"],
         "binary_mutual_position_x_km": system["binary_mutual_position_x_km"],
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],

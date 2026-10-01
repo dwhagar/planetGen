@@ -3000,51 +3000,58 @@ class FacilityError(ValueError):
 
 def _facility_host(conn, host_type, host_id):
     """
-    Reads one facility host: `(columns, mass_kg, radius_km, body_type)`,
-    where `columns` are the `facilities` host columns to set. Mass and
-    radius are `None` for hosts nothing orbits.
+    Reads one facility host: `(columns, mass_kg, radius_km, body_type,
+    sphere_km)`, where `columns` are the `facilities` host columns to set.
+    Mass, radius and sphere (the edge of its sphere of influence:
+    `facilities.star_host`'s heliosphere for a star, the Hill sphere for a
+    planet or moon) describe what an orbit circles: the star for an
+    asteroid belt (the pair, for a close pair's belt), `None` for hosts
+    nothing orbits.
 
     Raises:
         FacilityError: If no such host exists (`not_found`).
     """
     missing = FacilityError(f"no such {host_type.replace('_', ' ')}: {host_id}", not_found=True)
-    if host_type == "star":
-        row = conn.execute(
-            "SELECT s.star_system_id, s.mass_kg, s.radius_km, ss.binary_configuration, ss.binary_separation_km"
-            " FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE s.id = ?",
-            (host_id,),
-        ).fetchone()
+    if host_type in ("star", "asteroid_belt"):
+        if host_type == "star":
+            row = conn.execute("SELECT star_system_id, id AS star_id FROM stars WHERE id = ?", (host_id,)).fetchone()
+        else:
+            row = conn.execute("SELECT star_system_id, star_id FROM asteroid_belts WHERE id = ?",
+                               (host_id,)).fetchone()
         if row is None:
             raise missing
-        mass, radius = row["mass_kg"], row["radius_km"]
-        if row["binary_configuration"] == "close":
-            # A close pair is orbited as one: their combined mass, clear of both.
-            pair = conn.execute("SELECT SUM(mass_kg) AS mass, MAX(radius_km) AS radius FROM stars"
-                                " WHERE star_system_id = ?", (row["star_system_id"],)).fetchone()
-            mass = pair["mass"]
-            radius = (row["binary_separation_km"] or 0.0) + pair["radius"]
-        return {"star_system_id": row["star_system_id"], "star_id": host_id}, mass, radius, None
+        system = conn.execute("SELECT binary_configuration, binary_separation_km, binary_heliosphere_radius_km"
+                              " FROM star_systems WHERE id = ?", (row["star_system_id"],)).fetchone()
+        stars = conn.execute("SELECT id, role, mass_kg, radius_km, heliosphere_radius_km FROM stars"
+                             " WHERE star_system_id = ? ORDER BY id", (row["star_system_id"],)).fetchall()
+        star_id = row["star_id"]
+        if star_id is None:
+            # A single star's or a close pair's belt: around the primary
+            # (the pair as one, for a close pair).
+            star_id = next((star["id"] for star in stars if star["role"] in ("single", "primary")), stars[0]["id"])
+        mass, radius, sphere = facility_rules.star_host(
+            [dict(star) for star in stars], star_id, system["binary_configuration"],
+            system["binary_separation_km"], system["binary_heliosphere_radius_km"])
+        if host_type == "star":
+            return {"star_system_id": row["star_system_id"], "star_id": host_id}, mass, radius, None, sphere
+        return ({"star_system_id": row["star_system_id"], "asteroid_belt_id": host_id},
+                mass, radius, None, sphere)
     if host_type in ("planet", "moon"):
         table = "planets" if host_type == "planet" else "moons"
-        row = conn.execute(f"SELECT star_system_id, mass_kg, radius_km, body_type FROM {table} WHERE id = ?",
-                           (host_id,)).fetchone()
+        row = conn.execute(f"SELECT star_system_id, mass_kg, radius_km, body_type, hill_radius_km FROM {table}"
+                           " WHERE id = ?", (host_id,)).fetchone()
         if row is None:
             raise missing
         return ({"star_system_id": row["star_system_id"], f"{host_type}_id": host_id},
-                row["mass_kg"], row["radius_km"], row["body_type"])
-    if host_type == "asteroid_belt":
-        row = conn.execute("SELECT star_system_id FROM asteroid_belts WHERE id = ?", (host_id,)).fetchone()
-        if row is None:
-            raise missing
-        return {"star_system_id": row["star_system_id"], "asteroid_belt_id": host_id}, None, None, None
+                row["mass_kg"], row["radius_km"], row["body_type"], row["hill_radius_km"])
     if host_type == "asteroid_field":
         if conn.execute("SELECT 1 FROM asteroid_fields WHERE id = ?", (host_id,)).fetchone() is None:
             raise missing
-        return {"asteroid_field_id": host_id}, None, None, None
+        return {"asteroid_field_id": host_id}, None, None, None, None
     if host_type == "space":
         if conn.execute("SELECT 1 FROM sectors WHERE id = ?", (host_id,)).fetchone() is None:
             raise FacilityError(f"no such sector: {host_id}", not_found=True)
-        return {"sector_id": host_id}, None, None, None
+        return {"sector_id": host_id}, None, None, None, None
     raise FacilityError(f"unknown host type {host_type!r}")
 
 
@@ -3052,19 +3059,38 @@ def facility_orbit(conn, host_type, host_id, distance_km=None):
     """
     The circular orbit an orbital facility would have around a star,
     planet or moon (`facilities.orbit_for`), without saving anything --
-    what the web form shows before saving.
+    what the web form shows before saving -- plus the range the form's
+    slider covers (`facilities.orbit_limits`): `min_distance_km` and
+    `max_distance_km`.
 
     Raises:
         FacilityError: If the host can't be orbited, doesn't exist, or the
-            distance is inside it.
+            distance is inside it or outside its sphere of influence.
     """
     if host_type not in ("star", "planet", "moon"):
         raise FacilityError(f"nothing orbits a {host_type.replace('_', ' ')}")
-    _columns, mass, radius, _body_type = _facility_host(conn, host_type, host_id)
+    _columns, mass, radius, _body_type, sphere = _facility_host(conn, host_type, host_id)
+    lowest, highest = facility_rules.orbit_limits(radius, sphere)
     try:
-        return facility_rules.orbit_for(mass, radius, distance_km)
+        orbit = facility_rules.orbit_for(mass, radius, distance_km, highest)
     except ValueError as exc:
         raise FacilityError(str(exc)) from exc
+    return {**orbit, "min_distance_km": lowest, "max_distance_km": highest}
+
+
+def _belt_orbit(conn, belt_id, mass, radius):
+    """A spot in an asteroid belt for an asteroid facility
+    (`facilities.belt_position`) and the circular orbit around its star
+    from there: `orbit_for`'s dict plus `phase_deg`."""
+    belt = conn.execute("SELECT lower_limit_km, upper_limit_km FROM asteroid_belts WHERE id = ?",
+                        (belt_id,)).fetchone()
+    distance_km, phase_deg = facility_rules.belt_position(belt["lower_limit_km"], belt["upper_limit_km"])
+    try:
+        orbit = facility_rules.orbit_for(mass, radius, max(distance_km, radius * 1.01))
+    except ValueError as exc:
+        raise FacilityError(str(exc)) from exc
+    orbit["phase_deg"] = phase_deg
+    return orbit
 
 
 def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=None, phase_deg=None,
@@ -3082,7 +3108,8 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             `asteroid_field`, or `space` (then `host_id` is a sector).
         host_id (int): The host row's id.
         distance_km (float, optional): An orbital facility's orbit radius
-            (`facilities.orbit_for`'s default otherwise).
+            (`facilities.orbit_for`'s default otherwise), inside its
+            host's sphere of influence (`facilities.orbit_limits`).
         phase_deg (float, optional): Where along its orbit it starts;
             random otherwise.
         offset_ly (tuple, optional): A stand-alone facility's `(x, y, z)`
@@ -3091,13 +3118,18 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             out.
         description (str, optional): Free text.
 
+    An asteroid facility in a belt takes no distance: it gets a random
+    spot in the belt (`facilities.belt_position`) and the circular orbit
+    around its star from there, which `advance_facility_orbits` moves
+    like an orbital facility's.
+
     Returns:
         int: The new `facilities.id`.
 
     Raises:
         FacilityError: If the rules refuse it or the host doesn't exist.
     """
-    columns, mass, radius, body_type = _facility_host(conn, host_type, host_id)
+    columns, mass, radius, body_type, sphere = _facility_host(conn, host_type, host_id)
     problem = facility_rules.check_facility(kind, placement, host_type, body_type)
     if problem:
         raise FacilityError(problem)
@@ -3105,14 +3137,16 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
     orbit = {}
     if placement == "orbital":
         try:
-            orbit = facility_rules.orbit_for(mass, radius, distance_km)
+            orbit = facility_rules.orbit_for(mass, radius, distance_km, facility_rules.orbit_limits(radius, sphere)[1])
         except ValueError as exc:
             raise FacilityError(str(exc)) from exc
         if phase_deg is None:
             phase_deg = random.uniform(0.0, 360.0)
         orbit["phase_deg"] = phase_deg % 360.0
     elif distance_km is not None or phase_deg is not None:
-        raise FacilityError("only an orbital facility has an orbit")
+        raise FacilityError("only an orbital facility takes an orbit distance or phase")
+    elif host_type == "asteroid_belt":
+        orbit = _belt_orbit(conn, host_id, mass, radius)
 
     placement_values = (None, None, None, None)
     if host_type == "space":
@@ -3348,12 +3382,13 @@ def _refile_nearest_rows(conn, table, moves):
 
 def advance_facility_orbits(conn, elapsed_years):
     """Advances every orbital facility's `orbit_phase_deg` by its period,
-    the way `advance_orbital_phases` does for moons. Returns the count."""
+    the way `advance_orbital_phases` does for moons, and every asteroid
+    facility in a belt around its star the same way. Returns the count."""
     if elapsed_years <= 0:
         return 0
     return conn.execute(
         "UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * ? / orbit_period_years, 360.0),"
-        " modified_at = modified_at WHERE placement = 'orbital' AND orbit_period_years > 0",
+        " modified_at = modified_at WHERE placement IN ('orbital', 'asteroid') AND orbit_period_years > 0",
         (elapsed_years,),
     ).rowcount
 
