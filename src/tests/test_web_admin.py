@@ -653,7 +653,7 @@ def test_admin_stats_renders(client, fake):
     assert fake.called("admin_stats") == [("admin_stats", DB)]
     assert "someone_elses_db" not in html
     assert '<span class="badge">healthy</span>' in html
-    assert "3,456" in html and "5.0 MB" in html and "1h 1m" in html
+    assert "3,456" in html and "5.0 MB" in html and "1.03 hours" in html
     assert "0.10 / 0.20 / 0.30" in html
     # Duplicate names: links to the sector/system pages, escaped names.
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
@@ -837,7 +837,7 @@ def test_admin_stats_lists_and_lifts_lockouts(client, fake, admin_token):
     fake.failures = [{"action": "login.failed", "username": "<b>x</b>", "ip": "93.184.216.34",
                       "created_at": "2026-10-01T09:55:00Z"}]
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert "<code>93.184.216.34</code>" in html and "4m" in html
+    assert "<code>93.184.216.34</code>" in html and "4.83 minutes" in html
     assert "&lt;b&gt;x&lt;/b&gt;" in html and "Wrong username or password" in html
     resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "scope": "ip",
                                                       "subject": "93.184.216.34"})

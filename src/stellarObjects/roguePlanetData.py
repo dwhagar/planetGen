@@ -25,7 +25,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_body_radius_km, format_galactic_orbit, generate_galactic_orbit_fields,
+from .utils import (format_body_radius_km, format_galactic_orbit, format_speed_kms, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
@@ -401,7 +401,7 @@ class InterstellarComet:
             f"{self.name} is a small icy body on a hyperbolic, unbound trajectory through interstellar space, "
             f"with a nucleus roughly {self.nucleus_diameter_km:.2f} km across, composed of "
             f"{self.get_composition_summary()}. It is traveling at a hyperbolic excess speed of "
-            f"{self.velocity_kms:.1f} km/s relative to any star it passes. {activity} Its own bulk motion "
+            f"{format_speed_kms(self.velocity_kms)} relative to any star it passes. {activity} Its own bulk motion "
             f"still carries it around the galactic center at "
             f"{format_galactic_orbit(self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy)}."
         )

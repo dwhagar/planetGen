@@ -58,4 +58,4 @@ jobs:
         run: python -m nltk.downloader words
 
       - name: Run the brute-force tests with the deep profile
-        run: pytest src/tests/test_fuzz_*.py -p no:cacheprovider
+        run: pytest src/tests/test_fuzz_*.py -p no:cacheprovider -n auto --dist worksteal
