@@ -495,22 +495,6 @@ project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
 `bright-star-preplacement-plan.md`), and so has the fill in
 `generate.py` that uses them (population ages and pre-placed bright stars).
 
-49. [ ] **System Map names never overlap.** Boss: "we need to make sure
-    names on the system map clickable interface do not overlap."
-    - Today `systemmap._label_sides_2d` places each label (4 directions,
-      then a pushed "below"/"above" with a leader line, else dropped)
-      against the others (plus seeded star-label rects) using an
-      estimated width (`_label_half_width_px`: character count times a
-      fixed width). Real text can run wider than the estimate, so
-      labels can still collide.
-    - Fix: make sure every star label and marker is in the collision
-      set; measure the real text in the browser
-      (`getBBox()` in `systemmap.js` after load and after each zoom
-      step in `mapzoom.js`) and nudge or hide labels that still
-      overlap, keeping the server placement as the no-script fallback.
-    - Check every scene: single star, close and wide binaries, and the
-      moon-centered scenes, at 390 px and 1280 px.
-
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
 Boss asked for these on 2026-10-01 (quoted where it matters). None is
