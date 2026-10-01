@@ -34,9 +34,9 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (8)**.
-- **Galaxy navigation (64-73):** Boss's drill-down design of
+- **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
-   64-66 first, in order; it replaces the map's click-to-center and
+   70-72 first, in order; it replaces the map's click-to-center and
    double-click zoom.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
@@ -111,10 +111,10 @@ a sector. Admins can generate a sector, a layer or a neighborhood (radius
 asked in light-years) at the sector level, and the NAV page can pick its
 start and destination on the map or in a sector. Everything below is
 specified, with the math, in the design doc named in the heading; each
-item names its section. Items 64-66 go in order (Galaxy Map thread); Web
-can do 63 and 68 alongside, then 69 and 72 once 66 fixes the URLs.
+item names its section. Items 70-72 go in order (Galaxy Map thread); Web
+can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
 
-64. [ ] **Nested ladder geometry (design doc section 3).** Today's
+70. [ ] **Nested ladder geometry (design doc section 3).** Today's
     `blockWedgeCount` picks each level's wedges on its own, so a child
     block sits inside one parent only sometimes (109 of 143 rings at
     243 -> 27, 1,162 of 1,286 at 27 -> 3). Done: the nested wedge rule
@@ -126,14 +126,14 @@ can do 63 and 68 alongside, then 69 and 72 once 66 fixes the URLs.
     parity test shows both agree and that a parent's sectors are exactly
     its children's.
 
-65. [ ] **Stage contents API (section 7).** Done: `GET
+71. [ ] **Stage contents API (section 7).** Done: `GET
     /api/galaxy/stage?at=m.I.s.S` returns one container's children with
     generated counts (generated sectors listed at m = 3), and the whole
     galaxy's level-243 blocks with no `at`; cached by `lib/tilecache.py`
     under the stamp, a change invalidating only its ancestor chain. No
     schema change.
 
-66. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
+72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
     eight stages on the Galaxy Map, with slab hover highlight, pull-out
     to a top-down view, the van Wijk-Nuij flight into a block, the slab
     strip, the breadcrumb with sibling menus, stage URLs
@@ -143,7 +143,7 @@ can do 63 and 68 alongside, then 69 and 72 once 66 fixes the URLs.
     (decision 2 in section 11 decides whether free look stays). Needs
     63's bigger map for room.
 
-67. [ ] **Generate from the sector level (section 6).** Boss: "once
+73. [ ] **Generate from the sector level (section 6).** Boss: "once
     we're down to a sector level we can tell a slice to generate all the
     sectors in that slice or click on a sector and generate it from the
     UI if you're admin", and "add a 'generate neighborhood' when at a
@@ -157,38 +157,38 @@ can do 63 and 68 alongside, then 69 and 72 once 66 fixes the URLs.
     map and refreshed when the job ends. Web owns `generate.py` and the
     Generate page; Galaxy Map owns the buttons.
 
-68. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
+74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
     Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
     start/destination" button on a system or phenomenon, which lands on
     `/nav?from=...&to=...`; system and phenomenon pages and the Sector
     Map panel get "Nav from here" and "Nav to here".
 
-69. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
+75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as
     we have now or the galactic map interface to select. If it's within
     sector then it'll just use the sector interface." Done: beside each
     dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
-    forced on, ending in 68's Sector Map pick mode), "Pick in this
+    forced on, ending in 74's Sector Map pick mode), "Pick in this
     sector" once the other end is known, and a Bookmarks select.
 
-70. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
+76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
     info panels saves a stage, sector, system or phenomenon in
     `static/bookmarks.js` (per browser, up to 100, storage failures
     tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
     entries offered by the NAV pickers. Shared bookmarks need Boss's
     decision 4 and a migration.
 
-71. [ ] **Address bar (section 9.3).** Done: a field over the breadcrumb
+77. [ ] **Address bar (section 9.3).** Done: a field over the breadcrumb
     takes a designation, `ring/layer/slot`, `x, y, z` pc or a name and
     flies to that sector's stage 8, in pick mode too.
 
-72. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
+78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
     link goes to the Quadrant table today. Done: sector, system and
     search pages link to `/galaxy?sector=<designation>`.
 
-73. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
+79. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
     result's "Show on Galaxy Map" opens the smallest stage holding both
-    endpoints with the course drawn. After 66 and 69.
+    endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
