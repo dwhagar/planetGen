@@ -48,6 +48,44 @@ def test_orbit_matches_how_moons_orbit():
         facilities.orbit_for(earth_mass, earth_radius, 1000.0)
 
 
+def test_host_placements_follow_the_rules():
+    assert facilities.host_placements("planet", "t") == ["terrestrial", "orbital"]
+    assert facilities.host_placements("planet", "g") == ["orbital"]
+    assert facilities.host_placements("moon", "t") == ["terrestrial", "orbital"]
+    assert facilities.host_placements("star") == ["orbital"]
+    assert facilities.host_placements("asteroid_belt") == ["asteroid"]
+
+
+def test_orbit_slider_is_logarithmic_from_surface_to_sphere():
+    lowest, highest = facilities.orbit_limits(6371.0, 1.5e6)
+    assert lowest == pytest.approx(6371.0 * 1.01) and highest == 1.5e6
+    assert facilities.distance_from_step(0, lowest, highest) == pytest.approx(lowest)
+    assert facilities.distance_from_step(1000, lowest, highest) == pytest.approx(highest)
+    # Halfway along is the geometric mean, and each step the same factor.
+    assert facilities.distance_from_step(500, lowest, highest) == pytest.approx((lowest * highest) ** 0.5)
+    assert facilities.distance_from_step(-5, lowest, highest) == pytest.approx(lowest)
+    for step in (0, 1, 250, 999, 1000):
+        distance = facilities.distance_from_step(step, lowest, highest)
+        assert facilities.step_for_distance(distance, lowest, highest) == step
+    # No stored sphere: a fixed number of host radii.
+    assert facilities.orbit_limits(6371.0, None)[1] == pytest.approx(6371.0 * 1000)
+    assert facilities.orbit_limits(6371.0, 100.0)[1] == pytest.approx(6371.0 * 1000)
+
+
+def test_orbit_must_stay_inside_the_sphere_of_influence():
+    with pytest.raises(ValueError, match="sphere of influence"):
+        facilities.orbit_for(5.972e24, 6371.0, 2.0e6, highest_km=1.5e6)
+    # The default orbit comes in to the sphere's edge for a tiny sphere.
+    assert facilities.orbit_for(5.972e24, 6371.0, highest_km=10_000.0)["distance_km"] == pytest.approx(10_000.0)
+
+
+def test_star_host_orbits_a_close_pair_as_one():
+    stars = [{"id": 1, "mass_kg": 2.0e30, "radius_km": 7.0e5, "heliosphere_radius_km": 1.0e10},
+             {"id": 2, "mass_kg": 1.0e30, "radius_km": 5.0e5, "heliosphere_radius_km": 8.0e9}]
+    assert facilities.star_host(stars, 2, "wide") == (1.0e30, 5.0e5, 8.0e9)
+    assert facilities.star_host(stars, 1, "close", 3.0e6, 2.0e10) == pytest.approx((3.0e30, 3.7e6, 2.0e10))
+
+
 def _system_with_worlds(mysql_config):
     """A saved single-star system with a terrestrial planet, a gas giant
     and a belt -- retried, since generation is random."""
@@ -88,6 +126,11 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
             _db.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", ids["belt"])
         with pytest.raises(_db.FacilityError):
             _db.add_facility(conn, "Floaters", "colony", "terrestrial", "planet", ids["giant"])
+        with pytest.raises(_db.FacilityError, match="sphere of influence"):
+            _db.add_facility(conn, "Runaway", "station", "orbital", "planet", ids["terrestrial"],
+                             distance_km=physical_constants.AU_TO_KM)
+        with pytest.raises(_db.FacilityError):
+            _db.add_facility(conn, "Pinned", "outpost", "asteroid", "asteroid_belt", ids["belt"], distance_km=1.0e8)
         with pytest.raises(_db.FacilityError) as missing:
             _db.add_facility(conn, "Nowhere", "colony", "terrestrial", "planet", 10 ** 12)
         assert missing.value.not_found
@@ -98,9 +141,30 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
         assert listed["High Yard"]["orbit_phase_deg"] == pytest.approx(10.0)
         assert listed["High Yard"]["orbit_period_years"] > 0
         assert listed["New Hope"]["orbit_distance_km"] is None
+        # A belt facility gets a spot in the belt and an orbit around the
+        # star from there (ADM.9).
+        belt = conn.execute("SELECT lower_limit_km, upper_limit_km FROM asteroid_belts WHERE id = ?",
+                            (ids["belt"],)).fetchone()
+        rockpile = listed["Rockpile"]
+        assert belt["lower_limit_km"] <= rockpile["orbit_distance_km"] <= belt["upper_limit_km"]
+        assert rockpile["orbit_period_years"] > 0 and rockpile["orbital_speed_kms"] > 0
+        assert 0 <= rockpile["orbit_phase_deg"] < 360
         assert listed["New Hope"]["host_id"] == ids["terrestrial"]
         assert queryDb.colonized_body_ids(conn, system_id)["planets"] == {ids["terrestrial"]}
         assert queryDb.facility_detail(conn, yard)["kind"] == "starbase"
+
+        # Position updates move orbital and belt facilities alike.
+        quarter = rockpile["orbit_period_years"] / 4
+        with conn:
+            assert _db.advance_facility_orbits(conn, quarter) == 3
+        moved = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE name = 'Rockpile'").fetchone()
+        assert (moved["orbit_phase_deg"] - rockpile["orbit_phase_deg"]) % 360.0 == pytest.approx(90.0)
+
+        orbit = _db.facility_orbit(conn, "planet", ids["terrestrial"])
+        hill = conn.execute("SELECT radius_km, hill_radius_km FROM planets WHERE id = ?",
+                            (ids["terrestrial"],)).fetchone()
+        assert orbit["min_distance_km"] == pytest.approx(hill["radius_km"] * 1.01)
+        assert orbit["max_distance_km"] == pytest.approx(hill["hill_radius_km"])
 
         with conn:
             assert _db.delete_facility(conn, colony)

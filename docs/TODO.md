@@ -1147,40 +1147,6 @@ MAP.48 and MAP.37, all fixed.
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
 
-- [ ] **ADM.9 (bug) "Place a facility": host by placement, a log-scale orbit slider, and belt facilities that move**
-  Boss (2026-10-01): "Bugfix also in the "place a facility" Name,
-  Placement, Placement determine what is listed in Host. Orbital radii
-  is hard to understand, make this a logaritmic slider for distance
-  form the object to the edge of the sphere of influence. This control
-  should only appear if relevant, i.e. if it's in orbit aroudn
-  something, if it's on a planet, moon, asteroid,e tc... we don't need
-  that. If it's in an asteroid belt then we should pick a location in
-  the asteroid belt, assign an orbital velocity, and add it to what
-  gets updated during a position updagte." Today the system page's form
-  (`html/web/system_facilities.py`, `PLACEMENT_OPTIONS`,
-  `host_options`) lists every host whatever the placement and takes the
-  orbit as a typed distance in km or AU. Done:
-  - The form asks in this order: name, placement, then host, and the
-    host list holds only hosts that fit the placement (stars, planets
-    and moons for in orbit; planets and moons for on the surface;
-    belts for in the belt), following `facility_rules`.
-  - In orbit: the distance is a logarithmic slider from just above the
-    host's surface (or the star's) out to the edge of the host's
-    sphere of influence (Hill sphere for a planet or moon), showing the
-    distance, period and speed as it moves; the typed field goes.
-  - On a surface: no distance control.
-  - In a belt: no distance control; the facility gets a position inside
-    the belt (a random radius between its inner and outer edge and a
-    random angle) and an orbital velocity around the star from that
-    radius, stored on the facility, and `updateOrbits.py`'s
-    `advance_facility_orbits` moves it along with orbital facilities.
-  Open questions: may the admin pick where in the belt, or is it always
-  random? Default: random, with the chosen radius shown. For a star,
-  what is the outer end of the slider (the system's outermost body, or
-  the heliopause)? Default: the heliopause. Does a belt facility need a
-  migration for its position columns? (If so, it goes through the
-  Database workstream's next version.)
-
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be
   collapsible and generate around a sector should have the option to

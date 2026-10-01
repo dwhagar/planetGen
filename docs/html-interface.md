@@ -229,10 +229,14 @@ a dashed orbit on the map's own scale, a planet's or moon's just outside
 its marker (and a planet's again around the center of its moon view), a
 belt's on the ring. A colony makes its world "Inhabited"
 (`queryDb._with_life_fields`). For an admin the panel has a form
-(`web/system_facilities.py`): the host (any star, planet, moon or belt in
-the system), the placement (in orbit, on the surface, in the belt), the
-kind, an orbital distance in km or AU (blank for 3 host radii), a name and
-an optional description. It POSTs to `/system/<id>` with
+(`web/system_facilities.py`): a name, the placement (in orbit, on the
+surface, in the belt), the host (only the stars, planets, moons or belts
+in the system that take that placement), the kind, and an optional
+description. For "in orbit" a logarithmic slider sets the distance, from
+just above the host's surface to the edge of its sphere of influence (a
+planet's or moon's Hill sphere, a star's heliosphere); a surface or belt
+facility has no distance control, and a belt one gets a random spot in
+the belt when saved. It POSTs to `/system/<id>` with
 `{{ csrf_field() }}` and a `facility_action`: `preview` checks the
 placement rules (`stellarObjects.facilities.check_facility`) and shows the
 orbit `GET /api/facilities/orbit` works out from the host's mass, saving
@@ -240,8 +244,11 @@ nothing; `save` calls `POST /api/facilities` and answers `303` back to
 `/system/<id>?facility=added#facilities`; `remove` (each row's Remove
 button, behind a `<details>` confirm step) calls `DELETE
 /api/facilities/<id>` for one of this system's own facilities. Errors,
-including the API's reason for a refusal, show next to the form. No
-script is involved.
+including the API's reason for a refusal, show next to the form.
+`static/facilityform.js` hides the hosts that don't fit the placement,
+shows the slider only for "in orbit" and reads out its distance, period
+and speed as it moves; without it the form still works and the server
+refuses a host that doesn't fit.
 
 **Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
 (`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,

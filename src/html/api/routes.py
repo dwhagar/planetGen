@@ -1597,7 +1597,9 @@ def galaxy_bright_stars_in_cell():
 def facility_orbit():
     """`GET /api/facilities/orbit?host_type=star|planet|moon&host_id=N[&distance_km=X]`
     -- the orbit (distance, period, speed) an orbital facility would get,
-    without saving anything, so a form can show it first."""
+    without saving anything, so a form can show it first, plus
+    `min_distance_km`/`max_distance_km`, the orbits the host allows (just
+    above its surface to the edge of its sphere of influence)."""
     host_type = request.args.get("host_type", "")
     try:
         host_id = int(request.args.get("host_id", ""))
