@@ -430,6 +430,42 @@ export function parseDrillKey(key) {
   return block;
 }
 
+// A drill block's bounds, {r0, r1, t0, t1, z0, z1}: rings ring*m to
+// ring*m + m - 1, its wedge of drillWedgeCount(m, ring), and slab*m's
+// layers +/- (m - 1)/2. At m = 1, the sector's own cell.
+export function drillBlockBounds(block, edgePc) {
+  var size = block.m * edgePc;
+  var dTheta = (2 * Math.PI) / drillWedgeCount(block.m, block.ring);
+  return {
+    r0: block.ring * size, r1: (block.ring + 1) * size,
+    t0: block.wedge * dTheta, t1: (block.wedge + 1) * dTheta,
+    z0: (block.slab - 0.5) * size, z1: (block.slab + 0.5) * size,
+  };
+}
+
+// The slots of sector ring `sectorRing` in drill block `block` (whose
+// rings hold it): the slots whose centers fall in its wedge, {first,
+// last} (last < first when none). The wedges nest, so these are exactly
+// the slots whose chain passes through `block`.
+export function drillSlotRange(block, sectorRing) {
+  if (block.m === 1) return { first: block.wedge, last: block.wedge };
+  return blockSlotRange(block.ring, block.wedge, block.m, sectorRing, drillWedgeCount(block.m, block.ring));
+}
+
+// A cell's mean density and its azimuthal mean ({density, mean}), as
+// blocksInView shades blocks by.
+export function boundsDensity(b, shape) {
+  return meanDensity(b.r0, b.r1, b.t0, b.t1, b.z0, b.z1, shape);
+}
+
+// Whether sector (ring, layer) is drawn: sectorAllowed with the galaxy's
+// sector threshold, else (an older shape without one) the drawing floor
+// blockExists uses.
+export function sectorDrawable(ring, layer, edgePc, shape) {
+  if (shape.sector_min_density > 0) return sectorAllowed(ring, layer, edgePc, shape);
+  return densityUpperBound(ring * edgePc, Math.max(0, Math.abs(layer) - 0.5) * edgePc, shape) >= PRISM_MIN_DENSITY;
+}
+
 // Whether sector (ring, layer) can exist: the galaxy's density bound at
 // its ring centerline and layer center reaches shape.sector_min_density
 // (the skeleton's rule, stellarObjects.galaxySkeleton). Without a

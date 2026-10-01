@@ -2131,3 +2131,150 @@ body.app {
   color: var(--error);
   border-color: var(--error);
 }
+
+/* The Galaxy Map drill-down (static/galaxystageview.js): the path from
+   the galaxy to the shown stage, each step with a menu of its siblings;
+   the slab strip beside the map; the hover tooltip. */
+.galaxymap3d-panel [hidden] {
+  display: none !important;
+}
+
+.galaxy-crumbs ol {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.15rem 0.35rem;
+  list-style: none;
+  margin: 0 0 0.5rem;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.galaxy-crumbs li {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  position: relative;
+}
+
+.galaxy-crumbs li + li::before {
+  content: "›";
+  color: var(--text-muted);
+  margin-right: 0.25rem;
+}
+
+.galaxy-crumbs [aria-current] {
+  font-weight: 600;
+}
+
+.galaxy-crumb,
+.galaxy-crumb-menu button {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0.1rem 0.2rem;
+  color: var(--accent);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.galaxy-crumb-menu summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0 0.2rem;
+  color: var(--text-muted);
+}
+
+.galaxy-crumb-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.galaxy-crumb-menu ul {
+  position: absolute;
+  z-index: 4;
+  top: 100%;
+  left: 0;
+  max-height: 16rem;
+  overflow-y: auto;
+  margin: 0.2rem 0 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.galaxy-crumb-menu button {
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.galaxy-crumb-menu button[aria-current] {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.galaxy-slabs h3 {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.galaxy-slabs ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 18rem;
+  overflow-y: auto;
+}
+
+.galaxy-slab-row {
+  display: grid;
+  grid-template-columns: 1fr 4rem 9rem;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  background: none;
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 0.2rem 0.4rem;
+  cursor: pointer;
+}
+
+.galaxy-slab-row:hover,
+.galaxy-slab-row.is-hovered,
+.galaxy-slab-row[aria-current] {
+  border-color: var(--accent);
+}
+
+.galaxy-slab-row[aria-current] {
+  font-weight: 600;
+}
+
+.galaxy-slab-bar {
+  height: 0.4rem;
+  border-radius: 3px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.galaxy-slab-bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.galaxy-slab-count {
+  color: var(--text-muted);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.galaxy-stage-tooltip {
+  white-space: normal;
+  max-width: 18rem;
+}
