@@ -175,30 +175,6 @@ A red deep run is a real bug report: its log carries the shrunk input.
 
 ## CI runners
 
-Every workflow job picks its runner from a repository variable (Settings >
-Secrets and variables > Actions > Variables). Each holds JSON: a label
-list such as `["self-hosted", "Linux", "X64"]`, or a hosted runner name in
-quotes such as `"ubuntu-latest"`. Unset, a job uses the default below.
-
-| Variable | Jobs | Default |
-|---|---|---|
-| `RUNNER_LINUX` | tests, browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` |
-| `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` |
-| `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` (GitHub-hosted) |
-| `RUNNER_WINDOWS_INSTALLERS` | `install.ps1` on Windows | `"windows-latest"` (GitHub-hosted) |
-
-The installer jobs stay on GitHub's throwaway machines by default because
-they install planetGen as a system service (launchd daemons, scheduled
-tasks, a server on port 8000) with sudo or admin rights, which would stay
-behind on a machine of your own.
-
-A self-hosted Linux runner needs Docker, with the runner's user in the
-`docker` group (the MySQL and MariaDB service containers). The browser
-job installs Chromium's system libraries itself when `sudo` works without
-a password; otherwise install them once by hand
-(`sudo npx playwright install-deps chromium`). The MySQL
-container gets a free host port, so several jobs (or a MySQL of your own
-on 3306) can share a machine. Each job installs into its own virtualenv
-under `RUNNER_TEMP`, so packages don't carry over between jobs.
-`actions/setup-python` downloads the Python versions the jobs ask for
-(3.9 and 3.12) into the runner's tool cache on first use.
+CI can run on your own computers. Which jobs run where, what each machine
+needs, the security settings and troubleshooting are in
+[`ci-runners.md`](ci-runners.md).

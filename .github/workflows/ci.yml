@@ -11,15 +11,17 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# Where jobs run: see docs/testing.md, "CI runners". Each job's runs-on
+# Where jobs run: see docs/ci-runners.md. Each job's runs-on
 # reads a repository variable (Settings > Secrets and variables > Actions
 # > Variables) holding a JSON label list or runner name, and falls back to
-# the default written next to it.
+# the default written next to it. A pull request from a fork always runs
+# on GitHub's machines: this repository is public, and a fork's code must
+# never run on one of our own computers (docs/ci-runners.md, "Security").
 
 jobs:
   test:
     name: test (${{ matrix.python-version }}, ${{ matrix.db-image }})
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
     strategy:
       # Without this, the default fail-fast:true cancels every other
       # still-running matrix leg the moment any one of them fails -- e.g.
@@ -103,7 +105,7 @@ jobs:
     # phone and desktop widths, light and dark -- axe-core (vendored under
     # src/tests/vendor/), horizontal overflow, console/CSP errors, skip
     # link. It skips in the `test` job above, which has no browser.
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
 
     services:
       mysql:
@@ -151,7 +153,7 @@ jobs:
           if sudo -n true 2>/dev/null; then
             sudo -n "$(command -v python)" -m playwright install-deps chromium
           else
-            echo "No passwordless sudo: skipping Chromium's system libraries (install them once with: sudo npx playwright install-deps chromium)"
+            echo "No passwordless sudo: skipping Chromium's system libraries (install them once, see docs/ci-runners.md)"
           fi
 
       - name: Pre-fetch the NLTK 'words' corpus
@@ -189,7 +191,7 @@ jobs:
     # spawning the runner detached, liveness through OpenProcess, Cancel
     # through the job's cancel file and taskkill /T, and the state file
     # write retry. No MySQL here; the one database test skips.
-    runs-on: ${{ fromJSON(vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"windows-latest"') || vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -217,7 +219,7 @@ jobs:
     # ships it: the venv from Homebrew's python3, the _www permissions,
     # newsyslog, and gunicorn under launchd answering on 127.0.0.1:8000.
     # No database here (--skip-database).
-    runs-on: ${{ fromJSON(vars.RUNNER_MACOS_INSTALLERS || '"macos-latest"') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"macos-latest"') || vars.RUNNER_MACOS_INSTALLERS || '"macos-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -267,7 +269,7 @@ jobs:
     # database (-SkipDatabase), waitress answering from the venv it made,
     # and install-maintenance-task.ps1's Task Scheduler tasks. The job
     # runner itself is covered by windows-jobs above.
-    runs-on: ${{ fromJSON(vars.RUNNER_WINDOWS_INSTALLERS || '"windows-latest"') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"windows-latest"') || vars.RUNNER_WINDOWS_INSTALLERS || '"windows-latest"') }}
     steps:
       - uses: actions/checkout@v4
 
@@ -310,7 +312,7 @@ jobs:
           Get-Content "$env:RUNNER_TEMP\pgdata\tasks\orbits-ci_test.cmd"
 
   dependency-audit:
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
     steps:
       - uses: actions/checkout@v4
 
