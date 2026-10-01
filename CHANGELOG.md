@@ -1,5 +1,46 @@
 # Changelog
 
+## [7.22.1] - 2026-10-01
+
+### Changed
+- **Search's tag groups fold away.** Each "Browse by Tag" group is a
+  collapsible section showing how many tags it has; a group with a
+  selected tag starts open (and says how many are selected), the rest
+  start closed. Works without script.
+
+## [7.22.0] - 2026-10-01
+
+### Added
+
+- The System Map's Measure distance now draws its path on the map and routes it around every planet, moon and star in the way, keeping a wide berth from stars and never threading between the two stars of a close binary. The result shows how much longer the route is than the straight line.
+
+## [7.21.1] - 2026-10-01
+
+### Fixed
+
+- System Map names no longer overlap: the browser measures each name once a view is shown and moves or hides any that would collide. A hidden name still shows when its marker is hovered or focused.
+
+## [7.21.0] - 2026-10-01
+
+### Changed
+- **Times show in the viewer's own time zone.** Pages write every time
+  as UTC in a `<time>` element (labelled "UTC", so they read correctly
+  without script), and the new `static/localtime.js` rewrites each in the
+  browser's zone with its abbreviation: API key created/last used/revoked
+  times, the Stats page's activity times, and a Generate job's start
+  time. The database connection's session zone is now pinned to UTC, so
+  `TIMESTAMP` columns read back the same whatever the server's own zone
+  is, and the API's key times and the stats times end in `Z`.
+
+## [7.20.0] - 2026-10-01
+
+### Added
+- **The Systems page lists every system.** A new All Systems table pages
+  through every system 50 at a time, with its sector (linked) and
+  octant; standalone systems keep their own table below, each paging on
+  its own. `GET /api/systems` rows now carry `sector_name` and
+  `quadrant` too.
+
 ## [7.19.1] - 2026-09-30
 
 ### Fixed
