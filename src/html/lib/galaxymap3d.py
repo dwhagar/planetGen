@@ -313,7 +313,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
                               locate_path="/galaxy/locate", course=None,
-                              territory_path="/galaxy/territories"):
+                              territory_path="/galaxy/territories", pick=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -370,6 +370,12 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`/galaxy/territories`), fetched when the Territories button
             is pressed. `None` (no polities generated yet) leaves the
             button and its legend out.
+        pick (dict or None): The NAV page's pick mode
+            (`web/galaxy_views._pick_from_args`): `pick` ("from" or
+            "to"), `banner` and `cancel` (the NAV page with the other
+            endpoint kept). It shows a banner, and the page keeps
+            "Generated only" on; the caller adds the pick to
+            `sector_url` so a sector click continues the pick there.
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
@@ -387,6 +393,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "course": course,
+        "pick": pick["pick"] if pick else None,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -424,6 +431,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "referenceDensityPerLy3": LOCAL_STELLAR_DENSITY_LY3,
     }
 
+    pick_banner = ""
+    if pick:
+        pick_banner = (
+            '<p class="pick-banner" role="status"><strong>' + _escape(pick["banner"]) + ":</strong> drill down"
+            " to a generated sector and click it, then pick a system or phenomenon there &middot; "
+            '<a href="' + _escape(pick["cancel"]) + '">Cancel</a></p>\n'
+        )
     course_hint = ""
     if course and course.get("points"):
         ends = [course["points"][0]["name"], course["points"][-1]["name"]]
@@ -475,7 +489,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
-{shape_hint}{course_hint}
+{pick_banner}{shape_hint}{course_hint}
 <form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
   <label for="galaxymap3d-address-input">Go to</label>
   <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
