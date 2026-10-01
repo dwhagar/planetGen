@@ -442,6 +442,14 @@ connectivity to that specific schema rather than the default one.
 - `POST /api/facilities` — add a starbase, colony or outpost (see
   "Facilities" below).
 - `DELETE /api/facilities/<id>` — remove a facility.
+- `DELETE /api/planets/<id>`, `/api/moons/<id>`, `/api/belts/<id>` and
+  `POST .../<id>/regenerate` — delete one body, or roll it again in
+  place (see "Deleting and regenerating" below).
+- `DELETE /api/phenomena/<type>/<id>` and `POST
+  /api/phenomena/<type>/<id>/regenerate` — the same for one phenomenon.
+- `DELETE /api/sectors/<id>/contents` — remove a sector with everything
+  in it; `POST /api/sectors/<id>/regenerate` — remove it and generate its
+  galaxy slot again.
 
 ### Admin stats (admin auth required)
 
@@ -843,6 +851,43 @@ are hosted on it, unless `"drop_facilities": true` is sent too (they are
 deleted with the bodies). `name` may be sent in the same request (it is
 applied first). Success returns `{"status": "ok", "id", "name",
 "regenerated"}`.
+
+### Deleting and regenerating
+
+`src/html/api/edits.py` (ADM.8). Every one of these needs an admin whose
+credentials are current and writes an audit-log row.
+
+- **Planets, moons and asteroid belts.** `DELETE /api/planets/<id>`
+  (with its moons), `/api/moons/<id>` and `/api/belts/<id>` remove one
+  body; `POST .../<id>/regenerate` rolls it again at the same orbit: a
+  planet gets a new class (any that fits its zone), size, atmosphere,
+  life and moons; a moon a new moon class that fits its planet; a belt a
+  new density and composition over the same span. A regenerated body
+  keeps its name and its row (so facilities on it stay). The rest of the
+  system is then re-validated from the moons outward
+  (`stellarObjects/validation.py`): bodies are moved outward until the
+  orbits are stable, never removed. The answer is `{"status": "ok",
+  "summary", "moved", "reclassified", "removed", "warnings",
+  "star_system_id"}`: the names of the bodies that moved or changed class
+  to fit, and a plain sentence for anything still unstable. It is a `409`
+  when facilities would be deleted (on a deleted body or its moons, or on
+  a regenerated planet's old moons) unless the optional body
+  `{"drop_facilities": true}` is sent.
+- **Phenomena.** `<type>` is the phenomenon page's type (`nebula`,
+  `black_hole`, `asteroid_field`, ...). Regenerating rolls the same type
+  again, keeping its id, name, sector, galaxy position and what it sits
+  inside. A black hole or neutron star that is a star system's star is a
+  `409`: delete or regenerate the system instead.
+- **Sectors.** `DELETE /api/sectors/<id>/contents` deletes the sector
+  with its star systems, the phenomena filed under it and facilities
+  parked in it; its slot in the galaxy is left empty, so it can be
+  generated again. (`DELETE /api/sectors/<id>` still deletes only the
+  sector row and keeps its systems as standalone ones.) Answers
+  `{"systems", "phenomena"}` deleted. `POST /api/sectors/<id>/regenerate`
+  does the same, then generates the slot again from the galaxy's density
+  plan; the new sector has a new id and name (`sector_id`,
+  `sector_name`; `null` when the slot no longer qualifies). It is a `409`
+  for a sector off the galaxy grid or before `generate.py plan`.
 
 ### Renaming
 

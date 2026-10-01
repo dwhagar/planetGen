@@ -220,6 +220,27 @@ answers `303 See Other` back to `/system/<id>?wiki=<outcome>#wiki-upload`
 each (and only to an admin), never text from the query string or the
 API. A POST from a visitor who is not an admin gets a 403 page.
 
+**Delete and Regenerate buttons (ADM.8).** For an admin whose
+credentials are current, the sector, system and phenomenon pages each
+have an Edit panel (`web/edit_actions.py`,
+`templates/partials/edit_controls.html`). The system page lists the
+system itself, every planet with its moons under it, and every asteroid
+belt, each with a Regenerate and a Delete button; the sector and
+phenomenon pages have one pair for the page's own object (not for a
+system's own black hole or neutron star). Each button opens a
+`<details>` confirm step (no script) with a short note of what it does,
+an "also delete facilities" checkbox where facilities could be lost, and
+a "Yes, ..." submit button. The form POSTs `edit_action` (`regenerate`
+or `delete`) and `edit_target` (`<kind>:<id>`, only targets the page
+shows are accepted) to the page itself, which calls the API (see
+`docs/api.md`, "Deleting and regenerating"), flashes the outcome, the
+bodies the re-validation moved and any warnings, and redirects (303):
+back to the page, or after a delete to the system's sector (or the
+Systems list), the Sectors list or the Phenomena list, and after a
+sector regenerate to the new sector. Every page shows those flashed
+lines under its heading (`base.html`), read only when the request
+carries a Flask session cookie.
+
 **System page facilities.** The system page lists the system's
 facilities (starbases, colonies, outposts; `GET /api/systems/<id>/
 facilities`) in a Facilities panel (name, kind, host, placement, and an
@@ -383,7 +404,9 @@ passed to the child as `PLANETGEN_MYSQL_*` environment variables (so the
 MySQL account needs the generator's grants, including `DROP` for
 `TRUNCATE`). One job runs at a time; the page shows its step, a progress
 bar (from `generate.py`'s `PLANETGEN_PROGRESS_FILE`, see
-`stellarObjects/progressFile.py`), elapsed time and live output
+`stellarObjects/progressFile.py`; the bright-star scatter's bar shows a
+share done, with a second line for slow layers' stars, PERF.4 and PERF.9),
+elapsed time and live output
 (`static/generatejobs.js` polls `/admin/generate/status`), with a Cancel
 button. The last jobs are listed with their full output at
 `/admin/generate/jobs/<id>`.
@@ -424,6 +447,7 @@ src/html/web/
   views.py            /, /sectors, /systems, /search
   system_pages.py     /system/<id>, /phenomena, /phenomenon/<type>/<id>
   system_facilities.py  the system page's facility form
+  edit_actions.py     the admin Delete and Regenerate buttons (ADM.8)
   sector_page.py      /sector/<id>
   nav_page.py         /nav
   galaxy_views.py     /galaxy and its JSON routes

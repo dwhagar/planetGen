@@ -38,7 +38,7 @@ from stellarObjects.program_constants import NEBULA_CLASSES
 from stellarObjects.rogueSurface import SURFACE_REGIME_LABELS
 
 from . import bp
-from . import system_facilities
+from . import edit_actions, system_facilities
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
@@ -209,6 +209,8 @@ def system(system_id):
     facility form (`web/system_facilities.py`); any other POST is the
     admin "Upload to Wiki" form."""
     facility_action = request.form.get("facility_action") if request.method == "POST" else None
+    if request.method == "POST" and "edit_action" in request.form:
+        return _edit_post(system_id)
     if request.method == "POST" and facility_action not in system_facilities.ACTIONS:
         return _upload_to_wiki(system_id)
 
@@ -275,7 +277,43 @@ def system(system_id):
         facility_kinds=system_facilities.kind_options(),
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
         facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
+        can_edit=edit_actions.can_edit(admin),
+        edit_rows=_edit_rows(detail) if edit_actions.can_edit(admin) else [],
     )
+
+
+def _edit_rows(system):
+    """The admin "Edit" panel's rows (ADM.8): every planet with its moons
+    right after it, then every asteroid belt, as `{"target", "label",
+    "kind", "indent"}`."""
+    rows = []
+    for planet in system["planets"]:
+        rows.append({"target": f"planet:{planet['id']}", "label": planet["name"], "kind": "planet",
+                     "detail": f"Class {planet.get('planet_class') or '?'} planet", "indent": False})
+        for moon in planet.get("moons") or []:
+            rows.append({"target": f"moon:{moon['id']}", "label": moon["name"], "kind": "moon",
+                         "detail": f"Class {moon.get('planet_class') or '?'} moon of {planet['name']}",
+                         "indent": True})
+    for belt in system["belts"]:
+        rows.append({"target": f"belt:{belt['id']}", "label": "this asteroid belt", "kind": "belt",
+                     "detail": f"Asteroid belt from {format_distance_km(belt['lower_limit_km'])} to "
+                               f"{format_distance_km(belt['upper_limit_km'])}",
+                     "indent": False})
+    return rows
+
+
+def _edit_post(system_id):
+    """An admin Delete or Regenerate POST (`web/edit_actions.py`) for the
+    system itself or one of its planets, moons or belts."""
+    detail = apiclient.get_system(db_name(), system_id)
+    allowed = {("system", system_id)}
+    for row in _edit_rows(detail):
+        kind, _sep, raw_id = row["target"].partition(":")
+        allowed.add((kind, int(raw_id)))
+    gone = (page_url("sector", sector_id=detail["sector_id"]) if detail["sector_id"] is not None
+            else page_url("systems"))
+    return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="edit-system"),
+                                    after_delete={"system": gone})
 
 
 def _upload_to_wiki(system_id):
@@ -553,13 +591,18 @@ def phenomenon_fields(phenomenon_type, detail):
     return fields
 
 
-@bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>")
+@bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>", methods=["GET", "POST"])
 def phenomenon(phenomenon_type, phenomenon_id):
     """One phenomenon: its view (a render, the AU-scale diagram, or none
     for an asteroid field; see `phenomenonrender.view_kind`) and its data
-    table."""
+    table. A POST is an admin Delete or Regenerate (`web/edit_actions.py`)."""
     if phenomenon_type not in TYPE_LABELS:
         abort(404)
+    if request.method == "POST":
+        return edit_actions.handle_post(
+            {(phenomenon_type, phenomenon_id)},
+            page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=phenomenon_id),
+            after_delete={phenomenon_type: page_url("phenomena")})
     detail = apiclient.get_phenomenon(db_name(), phenomenon_type, phenomenon_id)
     type_label = TYPE_LABELS[phenomenon_type]
 
@@ -600,4 +643,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
+        # A system's own black hole or neutron star is edited with its system.
+        can_edit=edit_actions.can_edit(current_admin()) and detail.get("star_id") is None,
+        edit_target=f"{phenomenon_type}:{detail['id']}",
     )
