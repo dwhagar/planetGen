@@ -843,6 +843,21 @@ MAP.48 and MAP.37, all fixed.
     - Reset, the skeleton build and schema work keep `web/jobs.py`'s
       one-at-a-time lock.
 
+    Progress (PR #PR3): the queue and pool are built
+    (`stellarObjects/workQueue.py`, control schema v5) and `generate.py
+    sector` and every `galaxy` mode fill sectors through it. Two choices
+    differ from the defaults above. The run that queues the work is the
+    supervisor (every queued run is a `generate.py` process already,
+    from the command line or the Generate page's job runner), so there
+    is no separate detached supervisor and nothing left running when
+    the work is done; a second run waits on the lease instead. And a
+    sector is one task that builds its own systems: a system takes about
+    8 ms to build, so sending each one to another process costs about
+    as much as the work, and the sector's save (half its time) would
+    then run one sector at a time in the parent. Still to do (with
+    PERF.7): the bright-star scatter's tasks and the decaying-average
+    ETA.
+
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
     (2026-10-01): "so that the bright stars ETA takes into account the
