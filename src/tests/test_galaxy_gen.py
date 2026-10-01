@@ -341,6 +341,61 @@ def test_ring_batch_mode_rejects_large_ring_without_limit_or_yes(mysql_config):
     assert len(_all_sectors(mysql_config)) == 2
 
 
+def test_column_mode_generates_one_slot_through_every_layer(mysql_config):
+    # Layers +2..-2, with the outer two reaching only ring 0.
+    _seed_skeleton(mysql_config, layers=[(2, 0), (1, 5), (0, 5), (-1, 5), (-2, 0)])
+    _run_cli(["--ring", "1", "--slot", "3", "--column", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == {(1, layer, 3) for layer in (-1, 0, 1)}
+
+    # Idempotent, and ring 0's column reaches all five layers.
+    _run_cli(["--ring", "0", "--slot", "0", "--column", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    _run_cli(["--ring", "0", "--slot", "0", "--column", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    addresses = {_address(row) for row in _all_sectors(mysql_config)}
+    assert {(0, layer, 0) for layer in range(-2, 3)} <= addresses
+    assert len(addresses) == 8
+
+
+def test_shell_mode_generates_every_slot_of_a_ring_through_every_layer(mysql_config):
+    _seed_skeleton(mysql_config, layers=[(1, 5), (0, 5), (-1, 0)])
+    _run_cli(["--ring", "1", "--shell", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    slots = ring_sector_count(1)
+    assert {_address(row) for row in _all_sectors(mysql_config)} == {
+        (1, layer, slot) for layer in (0, 1) for slot in range(slots)
+    }
+
+
+def test_shell_mode_needs_limit_or_yes_when_large(mysql_config):
+    _plan_wide_galaxy(mysql_config)
+    with pytest.raises(SystemExit):
+        _run_cli(["--ring", "30", "--shell", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 0
+    _run_cli(["--ring", "30", "--shell", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 2
+
+
+def test_single_address_with_radius_also_generates_its_neighborhood(mysql_config):
+    _plan_wide_galaxy(mysql_config)
+    _run_cli(["--ring", "2", "--layer", "0", "--slot", "4", "--radius-pc", "5"] + _mysql_argv(mysql_config))
+    addresses = {_address(row) for row in _all_sectors(mysql_config)}
+    assert (2, 0, 4) in addresses
+    assert len(addresses) > 1
+
+
+@pytest.mark.parametrize("argv", [
+    ["--column", "--ring", "1"],
+    ["--column", "--slot", "1"],
+    ["--shell"],
+    ["--shell", "--ring", "1", "--slot", "0"],
+    ["--shell", "--ring", "1", "--layer", "0"],
+    ["--column", "--ring", "1", "--slot", "0", "--layer", "0"],
+    ["--column", "--shell", "--ring", "1", "--slot", "0"],
+    ["--column", "--ring", "1", "--slot", "0", "--limit", "2"],
+])
+def test_column_and_shell_reject_bad_combinations(argv):
+    with pytest.raises(SystemExit):
+        _run_cli(argv + _DUMMY_MYSQL_ARGV)
+
+
 # ---------------------------------------------------------------------------
 # --ring I --layer J --slot K -- single-address mode, the direct path from a
 # designation/address copied out of the interactive 3D Galaxy Map
@@ -1257,10 +1312,18 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
         ).fetchall()
 
         phenomenon_rows = []
+        # A supernova remnant's core is filed under its remnant's sector but
+        # has drifted off by its birth kick, often out of that cell.
+        core_filter = {
+            "black_holes": " AND id NOT IN (SELECT compact_remnant_black_hole_id FROM supernova_remnants"
+                           " WHERE compact_remnant_black_hole_id IS NOT NULL)",
+            "neutron_stars": " AND id NOT IN (SELECT compact_remnant_neutron_star_id FROM supernova_remnants"
+                             " WHERE compact_remnant_neutron_star_id IS NOT NULL)",
+        }
         for table, label in _CHECKABLE_PHENOMENON_TABLES:
             rows = conn.execute(
                 f"SELECT sector_id, id, center_x_pc, center_y_pc, center_z_pc FROM {table} "
-                f"WHERE center_x_pc IS NOT NULL"
+                f"WHERE center_x_pc IS NOT NULL{core_filter.get(table, '')}"
             ).fetchall()
             phenomenon_rows.extend((label, row) for row in rows)
     finally:

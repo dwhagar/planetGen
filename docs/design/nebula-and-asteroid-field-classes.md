@@ -6,8 +6,9 @@ Architectures and Speculative Mechanics of Nebulae, Stellar Remnants, and
 Interstellar Collisions"). The classes (items 28 and 31) are built in
 schema v38: `program_constants.NEBULA_CLASSES` (A-W, with contents and
 ranges) and `ASTEROID_FIELD_COMPOSITIONS` (letters plus a size digit).
-Placement and central objects (27), containment (29) and naming (30) are
-not built yet. The physical ranges come from that document and standard
+Generation with central objects (27, `generate.add_star_hosted_nebulae`,
+`_add_planetary_nebula`, remnant core kicks) and containment (29, schema
+v39) are built too; naming (30) and map drawing are not. The physical ranges come from that document and standard
 references.
 
 Boss's asks, in Boss's words:

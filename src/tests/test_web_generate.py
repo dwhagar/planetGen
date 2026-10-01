@@ -214,6 +214,13 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
      ["--center-sector", "9", "--radius-pc", "20.0"]),
     ({"mode": "slot", "slot_ring": "3", "slot_layer": "1", "slot": "17"},
      ["--ring", "3", "--layer", "1", "--slot", "17"]),
+    ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_pc": "12"},
+     ["--ring", "3", "--layer", "0", "--slot", "17", "--radius-pc", "12.0"]),
+    ({"mode": "column", "column_ring": "5", "column_slot": "2"}, ["--ring", "5", "--slot", "2", "--column"]),
+    ({"mode": "shell", "shell_ring": "5"}, ["--ring", "5", "--shell"]),
+    ({"mode": "shell", "shell_ring": "5", "shell_limit": "40", "whole_shell": "1"},
+     ["--ring", "5", "--shell", "--limit", "40"]),
+    ({"mode": "shell", "shell_ring": "5", "whole_shell": "1"}, ["--ring", "5", "--shell", "--yes"]),
 ])
 def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     resp = _post(client, action="galaxy", **form)
@@ -236,6 +243,10 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "ring", "ring": "3", "limit": "9999999"}, "Limit must be at most"),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
     ({"mode": "slot", "slot_ring": "100001", "slot": "0"}, "Ring must be at most 100000."),
+    ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_pc": "500"}, "Radius (pc) must be at most 200."),
+    ({"mode": "column", "column_ring": "1"}, "Slot is required."),
+    ({"mode": "shell"}, "Ring is required."),
+    ({"mode": "shell", "shell_ring": "2", "shell_limit": "9999999"}, "Limit must be at most"),
 ])
 def test_galaxy_job_rejects_bad_values(site, client, no_spawn, form, message):
     resp = _post(client, action="galaxy", **form)
@@ -697,3 +708,18 @@ def test_page_inputs_carry_the_bounds(site, client):
     assert f'max="{generationLimits.MAX_GENERATE_LIMIT}"' in html
     html = client.get("/admin/generate/system").get_data(as_text=True)
     assert f'max="{generationLimits.MAX_NUM_ORBITS}"' in html
+
+
+def test_sector_map_generate_target_only_for_a_usable_admin():
+    """The Sector Map offers Generate buttons (`starmap-data`'s
+    `generate`) only to an admin who could use the Generate page."""
+    from web import sector_page
+
+    app = create_app(_FakeConfig)
+    with app.test_request_context("/sector/1"):
+        assert sector_page._generate_target(None) is None
+        assert sector_page._generate_target({"username": "a", "must_change_credentials": True}) is None
+        target = sector_page._generate_target({"username": "a"})
+        assert target["url"] == "/admin/generate"
+        assert target["csrfField"] == csrf.FIELD_NAME
+        assert target["csrfToken"]

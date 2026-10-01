@@ -7,8 +7,8 @@
 // preserve-3d` scene this file used to drive directly. `#starmap-data`
 // (a `<script type="application/json">` block `starmap.py` writes) is the
 // only thing read from the page -- every position/size/color/label for
-// every star and phenomenon cloud, plus the compass arrow, is data
-// `starmap.py` already computed; this file only ever turns that data
+// every star and phenomenon cloud, plus the cell outline and compass
+// arrow, is data `starmap.py` already computed; this file only ever turns that data
 // into real 3D bodies/lines and wires up drag-to-rotate, scroll/button-
 // to-zoom, and click/keyboard-for-info, the same interaction set the old
 // CSS version had (a real perspective camera now does the projection/
@@ -119,60 +119,70 @@ function formatAddress(ringIndex, layerIndex, slotIndex) {
   return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-function cliSnippet(ringIndex, layerIndex, slotIndex) {
-  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
-}
+// One Generate button: a plain POST form to the admin Generate page
+// (web/generate_page.py), which starts the job and redirects there, so it
+// works like the page's own forms (CSRF token included) with no fetch.
+var NEIGHBORHOOD_RADIUS_PC = "30.7";
 
-function makeCopyButton(text) {
-  var button = document.createElement("button");
-  button.type = "button";
-  button.className = "btn";
-  button.textContent = "Copy CLI command";
-  button.addEventListener("click", function () {
-    var restore = button.textContent;
-    var onDone = function () {
-      button.textContent = "Copied!";
-      setTimeout(function () {
-        button.textContent = restore;
-      }, 1500);
-    };
-    var onFail = function () {
-      // Clipboard API unavailable (insecure context, permissions, older
-      // browser) -- fall back to a selectable readonly field the visitor
-      // can copy by hand, rather than silently doing nothing.
-      var input = document.createElement("input");
-      input.type = "text";
-      input.readOnly = true;
-      input.value = text;
-      input.className = "galaxymap3d-address-field";
-      button.insertAdjacentElement("afterend", input);
-      input.focus();
-      input.select();
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(onDone, onFail);
-    } else {
-      onFail();
-    }
+function generateForm(target, label, fields, confirmText) {
+  var form = document.createElement("form");
+  form.method = "post";
+  form.action = target.url;
+  form.className = "starmap-generate-form";
+  var all = [[target.csrfField, target.csrfToken], ["action", "galaxy"]].concat(fields);
+  all.forEach(function (pair) {
+    var input = document.createElement("input");
+    input.type = "hidden";
+    input.name = pair[0];
+    input.value = String(pair[1]);
+    form.appendChild(input);
   });
-  return button;
+  var button = document.createElement("button");
+  button.type = "submit";
+  button.className = "btn";
+  button.textContent = label;
+  form.appendChild(button);
+  if (confirmText) {
+    form.addEventListener("submit", function (event) {
+      if (!window.confirm(confirmText)) {
+        event.preventDefault();
+      }
+    });
+  }
+  return form;
 }
 
-// A neighboring sector that already exists just links straight to it
-// (same as a star/cloud entry); one that doesn't yet shows its address
-// and a copyable `generate.py galaxy --ring I --layer J --slot K` command instead
-// -- the same "not yet generated" info panel shape
-// `static/galaxymap3d.js`'s own `showPlannedInfo` already uses for its
-// "planned" tier, one galaxy-map zoom level up from this sector-level view.
-// TODO(sector-map #24): clicking an unfilled sector no longer shows a
-// command line. When an admin is logged in, show buttons instead: Generate
-// this sector, Generate neighborhood, Generate column, and Generate the
-// entire shell (marked not recommended). Each posts to the admin Generate
-// page (generate_page.py) as a background job. Visitors see only the
-// address and designation.
+function generateButtons(target, entry) {
+  var ring = entry.ringIndex;
+  var layer = entry.layerIndex;
+  var slot = entry.ringSlotIndex;
+  var address = [["slot_ring", ring], ["slot_layer", layer], ["slot", slot]];
+  var box = document.createElement("div");
+  box.className = "starmap-generate";
+  box.appendChild(generateForm(target, "Generate this sector", [["mode", "slot"]].concat(address)));
+  box.appendChild(generateForm(target, "Generate neighborhood",
+    [["mode", "slot"], ["slot_radius_pc", NEIGHBORHOOD_RADIUS_PC]].concat(address)));
+  box.appendChild(generateForm(target, "Generate column",
+    [["mode", "column"], ["column_ring", ring], ["column_slot", slot]]));
+  box.appendChild(generateForm(target, "Generate the entire shell (not recommended)",
+    [["mode", "shell"], ["shell_ring", ring], ["whole_shell", "1"]],
+    "This generates every sector of ring " + ring + " through every layer, often thousands of " +
+    "sectors, and can run for hours. Start it anyway?"));
+  var hint = document.createElement("p");
+  hint.className = "hint";
+  hint.textContent = "Starts a background job on the Generate page. The neighborhood reaches about 100 ly.";
+  box.appendChild(hint);
+  return box;
+}
+
 // TODO(phenomena #27): draw nebulae and supernova remnants that reach this
 // sector as translucent volumes, even when their center is in another
 // sector.
+
+// A neighboring sector that already exists just links straight to it
+// (same as a star/cloud entry); one that doesn't yet shows its address
+// and designation, plus, for a logged-in admin (`sceneData.generate`, set
+// by lib/starmap.py only then), the Generate buttons.
 function showNeighborInfo(panel, entry) {
   var heading = document.createElement("h3");
   heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
@@ -188,11 +198,9 @@ function showNeighborInfo(panel, entry) {
     return;
   }
 
-  var code = document.createElement("code");
-  code.className = "galaxymap3d-cli-snippet";
-  code.textContent = cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex);
-  panel.appendChild(code);
-  panel.appendChild(makeCopyButton(cliSnippet(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex)));
+  if (sceneData && sceneData.generate) {
+    panel.appendChild(generateButtons(sceneData.generate, entry));
+  }
 }
 
 // A plain `<a href>` to the entry's own page (`href`, built server-side by
@@ -526,11 +534,25 @@ function initStarmap(canvasEl, data) {
 
   var accentColor = cssVar("--accent", "#4f5fe8");
 
-  // TODO(web-pages #47): draw the sector's arc-segment wireframe again from
-  // data.outline (removed in 16d7eed as clutter): sample the inner and
-  // outer ring faces as arcs instead of 12 straight corner-to-corner edges,
-  // keep it thin and low-contrast in both themes, and consider faint
-  // neighboring ring/slot/layer boundaries.
+  // The sector's own cell as a faint wireframe (starmap.py's
+  // _outline_data): 12 edges, each a polyline, whose inner and outer ring
+  // faces follow the ring's arc. Thin and translucent so the stars stay the
+  // focus, in the muted text color so it reads in both themes.
+  if (data.outline) {
+    var outlineMaterial = new THREE.LineBasicMaterial({
+      color: new THREE.Color(cssVar("--text-muted", "#5b6072")),
+      transparent: true,
+      opacity: 0.35,
+      depthWrite: false,
+    });
+    data.outline.edges.forEach(function (edge) {
+      var outlineGeometry = new THREE.BufferGeometry().setFromPoints(edge.map(function (point) {
+        return new THREE.Vector3(point[0], point[1], point[2]);
+      }));
+      scene.add(new THREE.Line(outlineGeometry, outlineMaterial));
+    });
+  }
+
   if (data.compass) {
     var tip = data.compass.tip;
     var arrowGeometry = new THREE.BufferGeometry().setFromPoints([

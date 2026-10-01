@@ -1578,6 +1578,30 @@ code {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
+/* The sector Contents table's folded group row (rogue planets). */
+.contents-group summary {
+  cursor: pointer;
+}
+
+.contents-group-list {
+  margin: 0.4rem 0 0;
+  padding-left: 1.1rem;
+}
+
+/* The Sector Map's Generate buttons for an unfilled neighbor (admins
+   only; static/sectormap.js). */
+.starmap-generate {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.starmap-generate-form {
+  margin: 0;
+}
+
 .galaxymap3d-cli-snippet {
   display: block;
   margin: 0 0 0.6rem;

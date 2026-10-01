@@ -1,5 +1,56 @@
 # Changelog
 
+## [7.30.0] - 2026-10-01
+
+### Added
+
+- **Nebulae and supernova remnants are generated with the stars they
+  need.** Sectors now make molecular clouds (dark classes M-Q) at the
+  research rate. Every planetary nebula comes with its own new hot white
+  dwarf system at its center. Every O star, and half the B0-B2 stars,
+  sits in an H II region (classes C-E or G), and a few later B and A
+  stars light a reflection nebula (`NEBULA_HOST_RULES`). A core-collapse
+  remnant's neutron star or black hole has drifted off-center by its
+  birth kick (`SUPERNOVA_KICK_SPEED_RANGE_KMS`) times the remnant's age.
+  Diffuse gas (classes A-B) is the background and isn't generated.
+- The sector's nearby phenomena now carry each nebula, supernova remnant and asteroid field's letter `class`.
+
+## [7.29.2] - 2026-10-01
+
+### Changed
+
+- **Sector Map star dots are sized on a log scale.** White dwarfs, red dwarfs, the Sun, giants and supergiants now draw at visibly different sizes; before, every star past about 8 solar radii hit the same 14 px cap. White dwarf and giant systems are now covered by tests on the system page and System Map.
+
+## [7.29.1] - 2026-10-01
+
+### Changed
+
+- The Sector Map draws the sector's own cell again as a faint wireframe, with its inner and outer faces following the ring's curve.
+
+## [7.29.0] - 2026-10-01
+
+### Added
+
+- **Search phenomena.** The search page's Browse by Tag gains Phenomenon (nebula, black hole, rogue planet and the rest) and Phenomenon Class (for example "D: Classical H II region" or "C3 asteroid field") groups, and a Phenomena results table that links to each one. `GET /api/search` takes `phenomenon` and `phenomenon_class` (written `<type>:<class>`) and returns a `phenomena` result panel.
+
+## [7.28.0] - 2026-10-01
+
+### Added
+
+- **Phenomenon classes on their pages.** A nebula or supernova remnant page shows its class letter and name (for example "D: Classical H II region") and what it holds: dominant species, gas density, temperature and extinction. An asteroid field shows its class (for example "C3") and composition family. The Sector Map colors the new diffuse nebulae a pale pink.
+
+## [7.27.0] - 2026-10-01
+
+### Added
+
+- **Generate a column or a shell, and generate from the Sector Map.** `generate.py galaxy` gains `--ring I --slot K --column` (one slot through every layer the galaxy reaches) and `--ring I --shell` (a whole ring through every layer; needs `--limit` or `--yes` past 2,000 sectors), and `--ring --slot` now takes `--radius-pc` to generate that sector's neighborhood too. The admin Generate page offers the column and shell modes and the neighborhood radius. On the Sector Map, a logged-in admin who clicks a not-yet-generated neighbor gets Generate this sector, Generate neighborhood, Generate column, and Generate the entire shell (not recommended) buttons that start the job; visitors see only its address and designation, with no command line.
+
+## [7.26.0] - 2026-10-01
+
+### Added
+
+- **New database fields on the web pages.** A black hole's page shows its Class (stellar, intermediate or supermassive) and a rogue planet's its Mass Class. A runaway or hypervelocity star shows its speed as a badge on its system page and in its sector's Contents, and `GET /api/systems/<id>` returns `runaway_class` and `runaway_speed_kms`. The sector page adds its star count and the estimated number of interstellar comets and planetesimals drifting through it, and folds two or more rogue planets into one expandable Contents row.
+
 ## [7.25.0] - 2026-10-01
 
 ### Changed

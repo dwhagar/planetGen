@@ -152,12 +152,38 @@ def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
     scene_placed = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system]))
     assert scene_unplaced["outline"]["kind"] == "cube"
     assert scene_placed["outline"]["kind"] == "cell"
-    # 12 edges, each a pair of 3D points, for either shape.
+    # 12 edges, each a line of 3D points, for either shape: the cube's are
+    # straight, and the cell's 4 slot-angle edges are sampled arcs.
     for scene in (scene_unplaced, scene_placed):
         assert len(scene["outline"]["edges"]) == 12
         for edge in scene["outline"]["edges"]:
-            assert len(edge) == 2
+            assert len(edge) >= 2
             assert all(len(point) == 3 for point in edge)
+    assert all(len(edge) == 2 for edge in scene_unplaced["outline"]["edges"])
+    lengths = sorted(len(edge) for edge in scene_placed["outline"]["edges"])
+    assert lengths[:8] == [2] * 8
+    assert all(n > 2 for n in lengths[8:])
+
+
+def test_cell_outline_arcs_follow_the_ring_radius():
+    import starmap
+    from stellarObjects.galaxyGeometry import ring_bounds_pc, sector_position_pc
+    from stellarObjects.utils import mpc_to_pc
+
+    address, edge_mpc, half_edge = (3, 0, 7), 4000.0, 2000.0
+    edges = starmap._cell_arc_edges_px(address, edge_mpc, half_edge)
+    edge_pc = mpc_to_pc(edge_mpc)
+    center = sector_position_pc(*address, edge_pc)
+    radii = ring_bounds_pc(3, edge_pc)
+    scale = starmap._SCENE_HALF_PX / half_edge
+    for i, (a, b) in enumerate(starmap._EDGE_PAIRS):
+        if a ^ b != 1:
+            continue
+        # Every sample of an arc edge lies on the inner or outer ring radius.
+        for x, y, _z in edges[i]:
+            gx = center[0] + mpc_to_pc(x / scale)
+            gy = center[1] + mpc_to_pc(-y / scale)
+            assert min(abs(math.hypot(gx, gy) - r) for r in radii) < 1e-6
 
 
 def test_render_map_panel_compass_present_only_when_placed():

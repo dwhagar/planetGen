@@ -33,23 +33,18 @@ renumber when items are added or finished.
 
 ### Plan: what to do first
 
-- **Bug fixes (4-7)** come first, from Boss's notes of 2026-09-30. 4 is
-   a small web change;
-   5-7 change generation constants; the frequency research for 5 and 6
-   is in `docs/design/interstellar-object-rates.md`.
 - **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
-- **Features (23-36)** from the same notes: generate buttons (23-24),
+- **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 26, 27, 30 and 35
    are schema changes; 28 and 31 (classes) shipped in schema v38, 29
    (containment) in v39.
-- **More pages (47)**: the Sector Map wireframe is small and can go in any time.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -57,21 +52,6 @@ renumber when items are added or finished.
    grep for `TODO(` to see them all, or `TODO(galaxy-map` for one area.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
-
-### Bug fixes (Boss's notes, 2026-09-30)
-
-4. [ ] **Tag search: collapsible groups and phenomena.** Boss: "Search
-   by tag should have collapsible zones for each group of tags so it
-   isn't overwhelming, add stellar phenomena types to its search list.
-   I can't find any nebulae on the phenomena page and they aren't
-   searchable."
-   - Done: each "Browse by Tag" group is a `<details>`, open when one
-     of its tags is active. Left: the phenomenon facet, after item 28.
-   - `searchpage.TAG_FACETS`/`RESULT_PANELS` and
-     `queryDb.SEARCH_TAG_FACETS`: add a phenomenon-type facet and a
-     Phenomena result panel (none exists today).
-   - Nebulae are missing because they're almost never generated, not
-     because the page hides them: see `docs/design/interstellar-object-rates.md` (the v37 rates).
 
 ### Performance
 
@@ -121,38 +101,19 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
-23. [ ] **Generate a column and a shell.** Boss defined them on
-    2026-09-30: "For the shell I mean a ring through every layer and a
-    column through the ring." Add two `generate.py galaxy` modes:
-    - Column: every sector of one (ring, slot), all layers between
-      `galaxy_column`'s `layer_index_min`/`max` for that ring.
-    - Shell: every slot of one ring through every layer (a cylindrical
-      shell). Far larger than today's ring batch (one ring at one
-      layer), so it keeps the `--limit`/`--yes` guard.
-    Today's modes are ring batch, one slot, local neighborhood and
-    random start (`add_galaxy_arguments`, `run_galaxy`).
-
-24. [ ] **Generate buttons on unfilled sectors.** Boss: "Sector map
-    clicking on an unfilled sector should no longer give a command line
+24. [ ] **Generate buttons on the Galaxy Map's unfilled sectors.** Boss:
+    "Sector map clicking on an unfilled sector should no longer give a command line
     but if admin is logged in then it should just add a button to
     generate that sector by itself or as a neighborhood or to generate
     the entire shell (not recommended), also let's add a 'generate
-    column' option too so I can generate an entire column of sectors."
-    - `sectormap.js showNeighborInfo`/`cliSnippet` and the Galaxy Map's
-      `showPlannedInfo`/`showCellInfo`: drop the snippet; for an admin,
-      show the four buttons (shell marked not recommended). Visitors see
-      the address and designation only.
-    - `generate_page.GALAXY_MODES`/`galaxy_argv`: add column and shell
-      (#23); the buttons post a CSRF-protected form that
-      starts the job with the address filled in.
-
-55. [ ] **Star dots sized to real giants and white dwarfs.** From the
-    star-type study (2026-09-30): `lib/starmap.py _star_dot_radius`
-    caps at 14 px, so every giant and supergiant draws the same size.
-    Once the star population fix adds real giants (10-200 solar radii)
-    and white dwarfs (0.01), size the Sector Map dots on a log scale so
-    a giant is visibly larger than a dwarf, and check that white dwarf
-    and giant systems render on the system page and System Map.
+    column' option too." The Sector Map has them (generate.py's
+    `--column`/`--shell`/`--slot --radius-pc`, the Generate page's
+    column and shell modes, `sectormap.js generateButtons`). Left: the
+    Galaxy Map's `showPlannedInfo`/`showCellInfo` in `galaxymap3d.js`
+    still show the CLI snippet; give an admin the same four buttons
+    (the page needs the same admin-only `generate` target
+    `starmap.render_map_panel` gets). Visitors see the address and
+    designation only.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
@@ -200,26 +161,16 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - Show them on the sector page, system page and phenomenon page;
       `queryDb.phenomena_near_sector` returns them.
 
-27. [ ] **Generate nebulae and supernova remnants, with the stars they
-    need, and put them on the maps.** Boss (2026-09-30): "Nebulae and
-    Remnants should be generated and placed on the map. Research if we
-    need stars at the center of these or what kind of star, etc, so we
-    can make them."
-    - Rates come from `PHENOMENON_DENSITY_PC3` (v37; a per-volume rate suits objects this big).
-    - Each class brings its central object (`NEBULA_CLASSES[...]["center"]`,
-      table in `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
-      emission nebulae, a B or A star for reflection, one hot central
-      star becoming a white dwarf for planetary, none for molecular
-      clouds (protostars at most), a neutron star or black hole for
-      core-collapse remnants and none for thermonuclear ones. The
-      generator creates that star system inside the nebula, or places
-      the nebula around a qualifying existing star.
-    - Nebulae are up to 200 ly in radius, so one spans many 13 ly
-      sectors: every sector it reaches lists it, the Sector Map draws
-      its extent, and the Galaxy Map shows it.
-    - Sites: `generate.generate_sector_phenomena`,
-      `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
-      `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
+27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
+    shipped (2026-09-30): sectors now generate molecular clouds,
+    planetary nebulae around their own hot white dwarf, H II regions
+    around O and early-B stars and reflection nebulae around later B and
+    A stars (`generate.add_star_hosted_nebulae`,
+    `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
+    off-center by its birth kick. `queryDb.phenomena_near_sector` already
+    lists every cloud that reaches a sector.
+    - Left: the Sector Map draws each cloud's extent (`sectormap.js`) and
+      the Galaxy Map shows them (`galaxymap3d.js`).
 
 30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
     comets should be named using a method that tells something about
@@ -334,19 +285,6 @@ project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
     arms near the plane and the bulge has none (Database/Web own that
     file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
     way).
-
-### More pages (Boss's notes, 2026-09-30)
-
-47. [ ] **Draw the arc-segment wireframe on the Sector Map.** Boss: "Now
-    that we have defined arc segments let's add a wireframe to the
-    sector map." The server still sends the cell outline
-    (`starmap._outline_data`, "outline" in the scene data, from
-    `sector_cell_vertices_pc`); `sectormap.js` stopped drawing it in
-    16d7eed as clutter. Bring it back as the sector's real arc segment:
-    the inner and outer ring faces drawn as sampled arcs rather than the
-    12 straight edges between 8 corners, thin and low-contrast so the
-    stars stay the focus, in both themes. Consider faint outlines of
-    the neighboring cells (ring, slot and layer boundaries) too.
 
 ## Population and Politics
 

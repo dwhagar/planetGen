@@ -1111,6 +1111,15 @@ _RADIUS_PHENOMENON_TABLES = tuple(
 `_widest_placed_phenomenon_radius_ly` checks just these."""
 
 
+_PHENOMENON_CLASS_COLUMNS = {
+    "nebulae": "nebula_class",
+    "supernova_remnants": "remnant_class",
+    "asteroid_fields": "field_class",
+}
+"""dict: The letter-class column (v38) of each `_PHENOMENON_TABLES` table
+that has one; every other type's rows carry `class` as `None`."""
+
+
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -1143,7 +1152,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     Returns:
         list[dict]: `id`, `type` (one of `_PHENOMENON_TABLES`' type
             labels), `name`, `descriptor`, `radius_ly` (0 for the
-            point-like types), `x`/`y`/`z` (`center_x/y/z_pc`),
+            point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`),
+            `x`/`y`/`z` (`center_x/y/z_pc`),
             `galactic_radius_pc`.
     """
     where_bbox = ""
@@ -1169,6 +1179,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
         query_rows = conn.execute(
             f"""
             SELECT id, name, {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
+                   {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
             FROM {table}
             WHERE center_x_pc IS NOT NULL
@@ -1180,6 +1191,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             rows.append({
                 "id": row["id"], "type": type_label, "name": row["name"],
                 "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+                "class": row["class_code"],
                 "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
                 "galactic_radius_pc": row["galactic_radius_pc"],
             })
@@ -1423,7 +1435,8 @@ def phenomena_near_sector(conn, sector_id):
     Returns:
         list[dict]: One entry per candidate phenomenon, nearest first:
             `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
-            `name`, `descriptor`, `radius_ly`, `distance_ly` (sector center to phenomenon
+            `name`, `descriptor`, `class` (letter class or `None`),
+            `radius_ly`, `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -1466,6 +1479,7 @@ def phenomena_near_sector(conn, sector_id):
         matches.append({
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
+            "class": phenomenon["class"],
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
         })
@@ -1572,6 +1586,7 @@ def system_detail(conn, system_id):
         "binary_mutual_position_y_km": system["binary_mutual_position_y_km"],
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
+        "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": [dict(b) for b in belts],
@@ -2267,7 +2282,21 @@ SEARCH_TAG_FACETS = (
     "class", "body", "life",
     "moon_class", "moon_body", "moon_life",
     "density",
+    "phenomenon", "phenomenon_class",
 )
+
+_SEARCH_PHENOMENON_LABELS = {
+    "nebula": "Nebula", "asteroid_field": "Asteroid Field", "black_hole": "Black Hole",
+    "neutron_star": "Neutron Star", "supernova_remnant": "Supernova Remnant",
+    "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet", "quasar": "Quasar",
+}
+
+_SEARCH_PHENOMENON_CLASS_COLUMNS = {
+    "nebula": "nebula_class", "supernova_remnant": "remnant_class", "asteroid_field": "field_class",
+}
+"""The phenomenon types with a class (schema v38) and its column. A
+`phenomenon_class` tag is `"<type>:<class>"`, e.g. `"nebula:D"`, since an
+asteroid field's letters overlap a nebula's."""
 
 # starData.py's own Yerkes-class-to-descriptive-label mapping (Star.__init__),
 # duplicated here (not imported) since it's a plain literal there, not an
@@ -2437,6 +2466,74 @@ def _search_facet_density(conn):
     return [{"value": row["v"], "label": row["v"].capitalize(), "count": row["c"], "tooltip": None} for row in rows]
 
 
+def _search_phenomenon_tables():
+    """`(table, type)` for every standalone phenomenon table."""
+    return [(table, type_label) for table, type_label, _descriptor, _radius in _PHENOMENON_TABLES]
+
+
+def _search_facet_phenomenon(conn):
+    options = []
+    for table, type_label in _search_phenomenon_tables():
+        count = conn.execute(f"SELECT COUNT(*) AS c FROM {table}").fetchone()["c"]
+        if count:
+            options.append({"value": type_label, "label": _SEARCH_PHENOMENON_LABELS.get(type_label, type_label),
+                            "count": count, "tooltip": None})
+    return options
+
+
+def _search_phenomenon_class_label(type_label, value):
+    if type_label == "asteroid_field":
+        return f"{value} asteroid field"
+    entry = program_constants.NEBULA_CLASSES.get(value)
+    return f"{value}: {entry['name']}" if entry else value
+
+
+def _search_facet_phenomenon_class(conn):
+    options = []
+    tables = dict((type_label, table) for table, type_label in _search_phenomenon_tables())
+    for type_label, column in _SEARCH_PHENOMENON_CLASS_COLUMNS.items():
+        rows = conn.execute(
+            f"SELECT {column} AS v, COUNT(*) AS c FROM {tables[type_label]} GROUP BY v ORDER BY v"
+        ).fetchall()
+        options.extend(
+            {"value": f"{type_label}:{row['v']}", "label": _search_phenomenon_class_label(type_label, row["v"]),
+             "count": row["c"], "tooltip": None}
+            for row in rows if row["v"]
+        )
+    return options
+
+
+def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
+    """Every standalone phenomenon matching the Phenomenon and Phenomenon
+    Class tags (both narrow: a class tag keeps only its own type's rows)."""
+    classes = {}
+    for tag in class_tags:
+        type_label, _sep, value = tag.partition(":")
+        if type_label in _SEARCH_PHENOMENON_CLASS_COLUMNS and value:
+            classes.setdefault(type_label, set()).add(value)
+    parts, params = [], []
+    for table, type_label in _search_phenomenon_tables():
+        if type_tags and type_label not in type_tags:
+            continue
+        if class_tags and type_label not in classes:
+            continue
+        column = _SEARCH_PHENOMENON_CLASS_COLUMNS.get(type_label)
+        class_sql = column if column else "NULL"
+        where = ""
+        if type_label in classes:
+            where = f" WHERE {column} IN ({','.join('?' * len(classes[type_label]))})"
+            params.extend(sorted(classes[type_label]))
+        parts.append(f"SELECT '{type_label}' AS type, id, name, {class_sql} AS phenomenon_class, sector_id "
+                     f"FROM {table}{where}")
+    if not parts:
+        return {"rows": [], "total": 0, "limit": limit, "offset": 0, "truncated": False}
+    rows, page = _search_page(
+        conn, "SELECT type, id, name, phenomenon_class, sector_id",
+        f"FROM ({' UNION ALL '.join(parts)}) AS p", "name, type, id", params, limit, offset,
+    )
+    return {"rows": [dict(r) for r in rows], **page}
+
+
 def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
     rows = conn.execute(f"SELECT DISTINCT name FROM {table} ORDER BY name LIMIT ?", (limit,)).fetchall()
     return [row["name"] for row in rows]
@@ -2444,7 +2541,7 @@ def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
 
 # --- Result panels ---
 
-SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
+SEARCH_RESULT_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")
 
 
 def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
@@ -2670,6 +2767,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         ("moon_body", _search_facet_moon_body(conn)),
         ("moon_life", _search_facet_moon_life(conn)),
         ("density", _search_facet_density(conn)),
+        ("phenomenon", _search_facet_phenomenon(conn)),
+        ("phenomenon_class", _search_facet_phenomenon_class(conn)),
     )
     facets = {name: options for name, options in facet_defs}
     facet_labels = {
@@ -2727,6 +2826,10 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         )
     if belts_included:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
+    phenomenon_tags, phenomenon_class_tags = tags.get("phenomenon", set()), tags.get("phenomenon_class", set())
+    if phenomenon_tags or phenomenon_class_tags:
+        results["phenomena"] = _search_result_phenomena(
+            conn, phenomenon_tags, phenomenon_class_tags, *_page("phenomena"))
 
     return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results}
 

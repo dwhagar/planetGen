@@ -1863,6 +1863,35 @@ SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE = 0.6
 # ApJ 591:288, "How Massive Single Stars End Their Life").
 SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE = 0.15
 
+SUPERNOVA_KICK_SPEED_RANGE_KMS = {"neutron_star": (100.0, 700.0), "black_hole": (20.0, 200.0)}
+"""dict: Birth-kick speed of a core-collapse remnant's compact core, km/s,
+drawn log-uniformly -- pulsars move at ~400 km/s on average (Hobbs et al.
+2005, MNRAS 360:974); black holes get smaller kicks (Repetto et al. 2012,
+MNRAS 425:2799). Times the remnant's age, it puts the core off the
+remnant's center: a young remnant's core sits near the middle, an old
+remnant's can have left it entirely (class V's "far off-center")."""
+
+NEBULA_HOST_RULES = (
+    ("O", 0, 9, ("C", "D", "E"), 1.0),
+    ("B", 0, 2, ("C", "D", "G"), 0.5),
+    ("B", 3, 9, ("F", "G"), 0.05),
+    ("A", 0, 9, ("F",), 0.01),
+)
+"""tuple: Nebulae a sector grows around its own stars (TODO item 27), as
+`(spectral letter, lowest subclass, highest subclass, classes, chance)`
+for a main-sequence primary. Only O and early-B stars put out enough
+ultraviolet below 91.2 nm to ionize hydrogen, so every O star sits in an
+H II region (C-E) and half the B0-B2 stars do (Osterbrock & Ferland
+2006); later B and A stars light dust without ionizing it, a reflection
+nebula (F, or G for the hotter ones) when a dusty cloud happens to be near
+(van den Bergh 1966, AJ 71:990 catalogs ~150 within a few kpc). The class
+is drawn among `classes` by NEBULA_CLASSES frequency."""
+
+PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
+"""tuple: The central star a planetary nebula is generated around (TODO
+item 27): the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and
+up, already a white dwarf in the Yerkes scheme (class VII)."""
+
 # --- Rogue Planets & Interstellar Comets (roguePlanetData) ---
 #
 # Free-floating ("rogue"/nomad) planet mass range, in Jupiter masses --
@@ -2319,8 +2348,9 @@ PHENOMENON_DENSITY_PC3 = {
     "neutron-star": 7e-4,
     "black-hole": 1.4e-4,
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
-    # 50:531), really placed by filling factor inside the arms
-    # (GMC_ARM_FILLING_FACTOR); TODO item 27 generates them.
+    # 50:531): cloud centers, generated as dark-family nebulae (classes
+    # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
+    # inside a cloud, for reference.
     "molecular-cloud": 5e-6,
     # ~20,000 planetary nebulae galaxy-wide (Frew & Parker 2010, PASA
     # 27:129).

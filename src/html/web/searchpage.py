@@ -32,19 +32,16 @@ from flask import request, url_for
 from pagination import PAGE_SIZE, page_offset, parse_page, render_pagination
 
 from .helpers import page_url, trusted_html
+from .sector_page import PHENOMENON_TYPE_LABELS
 
 # Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
 # through the API, so it doesn't import queryDb).
-# TODO(search #4): add a phenomenon-type facet (black hole, neutron star,
-# nebula, supernova remnant, rogue planet, comet, asteroid field, quasar)
-# and a Phenomena result panel in RESULT_PANELS, backed by new
-# queryDb._search_facet_*/_search_result_* functions over the phenomena
-# tables (mirror queryDb.SEARCH_TAG_FACETS).
 TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life",
     "moon_class", "moon_body", "moon_life",
     "density",
+    "phenomenon", "phenomenon_class",
 )
 
 FACET_TITLES = {
@@ -58,6 +55,8 @@ FACET_TITLES = {
     "moon_body": "Moon Body Type",
     "moon_life": "Moon Supported Life Chemistry",
     "density": "Asteroid Belt Density",
+    "phenomenon": "Phenomenon",
+    "phenomenon_class": "Phenomenon Class",
 }
 
 # Facets whose values are a fixed set; anything else from a hand-edited
@@ -66,6 +65,8 @@ _FACET_ALLOWED = {
     "type": {"star", "planet", "moon", "belt"},
     "body": {"t", "g"},
     "moon_body": {"t", "g"},
+    "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
+                   "rogue_planet", "interstellar_comet", "quasar"},
 }
 
 NAME_FIELDS = (
@@ -98,6 +99,7 @@ RESULT_PANELS = (
     ("planets", "Planets"),
     ("moons", "Moons"),
     ("belts", "Asteroid Belts"),
+    ("phenomena", "Phenomena"),
 )
 PANEL_NAMES = tuple(panel for panel, _heading in RESULT_PANELS)
 
@@ -299,6 +301,10 @@ def _rows(panel, rows):
         item = dict(row)
         if panel == "sectors":
             item["url"] = page_url("sector", sector_id=row["id"])
+        elif panel == "phenomena":
+            item["url"] = page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])
+            item["type_label"] = PHENOMENON_TYPE_LABELS.get(row["type"], row["type"])
+            item["sector_url"] = _sector_cell(row["sector_id"])
         elif panel == "systems":
             item["url"] = page_url("system", system_id=row["id"])
             item["sector_url"] = _sector_cell(row["sector_id"])

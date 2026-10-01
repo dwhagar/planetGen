@@ -154,6 +154,7 @@ def test_phenomena_near_sector_finds_a_nebula_placed_at_that_sector(mysql_config
     assert match["name"] == nebula.name
     assert match["descriptor"] == nebula.nebula_type
     assert match["radius_ly"] == pytest.approx(5.0)
+    assert match["class"] == nebula.nebula_class
     # offset_*_ly must actually be the phenomenon's real galaxy-frame
     # offset from the sector's own center, not a placeholder.
     expected_distance = math.sqrt(
@@ -502,10 +503,11 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
 
 
 
-def test_supernova_remnants_compact_remnant_shares_its_sector_and_center(mysql_config):
+def test_supernova_remnants_compact_remnant_shares_its_sector_and_drifts_by_its_kick(mysql_config):
     sector_id = _place_sector(mysql_config, "Remnant Core Sector", (30.0, 10.0, 0.0))
     remnant = SupernovaRemnant(SystemConfig())
     remnant.compact_remnant = NeutronStar(SystemConfig())
+    remnant.compact_offset_ly = [3.26156, 0.0, 0.0]  # 1 pc
     placement = {"center_x_pc": 30.5, "center_y_pc": 10.0, "center_z_pc": 0.0, "galactic_radius_pc": 32.0}
 
     conn = _db.get_connection(mysql_config)
@@ -522,7 +524,7 @@ def test_supernova_remnants_compact_remnant_shares_its_sector_and_center(mysql_c
 
     assert remnant_row["center_x_pc"] == pytest.approx(30.5)
     assert core_row["sector_id"] == sector_id
-    assert core_row["center_x_pc"] == pytest.approx(30.5)
+    assert core_row["center_x_pc"] == pytest.approx(31.5, abs=1e-4)
     assert ("supernova_remnant", remnant_id) in near
     assert ("neutron_star", core_row["id"]) in near
 
