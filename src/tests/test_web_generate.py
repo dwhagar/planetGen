@@ -710,16 +710,16 @@ def test_page_inputs_carry_the_bounds(site, client):
     assert f'max="{generationLimits.MAX_NUM_ORBITS}"' in html
 
 
-def test_sector_map_generate_target_only_for_a_usable_admin():
-    """The Sector Map offers Generate buttons (`starmap-data`'s
-    `generate`) only to an admin who could use the Generate page."""
-    from web import sector_page
+def test_map_generate_target_only_for_a_usable_admin():
+    """The Sector and Galaxy Maps offer Generate buttons (their scene
+    data's `generate`) only to an admin who could use the Generate page."""
+    from web import helpers
 
     app = create_app(_FakeConfig)
     with app.test_request_context("/sector/1"):
-        assert sector_page._generate_target(None) is None
-        assert sector_page._generate_target({"username": "a", "must_change_credentials": True}) is None
-        target = sector_page._generate_target({"username": "a"})
+        assert helpers.generate_target(None) is None
+        assert helpers.generate_target({"username": "a", "must_change_credentials": True}) is None
+        target = helpers.generate_target({"username": "a"})
         assert target["url"] == "/admin/generate"
         assert target["csrfField"] == csrf.FIELD_NAME
         assert target["csrfToken"]

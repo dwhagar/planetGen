@@ -1,5 +1,26 @@
 # Changelog
 
+## [7.35.0] - 2026-10-01
+
+### Added
+
+- **Schema v42: starbases, colonies and outposts.** Facilities can stand
+  on a planet or moon, orbit a star, planet or moon, sit in an asteroid
+  belt or field, or park in open space, following Boss's placement rules
+  (gas giants take orbital facilities only). An orbital facility's
+  period and speed come from its host's mass. The API adds, lists,
+  previews and removes them (`/api/facilities`).
+
+## [7.34.0] - 2026-10-01
+
+### Changed
+- **The Galaxy Map has Generate buttons.** Clicking a single sector that
+  isn't generated yet now gives a logged-in admin the same four buttons as
+  the Sector Map: generate this sector, its neighborhood, its column, or
+  its whole shell (after a confirm). They start a job on the Generate
+  page. Visitors see the sector's address and designation only. The
+  "Copy CLI command" button is gone.
+
 ## [7.33.0] - 2026-10-01
 
 ### Added

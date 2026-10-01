@@ -1588,3 +1588,33 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     assert client.get("/api/galaxy/cell?ring=0&layer=0&slot=4").status_code == 400
     assert client.get("/api/galaxy/cell?ring=1").status_code == 400
     assert client.get("/api/galaxy/cell?x=nan&y=0&z=0").status_code == 400
+
+
+def test_facility_routes(admin_client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        moon_id = conn.execute("SELECT id FROM moons WHERE star_system_id = ? LIMIT 1", (system_id,)).fetchone()["id"]
+    finally:
+        conn.close()
+
+    orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={moon_id}").get_json()
+    assert orbit["period_years"] > 0 and orbit["orbital_speed_kms"] > 0
+    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=999999999").status_code == 404
+
+    response = admin_client.post("/api/facilities", json={
+        "name": "Moonport", "kind": "station", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+    })
+    assert response.status_code == 201
+    facility_id = response.get_json()["id"]
+    assert admin_client.post("/api/facilities", json={
+        "name": "Bad", "kind": "mining-colony", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+    }).status_code == 400
+
+    detail = admin_client.get(f"/api/facilities/{facility_id}").get_json()
+    assert (detail["name"], detail["host_type"], detail["host_id"]) == ("Moonport", "moon", moon_id)
+    listed = admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"]
+    assert [f["id"] for f in listed] == [facility_id]
+
+    assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
+    assert admin_client.get(f"/api/facilities/{facility_id}").status_code == 404

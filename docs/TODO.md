@@ -38,13 +38,12 @@ renumber when items are added or finished.
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
-- **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
-   phenomena views (25), nebulae and
+- **Features (25-36)** from the same notes: phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 35 is
-   a schema change; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39, 30 (naming) in v40, 26 (nearest systems) in v41.
+   and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
+   shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
+   26 (nearest systems) in v41 and 35 (facilities) in v42.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -144,20 +143,6 @@ for a mouse; spacing and type sized with `clamp()`.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
-24. [ ] **Generate buttons on the Galaxy Map's unfilled sectors.** Boss:
-    "Sector map clicking on an unfilled sector should no longer give a command line
-    but if admin is logged in then it should just add a button to
-    generate that sector by itself or as a neighborhood or to generate
-    the entire shell (not recommended), also let's add a 'generate
-    column' option too." The Sector Map has them (generate.py's
-    `--column`/`--shell`/`--slot --radius-pc`, the Generate page's
-    column and shell modes, `sectormap.js generateButtons`). Left: the
-    Galaxy Map's `showPlannedInfo`/`showCellInfo` in `galaxymap3d.js`
-    still show the CLI snippet; give an admin the same four buttons
-    (the page needs the same admin-only `generate` target
-    `starmap.render_map_panel` gets). Visitors see the address and
-    designation only.
-
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
@@ -227,29 +212,6 @@ for a mouse; spacing and type sized with `clamp()`.
 
 ### Facilities (new)
 
-35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
-    am going to have starbases, colonies, outposts, that kind of thing.
-    Terrestrial facilities, orbital facilities, and stand-alone
-    facilities (those parked in space)." Add them to the database and
-    wire up adding a facility to a location, with these rules:
-    - Gas giants can't have terrestrial facilities (orbital only).
-    - Terrestrial worlds can have colonies (which automatically make
-      the planet inhabited: OR it into `queryDb._with_life_fields`) and
-      orbital facilities.
-    - Asteroid belts can have asteroid facilities (an asteroid outpost
-      or mining colony); asteroid fields can have asteroid outposts.
-    - A star system can have an outpost in orbit around the star itself.
-    - Stand-alone facilities are parked in space (a galactic position,
-      like a phenomenon).
-    - Orbits (around a star or a planet) get distance, period and speed
-      from the host's approximate mass, the same way everything else
-      does (`planetPhysics.calculate_orbital_period_years`,
-      `utils.circular_orbital_speed_kms`), and move with #32.
-    - Schema: one `facilities` table (kind, name, exactly one host,
-      orbit columns), migration, API routes in `html/api/routes.py`.
-    - Moons can host terrestrial and orbital facilities (Boss,
-      2026-09-30).
-
 36. [ ] **Place facilities from the web interface.** Boss: "The web
     interface should have a way to select within a star system where a
     facility goes in orbit around the star or around the planet, which
@@ -259,6 +221,17 @@ for a mouse; spacing and type sized with `clamp()`.
     calculated distance and speed before saving; facilities listed on
     the system page and drawn on the System Map; stand-alone ones on the
     sector page.
+    - The database side shipped in schema v42 (2026-09-30): the
+      `facilities` table, the rules in `program_constants.FACILITY_RULES`
+      (`stellarObjects/facilities.py`), `_db.add_facility`, and the API:
+      `POST /api/facilities`, `DELETE /api/facilities/<id>`,
+      `GET /api/facilities/<id>`, `GET /api/systems/<id>/facilities`,
+      `GET /api/sectors/<id>/facilities` and
+      `GET /api/facilities/orbit?host_type=&host_id=&distance_km=` (the
+      orbit to show before saving). See `docs/api.md`.
+    - A colony makes its world inhabited: OR
+      `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
+    - Facilities move with the correlative update (#32).
 
 ### Web API (`src/html/api/routes.py`)
 
