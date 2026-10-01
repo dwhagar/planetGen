@@ -129,6 +129,7 @@ def galaxy():
         fetch_path=url_for("web.galaxy_tiles"),
         stage_path=url_for("web.galaxy_stage"),
         locate_path=url_for("web.galaxy_locate"),
+        territory_path=url_for("web.galaxy_territories"),
         course=course,
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
@@ -266,3 +267,42 @@ def galaxy_locate():
 
 
 galaxy_locate.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+TERRITORY_POLITY_LIMIT = 200
+"""int: Most polities the territory overlay names. A galaxy has one
+polity per spacefaring species, so this is far past any real count; the
+rest are still drawn, just without a name in the legend."""
+
+
+@bp.route("/galaxy/territories")
+@page_limit("galaxy_tiles")
+def galaxy_territories():
+    """
+    JSON for the map's territory overlay: `GET /api/territories`' owned
+    systems and capitals, with each polity's name, color and system count
+    folded in from `GET /api/polities` (the territory endpoint carries
+    only ids). An API failure is a 502 as `{"error": ...}` JSON.
+    """
+    db = db_name()
+    try:
+        territories = apiclient.get_territories(db)
+        polities = apiclient.get_polities(db, limit=TERRITORY_POLITY_LIMIT)["items"]
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching territories: {exc}")
+        return _json_error("The territories could not be loaded. Please try again shortly.", 502)
+    named = {polity["id"]: polity for polity in polities}
+    merged = []
+    for polity in territories["polities"]:
+        detail = named.get(polity["id"], {})
+        merged.append({
+            "id": polity["id"], "capital_pc": polity["capital_pc"], "reach_ly": polity["reach_ly"],
+            "name": detail.get("name"), "color": detail.get("color"),
+            "government": detail.get("government"), "system_count": detail.get("system_count"),
+        })
+    response = jsonify({"points": territories["points"], "polities": merged})
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_territories.json_only = True  # not a page: tests/test_web_a11y.py skips it

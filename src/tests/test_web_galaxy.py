@@ -306,6 +306,39 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
     assert fake.stage_calls == []
 
 
+# --- /galaxy/territories -----------------------------------------------------------------
+
+def test_territories_endpoint_names_each_polity(client, fake, monkeypatch):
+    """The overlay's endpoint folds each polity's name, color and system
+    count (from `/api/polities`) into `/api/territories`' ids."""
+    monkeypatch.setattr(apiclient, "get_territories", lambda db: {
+        "points": [{"id": 1, "polity_id": 7, "color": "#d94f4f", "x": 1.0, "y": 2.0, "z": 0.0}],
+        "polities": [{"id": 7, "capital_pc": [1.0, 2.0, 0.0], "reach_ly": 40.0},
+                     {"id": 8, "capital_pc": None, "reach_ly": 20.0}],
+    })
+    monkeypatch.setattr(apiclient, "get_polities", lambda db, limit=None, offset=None: {
+        "items": [{"id": 7, "name": "The Union", "color": "#d94f4f", "government": "federation",
+                   "system_count": 12}],
+        "total": 1, "limit": limit, "offset": 0,
+    })
+    body = client.get("/galaxy/territories").get_json()
+    assert body["points"][0]["id"] == 1
+    union, unnamed = body["polities"]
+    assert (union["name"], union["system_count"], union["reach_ly"]) == ("The Union", 12, 40.0)
+    # A polity the names page didn't reach is still drawn, just unnamed.
+    assert unnamed["id"] == 8 and unnamed["name"] is None
+
+
+def test_territories_endpoint_reports_an_api_failure(client, fake, monkeypatch):
+    def fail(db, **kwargs):
+        raise apiclient.ApiError("down")
+
+    monkeypatch.setattr(apiclient, "get_territories", fail)
+    resp = client.get("/galaxy/territories")
+    assert resp.status_code == 502
+    assert "error" in resp.get_json()
+
+
 # --- The NAV course overlay --------------------------------------------------------------
 
 def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
