@@ -1,5 +1,40 @@
 # Changelog
 
+## [7.34.0] - 2026-10-01
+
+### Changed
+- **The Galaxy Map has Generate buttons.** Clicking a single sector that
+  isn't generated yet now gives a logged-in admin the same four buttons as
+  the Sector Map: generate this sector, its neighborhood, its column, or
+  its whole shell (after a confirm). They start a job on the Generate
+  page. Visitors see the sector's address and designation only. The
+  "Copy CLI command" button is gone.
+
+## [7.33.0] - 2026-10-01
+
+### Added
+
+- **Schema v41: octants and nearest systems.** Every placed phenomenon
+  records the sector octant it sits in, and the database stores the 3
+  nearest star systems to every placed system and phenomenon, found
+  across sector boundaries. The sector data now returns both, ready for
+  the pages to show.
+
+## [7.32.0] - 2026-10-01
+
+### Changed
+- **The Galaxy Map zooms smoothly.** The blocks for each view are now built
+  in a Web Worker (`static/galaxyblocks.js`), so a zoom step no longer
+  freezes the page while hundreds of milliseconds of block listing runs.
+  Zoom steps glide over 160 ms instead of jumping (they still jump with
+  "reduce motion" turned on), and a change of block size crossfades
+  instead of popping.
+- **Zoom steps you've already seen are instant.** Built views are kept (up
+  to about 4 million vertices), and while the map is idle it prepares the
+  views and fetches the tiles one zoom step in and out. The first frame is
+  still built on the page, and so is everything in a browser where the
+  worker can't start.
+
 ## [7.31.0] - 2026-10-01
 
 ### Changed

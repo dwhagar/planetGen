@@ -42,6 +42,8 @@ import apiclient
 from api.authz import SESSION_COOKIE_NAME
 from pagination import render_pagination
 
+from . import csrf
+
 
 def db_name():
     """
@@ -108,6 +110,15 @@ def pager(page_param, page, total, anchor=None, label="Pages", keep=None):
 
 
 _UNSET = object()
+
+
+def generate_target(admin):
+    """Where the map pages' Generate buttons post (`static/
+    generatebuttons.js`), for an admin who can use the Generate page;
+    `None` for everyone else."""
+    if admin is None or admin.get("must_change_credentials"):
+        return None
+    return {"url": url_for("web.generate"), "csrfField": csrf.FIELD_NAME, "csrfToken": csrf.csrf_token()}
 
 
 def current_admin():

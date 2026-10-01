@@ -33,7 +33,7 @@ from tilecache import TileRequestError, fetch_tiles
 from api.limiter import page_limit
 
 from . import bp
-from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
 """int: Stands in for a sector id while building the map's sector-link
@@ -110,6 +110,7 @@ def galaxy():
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
         sector_url=sector_url_template(),
+        generate=generate_target(current_admin()),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}

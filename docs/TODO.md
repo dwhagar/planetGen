@@ -37,15 +37,14 @@ renumber when items are added or finished.
 - **Class reference pages (56)**: Web, after its class display work.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
+   slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
-- **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
-   phenomena views and stored nearest systems (25-26), nebulae and
+- **Features (25-36)** from the same notes: phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27 and 35
-   are schema changes; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39, 30 (naming) in v40.
+   and speeds (33-34), and facilities (35-36). 35 is
+   a schema change; 28 and 31 (classes) shipped in schema v38, 29
+   (containment) in v39, 30 (naming) in v40, 26's storage in v41.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -75,19 +74,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-17. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
-   rebuilds the whole prism set on the main thread, then waits on tiles.
-   - Move block listing and geometry into a Web Worker. `galaxyprisms.js`
-     already has no three.js import. Hand back transferable typed arrays.
-   - Keep the geometry for the current m and the next finer and coarser
-     m ready ahead of time, keyed by (m, slice, center cell).
-   - Prefetch the tiles the next zoom step will need.
-   - Animate wheel and button zoom over a few frames, and crossfade between
-     block sizes instead of popping.
-
-   Done means no dropped frames while zooming on a mid-range laptop, and
-   no visible wait at any zoom step already visited.
-
 18. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
    - Babylon.js is several MB, and deck.gl needs a bundler.
    - regl and raw WebGPU would mean rewriting picking, sprites and
@@ -105,9 +91,10 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      the aligned wedges from 5 make seamless.
    - Order-independent transparency (weighted blended) if #15's sorting
      shows artifacts where translucent blocks intersect.
-   - Phone performance at 390 px.
+   - Phone performance at 390 px. Neighbouring full-size blocks share
+     faces, so skipping a face whose neighbour exists would cut the
+     vertex count; past that, one InstancedMesh per wedge-arc count.
    - DPR: `pcPerPixel` is per CSS pixel.
-   - Reduced-motion users get instant zoom.
 
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
@@ -128,21 +115,50 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     label on the system, phenomenon, sector and search pages links to
     its class page. Web does this after its class display work.
 
-### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
+Web workstream. Boss's UX reference for both items below is
+"Responsive Web Design Standards" (Boss's notes of 2026-10-01; a copy is
+in the project's shared files at `ux-standards/`). The rules from it
+that apply here: size classes by width (compact under 600 px, medium
+600-839, expanded 840-1199, desktop 1200+), not by device; viewport media
+queries only for the top-level frame and container queries for
+everything inside it; on medium and wider screens a menu must not stretch
+across the screen like a phone's; text columns capped at 45-75
+characters, but a map or canvas may use the full width; touch targets at
+least 44-48 px on coarse pointers (`pointer: coarse`), smaller is fine
+for a mouse; spacing and type sized with `clamp()`.
 
-24. [ ] **Generate buttons on the Galaxy Map's unfilled sectors.** Boss:
-    "Sector map clicking on an unfilled sector should no longer give a command line
-    but if admin is logged in then it should just add a button to
-    generate that sector by itself or as a neighborhood or to generate
-    the entire shell (not recommended), also let's add a 'generate
-    column' option too." The Sector Map has them (generate.py's
-    `--column`/`--shell`/`--slot --radius-pc`, the Generate page's
-    column and shell modes, `sectormap.js generateButtons`). Left: the
-    Galaxy Map's `showPlannedInfo`/`showCellInfo` in `galaxymap3d.js`
-    still show the CLI snippet; give an admin the same four buttons
-    (the page needs the same admin-only `generate` target
-    `starmap.render_map_panel` gets). Visitors see the address and
-    designation only.
+62. [ ] **Menus sized to what they hold.** Boss (2026-10-01): "I want the
+    menus to be proportional to the size needed, I noticed on tablet
+    screens that menu acts like a phone screen spanning absurdly across
+    the screen." The Menu and gear drop-downs (`.site-menu-panel`,
+    `.site-gear-panel` in `static/style.css`) have `min-width: 14rem` and
+    `max-width: calc(100vw - 1rem)`, and the header folds the section
+    buttons into the Menu below 43rem, so on a tablet the panel can grow
+    to nearly the full screen. Done: each panel is as wide as its longest
+    entry plus padding (capped, for example `width: max-content` with a
+    sensible `max-width`), full width only on compact (phone) screens;
+    checked at 390, 600, 768, 820, 1024 and 1280 px in both themes and
+    both orientations, with touch targets still at least 44 px on touch
+    screens.
+
+63. [ ] **A bigger Galaxy Map with its controls underneath.** Boss
+    (2026-10-01): "I also want the galaxy map box to be bigger, place the
+    controls under it horizontally if possible, stacked if not, but use as
+    much of the browser area as is reasonable to display the galaxy map."
+    Today the map is a square capped at 36rem
+    (`.galaxymap3d-panel .starmap-viewport` in `static/style.css`) inside
+    the 72rem main column (`.app .app-main`), with the controls and info
+    panel in a side column (`.starmap-side`, built in
+    `lib/galaxymap3d.py`). Done: the Galaxy Map page lets the map use most
+    of the browser window (wider than the 72rem column, and as tall as
+    the window allows after the header, not forced square), the controls
+    sit in a row under the map and wrap to a stack when the row doesn't
+    fit, and the canvas resizes with the window (`static/galaxymap3d.js`
+    must follow the new size; the Galaxy Map thread owns that file).
+    Open question: does the block info panel go under the controls, or
+    stay beside the map on wide screens?
+
+### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
@@ -171,24 +187,17 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
 
-26. [ ] **Octant and nearest systems for phenomena, stored.** Boss:
-    "Phenomena in the sector list should also list the octant they are
-    in. Also I'd like what stars are nearest to the phenomena at that
-    moment and that should be pre-calculated and stored in the database,
-    and in fact if we aren't already precalculate and store in the
-    database the nearest 3 star systems to each, even if it crosses
-    sector boundaries."
-    - `sector_page._contents` sets phenomena's octant to None; use
-      `spaceSector.classify_octant` (store it like
-      `star_systems.quadrant`).
-    - Only a text summary of a system's nearest 3 is stored today
-      (`star_systems.location`, from `SpaceSector.nearest_neighbors`,
-      within the sector only). Add a `nearest_systems` table (object
-      kind and id, rank 1-3, neighbor system, distance) for every system
-      and phenomenon, searched across sector boundaries, filled at
-      generation and by #32. Schema change with a migration.
-    - Show them on the sector page, system page and phenomenon page;
-      `queryDb.phenomena_near_sector` returns them.
+26. [ ] **Show phenomena's octant and everyone's nearest systems.**
+    Storage shipped in schema v41 (2026-09-30): every placed phenomenon
+    has `quadrant`, and `nearest_systems` holds the 3 nearest star
+    systems to every placed system and phenomenon, searched across
+    sector boundaries (`_db.refresh_nearest_systems`, filled at
+    generation; the correlative update refreshes it with #32).
+    `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
+    `sector_detail` returns `nearest` per system, and
+    `queryDb.nearest_systems(conn, table, ids)` serves any page.
+    - Left: show them on the sector page (`sector_page._contents`'s
+      `octant`/`location`), system page and phenomenon page.
 
 27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
     shipped (2026-09-30): sectors now generate molecular clouds,

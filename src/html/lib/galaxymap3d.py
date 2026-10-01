@@ -33,8 +33,9 @@ it is generated. At one sector per block a filled sector takes its real
 stellar density's color (`system_count / edge_ly ** 3`, relative to
 `physical_constants.LOCAL_STELLAR_DENSITY_LY3`, see
 `render_galaxy_map3d_panel`'s `referenceDensityPerLy3`) and links to its
-sector page; an unfilled one shows its designation and address (copyable
-straight into `generate.py galaxy --ring I --layer J --slot K`).
+sector page; an unfilled one shows its designation and address, plus, for
+a logged-in admin, the same Generate buttons the Sector Map gives a
+neighbor that isn't generated yet (`static/generatebuttons.js`).
 
 Unlike `lib/starmap.py` (every dot's size/color/position is computed
 once, server-side, and the client only ever draws exactly what it's
@@ -191,10 +192,6 @@ def galaxy_extent_pc(edge_pc, galaxy_shape):
     return GALAXY_RADIUS_PC * MAX_VIEW_RADIUS_MARGIN
 
 
-# TODO(galaxy-map #17): the client should also prefetch the tiles its next
-# zoom step in and out will need (one tile level either side), so a zoom
-# never waits on the network. Send the step factor to the client from here
-# if it needs tuning per deployment.
 FETCH_RADIUS_FACTOR = 1.6
 """float: The map fetches content out to this multiple of the camera's
 orbit radius, so what's just off-screen is already there when the camera
@@ -301,7 +298,7 @@ def _json_script(data):
 
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
-                              sector_url=None):
+                              sector_url=None, generate=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -339,6 +336,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         sector_url (str, optional): A sector page URL with `{id}` where
             the id goes, for the info panel's "View sector" link (a real
             `<a href>`); without it the panel shows no link.
+        generate (dict or None): For a logged-in admin only:
+            `{"url", "csrfField", "csrfToken"}`
+            (`web.helpers.generate_target`), where an unfilled sector's
+            Generate buttons post. `None` (every visitor) shows no buttons.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -350,6 +351,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "storageKey": db_name,
         "fetchPath": fetch_path,
         "sectorUrl": sector_url,
+        "generate": generate,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,

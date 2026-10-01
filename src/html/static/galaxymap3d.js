@@ -38,6 +38,11 @@
 // shows its address or ranges, counts, coordinates and 8 corners; at one
 // sector per block, a generated sector's panel links to its page.
 //
+// Zooming stays smooth: the blocks for a view are built in a Web Worker
+// (./galaxyblocks.js), built views are kept and the next zoom step's are
+// prepared ahead, zoom steps glide instead of jumping, and a change of
+// block size crossfades -- see "Block sets" and the zoom glide below.
+//
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
 // clickZoomFactorMin/Max by the camera's CURRENT distance in log space,
@@ -57,10 +62,12 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  blockAddressAt, blockAt, blockSectorCount, blockSectorRanges, blockSizeForScale, blockSlotRange, blocksForView,
-  buildPrismGeometry, cellCoordinates, cellVertices, sectorAddressAt, sectorCellBounds, wedgeLines,
+  blockAt, blockSectorCount, blockSectorRanges, blockSizeForScale, blockSlotRange, cellCoordinates, cellVertices,
+  sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
+const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
+const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
@@ -115,12 +122,6 @@ function formatAddress(ringIndex, layerIndex, slotIndex) {
   return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-// TODO(sector-map #24): the Galaxy Map's unfilled-sector panel gets the
-// same admin generate buttons as the sector map in place of this snippet.
-function cliSnippet(ringIndex, layerIndex, slotIndex) {
-  return "generate.py galaxy --ring " + ringIndex + " --layer " + layerIndex + " --slot " + slotIndex;
-}
-
 // --- Info panel ----------------------------------------------------------
 
 function showPlacedInfo(entry) {
@@ -146,41 +147,6 @@ function showPlacedInfo(entry) {
   if (sceneData.sectorUrl && entry.id != null) {
     panel.appendChild(pageLink(sectorUrl(entry.id), "View sector →"));
   }
-}
-
-function makeCopyButton(text) {
-  var button = document.createElement("button");
-  button.type = "button";
-  button.className = "btn";
-  button.textContent = "Copy CLI command";
-  button.addEventListener("click", function () {
-    var restore = button.textContent;
-    var onDone = function () {
-      button.textContent = "Copied!";
-      setTimeout(function () {
-        button.textContent = restore;
-      }, 1500);
-    };
-    var onFail = function () {
-      // Clipboard API unavailable (insecure context, permissions, older
-      // browser) -- fall back to a selectable readonly field the visitor
-      // can copy by hand, rather than silently doing nothing.
-      var input = document.createElement("input");
-      input.type = "text";
-      input.readOnly = true;
-      input.value = text;
-      input.className = "galaxymap3d-address-field";
-      button.insertAdjacentElement("afterend", input);
-      input.focus();
-      input.select();
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(onDone, onFail);
-    } else {
-      onFail();
-    }
-  });
-  return button;
 }
 
 // A share as a percentage, never rounding a nonzero one down to 0%.
@@ -271,13 +237,11 @@ function showCellInfo(cell) {
   corners.appendChild(list);
   panel.appendChild(corners);
 
-  if (single) {
-    var snippet = cliSnippet(cell.address.ring, cell.address.layer, cell.address.slot);
-    var code = document.createElement("code");
-    code.className = "galaxymap3d-cli-snippet";
-    code.textContent = snippet;
-    panel.appendChild(code);
-    panel.appendChild(makeCopyButton(snippet));
+  // A sector that isn't generated yet: for a logged-in admin
+  // (sceneData.generate, set by lib/galaxymap3d.py only then), the same
+  // Generate buttons the Sector Map gives a neighbor.
+  if (single && !(cell.filled > 0) && sceneData.generate) {
+    panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot));
   }
 }
 
@@ -334,8 +298,12 @@ function makeRingTexture(color) {
 // against -- see lib/galaxymap3d.py's own referenceDensityPerLy3
 // comment) -- 1.0 means exactly average, >1 denser, <1 sparser. `null`
 // when edge_ly isn't available (a sector placed before per-sector edge
-// tracking existed) rather than a false 0, so placedDensityColor below
-// can fall back to a neutral mid-tone instead of reading as "empty".
+// tracking existed) rather than a false 0, so a generated sector's block
+// (galaxyblocks.js) can fall back to a neutral mid-tone instead of
+// reading as "empty". Generated sectors are colored on a warm
+// bronze-to-gold range from PLACED_LOW_DENSITY_COLOR (sparse) to
+// PLACED_HIGH_DENSITY_COLOR (dense), apart from the density shading's
+// cooler dim-to-accent one, so they stand out at a glance.
 var PLACED_LOW_DENSITY_COLOR = "#4a3f2e";
 var PLACED_HIGH_DENSITY_COLOR = "#fff6df";
 
@@ -345,20 +313,6 @@ function placedRelativeDensity(entry, referenceDensityPerLy3) {
   }
   var densityPerLy3 = (entry.system_count || 0) / Math.pow(entry.edge_ly, 3);
   return densityPerLy3 / referenceDensityPerLy3;
-}
-
-// Colors a filled sector's own block at one sector per block: its real
-// density on a "log2(x+1)/3" dim-to-bright curve, through a warm
-// bronze-to-gold range (rather than the density shading's cooler
-// dim-to-accent one) so a generated sector stands out from predicted
-// space at a glance. Coarser blocks take the space's density color
-// (prismShade), and their filled share only sets their opacity.
-function placedDensityColor(entry, referenceDensityPerLy3) {
-  var relative = placedRelativeDensity(entry, referenceDensityPerLy3);
-  var t = relative == null ? 0.5 : Math.max(0, Math.min(1, Math.log2(relative + 1) / 3));
-  var low = new THREE.Color(PLACED_LOW_DENSITY_COLOR);
-  var high = new THREE.Color(PLACED_HIGH_DENSITY_COLOR);
-  return low.clone().lerp(high, t);
 }
 
 // The selection ring, drawn this many screen pixels across.
@@ -464,6 +418,7 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function resetView() {
+    zoomAnimation = null;
     target.copy(initialTarget);
     orbit.radius = initialOrbit.radius;
     orbit.theta = initialOrbit.theta;
@@ -596,38 +551,51 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- The block solid -------------------------------------------------------
   //
-  // Everything is drawn as one solid of blocks (galaxyprisms.js), rebuilt
-  // whenever the view's block set changes (updatePrisms, below). Blocks
+  // Everything is drawn as one solid of blocks (galaxyprisms.js). Blocks
   // fill their whole cell, so the galaxy reads as one solid; a thin
   // brighter outline along each face's own edges (found from the face's
   // 0..1 uv, about a screen pixel wide) keeps neighboring blocks apart.
   //
-  // Two meshes share one shader:
-  // - solidMesh: blocks whose every sector is generated, opaque;
-  // - glassMesh: everything else, translucent (no depth writes), its
-  //   blocks sorted back to front from the camera on every rebuild. Unfilled
-  //   space is BLOCK_OPACITY_SPARSE (sparsest) to BLOCK_OPACITY_DENSE
-  //   (densest) opaque, and a block grows more solid with its filled share
-  //   (blockOpacity).
+  // One built view (a "block set", see "Block sets" below) is two meshes
+  // sharing one shader:
+  // - solid: blocks whose every sector is generated, opaque;
+  // - glass: everything else, translucent (no depth writes), its blocks
+  //   sorted back to front from the camera when built. Unfilled space is
+  //   half to 80% opaque by density, and a block grows more solid with
+  //   its filled share (galaxyblocks.blockOpacity).
   // Blocks holding filled sectors also get a warm tint on their faces and
   // warm, stronger face edges, in step with their filled share
-  // (blockFillStep), so they can be picked out even where the opacity
-  // step alone is small.
-  // Whole blocks close to the camera are dropped (nearCut, tested on each
-  // block's own center), so flying through the disk shows what's ahead
-  // instead of a wall of the nearest blocks. The logdepthbuf chunks match
-  // the renderer's logarithmic depth buffer.
+  // (galaxyblocks.blockFillStep), so they can be picked out even where the
+  // opacity step alone is small.
+  // Two things depend on where the camera is, so the shader does them and
+  // a set built once stays right while the camera zooms and turns:
+  // - whole blocks close to the camera are dropped (nearCut, tested on
+  //   each block's own center), so flying through the disk shows what's
+  //   ahead instead of a wall of the nearest blocks;
+  // - blocks darken toward the rim of the view ball (fadeCenter,
+  //   fadeRadius: EDGE_FADE_START to EDGE_FADE_END of the way out), so the
+  //   solid fades out instead of stopping at a hard spherical rim the eye
+  //   reads as a ball.
+  // `fade` scales a whole set's opacity, for crossfades. The logdepthbuf
+  // chunks match the renderer's logarithmic depth buffer.
   var FILLED_TINT = new THREE.Color(PLACED_HIGH_DENSITY_COLOR);
+  var EDGE_FADE_START = 0.6;
+  var EDGE_FADE_END = 1.0;
 
   function makeBlockMaterial(translucent) {
     return new THREE.ShaderMaterial({
-      uniforms: { nearCut: { value: 0 }, filledTint: { value: FILLED_TINT } },
+      uniforms: {
+        nearCut: { value: 0 }, filledTint: { value: FILLED_TINT }, fade: { value: 1 },
+        fadeCenter: { value: new THREE.Vector3() }, fadeRadius: { value: 0 },
+      },
       transparent: translucent,
       depthWrite: !translucent,
       vertexShader: [
         "#include <common>",
         "#include <logdepthbuf_pars_vertex>",
         "uniform float nearCut;",
+        "uniform vec3 fadeCenter;",
+        "uniform float fadeRadius;",
         "attribute vec3 prismColor;",
         "attribute vec3 prismCenter;",
         "attribute float prismAlpha;",
@@ -639,7 +607,12 @@ function initGalaxyMap3d(canvasEl, data) {
         "varying vec2 vUv;",
         "varying float vKeep;",
         "void main() {",
-        "  vColor = prismColor;",
+        "  float rim = 0.0;",
+        "  if (fadeRadius > 0.0) {",
+        "    rim = clamp((distance(prismCenter, fadeCenter) / fadeRadius - " + EDGE_FADE_START.toFixed(3) + ") / "
+          + (EDGE_FADE_END - EDGE_FADE_START).toFixed(3) + ", 0.0, 1.0);",
+        "  }",
+        "  vColor = prismColor * (0.25 + 0.75 * (1.0 - rim * rim * (3.0 - 2.0 * rim)));",
         "  vAlpha = prismAlpha;",
         "  vFill = prismFill;",
         "  vUv = faceUv;",
@@ -654,6 +627,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "#include <logdepthbuf_pars_fragment>",
         "varying vec3 vColor;",
         "uniform vec3 filledTint;",
+        "uniform float fade;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
@@ -665,33 +639,18 @@ function initGalaxyMap3d(canvasEl, data) {
         "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
         "  vec3 face = mix(vColor, filledTint, 0.35 * vFill);",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha);",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha * fade);",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),
     });
   }
-  var solidMaterial = makeBlockMaterial(false);
-  var glassMaterial = makeBlockMaterial(true);
-  var solidMesh = new THREE.Mesh(new THREE.BufferGeometry(), solidMaterial);
-  var glassMesh = new THREE.Mesh(new THREE.BufferGeometry(), glassMaterial);
-  [solidMesh, glassMesh].forEach(function (mesh) {
-    mesh.frustumCulled = false;
-    mesh.visible = false;
-    mesh.userData.cells = [];
-    mesh.userData.owners = null;
-  });
-  // Opaque first, then the translucent shell over it.
-  solidMesh.renderOrder = 0;
-  glassMesh.renderOrder = 1;
-  scene.add(solidMesh);
-  scene.add(glassMesh);
 
   var highlightSprite = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false, depthTest: false })
   );
   highlightSprite.visible = false;
-  highlightSprite.renderOrder = 3;
+  highlightSprite.renderOrder = 5;
   scene.add(highlightSprite);
 
   function highlightPosition(x, y, z) {
@@ -712,25 +671,9 @@ function initGalaxyMap3d(canvasEl, data) {
     highlightSprite.scale.set(size, size, 1);
   }
 
-  // Blocks darken toward the edge of the view ball around the target, so
-  // the solid fades out instead of stopping at a hard spherical rim the eye
-  // reads as a ball. fadeRadius is the current view radius (set by
-  // renderFromCache).
-  var EDGE_FADE_START = 0.6;
-  var EDGE_FADE_END = 1.0;
+  // The radius of the view ball around the target (the fetched tiles'
+  // reach, which the solid fades out toward): set by renderFromCache.
   var fadeRadius = 0;
-
-  function edgeFade(x, y, z) {
-    if (!(fadeRadius > 0)) {
-      return 1;
-    }
-    var dx = x - target.x;
-    var dy = y - target.y;
-    var dz = z - target.z;
-    var t = Math.sqrt(dx * dx + dy * dy + dz * dz) / fadeRadius;
-    var u = Math.max(0, Math.min(1, (t - EDGE_FADE_START) / (EDGE_FADE_END - EDGE_FADE_START)));
-    return 1 - u * u * (3 - 2 * u);
-  }
 
   // --- Filled sectors --------------------------------------------------------
   //
@@ -738,10 +681,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // at g = 1 each generated sector's address, id, name and system count;
   // coarser, counts per cell g sectors a side. renderFromCache turns them
   // into points (a sector's center, or a cell's middle) with counts, and
-  // updatePrisms sums those into the blocks it draws. A cell never spans
-  // more than one block ring or layer (g divides m), so only a cell's
-  // wedge can straddle two blocks, and its count goes to the one holding
-  // its middle.
+  // galaxyblocks.js sums those into the blocks it draws. A cell never
+  // spans more than one block ring or layer (g divides m), so only a
+  // cell's wedge can straddle two blocks, and its count goes to the one
+  // holding its middle.
   var filledPoints = [];
   var filledVersion = 0;
 
@@ -774,296 +717,434 @@ function initGalaxyMap3d(canvasEl, data) {
     return out;
   }
 
-  // Unfilled space: this opaque at the sparsest drawn density, rising to
-  // BLOCK_OPACITY_DENSE at the densest (50% to 20% see-through).
-  var BLOCK_OPACITY_SPARSE = 0.5;
-  var BLOCK_OPACITY_DENSE = 0.8;
-  // Any filled sector lifts a block at least this far from its unfilled
-  // opacity toward solid, however tiny its share: at large m one filled
-  // sector among 531,441 must still show. The rest of the way follows the
-  // log of the filled count against the log of the block's total, so a
-  // block turns solid only when every sector in it is filled.
-  var FILLED_MIN_STEP = 0.3;
-
-  // 0 for a block with nothing filled, FILLED_MIN_STEP for one filled
-  // sector among many, 1 once every sector in it is filled.
-  function blockFillStep(cell) {
-    if (!(cell.filled > 0)) {
-      return 0;
-    }
-    if (cell.filled >= cell.total) {
-      return 1;
-    }
-    var share = Math.log(1 + cell.filled) / Math.log(1 + cell.total);
-    return FILLED_MIN_STEP + (1 - FILLED_MIN_STEP) * share;
+  // The filled points as galaxyblocks.js takes them (POINT_STRIDE numbers
+  // each).
+  function packFilledPoints(points) {
+    var packed = new Float64Array(points.length * POINT_STRIDE);
+    points.forEach(function (point, n) {
+      var o = n * POINT_STRIDE;
+      packed[o] = point.x;
+      packed[o + 1] = point.y;
+      packed[o + 2] = point.z;
+      packed[o + 3] = point.count;
+      packed[o + 4] = point.sector ? 1 : 0;
+      var relative = point.sector ? placedRelativeDensity(point.sector, data.referenceDensityPerLy3) : null;
+      packed[o + 5] = relative == null ? NaN : relative;
+    });
+    return packed;
   }
 
-  function blockOpacity(cell) {
-    var base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
-    return base + (1 - base) * blockFillStep(cell);
-  }
-
-  // The light the blocks' faces are shaded by: from galactic north, a
-  // little off to one side, so tops, walls and sides all read apart.
-  var PRISM_LIGHT = new THREE.Vector3(0.35, -0.3, 0.9).normalize();
-  var PRISM_AMBIENT = 0.35;
   // With the slice on (the default), blocks above the focus's own layer
   // are left out, so the view looks down on the solid's cut face -- the
   // arms and whatever layer the focus is in -- instead of its outside.
   var sliceAtFocus = true;
-  var lastPrismViewRadius = null;
-  // Block shading runs over a wide density range: the drawing floor
-  // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
-  // through a dim-to-accent-to-white ramp.
-  var PRISM_DENSITY_LOW = 0.02;
-  var PRISM_DENSITY_HIGH = 100;
+  // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
   var PRISM_DIM = new THREE.Color(0x1d2340);
   var PRISM_ACCENT = new THREE.Color(accentColor);
   var PRISM_HOT = new THREE.Color(0xeef0ff);
-
-  // Density alone puts the arms (1 +/- arm_amplitude around the ring's
-  // mean) on a sliver of that 0.02-100 ramp, so the spiral barely shows.
-  // Each block's shade mixes its density with its arm factor (density /
-  // its azimuthal mean, from galaxyprisms.js), stretched over the arm
-  // model's own range: inter-arm troughs dim, arm crests bright.
-  var PRISM_DENSITY_SHARE = 0.45;
-  var ARM_AMPLITUDE = galaxyArmAmplitude(data.densityShape);
-
-  function galaxyArmAmplitude(shape) {
-    if (!shape || !(shape.arm_count > 0)) {
-      return 0;
-    }
-    return Math.min(1, Math.abs(shape.arm_amplitude || 0));
-  }
-
-  // 0..1 shade for a block: density alone when the galaxy has no arms.
-  function prismShade(cell) {
-    var t = prismIntensity(cell.density);
-    if (!(ARM_AMPLITUDE > 0) || !(cell.meanDensity > 0)) {
-      return t;
-    }
-    var arm = (cell.density / cell.meanDensity - (1 - ARM_AMPLITUDE)) / (2 * ARM_AMPLITUDE);
-    return PRISM_DENSITY_SHARE * t + (1 - PRISM_DENSITY_SHARE) * Math.max(0, Math.min(1, arm));
-  }
-
-  function prismIntensity(relativeDensity) {
-    var t = Math.log(Math.max(relativeDensity, 1e-9) / PRISM_DENSITY_LOW) / Math.log(PRISM_DENSITY_HIGH / PRISM_DENSITY_LOW);
-    return Math.max(0, Math.min(1, t));
-  }
-
-  function prismColor(t) {
-    return t < 0.6 ? PRISM_DIM.clone().lerp(PRISM_ACCENT, t / 0.6) : PRISM_ACCENT.clone().lerp(PRISM_HOT, (t - 0.6) / 0.4);
-  }
   // Blocks centered nearer the camera than this x the orbit radius (the
   // camera's distance to the target) aren't drawn.
   var NEAR_CUT = 0.4;
   var galaxyShape = data.densityShape || null;
   var edgePc = data.edgePc || 1;
-  // Densities already worked out, per block size.
-  var prismDensityCaches = new Map();
-  var PRISM_CACHE_SIZES = 4;
-  var prismSetKey = "";
   // How many sectors a side the drawn blocks are.
   var drawnSectorsPerPrism = 1;
-
-  function prismDensityCache(m) {
-    var cache = memoryGet(prismDensityCaches, m);
-    if (!cache) {
-      cache = new Map();
-      memorySet(prismDensityCaches, m, cache, PRISM_CACHE_SIZES);
-    }
-    return cache;
-  }
 
   // TODO(galaxy-map #19): this is per CSS pixel. The block size (#13)
   // should stay per CSS pixel (it is about what a person can see and
   // click), but say so in the readout's code.
-  // Parsecs per screen pixel at the view's focus (the orbit target).
-  function pcPerPixelAtTarget() {
+  // Parsecs per screen pixel at the view's focus (the orbit target), for
+  // the camera at orbit radius `radius` (default: where it is).
+  function pcPerPixelAtTarget(radius) {
     var heightPx = canvasEl.clientHeight || 1;
-    return (orbit.radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+    return ((radius || orbit.radius) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
   }
 
-  // blockSectorCount per filled block (m/ring/seg/slab): at large m it
-  // walks every member ring and layer, so it's kept between rebuilds.
-  var blockTotals = new Map();
-  var BLOCK_TOTALS_MAX = 20000;
+  // --- Block sets ------------------------------------------------------------
+  //
+  // galaxyblocks.js builds a view's blocks; a Web Worker runs it, so a
+  // zoom step never stalls the page. The first frame is built right here
+  // (it must not wait on the worker), and so is everything when a worker
+  // can't start.
+  //
+  // A built view is kept as a block set, keyed so that one set serves
+  // every nearby camera position (blockViewFor):
+  // - the block size m and the view ball's radius, rounded up to one of
+  //   VIEW_BUCKETS_PER_DOUBLING steps per doubling;
+  // - the ball's center, snapped to a grid VIEW_SNAP_FRACTION of that
+  //   radius (the ball grows by the snap's reach, so it still covers the
+  //   view);
+  // - the slice's block layer and the block layer the camera is in (which
+  //   decides the top and bottom faces it can see).
+  // The most recent sets stay ready (up to BLOCK_SET_MAX_VERTICES in
+  // all), so zooming back is instant. While the page is idle, the worker
+  // prebuilds the views one zoom step in and out, and the nearest views
+  // with the next finer and coarser block size. When the needed set isn't
+  // built yet, the last one stays on screen until it is. A new set with a
+  // different block size crossfades in over CROSSFADE_MS; one with the
+  // same size (the same blocks, a little more or less of them) swaps.
+  // When the generated sectors change (new tiles), a set already built
+  // still shows at once and is rebuilt in the background.
+  var VIEW_BUCKETS_PER_DOUBLING = 8;
+  var VIEW_SNAP_FRACTION = 1 / 32;
+  var BLOCK_SET_MAX_VERTICES = 4000000;
+  var CROSSFADE_MS = 220;
+  // A padded ball holds more blocks than the view's own, so its budget
+  // (galaxyprisms.blocksForView's) grows by the same share of surface,
+  // and the block size stays what the view's own ball would get.
+  var VIEW_BUCKET_STEP = Math.pow(2, 1 / VIEW_BUCKETS_PER_DOUBLING);
+  var VIEW_PAD = VIEW_BUCKET_STEP * (1 + VIEW_SNAP_FRACTION * Math.sqrt(3) / 2);
+  var VIEW_BUDGET = Math.round((data.blockBudget || 60000) * VIEW_PAD * VIEW_PAD);
 
-  // The blocks to draw: the solid's surface (galaxyprisms.blocksForView),
-  // plus every block in view holding filled sectors, interior ones
-  // included (they show through the translucent shell). Each gets `filled`,
-  // and filled blocks also `total` (blockSectorCount), `centroid` (the
-  // mean position of their filled sectors, what a click centers on) and,
-  // at one sector per block, `sector`. Without a galaxy shape only filled
-  // blocks are drawn.
-  function viewBlocks(center, viewRadius, pcPerPixel) {
-    var options = {
-      pcPerPixel: pcPerPixel, sliceZ: sliceAtFocus ? target.z : null, viewerZ: camera.position.z,
-      minPx: data.blockMinPx, budget: data.blockBudget,
+  var reducedMotion = typeof window.matchMedia === "function"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var blockSceneConfig = {
+    edgePc: edgePc, galaxyRadius: GALAXY_RADIUS, shape: galaxyShape, minPx: data.blockMinPx, budget: data.blockBudget,
+    palette: {
+      dim: PRISM_DIM.toArray(), accent: PRISM_ACCENT.toArray(), hot: PRISM_HOT.toArray(),
+      placedLow: new THREE.Color(PLACED_LOW_DENSITY_COLOR).toArray(),
+      placedHigh: new THREE.Color(PLACED_HIGH_DENSITY_COLOR).toArray(),
+    },
+  };
+  var localBlockScene = createBlockScene(blockSceneConfig);
+  var localFilledVersion = -1;
+
+  // The view ball for the camera at orbit radius `radius` around `center`
+  // (the fetched tiles' reach).
+  function viewRadiusFor(radius) {
+    return Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, radius * FETCH_RADIUS_FACTOR));
+  }
+
+  // The block set the camera at orbit radius `radius` around `center`
+  // (current angles) needs: {key, m, view}, view as galaxyblocks' build
+  // takes it.
+  function blockViewFor(radius, center) {
+    var pcPerPixel = pcPerPixelAtTarget(radius);
+    var m = blockSizeForScale(pcPerPixel, edgePc, data.blockMinPx, GALAXY_RADIUS);
+    var size = m * edgePc;
+    var bucket = Math.ceil(Math.log2(viewRadiusFor(radius)) * VIEW_BUCKETS_PER_DOUBLING - 1e-9);
+    var ball = Math.pow(2, bucket / VIEW_BUCKETS_PER_DOUBLING);
+    var snap = ball * VIEW_SNAP_FRACTION;
+    var c = [Math.round(center.x / snap) * snap, Math.round(center.y / snap) * snap, Math.round(center.z / snap) * snap];
+    var slice = sliceAtFocus ? Math.round(center.z / size) : null;
+    var eye = offsetFromOrbit({ radius: radius, theta: orbit.theta, phi: orbit.phi }).add(center);
+    var viewerLayer = Math.floor(eye.z / size + 0.5);
+    return {
+      key: [m, bucket, c.join(","), slice, viewerLayer].join(":"),
+      m: m,
+      view: {
+        center: c, viewRadius: ball + snap * Math.sqrt(3) / 2, pcPerPixel: pcPerPixel,
+        sliceZ: slice === null ? null : slice * size, viewerZ: viewerLayer * size, budget: VIEW_BUDGET,
+        eye: [eye.x, eye.y, eye.z],
+      },
     };
-    var view = galaxyShape
-      ? blocksForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, options)
-      : { m: blockSizeForScale(pcPerPixel, edgePc, data.blockMinPx, GALAXY_RADIUS), slice: null, blocks: [] };
-    var m = view.m;
-    var byKey = new Map();
-    view.blocks.forEach(function (block) {
-      byKey.set(block.ring + "/" + block.seg + "/" + block.slab, block);
-    });
-    var sums = new Map();
-    filledPoints.forEach(function (point) {
-      var a = blockAddressAt(point.x, point.y, point.z, m, edgePc);
-      if (view.slice !== null && a.slab > view.slice) {
-        return;
-      }
-      var key = a.ring + "/" + a.seg + "/" + a.slab;
-      var sum = sums.get(key);
-      if (!sum) {
-        sum = { address: a, count: 0, x: 0, y: 0, z: 0, sector: null };
-        sums.set(key, sum);
-      }
-      sum.count += point.count;
-      sum.x += point.x * point.count;
-      sum.y += point.y * point.count;
-      sum.z += point.z * point.count;
-      if (point.sector) {
-        sum.sector = point.sector;
-      }
-    });
-    var reach = viewRadius + m * edgePc;
-    sums.forEach(function (sum, key) {
-      var block = byKey.get(key);
-      if (!block) {
-        var a = sum.address;
-        block = blockAt(a.ring, a.seg, a.slab, m, edgePc, galaxyShape, galaxyShape ? prismDensityCache(m) : null);
-        var mid = cellCoordinates(block).cartesian;
-        if (Math.hypot(mid[0] - center[0], mid[1] - center[1], mid[2] - center[2]) > reach) {
-          return;
-        }
-        view.blocks.push(block);
-      }
-      block.filled = sum.count;
-      var totalKey = m + "/" + key;
-      var total = blockTotals.get(totalKey);
-      if (total === undefined) {
-        if (blockTotals.size > BLOCK_TOTALS_MAX) {
-          blockTotals.clear();
-        }
-        total = blockSectorCount(block.ring, block.seg, block.slab, m, edgePc, galaxyShape);
-        blockTotals.set(totalKey, total);
-      }
-      block.total = Math.max(sum.count, total);
-      block.centroid = [sum.x / sum.count, sum.y / sum.count, sum.z / sum.count];
-      if (m === 1) {
-        block.sector = sum.sector;
-      }
-    });
-    return view;
   }
 
-  // One mesh's geometry from its blocks, colors and opacities (and each
-  // block's fill step, for its tint).
-  function setBlockGeometry(mesh, cells, colorsOf, alphasOf) {
-    var fillsOf = cells.map(blockFillStep);
-    var built = buildPrismGeometry(cells);
-    var count = built.owners.length;
-    var colors = new Float32Array(count * 3);
-    var centers = new Float32Array(count * 3);
-    var alphas = new Float32Array(count);
-    var fills = new Float32Array(count);
-    var normals = built.normals;
-    var middles = cells.map(function (cell) { return cellCoordinates(cell).cartesian; });
-    for (var v = 0; v < count; v++) {
-      var owner = built.owners[v];
-      var c = colorsOf[owner];
-      var lit = normals[3 * v] * PRISM_LIGHT.x + normals[3 * v + 1] * PRISM_LIGHT.y + normals[3 * v + 2] * PRISM_LIGHT.z;
-      var shade = PRISM_AMBIENT + (1 - PRISM_AMBIENT) * Math.max(0, lit);
-      colors[3 * v] = c.r * shade;
-      colors[3 * v + 1] = c.g * shade;
-      colors[3 * v + 2] = c.b * shade;
-      var mid = middles[owner];
-      centers[3 * v] = mid[0];
-      centers[3 * v + 1] = mid[1];
-      centers[3 * v + 2] = mid[2];
-      alphas[v] = alphasOf[owner];
-      fills[v] = fillsOf[owner];
+  var blockSets = new Map();
+  var blockSetVertices = 0;
+  var shownSet = null;
+  var fadingSet = null;
+  var fadeStartedAt = 0;
+
+  // A block set from galaxyblocks' build result: [solid mesh, glass mesh],
+  // each keeping its packed part (for picking) and the filled points the
+  // build counted (a sector's panel comes from them).
+  function makeBlockSet(key, built, version, points) {
+    var set = { key: key, m: built.m, version: version, points: points, meshes: [], vertexCount: 0 };
+    [built.solid, built.glass].forEach(function (part, n) {
+      var geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(part.positions, 3));
+      geometry.setAttribute("prismCenter", new THREE.BufferAttribute(part.centers, 3));
+      geometry.setAttribute("prismColor", new THREE.BufferAttribute(part.colors, 3, true));
+      geometry.setAttribute("faceUv", new THREE.BufferAttribute(part.uvs, 2, true));
+      geometry.setAttribute("prismAlpha", new THREE.BufferAttribute(part.alphas, 1, true));
+      geometry.setAttribute("prismFill", new THREE.BufferAttribute(part.fills, 1, true));
+      geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
+      var mesh = new THREE.Mesh(geometry, makeBlockMaterial(n === 1));
+      mesh.frustumCulled = false;
+      mesh.visible = part.vertexCount > 0;
+      mesh.userData.part = part;
+      mesh.userData.set = set;
+      set.meshes.push(mesh);
+      set.vertexCount += part.vertexCount;
+    });
+    return set;
+  }
+
+  function disposeSet(set) {
+    set.meshes.forEach(function (mesh) {
+      mesh.geometry.dispose();
+      mesh.material.dispose();
+    });
+  }
+
+  // Takes a set off screen, and frees it unless the cache still holds it.
+  function retireSet(set) {
+    set.meshes.forEach(function (mesh) { scene.remove(mesh); });
+    if (blockSets.get(set.key) !== set) {
+      disposeSet(set);
     }
-    var geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
-    geometry.setAttribute("prismColor", new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute("prismCenter", new THREE.BufferAttribute(centers, 3));
-    geometry.setAttribute("prismAlpha", new THREE.BufferAttribute(alphas, 1));
-    geometry.setAttribute("prismFill", new THREE.BufferAttribute(fills, 1));
-    geometry.setAttribute("faceUv", new THREE.BufferAttribute(built.uvs, 2));
-    geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
-    mesh.geometry.dispose();
-    mesh.geometry = geometry;
-    mesh.userData.cells = cells;
-    mesh.userData.owners = built.owners;
-    mesh.visible = cells.length > 0;
   }
 
-  // TODO(galaxy-map #17): smooth zooming.
-  //   - Hand the block listing and geometry to a worker, and keep a small
-  //     cache of built meshes keyed by (m, slice, focus cell) for the
-  //     current m and one step finer and coarser.
-  //   - Once the current view is drawn, prerender the neighbours during
-  //     idle time (requestIdleCallback, with a setTimeout fallback).
-  //   - On a zoom that changes m, crossfade the old and new meshes over a
-  //     few frames instead of swapping.
-  // Edge cases:
-  // - Cancel stale worker jobs when the camera moves again.
-  // - Cap memory (drop the farthest cached mesh).
-  // - The first frame must not wait on the worker: draw today's
-  //   synchronous result once.
-  function updatePrisms(viewRadius) {
-    var center = [target.x, target.y, target.z];
-    var pcPerPixel = pcPerPixelAtTarget();
-    lastPrismViewRadius = viewRadius;
-    // The camera's height only decides which top and bottom faces face it,
-    // so it is keyed coarsely: a rebuild every 16 pixels' worth.
-    var viewerBand = Math.round(camera.position.z / (16 * pcPerPixel));
-    var key = [center.join(","), viewRadius, pcPerPixel.toPrecision(3), sliceAtFocus, viewerBand, filledVersion].join(":");
-    if (key === prismSetKey) {
+  function cacheSet(set) {
+    var old = blockSets.get(set.key);
+    if (old) {
+      blockSets.delete(set.key);
+      blockSetVertices -= old.vertexCount;
+      if (old !== shownSet && old !== fadingSet) {
+        disposeSet(old);
+      }
+    }
+    blockSets.set(set.key, set);
+    blockSetVertices += set.vertexCount;
+    // Oldest first, never what's on screen.
+    var keys = Array.from(blockSets.keys());
+    for (var i = 0; i < keys.length && blockSetVertices > BLOCK_SET_MAX_VERTICES; i++) {
+      var doomed = blockSets.get(keys[i]);
+      if (doomed === set || doomed === shownSet || doomed === fadingSet) {
+        continue;
+      }
+      blockSets.delete(keys[i]);
+      blockSetVertices -= doomed.vertexCount;
+      disposeSet(doomed);
+    }
+  }
+
+  function cachedSet(key) {
+    return memoryGet(blockSets, key);
+  }
+
+  // Puts a set on screen: crossfading from the last one when the block
+  // size changed (and motion is welcome), else swapping.
+  function showSet(set) {
+    if (set === shownSet) {
       return;
     }
-    prismSetKey = key;
-    updateWedgeLevels(pcPerPixel);
-    var view = viewBlocks(center, viewRadius, pcPerPixel);
-    drawnSectorsPerPrism = view.m;
-
-    var solid = [];
-    var glass = [];
-    view.blocks.forEach(function (cell) {
-      cell.opacity = blockOpacity(cell);
-      (cell.opacity >= 1 ? solid : glass).push(cell);
-    });
-    // Back to front, so each translucent block blends over what's behind.
-    var eye = camera.position;
-    glass.forEach(function (cell) {
-      var mid = cellCoordinates(cell).cartesian;
-      cell.eyeDistance = Math.hypot(mid[0] - eye.x, mid[1] - eye.y, mid[2] - eye.z);
-    });
-    glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
-
-    function colorOf(cell) {
-      var color = cell.sector
-        ? placedDensityColor(cell.sector, data.referenceDensityPerLy3)
-        : prismColor(galaxyShape ? prismShade(cell) : 0.5);
-      var mid = cellCoordinates(cell).cartesian;
-      return color.multiplyScalar(0.25 + 0.75 * edgeFade(mid[0], mid[1], mid[2]));
+    if (fadingSet) {
+      retireSet(fadingSet);
+      fadingSet = null;
     }
-    setBlockGeometry(solidMesh, solid, solid.map(colorOf), solid.map(function () { return 1; }));
-    setBlockGeometry(glassMesh, glass, glass.map(colorOf), glass.map(function (cell) { return cell.opacity; }));
-    updateScaleBar();
+    var old = shownSet;
+    shownSet = set;
+    set.meshes.forEach(function (mesh) { scene.add(mesh); });
+    if (old) {
+      if (old.m !== set.m && !reducedMotion) {
+        fadingSet = old;
+        fadeStartedAt = performance.now();
+      } else {
+        retireSet(old);
+      }
+    }
+    stepCrossfade(performance.now());
+    if (drawnSectorsPerPrism !== set.m) {
+      drawnSectorsPerPrism = set.m;
+      updateScaleBar();
+    }
   }
 
-  // Inside the solid, the slice is the main answer; this near cut stays
-  // for views where the camera is below the cut (or the slice is off).
-  function updateNearCut() {
-    solidMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
-    glassMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
+  // Fades the shown set in and the last one out. While a set fades, even
+  // its solid blends, and the outgoing one draws last and writes no depth.
+  function stepCrossfade(now) {
+    if (!shownSet) {
+      return;
+    }
+    var t = fadingSet ? Math.min(1, (now - fadeStartedAt) / CROSSFADE_MS) : 1;
+    setFade(shownSet, t, false);
+    if (fadingSet) {
+      if (t >= 1) {
+        retireSet(fadingSet);
+        fadingSet = null;
+      } else {
+        setFade(fadingSet, 1 - t, true);
+      }
+    }
   }
 
+  function setFade(set, fade, outgoing) {
+    set.meshes.forEach(function (mesh, n) {
+      var translucent = n === 1;
+      mesh.material.uniforms.fade.value = fade;
+      mesh.material.transparent = translucent || fade < 1;
+      mesh.material.depthWrite = !translucent && !outgoing;
+      // Opaque first, then the translucent shell over it; an outgoing
+      // set over both.
+      mesh.renderOrder = (outgoing ? 2 : 0) + n;
+    });
+  }
+
+  // The camera-dependent uniforms, on every set on screen.
+  function updateBlockUniforms() {
+    [shownSet, fadingSet].forEach(function (set) {
+      if (!set) {
+        return;
+      }
+      set.meshes.forEach(function (mesh) {
+        var uniforms = mesh.material.uniforms;
+        // Inside the solid, the slice is the main answer; this near cut
+        // stays for views where the camera is below the cut (or the slice
+        // is off).
+        uniforms.nearCut.value = orbit.radius * NEAR_CUT;
+        uniforms.fadeCenter.value.copy(target);
+        uniforms.fadeRadius.value = fadeRadius;
+      });
+    });
+  }
+
+  var blockWorker = startBlockWorker();
+  var workerFilledVersion = -1;
+  var buildInFlight = null;
+  var nextBuildId = 1;
+
+  function startBlockWorker() {
+    if (typeof Worker === "undefined") {
+      return null;
+    }
+    var worker;
+    try {
+      worker = new Worker(new URL("./galaxyblocks.js" + VERSION_QUERY, import.meta.url), { type: "module" });
+    } catch (err) {
+      return null;
+    }
+    worker.onmessage = function (event) {
+      var message = event.data;
+      if (!buildInFlight || message.id !== buildInFlight.id) {
+        return;
+      }
+      var job = buildInFlight;
+      buildInFlight = null;
+      if (message.type === "built") {
+        var set = makeBlockSet(job.key, message.result, job.version, job.points);
+        cacheSet(set);
+        if (job.ahead && !zoomAnimation) {
+          warmUp(set);
+        }
+      } else {
+        abandonWorker();
+      }
+    };
+    worker.onerror = function () {
+      abandonWorker();
+    };
+    worker.postMessage({ type: "init", config: blockSceneConfig });
+    return worker;
+  }
+
+  // From here on every set is built on the page.
+  function abandonWorker() {
+    if (blockWorker) {
+      blockWorker.terminate();
+    }
+    blockWorker = null;
+    buildInFlight = null;
+  }
+
+  function buildHere(wanted) {
+    if (localFilledVersion !== filledVersion) {
+      localFilledVersion = filledVersion;
+      localBlockScene.setFilled(packFilledPoints(filledPoints));
+    }
+    var set = makeBlockSet(wanted.key, localBlockScene.build(wanted.view), filledVersion, filledPoints);
+    cacheSet(set);
+    return set;
+  }
+
+  // A set's geometry goes to the GPU the first time it's drawn, which for
+  // a big set takes a frame or more: a set built ahead is drawn once into
+  // a 1-pixel target right away, while the page is idle, so showing it
+  // later costs nothing.
+  var warmTarget = new THREE.WebGLRenderTarget(1, 1);
+  var warmScene = new THREE.Scene();
+
+  function warmUp(set) {
+    set.meshes.forEach(function (mesh) { warmScene.add(mesh); });
+    var previous = renderer.getRenderTarget();
+    renderer.setRenderTarget(warmTarget);
+    renderer.render(warmScene, camera);
+    renderer.setRenderTarget(previous);
+    set.meshes.forEach(function (mesh) { warmScene.remove(mesh); });
+  }
+
+  // Asks the worker for a set (`ahead`: one the camera may need next),
+  // one at a time: by the time one comes back the camera may have moved
+  // on, and the next frame asks for whatever is needed then.
+  function buildInWorker(wanted, ahead) {
+    if (buildInFlight) {
+      return;
+    }
+    if (workerFilledVersion !== filledVersion) {
+      workerFilledVersion = filledVersion;
+      var packed = packFilledPoints(filledPoints);
+      blockWorker.postMessage({ type: "filled", points: packed }, [packed.buffer]);
+    }
+    buildInFlight = { id: nextBuildId++, key: wanted.key, version: filledVersion, points: filledPoints, ahead: !!ahead };
+    blockWorker.postMessage({ type: "build", id: buildInFlight.id, view: wanted.view });
+  }
+
+  // The orbit radii worth having ready: one view step and one click-zoom
+  // step each way, and the nearest radii with the next finer and coarser
+  // block size.
+  function neighborRadii() {
+    var r = orbit.radius;
+    var factor = clickZoomFactor(r);
+    var radii = [r / VIEW_BUCKET_STEP, r * VIEW_BUCKET_STEP, r / factor, r * factor];
+    var m = blockViewFor(r, target).m;
+    [1 / VIEW_BUCKET_STEP, VIEW_BUCKET_STEP].forEach(function (step) {
+      for (var k = 1, at = r * step; k <= 4 * VIEW_BUCKETS_PER_DOUBLING; k++, at *= step) {
+        if (at < MIN_RADIUS || at > MAX_RADIUS) {
+          break;
+        }
+        if (blockViewFor(at, target).m !== m) {
+          radii.push(at);
+          break;
+        }
+      }
+    });
+    return radii.filter(function (radius) { return radius >= MIN_RADIUS && radius <= MAX_RADIUS; });
+  }
+
+  // Not while tiles are on their way: their sectors would make the set
+  // the view needs wait behind a build that's already out of date.
+  function prebuildNeighbors() {
+    if (!blockWorker || buildInFlight || fetchTimer || activeAbort
+        || blockSetVertices + (shownSet ? shownSet.vertexCount : 0) > BLOCK_SET_MAX_VERTICES) {
+      return;
+    }
+    var radii = neighborRadii();
+    for (var i = 0; i < radii.length; i++) {
+      var wanted = blockViewFor(radii[i], target);
+      if (!blockSets.has(wanted.key)) {
+        buildInWorker(wanted, true);
+        return;
+      }
+    }
+  }
+
+  // Every frame: shows the set the camera needs if it's built, and asks
+  // for it (or, once it's showing and current, its neighbours) if not.
+  function syncBlocks() {
+    var wanted = blockViewFor(orbit.radius, target);
+    var set = cachedSet(wanted.key);
+    if (!set && (!shownSet || !blockWorker)) {
+      if (blockWorker || !zoomAnimation) {
+        set = buildHere(wanted);
+      }
+    }
+    if (set) {
+      showSet(set);
+    }
+    if (blockWorker) {
+      if (!set || set.version !== filledVersion) {
+        buildInWorker(wanted);
+      } else {
+        prebuildNeighbors();
+      }
+    } else if (set && set.version !== filledVersion && !zoomAnimation) {
+      showSet(buildHere(wanted));
+    }
+    stepCrossfade(performance.now());
+    updateBlockUniforms();
+  }
 
   // --- Cube tiles ----------------------------------------------------------
   //
@@ -1073,10 +1154,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // tileRootEdgePc on a side centered on the galactic origin, each level
   // halves the edge, and a tile's key is "level/ix/iy/iz". neededTiles()
   // picks the smallest level whose tiles are at least the view radius
-  // across (so at most 27 tiles cover the view), plus the smallest tiles
-  // (the only ones that list planned slots) around the target when zoomed
-  // in. lib/galaxymap3d.py's initial_tile_request does the same in Python
-  // for the first frame.
+  // across (so at most 27 tiles cover the view). lib/galaxymap3d.py's
+  // initial_tile_request does the same in Python for the first frame.
+  // Once the view's own tiles are in, the tiles one click-zoom step in and
+  // out are fetched too (prefetchTiles), so zooming never waits on them.
   //
   // A tile's contents depend only on its key and the database's content
   // stamp, so tiles are cached three ways: in memory here, in this
@@ -1138,12 +1219,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return found.map(function (f) { return f.key; });
   }
 
-  // TODO(galaxy-map #17): also compute the tiles for the next zoom step in
-  // and out (tile level +/- 1 around the same target) and fetch them at low
-  // priority after the current view's tiles, so zooming never waits on the
-  // network. Never let the prefetch abort a real fetch.
-  function neededTiles() {
-    var viewRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, orbit.radius * FETCH_RADIUS_FACTOR));
+  // The tiles the camera at orbit radius `radius` (default: where it is)
+  // needs.
+  function neededTiles(radius) {
+    var viewRadius = viewRadiusFor(radius || orbit.radius);
     var level = tileLevelForRadius(viewRadius);
     var keys = tilesIntersectingSphere(level, target, viewRadius);
     return { keys: keys, viewRadius: viewRadius };
@@ -1381,8 +1460,9 @@ function initGalaxyMap3d(canvasEl, data) {
   var filledPointsByTile = new WeakMap();
   var filledSignature = "";
 
-  // Draws whatever of the needed tiles is already cached; returns what's
-  // still missing.
+  // Takes the filled sectors from whatever of the needed tiles is already
+  // cached (the blocks are rebuilt from them when they change); returns
+  // what's still missing.
   function renderFromCache(need) {
     fadeRadius = need.viewRadius;
     var points = [];
@@ -1408,7 +1488,6 @@ function initGalaxyMap3d(canvasEl, data) {
       filledPoints = points;
       filledVersion++;
     }
-    updatePrisms(need.viewRadius);
     return missing;
   }
 
@@ -1458,7 +1537,16 @@ function initGalaxyMap3d(canvasEl, data) {
     fetchTimer = null;
     var need = neededTiles();
     var missing = renderFromCache(need);
+    // Mid-glide, the tiles where the zoom is headed too.
+    if (zoomAnimation) {
+      neededTiles(zoomAnimation.to).keys.forEach(function (key) {
+        if (missing.indexOf(key) < 0 && getTile(key) === undefined) {
+          missing.push(key);
+        }
+      });
+    }
     if (!missing.length) {
+      prefetchTiles();
       return;
     }
     if (activeAbort) {
@@ -1491,6 +1579,8 @@ function initGalaxyMap3d(canvasEl, data) {
         // cached by now).
         if (stampChanged || stillMissing.length) {
           scheduleFetch(false);
+        } else {
+          prefetchTiles();
         }
       })
       .catch(function (err) {
@@ -1504,12 +1594,60 @@ function initGalaxyMap3d(canvasEl, data) {
       });
   }
 
-  // First frame: normally every tile is already cached (the page embeds
-  // them), so this only fetches if the page's own tile fetch came up short.
-  var initialMissing = renderFromCache(neededTiles());
-  if (initialMissing.length) {
-    scheduleFetch(false);
+  // The tiles one click-zoom step in and out, fetched at low priority once
+  // the view's own are in. One prefetch runs at a time and a real fetch
+  // never waits on or cancels it (or the other way round); its tiles just
+  // land in the cache.
+  var prefetching = false;
+
+  function prefetchTiles() {
+    if (prefetching || activeAbort) {
+      return;
+    }
+    var factor = clickZoomFactor(orbit.radius);
+    var missing = [];
+    [orbit.radius / factor, orbit.radius * factor].forEach(function (radius) {
+      neededTiles(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius))).keys.forEach(function (key) {
+        if (missing.indexOf(key) < 0 && getTile(key) === undefined) {
+          missing.push(key);
+        }
+      });
+    });
+    if (!missing.length) {
+      return;
+    }
+    var params = new URLSearchParams({ tiles: missing.slice(0, MAX_TILES_PER_REQUEST).join(",") });
+    if (currentStamp) {
+      params.set("stamp", currentStamp);
+    }
+    prefetching = true;
+    fetch(data.fetchPath + "?" + params.toString(), { priority: "low" })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error(data.fetchPath + " returned " + response.status);
+        }
+        return response.json();
+      })
+      .then(function (payload) {
+        prefetching = false;
+        // A new stamp means the view's own tiles may be stale too.
+        if (absorb(payload)) {
+          scheduleFetch(false);
+        } else if (missing.length > MAX_TILES_PER_REQUEST) {
+          prefetchTiles();
+        }
+      })
+      .catch(function () {
+        // Only a head start: the real fetch gets these when they're needed.
+        prefetching = false;
+      });
   }
+
+  // Normally every tile is already cached (the page embeds them), so this
+  // only fetches if the page's own tile fetch came up short.
+  // First frame's tiles, then (normally nothing is missing) the prefetch.
+  renderFromCache(neededTiles());
+  scheduleFetch(false);
 
   // --- Pointer/keyboard interaction --------------------------------------
 
@@ -1571,10 +1709,40 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointerup", endDrag);
   canvasEl.addEventListener("pointercancel", endDrag);
 
-  // TODO(galaxy-map #17): animate zoom steps (wheel, buttons,
-  // double-click) over ~150 ms toward the new radius instead of jumping,
-  // so the prerendered neighbour level can fade in. Respect
-  // prefers-reduced-motion by jumping as today.
+  // Wheel, button and double-click zooms glide to the new radius over
+  // ZOOM_MS (evenly in log space, easing out) instead of jumping; another
+  // step mid-glide starts from where the camera is, toward the new goal.
+  // With prefers-reduced-motion they jump.
+  var ZOOM_MS = 160;
+  var zoomAnimation = null;
+
+  // Where the camera is headed: the end of the glide, or where it is.
+  function zoomGoal() {
+    return zoomAnimation ? zoomAnimation.to : orbit.radius;
+  }
+
+  function zoomTo(radius) {
+    radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius));
+    if (reducedMotion) {
+      zoomAnimation = null;
+      setRadius(radius);
+      return;
+    }
+    zoomAnimation = { from: orbit.radius, to: radius, startedAt: performance.now() };
+  }
+
+  function stepZoom(now) {
+    if (!zoomAnimation) {
+      return;
+    }
+    var t = Math.min(1, (now - zoomAnimation.startedAt) / ZOOM_MS);
+    var eased = 1 - Math.pow(1 - t, 3);
+    setRadius(zoomAnimation.from * Math.pow(zoomAnimation.to / zoomAnimation.from, eased));
+    if (t >= 1) {
+      zoomAnimation = null;
+    }
+  }
+
   canvasEl.addEventListener(
     "wheel",
     function (event) {
@@ -1592,7 +1760,7 @@ function initGalaxyMap3d(canvasEl, data) {
       if (!deltaPx) {
         return;
       }
-      setRadius(orbit.radius * Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+      zoomTo(zoomGoal() * Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
       scheduleFetch(false);
     },
     { passive: false }
@@ -1629,9 +1797,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // to recenter on (the mean of its filled sectors, or its middle) -- or
   // null. Along the ray, the nearest block holding filled sectors wins over
   // the translucent space in front of it, so clicking finds what's
-  // generated. Blocks hidden by the near cut (updateNearCut) are skipped.
+  // generated. Blocks hidden by the near cut (NEAR_CUT) are skipped.
   function cellAtClientPoint(clientX, clientY) {
-    var meshes = [solidMesh, glassMesh].filter(function (mesh) { return mesh.visible && mesh.userData.owners; });
+    var meshes = shownSet ? shownSet.meshes.filter(function (mesh) { return mesh.visible; }) : [];
     if (!meshes.length) {
       return null;
     }
@@ -1641,7 +1809,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     raycaster.setFromCamera(ndc, camera);
     var hits = raycaster.intersectObjects(meshes, false);
-    var nearCut = solidMaterial.uniforms.nearCut.value;
+    var nearCut = orbit.radius * NEAR_CUT;
     var first = null;
     for (var i = 0; i < hits.length; i++) {
       var face = hits[i].face;
@@ -1649,7 +1817,7 @@ function initGalaxyMap3d(canvasEl, data) {
         continue;
       }
       var mesh = hits[i].object;
-      var cellData = mesh.userData.cells[mesh.userData.owners[face.a]];
+      var cellData = blockRecord(mesh.userData.set, mesh.userData.part, mesh.userData.part.owners[face.a]);
       if (!cellData) {
         continue;
       }
@@ -1667,8 +1835,33 @@ function initGalaxyMap3d(canvasEl, data) {
     return first ? blockHit(first) : null;
   }
 
+  // Block `index` of one mesh of a block set, the way the listing gives
+  // blocks (bounds, density, meanDensity) plus its m, filled, total,
+  // centroid and generated sector -- or null.
+  function blockRecord(set, part, index) {
+    var rec = part.cells;
+    var o = index * CELL_STRIDE;
+    if (!(o + CELL_STRIDE <= rec.length)) {
+      return null;
+    }
+    var block = blockAt(rec[o], rec[o + 1], rec[o + 2], set.m, edgePc, null, null);
+    block.m = set.m;
+    block.density = isNaN(rec[o + 3]) ? null : rec[o + 3];
+    block.meanDensity = isNaN(rec[o + 4]) ? null : rec[o + 4];
+    block.filled = rec[o + 5];
+    block.total = rec[o + 6];
+    if (!isNaN(rec[o + 7])) {
+      block.centroid = [rec[o + 7], rec[o + 8], rec[o + 9]];
+    }
+    if (!isNaN(rec[o + 10])) {
+      var point = set.points[rec[o + 10]];
+      block.sector = point && point.sector ? point.sector : null;
+    }
+    return block;
+  }
+
   function blockHit(cellData) {
-    var m = drawnSectorsPerPrism;
+    var m = cellData.m;
     var at = cellData.centroid || cellCoordinates(cellData).cartesian;
     var cell = {
       m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, seg: cellData.seg, slab: cellData.slab,
@@ -1769,7 +1962,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // click handler), so this zooms in on that same point rather than
   // re-picking under the cursor, which by now is over something else.
   function zoomInOnTarget() {
-    setRadius(orbit.radius / clickZoomFactor(orbit.radius));
+    zoomTo(zoomGoal() / clickZoomFactor(zoomGoal()));
     scheduleFetch(true);
   }
 
@@ -1836,10 +2029,10 @@ function initGalaxyMap3d(canvasEl, data) {
       button.addEventListener("click", function () {
         var action = button.dataset.action;
         if (action === "zoom-in") {
-          setRadius(orbit.radius / clickZoomFactor(orbit.radius));
+          zoomTo(zoomGoal() / clickZoomFactor(zoomGoal()));
           scheduleFetch(true);
         } else if (action === "zoom-out") {
-          setRadius(orbit.radius * clickZoomFactor(orbit.radius));
+          zoomTo(zoomGoal() * clickZoomFactor(zoomGoal()));
           scheduleFetch(true);
         } else if (action === "reset") {
           resetView();
@@ -1847,11 +2040,9 @@ function initGalaxyMap3d(canvasEl, data) {
           wedgeGroup.visible = !wedgeGroup.visible;
           button.setAttribute("aria-pressed", String(wedgeGroup.visible));
         } else if (action === "slice") {
+          // The next frame picks the block set for the new slice.
           sliceAtFocus = !sliceAtFocus;
           button.setAttribute("aria-pressed", String(sliceAtFocus));
-          if (lastPrismViewRadius !== null) {
-            updatePrisms(lastPrismViewRadius);
-          }
         }
       });
     });
@@ -1954,11 +2145,26 @@ function initGalaxyMap3d(canvasEl, data) {
   resize();
   window.addEventListener("resize", resize);
 
-  (function animate() {
+  // Every frame: the zoom glide, then (when the view moved) the filled
+  // sectors from cached tiles, a fetch for missing ones and the wedge
+  // lines, then the block set for the view.
+  var lastViewSignature = "";
+
+  (function animate(now) {
     requestAnimationFrame(animate);
+    stepZoom(now || performance.now());
+    var viewSignature = [target.x, target.y, target.z, orbit.radius, canvasEl.clientHeight].join(",");
+    if (viewSignature !== lastViewSignature) {
+      lastViewSignature = viewSignature;
+      var missing = renderFromCache(neededTiles());
+      if (missing.length && !fetchTimer && !activeAbort) {
+        scheduleFetch(false);
+      }
+      updateWedgeLevels(pcPerPixelAtTarget());
+    }
+    syncBlocks();
     updateHighlightScale();
     updateWedgeLabels();
-    updateNearCut();
     renderer.render(scene, camera);
   })();
 }

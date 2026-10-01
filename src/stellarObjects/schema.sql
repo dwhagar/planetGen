@@ -838,6 +838,16 @@
 --   of those phenomenon tables gains an index on `name`.
 --   `_migrate_v39_to_v40` renames and registers existing rows.
 --
+-- v41: where phenomena sit, and what's near everything. Every placeable
+--   phenomenon table (black_holes, neutron_stars, nebulae,
+--   supernova_remnants, rogue_planets, interstellar_comets,
+--   asteroid_fields, quasars) gains `quadrant`, the sector octant its
+--   center sits in (the label `star_systems.quadrant` uses, in the same
+--   `galaxyGeometry.sector_orientation` frame). New `nearest_systems`
+--   table: the 3 nearest star systems to every placed system and
+--   phenomenon, across sector boundaries. `_migrate_v40_to_v41` adds
+--   both and fills them.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1650,6 +1660,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -1713,6 +1725,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -1788,6 +1802,8 @@ CREATE TABLE IF NOT EXISTS nebulae (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -1866,6 +1882,8 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1918,6 +1936,8 @@ CREATE TABLE IF NOT EXISTS quasars (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27-style row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1967,6 +1987,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -2029,6 +2051,8 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -2109,6 +2133,8 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     center_y_pc         DOUBLE,
     center_z_pc         DOUBLE,
     galactic_radius_pc  DOUBLE,
+    -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
+    quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
@@ -2172,9 +2198,6 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 -- genuinely free again once nothing live still uses any decorated form
 -- of it descended from that row.
 -- ---------------------------------------------------------------------
--- TODO(phenomena #26): add a nearest_systems table (object kind + id, rank
--- 1-3, neighbor star_system_id, distance) with a migration, and a quadrant
--- column on the phenomena tables (or compute it on read).
 CREATE TABLE IF NOT EXISTS sector_name_registry (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name         VARCHAR(255) NOT NULL,
@@ -2214,6 +2237,38 @@ CREATE TABLE IF NOT EXISTS system_name_registry (
     UNIQUE (base_name),
     CONSTRAINT fk_system_name_registry_first_star_system
         FOREIGN KEY (first_star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- nearest_systems (v41): the 3 star systems nearest each placed star
+-- system and phenomenon, searched across sector boundaries in the galaxy
+-- frame (`_db.refresh_nearest_systems`). `object_table`/`object_id` name
+-- the object (`'star_systems'` or a phenomenon table); `star_system_id`
+-- repeats `object_id` for a system so deleting it takes its rows along,
+-- and `sector_id` is the object's sector, so deleting a sector does too.
+-- Only systems within `_db.NEAREST_SYSTEMS_SEARCH_PC` count, so an
+-- isolated object can have fewer than 3 rows. Filled when a sector is
+-- generated (a new sector also updates its neighbors' lists) and by the
+-- correlative update (`updateOrbits.py`), which moves everything.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS nearest_systems (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sector_id            BIGINT UNSIGNED NOT NULL,
+    object_table         VARCHAR(32) NOT NULL,
+    object_id            BIGINT UNSIGNED NOT NULL,
+    star_system_id       BIGINT UNSIGNED,
+    neighbor_rank        TINYINT NOT NULL,
+    neighbor_system_id   BIGINT UNSIGNED NOT NULL,
+    distance_pc          DOUBLE NOT NULL,
+
+    UNIQUE KEY uq_nearest_systems_object_rank (object_table, object_id, neighbor_rank),
+    KEY idx_nearest_systems_neighbor (neighbor_system_id),
+    CONSTRAINT fk_nearest_systems_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+    CONSTRAINT fk_nearest_systems_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT fk_nearest_systems_neighbor
+        FOREIGN KEY (neighbor_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

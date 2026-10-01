@@ -492,6 +492,18 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Octants and nearest systems (v41).** Every placeable phenomenon
+table gains `quadrant`, the sector octant its center sits in (the labels
+`star_systems.quadrant` uses, in the `sector_orientation` frame).
+`nearest_systems` holds up to 3 rows per placed system or phenomenon:
+`object_table`/`object_id`, `neighbor_rank`, `neighbor_system_id` and
+`distance_pc`, searched across sector boundaries out to
+`_db.NEAREST_SYSTEMS_SEARCH_PC` (4 pc). `sector_id` (the object's
+sector) and `star_system_id` (set for a system) cascade deletes.
+`insert_sector` fills a new sector's rows and merges its systems into
+its neighbors' lists; `refresh_nearest_systems` recomputes whole
+sectors. `_migrate_v40_to_v41` adds both and fills them.
+
 **Names (v40).** Black holes, neutron stars, nebulae, supernova
 remnants, rogue planets and quasars draw their names through
 `system_name_registry`, the same collision rules star systems use, so
