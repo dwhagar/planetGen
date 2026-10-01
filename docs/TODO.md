@@ -647,6 +647,38 @@ invite links too.
     - Do the 1-79 numbers already in commits, PRs and the changelog get a
       mapping table to the new IDs?
 
+81. [ ] **A structural design document: the program's "circuitry".**
+    Boss (2026-10-01): "build a structural design document of how the
+    program works overall, bridging file names to what they contain and
+    basically lays out the 'circuitry' of the program." Nothing like it
+    exists today: `docs/` has reference docs per area (`api.md`,
+    `database-schema.md`, `html-interface.md`, `config.md`,
+    `testing.md`, ...) and `docs/design/` has topic designs, but nothing
+    shows the whole. Done: one document (for example
+    `docs/design/architecture.md`) that maps every top-level script,
+    package and important module (`generate.py`, `src/stellarObjects/`,
+    `src/html/api/`, `src/html/web/`, `src/html/lib/`, `src/html/static/`,
+    installers, workflows) to what it holds, and traces the main flows
+    through them: generating a galaxy, sector and system; storing and
+    migrating the database; serving a page and a map; admin login and
+    jobs; releases. Open questions: diagrams (Mermaid, which GitHub
+    renders) or text only? How is it kept current (a CI check that every
+    module is listed, or a rule that PRs update it)?
+
+82. [ ] **Bring the design documents up to date, with the reasons.** Boss
+    (2026-10-01): "clean up the design documents make sure they are all
+    current, document how the program works the way it does and why and
+    what choices were made that influenced each." Done: every file in
+    `docs/design/` and `docs/analysis/` (and the reference docs in
+    `docs/`) checked against the code, fixed or marked as historical; each
+    says how that part works, why, and which choices and alternatives
+    shaped it (for example the cylindrical sector grid, rendering systems
+    from the database, three.js for the Galaxy Map, Flask-only site),
+    drawing on the PRs and `CHANGELOG.md`. Open questions: do superseded
+    designs get deleted or kept in an archive folder? Does this wait for
+    item 80's category IDs so the docs are tagged once? Best done after
+    item 81, which gives the map to hang them on.
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
