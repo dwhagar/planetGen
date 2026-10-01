@@ -92,14 +92,16 @@ def test_view_radius_bounds_max_is_always_well_past_min():
 def test_panel_includes_the_canvas_and_controls():
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
     assert 'id="galaxymap3d-canvas"' in html
-    assert 'data-action="zoom-in"' in html
-    assert 'data-action="zoom-out"' in html
-    assert 'data-action="reset"' in html
+    # Seen from above only (MAP.17): Back, Forward, Up and Whole galaxy,
+    # no zoom buttons and no free camera.
+    for action in ("back", "forward", "up", "reset"):
+        assert f'data-action="{action}"' in html
+    for gone in ("zoom-in", "zoom-out", "free-look", "slice"):
+        assert f'data-action="{gone}"' not in html
     assert 'id="galaxymap3d-info"' in html
     # The drill-down's breadcrumb, slab strip, tooltip and toggles.
     for element in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
         assert f'id="{element}"' in html
-    assert 'data-action="free-look"' in html
     assert 'data-action="territories"' in html
     assert 'id="galaxymap3d-territories"' in html
     assert 'data-action="generated-only"' in html

@@ -25,6 +25,7 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import queryDb  # noqa: E402
 from stellarObjects import _db, adminAuth, physical_constants  # noqa: E402
+from stellarObjects import facilities as facility_rules  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
@@ -44,6 +45,7 @@ class _FakeConfig(Config):
 def _moon():
     return {"id": 30, "name": "Luna", "planet_class": "D", "body_type": "t", "habitable": False,
             "inhabited": False, "zone": "e", "distance_km": 384_400.0, "period_years": 0.075, "gravity_g": 0.17,
+            "mass_kg": 7.35e22, "hill_radius_km": 61_500.0,
             "orbital_index": 0, "radius_km": 1737.0, "position_x_km": 384_400.0, "position_y_km": 0.0,
             "life_chemical": None}
 
@@ -53,6 +55,8 @@ def _planet(planet_id, name, body_type, distance_au, moons=()):
             "habitable": body_type == "t", "inhabited": False, "zone": "e", "distance_km": distance_au * AU_KM,
             "period_years": distance_au ** 1.5, "gravity_g": 1.0, "orbital_index": planet_id, "star_id": 1,
             "radius_km": 6371.0 if body_type == "t" else 69_911.0, "position_x_km": distance_au * AU_KM,
+            "mass_kg": 5.97e24 if body_type == "t" else 1.898e27,
+            "hill_radius_km": 1.5e6 if body_type == "t" else 5.3e7,
             "position_y_km": 0.0, "life_chemical": None, "moons": list(moons)}
 
 
@@ -63,7 +67,8 @@ def _system():
         "binary_mutual_position_x_km": None, "binary_mutual_position_y_km": None,
         "binary_mutual_position_z_km": None, "wikijs_url": None, "mediawiki_url": None,
         "stars": [{"id": 1, "role": "single", "name": "Sol", "star_type": "G2V", "mass_kg": 1.989e30,
-                   "radius_km": 696_000.0, "temperature_k": 5778.0, "luminosity_w": 3.828e26}],
+                   "radius_km": 696_000.0, "temperature_k": 5778.0, "luminosity_w": 3.828e26,
+                   "heliosphere_radius_km": 120 * AU_KM}],
         "planets": [_planet(10, "Terra", "t", 1.0, [_moon()]), _planet(11, "Jove", "g", 5.2)],
         "belts": [{"id": 20, "star_id": 1, "distance_km": 2.8 * AU_KM, "lower_limit_km": 2.2 * AU_KM,
                    "upper_limit_km": 3.3 * AU_KM, "density": "typical", "composition_summary": "rock",
@@ -187,8 +192,9 @@ def _post(app, client, **form):
     return client.post("/system/5", data=form)
 
 
+_STAR_LIMITS = facility_rules.orbit_limits(696_000.0, 120 * AU_KM)
 _STAR_OUTPOST = {"name": "Far Point", "host": "star:1", "placement": "orbital", "kind": "outpost",
-                 "distance": "0.75", "distance_unit": "au"}
+                 "orbit_step": str(facility_rules.step_for_distance(0.75 * AU_KM, *_STAR_LIMITS))}
 
 
 # --- Listing --------------------------------------------------------------------------
@@ -224,7 +230,18 @@ def test_admin_sees_the_form_with_every_host(client, fake):
     panel = _panel(client.get("/system/5").get_data(as_text=True))
     for value in ("star:1", "planet:10", "planet:11", "moon:30", "asteroid_belt:20"):
         assert f'<option value="{value}"' in panel
-    assert 'value="preview">Preview orbit</button>' in panel
+    # Name, then placement, then host (ADM.9); each host says which
+    # placements it takes, for static/facilityform.js to filter on.
+    assert panel.index('name="name"') < panel.index('name="placement"') < panel.index('name="host"')
+    assert '<option value="planet:10" data-placements="terrestrial orbital"' in panel
+    assert '<option value="planet:11" data-placements="orbital"' in panel
+    assert '<option value="asteroid_belt:20" data-placements="asteroid"' in panel
+    assert "Asteroid belt from 2.2 AU to 3.3 AU" in panel
+    # The orbit is a slider, shown for the default "in orbit" placement.
+    assert 'type="range" id="facility-orbit-step" name="orbit_step" min="0" max="1000"' in panel
+    assert 'name="distance"' not in panel and 'name="distance_unit"' not in panel
+    assert re.search(r'<div class="search-field facility-orbit" data-facility-orbit>', panel)
+    assert 'value="preview">Preview</button>' in panel
     assert 'value="save">Save</button>' in panel
     assert panel.count('name="facility_action" value="remove"') == 5
     assert "<script" not in panel
@@ -235,7 +252,7 @@ def test_preview_shows_the_orbit_without_saving(app, client, fake):
     resp = _post(app, client, facility_action="preview", **_STAR_OUTPOST)
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert ("orbit", DB, "star", 1, pytest.approx(0.75 * AU_KM)) in fake.calls
+    assert ("orbit", DB, "star", 1, pytest.approx(0.75 * AU_KM, rel=0.01)) in fake.calls
     assert not [call for call in fake.calls if call[0] == "create"]
     panel = _panel(html)
     assert "Allowed by the placement rules." in panel
@@ -243,15 +260,45 @@ def test_preview_shows_the_orbit_without_saving(app, client, fake):
     assert "3 months" in panel or "91 days" in panel
     # The form keeps what was typed.
     assert 'value="Far Point"' in panel
-    assert '<option value="star:1" selected>' in panel
+    assert re.search(r'<option value="star:1"[^>]* selected>', panel)
+    assert re.search(r'<option value="orbital" selected>', panel)
 
 
 def test_preview_reports_a_rule_violation(app, client, fake):
     _as_admin(client, fake)
     html = _post(app, client, facility_action="preview", name="Floaters", host="planet:11",
                  placement="terrestrial", kind="colony").get_data(as_text=True)
-    assert "Not allowed: a gas giant takes orbital facilities only." in html
+    assert "Planet: Jove (gas giant) can&#39;t take a facility placed on its surface" in html
     assert not [call for call in fake.calls if call[0] in ("orbit", "create")]
+
+
+def test_surface_and_belt_placements_hide_the_orbit_slider(app, client, fake):
+    _as_admin(client, fake)
+    panel = _panel(_post(app, client, facility_action="preview", name="Second Hope", host="moon:30",
+                         placement="terrestrial", kind="colony").get_data(as_text=True))
+    assert "Allowed by the placement rules." in panel
+    assert '<div class="search-field facility-orbit" data-facility-orbit hidden>' in panel
+    assert not [call for call in fake.calls if call[0] == "orbit"]
+
+    panel = _panel(_post(app, client, facility_action="preview", name="Rockpile", host="asteroid_belt:20",
+                         placement="asteroid", kind="mining-colony").get_data(as_text=True))
+    assert "random spot in the belt, between 2.2 AU and 3.3 AU from its star" in panel
+    assert '<div class="search-field facility-orbit" data-facility-orbit hidden>' in panel
+    resp = _post(app, client, facility_action="save", name="Rockpile", host="asteroid_belt:20",
+                 placement="asteroid", kind="mining-colony", orbit_step="900")
+    assert resp.status_code == 303
+    (create,) = [call for call in fake.calls if call[0] == "create"]
+    assert "distance_km" not in create[2]
+
+
+def test_slider_runs_from_the_surface_to_the_sphere_of_influence(app, client, fake):
+    _as_admin(client, fake)
+    _post(app, client, facility_action="preview", name="Low", host="planet:10", placement="orbital",
+          kind="station", orbit_step="0")
+    _post(app, client, facility_action="preview", name="High", host="planet:10", placement="orbital",
+          kind="station", orbit_step="1000")
+    orbits = [call[4] for call in fake.calls if call[0] == "orbit"]
+    assert orbits == [pytest.approx(6371.0 * 1.01), pytest.approx(1.5e6)]
 
 
 def test_preview_reports_the_apis_orbit_error(app, client, fake):
@@ -259,7 +306,7 @@ def test_preview_reports_the_apis_orbit_error(app, client, fake):
     fake.orbit_error = apiclient.ApiError(
         "planetGen API error (400): orbit distance 1000 km is inside the host (radius 69911 km)", status_code=400)
     html = _post(app, client, facility_action="preview", name="Low", host="planet:11", placement="orbital",
-                 kind="station", distance="1000", distance_unit="km").get_data(as_text=True)
+                 kind="station", orbit_step="0").get_data(as_text=True)
     assert "Not allowed: orbit distance 1000 km is inside the host (radius 69911 km)." in html
     assert "Allowed by the placement rules." not in html
 
@@ -272,14 +319,15 @@ def test_save_posts_to_the_api_and_redirects(app, client, fake):
     (create,) = [call for call in fake.calls if call[0] == "create"]
     assert create[1] == DB
     assert create[2] == {"name": "Far Point", "kind": "outpost", "placement": "orbital", "host_type": "star",
-                         "host_id": 1, "distance_km": pytest.approx(0.75 * AU_KM), "description": "A relay"}
+                         "host_id": 1, "distance_km": pytest.approx(0.75 * AU_KM, rel=0.01),
+                         "description": "A relay"}
     assert "Facility added." in client.get(resp.headers["Location"]).get_data(as_text=True)
 
 
 def test_save_of_a_colony_sends_no_orbit(app, client, fake):
     _as_admin(client, fake)
     resp = _post(app, client, facility_action="save", name="Second Hope", host="moon:30",
-                 placement="terrestrial", kind="colony", distance="500")
+                 placement="terrestrial", kind="colony", orbit_step="500")
     assert resp.status_code == 303
     (create,) = [call for call in fake.calls if call[0] == "create"]
     assert create[2] == {"name": "Second Hope", "kind": "colony", "placement": "terrestrial", "host_type": "moon",
@@ -290,8 +338,9 @@ def test_save_errors_show_next_to_the_form(app, client, fake):
     _as_admin(client, fake)
     html = _post(app, client, facility_action="save", **dict(_STAR_OUTPOST, name="")).get_data(as_text=True)
     assert "Give the facility a name." in _panel(html)
-    html = _post(app, client, facility_action="save", **dict(_STAR_OUTPOST, distance="far")).get_data(as_text=True)
-    assert "The orbital distance must be a number above zero." in html
+    html = _post(app, client, facility_action="save",
+                 **dict(_STAR_OUTPOST, host="asteroid_belt:20")).get_data(as_text=True)
+    assert "can&#39;t take a facility placed in orbit around it; choose another host." in html
     html = _post(app, client, facility_action="save", **dict(_STAR_OUTPOST, host="planet:999")).get_data(as_text=True)
     assert "Choose where the facility goes." in html
     assert not [call for call in fake.calls if call[0] == "create"]
@@ -458,8 +507,15 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     system_id, ids = _system_with_terrestrial(mysql_config)
     client = db_app.test_client()
     _login_fresh_admin(client, mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT radius_km, heliosphere_radius_km FROM stars WHERE id = ?",
+                            (ids["star"],)).fetchone()
+    finally:
+        conn.close()
+    limits = facility_rules.orbit_limits(star["radius_km"], star["heliosphere_radius_km"])
     form = {"name": "Sunwatch", "host": f"star:{ids['star']}", "placement": "orbital", "kind": "outpost",
-            "distance": "0.5", "distance_unit": "au"}
+            "orbit_step": str(facility_rules.step_for_distance(0.5 * AU_KM, *limits))}
 
     resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: _csrf(db_app, client),
                                                      "facility_action": "preview", **form})
@@ -483,7 +539,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
         (saved,) = queryDb.facilities_for_system(conn, system_id)
     finally:
         conn.close()
-    assert saved["orbit_distance_km"] == pytest.approx(0.5 * AU_KM)
+    assert saved["orbit_distance_km"] == pytest.approx(0.5 * AU_KM, rel=0.01)
     assert saved["orbital_speed_kms"] == pytest.approx(speed, rel=0.01)
     page = client.get(resp.headers["Location"]).get_data(as_text=True)
     assert "Facility added." in page and "Sunwatch" in _panel(page)

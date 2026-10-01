@@ -16,12 +16,12 @@ release is stamped.
 | UX | UX.21 |
 | MAP | MAP.51 |
 | NAV | NAV.3 |
-| GEN | GEN.23 |
+| GEN | GEN.24 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
 | ADM | ADM.10 |
-| SEC | SEC.28 |
+| SEC | SEC.29 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -395,7 +395,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
-| ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | open |
+| ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | done, PR #211 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
@@ -423,6 +423,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.20 | Sector growth ignores black holes and neutron stars (bug) | 58 (2026-09-30 19:02Z to 20:27Z); 45 (2026-09-30 20:07Z to 21:53Z) | done in 7.6.1, PR #116 |
 | GEN.21 | Star population model: population ages at sector fill | 55 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.23.0 (PR #141) and 7.38.0 (PR #159) |
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
+| GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -470,8 +471,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | 107 (2026-10-01 05:44Z to 05:54Z) | open |
 | MAP.47 | Bright stars vanish when zoomed out (bug) | 97 (2026-10-01 05:15Z to 05:29Z) | open |
 | MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | open |
-| MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | open |
-| MAP.50 | Names run off the edge of the map (bug) | none | open |
+| MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
+| MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -527,7 +528,8 @@ Parents marked "new parent" had no old number of their own.
 | SEC.24 | Refuse common and breached passwords | none | open |
 | SEC.25 | Check the password hashing cost and re-hash on login | none | open |
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | open |
-| SEC.27 | A fail2ban recipe in the deployment docs | none | open |
+| SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | open |
+| SEC.28 | An always-on log in the standard log location | none | open |
 | USR.1 | User accounts (new parent) | none | open |
 | USR.2 | Roles: user, admin, Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -926,7 +928,7 @@ never appear in TODO.md, since finished items are deleted):
   then MAP.49 (bug, planet orbits drawn inside an asteroid belt) and
   MAP.50 (bug, names running off the edge of the map), then UX.19,
   UX.20 and ADM.9 (bugs: belt rows, scientific notation, the facility
-  form).
+  form), then SEC.28 (the always-on log; SEC.20 moved under it).
 - Flat IDs (after PR #190): every dotted ID above was replaced by the
   next number in its category (see "Tree IDs to flat IDs"). A bug with no
   open item it breaks is now a top-level "(bug)" item (UX.15, UX.16)

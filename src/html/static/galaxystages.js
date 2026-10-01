@@ -8,17 +8,7 @@
 // three.js import, so it runs under plain node for tests
 // (src/tests/test_galaxystages.py).
 //
-// A stage is {at, slab}: `at` is the container (null for the galaxy, or a
-// drill block {m, ring, wedge, slab} of 243, 27 or 3 sectors a side) and
-// `slab` the child slab pulled out of it (null in the 3D view). So:
-//
-//   stage 1  {at: null, slab: null}   the galaxy, 3D, level-243 blocks
-//   stage 2  {at: null, slab: s}      one level-243 slab, top-down
-//   stage 3  {at: 243-block, slab: null}  its level-27 children, 3D
-//   stage 4  {at: 243-block, slab: s}     one slab of them, top-down
-//   stages 5-6 the same for a level-27 block (level-3 children),
-//   stages 7-8 for a level-3 block, whose children are sectors and whose
-//   child slabs are sector layers.
+// A stage is {at, picks}: see "Stages" below.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
@@ -32,9 +22,6 @@ const {
 export const FLIGHT_RHO = 1.4;
 export const FLIGHT_SPEED = 1.1;
 export const FLIGHT_SECONDS = [0.5, 1.6];
-// The 3D stages' tilt from straight down, and the pull-out's length.
-export const STAGE_TILT_DEG = 35;
-export const PULL_OUT_MS = 600;
 // A top-down view fits the slab's footprint with this much margin.
 export const FIT_MARGIN = 1.1;
 
@@ -102,23 +89,47 @@ export function drillBlockTotal(block, outline) {
 }
 
 // --- Stages -------------------------------------------------------------------
+//
+// A stage is {at, picks}: `at` is the container (null for the galaxy, or a
+// drill block {m, ring, wedge, slab} of 243, 27 or 3 sectors a side) and
+// `picks` what has been picked inside it so far, in order. Every view is
+// from straight above: there is no free camera and nothing turns (Boss,
+// MAP.17). The picks alternate, as Boss laid them out (MAP.19: "quadrant,
+// layer, region, layer, region, ..., layer, sector"):
+// - {kind: "quadrant", n}: the galaxy's first pick, a quarter of the disk
+//   (bearings n*90 to (n+1)*90 degrees);
+// - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
+//   slice, picked from the list beside the map: a third of them while
+//   more than three are left, then one;
+// - {kind: "region", n}: an arc of the ring band in view, one of up to
+//   3 x 3 (a third of its rings across, a third of its arc along).
+// After a region comes a layer and after a layer a region, while each
+// still has something to split; the first pick inside a block is a
+// layer. A pick that leaves one block of one slab enters that block: it
+// becomes the container, and its children are picked the same way.
+// Inside a level-3 block the children are sectors, and the last pick is
+// a sector of one layer.
 
-export function stageNumber(stage) {
-  const depth = stage.at ? { 243: 1, 27: 2, 3: 3 }[stage.at.m] : 0;
-  return 1 + 2 * depth + (stage.slab == null ? 0 : 1);
-}
+// Up to this many slices or arcs per pick (so a pick is at least about a
+// ninth of the view: big targets, MAP.19).
+export const PICK_SPLIT = 3;
 
-export function isTopDown(stage) {
-  return stage.slab != null;
-}
+const TWO_PI = 2 * Math.PI;
+const childCache = new WeakMap();
 
 export function sameBlock(a, b) {
   if (!a || !b) return a === b;
   return a.m === b.m && a.ring === b.ring && a.wedge === b.wedge && a.slab === b.slab;
 }
 
+export function samePick(a, b) {
+  if (a.kind !== b.kind) return false;
+  return a.kind === "layer" ? a.lo === b.lo && a.hi === b.hi : a.n === b.n;
+}
+
 export function sameStage(a, b) {
-  return sameBlock(a.at, b.at) && (a.slab == null ? b.slab == null : a.slab === b.slab);
+  return sameBlock(a.at, b.at) && a.picks.length === b.picks.length
+    && a.picks.every(function (pick, n) { return samePick(pick, b.picks[n]); });
 }
 
 // The container's children grouped by child slab, lowest first, each
@@ -142,49 +153,280 @@ export function stageChildren(at, outline, edgePc) {
   return out;
 }
 
-// The stage one step up: a top-down view goes back to its container's 3D
-// view; a 3D view to the top-down slab its container sits in.
-export function parentStage(stage) {
-  if (stage.slab != null) return { at: stage.at, slab: null };
-  if (!stage.at) return null;
-  return { at: drillParent(stage.at), slab: stage.at.slab };
+// stageChildren, worked out once per outline and container.
+export function childrenOf(at, outline, edgePc) {
+  let byKey = childCache.get(outline);
+  if (!byKey) {
+    byKey = new Map();
+    childCache.set(outline, byKey);
+  }
+  const key = (at ? formatDrillKey(at) : "galaxy") + "@" + edgePc;
+  let groups = byKey.get(key);
+  if (!groups) {
+    groups = stageChildren(at, outline, edgePc);
+    byKey.set(key, groups);
+  }
+  return groups;
 }
 
-// Every stage from the galaxy down to `stage`, top first.
-export function stageChain(stage) {
-  const chain = [];
-  for (let s = stage; s; s = parentStage(s)) chain.unshift(s);
-  return chain;
+function angleFrom(angle, a0) {
+  return ((angle - a0) % TWO_PI + TWO_PI) % TWO_PI;
 }
 
-// The stage a sector is picked at (stage 8: its level-3 block's layer).
-export function sectorStage(ring, layer, slot) {
-  const chain = drillChainOf(ring, layer, slot);
-  return { at: chain[2], slab: layer };
+function midAngle(block) {
+  return (block.bounds.t0 + block.bounds.t1) / 2;
+}
+
+function distinct(values) {
+  return Array.from(new Set(values)).sort(function (p, q) { return p - q; });
+}
+
+function slabsOf(blocks) {
+  return distinct(blocks.map(function (b) { return b.slab; }));
+}
+
+function columnsOf(blocks) {
+  return new Set(blocks.map(function (b) { return b.ring + "/" + b.wedge; }));
+}
+
+// The container's whole view: every child, and the bearings it spans.
+function containerView(at, outline, edgePc) {
+  const blocks = [];
+  childrenOf(at, outline, edgePc).forEach(function (g) { Array.prototype.push.apply(blocks, g.blocks); });
+  let a0 = 0;
+  let a1 = TWO_PI;
+  if (at) {
+    const b = drillBlockBounds(at, edgePc);
+    a0 = b.t0;
+    a1 = b.t1;
+  }
+  return { at: at, blocks: blocks, a0: a0, a1: a1, hadQuadrant: false };
+}
+
+// What can be picked next in `view` after `picks`: "quadrant", "layer",
+// "region", or null when one block (of one slab) is left.
+export function nextPickKind(view, picks) {
+  const slabs = slabsOf(view.blocks).length;
+  const columns = columnsOf(view.blocks).size;
+  if (!view.at && !view.hadQuadrant && columns > 1) return "quadrant";
+  const last = picks.length ? picks[picks.length - 1].kind : null;
+  if (last !== "layer" && slabs > 1) return "layer";
+  if (columns > 1) return "region";
+  if (slabs > 1) return "layer";
+  return null;
+}
+
+// The choices for a pick of `kind` in `view`: [{pick, blocks, a0, a1}],
+// each holding at least one block. Layers come lowest first.
+export function pickOptions(view, kind) {
+  const out = [];
+  if (kind === "layer") {
+    const slabs = slabsOf(view.blocks);
+    const parts = Math.min(PICK_SPLIT, slabs.length);
+    for (let k = 0; k < parts; k++) {
+      const some = slabs.slice(Math.floor((k * slabs.length) / parts), Math.floor(((k + 1) * slabs.length) / parts));
+      const lo = some[0];
+      const hi = some[some.length - 1];
+      out.push({
+        pick: { kind: "layer", lo: lo, hi: hi },
+        blocks: view.blocks.filter(function (b) { return b.slab >= lo && b.slab <= hi; }),
+        a0: view.a0, a1: view.a1,
+      });
+    }
+    return out;
+  }
+  const rings = distinct(view.blocks.map(function (b) { return b.ring; }));
+  const perRing = new Map();
+  columnsOf(view.blocks).forEach(function (key) {
+    const ring = Number(key.split("/")[0]);
+    perRing.set(ring, (perRing.get(ring) || 0) + 1);
+  });
+  let widest = 0;
+  perRing.forEach(function (n) { widest = Math.max(widest, n); });
+  const bands = kind === "quadrant" ? 1 : Math.min(PICK_SPLIT, rings.length);
+  const arcs = kind === "quadrant" ? 4 : Math.min(PICK_SPLIT, widest);
+  const span = view.a1 - view.a0;
+  const byOption = new Map();
+  view.blocks.forEach(function (block) {
+    const band = Math.floor((rings.indexOf(block.ring) * bands) / rings.length);
+    const arc = Math.min(arcs - 1, Math.floor((angleFrom(midAngle(block), view.a0) / span) * arcs));
+    const n = band * arcs + arc;
+    if (!byOption.has(n)) {
+      byOption.set(n, {
+        pick: { kind: kind, n: n }, blocks: [],
+        a0: view.a0 + (span * arc) / arcs, a1: view.a0 + (span * (arc + 1)) / arcs,
+      });
+    }
+    byOption.get(n).blocks.push(block);
+  });
+  Array.from(byOption.keys()).sort(function (p, q) { return p - q; }).forEach(function (n) {
+    out.push(byOption.get(n));
+  });
+  return out;
+}
+
+// `view` after `pick`, or null when the pick isn't one it could take.
+// A layer pick may name any range of the view's slabs that narrows it
+// (an older ?slab= link names one slab of nine).
+function applyPick(view, pick) {
+  if (pick.kind === "layer") {
+    const slabs = slabsOf(view.blocks);
+    const blocks = view.blocks.filter(function (b) { return b.slab >= pick.lo && b.slab <= pick.hi; });
+    if (!(pick.lo <= pick.hi) || slabs.length < 2 || !blocks.length) return null;
+    return { at: view.at, blocks: blocks, a0: view.a0, a1: view.a1, hadQuadrant: view.hadQuadrant };
+  }
+  if (pick.kind === "quadrant" && (view.at || view.hadQuadrant)) return null;
+  if (pick.kind === "region" && columnsOf(view.blocks).size < 2) return null;
+  const option = pickOptions(view, pick.kind).find(function (o) { return o.pick.n === pick.n; });
+  if (!option) return null;
+  return { at: view.at, blocks: option.blocks, a0: option.a0, a1: option.a1, hadQuadrant: true };
+}
+
+function pickText(pick) {
+  if (pick.kind === "layer") return "layer " + (pick.lo === pick.hi ? pick.lo : pick.lo + " to " + pick.hi);
+  return pick.kind + " " + pick.n;
+}
+
+// Everything about `stage`: {stage (as given), view: {at, blocks, a0,
+// a1}, kind (the next pick's, or null), options (pickOptions for it),
+// sector (the one sector left, if that's all there is), problem (when a
+// pick or the container doesn't fit the galaxy)}.
+export function resolveStage(stage, outline, edgePc) {
+  if (stage.at && !outline.shapeless && drillBlockTotal(stage.at, outline) === 0) {
+    return { stage: stage, problem: "Block " + blockLabel(stage.at) + " is outside the galaxy." };
+  }
+  let view = containerView(stage.at, outline, edgePc);
+  for (let n = 0; n < stage.picks.length; n++) {
+    const next = applyPick(view, stage.picks[n]);
+    if (!next) return { stage: stage, problem: "There is no " + pickText(stage.picks[n]) + " here." };
+    view = next;
+  }
+  const kind = view.blocks.length ? nextPickKind(view, stage.picks) : null;
+  const options = kind ? pickOptions(view, kind) : [];
+  const sector = !kind && view.blocks.length === 1 && view.blocks[0].m === 1 ? view.blocks[0] : null;
+  return { stage: stage, view: view, kind: kind, options: options, sector: sector, problem: null };
+}
+
+// `stage` carried on as far as it goes without a choice: a pick with only
+// one option is taken, and one block of one slab is entered. Returns the
+// resolveStage of where it ends.
+export function settleStage(stage, outline, edgePc) {
+  let resolved = resolveStage(stage, outline, edgePc);
+  for (let guard = 0; guard < 200 && !resolved.problem; guard++) {
+    const view = resolved.view;
+    if (resolved.kind && resolved.options.length === 1) {
+      const picks = resolved.stage.picks.concat([resolved.options[0].pick]);
+      resolved = resolveStage({ at: resolved.stage.at, picks: picks }, outline, edgePc);
+    } else if (!resolved.kind && view.blocks.length === 1 && view.blocks[0].m > 1) {
+      resolved = resolveStage({ at: stripBlock(view.blocks[0]), picks: [] }, outline, edgePc);
+    } else {
+      break;
+    }
+  }
+  return resolved;
+}
+
+// `block` at size `m`, or its ancestor there ({m: 1, ring, wedge: slot,
+// slab: layer} for a sector).
+function ancestorAt(block, m) {
+  if (block.m === m) return block;
+  if (block.m === 1) {
+    return drillChainOf(block.ring, block.slab, block.wedge).find(function (b) { return b.m === m; }) || null;
+  }
+  let b = block;
+  while (b && b.m < m) b = drillParent(b);
+  return b && b.m === m ? b : null;
+}
+
+// The way from the galaxy toward `target` (a drill block, or a sector as
+// {m: 1, ring, wedge: slot, slab: layer}): one settled step per pick,
+// until `done(resolved)` says stop. Returns the steps (resolveStage
+// results), or null when `target` isn't in the galaxy.
+function walkToward(target, outline, edgePc, done) {
+  let resolved = settleStage({ at: null, picks: [] }, outline, edgePc);
+  const steps = [resolved];
+  for (let guard = 0; guard < 200; guard++) {
+    if (resolved.problem) return null;
+    if (done(resolved)) return steps;
+    if (!resolved.kind) return null;
+    const blocks = resolved.view.blocks;
+    const goal = blocks.length ? ancestorAt(target, blocks[0].m) : null;
+    if (!goal) return null;
+    const option = resolved.options.find(function (o) {
+      if (o.pick.kind === "layer") return goal.slab >= o.pick.lo && goal.slab <= o.pick.hi;
+      return o.blocks.some(function (b) { return b.ring === goal.ring && b.wedge === goal.wedge; });
+    });
+    if (!option) return null;
+    const picks = resolved.stage.picks.concat([option.pick]);
+    resolved = settleStage({ at: resolved.stage.at, picks: picks }, outline, edgePc);
+    steps.push(resolved);
+  }
+  return null;
+}
+
+// Whether `resolved` shows sectors of one layer, `layer`.
+function sectorLayerShown(resolved, layer) {
+  const blocks = resolved.view ? resolved.view.blocks : [];
+  return blocks.length > 0 && blocks[0].m === 1 && blocks.every(function (b) { return b.slab === layer; });
+}
+
+// The stage that shows a sector to pick (the sector level of the slice
+// holding it, MAP.26): its level-3 block with that one layer picked. Null
+// when the sector is outside the galaxy.
+export function sectorStage(ring, layer, slot, outline, edgePc) {
+  const target = { m: 1, ring: ring, wedge: slot, slab: layer };
+  const steps = walkToward(target, outline, edgePc, function (r) {
+    return sectorLayerShown(r, layer) && r.view.blocks.some(function (b) { return b.ring === ring && b.wedge === slot; });
+  });
+  return steps ? steps[steps.length - 1].stage : null;
+}
+
+// The steps a visitor takes, galaxy first, to reach `stage` ([settled
+// resolveStage results]): into each container the way its own picks
+// would go, then `stage`'s own picks.
+export function stageSteps(stage, outline, edgePc) {
+  let steps = [];
+  if (stage.at) {
+    steps = walkToward(stage.at, outline, edgePc, function (r) { return sameBlock(r.stage.at, stage.at); }) || [];
+    steps.pop();
+  }
+  for (let n = 0; n <= stage.picks.length; n++) {
+    const next = settleStage({ at: stage.at, picks: stage.picks.slice(0, n) }, outline, edgePc);
+    if (next.problem) break;
+    if (!steps.length || !sameStage(next.stage, steps[steps.length - 1].stage)) steps.push(next);
+  }
+  return steps;
+}
+
+// The stage one step back from `stage` (the last different one on the
+// way to it), or null at the galaxy.
+export function parentStage(stage, outline, edgePc) {
+  const steps = stageSteps(stage, outline, edgePc);
+  for (let n = steps.length - 1; n >= 0; n--) {
+    if (!sameStage(steps[n].stage, stage)) return steps[n].stage;
+  }
+  return null;
 }
 
 // The smallest stage showing every one of `sectors` ({ring, layer,
-// slot}), for the NAV course overlay (section 9.4): the deepest block
-// holding them all, top-down when they also share one of its child
-// slabs, else its 3D view. An empty list, or sectors that share no
-// level-243 block, give the galaxy.
-export function courseStage(sectors) {
-  if (!sectors || !sectors.length) return { at: null, slab: null };
-  const chains = sectors.map(function (s) {
-    const chain = drillChainOf(s.ring, s.layer, s.slot);
-    return chain.concat([{ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }]);
+// slot}), for the NAV course overlay (section 9.4): as far along the way
+// to each as they all go together. An empty list, or sectors whose ways
+// part at once, give the galaxy.
+export function courseStage(sectors, outline, edgePc) {
+  const galaxy = settleStage({ at: null, picks: [] }, outline, edgePc).stage;
+  if (!sectors || !sectors.length) return galaxy;
+  const ways = sectors.map(function (s) {
+    const target = { m: 1, ring: s.ring, wedge: s.slot, slab: s.layer };
+    return walkToward(target, outline, edgePc, function (r) { return sectorLayerShown(r, s.layer); });
   });
-  let depth = 0;
-  while (depth < 3 && chains.every(function (chain) { return sameBlock(chain[depth], chains[0][depth]); })) {
-    depth++;
+  if (ways.some(function (w) { return !w; })) return galaxy;
+  let shared = galaxy;
+  for (let n = 0; n < ways[0].length; n++) {
+    const here = ways[0][n].stage;
+    if (!ways.every(function (w) { return w[n] && sameStage(w[n].stage, here); })) break;
+    shared = here;
   }
-  // depth is now how many of the chain's blocks they all share, so the
-  // container is the last of those and the children are the next level.
-  const at = depth ? chains[0][depth - 1] : null;
-  const children = chains.map(function (chain) { return chain[depth]; });
-  const slab = children[0].slab;
-  const together = children.every(function (block) { return block.slab === slab; });
-  return { at: at, slab: together ? slab : null };
+  return shared;
 }
 
 // --- Designations -------------------------------------------------------------
@@ -249,57 +491,63 @@ export function parseAddress(text, edgePc) {
 
 // --- URLs ---------------------------------------------------------------------
 
-// A stage URL's query (section 8.1): "" for the galaxy, "?slab=s",
-// "?at=m.ring.wedge.slab" or "?at=...&slab=s".
+// A pick as it reads in a URL: "q1" (quadrant), "r4" (region), "L-1"
+// (one slab or layer) or "L-4~-2" (a range of them).
+export function pickToken(pick) {
+  if (pick.kind === "layer") return "L" + pick.lo + (pick.hi === pick.lo ? "" : "~" + pick.hi);
+  return (pick.kind === "quadrant" ? "q" : "r") + pick.n;
+}
+
+export function parsePickToken(token) {
+  let match = /^([qr])(\d+)$/.exec(token);
+  if (match) return { kind: match[1] === "q" ? "quadrant" : "region", n: Number(match[2]) };
+  match = /^L(-?\d+)(?:~(-?\d+))?$/.exec(token);
+  if (match) return { kind: "layer", lo: Number(match[1]), hi: Number(match[2] != null ? match[2] : match[1]) };
+  return null;
+}
+
+// A stage URL's query (section 8.1): "" for the galaxy, else
+// "?at=m.ring.wedge.slab" and "p=" with its picks, comma-separated.
 export function stageQuery(stage) {
   const parts = [];
   if (stage.at) parts.push("at=" + formatDrillKey(stage.at));
-  if (stage.slab != null) parts.push("slab=" + stage.slab);
+  if (stage.picks.length) parts.push("p=" + stage.picks.map(pickToken).join(","));
   return parts.length ? "?" + parts.join("&") : "";
 }
 
 // The stage a URL's query asks for: {stage, sector, problem}. `sector`
-// ({ring, layer, slot}) is set by ?sector=<designation>, which opens its
-// stage 8. Anything malformed opens the galaxy, with `problem` saying why.
-// Whether the asked-for block or slab holds anything is checked by the
-// caller against the outline (validStage).
+// ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
+// caller works out (sectorStage needs the outline). An older link's
+// ?slab=s reads as a pick of that one slab, before any others. Anything
+// malformed opens the galaxy, with `problem` saying why. Whether the
+// picks fit is the caller's to check against the outline (resolveStage).
 export function parseStageQuery(search) {
   const params = new URLSearchParams(search || "");
-  const galaxy = { at: null, slab: null };
+  const galaxy = { at: null, picks: [] };
   const designation = params.get("sector");
   if (designation != null) {
     const sector = parseSectorDesignation(designation);
     if (!sector) return { stage: galaxy, sector: null, problem: "There is no sector " + designation + "." };
-    return { stage: sectorStage(sector.ring, sector.layer, sector.slot), sector: sector, problem: null };
+    return { stage: galaxy, sector: sector, problem: null };
   }
   let at = null;
   if (params.has("at")) {
     at = parseDrillKey(params.get("at"));
     if (!at) return { stage: galaxy, sector: null, problem: "There is no block " + params.get("at") + "." };
   }
-  let slab = null;
+  const picks = [];
   if (params.has("slab")) {
     const raw = params.get("slab");
     if (!/^-?\d+$/.test(raw)) return { stage: galaxy, sector: null, problem: "There is no slab " + raw + "." };
-    slab = Number(raw);
+    picks.push({ kind: "layer", lo: Number(raw), hi: Number(raw) });
   }
-  return { stage: { at: at, slab: slab }, sector: null, problem: null };
-}
-
-// Whether `stage` holds anything under `outline`: its container can hold
-// sectors (or is the galaxy) and its slab is one of the container's
-// non-empty child slabs. Returns a problem string, or null when fine.
-export function validStage(stage, outline, edgePc) {
-  if (stage.at && !outline.shapeless && drillBlockTotal(stage.at, outline) === 0) {
-    return "Block " + blockLabel(stage.at) + " is outside the galaxy.";
+  const tokens = (params.get("p") || "").split(",").filter(Boolean);
+  for (let n = 0; n < tokens.length; n++) {
+    const pick = parsePickToken(tokens[n]);
+    if (!pick) return { stage: galaxy, sector: null, problem: "There is no pick " + tokens[n] + "." };
+    picks.push(pick);
   }
-  if (stage.slab != null) {
-    const slabs = stageChildren(stage.at, outline, edgePc).map(function (g) { return g.slab; });
-    if (slabs.indexOf(stage.slab) < 0) {
-      return (stage.at && stage.at.m === 3 ? "Layer " : "Slab ") + stage.slab + " is empty here.";
-    }
-  }
-  return null;
+  return { stage: { at: at, picks: picks }, sector: null, problem: null };
 }
 
 // --- Labels -------------------------------------------------------------------
@@ -328,32 +576,37 @@ export function slabLayers(at, slab) {
   return { first: slab * childM - half, last: slab * childM + half, childM: childM };
 }
 
-// The breadcrumb for `stage`: one crumb per stage from the galaxy down,
-// {stage, label}. A crumb's label names what that stage shows.
-export function crumbs(stage) {
-  return stageChain(stage).map(function (s, n, chain) {
-    let label;
-    if (!s.at && s.slab == null) label = "Galaxy";
-    else if (s.slab == null) label = "Block " + blockLabel(s.at);
-    else label = slabNoun(s.at) + " " + s.slab;
-    return { stage: s, label: label, last: n === chain.length - 1 };
-  });
+// Bearings a0 to a1 as "92°–97°" ("92.5°–93.1°" for a narrow arc).
+export function arcLabel(a0, a1) {
+  const narrow = ((a1 - a0) * 180) / Math.PI < 10;
+  const deg = function (rad) {
+    const d = (((rad * 180) / Math.PI) % 360 + 360) % 360;
+    return narrow ? d.toFixed(1) : String(Math.round(d) % 360);
+  };
+  const end = a1 - a0 >= TWO_PI - 1e-9 || Number(deg(a1)) === 0 ? "360" : deg(a1);
+  return deg(a0) + "°–" + end + "°";
 }
 
-// The stages beside a crumb's (its siblings, for the crumb's menu): the
-// other non-empty slabs of the same container, or the blocks next to
-// this one in the same parent slab. [{stage, label}].
-export function crumbSiblings(stage, outline, edgePc) {
-  if (stage.slab != null) {
-    return stageChildren(stage.at, outline, edgePc).map(function (g) {
-      return { stage: { at: stage.at, slab: g.slab }, label: slabNoun(stage.at) + " " + g.slab };
-    });
+// What a pick is called in the breadcrumb, given the view it led to.
+export function pickLabel(pick, at, view) {
+  if (pick.kind === "layer") {
+    const noun = slabNoun(at);
+    return pick.lo === pick.hi ? noun + " " + pick.lo : noun + "s " + pick.lo + " to " + pick.hi;
   }
-  if (!stage.at) return [];
-  const parent = drillParent(stage.at);
-  const group = stageChildren(parent, outline, edgePc).find(function (g) { return g.slab === stage.at.slab; });
-  return (group ? group.blocks : []).map(function (block) {
-    return { stage: { at: stripBlock(block), slab: null }, label: "Block " + blockLabel(block) };
+  return (pick.kind === "quadrant" ? "Quarter " : "Arc ") + arcLabel(view.a0, view.a1);
+}
+
+// The breadcrumb for `stage`: one crumb per step from the galaxy down,
+// {stage, label, last}. A crumb's label names the pick that led there, or
+// the block entered.
+export function crumbs(stage, outline, edgePc) {
+  const steps = stageSteps(stage, outline, edgePc);
+  return steps.map(function (r, n) {
+    const s = r.stage;
+    let label;
+    if (!s.picks.length) label = s.at ? "Block " + blockLabel(s.at) : "Galaxy";
+    else label = pickLabel(s.picks[s.picks.length - 1], s.at, r.view);
+    return { stage: s, label: label, last: n === steps.length - 1 };
   });
 }
 

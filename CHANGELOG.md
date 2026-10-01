@@ -1,5 +1,141 @@
 # Changelog
 
+## [7.72.174] - 2026-10-01
+
+### Fixed
+- **Test suite green again.** The route fuzz test that tries ids like `0001` or `١` on every page now expects the "Show on Galaxy Map" links (`/sector/<id>/galaxy`, `/system/<id>/galaxy`) to answer with their redirect to the Galaxy Map instead of failing on it. The pages themselves were already correct.
+
+## [7.71.174] - 2026-10-01
+
+### Fixed
+- **Names stay on screen on the System Map (MAP.50).** A planet's or moon's name near the edge of the map now slides back inside the frame (or takes a side that fits) instead of running off it, and a star's name does the same. The page also checks the real text width once the map is shown and pulls any name that still crosses an edge back in.
+
+## [7.70.174] - 2026-10-01
+
+### Fixed
+- **Asteroid belts on the System Map no longer cover planet orbits (MAP.49).** A belt's ring now runs from its inner edge to its outer edge on the same scale as the orbits, instead of being centered on its inner edge with a width that ignored that scale. A very thin belt is still widened so it can be seen, but never over a neighboring orbit. A planet's orbit is drawn at its real distance from its star, so a planet on a tilted orbit just past a belt no longer looks like it sits inside it. Generated systems were checked too: no planet actually orbits inside a belt.
+
+## [7.69.174] - 2026-10-01
+
+### Fixed
+
+- Sector Map: a neighboring sector's rogue planets, comets, black holes and
+  neutron stars are no longer drawn in this sector, outside its wireframe
+  (MAP.45). A neighbor's cloud that reaches in is still drawn, fainter, and
+  says where it comes from. Stored positions were always correct; no
+  regenerate is needed.
+- Sector Map: rogue planets are easy to find (MAP.46): a brighter violet, a
+  ring around each that stays visible zoomed out (with a "Mark rogue
+  planets" button to hide the rings), and a "Show on map" button for each
+  one in the sector's Contents.
+
+## [7.68.174] - 2026-10-01
+
+### Fixed
+- **Bright stars on the Galaxy Map show at every zoom (MAP.47).** Zoomed out, each tile's bright-star query sorted every star in the tile (millions in a big tile) before picking the brightest, so a zoomed-out view ran past the 30-second API timeout and the stars vanished. The query now walks the luminosity index and stops at the tile's 400, and a tile too big (or too empty) to query on its own takes the brightest stars inside it from one galaxy-wide sample of the 100,000 most luminous, read once per request.
+- **No more stars popping in after a zoom (MAP.48).** While a zoom's new tiles load, the stars already on screen stay, along with any a cached coarser tile holds there; stars new to the view fade in (not with reduced motion). The faster query above does most of the rest.
+- **Wedge lines stop at the galaxy's edge (MAP.43).** They used to run 7% past it (the padded view radius plus 2%); now every wedge line, including the finer ones clipped to the view, ends at the outside of the outermost ring, and the bearing labels sit just past the ends.
+- **Generated systems are easy to find on the Galaxy Map (MAP.37).** Blocks not yet filled are drawn much more transparent (10-30% opaque by density, was 50-80%), and any block holding a generated sector is at least 60% of the way to solid and painted a saturated amber (deeper on the light theme) instead of a faint warm white, in the free view and the drill-down stages alike.
+
+## [7.67.174] - 2026-10-01
+
+### Fixed
+- **Buttons always have space between them (UX.16).** One shared rule in
+  `static/style.css` gives every group of buttons on every page (`.btn`,
+  `.btn-small`, `.starmap-btn`, plain `<button>`s, and side-by-side forms
+  that each hold one) the same gap, across and between wrapped lines:
+  `--btn-gap`, 0.5rem with a mouse and 0.75rem on touch screens
+  (`pointer: coarse`), so 44-48 px touch targets never sit edge to edge.
+  Groups that had their own smaller gap (the Galaxy Map's address
+  matches, 0.3rem) now use it too.
+- **An object's data sits beside its 3D render when there's room
+  (UX.15).** On the System Map the info panel moves to the right of the
+  map once the panel is at least 46rem wide (the map shrinks to fit and
+  stays square); on a phenomenon page with a 3D view (neutron stars,
+  black holes, quasars, rogue planets, interstellar comets) the data
+  table sits beside the view from 50rem. Narrower screens keep the
+  stacked layout. Both switches are container queries, so the layout is
+  set before the render loads and nothing jumps.
+
+## [7.66.174] - 2026-10-01
+
+### Changed
+- **Version numbers are now MAJOR.REVISION.BUILD** (OPS.1). A `major`
+  release note bumps MAJOR, any other note bumps REVISION, and BUILD is
+  the sum of the TODO category counters in the new "Next free IDs" table
+  of `docs/design/todo-number-map.md`, so it tracks how many TODO items
+  have ever been filed. `bump_version.py --check` fails when `docs/TODO.md`
+  uses an ID that table hasn't counted. See `changes/README.md`.
+
+## [7.65.174] - 2026-10-01
+
+### Changed
+- **README and INSTALL split.** `README.md` now says what planetGen is,
+  what it does, what it needs and how to use the website and the command
+  line. The new `INSTALL.md` walks from nothing to a running site on
+  Linux, Windows or macOS with the provided scripts, says where every
+  example config lives, and covers updates and scheduled maintenance.
+  The old `pip install .` setup step is gone: the install scripts set up
+  the libraries and everything runs the checkout's code. The full
+  command-line reference moved to `docs/cli.md`.
+- **TODO items have permanent category IDs** (`UX.1`, `MAP.16`, ...),
+  a plain running count in each category like the schema version,
+  replacing the running numbers. Bugs and features are listed under the
+  item they belong to, `docs/TODO.md` is the one place that links an
+  item to its design document, and code tags read `TODO(MAP.16)` (a test
+  checks each names an open item). `docs/design/todo-number-map.md` maps
+  every old number, by date, and the short-lived dotted IDs (`MAP.2.1`)
+  to the new IDs, for the changelog, commits and PRs that cite them.
+- **Every reference doc checked against the code.** `database-schema.md`
+  now describes schema v44 and its tables; `api.md`,
+  `html-interface.md`, `config.md`, `system-file-format.md`, the
+  deployment guides and the rest have their errors fixed (for example,
+  `update.sh` resets to the branch tip rather than refusing to run over
+  local changes).
+
+### Added
+- `docs/design/architecture.md`: how the program fits together, mapping
+  every script, package and module to what it holds and tracing the main
+  flows with diagrams.
+- `docs/design/design-decisions.md`: the big design choices, when they
+  were made, why, and what was rejected. The design documents were
+  brought up to date with their reasons; superseded ones moved to
+  `docs/design/archive/` and `docs/analysis/archive/`.
+
+## [7.64.174] - 2026-10-01
+
+### Added
+- **Show on Galaxy Map.** Sector pages, system pages and sector and system search results link to the sector on the Galaxy Map (`/galaxy?sector=<designation>`), which opens the drill-down stage holding it. The sector page's old Quadrant link stays as its own badge.
+- **Pick on a map from the NAV page.** At each step the NAV page offers "Pick on Galaxy Map" and, once the other endpoint is known, "Pick in this sector", which opens the Sector Map's pick mode.
+
+## [7.63.174] - 2026-10-01
+
+### Added
+- The Galaxy Map has a NAV pick mode (`/galaxy?pick=from|to`). It shows a "Choosing a start/destination · Cancel" banner and keeps "Generated only" on. Clicking a sector opens it in the Sector Map's pick mode.
+
+## [7.62.174] - 2026-10-01
+
+### Added
+- **Species and polity pages.** `/species` lists every species (with a spacefaring filter), `/species/<id>` shows one, `/polities` lists every polity and `/polities/<id>` lists the systems it holds, nearest its capital first. A life world's planet row names its dominant species, and an owned system's page says whose territory it is in.
+- **Hidden until there is population data.** The header's Species section, these pages, "Dominant species" and "Territory of ..." only appear once a population pass has made species (or polities); before that the pages are 404s.
+
+## [7.61.174] - 2026-10-01
+
+### Added
+- The Galaxy Map gives an admin "Generate this block" on a 3-sector block and "Generate this layer" on one of its layers (drill-down stages 7 and 8). Each button starts the Generate page's block job.
+
+## [7.60.174] - 2026-10-01
+
+### Added
+- **Generate a Galaxy Map block.** `generate.py galaxy --block M.I.S.SLAB [--block-layer J]` fills one drill-down block (or one of its layers), and the admin Generate page has a matching form.
+- **Neighborhood radius in light-years.** The Generate page's single-sector neighborhood takes a radius in ly (13 ly and up), converted to parsecs.
+- **JSON answers from the Generate page.** A post with `Accept: application/json` returns the started job's id and status URL, so the Galaxy Map can start jobs without leaving the map.
+
+## [7.59.174] - 2026-10-01
+
+### Added
+- **More on the bright stars.** The Stats page counts the pre-placed bright stars exactly: how many were placed, how many are built into systems and how many are still waiting for their sectors. The Generate page says whether the bright stars have been scattered, at what brightness and with what seed. On the Sector Map, a neighboring sector that hasn't been generated yet lists the bright stars waiting in it. New `GET /api/galaxy/bright-stars` lists one sector cell's bright stars.
+
 ## [7.58.2] - 2026-10-01
 
 ### Changed

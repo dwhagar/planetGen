@@ -269,7 +269,8 @@ def system(system_id):
         facility_hosts=system_facilities.host_options(detail) if admin else [],
         facility_placements=system_facilities.PLACEMENT_OPTIONS,
         facility_kinds=system_facilities.kind_options(),
-        facility_units=tuple(system_facilities.DISTANCE_UNITS),
+        facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
+        facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
     )
 
 
