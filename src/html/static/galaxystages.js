@@ -100,8 +100,9 @@ export function drillBlockTotal(block, outline) {
 // - {kind: "quadrant", n}: the galaxy's first pick, a quarter of the disk
 //   (bearings n*90 to (n+1)*90 degrees);
 // - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
-//   slice, picked from the list beside the map: a third of them while
-//   more than three are left, then one;
+//   slice; pickOptions offers thirds while more than three are left (the
+//   keyboard and links use these), and the slab slider beside the map
+//   (galaxystageview.js) takes any one slab;
 // - {kind: "region", n}: an arc of the ring band in view, one of up to
 //   3 x 3 (a third of its rings across, a third of its arc along).
 // After a region comes a layer and after a layer a region, while each

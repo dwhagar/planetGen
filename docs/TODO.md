@@ -136,7 +136,7 @@ of the SEC section.
       statements). These touch the web read path, not generation, so
       they can run alongside 1 to 3.
 4. **After that**, as before:
-   - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
+   - Bookmarks (MAP.23, which
      finishes the NAV page's map picks, MAP.22).
    - Sector Map stars as points of light (MAP.15).
    - The rest of generation at scale (PERF.1): the per-sector density
@@ -315,28 +315,22 @@ MAP.48 and MAP.37, all fixed.
     Done (PR #188); its bug MAP.26 is fixed too.
 - [x] **MAP.3 A bigger Galaxy Map with controls underneath**
   Done in 7.55.0 (PR #178); kept as the parent of its subitem.
-  - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
+  - [x] **MAP.30 Slab slider to the right of the map, and a 4:3 map**
     Boss (2026-10-01): "slab selection goes to the left of the galactic
     map if there is room, given the galactic map shoul dhave a 3:4 aspect
     ratio to its window or 1:1 if necessary, like in mobile view
-    perhaps." Today the Galaxy Map's viewport (`.galaxymap3d-panel
-    .starmap-viewport` in `static/style.css`) is the full width with a
-    height of `min(100svh - 9rem, max(20rem, 75vw))`, and the stage
-    view's slab list (`.galaxy-slab-row` rows, `static/galaxystageview.js`)
-    sits with the other controls below the map. Done: the map keeps a
-    3:4 aspect ratio within its window, falling back to 1:1 where the
-    window can't fit 3:4 (as on phones); when there's room beside the
-    map, the slab list moves to its left; when there isn't, it stays
-    under the map with the other controls; no layout jump as stages
-    change. The list is now the layer strip of the top-down drill-down
-    (MAP.17): it offers layers when a layer is to be picked
-    and follows the Responsive Web Design Standards notes in the UX
-    section (size classes, container queries). Open questions: is 3:4
-    width to height (taller than wide) or height to width (4:3, wider
-    than tall, close to today's 75vw height)? At what width does the
-    list move to the left (the standards' expanded class, 840 px and up,
-    or whenever a readable list column fits)? Does the rest of MAP.3's
-    controls row stay under the map, or join the list on the left?
+    perhaps." Then (2026-10-01 14:41Z): "Slap selection should be a
+    slider to the right of the galaxy map." Done: the slab list is now a
+    vertical slider in a narrow column to the right of the map (top slab
+    at the top), with one step per slab of the view, so any single slab
+    can be taken in one pick instead of thirds; dragging fades the other
+    slabs on the map and shows the slab's generated share under the
+    slider, and letting go, Enter or Open takes it. Hovering a slab on
+    the map moves the slider to it. The map is 4:3 (wider than tall,
+    close to its old height) and no taller than the window under the
+    header, 1:1 under 600 px; the slider column keeps its width at every
+    stage, so the map doesn't move. The other controls stay under the
+    map.
 
 - [x] **MAP.5 Galaxy Map rework**
   Done (the pixel-sized mega-blocks plan Boss approved in the project's

@@ -316,13 +316,17 @@ of a level-3 block.
   Inside a block, a click on a bright star or a small cloud shows it
   instead; over the whole galaxy and its quarters the stars are too
   thick for that.
-- **The layer strip:** while a layer is to be picked, a list beside the
-  map with one row per choice, top first, each with its layer range and
-  a bar of its generated share. Hovering or focusing a row dims the
-  other layers on the map; clicking takes it. At other stages the strip
-  says which layers the view holds. This is the paper's elevation panel,
-  and it gives keyboard and screen-reader users the same choice.
-- Choices are big: four quarters, at most three layers, at most nine
+- **The slab slider (MAP.30):** while a layer is to be picked, a
+  vertical slider to the right of the map, top slab at the top, with one
+  step per slab of the view (not thirds), and under it the slab's name
+  and a bar of its generated share. Dragging it or its arrow keys dim
+  the other slabs on the map; letting go, Enter or its Open button takes
+  the slab, and hovering a slab on the map moves the slider there. At
+  other stages it says which layers the view holds. This is the paper's
+  elevation panel, and it gives keyboard and screen-reader users the
+  same choice. The map beside it is 4:3 and no taller than the window
+  (1:1 on a phone).
+- Choices are big: four quarters, one slab at a time, at most nine
   arcs, so each is at least about a ninth of the map, finger-sized on
   a phone.
 - **Touch:** the first tap highlights a choice and a second tap on it
