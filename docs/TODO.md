@@ -39,12 +39,12 @@ renumber when items are added or finished.
    slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
-   phenomena views and stored nearest systems (25-26), nebulae and
+   phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 35 is
    a schema change; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39, 30 (naming) in v40, 26's storage in v41.
+   (containment) in v39, 30 (naming) in v40, 26 (nearest systems) in v41.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -184,18 +184,6 @@ for a mouse; spacing and type sized with `clamp()`.
     - Nebulae and supernova remnants: Boss (2026-09-30) wants them
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
-
-26. [ ] **Show phenomena's octant and everyone's nearest systems.**
-    Storage shipped in schema v41 (2026-09-30): every placed phenomenon
-    has `quadrant`, and `nearest_systems` holds the 3 nearest star
-    systems to every placed system and phenomenon, searched across
-    sector boundaries (`_db.refresh_nearest_systems`, filled at
-    generation; the correlative update refreshes it with #32).
-    `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
-    `sector_detail` returns `nearest` per system, and
-    `queryDb.nearest_systems(conn, table, ids)` serves any page.
-    - Left: show them on the sector page (`sector_page._contents`'s
-      `octant`/`location`), system page and phenomenon page.
 
 27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
     shipped (2026-09-30): sectors now generate molecular clouds,

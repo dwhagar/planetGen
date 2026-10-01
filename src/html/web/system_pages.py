@@ -22,6 +22,7 @@ import apiclient
 from fmt import (
     runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
+    nearest_systems_html,
 )
 from pagination import fetch_page, parse_page
 from phenomenonmap import render_phenomenon_map_panel
@@ -499,6 +500,9 @@ def phenomenon(phenomenon_type, phenomenon_id):
         type_label=type_label,
         distance=distance,
         sector=sector,
+        octant=detail.get("quadrant"),
+        nearest_html=trusted_html(nearest_systems_html(detail["nearest"], _system_url))
+        if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
         nav_links=nav_links(phenomenon_type, detail["id"]),
         map_html=trusted_html(map_html),

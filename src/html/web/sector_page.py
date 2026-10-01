@@ -28,7 +28,9 @@ import re
 from flask import flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
-from fmt import format_distance_ly, inside_text, linkify_location, runaway_text
+from fmt import (
+    format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html, runaway_text,
+)
 from galaxymap import sector_quadrant
 from pagination import page_slice, parse_page
 from starmap import render_map_panel
@@ -130,6 +132,12 @@ def _rogue_group_row(rogues):
     }
 
 
+def _nearest_html(nearest, system_url):
+    """A phenomenon's "Nearest: ..." Location cell, or `None` when it has
+    no stored neighbors."""
+    return trusted_html("Nearest: " + nearest_systems_html(nearest, system_url)) if nearest else None
+
+
 def _contents(sector):
     """
     Every system and phenomenon as Contents rows, nearest the sector's
@@ -154,7 +162,10 @@ def _contents(sector):
                 bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
             ),
             "octant": row["quadrant"],
-            "location": trusted_html(linkify_location(row["location"], name_to_id, system_url)),
+            "location": trusted_html(
+                nearest_neighbors_location(row["location"], row["nearest"], system_url) if row.get("nearest")
+                else linkify_location(row["location"], name_to_id, system_url)
+            ),
         })
         if row["position_x_mpc"] is not None and row["stars"]:
             map_systems.append(_map_system(row))
@@ -179,12 +190,8 @@ def _contents(sector):
             "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
             "type": PHENOMENON_TYPE_LABELS.get(row["type"], row["type"]),
             "details": ", ".join(bit for bit in details if bit),
-            # TODO(phenomena #26): list the octant a phenomenon is in
-            # (spaceSector.classify_octant on its sector-relative
-            # position), and its three nearest star systems from the new
-            # stored table.
-            "octant": None,
-            "location": None,
+            "octant": row.get("octant"),
+            "location": _nearest_html(row.get("nearest"), system_url),
         })
 
     rows.sort(key=lambda entry: (entry["distance_ly"] is None, entry["distance_ly"] or 0.0))

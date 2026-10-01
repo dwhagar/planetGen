@@ -11,12 +11,16 @@
     <span class="badge">{{ type_label }}</span>
     {%- if distance %}<span class="badge">{{ distance }} from Galactic Center</span>{% endif %}
     {%- if sector %}<span class="badge">Sector: <a href="{{ sector.url }}">{{ sector.name }}</a></span>{% endif -%}
+    {%- if octant %}<span class="badge">Octant {{ octant }}</span>{% endif -%}
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
   <p class="page-actions">
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
   </p>
+  {%- if nearest_html %}
+  <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>
+  {%- endif %}
 </div>
 {% endblock %}
 {% block content %}

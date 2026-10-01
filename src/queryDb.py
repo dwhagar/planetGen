@@ -1354,8 +1354,9 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
         phenomenon_id (int): The row's own `id` in its backing table.
 
     Returns:
-        dict: Every column of the phenomenon's own row, plus `type` and
-            `sector_name` (`None` if it has no `sector_id`).
+        dict: Every column of the phenomenon's own row, plus `type`,
+            `sector_name` (`None` if it has no `sector_id`) and `nearest`
+            (its stored nearest star systems, see `nearest_systems`).
 
     Raises:
         ValueError: If `phenomenon_type` isn't a recognized type, or no
@@ -1379,6 +1380,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
 
     detail = dict(row)
     detail["type"] = phenomenon_type
+    detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     return detail
 
 
@@ -1630,7 +1632,11 @@ def system_detail(conn, system_id):
             (system["sector_id"],),
         ).fetchall()
         sector_siblings = [{"id": r["id"], "name": r["name"]} for r in sibling_rows]
-        nearest_neighbors = _nearest_sector_siblings(system, sibling_rows)
+        # The stored neighbors (schema v41) are searched across sector
+        # boundaries; a system generated before them falls back to its
+        # own sector's.
+        nearest_neighbors = (nearest_systems(conn, "star_systems", [system_id]).get(system_id)
+                             or _nearest_sector_siblings(system, sibling_rows))
 
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
