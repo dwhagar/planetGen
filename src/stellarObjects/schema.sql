@@ -872,6 +872,13 @@
 --   against instead of scanning with `LIKE '%term%'`.
 --   `_migrate_v45_to_v46` adds them.
 --
+-- v47: rogue planet classes (GEN.8) -- `rogue_planets.planet_class`, the
+--   rogue's `PLANET_CLASSES` letter, drawn from the classes flagged "r"
+--   (`roguePlanetData.choose_rogue_planet_class`). NULL for a brown dwarf
+--   (a failed star, not a planet). `_migrate_v46_to_v47` adds the column
+--   and gives every stored rogue its most probable fitting class
+--   (`roguePlanetData.default_rogue_planet_class`).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2002,6 +2009,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     sector_id           BIGINT UNSIGNED,
     name                VARCHAR(255) NOT NULL,
     planet_type         VARCHAR(4) NOT NULL CHECK (planet_type IN ('t', 'g')),
+    -- v47: its PLANET_CLASSES letter (GEN.8); NULL for a brown dwarf.
+    planet_class        VARCHAR(4),
     -- v37: the mass bin it was drawn from (program_constants.
     -- ROGUE_PLANET_MASS_BINS), or 'brown-dwarf' (13-80 Mjup).
     mass_bin            VARCHAR(16) NOT NULL DEFAULT 'terrestrial',

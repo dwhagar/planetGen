@@ -548,6 +548,12 @@ BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
 # A dictionary defining the properties of different planet classes.
 # Each class has a description, composition, radius range (in meters),
 # habitable zone compatibility, atmosphere type, and planet type ('t' for terrestrial, 'g' for gas giant).
+# Zone flags: "h" hot zone, "e" ecosphere, "c" cold zone, and "r" (GEN.8)
+# whether a free-floating rogue planet may have the class -- "r" is the
+# rogue planet's zone. With no star to warm it, a rogue is a dead (C),
+# icy (D) or giant (I, J, T) world: every class with life needs starlight
+# (each one's life_chemical is a light-harvesting pigment), and the hot,
+# molten and volcanic classes need a star's heat.
 PLANET_CLASSES = {
     "A": {
         # Radius ceiling raised to 7500 to absorb a formerly-separate
@@ -560,7 +566,7 @@ PLANET_CLASSES = {
         "radius_range": (500, 7500),
         # Mercury (2,439.7km) sits ~28% through this range.
         "size_mode": 0.28,
-        "h": True, "e": False, "c": False,
+        "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
         "life_chemical": None,
@@ -594,7 +600,7 @@ PLANET_CLASSES = {
         # Slightly below Class A's own Mercury anchor -- a freshly molten
         # or newly-stripped world skews a bit smaller.
         "size_mode": 0.25,
-        "h": True, "e": False, "c": False,
+        "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
         "life_chemical": None,
@@ -612,7 +618,7 @@ PLANET_CLASSES = {
         # frequency distribution strongly weighted toward smaller objects,
         # and this class's own broadest-of-any range skews the same way.
         "size_mode": 0.20,
-        "h": True, "e": True, "c": True,
+        "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
         "life_chemical": None,
@@ -630,7 +636,7 @@ PLANET_CLASSES = {
         # (469.7km) sits near this range's own ceiling, but the population
         # as a whole skews toward its smaller end.
         "size_mode": 0.25,
-        "h": True, "e": True, "c": True,
+        "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
         "life_chemical": None,
@@ -652,7 +658,7 @@ PLANET_CLASSES = {
         # for a young, molten-crust world, so anchored near Earth's own
         # (6,371km, ~27% through this range) like the rest of that group.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Hottest of the habitable classes (see below), so pushed toward
         # the inner (hotter) edge of the zone -- see Class K's own
         # `zone_position_mode` note.
@@ -688,7 +694,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Middle of the E->F->G progression positionally too -- see Class
         # K's own `zone_position_mode` note.
         "zone_position_mode": 0.30,
@@ -715,7 +721,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Converges near M's own position too -- see Class K's own
         # `zone_position_mode` note.
         "zone_position_mode": 0.44,
@@ -743,7 +749,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Hot/dry -> pushed toward the zone's hotter inner half -- see
         # Class K's own `zone_position_mode` note.
         "zone_position_mode": 0.33,
@@ -787,7 +793,7 @@ PLANET_CLASSES = {
         # before it could stay class I; that outcome is already represented
         # by Class B's "occasionally the stripped core of a former gas
         # giant" (see Class B's note).
-        "h": False, "e": True, "c": True,
+        "h": False, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -814,7 +820,7 @@ PLANET_CLASSES = {
         # generate ordinary terrestrial moons via the existing moon-
         # generation path, including habitable-class ones -- the
         # "habitable exomoon around a giant planet" trope.
-        "h": True, "e": True, "c": True,
+        "h": True, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
         "life_chemical": None,
@@ -833,7 +839,7 @@ PLANET_CLASSES = {
         "radius_range": (2500, 7500),
         # Mars (3,389.5km) sits ~18% through this range.
         "size_mode": 0.18,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # How far through the ecosphere zone's own [inner, outer] AU range
         # this class is generated, via a `utils.sample_bounded_bell` draw
         # centered here instead of the zone's full width being equally
@@ -881,7 +887,7 @@ PLANET_CLASSES = {
         # smaller worlds retain a thinner, more "marginal" atmosphere more
         # easily, consistent with this class's own tuning (see below).
         "size_mode": 0.35,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Between M and K positionally too, closer to K -- see Class K's
         # own `zone_position_mode` note.
         "zone_position_mode": 0.70,
@@ -912,7 +918,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Earth (6,371km) sits ~27% through this range -- exact.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # The reference/baseline position every other ecosphere class's own
         # `zone_position_mode` is described relative to (see Class K's
         # note) -- dead center of the zone, same as the exact midpoint this
@@ -952,7 +958,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Venus (6,051.8km) sits ~21% through this range -- exact.
         "size_mode": 0.21,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # See Class K's own `zone_position_mode` note. Venus sits much
         # closer to the Sun than Earth, so N is pushed toward the inner
         # (hotter) edge of the ecosphere zone.
@@ -999,7 +1005,7 @@ PLANET_CLASSES = {
         "radius_range": (5000, 10000),
         # Earth-scale anchor, see Class E's note.
         "size_mode": 0.27,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Slightly hotter than M positionally too (see below) -- see Class
         # K's own `zone_position_mode` note.
         "zone_position_mode": 0.42,
@@ -1039,7 +1045,7 @@ PLANET_CLASSES = {
         # plausibly running a bit larger for a given mass than a pure
         # rock/iron world would.
         "size_mode": 0.30,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Cold/glaciated -> pushed toward the zone's colder outer edge, same
         # as K -- see Class K's own `zone_position_mode` note.
         "zone_position_mode": 0.90,
@@ -1097,7 +1103,7 @@ PLANET_CLASSES = {
         # holds fully confined to zone e -- a highly eccentric orbit *within*
         # the habitable zone still swings meaningfully between its own
         # perihelion and aphelion.
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
         "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
@@ -1120,7 +1126,7 @@ PLANET_CLASSES = {
         "radius_range": (15000, 55000),
         # Neptune (24,622km) sits ~24% through this range.
         "size_mode": 0.24,
-        "h": False, "e": False, "c": True,
+        "h": False, "e": False, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g",
         "life_chemical": None,
@@ -1139,7 +1145,7 @@ PLANET_CLASSES = {
         # 1.5-1.6 Earth radii (~9,500-10,200km) -- right at this range's own
         # floor, so peaked low to stay on the rocky side of that boundary.
         "size_mode": 0.25,
-        "h": False, "e": True, "c": False,
+        "h": False, "e": True, "c": False, "r": False,
         # Hot mainly via its high gravity/thick atmosphere rather than a
         # real-analog orbital position (unlike N/K), but still one of the
         # hotter habitable classes -- see Class K's own `zone_position_mode`

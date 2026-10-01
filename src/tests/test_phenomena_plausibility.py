@@ -146,7 +146,7 @@ def _base_record(phenomenon_type, **overrides):
             ),
             "progenitor_type": "core-collapse", "has_compact_remnant": True,
         },
-        "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g"},
+        "rogue-planet": {"mass_kg": 1e27, "radius_km": 70000.0, "planet_type": "g", "planet_class": "J"},
         "comet": {"nucleus_diameter_km": 1.0, "velocity_kms": 40.0, "is_active": True},
         "asteroid-field": {"density": "typical", "radius_ly": 0.5, "field_class": "B4",
                            "composition_family": "carbonaceous"},
