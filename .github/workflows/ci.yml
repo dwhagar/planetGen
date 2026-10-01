@@ -9,9 +9,11 @@ on:
   workflow_dispatch:
 
 # A new push to a PR cancels that PR's still-running CI, so self-hosted
-# runners aren't busy with superseded commits. Runs on main always finish.
+# runners aren't busy with superseded commits. Runs on main (and runs
+# started by hand) each get a group of their own: they always finish, and
+# one stuck on a runner that went away never holds the next one back.
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Where jobs run: see docs/ci-runners.md. Each job's runs-on
