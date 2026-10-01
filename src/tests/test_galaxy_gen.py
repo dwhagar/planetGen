@@ -1426,6 +1426,68 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
     )
 
 
+def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, monkeypatch):
+    """
+    MAP.45: what the Sector Map draws for a sector (`queryDb.phenomena_near_sector`,
+    rendered by `html/lib/starmap.py`) keeps every point-like object -- a
+    rogue planet, comet, black hole or neutron star -- inside that sector's
+    own cell. A neighbor's rogue planets used to be pulled in by a sphere
+    sized for the old cube and drawn outside the wireframe. Only a cloud
+    may come from a neighbor, and it is marked `neighbor` on the map.
+
+    Ring 0 (pie wedges) and the first three slots of ring 2 sit side by
+    side, so each sector has generated neighbors whose rogue planets would
+    show up if the search still took them.
+    """
+    import os
+    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
+    from starmap import render_map_panel
+
+    _plan_wide_galaxy(mysql_config)
+    _run_cli(["--ring", "0", "--num-systems", "10", "-planets"] + _mysql_argv(mysql_config))
+    _run_cli(["--ring", "2", "--limit", "3", "--num-systems", "10", "-planets"] + _mysql_argv(mysql_config))
+
+    contexts = _sector_cell_contexts(mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        drawn = {sector_id: queryDb.phenomena_near_sector(conn, sector_id) for sector_id in contexts}
+        edges = {row["id"]: row["edge_mpc"] for row in conn.execute("SELECT id, edge_mpc FROM sectors").fetchall()}
+    finally:
+        conn.close()
+
+    violations = []
+    rogue_planets = 0
+    for sector_id, phenomena in drawn.items():
+        ctx = contexts[sector_id]
+        for entry in phenomena:
+            if not entry["home"]:
+                assert entry["radius_ly"] > 0, f"{entry['type']} {entry['id']} is a neighbor's point object"
+                continue
+            rogue_planets += entry["type"] == "rogue_planet"
+            if entry["type"] in ("black_hole", "neutron_star"):
+                continue  # a supernova core drifts off by its kick; the nucleus sits on the axis
+            absolute_pc = tuple(ctx["center_pc"][i] + ly_to_pc(entry[f"offset_{axis}_ly"])
+                                for i, axis in enumerate("xyz"))
+            violation = _bounds_violation(ctx, absolute_pc, f"{entry['type']} {entry['id']}")
+            if violation:
+                violations.append(violation)
+
+        html = render_map_panel(lambda name, **params: "#", edges[sector_id], ctx["address"], ctx["center_pc"],
+                                [], phenomena=phenomena)
+        for entry, phenomenon in zip(_starmap_scene(html)["clouds"], phenomena):
+            assert entry.get("neighbor", False) == (not phenomenon["home"])
+
+    assert rogue_planets, "expected the sectors to generate some rogue planets"
+    assert not violations, "\n".join(violations[:50])
+
+
+def _starmap_scene(html):
+    """The Sector Map's scene data from `render_map_panel`'s HTML."""
+    import json
+    import re
+    return json.loads(re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', html, re.S).group(1))
+
+
 def test_sector_cell_used_for_generation_matches_the_grid():
     """`SectorCell.for_ring` in light-years (what generation samples in)
     is the same cell as the grid's parsec bounds, scaled."""

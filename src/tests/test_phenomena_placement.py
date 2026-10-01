@@ -699,3 +699,54 @@ def test_phenomenon_detail_returns_a_supernova_remnants_own_columns(mysql_config
     assert detail["radius_ly"] == pytest.approx(remnant.radius_ly)
     assert detail["type"] == "supernova_remnant"
     assert detail["sector_name"] is None
+
+
+def test_phenomena_near_sector_leaves_out_a_neighbors_point_objects_but_keeps_its_clouds(mysql_config):
+    # MAP.45: a rogue planet (or any point-like object) of the sector next
+    # door sits in that sector's cell, so this sector's map could only draw
+    # it outside the wireframe; a neighbor's cloud that reaches in still
+    # belongs on the map, marked as not this sector's own.
+    home = _place_sector(mysql_config, "Home Sector", (0.0, 40.0, 0.0), edge_ly=11.5)
+    neighbor = _place_sector(mysql_config, "Next Door", (0.0, 43.5, 0.0), edge_ly=11.5)
+    near_placement = {"center_x_pc": 0.0, "center_y_pc": 42.5, "center_z_pc": 0.0, "galactic_radius_pc": 42.5}
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        rogue_id = _db.insert_rogue_planet(
+            conn, RoguePlanet(SystemConfig()), sector_id=neighbor, placement=near_placement)
+        nebula = Nebula(SystemConfig())
+        nebula.radius_ly = 4.0
+        nebula_id = _db.insert_nebula(conn, nebula, sector_id=neighbor, placement=near_placement)
+        own_id = _db.insert_rogue_planet(
+            conn, RoguePlanet(SystemConfig()), sector_id=home,
+            placement={"center_x_pc": 0.0, "center_y_pc": 40.5, "center_z_pc": 0.0, "galactic_radius_pc": 40.5})
+        conn.commit()
+        matches = {(m["type"], m["id"]): m for m in queryDb.phenomena_near_sector(conn, home)}
+    finally:
+        conn.close()
+
+    assert ("rogue_planet", rogue_id) not in matches
+    assert matches[("rogue_planet", own_id)]["home"] is True
+    assert matches[("nebula", nebula_id)]["home"] is False
+
+
+def test_sector_reach_holds_every_corner_of_a_small_rings_cell():
+    # A ring-0 pie wedge's outer corners sit a whole edge from its center,
+    # past the cube's half diagonal the neighbor-cloud search used to use.
+    from stellarObjects.galaxyGeometry import sector_cell_vertices_pc, sector_position_pc
+
+    edge_pc = 4.0
+    for address in ((0, 0, 0), (1, 2, 4), (40, -1, 7)):
+        center = sector_position_pc(*address, edge_pc)
+        sector = {
+            "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
+            "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+        }
+        reach = queryDb._sector_reach_pc(sector, edge_pc)
+        assert reach >= edge_pc * math.sqrt(3) / 2
+        for vertex in sector_cell_vertices_pc(*address, edge_pc):
+            assert math.dist(vertex, center) <= reach + 1e-9
+    assert queryDb._sector_reach_pc(
+        {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
+         "ring_index": None, "layer_index": None, "ring_slot_index": None}, edge_pc,
+    ) == pytest.approx(edge_pc * math.sqrt(3) / 2)
