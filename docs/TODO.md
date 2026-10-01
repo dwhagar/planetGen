@@ -103,8 +103,7 @@ of the SEC section.
       out), then MAP.48 (pop in after a zoom).
    3. MAP.43 (wedge lines past the galaxy's edge) and MAP.37
       (generated systems hard to find).
-   4. UX.16 (button spacing), then UX.15 (data beside the 3D render).
-   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -151,39 +150,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.15 (bug) Put an object's data beside its 3D render when there's room**
-  Boss (2026-10-01): "if there is enough room next to the 3D
-  render of an object, put the data segment next to the object." The
-  3D renders (`static/bodyRendering.js`, used by the System Map,
-  `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
-  show an object's details in an info panel, which today can sit below
-  the render even when the screen has space beside it. Done: when the
-  space next to the render is wide enough, the data panel sits beside
-  the object; when it isn't (phones, narrow windows), it stays below;
-  the switch follows the Responsive Web Design Standards' size classes
-  and container queries (see the notes at the top of this section),
-  with no layout jump while the render loads. Open questions: which
-  panels this covers (the System Map and Sector Map info panels, the
-  object pages for planets, moons, stars and phenomena, or all of
-  them)? What "enough room" means (a minimum width for the render plus
-  a readable 45-75 character text column)? Which side the panel goes
-  on?
-
-- [ ] **UX.16 (bug) Always leave space between buttons**
-  Boss (2026-10-01): "button spacing should always have space between
-  buttons." Some button groups have a gap (`.starmap-controls` uses
-  a flex row with `gap: 0.5rem`), but there is no shared rule, so
-  buttons laid out another way can sit flush against each other.
-  Done: every group of buttons on every
-  page (`.btn`, `.btn-small`, `.starmap-btn` and plain `<button>`s)
-  has visible space between neighbors, across and between wrapped
-  lines, at every size class, from one shared rule in
-  `static/style.css` rather than per-page fixes. Open questions: one
-  spacing value everywhere (for example `0.5rem`) or a `clamp()` that
-  grows with the screen? Do touch screens (`pointer: coarse`) get more,
-  so 44-48 px targets don't sit edge to edge? Which pages show the
-  problem today (to be listed when the fix starts)?
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
