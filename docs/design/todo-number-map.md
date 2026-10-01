@@ -523,12 +523,12 @@ Parents marked "new parent" had no old number of their own.
 | SEC.19 | Hashed lock file for pip dependencies (cited as "39c") | 39c (2026-09-30 21:39Z to 21:54Z) | done in 7.7.0, PR #119 (see note 8) |
 | SEC.20 | Log every failed and locked login with its address | none | done, PR #217 |
 | SEC.21 | Keep the per-username backoff in the control database | none | done, PR #220 |
-| SEC.22 | Trusted-device cookie so lockouts can't shut out the real admin | none | open |
-| SEC.23 | Wrong current passwords on /account aren't counted (bug) | none | open |
-| SEC.24 | Refuse common and breached passwords | none | open |
-| SEC.25 | Check the password hashing cost and re-hash on login | none | open |
-| SEC.26 | Two-factor sign-in (TOTP) for admins | none | open |
-| SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | open |
+| SEC.22 | Trusted-device cookie so lockouts can't shut out the real admin | none | done, PR #221 |
+| SEC.23 | Wrong current passwords on /account aren't counted (bug) | none | done, PR #221 |
+| SEC.24 | Refuse common and breached passwords | none | done, PR #221 |
+| SEC.25 | Check the password hashing cost and re-hash on login | none | done, PR #221 |
+| SEC.26 | Two-factor sign-in (TOTP) for admins | none | done, PR #221 |
+| SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
 | USR.1 | User accounts (new parent) | none | open |
 | USR.2 | Roles: user, admin, Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
