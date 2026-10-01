@@ -219,8 +219,6 @@ def test_head_matches_get_with_no_body(app, fuzz_db, anonymous):
     if not anonymous:
         login_api(client)
     for path, _rule in _page_paths(app, fuzz_db):
-        if path == "/admin/generate":
-            continue  # web/generate_page.py: see test_head_never_runs_the_generate_form below
         get = client.get(path)
         head = client.head(path)
         assert head.status_code == get.status_code, (path, get.status_code, head.status_code)
@@ -236,11 +234,9 @@ def test_head_logout_does_not_log_out(app):
     assert client.get("/admin").status_code == 200  # still logged in
 
 
-@pytest.mark.xfail(strict=True, reason="web/generate_page.py:513 tests `request.method == \"GET\"`, so HEAD runs "
-                                       "the POST branch (no CSRF check: HEAD is a safe method)")
 @pytest.mark.parametrize("anonymous", [True, False], ids=["anonymous", "admin"])
 def test_head_never_runs_the_generate_form(app, anonymous):
-    # Today: anonymous GET 302 / HEAD 403; admin GET 200 / HEAD 400 (an empty form's error).
+    # HEAD is a safe method with no CSRF check, so it must never reach the form branch.
     client = app.test_client()
     if not anonymous:
         login_api(client)

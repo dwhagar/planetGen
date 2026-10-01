@@ -1,5 +1,25 @@
 # Changelog
 
+## [7.122.329] - 2026-10-01
+
+### Fixed
+
+- Galaxy Map: moving the view (right-drag or Shift-drag) now stops one and a half views from where the stage opened, as intended; before, nothing held it and the view could slide away for good.
+- Galaxy Map: reloading the page after the map's Back button keeps Forward working.
+
+### Added
+
+- Tests for the page scripts under node (`src/tests/js`, run by `test_js_unit.py`): the Galaxy Map's drill-down, history, address bar, zoom, pan and tilt limits and buttons; the Sector Map's zoom, turning and picking; the phenomenon diagram's zoom; the Generate page's job panel; the facility form (TEST.57, TEST.58).
+- Browser tests: every map button changes the view, the System Map's selection and measuring, the Galaxy Map drill-down by clicks with Back and Forward and the free camera (TEST.55, TEST.58, TEST.59), and no overlapping or off-screen controls on any page at 390, 600, 820 and 1280 px in both themes (TEST.56). The large-nebula diagram's dead "-" button is pinned as a known failure for UX.21.
+
+## [7.121.284] - 2026-10-01
+
+### Fixed
+
+- A parallel run no longer stops when the control database drops mid-run: the task rows are only a record, so the run finishes its sectors and its lease goes stale on its own (TEST.20).
+- When a worker process dies, the tasks it never got are recorded as cancelled and the ones in flight as failed, instead of being left as running (TEST.20).
+- Cancelling a parallel run from the Generate page (or any SIGTERM to its process group) now ends it as cancelled: each worker rolls back its unfinished sector and the pool stays whole, instead of the workers being killed and the run recorded as failed (TEST.21).
+
 ## [7.120.278] - 2026-10-01
 
 ### Changed

@@ -55,11 +55,13 @@
 #   7. Runs `examples/apache/create-cache-dir.sh` to create the Galaxy Map's
 #      on-disk tile cache (`tile_cache.dir` in config.json, default
 #      /var/cache/planetgen/tiles) owned by Apache's worker user.
-#   8. Runs `examples/apache/setup-debug-log.sh` to create the debug log
-#      (`log_file` in config.json, default /var/log/planetgen.log) when
-#      `debug` is on, mode 0660 for Apache's user and group (CLI users
-#      must be in that group to append), and to
-#      install its logrotate config.
+#   8. Runs `examples/apache/setup-debug-log.sh` to set up the debug log
+#      (`log_file` in config.json, default /var/log/planetgen.log) whether
+#      or not `debug` is on, and the activity log's folder (`log_dir`),
+#      mode 0660 for Apache's user and group (CLI users must be in that
+#      group to append), checks Apache's user can write both, and
+#      installs their rotation. A log it can't set up only warns, with the
+#      commands that fix it; it never stops the install (OPS.5).
 #   9. Prints the one remaining manual step: copying and enabling the
 #      example virtual host config. This script never touches Apache's
 #      site configuration itself -- ServerName, TLS, and logging are
@@ -175,7 +177,10 @@ PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/create-cache-dir.sh"
 
 echo
 echo "== 8/8: Setting up the debug log and its rotation =="
-PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh"
+# The logs never stop an install (OPS.5): setup-debug-log.sh warns, with
+# the commands that fix it, for anything it can't set up itself.
+PYTHON="$PYTHON" "$SCRIPT_DIR/examples/apache/setup-debug-log.sh" \
+    || echo "warning: the log setup didn't finish (see above); the install carries on." >&2
 
 echo
 echo "Checking that the web app imports:"

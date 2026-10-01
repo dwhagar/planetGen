@@ -25,6 +25,7 @@ self-hosted default in the table.
 |---|---|---|---|
 | `RUNNER_LINUX` | tests (3 database engines), browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` | Linux with Docker |
 | `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` | Windows 10/11 or Server |
+| `RUNNER_LINUX_INSTALLERS` | `install.sh` and `update.sh` on Linux against a live database | `"ubuntu-latest"` | Linux with Docker; see [The installer jobs](#the-installer-jobs) |
 | `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` | see [macOS](#macos) |
 | `RUNNER_WINDOWS_INSTALLERS` | `install.ps1` on Windows | `"windows-latest"` | see [The installer jobs](#the-installer-jobs) |
 
@@ -183,10 +184,13 @@ service containers, so it can't take the Linux test jobs.
 
 ## The installer jobs
 
-`macos-installers` and `windows-installers` run `install.sh` and
-`install.ps1` with sudo or administrator rights. They copy planetGen into
-system folders, register launchd daemons and scheduled tasks, and start
-a web server on port 8000. On GitHub's machines all of that is thrown away
+`linux-update`, `macos-installers` and `windows-installers` run
+`install.sh`, `update.sh` and `install.ps1` with sudo or administrator
+rights (`linux-update` against a MySQL service container, through a
+fresh install, an update with nothing new, a migration, a database newer
+than the code, an unreachable server and a failed migration). They copy
+planetGen into system folders, install packages, register launchd
+daemons and scheduled tasks, and start a web server on port 8000. On GitHub's machines all of that is thrown away
 after the job. On your own computer it stays, and the next run trips over
 it. Keep their variables unset unless you have a machine you're happy to
 wipe, such as a VM you restore to a snapshot after each run.

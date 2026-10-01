@@ -73,8 +73,13 @@ install_launchd_plist() {
 # for nginx. Installed and started the first time only. Its log
 # directory belongs to _www.
 ensure_gunicorn_daemon() {
-    mkdir -p "$MACOS_LOG_DIR"
-    chown _www:_www "$MACOS_LOG_DIR"
+    # gunicorn's own output; a folder that can't be made only warns (OPS.5).
+    if ! { mkdir -p "$MACOS_LOG_DIR" && chown _www:_www "$MACOS_LOG_DIR"; }; then
+        echo "warning: couldn't set up gunicorn's log folder $MACOS_LOG_DIR; launchd can't start" >&2
+        echo "  gunicorn until it exists. Fix it with:" >&2
+        echo "    sudo mkdir -p $MACOS_LOG_DIR" >&2
+        echo "    sudo chown _www:_www $MACOS_LOG_DIR" >&2
+    fi
     install_launchd_plist "$SCRIPT_DIR/examples/macos/$GUNICORN_LABEL.plist" "$GUNICORN_LABEL.plist"
 }
 
