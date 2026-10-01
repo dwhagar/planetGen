@@ -1692,7 +1692,8 @@ def system_detail(conn, system_id):
             own `moons` list; every planet and moon also carries
             `habitable`, `life_stage` and `inhabited` (a colony counts --
             see `_with_life_fields`), `belts` (`asteroid_belts` rows, including
-            `star_id`), `comets` (`comets` rows, including `star_id` --
+            `star_id`, plus `composition`: its `asteroid_belt_composition`
+            rows as `{component, concentration}`, largest share first), `comets` (`comets` rows, including `star_id` --
             no `orbital_index`, see `insert_comet`'s docstring), and
             `sector_siblings` (`{id, name}` for every other system in the
             same sector, empty if standalone -- for linkifying
@@ -1738,9 +1739,20 @@ def system_detail(conn, system_id):
         planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"]) for m in moon_rows]
         planets.append(planet_dict)
 
-    belts = conn.execute(
+    belts = [dict(b) for b in conn.execute(
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
-    ).fetchall()
+    ).fetchall()]
+    belt_composition = {}
+    for row in conn.execute(
+        "SELECT c.belt_id, c.component, c.concentration FROM asteroid_belt_composition c"
+        " JOIN asteroid_belts b ON b.id = c.belt_id WHERE b.star_system_id = ?"
+        " ORDER BY c.belt_id, c.position",
+        (system_id,),
+    ).fetchall():
+        belt_composition.setdefault(row["belt_id"], []).append(
+            {"component": row["component"], "concentration": row["concentration"]})
+    for belt in belts:
+        belt["composition"] = belt_composition.get(belt["id"], [])
 
     comets = conn.execute(
         "SELECT * FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)
@@ -1778,7 +1790,7 @@ def system_detail(conn, system_id):
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
         "stars": [dict(s) for s in stars],
         "planets": planets,
-        "belts": [dict(b) for b in belts],
+        "belts": belts,
         "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
