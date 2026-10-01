@@ -20,6 +20,11 @@
   {%- endfor %}
 </div>
 {%- endmacro -%}
+{%- macro skip_scatter(id) -%}
+<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
+  {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
+  <span class="field-hint">Every star of {{ "{:,.0f}".format(bright_min_luminosity) }} solar luminosities or more is normally placed across the whole galaxy right after the plan; its sector is filled later, around it.</span></label>
+{%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -86,6 +91,7 @@
       {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="about 30.7 (100 ly)", min=0.1, max=max_radius_pc) }}
       {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
                hint="1.0 is as dense as the Sun's neighborhood.") }}
+      {{ skip_scatter("new-galaxy-skip-bright") }}
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
     <div class="search-actions">
@@ -142,14 +148,35 @@
 
 <section class="panel" id="plan" aria-labelledby="plan-heading">
   <h2 id="plan-heading">Plan the galaxy</h2>
-  <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist.
-  Sectors already generated stay as they are.</p>
+  <p class="hint">Rebuilds the galaxy's density skeleton, which decides where sectors can exist, then
+  scatters the bright stars. Sectors already generated stay as they are, but the scatter is refused while
+  any exist (they would never get their bright stars); rebuild the bright stars below to leave them out.</p>
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="plan">
     {{ plan_inputs() }}
+    <div class="search-fields">
+      {{ skip_scatter("plan-skip-bright") }}
+    </div>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Plan</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="bright-stars" aria-labelledby="bright-stars-heading">
+  <h2 id="bright-stars-heading">Rebuild the bright stars</h2>
+  <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
+  Needs a plan.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="bright_stars">
+    <div class="search-fields">
+      <label class="search-field generate-check"><span><input type="checkbox" id="bright-force" name="bright_force" value="1"> Leave filled sectors out</span>
+        <span class="field-hint">Without this, the rebuild is refused once any sector has been generated.</span></label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Rebuild bright stars</button>
     </div>
   </form>
 </section>

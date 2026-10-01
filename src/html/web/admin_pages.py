@@ -494,6 +494,22 @@ def _health(stats, api_ms, cache):
     }
 
 
+def bright_star_text(tables):
+    """
+    The Stats page's bright-star row: how many stars the plan's scatter
+    pre-placed (`bright_stars`, schema v43; a row stays after its sector
+    is filled). Only the table's estimated row count reaches this page
+    (`adminStats.table_stats`), so it says "about", and it can't yet split
+    them into already in a filled sector and still waiting.
+    """
+    row = next((table for table in tables if table["name"] == "bright_stars"), None)
+    if row is None:
+        return "not tracked by this schema"
+    if not row["approx_rows"]:
+        return "none pre-placed"
+    return f"about {format_count(row['approx_rows'])} placed in all (estimate)"
+
+
 def _time_or(value, missing):
     """A stats time as local-time markup, or `missing` when there is none."""
     return trusted_html(utc_time_html(value)) if value else missing
@@ -574,6 +590,7 @@ def admin_stats():
                 ("Last system change", _time_or(systems_stamp.get("last_modified_at"), "never")),
                 ("Newest system", _time_or(systems_stamp.get("newest_created_at"), "none")),
                 ("Last sector change", _time_or(stamps.get("sectors", {}).get("last_modified_at"), "never")),
+                ("Bright stars", bright_star_text(database["tables"])),
             ],
             name_tiles=[
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),

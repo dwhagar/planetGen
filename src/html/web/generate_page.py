@@ -6,9 +6,14 @@ needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
 - New galaxy: wipe the database (`src/resetDb.py --yes`), build the
-  density skeleton (`generate.py plan`), then generate a first
-  neighborhood around a random start (`generate.py galaxy`).
-- Plan: rebuild the density skeleton only.
+  density skeleton (`generate.py plan --no-bright-stars`), scatter the
+  bright stars (`generate.py plan --bright-stars-only`), then generate a
+  first neighborhood around a random start (`generate.py galaxy`).
+- Plan: rebuild the density skeleton, then scatter the bright stars.
+  The scatter is its own step so the job shows its progress bar and the
+  count it placed; a checkbox on either form skips it.
+- Rebuild bright stars: the scatter alone, on the stored plan
+  (`--force` leaves already filled sectors out instead of refusing).
 - Generate sectors: `generate.py galaxy` in any of its four modes
   (random start, a whole ring, around a sector, one address).
 - Reset: wipe the database only.
@@ -33,7 +38,7 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import log
+from stellarObjects import log, program_constants
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
@@ -78,6 +83,10 @@ GALAXY_MODES = (
 )
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
+
+SCATTER_LABEL = "Scatter the bright stars"
+"""str: The step that pre-places every bright star
+(`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
 
 class FormError(ValueError):
@@ -182,6 +191,21 @@ def galaxy_argv(form):
     raise FormError("Choose what to generate.")
 
 
+def plan_steps(generate, form):
+    """
+    The plan step and, unless the form's "skip the bright-star scatter"
+    box is ticked, the scatter as a second step (`generate.py plan` would
+    otherwise run both in one command, with no separate label).
+
+    Returns:
+        list[dict]: Job steps.
+    """
+    steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}]
+    if not form.get("skip_bright_stars"):
+        steps.append({"label": SCATTER_LABEL, "argv": generate + ["plan", "--bright-stars-only"]})
+    return steps
+
+
 def build_job(action, form, database):
     """
     The job a form asks for.
@@ -198,17 +222,20 @@ def build_job(action, form, database):
     generate = [python, jobs.GENERATE_SCRIPT]
     reset_step = {"label": "Reset the galaxy", "argv": [python, jobs.RESET_SCRIPT, "--yes"]}
     if action == "new_galaxy":
-        plan = plan_argv(form)
+        plan = plan_steps(generate, form)
         start = random_start_argv(form)
         return "new_galaxy", "New galaxy", [
             reset_step,
-            {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan},
+            *plan,
             {"label": "Generate sectors around a random start", "argv": generate + ["galaxy"] + start},
         ]
     if action == "plan":
-        return "plan", "Plan the galaxy", [
-            {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form)},
-        ]
+        return "plan", "Plan the galaxy", plan_steps(generate, form)
+    if action == "bright_stars":
+        argv = generate + ["plan", "--bright-stars-only"]
+        if form.get("bright_force"):
+            argv.append("--force")
+        return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
     if action == "galaxy":
         argv, description = galaxy_argv(form)
         label = f"Generate sectors {description}"
@@ -316,6 +343,7 @@ def _page(admin, error=None, status=200, form=None):
         recent=[_job_view(job) for job in recent],
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
+        bright_min_luminosity=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
         max_ring=MAX_GENERATE_RING,

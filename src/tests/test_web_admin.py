@@ -54,7 +54,8 @@ def _stats(reachable=True):
         "timestamps": [{"table": "sectors", "newest_created_at": "2026-09-01 10:00:00",
                         "last_modified_at": "2026-09-02 10:00:00"},
                        {"table": "star_systems", "newest_created_at": None, "last_modified_at": None}],
-        "tables": [{"name": "star_systems", "approx_rows": 3456, "data_bytes": 2048, "index_bytes": 1024}],
+        "tables": [{"name": "bright_stars", "approx_rows": 61234, "data_bytes": 4096, "index_bytes": 1024},
+                   {"name": "star_systems", "approx_rows": 3456, "data_bytes": 2048, "index_bytes": 1024}],
     }
     if not reachable:
         database = {"name": DB, "reachable": False, "detail": "connection <refused>"}
@@ -638,6 +639,20 @@ def test_admin_stats_renders(client, fake):
     assert "Planet/moon collisions" not in html
     assert '<a href="/admin/stats" aria-current="page">Stats</a>' in html
     assert "<form" not in re.search(r'<main.*</main>', html, re.S).group(0)
+
+
+def test_admin_stats_counts_bright_stars(client, fake):
+    _logged_in(client, fake)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert re.search(r'<th scope="row">Bright stars</th><td>about 61,234 placed in all \(estimate\)</td>', html)
+
+
+@pytest.mark.parametrize("tables, text", [
+    ([], "not tracked by this schema"),
+    ([{"name": "bright_stars", "approx_rows": 0}], "none pre-placed"),
+])
+def test_bright_star_text_without_a_scatter(tables, text):
+    assert admin_pages.bright_star_text(tables) == text
 
 
 def test_admin_stats_names_paged(client, fake):
