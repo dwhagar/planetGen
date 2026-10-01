@@ -2431,3 +2431,39 @@ body.app {
 .galaxy-address-matches button:hover {
   border-color: var(--accent);
 }
+
+/* The Galaxy Map's territory legend (the Territories button). */
+.galaxy-territories h3 {
+  font-size: 0.95rem;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.galaxy-territories ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+  font-size: 0.85rem;
+}
+
+.galaxy-territories li {
+  display: grid;
+  grid-template-columns: 0.8rem 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.1rem 0;
+}
+
+.galaxy-territory-swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+}
+
+.galaxy-territory-count {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}

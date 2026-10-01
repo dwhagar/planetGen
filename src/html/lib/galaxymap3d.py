@@ -312,7 +312,8 @@ def _json_script(data):
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
-                              locate_path="/galaxy/locate", course=None):
+                              locate_path="/galaxy/locate", course=None,
+                              territory_path="/galaxy/territories"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -365,6 +366,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`static/galaxystageview.js`).
         locate_path (str): The address bar's name lookup
             (`/galaxy/locate`).
+        territory_path (str): The territory overlay's endpoint
+            (`/galaxy/territories`), fetched when the Territories button
+            is pressed.
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
@@ -380,6 +384,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "fetchPath": fetch_path,
         "stagePath": stage_path,
         "locatePath": locate_path,
+        "territoryPath": territory_path,
         "course": course,
         "sectorUrl": sector_url,
         "generate": generate,
@@ -492,10 +497,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
           title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
   <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false" data-stage-only
           title="Dim every block with no generated sectors">Generated only</button>
+  <button type="button" class="starmap-btn" data-action="territories" aria-pressed="false"
+          title="Show which polity holds what: each one's reach and the systems it owns">Territories</button>
   <button type="button" class="starmap-btn" data-action="free-look" aria-pressed="false"
           title="Fly the camera freely instead of stepping through slabs and blocks">Free look</button>
 </div>
 <div class="galaxy-slabs" id="galaxymap3d-slabs" hidden></div>
+<div class="galaxy-territories" id="galaxymap3d-territories" hidden></div>
 <aside class="starmap-info" id="galaxymap3d-info">
 <p class="hint">Hover a slab of blocks, then click it to see it from above.</p>
 </aside>
