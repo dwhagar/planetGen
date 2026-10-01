@@ -44,9 +44,10 @@ from stellarObjects._db import (add_mysql_connection_args, escape_like, get_conn
                                 mysql_config_from_args, surrounding_cloud)
 from stellarObjects import physical_constants, program_constants
 from stellarObjects.starData import compressed_heliosphere_radius
+from stellarObjects.brightStars import MPC_PER_PC
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
-    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, sector_position_pc,
+    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, ring_sector_count, sector_position_pc,
 )
 from stellarObjects.spaceSector import classify_octant
 from stellarObjects.galaxyViewport import (
@@ -54,6 +55,9 @@ from stellarObjects.galaxyViewport import (
     planned_slots_in_tile,
     tile_bounds_pc,
     tile_keys_containing,
+)
+from stellarObjects.galaxyDrill import (
+    DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
 from stellarObjects.navGraph import build_knn_adjacency, shortest_path
 from stellarObjects.navigation import (
@@ -2267,6 +2271,179 @@ def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margin
     return clouds[:max_clouds]
 
 
+GALAXY_TILE_MAX_BRIGHT_STARS = 400
+"""int: Most pre-placed bright stars (`bright_stars`, v43) one tile lists,
+the most luminous first. The map draws each as a point of light the same
+few pixels across at every zoom, so a zoomed-out view of 27 tiles shows
+about ten thousand, tracing the spiral arms; zooming in switches to
+smaller tiles that hold the dimmer ones."""
+
+BRIGHT_STAR_MAX_EXACT_RANGES = 2000
+"""int: Most `(ring, layer)` index ranges one tile's bright-star query
+lists before it reads each ring's layers in one range instead."""
+
+
+def _box_angle_intervals(lo, hi):
+    """
+    The galactic longitudes (counterclockwise from +X, in `[0, 2*pi)`) the
+    box `[lo, hi)` covers seen from the axis, as a list of `(start, end)`
+    radians -- one interval, or two when it wraps past +X, or the whole
+    circle when the box holds (or touches) the axis.
+    """
+    full = [(0.0, 2 * math.pi)]
+    if lo[0] <= 0 <= hi[0] and lo[1] <= 0 <= hi[1]:
+        return full
+    # A convex region clear of the axis spans less than half a turn, and
+    # its extreme longitudes are at its corners.
+    center = math.atan2((lo[1] + hi[1]) / 2, (lo[0] + hi[0]) / 2)
+    offsets = [
+        (math.atan2(y, x) - center + math.pi) % (2 * math.pi) - math.pi
+        for x in (lo[0], hi[0]) for y in (lo[1], hi[1])
+    ]
+    start = (center + min(offsets)) % (2 * math.pi)
+    end = start + (max(offsets) - min(offsets))
+    if end <= 2 * math.pi:
+        return [(start, end)]
+    return [(start, 2 * math.pi), (0.0, end - 2 * math.pi)]
+
+
+def _ring_slot_ranges(ring, intervals):
+    """`intervals`' slots of `ring`, as inclusive `(first, last)` pairs
+    (rounded outward, so every slot a longitude touches is in)."""
+    n = ring_sector_count(ring)
+    ranges = []
+    for start, end in intervals:
+        first = max(0, int(math.floor(start * n / (2 * math.pi))))
+        last = min(n - 1, int(math.floor(end * n / (2 * math.pi))))
+        ranges.append((first, last))
+    return ranges
+
+
+def _bright_star_bands(conn, lo, hi, edge_pc):
+    """
+    `[(ring, layer_min, layer_max), ...]`: the rings the box `[lo, hi)`
+    reaches, each with the layers it reaches, cut to the stored outline
+    (`galaxy_column`) when there is one -- no bright star sits outside it.
+    """
+    corners_r = [math.hypot(x, y) for x in (lo[0], hi[0]) for y in (lo[1], hi[1])]
+    near_x = min(max(0.0, lo[0]), hi[0])
+    near_y = min(max(0.0, lo[1]), hi[1])
+    ring_lo = int(math.floor(math.hypot(near_x, near_y) / edge_pc))
+    ring_hi = int(math.floor(max(corners_r) / edge_pc))
+    layer_lo = int(math.floor(lo[2] / edge_pc + 0.5))
+    layer_hi = int(math.floor(hi[2] / edge_pc + 0.5))
+    columns = {
+        row["ring_index"]: (row["layer_index_min"], row["layer_index_max"])
+        for row in conn.execute(
+            "SELECT ring_index, layer_index_min, layer_index_max FROM galaxy_column WHERE ring_index BETWEEN ? AND ?",
+            (ring_lo, ring_hi),
+        ).fetchall()
+    }
+    has_outline = bool(columns) or conn.execute("SELECT 1 FROM galaxy_column LIMIT 1").fetchone() is not None
+    bands = []
+    for ring in range(ring_lo, ring_hi + 1):
+        bottom, top = layer_lo, layer_hi
+        if has_outline:
+            if ring not in columns:
+                continue
+            bottom, top = max(bottom, columns[ring][0]), min(top, columns[ring][1])
+        if bottom <= top:
+            bands.append((ring, bottom, top))
+    return bands
+
+
+def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS):
+    """
+    The most luminous pre-placed bright stars (`bright_stars`) in the box
+    `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
+    (and after) their sectors are filled.
+
+    `bright_stars` is indexed by address and by luminosity, not by
+    position, so the box is turned into address ranges: one per ring and
+    layer it reaches (each with the ring's slots in its longitudes) for a
+    small box, one per ring when that would be too many ranges. A box
+    holding a good share of the galaxy instead walks the luminosity index
+    from the top, which finds `limit` stars inside it quickly; the choice
+    is by the estimated rows each way reads.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        edge_pc (float): The sector edge, parsecs.
+        limit (int): See `GALAXY_TILE_MAX_BRIGHT_STARS`.
+
+    Returns:
+        list[dict]: Most luminous first: `id`, `x`/`y`/`z` (parsecs),
+            `luminosity_sol`, `temperature_k`, `star_type`,
+            `yerkes_class`, `ring_index`, `layer_index`,
+            `ring_slot_index` and `system_id` (the star's system once its
+            sector is filled, else `None`).
+    """
+    total = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"])
+    if not total:
+        return []
+    bands = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    box = (
+        "position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ? "
+        "AND position_z_mpc >= ? AND position_z_mpc < ?"
+    )
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+
+    # Rows read each way, assuming stars spread evenly over the disk: the
+    # address path reads its rings' full layer bands (the slot test only
+    # filters), the luminosity path about `limit / share of the galaxy`.
+    outer_ring = int(conn.execute("SELECT COALESCE(MAX(ring_index), 0) AS r FROM galaxy_column").fetchone()["r"])
+    outer_ring = outer_ring or bands[-1][0]
+    disk = math.pi * ((outer_ring + 1) * edge_pc) ** 2
+    ring_share = sum(2 * ring + 1 for ring, _b, _t in bands) / float((outer_ring + 1) ** 2)
+    box_share = min(1.0, (hi[0] - lo[0]) * (hi[1] - lo[1]) / disk)
+    by_address = ring_share * total
+    by_luminosity = limit / max(box_share, 1e-12)
+
+    intervals = _box_angle_intervals(lo, hi)
+    clauses, params = [], []
+    if by_luminosity < by_address:
+        where, index = box, "idx_bright_stars_luminosity"
+    else:
+        exact = sum(t - b + 1 for _r, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
+        for ring, bottom, top in bands:
+            slots = _ring_slot_ranges(ring, intervals)
+            slot_test = " OR ".join("ring_slot_index BETWEEN ? AND ?" for _ in slots)
+            slot_params = [v for pair in slots for v in pair]
+            layers = [(layer, layer) for layer in range(bottom, top + 1)] if exact else [(bottom, top)]
+            for first, last in layers:
+                clauses.append(f"(ring_index = ? AND layer_index BETWEEN ? AND ? AND ({slot_test}))")
+                params += [ring, first, last] + slot_params
+        where, index = "(" + " OR ".join(clauses) + ") AND " + box, "idx_bright_stars_address"
+    rows = conn.execute(
+        f"""
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+        FROM bright_stars FORCE INDEX ({index})
+        WHERE {where}
+        ORDER BY luminosity_w DESC, id
+        LIMIT ?
+        """,
+        params + box_params + [int(limit)],
+    ).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
+            "z": row["position_z_mpc"] / MPC_PER_PC,
+            "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
+            "temperature_k": row["temperature_k"], "star_type": row["star_type"],
+            "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
+            "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
+            "system_id": row["star_system_id"],
+        }
+        for row in rows
+    ]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -2282,9 +2459,10 @@ def galaxy_tiles(conn, tile_keys):
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "filled": {...}, "clouds": [...]}}`, see
+            "filled": {...}, "clouds": [...], "stars": [...]}}`, see
             `galaxy_sectors_in_box`, `galaxyViewport.planned_slots_in_tile`,
-            `galaxy_filled_in_box` and `galaxy_clouds_in_box`),
+            `galaxy_filled_in_box`, `galaxy_clouds_in_box` and
+            `galaxy_bright_stars_in_box`),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2318,9 +2496,133 @@ def galaxy_tiles(conn, tile_keys):
         )
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
         clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
-        tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds}
+        stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc)
+        tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars}
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
+
+
+def _block_slot_range(block, sector_ring):
+    """The slots of `sector_ring` whose centers fall in `block`'s wedge,
+    `(first, last)` inclusive -- every drill level's wedges nest, so this
+    is exactly the slots whose chain passes through `block`."""
+    wedges = drill_wedge_count(block.m, block.ring)
+    n = ring_sector_count(sector_ring)
+    first = -((wedges - 2 * block.wedge * n) // (2 * wedges))
+    last = -((wedges - 2 * (block.wedge + 1) * n) // (2 * wedges)) - 1
+    return max(0, first), min(n - 1, last)
+
+
+def galaxy_stage(conn, at=None):
+    """
+    One drill-down stage's generated counts (the Galaxy Map drill-down,
+    docs/design/galaxy-drilldown-navigation.md section 7): how many
+    generated sectors each child block of `at` holds. Totals (allowed
+    sectors) are the page's own math, so only generated counts come from
+    here, and children with none are left out.
+
+    Without `at`, the galaxy: every level-243 block holding a generated
+    sector. With a level-3 `at`, the children are sectors, and `sectors`
+    lists each generated one.
+
+    The query reads only the block's own rows: member rings and layers by
+    the address index, and in each member ring just the slot range its
+    wedge covers (wedges nest at every level, so that range is exact).
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        at (str or None): A block key, `m.ring.wedge.slab` (see
+            `galaxyDrill.parse_drill_key`), or `None` for the galaxy.
+
+    Returns:
+        dict: `at` (the canonical key, or `None`), `child_m`, `children`
+            (`[{ring, wedge, slab, generated}]`, at `child_m = 1` a
+            sector's `wedge` is its slot and `slab` its layer), and
+            `sectors` (`[{ring, layer, slot, id, name, system_count}]` at
+            `child_m = 1`, else `None`).
+
+    Raises:
+        ValueError: On a malformed or impossible `at`.
+    """
+    if at is None or at == "":
+        block = None
+        child_m = DRILL_TOP
+        rows = conn.execute(
+            "SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
+            "FROM sectors WHERE ring_index IS NOT NULL GROUP BY ring_index, slab, ring_slot_index",
+            ((DRILL_TOP - 1) // 2, DRILL_TOP),
+        ).fetchall()
+        counts = {}
+        for r in rows:
+            top = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * DRILL_TOP, int(r["ring_slot_index"]))[0]
+            counts[top] = counts.get(top, 0) + int(r["n"])
+        return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
+
+    block = parse_drill_key(at)
+    child_m = block.m // (3 if block.m == 3 else 9)
+    half = (block.m - 1) // 2
+    ring_clauses = []
+    params = []
+    for i in range(block.ring * block.m, block.ring * block.m + block.m):
+        first, last = _block_slot_range(block, i)
+        if first <= last:
+            ring_clauses.append("(ring_index = ? AND ring_slot_index BETWEEN ? AND ?)")
+            params += [i, first, last]
+    if not ring_clauses:
+        raise ValueError(f"no such block: {at!r}")
+    where = f"layer_index BETWEEN ? AND ? AND ({' OR '.join(ring_clauses)})"
+    layer_params = [block.slab * block.m - half, block.slab * block.m + half]
+    level = (243, 27, 3, 1).index(child_m)
+
+    if child_m == 1:
+        rows = conn.execute(
+            f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {where} "
+            f"ORDER BY ring_index, layer_index, ring_slot_index",
+            layer_params + params,
+        ).fetchall()
+        system_counts = {}
+        if rows:
+            ids = [r["id"] for r in rows]
+            placeholders = ", ".join("?" for _ in ids)
+            system_counts = {
+                c["sector_id"]: int(c["n"]) for c in conn.execute(
+                    f"SELECT sector_id, COUNT(*) AS n FROM star_systems WHERE sector_id IN ({placeholders}) "
+                    f"GROUP BY sector_id",
+                    ids,
+                ).fetchall()
+            }
+        sectors = [{
+            "ring": r["ring_index"], "layer": r["layer_index"], "slot": r["ring_slot_index"],
+            "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
+        } for r in rows]
+        counts = {DrillBlock(1, s["ring"], s["slot"], s["layer"]): 1 for s in sectors}
+        return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors}
+
+    child_half = (child_m - 1) // 2
+    rows = conn.execute(
+        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
+        f"FROM sectors WHERE {where} GROUP BY ring_index, slab, ring_slot_index",
+        [child_half, child_m] + layer_params + params,
+    ).fetchall()
+    counts = {}
+    for r in rows:
+        child = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * child_m, int(r["ring_slot_index"]))[level]
+        counts[child] = counts.get(child, 0) + int(r["n"])
+    return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
+
+
+def _stage_children(counts):
+    """`galaxy_stage`'s `children` list from `{DrillBlock: count}`."""
+    return [
+        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": n}
+        for b, n in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
+    ]
+
+
+def galaxy_stage_keys(ring, layer, slot):
+    """The stage keys a change to sector `(ring, layer, slot)` makes stale:
+    `"galaxy"` and its level-243, 27 and 3 blocks."""
+    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(ring, layer, slot)[:3]]
 
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
@@ -2374,10 +2676,12 @@ def galaxy_content_state(conn):
     Everything `galaxy_tiles`' output depends on, summarized as a handful
     of numbers:
 
-    - `base`: a hash of the stored galaxy shape and this code's version.
-      Planned slots, density clouds, `edge_pc` and `has_shape` depend on
-      the shape, and a release may change the tile format, so a new
-      `base` means every tile is stale.
+    - `base`: a hash of the stored galaxy shape, the bright-star scatter
+      (`bright_stars`' highest id and the scatter's seed) and this code's
+      version. Planned slots, density clouds, `edge_pc` and `has_shape`
+      depend on the shape, every tile's `stars` on the scatter, and a
+      release may change the tile format, so a new `base` means every
+      tile is stale.
     - `sectors`/`sector_max_id`: how many sectors are placed, and the
       highest sector id. Together they tell a new sector (higher id) from
       a deleted one (the count drops).
@@ -2388,7 +2692,7 @@ def galaxy_content_state(conn):
       its sector's system count. System edits don't touch a tile (tiles
       only show the count), so `star_systems.modified_at` isn't used.
 
-    Cheap by design -- one indexed count and three index-only maxima --
+    Cheap by design -- one indexed count and four index-only maxima --
     since the web layer checks it about once a minute per database.
 
     Returns:
@@ -2402,8 +2706,13 @@ def galaxy_content_state(conn):
         "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
         "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id"
     ).fetchone()
+    bright = conn.execute(
+        "SELECT (SELECT COALESCE(MAX(id), 0) FROM bright_stars) AS max_id, "
+        "(SELECT bright_star_seed FROM galaxy_shape WHERE id = 1) AS seed"
+    ).fetchone()
     base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "version": __version__}, sort_keys=True, default=str,
+        {"shape": galaxy_density_shape(conn), "version": __version__,
+         "bright_stars": [bright["max_id"], bright["seed"]]}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
         "base": base,
@@ -2457,11 +2766,16 @@ def galaxy_changes(conn, since=None):
     Returns:
         dict: `stamp` (`galaxy_content_stamp` now), `state` (the token to
             pass as `since` next time), `full` (every tile may have
-            changed), and `tiles` (sorted keys of the changed tiles; empty
-            when `full`).
+            changed), `tiles` (sorted keys of the changed tiles; empty
+            when `full`), and `stages` (sorted keys of the drill-down
+            stages whose counts changed, `galaxy_stage_keys`; empty when
+            `full`).
     """
     state = galaxy_content_state(conn)
-    result = {"stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": []}
+    result = {
+        "stamp": galaxy_content_stamp(conn, state), "state": _state_token(state), "full": False, "tiles": [],
+        "stages": [],
+    }
     previous = _parse_state_token(since)
     if previous is None or previous["base"] != state["base"]:
         result["full"] = True
@@ -2479,7 +2793,7 @@ def galaxy_changes(conn, since=None):
 
     rows = conn.execute(
         """
-        SELECT center_x_pc, center_y_pc, center_z_pc
+        SELECT center_x_pc, center_y_pc, center_z_pc, ring_index, layer_index, ring_slot_index
         FROM sectors
         WHERE center_x_pc IS NOT NULL
           AND (id > ? OR modified_at > ?
@@ -2496,9 +2810,13 @@ def galaxy_changes(conn, since=None):
         return result
 
     keys = set()
+    stages = set()
     for r in rows:
         keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
+        if sector_address(r) is not None:
+            stages.update(galaxy_stage_keys(*sector_address(r)))
     result["tiles"] = sorted(keys)
+    result["stages"] = sorted(stages)
     return result
 
 # ---------------------------------------------------------------------

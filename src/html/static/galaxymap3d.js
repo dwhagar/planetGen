@@ -38,6 +38,10 @@
 // translucent spheres their real size (each tile lists the ones reaching
 // into it); clicking one shows it and links to its page -- see "Clouds".
 //
+// Pre-placed bright stars (every star of 500 L☉ or more) are points of
+// light a few pixels across with a big soft glow, the same size at every
+// zoom; clicking one shows it -- see "Bright stars".
+//
 // Zooming stays smooth: the blocks for a view are built in a Web Worker
 // (./galaxyblocks.js), built views are kept and the next zoom step's are
 // prepared ahead, zoom steps glide instead of jumping, and a change of
@@ -298,6 +302,54 @@ function showCloudInfo(cloud) {
   panel.appendChild(dl);
   if (sceneData.phenomenonUrl) {
     panel.appendChild(pageLink(phenomenonUrl(cloud), "View phenomenon →"));
+  }
+}
+
+// A star's color from its surface temperature: Tanner Helland's fit to
+// blackbody colors, as [r, g, b] in 0..1 (red giants orange, O and B
+// stars blue-white).
+function starColor(temperatureK) {
+  var t = Math.min(40000, Math.max(1000, temperatureK || 5800)) / 100;
+  var r = t <= 66 ? 255 : 329.698727446 * Math.pow(t - 60, -0.1332047592);
+  var g = t <= 66 ? 99.4708025861 * Math.log(t) - 161.1195681661 : 288.1221695283 * Math.pow(t - 60, -0.0755148492);
+  var b = t >= 66 ? 255 : t <= 19 ? 0 : 138.5177312231 * Math.log(t - 10) - 305.0447927307;
+  return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
+}
+
+// "12,300 L☉", "1.2 million L☉".
+function formatLuminosity(sol) {
+  if (sol >= 1e6) {
+    return (sol / 1e6).toFixed(sol >= 1e7 ? 0 : 1) + " million L☉";
+  }
+  return Math.round(sol).toLocaleString("en-US") + " L☉";
+}
+
+function systemUrl(id) {
+  return String(sceneData.systemUrl || "").replace("{id}", encodeURIComponent(id));
+}
+
+// A pre-placed bright star (queryDb.galaxy_bright_stars_in_box): what it
+// is, and its system's page once its sector is filled.
+function showStarInfo(star) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  panel.textContent = "";
+  var heading = document.createElement("h3");
+  heading.textContent = "Bright star";
+  panel.appendChild(heading);
+  var dl = document.createElement("dl");
+  addField(dl, "Type", [star.star_type, star.yerkes_class].filter(Boolean).join(" "));
+  addField(dl, "Luminosity", formatLuminosity(star.luminosity_sol));
+  addField(dl, "Temperature", Math.round(star.temperature_k).toLocaleString("en-US") + " K");
+  addField(dl, "Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z)));
+  addField(dl, "Sector", sectorDesignation(star.ring_index, star.layer_index, star.ring_slot_index));
+  addField(dl, "Address", formatAddress(star.ring_index, star.layer_index, star.ring_slot_index));
+  addField(dl, "System", star.system_id != null ? null : "Not generated yet (its sector isn't filled)");
+  panel.appendChild(dl);
+  if (sceneData.systemUrl && star.system_id != null) {
+    panel.appendChild(pageLink(systemUrl(star.system_id), "View system →"));
   }
 }
 
@@ -1656,11 +1708,133 @@ function initGalaxyMap3d(canvasEl, data) {
     return best ? { cloud: best, core: bestOffset <= CLOUD_CORE * best.radius_pc } : null;
   }
 
+  // --- Bright stars ----------------------------------------------------------
+  //
+  // Each tile lists its most luminous pre-placed stars (bright_stars, v43:
+  // every star of 500 L☉ or more, placed before any sector is filled), so
+  // the arms show before anything is generated. Boss: "no matter how far
+  // the user zooms in they should be very small with a big glow" -- each
+  // is a point of light a fixed number of pixels across at every zoom
+  // (never sized by distance): a core of two or three pixels in a soft
+  // halo up to STAR_MAX_PX wide, both a little bigger and brighter for a
+  // brighter star. Halos blend normally rather than adding up, so a
+  // crowded arm zoomed out glows in its stars' colors instead of burning
+  // to white; stars are depth-tested against the blocks without hiding
+  // them.
+  var STAR_MIN_PX = 12;
+  var STAR_MAX_PX = 30;
+  var STAR_CORE_PX = [2.2, 3.2];
+  var STAR_GLOW = [0.3, 0.6];
+  var STAR_LOG_LUMINOSITY = [Math.log10(500), Math.log10(1e6)];
+  // A click within this many pixels of a star's center picks it.
+  var STAR_PICK_PX = 7;
+
+  var starMaterial = new THREE.ShaderMaterial({
+    uniforms: { pixelRatio: { value: renderer.getPixelRatio() } },
+    vertexShader: [
+      "#include <common>",
+      "#include <logdepthbuf_pars_vertex>",
+      "attribute float starSize;",
+      "attribute float starCore;",
+      "attribute float starGlow;",
+      "attribute vec3 starColor;",
+      "uniform float pixelRatio;",
+      "varying vec3 vColor;",
+      "varying float vCore;",
+      "varying float vGlow;",
+      "void main() {",
+      "  vColor = starColor;",
+      "  vCore = starCore / starSize;",
+      "  vGlow = starGlow;",
+      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+      "  gl_PointSize = starSize * pixelRatio;",
+      "  #include <logdepthbuf_vertex>",
+      "}",
+    ].join("\n"),
+    fragmentShader: [
+      "#include <common>",
+      "#include <logdepthbuf_pars_fragment>",
+      "varying vec3 vColor;",
+      "varying float vCore;",
+      "varying float vGlow;",
+      "void main() {",
+      "  #include <logdepthbuf_fragment>",
+      "  float r = length(gl_PointCoord * 2.0 - 1.0);",
+      "  if (r > 1.0) discard;",
+      "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
+      "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
+      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.75), clamp(core + halo, 0.0, 1.0));",
+      "}",
+    ].join("\n"),
+    transparent: true,
+    depthWrite: false,
+  });
+  var starPoints = new THREE.Points(new THREE.BufferGeometry(), starMaterial);
+  starPoints.renderOrder = 5;
+  starPoints.frustumCulled = false;
+  scene.add(starPoints);
+  var starList = [];
+
+  // Draws exactly `stars` (one entry per id).
+  function setStars(stars) {
+    starList = stars;
+    var n = stars.length;
+    var positions = new Float32Array(3 * n);
+    var colors = new Float32Array(3 * n);
+    var sizes = new Float32Array(n);
+    var cores = new Float32Array(n);
+    var glows = new Float32Array(n);
+    stars.forEach(function (star, i) {
+      var t = THREE.MathUtils.clamp(
+        (Math.log10(Math.max(star.luminosity_sol, 1)) - STAR_LOG_LUMINOSITY[0]) / (STAR_LOG_LUMINOSITY[1] - STAR_LOG_LUMINOSITY[0]), 0, 1);
+      positions.set([star.x, star.y, star.z], 3 * i);
+      colors.set(starColor(star.temperature_k), 3 * i);
+      sizes[i] = THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t);
+      cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], t);
+      glows[i] = THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t);
+    });
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute("starColor", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("starSize", new THREE.BufferAttribute(sizes, 1));
+    geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
+    geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
+    starPoints.geometry.dispose();
+    starPoints.geometry = geometry;
+  }
+
+  // The star whose center is nearest a screen point, within
+  // STAR_PICK_PX, or null.
+  function starAtClientPoint(clientX, clientY) {
+    var rect = canvasEl.getBoundingClientRect();
+    if (!starList.length || !rect.width || !rect.height) {
+      return null;
+    }
+    var projected = new THREE.Vector3();
+    var best = null;
+    var bestPx = STAR_PICK_PX;
+    starList.forEach(function (star) {
+      projected.set(star.x, star.y, star.z).project(camera);
+      if (projected.z < -1 || projected.z > 1) {
+        return;
+      }
+      var px = Math.hypot(
+        rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
+        rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
+      if (px <= bestPx) {
+        best = star;
+        bestPx = px;
+      }
+    });
+    return best;
+  }
+
   // --- Drawing from tiles --------------------------------------------------
 
   // Filled points per tile object (a refetched tile is a new object).
   var filledPointsByTile = new WeakMap();
   var filledSignature = "";
+  var starSignature = "";
 
   // Takes the filled sectors from whatever of the needed tiles is already
   // cached (the blocks are rebuilt from them when they change); returns
@@ -1671,6 +1845,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var present = [];
     var missing = [];
     var clouds = new Map();
+    var stars = new Map();
     need.keys.forEach(function (key) {
       var tile = getTile(key);
       if (tile === undefined) {
@@ -1687,7 +1862,15 @@ function initGalaxyMap3d(canvasEl, data) {
       (tile.clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
       });
+      (tile.stars || []).forEach(function (star) {
+        stars.set(star.id, star);
+      });
     });
+    var starKeys = currentStamp + "|" + Array.from(stars.keys()).sort().join(",");
+    if (starKeys !== starSignature) {
+      starSignature = starKeys;
+      setStars(Array.from(stars.values()));
+    }
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
       cloudSignature = cloudKeys;
@@ -2140,7 +2323,12 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // Shows a block's info and rings it: a generated sector's own panel (with
   // its link) at one sector per block, otherwise the block's.
-  function selectCell(point, cell, cloud) {
+  function selectCell(point, cell, cloud, star) {
+    if (star) {
+      highlightPosition(point.x, point.y, point.z);
+      showStarInfo(star);
+      return;
+    }
     if (cloud) {
       highlightPosition(point.x, point.y, point.z);
       showCloudInfo(cloud);
@@ -2165,11 +2353,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // it possible to walk the camera across the galaxy toward a small/
   // distant block over several clicks without a bad click also zooming
   // into empty space you didn't mean to approach.
-  function centerOn(point, cell, cloud) {
+  function centerOn(point, cell, cloud, star) {
     target.copy(point);
     applyCamera();
     updateScaleBar();
-    selectCell(point, cell, cloud);
+    selectCell(point, cell, cloud, star);
     scheduleFetch(true);
   }
 
@@ -2183,13 +2371,19 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // Resolves a click/double-click's target point the same way for both:
-  // a cloud small enough to aim at, clicked near its middle (its center),
+  // a bright star clicked on (it is only a few pixels wide, so a click
+  // that close means it), else a cloud small enough to aim at, clicked
+  // near its middle (its center),
   // else a hit block holding generated sectors (their mean position, so a
   // double-click zooms in toward them), else such a cloud clicked
   // anywhere, else any hit block, or (empty space)
   // depthPointAtClientPoint -- shared so the click handlers below never
   // have to duplicate the raycast-then-fall-back logic.
   function resolveClickTarget(clientX, clientY) {
+    var star = starAtClientPoint(clientX, clientY);
+    if (star) {
+      return { point: new THREE.Vector3(star.x, star.y, star.z), cell: null, cloud: null, star: star };
+    }
     var hit = cellAtClientPoint(clientX, clientY);
     var found = cloudAtClientPoint(clientX, clientY);
     if (found && (found.core || !(hit && hit.cell.filled > 0))) {
@@ -2219,7 +2413,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     var resolved = resolveClickTarget(event.clientX, event.clientY);
     if (resolved) {
-      centerOn(resolved.point, resolved.cell, resolved.cloud);
+      centerOn(resolved.point, resolved.cell, resolved.cloud, resolved.star);
       lastCenterClickAt = Date.now();
     }
   });
@@ -2234,7 +2428,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (Date.now() - lastCenterClickAt > 1000) {
       var resolved = resolveClickTarget(event.clientX, event.clientY);
       if (resolved) {
-        centerOn(resolved.point, resolved.cell, resolved.cloud);
+        centerOn(resolved.point, resolved.cell, resolved.cloud, resolved.star);
       }
     }
     zoomInOnTarget();

@@ -123,6 +123,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["initial"] == view
     assert data["generate"] is None
     assert data["phenomenonUrl"] is None
+    assert data["systemUrl"] is None
 
 
 def test_panel_passes_the_admin_generate_target_through():

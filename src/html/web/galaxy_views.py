@@ -28,7 +28,7 @@ from pagination import page_slice, parse_page
 from stellarObjects import log
 from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
-from tilecache import TileRequestError, fetch_tiles
+from tilecache import TileRequestError, fetch_stage, fetch_tiles
 
 from api.limiter import page_limit
 
@@ -47,6 +47,14 @@ def sector_url_template():
     `static/galaxymap3d.js`'s "View sector" link, built with `page_url`.
     """
     return page_url("sector", sector_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
+
+
+def system_url_template():
+    """
+    The URL of a star system page with `{id}` where the id goes, for
+    `static/galaxymap3d.js`'s "View system" link on a filled bright star.
+    """
+    return page_url("system", system_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
 
 
 def phenomenon_url_template():
@@ -121,6 +129,7 @@ def galaxy():
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         phenomenon_url=phenomenon_url_template(),
+        system_url=system_url_template(),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
@@ -182,3 +191,28 @@ def galaxy_tiles():
 
 
 galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/stage")
+@page_limit("galaxy_tiles")
+def galaxy_stage():
+    """
+    JSON for the map's drill-down: `?at=<m.ring.wedge.slab>` (or none, for
+    the galaxy). Returns `tilecache.fetch_stage`'s payload; a malformed
+    key is a 400, an API failure a 502, both as `{"error": ...}` JSON.
+    """
+    try:
+        payload = fetch_stage(db_name(), request.args.get("at") or None)
+    except TileRequestError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a galaxy stage: {exc}")
+        return _json_error("The map could not be loaded. Please try again shortly.", 502)
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it

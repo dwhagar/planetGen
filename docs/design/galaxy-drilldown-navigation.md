@@ -181,11 +181,13 @@ sectors of its children.
   `drillSlabs(block)`, `drillBlockSectors(block, layer)` and
   `drillChainOf(ring, layer, slot)`. Pure, and runs under node like the
   rest of the file.
-- `stellarObjects/galaxyGeometry.py`: the same functions in Python, for
-  the API (section 7) and generation (section 6).
-- A parity test in the `tests/test_galaxyprisms.py` style runs both on
-  sampled rings and checks that they agree, and that a parent's sectors
-  are exactly the sectors of its children.
+- `stellarObjects/galaxyDrill.py`: the same functions in Python, for
+  the API (section 7) and generation (section 6), plus
+  `format_drill_key`/`parse_drill_key` for the `m.ring.wedge.slab` keys
+  (`formatDrillKey`/`parseDrillKey` on the page). Built 2026-10-01.
+- `tests/test_galaxydrill.py` runs both on every block ring and on
+  sampled sectors and checks that they agree, and that a parent's
+  sectors are exactly the sectors of its children.
 
 ## 4. The stages
 

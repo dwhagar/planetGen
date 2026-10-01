@@ -64,7 +64,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits_exempt_when=is_in_
 #
 # - `search`: `/search` (default 30 per minute)
 # - `galaxy`: `/galaxy`, the Galaxy Map page (default 60 per minute)
-# - `galaxy_tiles`: `/galaxy/tiles`, fetched as the map's camera moves
+# - `galaxy_tiles`: `/galaxy/tiles` and `/galaxy/stage`, fetched as the map's camera moves
 #   (default 600 per minute)
 # - `health`: `/api/health` (default 60 per minute)
 # - `other`: every other page, all together (default 300 per minute)
