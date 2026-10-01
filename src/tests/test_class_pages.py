@@ -253,6 +253,9 @@ class _Fake:
     def get_system_sections(self, db, system_id):
         return _SECTIONS
 
+    def get_system_facilities(self, db, system_id):
+        return []
+
     def get_phenomenon(self, db, phenomenon_type, phenomenon_id):
         return self.phenomenon
 
@@ -263,7 +266,7 @@ class _Fake:
 @pytest.fixture
 def fake(monkeypatch):
     data = _Fake()
-    for name in ("get_system", "get_system_sections", "get_phenomenon", "auth_me"):
+    for name in ("get_system", "get_system_sections", "get_system_facilities", "get_phenomenon", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 

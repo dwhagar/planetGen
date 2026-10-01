@@ -151,13 +151,13 @@ URLs" below).
 | `/systems` | `browse.py#standalone-systems` | The standalone systems table alone. |
 | `/galaxy` | `galaxy.py` | The 3D Galaxy Map plus the Quadrant summary; `?quadrant=I\|II\|III\|IV` lists that Quadrant's placed sectors nearest the core first (`?page=N`). The info panel's "View sector" is a plain link. |
 | `/galaxy/tiles?tiles=...` | `galaxy_tiles.py` | JSON for the map's script: the requested cube tiles (`tiles=level/ix/iy/iz,...`) and, given the browser cache's `stamp`, the changed tiles since. Through `lib/tilecache.py`'s disk cache; 400 on a malformed request, 502 on an API failure, both `{"error": ...}`. `Cache-Control: no-store`. |
-| `/system/<id>` | `system.py` | One star system: badges, "Navigate from/to here" (systems in a sector), nearest-neighbour location links, the System Map, the expandable body list, `?code=wikitext\|markdown` code views with a Copy button, the Stars/Planets/Belts/Comets tables, and for an admin the "Upload to Wiki" form (see below). |
+| `/system/<id>` | `system.py` | One star system: badges, "Navigate from/to here" (systems in a sector), nearest-neighbour location links, the System Map, the expandable body list, `?code=wikitext\|markdown` code views with a Copy button, the Stars/Planets/Belts/Comets tables, the Facilities panel, and for an admin the "Upload to Wiki" form and the facility form (see below). |
 | `/phenomena` | `phenomena.py` | Every exotic phenomenon, paged with `?page=N`. |
 | `/phenomenon/<type>/<id>` | `phenomenon.py` | One phenomenon's data table and AU-scale diagram, with "Navigate from/to here". `<type>` is one of `nebula`, `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`, `quasar`; anything else is a 404. |
 | `/classes` | (new) | The class reference: every class type (star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets, comets) with how many classes it has. |
 | `/classes/<type>` | (new) | One type's classes, each linking to its page, plus notes (an asteroid field's size digit, for one). `<type>` is `star-spectral`, `star-luminosity`, `planet`, `nebula`, `supernova-remnant`, `asteroid-field`, `black-hole`, `rogue-planet` or `comet`; anything else is a 404. |
 | `/classes/<type>/<code>` | (new) | One class's facts, e.g. `/classes/planet/M`, `/classes/star-luminosity/IA+`, `/classes/comet/halley_type`. An unknown code is a 404. The system page links a star's type and a planet's or comet's class here, and the phenomenon page its Class (an asteroid field's `C3` by its letter) and a rogue planet's Mass Class. |
-| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems and nearby phenomena, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
+| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
 | `/login` | `login.py` | The admin login form (`?next=<local path>` to return to afterwards). |
@@ -180,6 +180,30 @@ answers `303 See Other` back to `/system/<id>?wiki=<outcome>#wiki-upload`
 `unconfigured` (501) or `failed`; the page shows a fixed message for
 each (and only to an admin), never text from the query string or the
 API. A POST from a visitor who is not an admin gets a 403 page.
+
+**System page facilities.** The system page lists the system's
+facilities (starbases, colonies, outposts; `GET /api/systems/<id>/
+facilities`) in a Facilities panel (name, kind, host, placement, and an
+orbital one's distance, period and speed as stored), and each one again
+in its host's row of the body list. The System Map draws each as a small
+diamond at its host (`lib/systemmap.py`'s `_facilities_svg`): a star's on
+a dashed orbit on the map's own scale, a planet's or moon's just outside
+its marker (and a planet's again around the center of its moon view), a
+belt's on the ring. A colony makes its world "Inhabited"
+(`queryDb._with_life_fields`). For an admin the panel has a form
+(`web/system_facilities.py`): the host (any star, planet, moon or belt in
+the system), the placement (in orbit, on the surface, in the belt), the
+kind, an orbital distance in km or AU (blank for 3 host radii), a name and
+an optional description. It POSTs to `/system/<id>` with
+`{{ csrf_field() }}` and a `facility_action`: `preview` checks the
+placement rules (`stellarObjects.facilities.check_facility`) and shows the
+orbit `GET /api/facilities/orbit` works out from the host's mass, saving
+nothing; `save` calls `POST /api/facilities` and answers `303` back to
+`/system/<id>?facility=added#facilities`; `remove` (each row's Remove
+button, behind a `<details>` confirm step) calls `DELETE
+/api/facilities/<id>` for one of this system's own facilities. Errors,
+including the API's reason for a refusal, show next to the form. No
+script is involved.
 
 **Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
 (`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,
@@ -206,9 +230,11 @@ in `config.json`'s `tile_cache` (or the app server's own environment) instead.
 `/sector/<id>` (`web/sector_page.py`, `templates/sector.html`) shows the
 sector's badges (cube edge, counts, a link to its Galaxy Map quadrant),
 the interactive Sector Map (`lib/starmap.py` data rendered by
-`static/sectormap.js`) and one Contents table of its systems and the
-phenomena near it, nearest the center first, 50 per page
-(`?contents_page=N`). Every map entry carries a plain `href`: the info
+`static/sectormap.js`) and one Contents table of its systems, the
+phenomena near it and its facilities outside any system (stand-alone ones
+parked in open space and those on its asteroid fields, `GET
+/api/sectors/<id>/facilities`; a facility has no page, so its name is not
+a link), nearest the center first, 50 per page (`?contents_page=N`). Every map entry carries a plain `href`: the info
 panel's "View system/phenomenon/sector" button and the `<noscript>` list
 are ordinary links.
 

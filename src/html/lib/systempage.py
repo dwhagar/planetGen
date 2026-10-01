@@ -6,7 +6,9 @@ built in Python rather than in its Jinja template: the natively rendered
 system list (stars, planets with their moons nested under them, asteroid
 belts and comets, each a native `<details>` row opening onto that body's
 own generated description) and the Stars / Planets & Moons / Asteroid
-Belts / Comets tables.
+Belts / Comets tables. A body's facilities (schema v42: starbases,
+colonies, outposts) are listed in its own row's detail, and `facility_row`
+formats one for the page's Facilities panel.
 
 Moved here unchanged from the old CGI `system.py`. Every value taken from
 the database is escaped with `fmt.esc`; the only raw markup comes from
@@ -80,8 +82,75 @@ def stars_html(stars, class_url=None):
 
 _BODY_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
 
+_FACILITY_PLACEMENT_LABELS = {
+    "terrestrial": "On the surface",
+    "orbital": "In orbit",
+    "asteroid": "Among the asteroids",
+    "standalone": "Parked in space",
+}
+"""dict: How each `facilities.placement` reads on the page."""
 
-def _row_html(title, stats, markdown, children_html="", children_visible=False, links=()):
+
+def facility_kind_label(kind):
+    """A `facilities.kind` as a label: "mining-colony" -> "Mining colony"."""
+    return (kind or "").replace("-", " ").capitalize()
+
+
+def facility_row(facility):
+    """
+    One facility's display values, every one already escaped or built from
+    numbers (the page wraps them in `trusted_html`): `name`, `kind`,
+    `placement` and, for an orbital facility, `distance`, `period` and
+    `speed` (else `None`). The orbit is the stored one the API returns,
+    worked out from the host's mass when it was saved.
+    """
+    orbital = facility.get("orbit_distance_km") is not None
+    return {
+        "name": esc(facility["name"]),
+        "kind": esc(facility_kind_label(facility["kind"])),
+        "placement": _FACILITY_PLACEMENT_LABELS.get(facility["placement"], esc(facility["placement"])),
+        "distance": format_distance_km(facility["orbit_distance_km"]) if orbital else None,
+        "period": esc(format_period(facility["orbit_period_years"]))
+        if orbital and facility.get("orbit_period_years") is not None else None,
+        "speed": f'{facility["orbital_speed_kms"]:,.2f} km/s'
+        if orbital and facility.get("orbital_speed_kms") is not None else None,
+    }
+
+
+def _facilities_html(facilities):
+    """A body's own facilities as a list at the top of its row's detail,
+    or `""` for none."""
+    if not facilities:
+        return ""
+    items = []
+    for facility in facilities:
+        row = facility_row(facility)
+        where = row["placement"]
+        if row["distance"]:
+            where += f' at {row["distance"]}'
+            where += "".join(f", {part}" for part in (row["period"], row["speed"]) if part)
+        items.append(f'<li><span class="facility-name">{row["name"]}</span> '
+                     f'<span class="stat">{row["kind"]}</span> {where}</li>')
+    return f'<ul class="facility-list" aria-label="Facilities">{"".join(items)}</ul>'
+
+
+def _facility_stat(facilities):
+    """The summary chip counting a body's facilities, or `""`."""
+    if not facilities:
+        return ""
+    count = len(facilities)
+    return _stat(f'{count} facilit{"y" if count == 1 else "ies"}')
+
+
+def _facilities_by_host(facilities):
+    """`{(host_type, host_id): [facility, ...]}`."""
+    by_host = {}
+    for facility in facilities or ():
+        by_host.setdefault((facility["host_type"], facility["host_id"]), []).append(facility)
+    return by_host
+
+
+def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=()):
     """
     One clickable row of the system list: a native `<details>` whose
     summary line is the body's name plus its compact stats, opening onto
@@ -93,10 +162,11 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
     star's own bodies are.
 
     `links` (the body's class links, HTML) open the detail, above the
-    description.
+    description; the body's `facilities` are counted in the summary and
+    listed under the links.
     """
-    stats_html = "".join(stats)
-    description = markdown_to_html(markdown) if markdown else ""
+    stats_html = "".join(stats) + _facility_stat(facilities)
+    description = _facilities_html(facilities) + (markdown_to_html(markdown) if markdown else "")
     links = [link for link in links if link]
     if links:
         description = f'<p class="class-links">{" &middot; ".join(links)}</p>{description}'
@@ -109,7 +179,7 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
 </details>{after}</li>"""
 
 
-def _star_row_html(star, sections, children_html="", class_url=None):
+def _star_row_html(star, sections, children_html="", class_url=None, by_host=None):
     stats = [f'<span class="stat">{esc(star["star_type"])}</span>']
     if star["role"] != "single":
         stats.append(f'<span class="stat">{esc(star["role"].capitalize())}</span>')
@@ -121,7 +191,7 @@ def _star_row_html(star, sections, children_html="", class_url=None):
                  _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
     return _row_html(
         esc(star["name"]), stats, sections["stars"].get(str(star["id"])), children_html, children_visible=True,
-        links=links,
+        links=links, facilities=(by_host or {}).get(("star", star["id"])),
     )
 
 
@@ -141,7 +211,7 @@ def _gravity_text(gravity_g):
     return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
 
 
-def _planet_row_html(body, sections, is_moon=False, class_url=None):
+def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None):
     """
     A planet's (or moon's) row: its class, one type chip, a "Habitable
     moon" chip when one of its moons is habitable, "Inhabited" when it is,
@@ -169,7 +239,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None):
     after_html = ""
     if moons:
         label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
-        moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url) for moon in moons)
+        moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host)
+                            for moon in moons)
         after_html = (
             f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
             f'<ul class="system-list">{moon_rows}</ul></details>'
@@ -179,10 +250,10 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None):
     if planet_url:
         class_link = _link(planet_url, f'Planet class {esc(body["planet_class"])}')
     return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True,
-                     links=[class_link])
+                     links=[class_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])))
 
 
-def _belt_row_html(belt, sections):
+def _belt_row_html(belt, sections, by_host=None):
     stats = [
         _stat(esc(belt["density"]).capitalize() if belt.get("density") else ""),
         _stat(format_distance_km(belt["distance_km"])),
@@ -191,7 +262,8 @@ def _belt_row_html(belt, sections):
         stats.append(_stat(
             f'{format_distance_km(belt["lower_limit_km"])} to {format_distance_km(belt["upper_limit_km"])}'
         ))
-    return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])))
+    return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])),
+                     facilities=(by_host or {}).get(("asteroid_belt", belt["id"])))
 
 
 def comet_orbit_key_km(comet):
@@ -227,7 +299,7 @@ def _comet_row_html(comet, sections, class_url=None):
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links)
 
 
-def _orbiting_rows_html(planets, belts, comets, sections, class_url=None):
+def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None):
     """
     A star's (or a close pair's) own bodies in their order out from the
     star: planets and belts by their shared `orbital_index`, and each comet
@@ -244,14 +316,14 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None):
         while pending and comet_orbit_key_km(pending[0]) < (0, body["distance_km"] or 0.0):
             rows.append(_comet_row_html(pending.pop(0), sections, class_url))
         if kind == "planet":
-            rows.append(_planet_row_html(body, sections, class_url=class_url))
+            rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host))
         else:
-            rows.append(_belt_row_html(body, sections))
+            rows.append(_belt_row_html(body, sections, by_host))
     rows.extend(_comet_row_html(comet, sections, class_url) for comet in pending)
     return "".join(rows)
 
 
-def system_list_html(system, sections, class_url=None):
+def system_list_html(system, sections, class_url=None, facilities=()):
     """
     The system rendered natively: the page's overview (a binary pair's
     own data, the system summary, any flavor text) above an expandable
@@ -264,8 +336,12 @@ def system_list_html(system, sections, class_url=None):
     they're nested under that star's own row; a single star's or a
     `'close'` (P-type) pair's bodies orbit the whole system and follow
     the star rows at the top level.
+
+    `facilities` (`GET /api/systems/<id>/facilities`'s items) are listed
+    in their host's own row.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
+    by_host = _facilities_by_host(facilities)
     if system.get("binary_configuration") == "wide":
         rows = []
         for star in stars:
@@ -275,13 +351,14 @@ def system_list_html(system, sections, class_url=None):
                 [c for c in comets if c["star_id"] == star["id"]],
                 sections,
                 class_url,
+                by_host,
             )
             children_html = f'<ul class="system-list">{children}</ul>' if children else ""
-            rows.append(_star_row_html(star, sections, children_html, class_url))
+            rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
         rows_html = "".join(rows)
     else:
-        rows_html = "".join(_star_row_html(star, sections, class_url=class_url) for star in stars)
-        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url)
+        rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host) for star in stars)
+        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
     return f"""

@@ -1,0 +1,3 @@
+### Added
+- **Place facilities from the system page.** Admins can add a starbase, station, outpost, colony or mining colony to a star system: pick the star, planet, moon or asteroid belt it goes on or around, preview the orbit's distance, period and speed (worked out from the host's mass, like every other orbit) and any placement rule it breaks, then save it. Each facility can be removed again.
+- Facilities now show on the system page (in their own panel and in their host's row), as small diamonds on the System Map, and, for stand-alone ones and those on asteroid fields, in the sector page's Contents. A colony makes its world show as Inhabited.

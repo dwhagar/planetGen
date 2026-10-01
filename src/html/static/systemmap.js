@@ -7,7 +7,7 @@
 // with no rotation/scroll/zoom, so a plain event-target lookup is all
 // clicking needs.
 //
-// Every planet/moon/belt/star is one `<g data-kind="..." data-*="...">` --
+// Every planet/moon/belt/star/facility is one `<g data-kind="..." data-*="...">` --
 // clicking (or Enter/Space on a focused one) either fills the info side
 // panel from its `data-*` attributes, or -- for a planet with moons,
 // marked with `data-scene="planet-<id>"` -- swaps which `<svg data-scene>`
@@ -479,6 +479,13 @@ function showInfo(el) {
     addField(dl, "Mass", el.dataset.mass);
     addField(dl, "Radius", el.dataset.radius);
     addField(dl, "Luminosity", el.dataset.lum);
+  } else if (kind === "facility") {
+    addField(dl, "Kind", el.dataset.facilitykind);
+    addField(dl, "Host", el.dataset.host);
+    addField(dl, "Placement", el.dataset.placement);
+    addField(dl, "Orbital distance", el.dataset.distance);
+    addField(dl, "Orbital period", el.dataset.period);
+    addField(dl, "Orbital speed", el.dataset.speed);
   } else if (kind === "belt") {
     addField(dl, "Density", el.dataset.density);
     addField(dl, "Distance", el.dataset.distance);
@@ -514,7 +521,7 @@ function resetInfo(panel) {
   panel.textContent = "";
   var hint = document.createElement("p");
   hint.className = "hint";
-  hint.textContent = "Click a star, planet, moon, or asteroid belt for details.";
+  hint.textContent = "Click a star, planet, moon, asteroid belt or facility for details.";
   panel.appendChild(hint);
 }
 
