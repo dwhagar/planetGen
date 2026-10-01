@@ -184,6 +184,8 @@ with `clamp()`.
   strict xfail in `test_web_browser_maps.py` (fix it and drop the
   xfail), and the overlap check found no overlapping controls on the
   pages as they were then.
+  Order (pre-planning thread): run it after MAP.55 and MAP.60, which
+  already remove some dead controls on the Galaxy Map.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -208,6 +210,14 @@ with `clamp()`.
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
+
+  - [ ] **UX.23 A shared unit-ladder module**
+    Done: one Python ladder module (in `stellarObjects/utils.py` or a new
+    `units.py`) and its JavaScript twin, generalising the existing
+    distance, speed and duration ladders, with a test that the Python and
+    JavaScript twins agree for a table of values. Then one sub-item per
+    quantity family: mass; temperature; pressure and gravity; density,
+    luminosity and power.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -240,6 +250,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   short of ring 1 (the inner rings have fewer slots); do the later
   picks (regions inside the wedge) follow the same cursor-centered
   rule?
+  Order (pre-planning thread): These nine all change
+  `galaxystageview.js` and `galaxystages.js`, so they suit one build
+  thread in this order: MAP.60 (scale line) and MAP.55 (buttons into a
+  menu) first (small, and they free space); MAP.52 (the 40-degree
+  wedge); MAP.56 (drop the 3x3 pick); MAP.53 (rotate and fit); MAP.58
+  (zoom limits); MAP.54 (slab buttons and leader lines); MAP.59 (ghost,
+  mini map, header). MAP.57 (System Map NaN) is independent. MAP.61's
+  first two sub-items (shared helpers, one camera controller) should
+  come before or with MAP.53 and MAP.58, which add camera rules.
 
 - [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
   Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
@@ -277,6 +296,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pointing toward it and its button still works; this may never happen
   in practice. A slab hidden behind another keeps its line, drawn to
   the visible part.
+
+  - [ ] **MAP.76 Leader-line layout**
+    An SVG overlay above the canvas, recomputed on every camera change
+    from the slabs' projected centres; lines kept from crossing by
+    ordering the buttons by the slabs' screen height; a phone layout
+    with the buttons in one column below the map. Picks MAP.54's
+    defaults for its open questions.
 
 - [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
   Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
@@ -424,6 +450,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phone), MAP.56 (the segment pick happens on the solid slab) and
   MAP.58 (the mini map is never zoomable).
 
+  - [ ] **MAP.75 The mini map as a second engine view**
+    The mini map is a second, locked camera on the same scene data;
+    built on MAP.61's controller with a "locked" policy rather than its
+    own renderer (one WebGL context, scissored like the System Map's
+    sphere overlay).
+
 - [ ] **MAP.60 Galaxy Map scale readout: one scale line**
   Boss (2026-10-01 20:50Z): "I want to trim the scale information from
   the galactic map so that it just has one scale line." Today the
@@ -448,6 +480,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ties in with NAV.3 (the shared picker), MAP.53 to MAP.60 (the
   Galaxy Map controls being reworked now) and MAP.62 (the system view
   joins the same engine).
+  Order: the first two sub-items change no behaviour and should land
+  before (or as the first PR of) the MAP.52 to MAP.60 work, because
+  those items rewrite the same files (`galaxymap3d.js`,
+  `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
+
+  - [ ] **MAP.63 Shared map helpers in one module**
+    The same helpers are copied between `galaxymap3d.js`,
+    `sectormap.js` and `systemmap.js`: `readSceneData`, `cssVar`,
+    `isLightBackground`, `addField`, `formatAddress`,
+    `makeRingTexture`, `niceScaleValue`/`updateScaleBar`, `resize`, and
+    the screen-space point pick (`starAtClientPoint` and
+    `pointAtClientPoint`). Done: one `static/mapcore.js` exports them
+    and all three maps import it; no visible change.
+
+  - [ ] **MAP.64 One camera and input controller**
+    The Galaxy Map's stage view (`galaxystageview.js`: drag, pan,
+    wheel, pinch, two-tap select, keys) and the Sector Map
+    (`sectormap.js`: its own `THREE.Spherical` orbit, pointer and arrow
+    key handlers, zoom buttons) each have their own. Done: one
+    controller module (orbit, pan, zoom, pinch, keys, drag-or-click
+    threshold) with a zoom policy each view sets (free, a short range,
+    or locked, which is MAP.58's rule), used by both maps.
+
+  - [ ] **MAP.65 One picking, hover and info-panel layer**
+    Done: one module for raycast and screen-space picking, the hover
+    highlight and tooltip (the Sector Map has none today) and the info
+    panel (fields, Nav from/to, Use as destination, Generate buttons,
+    bookmark ☆), fed by each view's objects. The Sector Map's info
+    panel gains the ☆ the drill-down design left for later.
+
+  - [ ] **MAP.66 The sector as the drill-down's last stage, on the same page**
+    Today clicking a generated sector leaves `/galaxy` for
+    `/sector/<id>` (a full page load), and the Sector Map's data is
+    baked into its page. Done: a sector-contents endpoint (systems,
+    phenomena, clouds, neighbours, in the Sector Map's existing JSON
+    shape) that the Galaxy Map fetches, so the sector opens as one more
+    stage with the same buttons, breadcrumb, Back/Forward, URL
+    (`/galaxy?sector=<designation>`) and bookmarks; neighbouring
+    sectors are a sideways step. `/sector/<id>` stays as the sector's
+    page (tables, text, edit tools) with the same engine embedded.
+
+  - [ ] **MAP.67 One URL and history scheme for every level**
+    Galaxy stages, a sector, and (with MAP.62) a system and a body in
+    one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
+    so Back, Forward, reload and bookmarks work the same at every level.
+
+  - [ ] **MAP.68 Remove the old Sector Map code**
+    Once the sector stage matches it (tests from TEST.70), `sectormap.js` is deleted and the docs
+    (`docs/html-interface.md`, the drill-down design) describe the one
+    engine.
 
 - [ ] **MAP.62 A full 3D star system view with a free camera**
   Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
@@ -459,6 +541,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly to a body), using the shared engine of MAP.61 and the shared
   picker of NAV.3. Clicking a body opens or selects it. The flat
   diagram stays available.
+
+  - [ ] **MAP.69 A system scene endpoint with 3D orbits**
+    Today the System Map is drawn in Python as SVG (`lib/systemmap.py`):
+    orbits are circles, z is dropped, distances are log-scaled per
+    scene, and there is no JSON for a system. The database already has
+    what 3D needs: each planet's and moon's `orbital_inclination_deg`,
+    `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_*_km`
+    and period; the binary pair's mutual orbit; comets' Kepler elements.
+    Done: `GET /api/systems/<id>/scene` returning every star, planet,
+    moon, belt and comet with its reference, radius, colour, orbit
+    elements, current position and the epoch they are valid for
+    (`orbit_simulation_state.last_updated_at`).
+
+  - [ ] **MAP.70 Positions at any time**
+    Planets and moons move on circular orbits (phase plus 360 times
+    elapsed time over period), comets on Kepler orbits
+    (`keplerMotion.py`), binaries on their mutual orbit. Done: one
+    JavaScript module (with a Python twin used by NAV.6) that gives any
+    body's position at a time, so the view can animate and NAV.6 can
+    plan around where bodies will be. A time control (now, play,
+    faster, pause) in the view.
+
+  - [ ] **MAP.71 Scale modes that keep everything visible**
+    True scale makes planets invisible dots. Done: true scale, plus a
+    compressed distance scale (the System Map's log scale) and enlarged
+    bodies, switchable, with a note saying which is shown; moons stay
+    outside their planet's drawn size.
+
+  - [ ] **MAP.72 Rendering at system scale**
+    Distances run from kilometres to light-days, beyond float
+    precision near the camera. Done: a camera-relative (floating
+    origin) scene; orbit lines as 3D ellipses; stars with the glow of
+    `bodyRendering.js`; belts as particle rings; labels that declutter;
+    the heliopause shown as a faint sphere.
+
+  - [ ] **MAP.73 Free camera on the shared engine**
+    Done: orbit, pan, zoom and a fly mode (keys and touch) on MAP.61's
+    controller, plus "fly to" a body (the drill-down's smooth flight),
+    following a moving body, and a reset. Clicking a body selects it
+    (NAV.3's picker); double-click flies to it.
+
+  - [ ] **MAP.74 The 3D view on the system page, the flat diagram kept**
+    Done: the system page offers 3D and Diagram (the current SVG,
+    default the last one used); a screen-reader list of bodies stands in
+    for the canvas; a fallback to the diagram where WebGL is missing.
+    Open question: should 3D be the default?
 
 ## NAV: Navigation and courses
 
@@ -485,6 +613,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The NAV page uses it for both endpoints, so a course's ends are
   picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
   NAV.6.
+  Needs NAV.7. Built on MAP.61's engine; the parts that don't need the
+  engine (the picker module, the breadcrumb, pick mode) can start first.
+
+  - [ ] **NAV.13 A picker module: select, step out, step in, step sideways**
+    The stage view already does this inside the galaxy (Esc and
+    Backspace go up, arrows move to a sibling). Done: one
+    `static/picker.js` holding the current selection as an object
+    reference, with `select(ref)`, `up()`, `into(ref)` and
+    `sideways(dir)` (siblings from the resolver), firing one change
+    event every display listens to; keys, clicks and the breadcrumb all
+    go through it.
+
+  - [ ] **NAV.14 One breadcrumb for every level**
+    Galaxy, stages, sector, system, star or planet, moon: one
+    breadcrumb component built from the reference's parent chain, the
+    same on the Galaxy Map, the sector, the system page and the NAV
+    page.
+
+  - [ ] **NAV.15 Pick mode everywhere**
+    Today pick mode (choose a NAV start or destination) exists on the
+    Galaxy Map and the Sector Map only, and stops at systems and
+    phenomena. Done: the same "Choosing a destination · Cancel" mode on
+    every display, the System Map included, picking any object down to
+    a moon, and returning to the NAV page with it.
+
+  - [ ] **NAV.16 NAV endpoints can be any object**
+    Today an endpoint is a whole system or a phenomenon, and a course
+    always leaves the heliopause. Done: the NAV page and `/api/nav`
+    take any object reference; a course between bodies has legs: from
+    the body out of its system, between systems, and in to the body
+    (System Local Frame inside a system, as navigation-frames.md
+    describes; the frame exists in `navigation.py` but is never chosen
+    today); a course inside one system is one in-system leg. Open
+    question: does an in-system leg use the same warp and fold speeds,
+    or sublight speeds (impulse)? Default: the same tables, with a note.
 
 - [ ] **NAV.4 Save a course**
   Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
@@ -500,6 +663,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   between the two. Needs user accounts (USR.1) and their storage. Open
   question: until user accounts exist, should saving be admin-only, or
   per browser like bookmarks?
+  Default taken for the open question (pre-planning thread): Default for
+  the open question: per browser now (the same storage and menu as
+  bookmarks), moved into the account when USR.7 lands. NAV.4 then does
+  not wait for user accounts.
+
+  - [ ] **NAV.17 A saved course record with both forms**
+    Done: a saved course stores its two end references, a name, when it
+    was saved, both forms (the direct line's bearing, mark and distance;
+    the route's list of stop references and distance) and, with NAV.6,
+    the adjusted path. Opening it recomputes both from the current
+    galaxy and says if anything changed since it was saved (the
+    correlative update moves systems along their galactic orbits, and
+    a regenerated system can vanish).
+
+  - [ ] **NAV.18 Save, list, open, rename and delete, per browser**
+    Done: a Save course button on the NAV result; a Courses list
+    (beside Bookmarks, from `bookmarks.js` or a sibling module) with
+    open, rename and delete; the viewer switches between Direct and
+    Route on a saved course.
+
+  - [ ] **NAV.19 Saved courses in the account (after USR.7)**
+    Done: a `user_courses` table in the control database, owned by an
+    account; courses saved per browser can be imported into the account
+    once; the API lists and edits a user's own courses only.
 
 - [ ] **NAV.5 Show a course on the Galaxy Map**
   Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
@@ -516,6 +703,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and clickable. The same works inside a sector. Ties in with MAP.58
   (zoom limits: a course view may need a fitted zoom outside the user
   range) and MAP.61.
+  Much of this exists: `/galaxy?course=<from>,<to>` (MAP.27, 7.52.0)
+  draws one line through the route's stops with the ends named. Missing:
+  the direct line drawn apart from the route, a fitted zoom, and any
+  course inside a sector.
+
+  - [ ] **NAV.20 Draw the direct line and the route apart**
+    Done: the direct line and the system-to-system route as two styles
+    (for example solid and dashed, in the course colour), a legend, the
+    hops ringed and clickable (each opens its system, through NAV.3's
+    picker), and the course readout (distance, bearing and mark, times)
+    beside the map.
+
+  - [ ] **NAV.21 Fit the view to the whole course**
+    Done: the course opens zoomed in as far as possible with every
+    point of both paths on screen, fitted to the window (the same fit as
+    MAP.53), refitted on resize. This view is exempt from MAP.58's zoom
+    lock; the user can still rotate it.
+
+  - [ ] **NAV.22 Courses inside a sector and a system**
+    Today a course that stays in one sector opens the sector with no
+    line. Done: the same course drawing at the sector stage (MAP.61)
+    and in the 3D system view (MAP.62), and a course that spans levels
+    shows its in-system legs when zoomed in.
+
+  - [ ] **NAV.23 Open a saved course on the map**
+    Done: a saved course (NAV.4) opens in this view, with Direct, Route
+    and (NAV.6) Adjusted switchable.
 
 - [ ] **NAV.6 Courses that steer clear of gravity wells**
   Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
@@ -538,6 +752,106 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   comparison. Open questions: a Hill sphere needs an orbit around a
   heavier body, so what radius applies to a star or a lone object? And
   does the system level need the bodies' positions at a given time?
+  Pre-planning (default taken for the first open question): The data is
+  mostly there: planets and moons store `hill_radius_km`; each star
+  stores `system_perimeter_km`, its Hill radius against the galaxy's
+  tide (`spaceSector.hill_radius_ly`, already used to keep systems apart
+  when they are placed); black holes, neutron stars and quasars have
+  masses, so the same formula gives theirs. That answers the item's
+  first open question: a star or lone object uses its galactic Hill
+  radius.
+
+  - [ ] **NAV.24 A keep-out radius for every kind of object**
+    Done: one function giving each object's keep-out radius: a planet
+    or moon its Hill radius; a star or system its stored
+    `system_perimeter_km` (the wider of the pair for a binary); black
+    holes, neutron stars and quasars the galactic Hill radius from their
+    mass (`utils.calculate_hill_sphere`); a rogue planet the same.
+    Nebulae, remnants and asteroid fields have no mass stored, only
+    `radius_ly`. Open question for Boss: should courses avoid them too
+    (as hazards, not gravity), or pass through? Default: pass through,
+    with a note on the course.
+
+  - [ ] **NAV.25 Find the obstacles along a path**
+    Done: from the corridor query of NAV.10, every
+    object whose keep-out sphere comes within reach of the path, at
+    each scale: between systems, inside a sector, inside a system.
+
+  - [ ] **NAV.26 Bend the path around keep-out spheres**
+    Done: a path planner that leaves the straight line only where it
+    crosses a keep-out sphere, going around it on the shortest detour
+    (a tangent arc, or waypoints just outside the sphere), checked
+    again against the other spheres; the end bodies' own spheres are
+    exempt (a ship has to enter them to arrive). Unit tests with
+    hand-placed spheres.
+
+  - [ ] **NAV.27 Moving bodies inside a system**
+    Inside a system the planets move. Done: the in-system planner uses
+    positions at the time of travel (MAP.62's positions-at-time module,
+    Python twin), from the departure time and the leg's speed. That
+    answers the item's second open question: yes. Default departure:
+    now.
+
+  - [ ] **NAV.28 Show and save the adjusted course**
+    Done: the adjusted path, its extra length and its times beside the
+    straight line on the NAV page and on the map (NAV.5); saved courses
+    (NAV.4) keep it as a third form.
+
+- [ ] **NAV.7 One reference for every object, with its parents**
+  Today only systems and phenomena can be named in a URL or a NAV
+  endpoint (`nav_page.endpoint`, `<kind>:<id>`); stars, planets, moons,
+  belts and comets have no page, no URL and no reference of their own
+  (search links them to their system page), and nothing returns an
+  object's chain of parents. Done: one reference form for every object
+  kind (`sector:<id>`, `system:<id>`, `star:<id>`, `planet:<id>`,
+  `moon:<id>`, `belt:<id>`, `comet:<id>` and the phenomenon types, the
+  same strings NAV uses today, so old links keep working); one resolver
+  (`queryDb` plus `GET /api/objects/<ref>`) that returns the object's
+  kind, name, parent chain up to the galaxy (moon, planet, system,
+  sector, galaxy), its siblings' references, and its position in each
+  frame that applies (galaxy pc, sector-local ly, system-local km); and
+  Python and JavaScript helpers that parse and print references. The
+  picker (NAV.3), saved courses (NAV.4), the course on the map (NAV.5),
+  gravity-aware courses (NAV.6) and the 3D system view (MAP.62) all use
+  it.
+
+  - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
+    A star, planet, moon, belt or comet reference opens something:
+    by default the system page scrolled to and highlighting that body
+    (`/system/<id>#planet-<id>`), with its own System Map scene
+    selected, rather than a new page per body. Search results, the
+    locate box and bookmarks link this way. Open question: should
+    planets and moons get pages of their own later?
+
+  - [ ] **NAV.9 Search and locate return references for every kind**
+    `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
+    each hit's reference and parent chain, so any picker can jump to a
+    star, planet or moon by name.
+
+- [ ] **NAV.10 Routing that scales past a few thousand systems**
+  Today `queryDb.nav_between` rebuilds the whole k-nearest-neighbour
+  graph (`navGraph.build_knn_adjacency`, k = 6, an in-memory k-d tree)
+  from every placed system on every galaxy-scope request, then runs
+  Dijkstra; no position column has an index, and nothing finds the
+  systems or bodies near a line. Done: the route search loads only the
+  systems in a corridor around the direct line (a box query on indexed
+  sector centers, widened if no route is found), or reads the stored
+  `nearest_systems` table instead of rebuilding the graph; A* with the
+  straight-line distance as its heuristic; a query that returns every
+  system, star and phenomenon within a given distance of a line segment
+  (used by NAV.6); and a measured time on a 100,000-sector database.
+  Needs a galaxy schema migration for the position indexes.
+
+  - [ ] **NAV.11 Travel times for the system-to-system route too**
+    Today warp and fold times are shown only for the direct distance;
+    the route shows only its length. Done: the route gets the same warp
+    and fold tables, per hop and in total.
+
+  - [ ] **NAV.12 A maximum hop length (open question)**
+    The route's hops are the 6 nearest neighbours, with no limit on hop
+    length, so a hop can be very long in a sparse region. Open question
+    for Boss: should a route have a maximum hop (a ship's range)?
+    Default: no limit, but the longest hop is shown.
 
 ## GEN: Generation and physics
 
@@ -647,6 +961,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes removed in early September, so no old rows or tests may
   still expect those letters. Evidence: the planet class gap report
   (link in GEN.27).
+  GEN.27 and GEN.29 follow GEN.28.
+
+  - [ ] **GEN.33 One class per PR, each with its tests**
+    Suggested split: R and S (the commonest missing types) first; then
+    U, W, X, Y and Z. Each adds the class to `PLANET_CLASSES`, the
+    reference pages, the rogue flag, moon eligibility, and a
+    distribution test over 1,000 generated systems.
 
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
@@ -757,6 +1078,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (ADM.13).
   - The server checks every upload and has the final say on what is
     written to the database (API.8).
+  Order: API.4, API.5 and API.6 first (version and key scopes), then
+  API.7's plan, then API.3's sub-items below with API.8 and ADM.13.
+
+  - [ ] **API.9 Key scopes**
+    `admin_api_keys` has no scope column today (every key is an admin
+    key). Done: a scope column (read, admin, upload), a control schema
+    migration; API.6's user-level keys and the upload right use it.
+
+  - [ ] **API.10 Reservations: claimed sectors and id blocks per run**
+    `id_blocks` exists (one next id per table, used by parallel
+    generation) but nothing reserves sectors. Done: a run record
+    holding its claimed sectors and id ranges until it finishes or an
+    admin clears it (ADM.13); server-side runs and other uploads skip
+    claimed sectors.
+
+  - [ ] **API.11 Staging tables**
+    Done: staging storage (a galaxy schema migration) for received
+    batches, flagged incomplete until a whole unit (a system, a sector)
+    has arrived and passed API.8's checks, then copied into the real
+    tables in one transaction.
+
+  - [ ] **API.12 The download: seed, skeleton and name state**
+    Done: a route that returns, compressed, what a local run needs
+    (galaxy seed, skeleton, filled sectors, name registries, reserved
+    id ranges), so `generate.py` needs no database.
+
+  - [ ] **API.13 Generation without a database**
+    Today `generate.py` writes through `_db` as it goes. Done: a mode
+    where the generators write to an in-memory or on-disk outbox in
+    the upload format instead; a client-side cache so an interrupted
+    run resumes and resends only what the server hasn't confirmed.
+
+  - [ ] **API.14 Upload routes, compressed, in batches**
+    Done: upload routes for gzip batches, with their own body limit
+    (separate from the 2 MB `MAX_CONTENT_LENGTH` of PR #293, from
+    API.7's plan), answering what was received and verified.
 
 - [ ] **API.4 API compatibility data in the docs**
   Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
@@ -1087,6 +1444,19 @@ clears each one.
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
+
+- [ ] **TEST.70 Tests for the map JavaScript**
+  Today only the pure modules (`galaxystages.js`, `galaxyprisms.js`,
+  number and distance formatting) have node tests, run from pytest; the
+  stage view, the Sector Map, the System Map and `bookmarks.js` have
+  none, and only the accessibility check drives a real browser. Done: a
+  Playwright harness (Chromium is already installed for the a11y test)
+  that loads each map against fixture data with no database, and tests
+  for what MAP.61 will move: picking, hover, keys, Back/Forward and URL
+  state, bookmarks and the scale line on the Galaxy Map and the Sector
+  Map, written before the refactor so it can't change behaviour
+  unnoticed. Builds on TEST.55 to TEST.59 (browser and JavaScript tests,
+  PR #307): reuse their harness.
 
 ## USR: User accounts
 
