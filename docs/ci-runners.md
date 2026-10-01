@@ -1,19 +1,27 @@
-# Running CI on your own computers
+# Running CI on your own computers (optional)
 
-GitHub Actions can run this repository's CI jobs on machines you own
-("self-hosted runners") instead of GitHub's. This guide covers what each
-machine needs, how to register it, and the security settings to apply
-first.
+CI runs on GitHub's machines by default (`ubuntu-latest`,
+`windows-latest`, `macos-latest`), and nothing in this guide is needed for
+it to work. Self-hosted runners are **off by default**. This guide is for
+turning them back on later: it covers what each machine needs, how to
+register it, and the security settings to apply first.
 
 ## What runs where
 
-Each job picks its runner from a repository variable (Settings > Secrets
-and variables > Actions > Variables). The value is JSON: either a list of
-labels, such as `["self-hosted", "Linux"]`, or a GitHub-hosted runner name
-in quotes, such as `"ubuntu-latest"`. If the variable is unset, the job
-uses the default in the table.
+Self-hosted runners are used only when the repository variable
+`SELF_HOSTED` is set to `true` (Settings > Secrets and variables > Actions
+> Variables). With it unset, or set to anything else, every job runs on
+GitHub's machines and the `RUNNER_*` variables below are ignored, so a
+leftover variable can't leave jobs queued for a computer that no longer
+exists.
 
-| Variable | Jobs | Default | Needs |
+With `SELF_HOSTED` set to `true`, each job picks its runner from the
+variable in the table. The value is JSON: either a list of labels, such as
+`["self-hosted", "Linux"]`, or a GitHub-hosted runner name in quotes, such
+as `"ubuntu-latest"`. If the variable is unset, the job uses the
+self-hosted default in the table.
+
+| Variable | Jobs | Default when `SELF_HOSTED` is `true` | Needs |
 |---|---|---|---|
 | `RUNNER_LINUX` | tests (3 database engines), browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` | Linux with Docker |
 | `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` | Windows 10/11 or Server |
@@ -22,7 +30,8 @@ uses the default in the table.
 
 A job runs on any online runner that has **all** of its labels. You can
 have several Linux runners: jobs spread across them, and a runner takes
-one job at a time.
+one job at a time. To go back to GitHub's machines, delete `SELF_HOSTED`
+or set it to `false`.
 
 A pull request from a fork always runs on GitHub's machines, whatever the
 variables say (see [Security](#security)).

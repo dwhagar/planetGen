@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   stamp:
-    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    runs-on: ${{ fromJSON((vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
     steps:
       - uses: actions/checkout@v4
         with:
