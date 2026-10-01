@@ -1041,7 +1041,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
         body = client.get("/api/galaxy/shape").get_json()
         assert body["shape"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
-                                        "default_min_luminosity_sol": 500.0}
+                                        "default_min_luminosity_sol": 1000.0}
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1054,7 +1054,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     body = client.get("/api/galaxy/shape").get_json()
     assert body["shape"]["edge_pc"] == 4
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
-                                    "default_min_luminosity_sol": 500.0}
+                                    "default_min_luminosity_sol": 1000.0}
 
 
 def test_galaxy_bright_stars_in_one_cell(client, mysql_config):

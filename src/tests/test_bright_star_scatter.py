@@ -23,6 +23,7 @@ from stellarObjects import program_constants
 
 EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 THRESHOLD = 500.0
+TIERS = program_constants.BRIGHT_STAR_BACKFILL_TIERS
 
 # A small toy galaxy (the same one test_galaxy_gen.py seeds), with a high
 # systems-per-sector value so a few rings hold enough bright stars to test.
@@ -414,7 +415,9 @@ def test_generating_a_sector_backfills_around_it_and_fills_down_to_the_floor(mys
     conn = _db.get_connection(mysql_config)
     try:
         levels = _block_rows(conn)
-        assert levels and set(levels.values()) == {FLOOR}
+        # GEN.30: each block's floor is its nearest sector's distance tier.
+        assert levels and set(levels.values()) <= {floor for _out_to, floor in TIERS}
+        assert FLOOR in set(levels.values()) and max(levels.values()) > FLOOR
         own = conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
                            " AND ring_slot_index = ?", address).fetchone()["n"]
         assert _db.bright_stars_for_sector(conn, *address) == []
@@ -422,8 +425,13 @@ def test_generating_a_sector_backfills_around_it_and_fills_down_to_the_floor(mys
         conn.close()
     assert len([entry for entry in sector.entries if entry.preplaced]) == own
 
-    fill = generate._fill_context(args, (3, 0, 5), sector_position_pc(3, 0, 5, EDGE_PC))
+    # The generated sector's own block is within 10 ly (100 L_sun); the
+    # next slot's sector is about 13 ly away, the 250 L_sun tier, unless
+    # it shares the generated sector's block.
+    fill = generate._fill_context(args, address, position)
     assert fill.min_luminosity_sol == FLOOR
+    fill = generate._fill_context(args, (3, 0, 5), sector_position_pc(3, 0, 5, EDGE_PC))
+    assert fill.min_luminosity_sol in (FLOOR, 250.0)
 
 
 def test_backfill_does_nothing_when_the_scatter_already_went_that_deep(mysql_config):
@@ -463,3 +471,71 @@ def test_concurrent_backfills_draw_each_block_once(mysql_config):
         assert sum(result["blocks"] for result in results) == len(_block_rows(conn))
     finally:
         conn.close()
+
+
+def test_backfill_tiers_default_and_override():
+    assert generate.backfill_tiers() == ((10.0, 100.0), (25.0, 250.0), (50.0, 500.0), (100.0, 750.0))
+    assert generate.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
+    assert generate.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
+    assert generate.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
+    assert program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
+
+
+@pytest.mark.parametrize("distance_ly, floor", [
+    (0.0, 100.0), (9.99, 100.0), (10.0, 250.0), (24.99, 250.0), (25.0, 500.0),
+    (49.99, 500.0), (50.0, 750.0), (100.0, 750.0), (100.01, None),
+])
+def test_a_distance_falls_in_its_tier(distance_ly, floor):
+    assert generate._tier_floor(generate.backfill_tiers(), distance_ly) == floor
+
+
+def _members(center_pc, radius_ly):
+    """Each block within `radius_ly` of `center_pc`, mapped to its sectors'
+    `((ring, layer, slot), distance_ly)` pairs."""
+    from stellarObjects.galaxyDrill import drill_parent
+    from stellarObjects.galaxyGeometry import enumerate_sectors_within_radius
+    from stellarObjects.utils import pc_to_ly
+    blocks = {}
+    for ring, layer, slot, *_xyz, distance_pc in enumerate_sectors_within_radius(
+            center_pc, ly_to_pc(radius_ly), EDGE_PC):
+        block = drill_parent(DrillBlock(1, ring, slot, layer))
+        blocks.setdefault((block.ring, block.wedge, block.slab), []).append(((ring, layer, slot), pc_to_ly(distance_pc)))
+    return blocks
+
+
+def test_a_block_takes_its_nearest_sectors_tier_and_a_nearer_sector_tops_it_up(mysql_config):
+    _seed_galaxy(mysql_config)  # no plan scatter: the backfill has no ceiling
+    tiers = ((5.0, 100.0), (40.0, 300.0))
+    center = sector_position_pc(4, 0, 5, EDGE_PC)
+    first = generate.backfill_bright_stars(mysql_config, center, tiers=tiers)
+    conn = _db.get_connection(mysql_config)
+    try:
+        levels = _block_rows(conn)
+        stars = conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"]
+    finally:
+        conn.close()
+    assert first["stars"] == stars and first["blocks"] == len(levels)
+    members = _members(center, 40.0)
+    for key, level in levels.items():
+        nearest = min(distance for _address, distance in members[key])
+        assert level == (100.0 if nearest < 5.0 else 300.0)
+    assert set(levels.values()) == {100.0, 300.0}
+
+    # A sector in a 300 block that has its own address in the galaxy: a
+    # backfill around it takes that block down to 100, adding only the band.
+    target_key = next(key for key, level in sorted(levels.items()) if level == 300.0)
+    address = members[target_key][0][0]
+    second = generate.backfill_bright_stars(mysql_config, sector_position_pc(*address, EDGE_PC), tiers=tiers)
+    conn = _db.get_connection(mysql_config)
+    try:
+        after = _block_rows(conn)
+        added = conn.execute("SELECT * FROM bright_stars ORDER BY id").fetchall()[stars:]
+    finally:
+        conn.close()
+    assert after[target_key] == 100.0
+    assert second["stars"] == len(added)
+    for row in added:
+        assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY * 0.99
+    # Blocks it reached only at the 300 tier were already that deep.
+    assert all(after[key] <= levels.get(key, math.inf) for key in after)
+
