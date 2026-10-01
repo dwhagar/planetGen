@@ -67,7 +67,7 @@ Ubuntu.
    ```sh
    sudo adduser --disabled-password --gecos "" gha
    sudo apt-get update
-   sudo apt-get install -y git curl tar docker.io
+   sudo apt-get install -y git curl tar unzip docker.io python3-venv
    sudo usermod -aG docker gha
    ```
 
