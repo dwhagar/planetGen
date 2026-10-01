@@ -22,10 +22,12 @@ import math
 import random
 
 from .config import SystemConfig
+from .rogueSurface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_body_radius_km, format_galactic_orbit, format_speed_kms, generate_galactic_orbit_fields,
+from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
+                    generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
@@ -159,14 +161,19 @@ class RoguePlanet:
         mass_kg (float): Mass in kilograms.
         radius_km (float): Radius in kilometers.
         composition (str): A descriptive bulk-composition string.
-        has_internal_heat (bool): Whether it retains detectable internal
-            heat (radiogenic/primordial) worth describing.
+        has_internal_heat (bool): Whether it is still geologically active
+            (a giant always is): its heat flow reaches
+            `ROGUE_ACTIVE_HEAT_FLUX_W_M2` (from `rogueSurface`).
         has_moons (bool): Whether it retains a captured companion moon.
+        age_gy, internal_heat_flux_w_m2, effective_temperature_k,
+        surface_regime, surface_temperature_k, surface_pressure_pa,
+        ice_shell_thickness_km, ocean_depth_km, has_liquid_water: Its
+            surface conditions (`rogueSurface.rogue_surface_conditions`).
     """
 
     SERIALIZABLE_FIELDS = [
         "name", "planet_type", "planet_class", "mass_bin", "mass_kg", "radius_km", "composition",
-        "has_internal_heat", "has_moons",
+        "has_internal_heat", "has_moons", *ROGUE_SURFACE_FIELDS,
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
     ]
@@ -254,12 +261,20 @@ class RoguePlanet:
 
         self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
 
-        self.has_internal_heat = random.random() < program_constants.ROGUE_PLANET_INTERNAL_HEAT_CHANCE
         self.has_moons = random.random() < program_constants.ROGUE_PLANET_MOON_CHANCE
+        self._apply_surface_conditions(rogue_surface_conditions(
+            self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
+
+    def _apply_surface_conditions(self, conditions):
+        """Sets `ROGUE_SURFACE_FIELDS` and `has_internal_heat` from a
+        `rogue_surface_conditions` result."""
+        for field in ROGUE_SURFACE_FIELDS:
+            setattr(self, field, conditions[field])
+        self.has_internal_heat = conditions["has_internal_heat"]
 
     def to_dict(self):
         """
@@ -293,6 +308,13 @@ class RoguePlanet:
         if "planet_class" not in data:
             planet.planet_class = default_rogue_planet_class(
                 planet.planet_type, planet.radius_km, planet.mass_kg, planet.mass_bin)
+        if "surface_regime" not in data:
+            # Written before rogues had surface conditions (schema v48):
+            # computed from a generator seeded by the name, so a reload
+            # always gives the same conditions.
+            planet._apply_surface_conditions(rogue_surface_conditions(
+                planet.mass_kg, planet.radius_km, planet.planet_type, planet.mass_bin, planet.has_moons,
+                random.Random(planet.name)))
         return planet
 
     @property
@@ -326,12 +348,7 @@ class RoguePlanet:
         )
 
         sentences = [description]
-        if self.has_internal_heat:
-            sentences.append(
-                "It retains enough residual internal heat from its formation to remain geologically active."
-            )
-        else:
-            sentences.append("Its interior has long since cooled to the ambient temperature of deep space.")
+        sentences.extend(self.surface_sentences())
         if self.has_moons:
             sentences.append("A smaller companion body, likely captured after ejection, still orbits it.")
         sentences.append(
@@ -340,6 +357,49 @@ class RoguePlanet:
         )
 
         return [header, " ".join(sentences)]
+
+    def surface_sentences(self):
+        """
+        Plain sentences on its age, own heat and surface (`rogueSurface`):
+        with no star, its only warmth is what leaks out of its interior.
+
+        Returns:
+            list[str]: The sentences.
+        """
+        regime = self.surface_regime
+        temp = self.surface_temperature_k
+        sentences = [
+            f"It is about {format_number(self.age_gy, ',.1f')} billion years old. With no star to warm it, its only heat is its own: "
+            f"{format_number(self.internal_heat_flux_w_m2, ',.3g')} W/m\u00b2 leaking from its interior, so it glows at an effective "
+            f"temperature of {format_number(self.effective_temperature_k)} K."
+        ]
+        if regime in ("gas-giant", "brown-dwarf"):
+            sentences.append(f"It has no solid surface; at the 1 bar level the temperature is {format_number(temp)} K.")
+            return sentences
+        if regime == "hydrogen-envelope":
+            sentences.append(
+                f"A thick hydrogen envelope, opaque to heat at high pressure, blankets it, so the ground beneath "
+                f"{format_number(self.surface_pressure_pa / 1e5)} bar of gas sits at {format_number(temp)} K.")
+            if self.has_liquid_water and not self.ice_shell_thickness_km:
+                sentences.append(f"There it holds a liquid ocean about {format_number(self.ocean_depth_km)} km deep.")
+        elif regime == "bare-rock":
+            sentences.append(f"Its bare rock surface has frozen to {format_number(temp)} K.")
+        else:
+            sentences.append(
+                f"Its surface has frozen to {format_number(temp)} K, and whatever air it had lies on the ground as frost.")
+        if self.ice_shell_thickness_km and self.has_liquid_water:
+            sentences.append(
+                f"Under an ice shell about {format_number(self.ice_shell_thickness_km)} km thick, its own heat keeps a "
+                f"liquid ocean about {format_number(self.ocean_depth_km)} km deep.")
+        elif self.ice_shell_thickness_km:
+            sentences.append(f"Its water is frozen solid, an ice layer about "
+                             f"{format_number(self.ice_shell_thickness_km)} km thick down to the rock.")
+        return sentences
+
+    @property
+    def surface_regime_label(self):
+        """`SURFACE_REGIME_LABELS`' text for `surface_regime`."""
+        return SURFACE_REGIME_LABELS.get(self.surface_regime, self.surface_regime)
 
     def __str__(self):
         """

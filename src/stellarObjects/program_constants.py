@@ -1947,12 +1947,131 @@ ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
 # terrestrial-scale bodies and volatile-dominated giants.
 ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = 0.05
 
-# Chance a generated rogue planet retains detectable internal heat
-# (radiogenic/primordial, same mechanism warming Earth's mantle or
-# Jupiter's interior) worth describing, vs. one long since frozen solid
-# with no internal activity.
-ROGUE_PLANET_INTERNAL_HEAT_CHANCE = 0.4
+# --- Rogue planet surface conditions (rogueSurface; Boss's research,
+# 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &
+# Switzer 2011, Turcotte & Schubert 2014, Pierrehumbert 2010) ---
+#
+# With no star, a rogue planet's only heat is its own: radioactive decay
+# and leftover formation heat in a rocky body, slow Kelvin-Helmholtz
+# contraction in a giant. Values marked "a default" are this generator's
+# picks where the research gives no number.
+
+ROGUE_PLANET_AGE_RANGE_GY = (0.1, 10.0)
+"""tuple: A rogue planet's age, drawn uniformly: the thin disk has formed
+stars (and so ejected planets) at a roughly steady rate for ~10 Gyr (a
+default)."""
+
+ROGUE_RADIOGENIC_ISOTOPES = (
+    # (isotope, present mantle concentration kg/kg, heat W/kg, half-life Gyr)
+    ("U-238", 31e-9 * 0.9928, 9.46e-5, 4.468),
+    ("U-235", 31e-9 * 0.0071, 5.69e-4, 0.704),
+    ("Th-232", 124e-9, 2.64e-5, 14.05),
+    ("K-40", 310e-6 * 1.19e-4, 2.92e-5, 1.248),
+)
+"""tuple: Earth's mantle heat sources today (Turcotte & Schubert 2014,
+Geodynamics 3rd ed., tables 4.2-4.3: U 31 ppb, Th 124 ppb, K 310 ppm,
+about 7.4e-12 W/kg). A rogue of age t carries Earth's concentrations
+as they stood at age t (each scaled by exp(lambda * (4.5 Gyr - t)))."""
+
+ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
+"""float: The age the concentrations above describe (Earth's)."""
+
+ROGUE_MANTLE_MASS_FRACTION = 0.67
+"""float: The heat-producing (silicate) share of a rocky rogue's mass,
+Earth's (4.0e24 of 5.97e24 kg)."""
+
+ROGUE_RADIOGENIC_ABUNDANCE_RANGE = (0.5, 2.0)
+"""tuple: A rogue's radioactive abundance relative to Earth's, drawn
+log-uniformly -- stars, and so their planets, differ in U, Th and K (a
+default)."""
+
+ROGUE_UREY_RATIO = 0.67
+"""float: Radiogenic heat over total heat flow. The rest is leftover
+formation heat (secular cooling), kept in Earth's proportion: Earth's
+mantle radiogenic ~0.058 W/m^2 over 0.67 gives ~0.087 W/m^2, Earth's
+measured flow and the 0.08-0.1 W/m^2 Boss's research quotes."""
+
+ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
+"""tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue
+that kept a moon (a default: Earth's own tidal dissipation is ~0.007
+W/m^2; a captured moon on an eccentric orbit can add more)."""
+
+ROGUE_GIANT_COOLING_TIME_EXPONENT = -1.3
+"""float: Giant planets and brown dwarfs fade as L ~ t^-1.3 (Burrows &
+Liebert 1993; Burrows et al. 2001, Rev. Mod. Phys. 73:719)."""
+
+ROGUE_JUPITER_INTERNAL_FLUX_W_M2 = 5.4
+"""float: Jupiter's internal heat flux at 4.5 Gyr (T_int ~ 99 K), the
+anchor for a rogue giant's own heat."""
+
+ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K = 53.0
+"""float: Neptune's internal temperature (Pearl & Conrath 1991). With
+Jupiter it fixes how a sub-Jupiter giant's heat scales with mass
+(L ~ M^1.65)."""
+
+ROGUE_BROWN_DWARF_LUMINOSITY_SOL = 4e-5
+"""float: Burrows & Liebert's brown dwarf cooling law, L = 4e-5 L_sun
+(t / 1 Gyr)^-1.3 (M / 0.05 M_sun)^2.64. A giant between 1 and 13
+Jupiter masses is a power law joining Jupiter to this law at 13."""
+
+ROGUE_BROWN_DWARF_MASS_EXPONENT = 2.64
+"""float: The mass exponent of that law."""
+
+ROGUE_MAX_EFFECTIVE_TEMPERATURE_K = 2800.0
+"""float: The hottest a rogue gets. The cooling law above assumes an old,
+shrunken body; a brown dwarf younger than a few hundred million years is
+still puffed up, so the law (with today's radius) overshoots. Young brown
+dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
+
+ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR = 0.3
+"""float: Where a Jupiter-gravity giant's photosphere (optical depth 2/3)
+sits. It fixes one Rosseland mean opacity (kappa = (2/3) g / P) for every
+giant, so a heavier one's photosphere sits deeper, and puts a 1 Mjup,
+4.5 Gyr rogue at ~140 K at 1 bar (Boss's research: 130-170 K)."""
+
+ROGUE_ENVELOPE_PHOTOSPHERE_PRESSURE_BAR = 0.1
+"""float: A rocky rogue's hydrogen envelope radiates from about 0.1 bar;
+below that, collision-induced absorption makes it opaque (Stevenson 1999;
+Pierrehumbert 2010)."""
+
+ROGUE_HYDROGEN_ENVELOPE_CHANCE = {"terrestrial": 0.1, "sub-neptune": 0.5}
+"""dict: Chance a rocky rogue kept a primordial hydrogen envelope, by
+mass bin -- one ejected before its star could strip it (Stevenson
+1999). Defaults: rare for Earth-mass rogues, common for sub-Neptunes."""
+
+ROGUE_HYDROGEN_ENVELOPE_PRESSURE_BAR = {"terrestrial": (10.0, 1000.0), "sub-neptune": (100.0, 10000.0)}
+"""dict: The envelope's base pressure, bar, drawn log-uniformly (Stevenson:
+10^2-10^3 bar; deeper for sub-Neptunes, a default)."""
+
+ROGUE_MIN_ESCAPE_PARAMETER = 15.0
+"""float: The Jeans escape parameter (G M m / k T R) above which a gas
+stays bound for billions of years; below it the envelope is lost."""
+
+ROGUE_WATER_RICH_CHANCE = {"terrestrial": 0.35, "sub-neptune": 0.8}
+"""dict: Chance a rocky rogue is water-rich, by mass bin (defaults: ejected
+planets often formed beyond a snow line)."""
+
+ROGUE_WATER_MASS_FRACTION_RANGE = (1e-4, 0.1)
+"""tuple: A water-rich rogue's water share of its mass, drawn log-uniformly
+(Earth's oceans are 2.3e-4)."""
+
+ROGUE_ICE_CONDUCTIVITY_A_W_M = 567.0
+"""float: Water ice conducts heat as k = A / T (Boss's research, after
+Turcotte & Schubert)."""
+
+ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH = 0.3
+"""float: A rocky rogue at least this heavy once held an air (like Earth or
+Venus, unlike the Moon) that has frozen onto its surface as nitrogen and
+carbon dioxide frost (a default); a lighter, dry one is bare rock."""
+
+ROGUE_ACTIVE_HEAT_FLUX_W_M2 = 0.04
+"""float: A rocky rogue whose heat flow reaches this is still geologically
+active (`has_internal_heat`): Earth flows 0.087 W/m^2, Mars about 0.02
+(a default between them). A giant always is."""
 ROGUE_PLANET_MOON_CHANCE = 0.2
+"""float: Chance a generated rogue planet kept a captured companion moon.
+(Whether it keeps internal heat is no longer a roll: `rogueSurface`
+computes it.)"""
 
 # Interstellar object hyperbolic excess speed range, in km/s -- both
 # confirmed interstellar visitors, 1I/'Oumuamua and 2I/Borisov, were
