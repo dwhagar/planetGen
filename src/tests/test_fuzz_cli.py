@@ -665,8 +665,8 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, radius, conseq
     _plan_flat_galaxy(mysql_config)
     center = _placed_sector_id(mysql_config)
     asked = []
-    monkeypatch.setattr(generate, "generate_and_save_sector_at",
-                        lambda args, address, position, edge: asked.append(address) or (0, "stub", None))
+    stub = {"sector_id": 0, "name": "stub", "systems": 0, "phenomena": 0, "summary": ""}
+    monkeypatch.setattr(generate, "_fill_sector_task", lambda payload: asked.append(payload["address"]) or stub)
     monkeypatch.setattr(generate, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)

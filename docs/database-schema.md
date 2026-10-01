@@ -666,7 +666,7 @@ dwarfs share the table), and `star_systems.runaway_class`/
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
-`control_schema_migrations`, currently version 4) — see "The control
+`control_schema_migrations`, currently version 5) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
 about.
@@ -682,10 +682,10 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Eight tables, versioned independently via `control_schema_migrations`
-(currently version 4, mirroring `schema_migrations`'s own shape; v2 added
+Eleven tables, versioned independently via `control_schema_migrations`
+(currently version 5, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
-`admin_recovery_codes`, and every control-schema change so far is a new table,
+`admin_recovery_codes`, v5 the work queue's three tables, and every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
 `migrateDb.py` run):
 
@@ -728,9 +728,24 @@ which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
   code works twice).
 - **`admin_recovery_codes`** (v4) — ten single-use codes per admin with
   two-factor sign-in on: `code_hash` (SHA-256), `used_at`.
+- **`work_jobs`**, **`work_tasks`**, **`work_lease`** (v5, PERF.8) — the
+  generation work queue (`stellarObjects/workQueue.py`, see
+  [`cli.md`](cli.md#parallel-generation)). `work_jobs` is one row per
+  run that used worker processes (`title`, `holder` host:pid:token,
+  `state` waiting/running/done/failed/cancelled, `workers`, task
+  counts, timings, `heartbeat_at`); `work_tasks` one per sector it
+  handed out (`kind`, `task_key` such as "ring,layer,slot", `state`,
+  the worker's `seconds`, a short JSON `result` or the `error`);
+  `work_lease` the single row naming the run whose workers are using
+  the machine, refreshed every 5 s. A lease or job not refreshed for
+  30 s belongs to a run that died: the next run takes the lease and
+  marks that run's unfinished tasks cancelled. Jobs older than a week
+  are deleted with their tasks. These are the only control tables the
+  generator writes; it reaches them with its own MySQL account and runs
+  without them when it can't.
 
-`stellarObjects/adminAuth.py` is the only code that reads/writes these
-tables directly — `bootstrap_control_schema` creates the schema and,
+`stellarObjects/adminAuth.py` is the only code that reads/writes the
+admin tables directly — `bootstrap_control_schema` creates the schema and,
 when `admin_users` is empty, seeds an `admin` row with a random first
 password that `migrateDb.py` prints once (`migrateDb.py` calls this
 automatically, alongside its usual content-schema migration), and every
