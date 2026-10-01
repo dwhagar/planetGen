@@ -7,8 +7,14 @@
 <p class="badges">
   <span class="badge">Cube edge {{ edge_text }}</span>
   <span class="badge">{{ system_count }} system{{ "" if system_count == 1 else "s" }}</span>
+  {%- if star_count %}
+  <span class="badge">{{ star_count }} star{{ "" if star_count == 1 else "s" }}</span>
+  {%- endif %}
   {%- if phenomenon_count %}
   <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
+  {%- endif %}
+  {%- if debris %}
+  <span class="badge">{{ debris }}</span>
   {%- endif %}
   {%- if quadrant %}
   <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">View on Galaxy Map (Quadrant {{ quadrant }})</a></span>
@@ -80,7 +86,15 @@
     <tbody>
       {%- for row in rows %}
       <tr>
-        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
+        <td>{%- if row.members %}
+          <details class="contents-group"><summary>{{ row.name }}</summary>
+            <ul class="contents-group-list">
+              {%- for member in row.members %}
+              <li><a href="{{ member.url }}">{{ member.name }}</a>{% if member.details %} <span class="hint">{{ member.details }}, {{ member.distance }}</span>{% endif %}</li>
+              {%- endfor %}
+            </ul>
+          </details>
+          {%- else %}<a href="{{ row.url }}">{{ row.name }}</a>{% endif %}</td>
         <td>{{ row.type }}</td>
         <td>{{ row.details }}</td>
         <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>

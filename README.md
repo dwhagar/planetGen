@@ -148,7 +148,9 @@ in real galaxy-frame 3D space (see
 [`docs/design/galaxy-coordinate-system.md`](docs/design/galaxy-coordinate-system.md)):
 
 ```bash
-python generate.py galaxy --ring I [--layer J] [--slot K] [options]
+python generate.py galaxy --ring I [--layer J] [--slot K [--radius-pc R]] [options]
+python generate.py galaxy --ring I --slot K --column [options]
+python generate.py galaxy --ring I --shell [--limit N | --yes] [options]
 python generate.py galaxy --center-sector ID --radius-pc R [options]
 python generate.py galaxy [options]
 ```
@@ -167,7 +169,12 @@ A ring has the same slots on every layer, so sectors line up in vertical
 columns. Each layer reaches out only as far as the galaxy still expects at
 least one star per sector. `--ring I` generates
 one whole layer of a ring (layer 0 unless `--layer J` is given), and adding
-`--slot K` generates just that one sector.
+`--slot K` generates just that one sector (and, with `--radius-pc R`, its
+neighborhood within R parsecs too). `--ring I --slot K --column` generates
+that slot through every layer the galaxy reaches at that ring, and
+`--ring I --shell` generates the whole ring through every layer, a
+cylindrical shell usually thousands of sectors large, so it needs `--limit`
+or `--yes`.
 
 Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
 all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-

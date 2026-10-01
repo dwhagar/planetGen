@@ -113,7 +113,8 @@ connectivity to that specific schema rather than the default one.
   `binary_mutual_position_x/y/z_km` (the secondary's position relative to
   the primary — `null` for a single star; the System Map's own real
   binary-star placement is derived from this plus each star's `mass_kg`),
-  `wikijs_url`/`mediawiki_url`
+  `runaway_class` (`"runaway"`/`"hypervelocity"`/`null`) and
+  `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
@@ -252,7 +253,9 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
-  type, supported life chemistry; asteroid belt density — repeat a facet
+  type, supported life chemistry; asteroid belt density; phenomenon type
+  and phenomenon class, the class tag written `<type>:<class>` such as
+  `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
   name search, and a min/max size range per entity —
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
@@ -263,7 +266,7 @@ connectivity to that specific schema rather than the default one.
   present), `autocomplete` (`sectors`/`systems`/`stars`/`planets`/`moons`
   name lists), `facet_labels` (`"facet:value"` -> label, for an
   active-filter chip), and `results` (`sectors`/`systems`/`stars`/
-  `planets`/`moons`/`belts` -> `{"rows": [...], "total", "limit",
+  `planets`/`moons`/`belts`/`phenomena` -> `{"rows": [...], "total", "limit",
   "offset", "truncated"}`, or
   `null` for an object type with no active reason to query it — see
   `queryDb.search`'s docstring for the exact inclusion rule; a size range

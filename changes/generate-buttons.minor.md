@@ -1,0 +1,3 @@
+### Added
+
+- **Generate a column or a shell, and generate from the Sector Map.** `generate.py galaxy` gains `--ring I --slot K --column` (one slot through every layer the galaxy reaches) and `--ring I --shell` (a whole ring through every layer; needs `--limit` or `--yes` past 2,000 sectors), and `--ring --slot` now takes `--radius-pc` to generate that sector's neighborhood too. The admin Generate page offers the column and shell modes and the neighborhood radius. On the Sector Map, a logged-in admin who clicks a not-yet-generated neighbor gets Generate this sector, Generate neighborhood, Generate column, and Generate the entire shell (not recommended) buttons that start the job; visitors see only its address and designation, with no command line.

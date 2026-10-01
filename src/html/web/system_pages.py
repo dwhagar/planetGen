@@ -20,6 +20,7 @@ every link is a plain GET link (`page_url`).
 from flask import abort, redirect, request
 import apiclient
 from fmt import (
+    runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
 )
 from pagination import fetch_page, parse_page
@@ -27,6 +28,8 @@ from phenomenonmap import render_phenomenon_map_panel
 from systemmap import render_system_map_panel
 from systempage import stars_html, system_list_html
 from tabledisplay import format_star_radius, to_plain_text
+
+from stellarObjects.program_constants import NEBULA_CLASSES
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
@@ -107,6 +110,9 @@ def _badges(system):
         badges.append(f"Binary system{suffix}")
     else:
         badges.append("Single star")
+    runaway = runaway_text(system)
+    if runaway:
+        badges.append(runaway)
     return badges
 
 
@@ -296,6 +302,33 @@ def _rogue_planet_type_text(value):
     return {"t": "Terrestrial", "g": "Gas Giant"}.get(value, value)
 
 
+def _cloud_class_text(value):
+    """A nebula or remnant class letter with its name, e.g. "D: Classical
+    H II region" (`program_constants.NEBULA_CLASSES`, schema v38)."""
+    entry = NEBULA_CLASSES.get(value)
+    return f"{value}: {entry['name']}" if entry else value
+
+
+# The contents a nebula or supernova remnant carries (schema v38). An
+# unset value is stored as 0 or ''; those rows are left out.
+_CLOUD_CONTENTS = [
+    ("dominant_species", "Dominant Species", lambda v: v or None),
+    ("density_cm3", "Density", lambda v: f"{v:,.3g} particles/cm\u00b3" if v else None),
+    ("temperature_k", "Gas Temperature", lambda v: f"{v:,.0f} K" if v else None),
+    ("extinction_av", "Extinction", lambda v: f"{v:,.2f} magnitudes (visual)" if v else None),
+]
+
+
+_ROGUE_MASS_BIN_TEXT = {
+    "terrestrial": "Terrestrial", "sub-neptune": "Sub-Neptune", "saturn": "Saturn-mass",
+    "jupiter": "Jupiter-mass", "brown-dwarf": "Brown dwarf",
+}
+
+
+def _rogue_mass_bin_text(value):
+    return _ROGUE_MASS_BIN_TEXT.get(value, value)
+
+
 def _optional(fmt):
     """A formatter that leaves a `None` (not applicable) row out."""
     return lambda v: fmt(v) if v is not None else None
@@ -306,19 +339,24 @@ _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"
 
 FIELD_SPECS = {
     "nebula": [
+        ("nebula_class", "Class", _cloud_class_text),
         ("nebula_type", "Nebula Type", _title_case),
         ("radius_ly", "Radius", _ly),
         ("composition", "Composition", str),
         ("formation_cause", "Formation", str),
+        *_CLOUD_CONTENTS,
         _SPEED, _PERIOD,
     ],
     "asteroid_field": [
+        ("field_class", "Class", str),
+        ("composition_family", "Composition Family", _title_case),
         ("density", "Density", _title_case),
         ("radius_ly", "Radius", _ly),
         ("composition_summary", "Composition", str),
         _SPEED, _PERIOD,
     ],
     "black_hole": [
+        ("mass_class", "Class", _title_case),
         ("mass_solar", "Mass", lambda v: f"{v:,.2f} solar masses"),
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
@@ -342,15 +380,18 @@ FIELD_SPECS = {
         (_PERIOD[0], _PERIOD[1], _optional(_PERIOD[2])),
     ],
     "supernova_remnant": [
+        ("remnant_class", "Class", _cloud_class_text),
         ("morphology", "Morphology", _title_case),
         ("progenitor_type", "Progenitor Type", _progenitor_text),
         ("age_years", "Age", lambda v: f"{v:,.0f} years"),
         ("radius_ly", "Radius", _ly),
         ("compact_remnant_kind", "Compact Remnant Left Behind", _title_case),
+        *_CLOUD_CONTENTS,
         _SPEED, _PERIOD,
     ],
     "rogue_planet": [
         ("planet_type", "Type", _rogue_planet_type_text),
+        ("mass_bin", "Mass Class", _rogue_mass_bin_text),
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
         ("composition", "Composition", str),

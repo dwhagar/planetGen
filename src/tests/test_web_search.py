@@ -104,7 +104,7 @@ def test_q_searches_every_name(client, fake):
     html = client.get("/search?q=Kepler").get_data(as_text=True)
     call = fake.search_calls[-1]
     assert call["texts"] == {k: "Kepler" for k in ("sector_q", "system_q", "star_q", "planet_q", "moon_q")}
-    assert call["offsets"] == {p: 0 for p in ("sectors", "systems", "stars", "planets", "moons", "belts")}
+    assert call["offsets"] == {p: 0 for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     assert call["limit"] == 50
     assert 'name="q" value="Kepler"' in html
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
@@ -182,7 +182,7 @@ def test_each_panel_pages_on_its_own(client, fake):
 
 
 def test_no_results_message(client, fake):
-    fake.results = {p: None for p in ("sectors", "systems", "stars", "planets", "moons", "belts")}
+    fake.results = {p: None for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?type=planet").get_data(as_text=True)
     assert "No matching objects." in html
 
@@ -252,3 +252,27 @@ def test_real_q_and_tags(db_client, mysql_config):
     stars = _panel(html, "stars")
     assert "(1)" in stars and "G2V" in stars and "M5V" not in stars
     assert '<a class="tag active" href="/search"' in html
+
+
+def test_real_phenomenon_and_class_tags(db_client, mysql_config):
+    from stellarObjects.nebulaData import Nebula
+    from stellarObjects.compactRemnant import BlackHole
+
+    for name, nebula_class in (("Crab Mist", "D"), ("Faint Veil", "A")):
+        nebula = Nebula(SystemConfig(), name=name, nebula_class=nebula_class)
+        _db.save_phenomenon(nebula, SystemConfig(), "nebula", config=mysql_config)
+    _db.save_phenomenon(BlackHole(SystemConfig()), SystemConfig(), "black-hole", config=mysql_config)
+
+    html = db_client.get("/search").get_data(as_text=True)
+    assert "Phenomenon Class" in html and "D: Classical H II region" in html
+
+    html = db_client.get("/search?phenomenon=nebula").get_data(as_text=True)
+    panel = _panel(html, "phenomena")
+    assert "(2)" in panel and "Crab Mist" in panel and "Faint Veil" in panel
+    assert "/phenomenon/nebula/" in panel
+
+    panel = _panel(db_client.get("/search?phenomenon_class=nebula:D").get_data(as_text=True), "phenomena")
+    assert "(1)" in panel and "Crab Mist" in panel and "Faint Veil" not in panel
+
+    panel = _panel(db_client.get("/search?phenomenon=black_hole").get_data(as_text=True), "phenomena")
+    assert "(1)" in panel and "Black Hole" in panel

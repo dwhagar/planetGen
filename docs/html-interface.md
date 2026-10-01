@@ -287,7 +287,7 @@ terminal on the server, as background jobs:
 | Form | Runs |
 |---|---|
 | New galaxy | `src/resetDb.py --yes`, then `generate.py plan`, then `generate.py galaxy` around a random start. |
-| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), or one address (`--ring --layer --slot`). |
+| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc`), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended). The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. |
 | Plan the galaxy | `generate.py plan` with the galaxy shape fields. |
 | Reset | `src/resetDb.py --yes`. |
 
