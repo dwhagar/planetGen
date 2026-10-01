@@ -325,6 +325,32 @@ connectivity to that specific schema rather than the default one.
   `{"distance_km", "period_years", "orbital_speed_kms"}`. Without
   `distance_km` it orbits at 3 host radii. `400` for a distance inside the
   host, `404` for an unknown host.
+- `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
+  dominant species of every life world, by name, paginated (see
+  docs/design/population-and-politics.md). Each item has its homeworld
+  (`homeworld_planet_id`, `homeworld_name`, `star_system_id`,
+  `system_name`), `life_chemical`, `life_stage` (`multicellularity` or
+  `technological_civilization`), `build`/`climate`/`size`,
+  `civilization_age_years` and `era` (`null` without a civilization),
+  `spacefaring`, and its `polity_id`/`polity_name` (`null` unless
+  spacefaring). `400` for any other `spacefaring` value.
+- `GET /api/species/<id>` — one species; `404` if unknown.
+- `GET /api/planets/<id>/species` — the species whose homeworld that
+  planet is; `404` when it has none.
+- `GET /api/polities?limit=<n>&offset=<n>` — every polity (one per
+  spacefaring species), by name: `name`, `government`, `color`
+  (`#rrggbb`), `reach_ly`, its species, `era`, capital and
+  `system_count`.
+- `GET /api/polities/<id>?limit=<n>&offset=<n>` — one polity plus a page
+  of the systems it owns (`id`, `name`, `distance_ly` from the capital),
+  nearest first; `404` if unknown.
+- `GET /api/systems/<id>/owner` — `{"owner": {polity_id, polity_name,
+  color, distance_ly}}`, or `{"owner": null}` when no polity holds it;
+  `404` for an unknown system.
+- `GET /api/territories` — `points`: up to 20,000 owned systems with
+  galaxy-frame positions in parsecs (`x`, `y`, `z`) and their polity's
+  `color`, nearest their capitals first; `polities`: each polity's `id`,
+  `capital_pc` and `reach_ly`. For a 3D territory overlay.
 
 ### Write (admin auth required — see "Authentication" and "Write endpoints")
 

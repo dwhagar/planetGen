@@ -778,13 +778,9 @@ and 84 are blocked on it; item 85 is not.
 
 ## Population and Politics
 
-Exploratory ideas, not yet designed. Each needs a design pass before it
-can be ordered against the work above.
-
-51. [ ] Assign government ownership to star systems so that groups of
-    systems form territories mapped in 3D space.
-52. [ ] Flag worlds with life for generated names of their dominant
-    species.
-53. [ ] A database of spacefaring species.
-54. [ ] Model younger and older civilizations: what differs with a
-    society's age and how to store and present it.
+Items 51-54 shipped as schema v44 (`generate.py population`, the
+`/api/species`, `/api/polities` and `/api/territories` endpoints; see
+`docs/design/population-and-politics.md`). Still open, unnumbered until
+the planned renumbering: the pages that show it (a Species list and page,
+a polity page, "Dominant species" on a life world, "Territory of ..." on
+an owned system) and a territory overlay on the Galaxy Map.

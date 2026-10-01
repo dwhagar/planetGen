@@ -15,6 +15,7 @@ subcommand:
     generate.py galaxy [options]      -- many sectors placed as one galaxy
     generate.py plan [options]        -- the galaxy's density skeleton
     generate.py phenomenon [options]  -- one exotic stellar phenomenon
+    generate.py population [options]  -- species, civilizations and territories
 
 Run `generate.py <command> --help` for that command's own full option
 list. This replaces the five separate scripts this project used to ship
@@ -53,7 +54,11 @@ sections build on earlier ones):
    standalone asteroid fields, generated on demand; section 2 also
    reuses this section's `generate_phenomenon` to seed every sector with
    its own sparse, science-based population of the same seven types.
-6. The unified CLI itself (argument parsing/validation, dispatch,
+6. Population and politics (`population`) -- species, civilizations
+   and territories from what is already stored
+   (`stellarObjects/population.py`); also run after every `sector` and
+   `galaxy` run unless `--no-population`.
+7. The unified CLI itself (argument parsing/validation, dispatch,
    `main`).
 """
 
@@ -78,7 +83,9 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, brightStars, generationLimits, log, physical_constants, program_constants, progressFile
+from stellarObjects import (
+    _db, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
+)
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -681,6 +688,10 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
+    parser.add_argument('--no-population', action='store_true',
+                        help="Skip the population pass (species, civilizations, territories) that "
+                             "otherwise runs after the sectors are saved; 'generate.py population' "
+                             "runs it later.")
 
     add_logging_arguments(parser)
 
@@ -1360,6 +1371,7 @@ def run_sector(args):
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
+    run_population_after(args)
 
 
 # ===========================================================================
@@ -2383,6 +2395,7 @@ def run_galaxy(args):
                 run_random_start(args, edge_pc, progress)
         finally:
             log.reset_console()
+    run_population_after(args)
 
 
 # ===========================================================================
@@ -2829,7 +2842,71 @@ def run_phenomenon(args):
 
 
 # ===========================================================================
-# 6. Unified CLI
+# 6. Population and politics (TODO 51-54)
+# ===========================================================================
+
+def add_population_arguments(parser):
+    """
+    Adds the `population` subcommand's options: `--rescan`,
+    `--territories-only`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--rescan', action='store_true',
+                        help="Forget every species, polity and territory and scan every planet again "
+                             "(new names, ages and borders).")
+    parser.add_argument('--territories-only', action='store_true',
+                        help="Only recompute which polity owns which system.")
+    _db.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def validate_population_args(args, parser):
+    """`--rescan` and `--territories-only` contradict each other."""
+    if args.rescan and args.territories_only:
+        parser.error("--rescan and --territories-only cannot be combined.")
+
+
+def _population_summary(counts):
+    return (f"{counts['new_species']:,} new species; {counts['species']:,} species in all, "
+            f"{counts['spacefaring']:,} spacefaring; {counts['polities']:,} polities holding "
+            f"{counts['owned_systems']:,} systems.")
+
+
+def run_population(args):
+    """
+    Runs the population pass (`population.run_pass`): names the dominant
+    species of every new life world, dates civilizations, founds polities
+    and recomputes territories. See docs/design/population-and-politics.md.
+
+    Args:
+        args (argparse.Namespace): Validated arguments (`command ==
+            "population"`).
+    """
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        counts = population.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
+    finally:
+        conn.close()
+    log.normal(f"Population: {_population_summary(counts)}")
+
+
+def run_population_after(args):
+    """The population pass after a `sector` or `galaxy` run, unless
+    `--no-population`."""
+    if getattr(args, "no_population", False):
+        return
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        counts = population.run_pass(conn)
+    finally:
+        conn.close()
+    log.normal(f"Population: {_population_summary(counts)}")
+
+
+# ===========================================================================
+# 7. Unified CLI
 # ===========================================================================
 
 def build_parser():
@@ -2886,12 +2963,19 @@ def build_parser():
         help="Generate a single exotic stellar phenomenon.")
     add_phenomenon_arguments(phenomenon_parser)
 
+    population_parser = subparsers.add_parser(
+        'population',
+        description="Population and Politics Pass",
+        help="Name species, date civilizations and draw territories from what is stored.")
+    add_population_arguments(population_parser)
+
     return parser, {
         'system': system_parser,
         'sector': sector_parser,
         'galaxy': galaxy_parser,
         'plan': plan_parser,
         'phenomenon': phenomenon_parser,
+        'population': population_parser,
     }
 
 
@@ -2927,6 +3011,8 @@ def process_args():
         validate_plan_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
+    elif args.command == 'population':
+        validate_population_args(args, command_parser)
 
     return args
 
@@ -2937,6 +3023,7 @@ _COMMAND_HANDLERS = {
     'galaxy': run_galaxy,
     'plan': run_plan,
     'phenomenon': run_phenomenon,
+    'population': run_population,
 }
 
 
