@@ -50,7 +50,11 @@ Usage:
 import argparse
 import sys
 
-from stellarObjects._db import add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args
+import pymysql
+
+from stellarObjects._db import (
+    SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
+)
 
 _EXCLUDED_TABLES = {"schema_migrations"}
 """set: Real tables that exist in every fresh database but hold DDL
@@ -196,7 +200,11 @@ def main():
     args = parser.parse_args()
 
     config = mysql_config_from_args(args)
-    did_reset = reset_database(config, dry_run=args.dry_run, assume_yes=args.yes)
+    try:
+        did_reset = reset_database(config, dry_run=args.dry_run, assume_yes=args.yes)
+    except (pymysql.MySQLError, SchemaTooNewError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     if not did_reset and not args.dry_run:
         sys.exit(1)

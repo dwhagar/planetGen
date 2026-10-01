@@ -304,6 +304,41 @@ function Invoke-OptionalPopulation([switch]$Run) {
     }
 }
 
+# The two logs (OPS.5), worked out the way the program does
+# (stellarObjects\appconfig.py): the debug log is PLANETGEN_LOG_FILE, else
+# "log_file" in config.json, else its default; the always-on activity log
+# is planetgen.log in PLANETGEN_LOG_DIR, else "log_dir", else logs under
+# the checkout. One object per log: Name, File, Dir and Setting (what to
+# change to move it). Empty when config.json can't be read (a warning
+# says so).
+$script:LogLocations = $null
+
+function Get-LogLocations {
+    if ($null -ne $script:LogLocations) { return $script:LogLocations }
+    $python = Get-VenvPython
+    $lines = @(& $python -I -c @"
+import importlib.util, os, sys
+spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'stellarObjects', 'appconfig.py'))
+appconfig = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(appconfig)
+config = appconfig.load_config()
+print(os.path.abspath(appconfig.log_file_path(config)))
+print(appconfig.activity_log_path(config))
+"@ $Root)
+    if ($LASTEXITCODE -ne 0 -or $lines.Count -lt 2) {
+        $script:LogLocations = @()
+        Write-Warning "Couldn't work out where the logs go (see above), so their folders were not checked. Check config.json's `"log_file`" and `"log_dir`" (each a path, or leave them out for the defaults), then run update.ps1 again."
+        return @()
+    }
+    $debugFile = "$($lines[0])".Trim()
+    $activityFile = "$($lines[1])".Trim()
+    $script:LogLocations = @(
+        [PSCustomObject]@{ Name = "debug log"; File = $debugFile; Dir = (Split-Path $debugFile); Setting = "`"log_file`" in config.json (or PLANETGEN_LOG_FILE)" },
+        [PSCustomObject]@{ Name = "activity log"; File = $activityFile; Dir = (Split-Path $activityFile); Setting = "`"log_dir`" in config.json (or PLANETGEN_LOG_DIR)" }
+    )
+    $script:LogLocations
+}
+
 # The tile cache and jobs folders config.json names (read the way
 # create-cache-dir.sh reads them, with examples\apache\deploy-paths.py),
 # the debug log's folder, the always-on activity log's folder (logs under
@@ -313,31 +348,95 @@ function Get-RuntimeDirs {
     $python = Get-VenvPython
     $paths = @(& $python -I (Join-Path $Root "examples\apache\deploy-paths.py") $Root)
     if ($LASTEXITCODE -ne 0) { throw "Could not read the folders from config.json (see above)." }
-    $logPaths = @(& $python -I -c @"
-import importlib.util, os, sys
-spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'stellarObjects', 'appconfig.py'))
-appconfig = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(appconfig)
-config = appconfig.load_config()
-print(appconfig.log_file_path(config))
-print(os.path.dirname(appconfig.activity_log_path(config)))
-"@ $Root)
     $dirs = @()
-    $logDir = $null
-    $logFile = $logPaths[0]
-    $activityDir = $null
-    if ($logPaths.Count -gt 1 -and "$($logPaths[1])".Trim()) { $activityDir = "$($logPaths[1])".Trim() }
-    if ("$logFile".Trim()) { $logDir = Split-Path "$logFile".Trim() }
-    foreach ($path in @($paths[0], $paths[1], $logDir, $activityDir, (Join-Path $DataDir "logs"))) {
+    $logDirs = @(Get-LogLocations | ForEach-Object { $_.Dir })
+    foreach ($path in @($paths[0], $paths[1]) + $logDirs + @(Join-Path $DataDir "logs")) {
         if ($path -and ($dirs -notcontains $path)) { $dirs += $path }
     }
     $dirs
 }
 
+# Whether a folder is one of the logs' (a problem there only warns).
+function Test-IsLogDir([string]$Dir) {
+    $logDirs = @(Get-LogLocations | ForEach-Object { $_.Dir })
+    return (($logDirs -contains $Dir) -or ($Dir -eq (Join-Path $DataDir "logs")))
+}
+
+# The warning for a log that can't be set up, with the exact commands that
+# fix it (OPS.5). Never throws: a log never stops an install or update.
+function Write-LogWarning($Log, [string]$Problem) {
+    Write-Warning "The $($Log.Name) $($Log.File) isn't fully set up: $Problem"
+    Write-Host "  The install/update carries on; the site still runs, but this log may not be written. Fix it"
+    Write-Host "  from an elevated PowerShell with:"
+    Write-Host "    New-Item -ItemType Directory -Force -Path `"$($Log.Dir)`""
+    Write-Host "    icacls `"$($Log.Dir)`" /grant `"${ServiceAccount}:(OI)(CI)M`""
+    Write-Host "  or point $($Log.Setting) at a folder this server can write, then run update.ps1 again."
+}
+
 function New-RuntimeDirs {
     foreach ($dir in Get-RuntimeDirs) {
+        if (Test-IsLogDir $dir) {
+            $reason = "it isn't there afterwards"
+            try {
+                New-Item -ItemType Directory -Force -Path $dir -ErrorAction Stop | Out-Null
+            } catch {
+                $reason = $_.Exception.Message
+            }
+            if (Test-Path -LiteralPath $dir -PathType Container) {
+                Write-Host "Runtime folder: $dir"
+            } else {
+                Write-Warning "Couldn't create the log folder ${dir}: $reason (the next step says how to fix it)."
+            }
+            continue
+        }
         New-Item -ItemType Directory -Force -Path $dir | Out-Null
         Write-Host "Runtime folder: $dir"
+    }
+}
+
+# Whether $Account (or a group every account is in) may change files in
+# $Dir, from the folder's access rules: an Allow rule with write rights
+# and no Deny rule for them.
+function Test-AccountCanWrite([string]$Dir, [string]$Account) {
+    try {
+        $sid = (New-Object Security.Principal.NTAccount($Account)).Translate([Security.Principal.SecurityIdentifier]).Value
+        $rules = (Get-Acl -Path $Dir -ErrorAction Stop).Access
+    } catch {
+        return $false
+    }
+    # The account itself, Everyone, Authenticated Users, BUILTIN\Users.
+    $sids = @($sid, "S-1-1-0", "S-1-5-11", "S-1-5-32-545")
+    $write = [Security.AccessControl.FileSystemRights]::WriteData -bor [Security.AccessControl.FileSystemRights]::AppendData
+    $allowed = $false
+    foreach ($rule in $rules) {
+        try {
+            $ruleSid = $rule.IdentityReference.Translate([Security.Principal.SecurityIdentifier]).Value
+        } catch {
+            continue
+        }
+        if ($sids -notcontains $ruleSid) { continue }
+        if (($rule.FileSystemRights -band $write) -eq 0) { continue }
+        if ($rule.AccessControlType -eq "Deny") { return $false }
+        $allowed = $true
+    }
+    return $allowed
+}
+
+# OPS.5: both logs' folders exist and the app's account can write in them.
+# Only ever warns, with the commands that fix it for this machine.
+function Test-LogLocations {
+    $accountExists = Test-AccountExists $ServiceAccount
+    foreach ($log in Get-LogLocations) {
+        if (-not (Test-Path -LiteralPath $log.Dir -PathType Container)) {
+            Write-LogWarning $log "its folder $($log.Dir) doesn't exist and couldn't be created (a missing drive, or no rights)."
+        } elseif (-not $accountExists) {
+            Write-LogWarning $log "the account '$ServiceAccount' doesn't exist yet, so it couldn't be given the folder."
+        } elseif (-not (Test-AccountCanWrite $log.Dir $ServiceAccount)) {
+            Write-LogWarning $log "'$ServiceAccount' can't write in $($log.Dir)."
+        } else {
+            $label = $log.Name.Substring(0, 1).ToUpper() + $log.Name.Substring(1)
+            Write-Host "${label}: $($log.File) ($ServiceAccount can write in $($log.Dir))"
+        }
     }
 }
 
@@ -360,6 +459,7 @@ function Test-AccountExists([string]$Account) {
 function Set-PlanetGenPermissions {
     if (-not (Test-AccountExists $ServiceAccount)) {
         Write-Warning "The account '$ServiceAccount' doesn't exist yet, so permissions were not set. Create the service (docs\deployment\windows.md), then run update.ps1 (or pass -ServiceAccount 'IIS AppPool\planetgen' for IIS)."
+        Test-LogLocations
         return
     }
     $read = @($Root, $VenvDir, (Join-Path $DataDir "nltk_data"))
@@ -367,6 +467,14 @@ function Set-PlanetGenPermissions {
         Invoke-Checked icacls.exe $dir /grant "${ServiceAccount}:(OI)(CI)RX" /Q
     }
     foreach ($dir in Get-RuntimeDirs) {
+        if (Test-IsLogDir $dir) {
+            # A log folder that can't be granted only warns (OPS.5);
+            # Test-LogLocations below says how to fix it.
+            if (Test-Path -LiteralPath $dir -PathType Container) {
+                & icacls.exe $dir /grant "${ServiceAccount}:(OI)(CI)M" /Q
+            }
+            continue
+        }
         Invoke-Checked icacls.exe $dir /grant "${ServiceAccount}:(OI)(CI)M" /Q
     }
     $config = Join-Path $Root "config.json"
@@ -374,6 +482,7 @@ function Set-PlanetGenPermissions {
         Invoke-Checked icacls.exe $config /inheritance:r /grant:r "*S-1-5-32-544:F" "*S-1-5-18:F" "${ServiceAccount}:R" /Q
     }
     Write-Host "Permissions: $ServiceAccount reads the code, venv and corpus, changes only the runtime folders; config.json is Administrators, SYSTEM and $ServiceAccount only."
+    Test-LogLocations
 }
 
 # Imports the web app and the generator package with the venv's Python,

@@ -47,10 +47,8 @@ never mutates the generation/physics code's own native units. Its shape:
   between. A brand-new database is created at the current schema, so this
   is a no-op there; a database created by an older release gets one
   `_migrate_vN_to_vN+1` step per version it is behind (see "Versioning"
-  below). `src/migrateDb.py` is its CLI. An existing pre-MySQL-port SQLite
-  database is brought in with the separate, one-time
-  `src/migrateSqliteToMysql.py` instead (a straight column-preserving copy,
-  documented in its own module docstring), not this function.
+  below). `src/migrateDb.py` is its CLI. There is no import from a
+  pre-MySQL-port SQLite database (see "Versioning" below).
 - `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
   / `load_system_config(conn, config_id)` — the read-path counterparts,
   reconstructing a live `StarSystem`/`SpaceSector`/`SystemConfig` from
@@ -408,12 +406,12 @@ steps only — no new columns, nothing to backfill), and so on, one step per
 version, through `_migrate_v49_to_v50`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
-`install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
-from before the MySQL port itself is brought in with the separate,
-one-time `src/migrateSqliteToMysql.py` script instead (see its module
-docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v50), so a database still on an older SQLite
-schema needs a pre-MySQL-port release of this project first.
+`install.sh`/`update.sh` on every deploy). A SQLite database from before
+the MySQL port can't be brought in: the one-time import script that used
+to be here (`src/migrateSqliteToMysql.py`) was retired (TEST.61), because
+it only accepted a file already at the current `SCHEMA_VERSION`, which no
+SQLite database ever was (SQLite stopped at v5, and the MySQL migration
+steps start at v8). Generate the galaxy again instead.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
 `comet_composition`; see that table below). v22 added the search-facing

@@ -116,7 +116,8 @@ def pytest_collection_modifyitems(config, items):
       through another fixture).
     - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
       `test_bughunt_*`), whose cost is in their number of examples.
-    - `browser`: `test_web_a11y.py` (headless Chromium).
+    - `browser`: `test_web_a11y.py` and `test_web_browser_*.py` (headless
+      Chromium).
     - `mathcheck`: `test_math_check.py`, moved to the front of the run.
     """
     for item in items:
@@ -125,7 +126,7 @@ def pytest_collection_modifyitems(config, items):
         name = item.path.name
         if name.startswith(("test_fuzz_", "test_bughunt_")):
             item.add_marker(pytest.mark.slow)
-        if name == "test_web_a11y.py":
+        if name == "test_web_a11y.py" or name.startswith("test_web_browser"):
             item.add_marker(pytest.mark.browser)
     # The math check's own tests run first (a stable sort keeps every
     # other test in its collected order).

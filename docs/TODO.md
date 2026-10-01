@@ -105,7 +105,7 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
    and ADM.7 in PR #260).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -180,7 +180,12 @@ with `clamp()`.
   `static/mapzoom.js`), so "-" has nowhere to go. The Galaxy Map has no
   +/- buttons, and the Sector Map's buttons work. TEST.55 (every map button
   changes the view) and TEST.56 (no overlapping controls at 390 to
-  1280 px) pin this item.
+  1280 px) shipped in PR #307: the nebula "-" no-op is pinned by a
+  strict xfail in `test_web_browser_maps.py` (fix it and drop the
+  xfail), and the overlap check found no overlapping controls on the
+  pages as they were then.
+  Order (pre-planning thread): run it after MAP.55 and MAP.60, which
+  already remove some dead controls on the Galaxy Map.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -205,6 +210,14 @@ with `clamp()`.
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
+
+  - [ ] **UX.23 A shared unit-ladder module**
+    Done: one Python ladder module (in `stellarObjects/utils.py` or a new
+    `units.py`) and its JavaScript twin, generalising the existing
+    distance, speed and duration ladders, with a test that the Python and
+    JavaScript twins agree for a table of values. Then one sub-item per
+    quantity family: mass; temperature; pressure and gravity; density,
+    luminosity and power.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -237,6 +250,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   short of ring 1 (the inner rings have fewer slots); do the later
   picks (regions inside the wedge) follow the same cursor-centered
   rule?
+  Order (pre-planning thread): These nine all change
+  `galaxystageview.js` and `galaxystages.js`, so they suit one build
+  thread in this order: MAP.60 (scale line) and MAP.55 (buttons into a
+  menu) first (small, and they free space); MAP.52 (the 40-degree
+  wedge); MAP.56 (drop the 3x3 pick); MAP.53 (rotate and fit); MAP.58
+  (zoom limits); MAP.54 (slab buttons and leader lines); MAP.59 (ghost,
+  mini map, header). MAP.57 (System Map NaN) is independent. MAP.61's
+  first two sub-items (shared helpers, one camera controller) should
+  come before or with MAP.53 and MAP.58, which add camera rules.
 
 - [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
   Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
@@ -274,6 +296,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pointing toward it and its button still works; this may never happen
   in practice. A slab hidden behind another keeps its line, drawn to
   the visible part.
+
+  - [ ] **MAP.76 Leader-line layout**
+    An SVG overlay above the canvas, recomputed on every camera change
+    from the slabs' projected centres; lines kept from crossing by
+    ordering the buttons by the slabs' screen height; a phone layout
+    with the buttons in one column below the map. Picks MAP.54's
+    defaults for its open questions.
 
 - [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
   Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
@@ -314,6 +343,624 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.19's big targets still apply. Open question: should a segment be
   one block, or a run of blocks along the arc when a block is too small
   to click on a small screen?
+
+- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
+  Found by the generation tests (2026-10-01): a body whose computed
+  position is NaN or infinite is written straight into the System
+  Map's SVG. Done: such a body is left out or drawn at a safe place
+  with a note, the SVG never holds NaN or inf, and the strict xfail
+  test for it passes.
+
+- [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
+  Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
+  and out manually. This should only be within a short range ... they
+  can zoom in to about, say, twice as close as it starts out and they
+  can zoom out back to the full galaxy, but no further. When we get into
+  smaller chunks like blocks and wedges that aren't as large as the full
+  galactic wedge, we're going to lock the zoom ... The system will still
+  be able to zoom in stages as we've discussed but the user won't be
+  able to arbitrarily zoom in and out." Today every view below the whole
+  galaxy and its quarters can be zoomed freely with the wheel, a pinch
+  or the zoom keys (`isFree` in `galaxystageview.js`), from
+  `MIN_ZOOM` = 1/8 of the stage's fitted camera distance (8 times
+  closer) to `MAX_ZOOM` = 2.5 times it, and the galaxy and its quarters
+  can't be zoomed at all. Done:
+  - On the full galaxy wedge (the 40-degree wedge of MAP.52, fitted to
+    the window by MAP.53), the user can zoom in to about twice as close
+    as the fitted view, and out only until the whole galaxy fits, with
+    the wheel, pinch, keys and any zoom buttons.
+  - On every smaller view (slabs, segments, blocks, the sector cube),
+    user zoom is locked: the wheel scrolls the page, and pinch and the
+    zoom keys do nothing. The staged zoom of each pick (MAP.53, MAP.56)
+    still animates to its fitted view.
+  - Rotation (MAP.53) and panning are not affected.
+  - Reset (MAP.55) returns to the fitted zoom.
+  Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
+  whole-galaxy view itself zoom (today it doesn't)? Should a locked view
+  keep panning, or only rotate?
+
+- [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
+  Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
+  zoomed into a specific slab, that we're viewing a specific slab and
+  not a wedge. I'm not sure how to do that so do some research on that
+  and then add the to-do items to make it happen."
+
+  Why it looks like a wedge today: once a slab is picked, only that
+  slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
+  layer of the wedge (a sector layer inside a level-3 block, otherwise
+  9 or 27 sector layers, `slabLayers` in `galaxystages.js`), so seen
+  from the isometric tilt it looks like a flat wedge. Nothing on screen
+  shows the rest of the stack, and the slab's height range appears only
+  as "Slab 3" in the breadcrumb.
+
+  Options (from how 3D map, CAD and volume viewers show a selected
+  slice):
+  1. **Ghost of the parent wedge.** The other slabs of the wedge stay in
+     view as a faint, see-through outline (wireframe edges only), and
+     the picked slab is the one solid layer inside it. This is the cut-away
+     or "section view" of CAD tools and of floor pickers in building
+     maps. It shows at a glance that this is one layer of a taller stack.
+  2. **Slab thickness edges.** Draw the slab's top and bottom faces and
+     its vertical side edges in a distinct line color, so it reads as a
+     slice with depth rather than a surface.
+  3. **A labelled header over the map**, such as "Slab 3 of 9 · 120 to
+     160 pc above the plane (layers 25 to 33)", replacing the bare
+     "Slab 3". The breadcrumb crumb says "Slab 3 of 9" too.
+  4. **Side-view inset.** A small fixed diagram in a corner of the map
+     shows the wedge edge-on as a stack of bars, with the picked slab
+     highlighted and the galactic plane marked. This is the slice
+     indicator of medical and volume viewers. It doubles as a slab
+     picker if clicks on it are allowed.
+  5. **Tint.** The picked slab gets a color band that differs from a
+     whole wedge, kept the same at every depth.
+
+  Boss's answers (2026-10-01 20:50Z): "Ghost of the other wedges should
+  be just wire lines and faint and yes I want to implement a mini map
+  that shows the segment of the whole galaxy. When we zoom in to a slab
+  off to the side, have a locked view in isometric form of the block,
+  highlighting which slab we're in. Then add navigation tools so that
+  if the user goes and clicks on another slab in the isometric view, it
+  switches to the slab in the main view", and for the height: "both".
+  So the build is options 1, 2, 3 and 4.
+
+  Done:
+  - **Ghost:** with a slab picked, the rest of the wedge or block is
+    drawn as faint wire lines only, with no fill, around the solid,
+    edge-lined picked slab. The ghost is not clickable and doesn't block
+    clicks on the slab or its segments.
+  - **Mini map:** beside the main view sits a small, locked isometric
+    view of the whole block (or wedge) the slab belongs to, showing
+    every slab of it with the current one highlighted, and where that
+    block sits in the whole galaxy. It doesn't rotate or zoom. Clicking
+    (or tapping, or picking with the keyboard) another slab in it
+    switches the main view to that slab, the same way picking a slab
+    does today, with the URL and breadcrumb following.
+  - **Header and breadcrumb:** "Slab N of M" with its height both ways:
+    the distance above or below the galactic plane in the map's chosen
+    units (pc or ly, the units setting of PR #234) and its sector layer
+    numbers, e.g. "Slab 3 of 9 · 120 to 160 pc above the plane · layers
+    25 to 33". The same applies one level down ("Layer N of M" inside a
+    block).
+  - Everything stays aligned when the main view rotates or zooms.
+
+  Ties in with MAP.53 (rotation keeps the ghost aligned), MAP.54 (the
+  picked slab's button and line stay highlighted; the mini map is a
+  second way to pick a slab), MAP.55 (where the mini map sits next to
+  the slab buttons and the Sector cell panel, and below the map on a
+  phone), MAP.56 (the segment pick happens on the solid slab) and
+  MAP.58 (the mini map is never zoomable).
+
+  - [ ] **MAP.75 The mini map as a second engine view**
+    The mini map is a second, locked camera on the same scene data;
+    built on MAP.61's controller with a "locked" policy rather than its
+    own renderer (one WebGL context, scissored like the System Map's
+    sphere overlay).
+
+- [ ] **MAP.60 Galaxy Map scale readout: one scale line**
+  Boss (2026-10-01 20:50Z): "I want to trim the scale information from
+  the galactic map so that it just has one scale line." Today the
+  readout under the Galaxy Map (`updateScaleBar` in `galaxymap3d.js`,
+  `#galaxymap3d-scale`) stacks three lines: "1 px ≈" (what one screen
+  pixel spans), "1 block =" (the size of one drawn block) and a scale
+  bar of about 70 px with its length. Done: only the scale bar and its
+  length remain, on one line, in the map's chosen units (sectors and pc
+  or ly, as now).
+
+- [ ] **MAP.61 One map engine and control set for the Galaxy Map and the Sector Map**
+  Boss (2026-10-01 20:55Z): "unify the sector view with the galactic
+  view so it's all the same code and control set, because right now
+  they're different." Today the Galaxy Map (`galaxymap3d.js`,
+  `galaxystageview.js`, `galaxystages.js`) and the Sector Map
+  (`sectormap.js`) are separate three.js pages, with their own camera,
+  controls, picking, tooltips and scale readouts. Done: one shared
+  engine (scene, camera, controls, picking, hover, info panel, scale
+  line, bookmarks, keys and touch) draws both. The sector is the
+  deepest stage of the galaxy drill-down, with the same buttons and
+  gestures, and the only differences are the data each level shows.
+  Ties in with NAV.3 (the shared picker), MAP.53 to MAP.60 (the
+  Galaxy Map controls being reworked now) and MAP.62 (the system view
+  joins the same engine).
+  Order: the first two sub-items change no behaviour and should land
+  before (or as the first PR of) the MAP.52 to MAP.60 work, because
+  those items rewrite the same files (`galaxymap3d.js`,
+  `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
+
+  - [ ] **MAP.63 Shared map helpers in one module**
+    The same helpers are copied between `galaxymap3d.js`,
+    `sectormap.js` and `systemmap.js`: `readSceneData`, `cssVar`,
+    `isLightBackground`, `addField`, `formatAddress`,
+    `makeRingTexture`, `niceScaleValue`/`updateScaleBar`, `resize`, and
+    the screen-space point pick (`starAtClientPoint` and
+    `pointAtClientPoint`). Done: one `static/mapcore.js` exports them
+    and all three maps import it; no visible change.
+
+  - [ ] **MAP.64 One camera and input controller**
+    The Galaxy Map's stage view (`galaxystageview.js`: drag, pan,
+    wheel, pinch, two-tap select, keys) and the Sector Map
+    (`sectormap.js`: its own `THREE.Spherical` orbit, pointer and arrow
+    key handlers, zoom buttons) each have their own. Done: one
+    controller module (orbit, pan, zoom, pinch, keys, drag-or-click
+    threshold) with a zoom policy each view sets (free, a short range,
+    or locked, which is MAP.58's rule), used by both maps.
+
+  - [ ] **MAP.65 One picking, hover and info-panel layer**
+    Done: one module for raycast and screen-space picking, the hover
+    highlight and tooltip (the Sector Map has none today) and the info
+    panel (fields, Nav from/to, Use as destination, Generate buttons,
+    bookmark ☆), fed by each view's objects. The Sector Map's info
+    panel gains the ☆ the drill-down design left for later.
+
+  - [ ] **MAP.66 The sector as the drill-down's last stage, on the same page**
+    Today clicking a generated sector leaves `/galaxy` for
+    `/sector/<id>` (a full page load), and the Sector Map's data is
+    baked into its page. Done: a sector-contents endpoint (systems,
+    phenomena, clouds, neighbours, in the Sector Map's existing JSON
+    shape) that the Galaxy Map fetches, so the sector opens as one more
+    stage with the same buttons, breadcrumb, Back/Forward, URL
+    (`/galaxy?sector=<designation>`) and bookmarks; neighbouring
+    sectors are a sideways step. `/sector/<id>` stays as the sector's
+    page (tables, text, edit tools) with the same engine embedded.
+
+  - [ ] **MAP.67 One URL and history scheme for every level**
+    Galaxy stages, a sector, and (with MAP.62) a system and a body in
+    one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
+    so Back, Forward, reload and bookmarks work the same at every level.
+
+  - [ ] **MAP.68 Remove the old Sector Map code**
+    Once the sector stage matches it (tests from TEST.70), `sectormap.js` is deleted and the docs
+    (`docs/html-interface.md`, the drill-down design) describe the one
+    engine.
+
+- [ ] **MAP.62 A full 3D star system view with a free camera**
+  Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
+  movable free-camera motion view." Today the System Map
+  (`systemmap.js`, `lib/systemmap.py`) is a flat SVG diagram. Done: a
+  star system is drawn in 3D (its stars, planets, moons, belts and
+  comets on their orbits, sizes and distances shown legibly, with a
+  scale option), and the camera can be moved freely (orbit, pan, zoom,
+  fly to a body), using the shared engine of MAP.61 and the shared
+  picker of NAV.3. Clicking a body opens or selects it. The flat
+  diagram stays available.
+
+  - [ ] **MAP.69 A system scene endpoint with 3D orbits**
+    Today the System Map is drawn in Python as SVG (`lib/systemmap.py`):
+    orbits are circles, z is dropped, distances are log-scaled per
+    scene, and there is no JSON for a system. The database already has
+    what 3D needs: each planet's and moon's `orbital_inclination_deg`,
+    `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_*_km`
+    and period; the binary pair's mutual orbit; comets' Kepler elements.
+    Done: `GET /api/systems/<id>/scene` returning every star, planet,
+    moon, belt and comet with its reference, radius, colour, orbit
+    elements, current position and the epoch they are valid for
+    (`orbit_simulation_state.last_updated_at`).
+
+  - [ ] **MAP.70 Positions at any time**
+    Planets and moons move on circular orbits (phase plus 360 times
+    elapsed time over period), comets on Kepler orbits
+    (`keplerMotion.py`), binaries on their mutual orbit. Done: one
+    JavaScript module (with a Python twin used by NAV.6) that gives any
+    body's position at a time, so the view can animate and NAV.6 can
+    plan around where bodies will be. A time control (now, play,
+    faster, pause) in the view.
+
+  - [ ] **MAP.71 Scale modes that keep everything visible**
+    True scale makes planets invisible dots. Done: true scale, plus a
+    compressed distance scale (the System Map's log scale) and enlarged
+    bodies, switchable, with a note saying which is shown; moons stay
+    outside their planet's drawn size.
+
+  - [ ] **MAP.72 Rendering at system scale**
+    Distances run from kilometres to light-days, beyond float
+    precision near the camera. Done: a camera-relative (floating
+    origin) scene; orbit lines as 3D ellipses; stars with the glow of
+    `bodyRendering.js`; belts as particle rings; labels that declutter;
+    the heliopause shown as a faint sphere.
+
+  - [ ] **MAP.73 Free camera on the shared engine**
+    Done: orbit, pan, zoom and a fly mode (keys and touch) on MAP.61's
+    controller, plus "fly to" a body (the drill-down's smooth flight),
+    following a moving body, and a reset. Clicking a body selects it
+    (NAV.3's picker); double-click flies to it.
+
+  - [ ] **MAP.74 The 3D view on the system page, the flat diagram kept**
+    Done: the system page offers 3D and Diagram (the current SVG,
+    default the last one used); a screen-reader list of bodies stands in
+    for the canvas; a fallback to the diagram where WebGL is missing.
+    Open question: should 3D be the default?
+
+- [ ] **MAP.77 Galaxy Map draws block divisions inside a picked slab before zooming to it (bug)**
+  Boss (2026-10-01 21:11Z): "when zooming in and navigating from the
+  galactic map, when selecting a slab, don't show the divisions between
+  interior blocks, only show divisions between the slabs. Then on a
+  slab show the divisions between the blocks." Done: while slabs are
+  being picked (the wedge view, MAP.52), the map draws only the
+  boundaries between slabs, with no lines between the blocks inside
+  each slab; once the view is on one slab (MAP.53, MAP.56), it draws
+  the divisions between that slab's blocks, which are the segments the
+  user picks next. The faint wire ghost of the other slabs (MAP.59)
+  shows their outlines only, never their blocks. This repeats at every
+  level of the slab and segment ladder of MAP.56.
+
+- [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
+  Boss (2026-10-01 21:11Z): "when the system zooms into a wedge, make
+  sure it is the entire wedge as you drill down." Done: whenever the
+  view zooms to a wedge (MAP.52) or to a slab or segment inside it
+  (MAP.56), the zoom frames all of what was picked, with no part cropped
+  by the map's edges or by the controls over it; the fit uses the map's
+  actual size (MAP.53) and holds while the view rotates and when the
+  window is resized. Under MAP.58's locked zoom, the locked level is
+  this whole-wedge fit, not a closer one.
+
+- [ ] **MAP.79 Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug)**
+  Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,
+  make each dim, visible but the points for stars, comets, and other
+  objects should shine through. Or let's say provide a button that
+  turns each phenomena on and off in the sector map." Today every rogue
+  planet gets a bright glow and a fixed-size ring on the Sector Map
+  (`sectormap.js`, MAP.46), so in a busy sector they cover the stars.
+  Done (default taken, Boss's second wording): the Sector Map has one
+  toggle button per kind of object it draws (stars, rogue planets,
+  interstellar comets, black holes, neutron stars, nebulae and so on),
+  all on by default; turning one off hides those points, their rings
+  and their labels, and hidden kinds can't be hovered or picked. The
+  choice is kept in the URL so a bookmark keeps it. Ties in with
+  MAP.61 (one control set for both maps). Boss (21:17Z): "Toggle and
+  dim", so rogue planets are also drawn dim by default (a faint point,
+  no bright glow or ring) while they are on, and stars, comets and
+  other objects show through them.
+
+- [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
+  Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
+  the galactic arc it is close enough to see almost all stars in the
+  sector including pulsars, quasars, and black holes." Today the Galaxy
+  Map's level of detail (MAP.14, MAP.51) thins out the points drawn in
+  a filled sector, so at the last drill-down stage a sector shows only
+  some of its stars and its phenomena may be missing. Done: once the
+  view is zoomed to sector level, the sector is drawn with nearly all
+  of its stars and every pulsar, quasar and black hole in it, as close
+  as the Sector Map shows them; the thinning only applies farther out.
+  Ties in with MAP.66 (the sector as the drill-down's last stage).
+  Boss (21:17Z) confirmed it is a fix: "fix it".
+
+## NAV: Navigation and courses
+
+- [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
+  Boss (2026-10-01 20:55Z): "completely functionalize all functions
+  for the Galactic Picker and join it up with functionalizing the
+  Sector Display and Star System Display so that the user, upon
+  clicking on things in the navigation segment, can: go from one
+  specific item (say, a moon in a star system) and go back out;
+  navigate visually via the UI; select another sector, another star
+  system, stellar phenomena, or anything like that, and vice versa to
+  go from one to the other, so that we don't have to repeat code for
+  the visual interfaces." Today the NAV page (`web/nav_page.py`) picks
+  endpoints from dropdowns (a sector, then a system), and the Galaxy
+  Map's drill-down, the Sector Map and the System Map each have their
+  own picking code. Done: one picker module, shared by every visual
+  display and the NAV page, that can:
+  - pick any object at any level: a sector, a star system, a
+    phenomenon, a star, a planet or a moon;
+  - step out from any item to its parents (moon to planet to system to
+    sector to the galaxy) and back in, visually and through a
+    breadcrumb;
+  - move sideways from one item to another of any kind.
+  The NAV page uses it for both endpoints, so a course's ends are
+  picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
+  NAV.6.
+  Needs NAV.7. Built on MAP.61's engine; the parts that don't need the
+  engine (the picker module, the breadcrumb, pick mode) can start first.
+
+  - [ ] **NAV.13 A picker module: select, step out, step in, step sideways**
+    The stage view already does this inside the galaxy (Esc and
+    Backspace go up, arrows move to a sibling). Done: one
+    `static/picker.js` holding the current selection as an object
+    reference, with `select(ref)`, `up()`, `into(ref)` and
+    `sideways(dir)` (siblings from the resolver), firing one change
+    event every display listens to; keys, clicks and the breadcrumb all
+    go through it.
+
+  - [ ] **NAV.14 One breadcrumb for every level**
+    Galaxy, stages, sector, system, star or planet, moon: one
+    breadcrumb component built from the reference's parent chain, the
+    same on the Galaxy Map, the sector, the system page and the NAV
+    page.
+
+  - [ ] **NAV.15 Pick mode everywhere**
+    Today pick mode (choose a NAV start or destination) exists on the
+    Galaxy Map and the Sector Map only, and stops at systems and
+    phenomena. Done: the same "Choosing a destination · Cancel" mode on
+    every display, the System Map included, picking any object down to
+    a moon, and returning to the NAV page with it.
+
+  - [ ] **NAV.16 NAV endpoints can be any object**
+    Today an endpoint is a whole system or a phenomenon, and a course
+    always leaves the heliopause. Done: the NAV page and `/api/nav`
+    take any object reference; a course between bodies has legs: from
+    the body out of its system, between systems, and in to the body
+    (System Local Frame inside a system, as navigation-frames.md
+    describes; the frame exists in `navigation.py` but is never chosen
+    today); a course inside one system is one in-system leg. Open
+    question: does an in-system leg use the same warp and fold speeds,
+    or sublight speeds (impulse)? Default: the same tables, with a note.
+
+- [ ] **NAV.4 Save a course**
+  Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
+  as a user ... Actually just have it save both so the user has either,
+  no matter what they wanted in the first place." Today a course
+  (`/nav?from=...&to=...`, `queryDb.nav_between`) can only be
+  bookmarked as a URL. Done: a signed-in user can save a course under a
+  name. A saved course always keeps both forms:
+  - the direct, point-to-point line (its bearing and mark, NAV.1);
+  - the system-to-system route (the chain of systems it hops through).
+  The user can list, open, rename and delete their saved courses. The
+  saved course shows whichever form the user views, and they can switch
+  between the two. Needs user accounts (USR.1) and their storage. Open
+  question: until user accounts exist, should saving be admin-only, or
+  per browser like bookmarks?
+  Default taken for the open question (pre-planning thread): Default for
+  the open question: per browser now (the same storage and menu as
+  bookmarks), moved into the account when USR.7 lands. NAV.4 then does
+  not wait for user accounts.
+
+  - [ ] **NAV.17 A saved course record with both forms**
+    Done: a saved course stores its two end references, a name, when it
+    was saved, both forms (the direct line's bearing, mark and distance;
+    the route's list of stop references and distance) and, with NAV.6,
+    the adjusted path. Opening it recomputes both from the current
+    galaxy and says if anything changed since it was saved (the
+    correlative update moves systems along their galactic orbits, and
+    a regenerated system can vanish).
+
+  - [ ] **NAV.18 Save, list, open, rename and delete, per browser**
+    Done: a Save course button on the NAV result; a Courses list
+    (beside Bookmarks, from `bookmarks.js` or a sibling module) with
+    open, rename and delete; the viewer switches between Direct and
+    Route on a saved course.
+
+  - [ ] **NAV.19 Saved courses in the account (after USR.7)**
+    Done: a `user_courses` table in the control database, owned by an
+    account; courses saved per browser can be imported into the account
+    once; the API lists and edits a user's own courses only.
+
+- [ ] **NAV.5 Show a course on the Galaxy Map**
+  Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
+  to view the route in the context of the galactic map, zoomed in as far
+  as it can be zoomed in and still show the entire path. The course
+  path, direct and system-to-system, should then be specially
+  highlighted as a course." Today the NAV page draws its own flat map
+  of the route (`lib/navmap.py`), and the Galaxy Map only takes
+  `?course=` for an end point. Done: from the NAV page (and a saved
+  course, NAV.4), the course opens on the Galaxy Map, zoomed in as far
+  as it can be while showing the whole path. Both the direct line and
+  the system-to-system route are drawn in a distinct course style,
+  told apart from each other, with their end points and hops marked
+  and clickable. The same works inside a sector. Ties in with MAP.58
+  (zoom limits: a course view may need a fitted zoom outside the user
+  range) and MAP.61.
+  Much of this exists: `/galaxy?course=<from>,<to>` (MAP.27, 7.52.0)
+  draws one line through the route's stops with the ends named. Missing:
+  the direct line drawn apart from the route, a fitted zoom, and any
+  course inside a sector.
+
+  - [ ] **NAV.20 Draw the direct line and the route apart**
+    Done: the direct line and the system-to-system route as two styles
+    (for example solid and dashed, in the course colour), a legend, the
+    hops ringed and clickable (each opens its system, through NAV.3's
+    picker), and the course readout (distance, bearing and mark, times)
+    beside the map.
+
+  - [ ] **NAV.21 Fit the view to the whole course**
+    Done: the course opens zoomed in as far as possible with every
+    point of both paths on screen, fitted to the window (the same fit as
+    MAP.53), refitted on resize. This view is exempt from MAP.58's zoom
+    lock; the user can still rotate it.
+
+  - [ ] **NAV.22 Courses inside a sector and a system**
+    Today a course that stays in one sector opens the sector with no
+    line. Done: the same course drawing at the sector stage (MAP.61)
+    and in the 3D system view (MAP.62), and a course that spans levels
+    shows its in-system legs when zoomed in.
+
+  - [ ] **NAV.23 Open a saved course on the map**
+    Done: a saved course (NAV.4) opens in this view, with Direct, Route
+    and (NAV.6) Adjusted switchable.
+
+- [ ] **NAV.6 Courses that steer clear of gravity wells**
+  Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
+  the course. A ship piloting would adjust the course to avoid falling
+  into the gravitational field of objects it knows about. We'll need to
+  have the system automatically adjust the course to avoid objects,
+  attempting to stay out of the Hill sphere of each object. We're also
+  going to use this within the sector and within the star system."
+  Today a course is a straight line between its ends (NAV.1), and the
+  route is a chain of systems. Done: course planning finds the bodies
+  near the path that it knows about, and bends the path to stay outside
+  each one's Hill sphere (or a safe radius where a Hill sphere doesn't
+  apply, such as a star in the galaxy or a black hole). This works:
+  - between systems in the galaxy (stars, black holes, neutron stars,
+    nebulae and other phenomena);
+  - inside a sector;
+  - inside a star system (planets and moons, around the star).
+  The adjusted path, its extra length and its time at each speed (NAV.2)
+  are shown with the course, and the straight line stays available for
+  comparison. Open questions: a Hill sphere needs an orbit around a
+  heavier body, so what radius applies to a star or a lone object? And
+  does the system level need the bodies' positions at a given time?
+  Pre-planning (default taken for the first open question): The data is
+  mostly there: planets and moons store `hill_radius_km`; each star
+  stores `system_perimeter_km`, its Hill radius against the galaxy's
+  tide (`spaceSector.hill_radius_ly`, already used to keep systems apart
+  when they are placed); black holes, neutron stars and quasars have
+  masses, so the same formula gives theirs. That answers the item's
+  first open question: a star or lone object uses its galactic Hill
+  radius.
+
+  - [ ] **NAV.24 A keep-out radius for every kind of object**
+    Done: one function giving each object's keep-out radius: a planet
+    or moon its Hill radius; a star or system its stored
+    `system_perimeter_km` (the wider of the pair for a binary); black
+    holes, neutron stars and quasars the galactic Hill radius from their
+    mass (`utils.calculate_hill_sphere`); a rogue planet the same.
+    Nebulae, remnants and asteroid fields have no mass stored, only
+    `radius_ly`. Open question for Boss: should courses avoid them too
+    (as hazards, not gravity), or pass through? Default: pass through,
+    with a note on the course.
+
+  - [ ] **NAV.25 Find the obstacles along a path**
+    Done: from the corridor query of NAV.10, every
+    object whose keep-out sphere comes within reach of the path, at
+    each scale: between systems, inside a sector, inside a system.
+
+  - [ ] **NAV.26 Bend the path around keep-out spheres**
+    Done: a path planner that leaves the straight line only where it
+    crosses a keep-out sphere, going around it on the shortest detour
+    (a tangent arc, or waypoints just outside the sphere), checked
+    again against the other spheres; the end bodies' own spheres are
+    exempt (a ship has to enter them to arrive). Unit tests with
+    hand-placed spheres.
+
+  - [ ] **NAV.27 Moving bodies inside a system**
+    Inside a system the planets move. Done: the in-system planner uses
+    positions at the time of travel (MAP.62's positions-at-time module,
+    Python twin), from the departure time and the leg's speed. That
+    answers the item's second open question: yes. Default departure:
+    now.
+
+  - [ ] **NAV.28 Show and save the adjusted course**
+    Done: the adjusted path, its extra length and its times beside the
+    straight line on the NAV page and on the map (NAV.5); saved courses
+    (NAV.4) keep it as a third form.
+
+- [ ] **NAV.7 One reference for every object, with its parents**
+  Today only systems and phenomena can be named in a URL or a NAV
+  endpoint (`nav_page.endpoint`, `<kind>:<id>`); stars, planets, moons,
+  belts and comets have no page, no URL and no reference of their own
+  (search links them to their system page), and nothing returns an
+  object's chain of parents. Done: one reference form for every object
+  kind (`sector:<id>`, `system:<id>`, `star:<id>`, `planet:<id>`,
+  `moon:<id>`, `belt:<id>`, `comet:<id>` and the phenomenon types, the
+  same strings NAV uses today, so old links keep working); one resolver
+  (`queryDb` plus `GET /api/objects/<ref>`) that returns the object's
+  kind, name, parent chain up to the galaxy (moon, planet, system,
+  sector, galaxy), its siblings' references, and its position in each
+  frame that applies (galaxy pc, sector-local ly, system-local km); and
+  Python and JavaScript helpers that parse and print references. The
+  picker (NAV.3), saved courses (NAV.4), the course on the map (NAV.5),
+  gravity-aware courses (NAV.6) and the 3D system view (MAP.62) all use
+  it.
+
+  - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
+    A star, planet, moon, belt or comet reference opens something:
+    by default the system page scrolled to and highlighting that body
+    (`/system/<id>#planet-<id>`), with its own System Map scene
+    selected, rather than a new page per body. Search results, the
+    locate box and bookmarks link this way. Open question: should
+    planets and moons get pages of their own later?
+
+  - [ ] **NAV.9 Search and locate return references for every kind**
+    `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
+    each hit's reference and parent chain, so any picker can jump to a
+    star, planet or moon by name.
+
+- [ ] **NAV.10 Routing that scales past a few thousand systems**
+  Today `queryDb.nav_between` rebuilds the whole k-nearest-neighbour
+  graph (`navGraph.build_knn_adjacency`, k = 6, an in-memory k-d tree)
+  from every placed system on every galaxy-scope request, then runs
+  Dijkstra; no position column has an index, and nothing finds the
+  systems or bodies near a line. Done: the route search loads only the
+  systems in a corridor around the direct line (a box query on indexed
+  sector centers, widened if no route is found), or reads the stored
+  `nearest_systems` table instead of rebuilding the graph; A* with the
+  straight-line distance as its heuristic; a query that returns every
+  system, star and phenomenon within a given distance of a line segment
+  (used by NAV.6); and a measured time on a 100,000-sector database.
+  Needs a galaxy schema migration for the position indexes.
+
+  - [ ] **NAV.11 Travel times for the system-to-system route too**
+    Today warp and fold times are shown only for the direct distance;
+    the route shows only its length. Done: the route gets the same warp
+    and fold tables, per hop and in total.
+
+  - [ ] **NAV.12 A maximum hop length (open question)**
+    The route's hops are the 6 nearest neighbours, with no limit on hop
+    length, so a hop can be very long in a sparse region. Open question
+    for Boss: should a route have a maximum hop (a ship's range)?
+    Default: no limit, but the longest hop is shown.
+
+- [ ] **NAV.29 Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug)**
+  Boss (2026-10-01 21:15Z): "when navigating the "nav from and have to" buttons take you
+  to different pages, so should be replaced by "Star Here" Or "End
+  Here" and then the user goes to the next stage navigating back out
+  from where their start or end is." Today a system or phenomenon's
+  info panel on the maps offers "Nav from here" and "Nav to here"
+  (`appendNavActions` in `sectormap.js`), which jump to the NAV page's
+  own pickers and leave the map. Done: while picking a course, the panel
+  offers "Start Here" (or "End Here" once the start is set); choosing
+  it keeps the user on the map, and they pick the other end by stepping
+  back out from where the first end is (NAV.13's step out and step in)
+  and in again, without a page change. Outside pick mode the panel
+  offers the same two buttons, which start the course from that object.
+  Ties in with NAV.3, NAV.13 and NAV.15.
+
+- [ ] **NAV.30 Hide "View phenomenon" and "View system" links while picking a course (bug)**
+  Boss (2026-10-01 21:15Z): "don't show the view phenomena when navigating as it'll take
+  you out of the page." Today the info panel shows "View phenomenon →"
+  (and "View system →") in pick mode too (`sectormap.js`,
+  `galaxymap3d.js`), and following it drops the course being built.
+  Done: in pick mode the panel shows only the pick buttons (NAV.29),
+  no link that leaves the picking flow. Ties in with NAV.15.
+
+- [ ] **NAV.31 Galaxy wedges don't highlight on the navigation screens (bug)**
+  Boss (2026-10-01 21:15Z): "in the navigation screen the wedges of the galaxy do not
+  highlight at all and they should." Done: when picking a course on
+  the Galaxy Map, hovering highlights the wedge under the cursor the
+  same way the Galaxy Map does outside pick mode (MAP.52), and every
+  later stage's hover highlight works too. Ties in with NAV.32.
+
+- [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
+  Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
+  should be functional in the nav screens." Done: picking a course
+  uses the same maps with the same controls as browsing them: hover
+  highlight, wedge, slab and segment picks, zoom, rotate, the slab
+  buttons, toggles (MAP.79), breadcrumb and bookmarkable URLs; pick
+  mode only adds the Start Here and End Here buttons (NAV.29) and hides
+  the links that leave the page (NAV.30). Best done by building pick
+  mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
+  rather than as a separate copy; until then each map fix must be
+  checked in pick mode too.
+
+- [ ] **NAV.33 After picking one end of a course, stay at that zoom level (bug)**
+  Boss (2026-10-01 21:17Z): "when nevigating via the picker, when we
+  pick a start or destination first, it should keep us at that zoom
+  level and let the user zoom out to find their destination via the
+  picker." Today picking one end of a course moves the user to the NAV
+  page's own pickers, away from the map view where they picked it.
+  Done: after the first end is picked (with NAV.29's Start Here or End
+  Here, or the existing "Use as start" and "Use as destination"
+  buttons), the view stays where it was, at the same zoom level, with
+  that end marked; the user zooms or steps out from there (NAV.13) to
+  find the other end with the same picker, and the course is shown
+  once both ends are set. Ties in with NAV.3, NAV.29 and NAV.32.
 
 ## GEN: Generation and physics
 
@@ -423,6 +1070,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes removed in early September, so no old rows or tests may
   still expect those letters. Evidence: the planet class gap report
   (link in GEN.27).
+  GEN.27 and GEN.29 follow GEN.28.
+
+  - [ ] **GEN.33 One class per PR, each with its tests**
+    Suggested split: R and S (the commonest missing types) first; then
+    U, W, X, Y and Z. Each adds the class to `PLANET_CLASSES`, the
+    reference pages, the rogue flag, moon eligibility, and a
+    distribution test over 1,000 generated systems.
 
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
@@ -434,6 +1088,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated (weight 0.0001, and orbits are circular); V's composition
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
+
+- [ ] **GEN.31 A point just under layer 0's top face lands in layer 1 (bug)**
+  Found by the generation tests (TEST.4-36 work, 2026-10-01): a point
+  one float step below layer 0's top face is put in layer 1, both in
+  the Python grid code (`galaxyGeometry`, `sector_address_at`) and in
+  the map's `galaxyprisms.js`. Done: a point inside a layer's own
+  height range always maps to that layer, in Python and JavaScript
+  alike, and the strict xfail test for it passes. [MAP]
+
+- [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
+  Found by the generation tests (2026-10-01): if `generate.py plan
+  --bright-stars-down-to N` stops part way and is run again, the layers
+  it already finished get the band a second time. Done: a re-run adds
+  only the layers the interrupted run didn't finish (or starts the band
+  over cleanly), never the same stars twice, and the strict xfail test
+  for it passes.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -490,7 +1160,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (ADM.5's validator), refuse sectors that were filled meanwhile, save
   them the same way a server-side run does (names, ids, bright-star
   levels, caches and tiles invalidated), and report what was added. A
-  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  remote run appears in the job tree and job page (ADM.10, PR #294; ADM.12, PR #285) like
   a server-side one. Boss's answers (2026-10-01 19:28Z):
   - Generate and keep in memory: the local machine needs no database of
     its own.
@@ -517,6 +1187,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (ADM.13).
   - The server checks every upload and has the final say on what is
     written to the database (API.8).
+  Order: API.4, API.5 and API.6 first (version and key scopes), then
+  API.7's plan, then API.3's sub-items below with API.8 and ADM.13.
+
+  - [ ] **API.9 Key scopes**
+    `admin_api_keys` has no scope column today (every key is an admin
+    key). Done: a scope column (read, admin, upload), a control schema
+    migration; API.6's user-level keys and the upload right use it.
+
+  - [ ] **API.10 Reservations: claimed sectors and id blocks per run**
+    `id_blocks` exists (one next id per table, used by parallel
+    generation) but nothing reserves sectors. Done: a run record
+    holding its claimed sectors and id ranges until it finishes or an
+    admin clears it (ADM.13); server-side runs and other uploads skip
+    claimed sectors.
+
+  - [ ] **API.11 Staging tables**
+    Done: staging storage (a galaxy schema migration) for received
+    batches, flagged incomplete until a whole unit (a system, a sector)
+    has arrived and passed API.8's checks, then copied into the real
+    tables in one transaction.
+
+  - [ ] **API.12 The download: seed, skeleton and name state**
+    Done: a route that returns, compressed, what a local run needs
+    (galaxy seed, skeleton, filled sectors, name registries, reserved
+    id ranges), so `generate.py` needs no database.
+
+  - [ ] **API.13 Generation without a database**
+    Today `generate.py` writes through `_db` as it goes. Done: a mode
+    where the generators write to an in-memory or on-disk outbox in
+    the upload format instead; a client-side cache so an interrupted
+    run resumes and resends only what the server hasn't confirmed.
+
+  - [ ] **API.14 Upload routes, compressed, in batches**
+    Done: upload routes for gzip batches, with their own body limit
+    (separate from the 2 MB `MAX_CONTENT_LENGTH` of PR #293, from
+    API.7's plan), answering what was received and verified.
 
 - [ ] **API.4 API compatibility data in the docs**
   Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
@@ -552,9 +1258,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later granted to users) but every write route, the remote upload
   routes of API.3 above all, answers 403 for it; an admin key keeps
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
-  and TEST.44 (what an API key may do). Open question: does a
-  user-level key belong to a user account (USR.1) or stand alone until
-  user accounts exist?
+  and PR #293 (TEST.44), which already answers 403 to
+  any API key that makes keys, changes credentials or 2FA, or logs
+  out. Open question: does a user-level key belong to a user account
+  (USR.1) or stand alone until user accounts exist?
 
 - [ ] **API.7 Investigate and plan upload limits**
   Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
@@ -565,7 +1272,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client does when it hits one (wait and retry, shrink the batch).
   Measured against real sectors and the web server's own limits
   (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
-  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  `MAX_CONTENT_LENGTH`, set to 2 MB by PR #293) and the API limiter
   (`api/limiter.py`). The plan only; building the limits is a later
   item.
 
@@ -588,107 +1295,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## ADM: Admin tools
 
-- [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
-  Boss (2026-10-01): "In generation screen each section should be
-  collapsible and generate around a sector should have the option to
-  locate an existing filled sector or put in the coordinates." Today
-  the admin Generate page (`web/templates/generate.html`) shows every
-  section (Current job, One-off system, New galaxy, Generate sectors,
-  Plan the galaxy, Rebuild the bright stars, Reset) open, one after
-  another, and "around a sector" (`mode == "center"`) asks for a
-  numeric sector ID and a radius. Done: each section can be collapsed
-  and expanded (a `<details>` or a heading button, keyboard and screen
-  reader friendly); "around a sector" lets the admin either find an
-  existing filled sector (search by name or designation, or pick it on
-  the Galaxy Map or from a list) or type coordinates (a ring, layer and
-  slot address, or galaxy-frame x, y, z). Open questions: which
-  sections start open (only Current job, or the last one used,
-  remembered per browser)? Which coordinates: a sector address, a
-  position in pc or ly, or both? Does "locate" reuse the Sector Map pick
-  mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
-
-- [ ] **ADM.10 An admin page to view and manage the work queue**
-  Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
-  manage the work queue", and (19:05Z): "For the job management page I
-  want it to tell me how many worker are currently active, load in the
-  standard x / x / x format. I want cancel / retry as well as pause /
-  resume depending on what I'm doing." Today the parallel runs of
-  PERF.8 (PR #225) record themselves in the control database
-  (`work_jobs`, `work_tasks` and the one-row `work_lease`, control
-  schema v5, written by `stellarObjects/workQueue.py`), but nothing on
-  the web shows them; the Generate page's "Current job" section shows
-  only the web job runner's own job (`web/jobs.py`: a job directory
-  with `state.json`, the log, `runner.pid` and the `cancel` file).
-  Built on ADM.12's job tree. Done: an admin-only page shows, at the
-  top, how many workers are active right now and the server's load
-  average as "x / x / x" (1, 5 and 15 minutes); below it the job trees
-  (newest first, paged like every list), each node with its state,
-  title, start, end, duration, progress, tasks queued, running, done
-  and failed, and ETA, expandable from the master job down to single
-  tasks, plus the web job and log that started it and who holds the
-  lease and how stale its heartbeat is. Controls, chosen for the
-  selected node (a whole job, a subtree, or one task) and each
-  confirmed and written to the admin activity log: cancel, retry
-  (failed or cancelled nodes), pause (stop handing out that subtree's
-  tasks, finish the ones running) and resume; plus clearing a stale
-  lease whose holder is gone and deleting finished jobs. Boss
-  (2026-10-01 19:07Z): "Paused jobs go into standby and don't block
-  the queue but there is the option to pause the entire queue which
-  would lock the queue." So a paused job goes into standby and gives
-  up the lease, and other jobs can run; resuming puts it back in line.
-  Separately, "Pause the queue" holds the lease so no job starts or
-  takes tasks until the queue is resumed. Open questions: does the
-  page also show CLI runs started by hand in a terminal, and may the
-  web pause or cancel those? On Windows, which has no load average,
-  the load line shows CPU percent averaged over the same 1, 5 and 15
-  minute windows, in the same "x / x / x" form (Boss, 2026-10-01
-  19:08Z).
-
-- [ ] **ADM.11 Jobs keep running after the browser closes**
-  Boss (2026-10-01 19:03Z): "we need to make sure that generate or
-  other jobs continue even if the user closes the browser." Today a
-  web job runs in its own detached process (`web/jobs.py`
-  `_detached_options`: a new session on POSIX, a new process group
-  broken away from the server's job object on Windows), so closing the
-  page should not stop it; the one-off system page
-  (`web/system_page.py`) instead waits inside the request, since a
-  system takes about a second. Done: every long job started from the
-  web (each Generate page mode, plan, bright-star rebuild, reset,
-  admin regenerate and delete from ADM.8, population runs) is checked
-  and, where needed, changed so that it depends on no open page or
-  live request: closing the tab, losing the connection, or the browser
-  stopping its polling leaves the job running to the end, and coming
-  back to the Generate page (or ADM.10's page) shows it with its
-  progress and log. A web server restart (Apache reload, IIS recycle)
-  is checked too. A test starts a job, drops the client, and sees it
-  finish. Open question: should anything else that runs inside a
-  request for more than a few seconds move to a job?
-
-- [ ] **ADM.12 Jobs as a tree, with timing for every node**
-  Boss (2026-10-01 19:05Z): "we'll have to add a job management system,
-  main job, subjobs, etc (main job, generate bright stars, subjobs the
-  individual layers, sub-subjobs, the individual segments of the ring,
-  etc) as a tree. Same for sectors and systems. Everything has a tree
-  from the master large task at the top and the smaller tasks at the
-  bottom, timing information stored for each, so we can get accurate
-  time measurements." Today PERF.8's `work_jobs` holds one row per run
-  and `work_tasks` a flat list of that run's tasks. Done: every job is
-  a tree, from the master job (for example a plan) through subjobs
-  (generate bright stars, fill sectors) and their subjobs (one per
-  layer) down to the smallest unit (a ring segment, a sector, a star
-  system); the same shape for sector and system generation. Every node
-  stores its state, start, end and duration, and its parent's totals
-  roll up from its children, so time measurements and ETAs (PERF.3,
-  PERF.7, PERF.9) come from measured times per kind of node. Likely an
-  extension of `work_jobs`/`work_tasks` (a parent id and per-node
-  timing columns, a control schema migration) rather than new tables.
-  Cancel, retry, pause and resume (ADM.10) work on any node and its
-  subtree. Open questions: how deep the tree goes for a single system
-  (stars, planets, moons as nodes, or the system as the leaf); how
-  long finished trees are kept (today `KEEP_DAYS`), and whether their
-  timings are summarized into speed records before they are pruned;
-  whether a web job (`web/jobs.py`) becomes the root node of its tree.
-
 - [ ] **ADM.13 Incomplete uploads page**
   Boss (2026-10-01 19:32Z): "Admin will have to have a page where they
   can see incomplete uploads and clear them but reserved sectors by ID
@@ -699,9 +1305,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Clearing one, confirmed and written to the admin activity log, throws
   away its staged data and releases its sectors and id blocks; until
   then nothing else (a server-side run, another upload) may use them.
-  Part of, or linked from, the job page (ADM.10). Open question: should
+  Part of, or linked from, the job page (ADM.10, PR #294). Open question: should
   an upload with no contact for a long time be flagged as stale on the
   page?
+
+- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
+  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
+  boxes not the headings. Text boxes should all be even with each
+  other". Today each field on the admin Generate page
+  (`web/templates/generate.html`, the `field` macro inside
+  `search-fields`) puts its label above its input, and the fields flow
+  side by side, so inputs start at different heights and widths
+  wherever a label wraps or is longer. Done: down every form on the page
+  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
+  stars, Add a dimmer layer, One-off system), the text boxes share one
+  left edge and width and sit level with each other, however long their
+  labels are, at desktop and phone widths, in both themes. This includes
+  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
+  #295).
 
 ## SEC: Security
 
@@ -773,11 +1394,6 @@ clears each one.
   correct database; every step idempotent when applied twice; empty or
   gapped `schema_migrations`. [DB]
 
-- [ ] **TEST.10 Database newer than the code**
-  A galaxy or control database with a version above the code's is
-  refused with a clear message (suspected bug: `migrateDb.py` says "no
-  migration path available yet" and the app uses it anyway). [DB]
-
 - [ ] **TEST.11 Every column round-trips**
   Walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
   an insert and read back by a loader, so a new column left NULL or
@@ -822,16 +1438,6 @@ clears each one.
   (suspected bug: the one-worker path in `workQueue.submit` never calls
   `random.seed(task_seed(...))`; the parallel path does, and the only
   test compares 2 with 3). [GEN, PERF]
-
-- [ ] **TEST.20 Work queue failure paths**
-  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
-  pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
-  the control database drops mid-run, lease expiry under clock skew.
-  [PERF]
-
-- [ ] **TEST.21 Cancelling a run**
-  SIGTERM, Ctrl+C and SystemExit during a parallel run end the job as
-  cancelled, free the lease and leave no half-written sector. [PERF]
 
 - [ ] **TEST.22 Every bulk mode in parallel**
   `--shell`, `--block`, `--column`, `--center-sector`, random start and
@@ -922,128 +1528,20 @@ clears each one.
 
 ### Web, API and jobs
 
-- [ ] **TEST.40 Two admins start a job at once**
-  Exactly one job runs (suspected bug: `_take_lock` creates an empty
-  lock before writing the job id, so a second caller can read it as
-  stale, delete it and start its own job). [ADM]
-
-- [ ] **TEST.41 Job files damaged**
-  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
-  holding garbage; job id collision; unwritable jobs directory; prune
-  never removes the running job; cancel with unknown, malformed or
-  finished job ids. [ADM]
-
-- [ ] **TEST.42 Pages fresh after a CLI write**
-  After `generate.py` writes straight to the database, `/galaxy`,
-  `/sector`, tiles and lists show the new data (only API writes are
-  tested today). [UX, PERF]
-
-- [ ] **TEST.43 Auth sweep over every route**
-  Generated from `app.url_map`: every API write route gives 401 to
-  anonymous, garbage Bearer and revoked keys; every admin route gives
-  403 to an admin who must still change credentials. [SEC, API]
-
-- [ ] **TEST.44 What an API key may do**
-  Whether a Bearer key can change credentials, set up or turn off TOTP,
-  make keys, or log out, pinned to the intended answer. [SEC, API]
-
-- [ ] **TEST.45 More than one admin**
-  Admin B can't revoke admin A's key, lifting another admin's lockout is
-  audited, two admins editing the same system. [SEC, ADM]
-
-- [ ] **TEST.46 Trusted device and TOTP edge cases**
-  Expired, tampered and other-user device cookies; turning TOTP off
-  voids trust; a code reused across the API and `/login/code`; a pending
-  login that expires. [SEC]
-
-- [ ] **TEST.47 Oversized requests**
-  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
-  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
-  today). [SEC]
-
-- [ ] **TEST.48 Security headers everywhere**
-  CSP and the other headers on JSON responses, 404/405/500 pages and
-  redirects, not only pages. [SEC]
-
-- [ ] **TEST.49 Thin API routes**
-  Unknown ids, empty galaxy, paging limits and wrong-system ids for
-  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
-  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
-  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
-  `/api/systems/<id>/owner`; deleting a sector that has facilities or
-  wiki pages. [API]
-
-- [ ] **TEST.50 Galaxy URLs combined**
-  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
-  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
-  out-of-range coordinates, ambiguous names. [MAP]
-
-- [ ] **TEST.51 Page-number sweep gaps**
-  `/species?species_page=` and `/polities?polities_page=` join the
-  page-clamping sweep. [UX]
-
-- [ ] **TEST.52 Old URLs and error codes**
-  Unknown `/<name>.py`, case variants, redirect chains; 400 for
-  malformed form encoding; HEAD and OPTIONS on pages. [UX]
-
-- [ ] **TEST.53 Formatters with bad numbers**
-  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
-  and None; empty tables; huge values. [UX]
-
-- [ ] **TEST.54 Caches under threads**
-  Page cache fill and clear from real threads; two writers to the same
-  tile file. [PERF]
-
-### Browser and JavaScript
-
-- [ ] **TEST.55 Map buttons do something**
-  Playwright clicks every map control (Sector Map, System Map,
-  phenomenon diagram, Galaxy Map) and asserts the view changes. Found
-  while planning: on the phenomenon diagram, any nebula or remnant about
-  half a light-year across or larger opens already at the 1 ly zoom-out
-  limit (`phenomenonmap.py` lines 53 and 127), so "-" does nothing; this
-  test pins the UX cleanup item. [MAP, UX]
-
-- [ ] **TEST.56 No overlapping controls**
-  Playwright compares the bounding boxes of every button and control on
-  every page at 390, 600, 820 and 1280 px, both themes; no two
-  intersect, none off-screen. [UX]
-
-- [ ] **TEST.57 Galaxy Map JavaScript logic**
-  Node tests for `galaxystageview.js` (zoom, pan and tilt clamps) and
-  `galaxymap3d.js` (`sectorDesignation` BigInt packing, address form,
-  history, control handlers); neither has any test today. [MAP]
-
-- [ ] **TEST.58 Other map JavaScript**
-  Node tests for `mapzoom.js` (`zoomedBox` and its clamp),
-  `sectormap.js` and `systemmap.js` zoom and selection logic,
-  `generatejobs.js` polling, `facilityform.js`. [MAP]
-
-- [ ] **TEST.59 Galaxy Map drill-down in a browser**
-  Playwright walks quarter, layer, arc, block and sector by clicks,
-  checks the URL and breadcrumb at each step, Back/Forward, and the free
-  camera from an arc down. [MAP]
-
 ### Scripts and ops
 
-- [ ] **TEST.60 Admin script command lines**
-  `main()` tests for `queryDb`, `adminStats`, `checkRenderParity`,
-  `dedupeNames`; bad port, unknown database, empty password vs
-  environment for every script; `resetDb --yes --dry-run`;
-  `updateOrbits` with the clock moved back; `loginLockouts` with bad
-  IPv6. [OPS]
-
-- [ ] **TEST.61 SQLite import script**
-  `migrateSqliteToMysql.py` has no tests and (suspected bug) can't run:
-  it requires the SQLite file to be at today's schema version (46),
-  which no SQLite database ever was. Test it from a v12 file, or retire
-  the script. [OPS, DB]
-
-- [ ] **TEST.62 update.sh against a real database**
-  A CI job runs `update.sh` (and `install.sh`'s database step) on Linux
-  against a live database: up to date, needs migrating, newer than the
-  code, unreachable, failed migration. Today they're only
-  syntax-checked. [OPS]
+- [ ] **TEST.70 Tests for the map JavaScript**
+  Today only the pure modules (`galaxystages.js`, `galaxyprisms.js`,
+  number and distance formatting) have node tests, run from pytest; the
+  stage view, the Sector Map, the System Map and `bookmarks.js` have
+  none, and only the accessibility check drives a real browser. Done: a
+  Playwright harness (Chromium is already installed for the a11y test)
+  that loads each map against fixture data with no database, and tests
+  for what MAP.61 will move: picking, hover, keys, Back/Forward and URL
+  state, bookmarks and the scale line on the Galaxy Map and the Sector
+  Map, written before the refactor so it can't change behaviour
+  unnoticed. Builds on TEST.55 to TEST.59 (browser and JavaScript tests,
+  PR #307): reuse their harness.
 
 ## USR: User accounts
 
@@ -1162,33 +1660,13 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.5 Install and update check the log locations and say how to fix them**
-  Boss (2026-10-01 19:09Z): "make sure install and update looks for the
-  log file destination either default or configured and if it can't set
-  it up by itself it advises the user how. Either in Windows or
-  whatever OS." Today the debug log's path is `PLANETGEN_LOG_FILE`, else
-  `"log_file"` in `config.json`, else `/var/log/planetgen.log`
-  (`appconfig.log_file_path`), and the always-on activity log lives
-  under `"log_dir"` (`appconfig.activity_log_path`). On Linux,
-  `install.sh` and `update.sh` run `examples/apache/setup-debug-log.sh`,
-  which creates the debug log only when `debug` is on; on Windows,
-  `install.ps1` and `update.ps1` (`scripts/deploy-common.ps1`) create the
-  log folders under `C:\ProgramData\planetgen`; on macOS logs go to
-  `/usr/local/planetgen/log` (`scripts/deploy-common.sh`). Done: on
-  every supported OS (Linux, macOS, Windows), install and update work
-  out each log destination, the debug log and the activity log, from
-  the environment, the configured value or the default, whether or not
-  `debug` is on; check that its folder exists and that the web server's
-  user (and the CLI users' group) can write to it; create the folder and
-  set ownership and permissions when they can; and when they can't (no
-  rights, a path on a read-only or missing drive, a user that doesn't
-  exist), finish without failing and print the exact commands for that
-  OS to fix it (`mkdir`, `chown`, `chmod` or `icacls`), or how to point
-  `log_file` and `log_dir` somewhere writable. The app's own fallback
-  when the log can't be opened stays as it is. A log that can't be set
-  up only warns; it never stops the install or update (Boss, 2026-10-01
-  19:11Z).
-
+- [ ] **OPS.6 Admin scripts accept impossible `--mysql-port` values (bug)**
+  Found while building TEST.60 (PR #288): the admin scripts take
+  `--mysql-port 0`, `-1` or `70000` and only fail later with a
+  connection error, because `_db.add_mysql_connection_args` doesn't
+  range-check the port. Done: every script that takes `--mysql-port`
+  rejects anything outside 1 to 65535 with a clear argument error
+  before connecting, with a test in `test_admin_script_cli.py`.
 
 ## VIEW: The view from a planet
 

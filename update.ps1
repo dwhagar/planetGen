@@ -24,9 +24,11 @@
          30 seconds, default N; skipped with no console) to run the
          population pass, generate.py population; -Population runs it
          without asking.
-      6. The tile cache, jobs and log folders.
+      6. The tile cache, jobs and log folders. A log folder that can't be
+         made only warns.
       7. Permissions for the app's account (icacls), in case new folders
-         came in.
+         came in, then a check that it can write both logs' folders (a
+         warning with the fixing commands if not; never a stop).
       8. Imports the web app, so anything unusable fails here instead of
          as a 500.
 

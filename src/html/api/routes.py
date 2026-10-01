@@ -373,7 +373,12 @@ def health():
         "schema_version": schema_version,
         "schema_current": schema_version == _db.SCHEMA_VERSION,
     }
-    if schema_version != _db.SCHEMA_VERSION:
+    if schema_version is not None and schema_version > _db.SCHEMA_VERSION:
+        body["detail"] = (
+            f"Database schema is at v{schema_version}, newer than this code's v{_db.SCHEMA_VERSION} -- "
+            f"update planetGen (update.sh); don't run this older code's migrateDb.py against it."
+        )
+    elif schema_version != _db.SCHEMA_VERSION:
         body["detail"] = (
             f"Database schema is at v{schema_version}, code expects v{_db.SCHEMA_VERSION} -- "
             f"run migrateDb.py (or update.sh/install.sh) against this database."

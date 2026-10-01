@@ -44,7 +44,10 @@ Usage:
 """
 
 import argparse
+import sys
 from collections import defaultdict
+
+import pymysql
 
 from stellarObjects import _db
 from stellarObjects.nameUniqueness import strip_decoration
@@ -152,7 +155,11 @@ def main():
     args = parser.parse_args()
 
     config = _db.mysql_config_from_args(args)
-    counts = dedupe_names(config)
+    try:
+        counts = dedupe_names(config)
+    except (pymysql.MySQLError, _db.SchemaTooNewError) as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        sys.exit(1)
 
     total = sum(counts.values())
     if total == 0:

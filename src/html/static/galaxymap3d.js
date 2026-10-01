@@ -119,8 +119,47 @@ function sectorUrl(id) {
   return String(sceneData.sectorUrl || "").replace("{id}", encodeURIComponent(id));
 }
 
-function formatAddress(ringIndex, layerIndex, slotIndex) {
+export function formatAddress(ringIndex, layerIndex, slotIndex) {
   return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
+}
+
+// The map's control buttons (lib/galaxymap3d.py's panel), by their
+// data-action: what each does, given the map's own parts in `ctx`
+// ({stageView, setTerritories(on, button), territoriesWanted(),
+// wedgeGroup}). A button whose action isn't here does nothing.
+export function mapControlHandlers(ctx) {
+  return {
+    "territories": function (button) {
+      ctx.setTerritories(button.getAttribute("aria-pressed") !== "true", button);
+      button.setAttribute("aria-pressed", String(ctx.territoriesWanted()));
+    },
+    "generated-only": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.stageView.setGeneratedOnly(on);
+    },
+    "back": function () { ctx.stageView.travel(-1); },
+    "forward": function () { ctx.stageView.travel(1); },
+    "up": function () { ctx.stageView.up(); },
+    "reset": function () { ctx.stageView.home(); },
+    "reset-view": function () { ctx.stageView.resetView(); },
+    "wedges": function (button) {
+      ctx.wedgeGroup.visible = !ctx.wedgeGroup.visible;
+      button.setAttribute("aria-pressed", String(ctx.wedgeGroup.visible));
+    },
+  };
+}
+
+// Sends each [data-action] button's clicks to its handler.
+export function wireMapControls(controlsEl, handlers) {
+  controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
+    button.addEventListener("click", function () {
+      var handler = handlers[button.dataset.action];
+      if (handler) {
+        handler(button);
+      }
+    });
+  });
 }
 
 // --- Info panel ----------------------------------------------------------
@@ -164,7 +203,7 @@ function formatDeg(rad) {
 
 // provisional_sector_designation's hex code: ring << 33 | (layer + 4096)
 // << 20 | slot (BigInt, since it runs past 32 bits).
-function sectorDesignation(ring, layer, slot) {
+export function sectorDesignation(ring, layer, slot) {
   var packed = (BigInt(ring) << 33n) | (BigInt(layer + 4096) << 20n) | BigInt(slot);
   return packed.toString(16).toUpperCase();
 }
@@ -2188,34 +2227,12 @@ function initGalaxyMap3d(canvasEl, data) {
   if (controlsEl) {
     // Several buttons: let them wrap rather than run off the side panel.
     controlsEl.style.flexWrap = "wrap";
-    controlsEl.querySelectorAll("[data-action]").forEach(function (button) {
-      button.addEventListener("click", function () {
-        var action = button.dataset.action;
-        if (action === "territories") {
-          setTerritories(button.getAttribute("aria-pressed") !== "true", button);
-          button.setAttribute("aria-pressed", String(territoryWanted));
-          return;
-        }
-        if (action === "generated-only") {
-          var on = button.getAttribute("aria-pressed") !== "true";
-          button.setAttribute("aria-pressed", String(on));
-          stageView.setGeneratedOnly(on);
-          return;
-        }
-        if (action === "back" || action === "forward") {
-          stageView.travel(action === "back" ? -1 : 1);
-        } else if (action === "up") {
-          stageView.up();
-        } else if (action === "reset") {
-          stageView.home();
-        } else if (action === "reset-view") {
-          stageView.resetView();
-        } else if (action === "wedges") {
-          wedgeGroup.visible = !wedgeGroup.visible;
-          button.setAttribute("aria-pressed", String(wedgeGroup.visible));
-        }
-      });
-    });
+    wireMapControls(controlsEl, mapControlHandlers({
+      stageView: stageView,
+      setTerritories: setTerritories,
+      territoriesWanted: function () { return territoryWanted; },
+      wedgeGroup: wedgeGroup,
+    }));
   }
 
   // --- Scale bar -----------------------------------------------------------
