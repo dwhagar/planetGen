@@ -1,5 +1,14 @@
 # Changelog
 
+## [7.80.177] - 2026-10-01
+
+### Fixed
+
+- Galaxy Map: stars in generated sectors now show in the drill-down. A
+  generated sector's block is solid and hid the stars inside it; stars now
+  draw over the blocks, and the faintest ones are a little brighter
+  (MAP.51 follow-up).
+
 ## [7.79.177] - 2026-10-01
 
 ### Changed
