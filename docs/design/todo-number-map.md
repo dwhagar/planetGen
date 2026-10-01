@@ -470,8 +470,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | 107 (2026-10-01 05:44Z to 05:54Z) | open |
 | MAP.47 | Bright stars vanish when zoomed out (bug) | 97 (2026-10-01 05:15Z to 05:29Z) | open |
 | MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | open |
-| MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | open |
-| MAP.50 | Names run off the edge of the map (bug) | none | open |
+| MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
+| MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
