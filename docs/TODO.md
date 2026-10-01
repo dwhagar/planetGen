@@ -437,6 +437,60 @@ for a mouse; spacing and type sized with `clamp()`.
     out of order, does the ETA add up the expected work still queued
     rather than following the layer order?
 
+94. [ ] **Record generation speed across a log scale of densities.**
+    Boss (2026-10-01): "record generation stats such as time per star,
+    time per sector for a log scale of densities from 0.01 to the max
+    expected density / actual density found. ... Both of these will be
+    continued to be refined and calculated as long as the galaxy is in
+    existence but as a decaying average." Today nothing records how long
+    generation takes per star or per sector, and item 86's planned
+    stars-per-second figure is a single number for the whole server.
+    Done: density is split into log-scale buckets from 0.01 up to the
+    highest density expected or found; every sector fill adds its time
+    per star and time per sector to its density's bucket as a decaying
+    average; the buckets keep updating for as long as the galaxy exists;
+    and they can be read back by the tools below. These stats feed
+    item 86 (time estimates before bulk generation, per bucket instead
+    of one rate), item 87 (the banner's ETA), item 88 (the slow-layer
+    bar's stars-remaining ETA), item 89 (the time for a new luminosity
+    band), item 91 (the decaying-average rate) and item 93 (weighting
+    the bright-star ETA by expected work per layer). Open questions: how
+    many buckets and where their edges sit (per decade, half-decade?);
+    whether the top edge is fixed from the density model's expected
+    maximum or moves up when a denser sector is found; the decay
+    constant (how fast old runs fade); whether the plan's bright-star
+    scatter gets its own buckets (its cost per star differs from sector
+    fill); whether it lives in the control database (survives a new
+    galaxy, as item 86 suggests for stars per second) or the galaxy
+    database (resets with it), and so what a regenerate or reset does to
+    it; and whether item 92's parallel workers count wall time or CPU
+    time per task.
+
+95. [ ] **Store each sector's expected and actual density.** Boss
+    (2026-10-01): "add stats for each sector's density expected and
+    actual in the database in a way that can be easily accessed. Both of
+    these will be continued to be refined and calculated as long as the
+    galaxy is in existence but as a decaying average." Today `sectors`
+    stores only a sector's address and center; its expected density is
+    worked out on demand from the galaxy skeleton (`relative_density`
+    times `galaxy_layer`'s `expected_system_count_at_density_1`), and
+    its actual density means counting its systems. Done: every sector
+    has its expected density and its actual density (systems, and stars,
+    found when filled) stored where a query can read them directly, as
+    columns on `sectors` or a sector-stats table, readable by
+    `queryDb`, `adminStats` and the API; the galaxy-wide comparison of
+    expected against actual is kept as a decaying average and updated
+    after every fill. Item 94 places each sector in its density bucket
+    with these numbers, and items 86, 89 and 93 use the
+    expected-versus-actual ratio to correct their estimates. Open
+    questions: columns on `sectors` (a migration in the Database
+    workstream) or a separate table; whether "actual" counts systems,
+    stars, or both; what the decaying average is taken over (the ratio
+    per density bucket, so it ties in with item 94, or one galaxy-wide
+    figure); whether existing sectors are backfilled by a migration;
+    and what happens to the stats when a sector is regenerated
+    (item 60) or the galaxy is reset.
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
