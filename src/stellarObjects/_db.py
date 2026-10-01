@@ -105,15 +105,39 @@ NAMED_LOCK_TIMEOUT_S = 50
 """int: How long `Connection.lock_until_commit` waits for a named lock,
 matching InnoDB's default `innodb_lock_wait_timeout`."""
 
-CONTROL_SCHEMA_VERSION = 6
+CONTROL_SCHEMA_VERSION = 7
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
 separate schema with its own versioning. v2 added `login_throttle`
 (SEC.1, SEC.21), v5 the work queue's `work_jobs`/`work_tasks`/
 `work_lease` (PERF.8), v6 `generation_stats`/`generation_size` (PERF.3,
-PERF.10); every control-schema change so far is a new table,
-which `CREATE TABLE IF NOT EXISTS` adds to an older schema by itself."""
+PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
+on `work_lease` (ADM.12, ADM.10). New tables need nothing more than
+`CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
+added by `_add_control_columns`."""
+
+_CONTROL_COLUMNS = {
+    "work_jobs": [
+        ("parent_id", "VARCHAR(32) NULL"),
+        ("root_id", "VARCHAR(32) NULL"),
+        ("kind", "VARCHAR(32) NOT NULL DEFAULT 'queue'"),
+        ("seconds", "DOUBLE NULL"),
+        ("tasks_total", "INT UNSIGNED NULL"),
+        ("web_job_id", "VARCHAR(32) NULL"),
+        ("database_name", "VARCHAR(64) NULL"),
+        ("argv", "TEXT NULL"),
+        ("control", "VARCHAR(16) NULL"),
+    ],
+    "work_lease": [
+        ("paused", "TINYINT(1) NOT NULL DEFAULT 0"),
+        ("paused_by", "VARCHAR(64) NULL"),
+        ("paused_at", "DATETIME(6) NULL"),
+    ],
+}
+"""dict: Columns added to existing control tables after they were first
+created (v7), as `table -> [(column, definition)]`, in order. Must match
+`control_schema.sql`'s `CREATE TABLE` statements."""
 
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
 """str: Path to the DDL file applied by `_ensure_control_schema`."""
@@ -1124,6 +1148,7 @@ def _ensure_control_schema(conn):
     """
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
+    _add_control_columns(conn)
 
     row = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
     if row["v"] is None or row["v"] < CONTROL_SCHEMA_VERSION:
@@ -1132,6 +1157,33 @@ def _ensure_control_schema(conn):
         if row["v"] is not None:
             activitylog.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
+
+
+def _add_control_columns(conn):
+    """
+    Adds `_CONTROL_COLUMNS` (and the job tree's index and parent key) to
+    control tables created before them -- each only when missing, so it
+    is safe to run on every deploy, on MySQL as well as MariaDB (MySQL
+    has no `ADD COLUMN IF NOT EXISTS`).
+    """
+    def existing(sql, table):
+        return {row["name"] for row in conn.execute(sql, (table,)).fetchall()}
+
+    for table, columns in _CONTROL_COLUMNS.items():
+        have = existing("SELECT COLUMN_NAME AS name FROM information_schema.COLUMNS"
+                        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", table)
+        missing = [f"ADD COLUMN {name} {definition}" for name, definition in columns if name not in have]
+        if missing:
+            conn.execute(f"ALTER TABLE {table} {', '.join(missing)}")
+    if "idx_work_jobs_root" not in existing("SELECT INDEX_NAME AS name FROM information_schema.STATISTICS"
+                                            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", "work_jobs"):
+        conn.execute("ALTER TABLE work_jobs ADD KEY idx_work_jobs_root (root_id)")
+    if "fk_work_jobs_parent" not in existing(
+            "SELECT CONSTRAINT_NAME AS name FROM information_schema.TABLE_CONSTRAINTS"
+            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", "work_jobs"):
+        conn.execute("ALTER TABLE work_jobs ADD CONSTRAINT fk_work_jobs_parent"
+                     " FOREIGN KEY (parent_id) REFERENCES work_jobs(id) ON DELETE CASCADE")
+    conn.commit()
 
 
 def _tristate(value):
