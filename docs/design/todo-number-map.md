@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.34 |
 | GEN | GEN.34 |
 | PERF | PERF.18 |
-| DB | DB.2 |
+| DB | DB.5 |
 | API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
@@ -232,6 +232,9 @@ Sorted by old number, then date.
 | 29 | 2026-09-30 18:14Z | NAV.2 | Warp and fold speeds | done in 7.8.0, PR #121 |
 | 29 | 2026-09-30 18:39Z to 2026-10-01 00:35Z | GEN.12 | Record what sits inside a nebula | done in 7.24.0, PR #140 |
 | 30 | 2026-09-30 18:14Z | DB.1 | Starbases, colonies and outposts in the database | done in 7.35.0, PR #152 |
+| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
+| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
+| DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | open |
 | 30 | 2026-09-30 18:39Z to 2026-10-01 01:34Z | GEN.13 | Names that follow one standard | done in 7.31.0, PR #145 |
 | 31 | 2026-09-30 18:14Z | UX.5 | Place facilities from the web interface | done in 7.47.0, PR #167 |
 | 31 | 2026-09-30 18:39Z to 23:32Z | GEN.14 | Class asteroid fields | done in 7.19.0, PR #138 |

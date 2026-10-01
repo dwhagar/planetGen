@@ -1139,6 +1139,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
 
+## DB: Database and schema
+
+DB.1 shipped in 7.35.0 (PR #152).
+
+- [ ] **DB.2 Asteroid field and comet composition rows are written but never read (bug)**
+  Found by the Database tests thread (TEST.11, PR #315, 2026-10-01):
+  `asteroid_field_composition` and `interstellar_comet_composition` rows
+  are saved, but nothing reads them back, so pages show the parent's
+  `composition_summary` instead. Done: either the pages and the API read
+  these rows, or generation stops writing them and a migration drops the
+  tables. Open question: which of the two?
+
+- [ ] **DB.3 resetDb while another process holds id blocks can duplicate primary keys (bug)**
+  Found by the Database tests thread (PR #315, 2026-10-01): running
+  `resetDb` from one process while another long-lived process (the web
+  app or a generation worker) still holds cached id blocks lets the old
+  process hand out ids the reset database gives out again, so inserts
+  fail on duplicate primary keys. Done: a reset can't lead to reused
+  ids, probably by not restarting ids at 1 after a reset (or by making
+  holders drop their blocks), with a test that runs both processes.
+
+- [ ] **DB.4 A database with an emptied schema_migrations table is treated as current (bug)**
+  Found by the Database tests thread (TEST.9, PR #315, 2026-10-01): an
+  old database whose `schema_migrations` table has been emptied is
+  treated as up to date, so its migrations never run. Done: when the
+  table is empty or missing on a database that has tables, the version
+  is detected from the table shape (which tables and columns exist), the
+  needed migrations run, and a test covers it.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
