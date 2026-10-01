@@ -103,12 +103,8 @@ def schema_snapshot(config):
             foreign_keys.setdefault((row["t"], row["n"]), (row["rt"], row["ur"], row["dr"], []))[3].append(
                 (row["c"], row["rc"]))
         checks = {}
-        for row in rows("SELECT tc.TABLE_NAME AS t, cc.CHECK_CLAUSE AS cl FROM information_schema.CHECK_CONSTRAINTS cc"
-                        " JOIN information_schema.TABLE_CONSTRAINTS tc"
-                        "   ON tc.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA AND tc.CONSTRAINT_NAME = cc.CONSTRAINT_NAME"
-                        "  AND tc.CONSTRAINT_TYPE = 'CHECK'"
-                        " WHERE cc.CONSTRAINT_SCHEMA = DATABASE()"):
-            checks.setdefault(row["t"], []).append(" ".join(row["cl"].split()))
+        for row in check_constraints(conn):
+            checks.setdefault(row["t"], []).append(" ".join(row["clause"].split()))
     finally:
         conn.close()
     return {
@@ -130,3 +126,22 @@ def schema_differences(migrated, fresh):
             if have.get(key) != want.get(key):
                 lines.append(f"{part} {key}: migrated {have.get(key)!r}, fresh {want.get(key)!r}")
     return lines
+
+
+def check_constraints(conn):
+    """Every CHECK in the connected database as `{t, n, clause}` rows.
+    MariaDB names an unnamed table CHECK `CONSTRAINT_<n>` per table, so its
+    rows are matched by table (its CHECK_CONSTRAINTS has TABLE_NAME;
+    MySQL's, whose names are unique per schema, doesn't)."""
+    if "mariadb" in conn.execute("SELECT VERSION() AS v").fetchone()["v"].lower():
+        return conn.execute(
+            "SELECT TABLE_NAME AS t, CONSTRAINT_NAME AS n, CHECK_CLAUSE AS clause FROM information_schema.CHECK_CONSTRAINTS"
+            " WHERE CONSTRAINT_SCHEMA = DATABASE() ORDER BY TABLE_NAME, CONSTRAINT_NAME"
+        ).fetchall()
+    return conn.execute(
+        "SELECT tc.TABLE_NAME AS t, cc.CONSTRAINT_NAME AS n, cc.CHECK_CLAUSE AS clause"
+        " FROM information_schema.CHECK_CONSTRAINTS cc JOIN information_schema.TABLE_CONSTRAINTS tc"
+        "   ON tc.CONSTRAINT_SCHEMA = cc.CONSTRAINT_SCHEMA AND tc.CONSTRAINT_NAME = cc.CONSTRAINT_NAME"
+        "  AND tc.CONSTRAINT_TYPE = 'CHECK'"
+        " WHERE cc.CONSTRAINT_SCHEMA = DATABASE() ORDER BY tc.TABLE_NAME, cc.CONSTRAINT_NAME"
+    ).fetchall()
