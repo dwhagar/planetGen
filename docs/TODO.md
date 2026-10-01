@@ -105,12 +105,15 @@ of the SEC section.
    3. MAP.49: planet orbits drawn inside an asteroid belt on the System
       Map.
    4. MAP.50: names running off the edge of the map.
-   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   5. UX.19 (belt rows and no Zone column in the object list), UX.20
+      (scientific notation past 4 digits) and ADM.9 (the "place a
+      facility" form).
+   6. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
-      and Forward). It needs Boss's answers to MAP.17's and MAP.19's
-      open questions (what a slice and a region are) before it starts.
+      and Forward). Boss chose "Layer + arc" (2026-10-01): a slice is a
+      layer of the disk, a region an arc of the ring band in view.
 2. **Security, in this order** (login blocking first):
    1. SEC.20: log every failed and locked login with its address.
    2. SEC.1: the per-IP lockout in the control database, with SEC.21
@@ -162,6 +165,39 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
+
+- [ ] **UX.19 (bug) Asteroid belt rows in a system's object list: density, range and top minerals; no Zone column**
+  Boss (2026-10-01): "asteroid belts in the system object list should
+  just list their range, right now it says "Sparse" and "Distance" then
+  "Distance to Distance", only the "Sparse" (or whatever density) and
+  distance along with the top minerals found too should also be in the
+  row. Zone need not be in the rows for planets or moons or anything."
+  Today `html/lib/systempage.py` builds a belt's row from its density,
+  its nominal distance (`distance_km`) and then its range
+  (`lower_limit_km` to `upper_limit_km`), so the distance shows twice,
+  and every planet and moon row has a zone cell (`body.get("zone")`).
+  Done: a belt's row shows its density, its range ("2.1 AU to 3.3 AU")
+  and its top minerals (from `asteroid_belt_composition`, through the
+  existing `format_composition_summary`), and nothing else; no row in
+  the list (planets, moons, belts, comets, facilities) shows the zone;
+  the zone stays on each object's own page. Open question: how many
+  minerals count as "top"? Default: the three largest by share.
+
+- [ ] **UX.20 (bug) Scientific notation for numbers with more than 4 digits before the decimal point**
+  Boss (2026-10-01): "anything over 4 digits to the left of the decimal
+  point and it should use scientific notation." Today each page formats
+  its own numbers (`html/lib/fmt.py`'s distance formatters use `{:,}`
+  separators, `tabledisplay.py` and the templates do their own), so a
+  value like 1,234,567 km shows in full. Done: one shared number
+  formatter in Python with a JavaScript mirror (next to UX.13's and
+  UX.14's ladders, which pick units so most values stay short anyway)
+  shows any number with 5 or more digits before the decimal point as
+  scientific notation (for example 1.23 × 10⁶), on every page, map
+  panel and API text field that shows a number, with the existing call
+  sites converted. Open questions: does it cover counts (systems, stars)
+  as well as measurements? Default: yes. How many significant figures?
+  Default: 3. Exempt: IDs, years in dates, designations and raw JSON
+  numbers in the API (only display text changes).
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
@@ -1141,6 +1177,40 @@ MAP.48 and MAP.37, all fixed.
     placed facilities (DB.1), or replace everything? Does regenerating
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
+
+- [ ] **ADM.9 (bug) "Place a facility": host by placement, a log-scale orbit slider, and belt facilities that move**
+  Boss (2026-10-01): "Bugfix also in the "place a facility" Name,
+  Placement, Placement determine what is listed in Host. Orbital radii
+  is hard to understand, make this a logaritmic slider for distance
+  form the object to the edge of the sphere of influence. This control
+  should only appear if relevant, i.e. if it's in orbit aroudn
+  something, if it's on a planet, moon, asteroid,e tc... we don't need
+  that. If it's in an asteroid belt then we should pick a location in
+  the asteroid belt, assign an orbital velocity, and add it to what
+  gets updated during a position updagte." Today the system page's form
+  (`html/web/system_facilities.py`, `PLACEMENT_OPTIONS`,
+  `host_options`) lists every host whatever the placement and takes the
+  orbit as a typed distance in km or AU. Done:
+  - The form asks in this order: name, placement, then host, and the
+    host list holds only hosts that fit the placement (stars, planets
+    and moons for in orbit; planets and moons for on the surface;
+    belts for in the belt), following `facility_rules`.
+  - In orbit: the distance is a logarithmic slider from just above the
+    host's surface (or the star's) out to the edge of the host's
+    sphere of influence (Hill sphere for a planet or moon), showing the
+    distance, period and speed as it moves; the typed field goes.
+  - On a surface: no distance control.
+  - In a belt: no distance control; the facility gets a position inside
+    the belt (a random radius between its inner and outer edge and a
+    random angle) and an orbital velocity around the star from that
+    radius, stored on the facility, and `updateOrbits.py`'s
+    `advance_facility_orbits` moves it along with orbital facilities.
+  Open questions: may the admin pick where in the belt, or is it always
+  random? Default: random, with the chosen radius shown. For a star,
+  what is the outer end of the slider (the system's outermost body, or
+  the heliopause)? Default: the heliopause. Does a belt facility need a
+  migration for its position columns? (If so, it goes through the
+  Database workstream's next version.)
 
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be
