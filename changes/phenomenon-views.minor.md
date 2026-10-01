@@ -1,2 +1,0 @@
-### Added
-- Phenomenon pages show a view that suits the object: neutron stars spin with their radio beams in rough time with their real spin period (slowed, and the caption says by how much), black holes and quasars show 3D accretion disks (quasars add a dusty torus, and jets when radio-loud), rogue planets and interstellar comets are rendered bodies (a coma and tail for an active comet), and asteroid fields have no view. Nebulae and supernova remnants keep the AU-scale diagram. With reduced motion a still frame is drawn, and without JavaScript a simple drawing shows.

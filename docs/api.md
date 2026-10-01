@@ -338,6 +338,11 @@ connectivity to that specific schema rather than the default one.
   `luminosity_sol`, `temperature_k`, `star_type`, `yerkes_class`, the
   address and `system_id`. Empty when no scatter has run. `400` for a
   missing or non-integer address.
+- `GET /api/population` — `{"generated", "species", "polities",
+  "territories"}` booleans: whether a population pass has run and whether
+  any species, polity or owned system exists (all `false` on a database
+  without them). Pages that show population data hide themselves when
+  the matching flag is false (`population.population_status`).
 - `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
   dominant species of every life world, by name, paginated (see
   docs/design/population-and-politics.md). Each item has its homeworld

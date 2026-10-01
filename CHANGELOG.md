@@ -1,5 +1,102 @@
 # Changelog
 
+## [7.58.2] - 2026-10-01
+
+### Changed
+
+The population pass (species, civilizations, territories) is now optional and off by default. `generate.py sector` and `generate.py galaxy` run it after saving only with the new `--population` flag (this replaces `--no-population`). `install.sh` and `update.sh` (and `install.ps1`/`update.ps1`) ask whether to run it after the database step, defaulting to No after 30 seconds and skipping it with no terminal; `POPULATION=1` (`-Population` on Windows) runs it without asking. `generate.py population` still runs it by hand.
+
+### Added
+
+`GET /api/population` (and `population.population_status`) says whether a population pass has run and whether any species, polity or owned system exists, so the pages and the Galaxy Map's Territories button can hide themselves when there is no population data.
+
+## [7.58.1] - 2026-10-01
+
+### Changed
+- The Galaxy Map leaves out its Territories button and legend until population has made at least one polity.
+
+## [7.58.0] - 2026-10-01
+
+### Added
+- **Pick NAV endpoints on the Sector Map.** Clicking a system or phenomenon on the Sector Map now offers "Nav from here" and "Nav to here". Opening a sector with `?pick=to&from=system:12` (or `pick=from&to=...`) shows a "Choosing a destination" banner with Cancel, and each system or phenomenon offers "Use as destination" (or start), which goes straight to the plotted course.
+
+## [7.57.0] - 2026-10-01
+
+### Added
+- Phenomenon pages show a view that suits the object: neutron stars spin with their radio beams in rough time with their real spin period (slowed, and the caption says by how much), black holes and quasars show 3D accretion disks (quasars add a dusty torus, and jets when radio-loud), rogue planets and interstellar comets are rendered bodies (a coma and tail for an active comet), and asteroid fields have no view. Nebulae and supernova remnants keep the AU-scale diagram. With reduced motion a still frame is drawn, and without JavaScript a simple drawing shows.
+
+## [7.56.0] - 2026-10-01
+
+### Added
+- **Faster pages.** The web pages now keep the answers they get from the API in memory, so a repeat visit to a sector, system or list page doesn't query the database again. Any edit made through the site or the API clears it at once, sectors and systems added by generation jobs are noticed within 15 seconds, and nothing is kept longer than 5 minutes. It can be tuned or turned off with `page_cache` in `config.json` (see `docs/config.md`).
+
+## [7.55.0] - 2026-10-01
+
+### Changed
+- **A bigger Galaxy Map.** The map now spans the full width of a wider page and as much of the window's height as fits under the header, with its buttons in a row underneath (wrapping on narrow screens), the block details beside them, and the how-to text below. On a phone it stays about square so the page still scrolls past it.
+
+## [7.54.0] - 2026-10-01
+
+### Added
+
+- A Territories button on the Galaxy Map shows who holds what: each polity's reach as a soft ball of its own color around its capital, and the systems it owns as dots in that color, with a list under the map naming each polity, its government and how many systems it holds. It draws the same way at every zoom, so turning it on over the whole galaxy costs nothing.
+
+## [7.53.0] - 2026-10-01
+
+### Changed
+
+- Generate neighborhood now asks how far it should reach. The buttons on an ungenerated sector (on the Galaxy Map and the Sector Map, for an admin) take a radius in light years, between 13 and 652, and say how many sectors that covers as the number changes; past about 5,000 sectors it asks before starting. It used to be a fixed 100 light years with no warning.
+
+## [7.52.0] - 2026-10-01
+
+### Added
+
+- A plotted course can be seen on the Galaxy Map: the NAV result offers "Show on Galaxy Map", which opens the smallest view holding both ends and draws the course through its stops, each ringed and the two ends named. A course that stays inside one sector opens that sector instead.
+
+## [7.51.0] - 2026-10-01
+
+### Added
+- Bright-star queries for the web pages: `adminStats.bright_star_counts` (placed, filled and unfilled pre-placed bright stars, also in `GET /api/admin/stats` as `database.bright_stars`), `queryDb.bright_stars_in_sector` (a cell's bright stars, unfilled only by default) and an `unfilled_only` option on `queryDb.galaxy_bright_stars_in_box`.
+- `GET /api/galaxy/shape` now returns `bright_stars`: whether the bright-star scatter has run, its threshold and seed, and the default threshold (`queryDb.bright_star_scatter_status`).
+
+## [7.50.0] - 2026-10-01
+
+### Added
+
+- The Galaxy Map takes an address: a field over its path accepts a sector designation, `ring/layer/slot` (or `ring 312 layer -3 slot 1042`), `x, y, z` in parsecs, or a sector or star system name, and flies to that sector. A name with several matches lists them to pick from, and anything that can't be a sector says why.
+
+## [7.49.0] - 2026-10-01
+
+### Added
+
+Worlds with complex life now have a named dominant species, and technological civilizations have an age and an era (Industrial through Elder). Every spacefaring species founds one polity that claims the generated systems around its homeworld, out to a reach that grows with its age (up to 100 ly), so groups of systems form territories in 3D. `generate.py population` builds all of this from the stored galaxy with no regenerate; `generate.py sector`/`galaxy --population` also run it after saving. New read endpoints: `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species` and `/api/territories`. Schema v44 adds the `species`, `polities`, `system_owners` and `population_state` tables; run `update.sh` (or `migrateDb.py`), then `generate.py population` when you want it. Design: docs/design/population-and-politics.md (TODO 51-54).
+
+## [7.48.0] - 2026-10-01
+
+### Added
+- Sector Contents rows for phenomena show their octant and their three nearest star systems, linked. Systems list their nearest systems across sector boundaries, and phenomenon pages show their octant and nearest systems. `GET /api/phenomena/<type>/<id>` gains `nearest`.
+
+## [7.47.0] - 2026-10-01
+
+### Added
+- **Place facilities from the system page.** Admins can add a starbase, station, outpost, colony or mining colony to a star system: pick the star, planet, moon or asteroid belt it goes on or around, preview the orbit's distance, period and speed (worked out from the host's mass, like every other orbit) and any placement rule it breaks, then save it. Each facility can be removed again.
+- Facilities now show on the system page (in their own panel and in their host's row), as small diamonds on the System Map, and, for stand-alone ones and those on asteroid fields, in the sector page's Contents. A colony makes its world show as Inhabited.
+
+## [7.46.0] - 2026-10-01
+
+### Added
+- **Class reference pages.** A new Classes section (`/classes`) lists every kind of class the generator gives out: star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets and comets. Each type has a page listing its classes, and each class has its own page of facts, all read from the generator's own tables when the site starts, so they always match what it generates.
+- Class labels now link to these pages: a star's type and a planet's or comet's class on the system page, and the class of a nebula, supernova remnant, asteroid field, black hole or rogue planet on its phenomenon page.
+
+## [7.45.0] - 2026-10-01
+
+### Added
+- **Bright stars on the Generate page.** Planning a galaxy (on its own or as part of a new galaxy) now shows the bright-star scatter as its own step, with its progress bar and the number of stars it placed. A "Skip the bright-star scatter" box leaves it out, and a new "Rebuild the bright stars" form scatters them again on the current plan, optionally leaving already generated sectors out.
+- The admin Stats page shows about how many bright stars have been placed.
+
+### Changed
+- **Sector Map stars stay small and glow by brightness.** Every star is now a small point, and how bright it is shows in its glow: a supergiant has a big soft halo, the Sun a modest one, and a white dwarf is a tiny dot with almost none. Stars are still easy to click.
+
 ## [7.44.0] - 2026-10-01
 
 ### Added

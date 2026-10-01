@@ -32,6 +32,14 @@ def _spacefaring_filter(raw):
     raise ApiError(f"spacefaring must be true or false, got {raw!r}")
 
 
+@bp.route("/population")
+def population_status():
+    """`GET /api/population` -- `{generated, species, polities,
+    territories}` booleans: which population data exists, so pages can
+    hide themselves when there is none."""
+    return jsonify(population.population_status(get_db()))
+
+
 @bp.route("/species")
 def species_list():
     """`GET /api/species` -- a page of species by name; `?spacefaring=`
