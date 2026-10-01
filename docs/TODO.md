@@ -635,6 +635,38 @@ for a mouse; spacing and type sized with `clamp()`.
     (item 60) or the galaxy is reset.
 
 
+104. [ ] **Bug: rogue planets (and maybe other objects) drawn outside
+    the sector's wireframe.** Boss (2026-10-01): "rogue planets (and
+    probably other objects) are shown outside the wireframe of the
+    sector, so one of them is wrong. when you tackle this one, do a test
+    where the rogue planets are a bright color and the background a dark
+    color so you can see the distance. This is at the sector level".
+    On the Sector Map (`html/lib/starmap.py`, `static/sectormap.js`) the
+    wireframe is the sector's cylindrical grid cell (`_outline_data`),
+    and the phenomena come from `queryDb.phenomena_near_sector`. Leads
+    to check, not yet confirmed: that query takes every phenomenon whose
+    sphere reaches the sector's bounding sphere (sized for the old cube,
+    `edge_pc * sqrt(3) / 2`) plus every one generated with this
+    sector "wherever it sits", so some outside points may be expected
+    neighbors; or the phenomena's positions and the wireframe use
+    different frames (the cell is rotated to the galaxy frame, and
+    phenomena positions are galaxy-placed). Done: find which side is
+    wrong (the wireframe, the object positions, or which objects are
+    picked) and fix it, so every object generated in a sector is drawn
+    inside its wireframe and anything shown from a neighboring sector
+    reads as outside on purpose; check every phenomenon type and the
+    star systems, not just rogue planets. As Boss asks, the fix includes
+    a visual test that draws the rogue planets in a bright color on a
+    dark background so the distance past the boundary is easy to see,
+    plus an automated check that a sector's own objects fall inside its
+    cell (`galaxyGeometry`'s `sector_address_at` giving back the
+    sector's own address). Open questions: should nearby phenomena from
+    other sectors still be drawn (they are on purpose today, per the
+    map's hint "near this sector"), and if so, how are they told apart
+    from the sector's own (dimmer, outside-only, or a toggle)? If the
+    stored positions turn out wrong, do existing galaxies need a
+    migration or a regenerate?
+
 ### Star population (from the galaxy studies of 2026-09-30)
 
 The random star model (mass from the Kroupa IMF, an age, then evolution:
