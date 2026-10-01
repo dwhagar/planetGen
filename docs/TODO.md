@@ -679,6 +679,65 @@ invite links too.
     item 80's category IDs so the docs are tagged once? Best done after
     item 81, which gives the map to hang them on.
 
+### View from a planet (Boss's notes of 2026-10-01)
+
+**Research first.** Boss: "view-from-planet will have to do calculations
+on colors and A LOT Of stuff, so make special note of that, it will need
+a full research pass." Before any code for items 83-84, Boss wants a
+research session with him "into exactly how one would do that". Items 83
+and 84 are blocked on it; item 85 is not.
+
+83. [ ] **A starmap seen from a planet. RESEARCH WITH BOSS FIRST.** Boss:
+    "Build a function to select a planet and generate an effective starmap
+    from that planet based on all visible stars, this will have to include
+    a lot, A LOT, of math so remind me to do research when we get there
+    into exactly how one would do that, but it would have to account for
+    where each star would have been at that light years back in time?"
+    Done: pick a planet (or moon), and get every star visible from it
+    with its direction and brightness as seen there, placed where it was
+    when the light now arriving left it (light-travel time back along
+    its galactic orbit; the correlative update now moves everything along
+    galactic orbits, TODO 32, PR #157). The research pass covers at least:
+    - which stars are visible (apparent magnitude from luminosity and
+      distance, a magnitude cut, interstellar extinction and reddening by
+      dust, and whether stars beyond the generated sectors are included,
+      for example from the density skeleton or the `bright_stars` table
+      from PR #159);
+    - star colors as seen from the planet (colour from temperature,
+      reddening, the planet's atmosphere and its own star's glare; Boss
+      singled out colors as needing real work);
+    - light-time positions (the star's position at "now minus distance /
+      c" along its galactic orbit), and where the planet is in its own
+      orbit and its sky orientation (axial tilt, rotation, latitude);
+    - nebulae, the galactic band, the companion stars of the planet's own
+      system, and performance (millions of stars per view).
+
+84. [ ] **Render the view as a PNG, with constellations.** Boss: "when
+    it does that it will generate a PNG and it will generate
+    constellations." Done: item 83's view is drawn to a PNG (a sky
+    projection, star size and colour by apparent brightness), and the
+    brighter stars are grouped into constellations with lines and names
+    from item 85, stored so a planet keeps the same constellations each
+    time. Blocked on item 83's research pass. Open questions: whole-sky
+    or a horizon view from a point on the surface? How are constellations
+    chosen (bright-star patterns, by clustering, a set number per sky)?
+    Are the PNGs cached on disk and served by the web interface, or made
+    on request?
+
+85. [ ] **Constellation names in the name generator.** Boss: "add to our
+    name generator constellation name support based on constellation
+    names throughout all known languages and then slice it up like we do
+    for all our naming". Done: a constellation name list in
+    `stellarObjects/names.py` gathered from constellation and star-group
+    names across the world's languages and sky cultures (not just the 88
+    IAU ones), and a constellation name generator that slices and
+    recombines them into new names the same way stars, planets and
+    sectors are named (`split_into_syllables` in `utils.py`, the
+    prefix/suffix lists, the `offensive_words.txt` filter). Used by item
+    84. Open questions: what counts as a source list (licensing of sky
+    culture data such as Stellarium's), transliteration of non-Latin
+    scripts, and whether names are unique per planet or galaxy-wide.
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
