@@ -902,11 +902,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // How many sectors a side the drawn blocks are.
   var drawnSectorsPerPrism = 1;
 
-  // TODO(galaxy-map #19): this is per CSS pixel. The block size (#13)
-  // should stay per CSS pixel (it is about what a person can see and
-  // click), but say so in the readout's code.
   // Parsecs per screen pixel at the view's focus (the orbit target), for
-  // the camera at orbit radius `radius` (default: where it is).
+  // the camera at orbit radius `radius` (default: where it is). Per CSS
+  // pixel, on purpose, not per device pixel: the block size (a block at
+  // least blockMinPx across) and the scale readout's "1 px" are about what
+  // a person can see and click, which is the same on a 2x phone screen as
+  // on a 1x monitor. The renderer draws at up to 2 device pixels per CSS
+  // pixel (setPixelRatio) for sharpness only, and the bright stars' sizes
+  // are CSS pixels too (scaled by pixelRatio in their shader).
   function pcPerPixelAtTarget(radius) {
     var heightPx = canvasEl.clientHeight || 1;
     return ((radius || orbit.radius) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
