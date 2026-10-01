@@ -1963,10 +1963,19 @@ def _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed):
     addresses = [address for address in _block_addresses(block) if bounds.contains(address[0], address[1])]
     filled = _db.get_occupied_addresses(conn, {address[0] for address in addresses})
     rng = random.Random(f"{seed}:{block.ring}:{block.wedge}:{block.slab}:{floor:g}:{ceiling}")
+    unfilled = [address for address in addresses if address not in filled]
     rows = list(brightStars.backfill_cells(
-        skeleton.shape, [address for address in addresses if address not in filled], skeleton.edge_pc,
+        skeleton.shape, unfilled, skeleton.edge_pc,
         skeleton.expected_system_count_at_density_1, floor, ceiling, rng,
     ))
+    if ceiling is None:
+        # No finished scatter and no level here yet: any unbuilt star in
+        # these cells is left over from a scatter that failed before it
+        # recorded its threshold (TEST.25). This draw has no ceiling, so
+        # keeping them would place those stars twice.
+        for address in unfilled:
+            conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
+                         " AND ring_slot_index = ? AND star_system_id IS NULL", address)
     _db.insert_bright_stars(conn, rows)
     _db.set_bright_star_block_level(conn, block, floor)
     return rows
