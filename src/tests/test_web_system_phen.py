@@ -551,6 +551,10 @@ def test_real_phenomena_list_and_detail(db_app, mysql_config):
         # real row's fields.
         assert 'id="phenomrender"' in page
         assert "Galactic Orbital Speed" in page
+        # UX.15: the view and the data panel share one row, which sits
+        # side by side when there's room (static/style.css).
+        row = page.index('class="object-view-row"')
+        assert row < page.index('id="phenomrender"') < page.index('id="phenomenon-data-heading"')
 
 
 def test_real_admin_upload_without_wiki_config(db_app, mysql_config):
