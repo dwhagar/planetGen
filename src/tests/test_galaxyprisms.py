@@ -381,3 +381,33 @@ console.log(JSON.stringify(P.blocksInView({json.dumps(center)}, {view_radius}, 1
     for ring, layer in candidates:
         qualifies = bound_relative_density_at(SHAPE, (ring + 0.5) * EDGE_PC, layer * EDGE_PC) >= threshold
         assert ((ring, layer) in drawn) == qualifies
+
+
+@pytest.mark.parametrize("m", [1, 3, 27])
+def test_block_address_and_block_at_match_the_listing(m):
+    """blockAddressAt puts each listed block's own middle in that block,
+    blockAt rebuilds it exactly, and at m = 1 the block holding a sector's
+    center is that sector (the page sums filled sectors this way)."""
+    out = _run(f"""
+const blocks = P.blocksInView([8000, 0, 0], 60 * {m}, {m}, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, null, {{surfaceOnly: false}});
+const checked = blocks.filter((b, n) => n % 7 === 0).map(b => {{
+  const r = (b.r0 + b.r1) / 2, t = (b.t0 + b.t1) / 2, z = (b.z0 + b.z1) / 2;
+  const a = P.blockAddressAt(r * Math.cos(t), r * Math.sin(t), z, {m}, {EDGE_PC});
+  return {{b, a, again: P.blockAt(b.ring, b.seg, b.slab, {m}, {EDGE_PC}, shape, null)}};
+}});
+const sectors = [[2000, 0, 5], [3, -2, 1], [0, 0, 2]].map(([ring, layer, slot]) => {{
+  const c = P.cellCoordinates(P.sectorCellBounds(ring, layer, slot, {EDGE_PC})).cartesian;
+  return [[ring, layer, slot], P.blockAddressAt(...c, 1, {EDGE_PC})];
+}});
+console.log(JSON.stringify({{checked, sectors, bare: P.blockAt(4, 1, 0, {m}, {EDGE_PC}, null, null)}}));
+""")
+    assert out["checked"]
+    for entry in out["checked"]:
+        block, address, again = entry["b"], entry["a"], entry["again"]
+        assert (address["ring"], address["seg"], address["slab"]) == (block["ring"], block["seg"], block["slab"])
+        for field in ("r0", "r1", "t0", "t1", "z0", "z1", "density", "meanDensity"):
+            assert again[field] == pytest.approx(block[field], rel=1e-12, abs=1e-12)
+    if m == 1:
+        for (ring, layer, slot), address in out["sectors"]:
+            assert (address["ring"], address["slab"], address["seg"]) == (ring, layer, slot)
+    assert out["bare"]["density"] is None

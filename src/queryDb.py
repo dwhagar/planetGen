@@ -1780,6 +1780,18 @@ generated 100 ly sphere as a core-facing bowl, cut off flat where the cap
 ran out. A fully generated tile can hold thousands of sectors, so this
 isn't only a far-zoomed-out case."""
 
+GALAXY_TILE_FILLED_SCALE = 2048
+"""int: A tile's filled-sector summary (`galaxy_filled_in_box`) groups
+sectors into cells at most `tile edge / GALAXY_TILE_FILLED_SCALE` across.
+The map fetches tiles one to two view radii across (1.6 orbit radii) and
+never draws blocks narrower than 4 pixels, so on any screen up to about
+2,000 pixels tall a cell is never bigger than the blocks the map draws
+with that tile, and nests inside them."""
+
+GALAXY_TILE_MAX_FILLED_CELLS = 5000
+"""int: Most cells one tile's filled summary lists. Past this the cells
+grow three times bigger until they fit."""
+
 MAX_TILES_PER_REQUEST = 128
 """int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
 needs at most 27 view tiles plus about 64 planned tiles at once."""
@@ -1862,12 +1874,94 @@ def _placed_sector_entry(r, system_count):
     }
 
 
-# TODO(galaxy-map #15): the map needs filled-sector counts per mega-block.
-# Tiles already carry every placed sector's (ring, layer, slot), so the
-# browser can count them itself. Once tiles are too coarse to list every
-# sector (a zoomed-out view), return per-block totals here instead: GROUP
-# BY ring_index DIV m, layer bucket, master-wedge bucket, for the m the
-# client asks for, served from the same tile cache.
+def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_TILE_MAX_FILLED_CELLS):
+    """
+    Every placed sector whose center lies in the half-open box `[lo, hi)`,
+    counted into cells the Galaxy Map sums into its blocks
+    (`static/galaxymap3d.js`): unlike a tile's `placed` list, nothing is
+    left out, so a block's filled count is right at every zoom.
+
+    Cells are `g` sectors a side, `g` a power of 3 (see
+    `GALAXY_TILE_FILLED_SCALE`), laid out like the map's blocks: cell ring
+    `I` is sector rings `I*g .. I*g + g - 1`, cell layer `S` is sector
+    layers `S*g - (g-1)/2 .. S*g + (g-1)/2`, and a cell ring has
+    `max(3, round(2 pi (I + 1/2)))` equal wedges counterclockwise from +X,
+    each holding the sectors whose center angle falls in it. At `g = 1` a
+    cell is one sector, listed with its id, name and system count.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        tile_edge_pc (float): The tile's edge (sets the cell size).
+        edge_pc (float): The sector edge.
+        max_cells (int): See `GALAXY_TILE_MAX_FILLED_CELLS`.
+
+    Returns:
+        dict: `g` and `cells`: at `g = 1`, `[ring, layer, slot, id,
+            system_count, name]` per sector; otherwise `[ring, layer,
+            wedge, count]` per cell with any placed sector, in cell units.
+    """
+    g = 1
+    while g * 3 * edge_pc <= tile_edge_pc / GALAXY_TILE_FILLED_SCALE:
+        g *= 3
+    box = (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2])
+    where = (
+        "center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? AND center_y_pc < ? "
+        "AND center_z_pc >= ? AND center_z_pc < ? AND ring_index IS NOT NULL"
+    )
+    if g == 1:
+        rows = conn.execute(
+            f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {where} "
+            f"ORDER BY id LIMIT ?",
+            box + (max_cells + 1,),
+        ).fetchall()
+        if len(rows) <= max_cells:
+            counts = {}
+            if rows:
+                ids = [r["id"] for r in rows]
+                placeholders = ", ".join("?" for _ in ids)
+                counts = {
+                    c["sector_id"]: c["system_count"]
+                    for c in conn.execute(
+                        f"SELECT sector_id, COUNT(*) AS system_count FROM star_systems "
+                        f"WHERE sector_id IN ({placeholders}) GROUP BY sector_id",
+                        ids,
+                    ).fetchall()
+                }
+            return {"g": 1, "cells": [
+                [r["ring_index"], r["layer_index"], r["ring_slot_index"], r["id"], counts.get(r["id"], 0), r["name"]]
+                for r in rows
+            ]}
+        g = 3
+    while True:
+        half = (g - 1) // 2
+        rows = conn.execute(
+            f"""
+            SELECT cell_ring, cell_layer,
+                   FLOOR(MOD(ATAN2(center_y_pc, center_x_pc) + 2 * PI(), 2 * PI()) / (2 * PI())
+                         * GREATEST(3, ROUND(2 * PI() * (cell_ring + 0.5)))) AS cell_wedge,
+                   COUNT(*) AS n
+            FROM (
+                SELECT FLOOR(ring_index / ?) AS cell_ring, FLOOR((layer_index + ?) / ?) AS cell_layer,
+                       center_x_pc, center_y_pc
+                FROM sectors WHERE {where}
+            ) placed
+            GROUP BY cell_ring, cell_layer, cell_wedge
+            LIMIT ?
+            """,
+            (g, half, g) + box + (max_cells + 1,),
+        ).fetchall()
+        if len(rows) <= max_cells:
+            wedges = lambda ring: max(3, round(2 * math.pi * (ring + 0.5)))  # noqa: E731
+            return {"g": g, "cells": [
+                [int(r["cell_ring"]), int(r["cell_layer"]),
+                 min(int(r["cell_wedge"]), wedges(int(r["cell_ring"])) - 1), int(r["n"])]
+                for r in rows
+            ]}
+        g *= 3
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -1882,8 +1976,10 @@ def galaxy_tiles(conn, tile_keys):
             `MAX_TILES_PER_REQUEST`.
 
     Returns:
-        dict: `tiles` (`{key: {"placed": [...], "planned": [...]}}`, see
-            `galaxy_sectors_in_box`/`galaxyViewport.planned_slots_in_tile`),
+        dict: `tiles` (`{key: {"placed": [...], "planned": [...],
+            "filled": {...}}}`, see `galaxy_sectors_in_box`,
+            `galaxyViewport.planned_slots_in_tile` and
+            `galaxy_filled_in_box`),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -1914,7 +2010,8 @@ def galaxy_tiles(conn, tile_keys):
         planned = planned_slots_in_tile(
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses,
         )
-        tiles[key] = {"placed": placed, "planned": planned}
+        filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
+        tiles[key] = {"placed": placed, "planned": planned, "filled": filled}
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

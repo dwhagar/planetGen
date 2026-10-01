@@ -360,7 +360,7 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
             keys its own cache by the generation), `history` (only when
             `known_stamp` isn't current: the changed tiles the browser
             hasn't seen, see `_stale_since`), `tiles` (`{key: {"placed",
-            "planned"}}`), `edge_pc`, `has_shape`, and `cached` (how many of the
+            "planned", "filled"}}`), `edge_pc`, `has_shape`, and `cached` (how many of the
             requested parts came from disk -- for diagnostics).
 
     Raises:
