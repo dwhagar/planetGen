@@ -170,7 +170,8 @@ def test_stored_and_backfilled_by_the_v48_migration(mysql_config):
         row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
     finally:
         conn.close()
-    expected = rs.rogue_surface_conditions(planet.mass_kg, planet.radius_km, 't', "sub-neptune", planet.has_moons,
+    expected = rs.rogue_surface_conditions(planet.mass_kg, planet.radius_km, planet.planet_type, "sub-neptune",
+                                           planet.has_moons,
                                            random.Random(name))
     assert row["surface_regime"] == expected["surface_regime"]
     assert row["age_gy"] == pytest.approx(expected["age_gy"])
