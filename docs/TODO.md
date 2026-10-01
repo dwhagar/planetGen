@@ -134,6 +134,23 @@ lot with a much higher contrast."
     filled sectors gets the filled look; and whether it follows the
     light and dark themes and keeps enough contrast in both.
 
+110. [ ] **Bug: wedge lines and ring circles run far past a zoomed-in
+    block.** Boss (2026-10-01): "when zoomed in to a sector block it the
+    radial lines should only be contained within the block and just a
+    little beyond, and that should also be cylindar boundaries about the
+    same." Today the wedge lines (`galaxymap3d.js`, `updateWedgeLevels`
+    and `clipWedgeLevel`) are clipped only to the view ball around the
+    camera's target, so when the drill-down (items 70-72) is zoomed in to
+    a block they still run across the whole view, and the cylinder
+    (ring) boundaries do the same. Done: zoomed in to a block, the wedge
+    lines and the ring boundaries are drawn only across that block and a
+    small margin past its edges, at every drill-down stage; zoomed out,
+    item 96's rule (stop at the galaxy's edge) applies. Open questions:
+    how big "a little beyond" is (a fixed fraction of the block, such as
+    10-20%, or a few pixels on screen)? Do the lines fade out across the
+    margin or stop sharply? Does the same apply to the 3D stages while
+    item 100 still has them, or only to the top-down ones?
+
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
 Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
