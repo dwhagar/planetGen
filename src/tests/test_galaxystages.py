@@ -129,11 +129,12 @@ console.log(JSON.stringify({bad, blocks, sum, total: S.drillBlockTotal(at, outli
 
 
 @pytest.mark.parametrize("stage", [
-    {"at": None, "slab": None},
-    {"at": None, "slab": 0},
-    {"at": {"m": 243, "ring": 1, "wedge": 2, "slab": 0}, "slab": None},
-    {"at": {"m": 27, "ring": 14, "wedge": 30, "slab": -1}, "slab": 0},
-    {"at": {"m": 3, "ring": 130, "wedge": 500, "slab": 2}, "slab": 7},
+    {"at": None, "picks": []},
+    {"at": None, "picks": [{"kind": "quadrant", "n": 1}, {"kind": "layer", "lo": -4, "hi": -2}]},
+    {"at": {"m": 243, "ring": 1, "wedge": 2, "slab": 0}, "picks": []},
+    {"at": {"m": 27, "ring": 14, "wedge": 30, "slab": -1}, "picks": [{"kind": "layer", "lo": 0, "hi": 0},
+                                                                     {"kind": "region", "n": 4}]},
+    {"at": {"m": 3, "ring": 130, "wedge": 500, "slab": 2}, "picks": [{"kind": "layer", "lo": 7, "hi": 7}]},
 ])
 def test_stage_urls_round_trip(stage):
     out = _run(f"""
@@ -146,54 +147,99 @@ console.log(JSON.stringify({{query, parsed, same: S.sameStage(parsed.stage, stag
     assert out["parsed"]["problem"] is None
 
 
-@pytest.mark.parametrize("query", ["?at=5.1.1.0", "?at=junk", "?slab=x", "?sector=ZZZ"])
+def test_an_older_slab_link_reads_as_a_layer_pick():
+    out = _run('console.log(JSON.stringify(S.parseStageQuery("?at=27.14.30.-1&slab=2")));')
+    assert out["stage"]["picks"] == [{"kind": "layer", "lo": 2, "hi": 2}]
+    assert out["problem"] is None
+
+
+@pytest.mark.parametrize("query", ["?at=5.1.1.0", "?at=junk", "?slab=x", "?sector=ZZZ", "?p=x9"])
 def test_malformed_urls_open_the_galaxy_with_a_reason(query):
     out = _run(f"console.log(JSON.stringify(S.parseStageQuery({json.dumps(query)})));")
-    assert out["stage"] == {"at": None, "slab": None}
+    assert out["stage"] == {"at": None, "picks": []}
     assert out["problem"]
 
 
-def test_a_block_outside_the_galaxy_is_refused():
+def test_a_block_or_pick_outside_the_galaxy_is_refused():
     out = _run("""
-const far = {m: 243, ring: outline.maxRing, wedge: 0, slab: 0};
 const high = {m: 3, ring: 300, wedge: 0, slab: 400};
-console.log(JSON.stringify([S.validStage({at: high, slab: null}, outline, edge),
-  S.validStage({at: null, slab: 99}, outline, edge), S.validStage({at: null, slab: 0}, outline, edge)]));
+console.log(JSON.stringify([
+  S.resolveStage({at: high, picks: []}, outline, edge).problem,
+  S.resolveStage({at: null, picks: [{kind: "quadrant", n: 9}]}, outline, edge).problem,
+  S.resolveStage({at: null, picks: [{kind: "quadrant", n: 1}, {kind: "layer", lo: 400, hi: 401}]}, outline, edge).problem,
+  S.resolveStage({at: null, picks: [{kind: "quadrant", n: 1}]}, outline, edge).problem]));
 """)
     assert out[0] and "outside" in out[0]
-    assert out[1] and "empty" in out[1]
-    assert out[2] is None
+    assert out[1] and "no quadrant" in out[1]
+    assert out[2] and "no layer" in out[2]
+    assert out[3] is None
 
 
-def test_a_sector_far_outside_the_galaxy_parses_but_is_refused():
+def test_a_sector_far_outside_the_galaxy_parses_but_has_no_stage():
     out = _run("""
 const parsed = S.parseStageQuery("?sector=FFFFFFFFFFFFFFFF");
-console.log(JSON.stringify(S.validStage(parsed.stage, outline, edge)));
+const s = parsed.sector;
+console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.ring, s.layer, s.slot, outline, edge) : "none"}));
 """)
-    assert "outside" in out
+    assert out["sector"]
+    assert out["stage"] is None
+
+
+def test_the_ladder_is_quarter_then_layer_then_arc():
+    """MAP.17/MAP.19 (Boss's "Layer + arc"): the galaxy offers four
+    quarters, then a layer (at most three choices, lowest first), then an
+    arc of the ring band in view (at most a 3 by 3 grid, each arc a third
+    of the view), and the choices together hold every block in view."""
+    out = _run("""
+const top = S.settleStage({at: null, picks: []}, outline, edge);
+const quarter = S.settleStage({at: null, picks: [top.options[1].pick]}, outline, edge);
+const layer = S.settleStage({at: null, picks: [top.options[1].pick, quarter.options[1].pick]}, outline, edge);
+const covers = r => r.options.reduce((n, o) => n + o.blocks.length, 0) === r.view.blocks.length;
+const span = r => r.view.a1 - r.view.a0;
+console.log(JSON.stringify({
+  top: [top.kind, top.options.length, covers(top)],
+  quarter: [quarter.kind, quarter.options.length, covers(quarter), span(quarter)],
+  layers: quarter.options.map(o => [o.pick.lo, o.pick.hi]),
+  layer: [layer.kind, layer.options.length, covers(layer), span(layer)],
+  arcs: layer.options.map(o => (o.a1 - o.a0) / span(layer)),
+}));
+""")
+    assert out["top"] == ["quadrant", 4, True]
+    kind, count, covers, quarter_span = out["quarter"]
+    assert kind == "layer" and 2 <= count <= 3 and covers
+    assert quarter_span == pytest.approx(math.pi / 2)
+    los = [lo for lo, _hi in out["layers"]]
+    assert los == sorted(los)
+    kind, count, covers, _span = out["layer"]
+    assert kind == "region" and 2 <= count <= 9 and covers
+    assert all(share == pytest.approx(1 / 3) for share in out["arcs"])
 
 
 def test_sector_links_open_the_layer_that_shows_the_sector():
+    """MAP.26: a sector opens among its own layer's neighbours, at the
+    sector level of the slice holding it."""
     out = _run("""
 const ring = 1705, layer = -20, slot = 3225;
 const code = S.sectorDesignation(ring, layer, slot);
 const parsed = S.parseStageQuery("?sector=" + code);
-const children = S.stageChildren(parsed.stage.at, outline, edge)
-  .filter(g => g.slab === parsed.stage.slab)
-  .flatMap(g => g.blocks)
-  .some(b => b.ring === ring && b.wedge === slot && b.slab === layer);
-console.log(JSON.stringify({code, back: S.parseSectorDesignation(code), parsed, children,
-  number: S.stageNumber(parsed.stage), crumbs: S.crumbs(parsed.stage).map(c => c.label)}));
+const stage = S.sectorStage(ring, layer, slot, outline, edge);
+const r = S.resolveStage(stage, outline, edge);
+const kinds = stage.picks.map(p => p.kind);
+console.log(JSON.stringify({code, back: S.parseSectorDesignation(code), parsed, at: stage.at, kinds,
+  sectors: r.view.blocks.every(b => b.m === 1 && b.slab === layer),
+  holds: r.view.blocks.some(b => b.ring === ring && b.wedge === slot),
+  crumbs: S.crumbs(stage, outline, edge).map(c => c.label)}));
 """)
     assert out["back"] == {"ring": 1705, "layer": -20, "slot": 3225}
     assert out["parsed"]["sector"] == out["back"]
-    assert out["number"] == 8
-    assert out["children"]
+    assert out["parsed"]["stage"] == {"at": None, "picks": []}
+    assert out["at"]["m"] == 3
+    assert out["kinds"][-1] == "layer"
+    assert out["sectors"] and out["holds"]
     crumbs = out["crumbs"]
-    assert len(crumbs) == 8
     assert crumbs[0] == "Galaxy"
+    assert crumbs[1].startswith("Quarter ")
     assert crumbs[-1] == "Layer -20"
-    assert crumbs[1].startswith("Slab ") and crumbs[2].startswith("Block ")
 
 
 @pytest.mark.parametrize("text, expected", [
@@ -237,46 +283,54 @@ def test_the_address_bar_tells_names_from_bad_addresses(text, kind):
 
 def test_parent_stages_walk_back_to_the_galaxy():
     out = _run("""
-const stage = S.sectorStage(900, 4, 2000);
-const chain = S.stageChain(stage);
-console.log(JSON.stringify({numbers: chain.map(S.stageNumber), top: S.parentStage({at: null, slab: null})}));
+let stage = S.sectorStage(900, 4, 2000, outline, edge);
+const crumbs = S.crumbs(stage, outline, edge).length;
+let steps = 0;
+let repeated = false;
+for (let parent = S.parentStage(stage, outline, edge); parent; parent = S.parentStage(stage, outline, edge)) {
+  repeated = repeated || S.sameStage(parent, stage);
+  stage = parent;
+  steps++;
+  if (steps > 50) break;
+}
+const top = S.settleStage({at: null, picks: []}, outline, edge).stage;
+console.log(JSON.stringify({steps, crumbs, repeated, last: stage, top}));
 """)
-    assert out["numbers"] == [1, 2, 3, 4, 5, 6, 7, 8]
-    assert out["top"] is None
+    assert not out["repeated"]
+    assert out["steps"] == out["crumbs"] - 1
+    assert out["last"] == out["top"]
 
 
 def test_the_course_stage_is_the_smallest_one_holding_every_stop():
     """courseStage (section 9.4) climbs only as far as it must: the same
-    sector stays at stage 8, neighbours share their block, and stops
-    across the galaxy fall back to a galaxy slab or the galaxy."""
+    sector stays at its layer's sector level, neighbours share a stage
+    that holds both, and stops across the galaxy fall back toward the
+    galaxy."""
     out = _run("""
 const home = {ring: 1705, layer: -20, slot: 3225};
 const near = {ring: 1706, layer: -20, slot: 3226};
 const core = {ring: 5, layer: 0, slot: 1};
 const high = {ring: 5, layer: 900, slot: 1};
+const holds = (stage, s) => S.resolveStage(stage, outline, edge).view.blocks.some(b => {
+  const chain = P.drillChainOf(s.ring, s.layer, s.slot);
+  return b.m === 1 ? b.ring === s.ring && b.wedge === s.slot && b.slab === s.layer : chain.some(c => S.sameBlock(c, b));
+});
+const nearStage = S.courseStage([home, near], outline, edge);
 console.log(JSON.stringify({
-  same: S.courseStage([home, home]),
-  sameNumber: S.stageNumber(S.courseStage([home, home])),
-  near: S.courseStage([home, near]),
-  nearNumber: S.stageNumber(S.courseStage([home, near])),
-  far: S.courseStage([home, core]),
-  farNumber: S.stageNumber(S.courseStage([home, core])),
-  apart: S.courseStage([core, high]),
-  none: S.courseStage([]),
-  holds: S.stageChildren(S.courseStage([home, near]).at, outline, edge)
-    .filter(g => g.slab === S.courseStage([home, near]).slab)
-    .flatMap(g => g.blocks)
-    .filter(b => [home, near].some(s => S.sameBlock(b, P.drillChainOf(s.ring, s.layer, s.slot)[2])) ).length,
+  same: S.sameStage(S.courseStage([home, home], outline, edge), S.sectorStage(1705, -20, 3225, outline, edge)),
+  nearHolds: holds(nearStage, home) && holds(nearStage, near),
+  nearDeep: !!nearStage.at,
+  far: S.courseStage([home, core], outline, edge),
+  apart: S.courseStage([core, high], outline, edge),
+  none: S.courseStage([], outline, edge),
+  top: S.settleStage({at: null, picks: []}, outline, edge).stage,
 }));
 """)
-    assert out["same"]["slab"] == -20 and out["sameNumber"] == 8
-    assert out["nearNumber"] == 6
-    assert out["holds"] == 2
-    # Opposite sides of the galaxy, but the same slab of it: stage 2.
-    assert out["far"] == {"at": None, "slab": 0} and out["farNumber"] == 2
-    # Different slabs too: the whole galaxy.
-    assert out["apart"] == {"at": None, "slab": None}
-    assert out["none"] == {"at": None, "slab": None}
+    assert out["same"]
+    assert out["nearHolds"] and out["nearDeep"]
+    assert out["far"]["at"] is None
+    assert out["apart"] == out["top"]
+    assert out["none"] == out["top"]
 
 
 def test_flight_starts_and_ends_on_its_views():
