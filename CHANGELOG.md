@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.58.1] - 2026-10-01
+
+### Changed
+- The Galaxy Map leaves out its Territories button and legend until population has made at least one polity.
+
 ## [7.58.0] - 2026-10-01
 
 ### Added
