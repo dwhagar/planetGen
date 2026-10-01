@@ -8,8 +8,9 @@ TEST.23: a `galaxy --ring`, `--ring --shell` or `--block` run stopped
 partway (a sector that fails before it is saved, or one whose save fails
 inside its transaction) and then run again ends with the same sectors as
 one uninterrupted run in a second database: the same set of addresses,
-each filled once, with the same number of systems, and no system or
-bright-star link left behind by the failed sector.
+each filled once, with the same number of its own (not bright-star)
+systems, and no system or bright-star link left behind by the failed
+sector.
 
 TEST.26: the sectors a `plan --bright-stars-only --force` left out (they
 were already filled) stay as they were through a later fill of their
@@ -83,14 +84,25 @@ def _galaxy(config, mode_argv):
 
 
 def _snapshot(config):
-    """Per filled address: `(sector rows there, systems in them)`, plus
-    the systems whose sector is gone and the unbuilt bright stars left in
-    filled cells."""
+    """Per filled address: `(sector rows there, systems in them that
+    aren't built around a pre-placed bright star)`, plus the systems
+    whose sector is gone and the unbuilt bright stars left in filled
+    cells.
+
+    Bright-star systems are left out of the count because, since GEN.30,
+    each run backfills once around its own requested sector after its
+    sectors are filled: a run cut into `--limit` steps backfills after
+    every step, into cells a later step then fills (and builds those
+    stars into), while one whole run backfills only once everything is
+    filled, so its cells get none. Every star in a filled cell is built
+    either way (`unbuilt`)."""
     conn = _db.get_connection(config)
     try:
         sectors = conn.execute(
             "SELECT s.ring_index, s.layer_index, s.ring_slot_index, COUNT(DISTINCT s.id) AS sectors,"
-            " COUNT(ss.id) AS systems FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
+            " COUNT(ss.id) - COUNT(b.id) AS systems FROM sectors s"
+            " LEFT JOIN star_systems ss ON ss.sector_id = s.id"
+            " LEFT JOIN bright_stars b ON b.star_system_id = ss.id"
             " GROUP BY s.ring_index, s.layer_index, s.ring_slot_index").fetchall()
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM star_systems ss LEFT JOIN sectors s ON s.id = ss.sector_id"
@@ -173,7 +185,9 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
 
 def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_mysql_config):
     # A shell run cut into --limit 4 steps (the operator's own way of
-    # stopping partway) ends where one whole run does.
+    # stopping partway) ends where one whole run does: the same sectors,
+    # each filled once with the same systems of its own (`_snapshot`
+    # leaves out the bright stars the earlier steps' backfills placed).
     _seed_skeleton(mysql_config, layers=LAYERS)
     total = ring_sector_count(1) * len(LAYERS)
     for _ in range(-(-total // 4)):
@@ -224,9 +238,9 @@ def _sector_rows(config):
 
 
 def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config, monkeypatch):
-    # A smaller backfill sphere keeps the fill quick; it still reaches the
-    # skipped sectors next door.
-    monkeypatch.setattr(program_constants, "BRIGHT_STAR_BACKFILL_RADIUS_LY", 20.0)
+    # Smaller backfill tiers (GEN.30) keep the run's backfill quick; they
+    # still reach the skipped sectors next door.
+    monkeypatch.setattr(program_constants, "BRIGHT_STAR_BACKFILL_TIERS", ((10.0, 100.0), (20.0, 250.0)))
     _seed_galaxy(mysql_config)
     args = generate._default_generation_args(config=mysql_config)
     args.num_systems = 1
