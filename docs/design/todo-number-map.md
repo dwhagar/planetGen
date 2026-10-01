@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.24 |
-| MAP | MAP.81 |
+| MAP | MAP.82 |
 | NAV | NAV.34 |
-| GEN | GEN.34 |
+| GEN | GEN.40 |
 | PERF | PERF.18 |
 | DB | DB.5 |
 | API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
-| TEST | TEST.72 |
+| TEST | TEST.73 |
 | USR | USR.8 |
 | OPS | OPS.7 |
 | DOC | DOC.4 |
@@ -452,11 +452,17 @@ Parents marked "new parent" had no old number of their own.
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
-| GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | GEN.33 | One class per PR, each with its tests | none | open |
+| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | open |
+| GEN.35 | Rocky planets only ever get Class D moons (bug) | none | open |
+| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | open |
+| GEN.37 | 97% of planets land in the cold zone (bug) | none | open |
+| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
+| GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -537,6 +543,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
+| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -636,7 +643,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.7 | User-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
-| UX.2 | Menus sized to what they hold | 62 (2026-10-01 01:44Z to 05:29Z) | open |
+| UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | open |
 | UX.3 | Warn visitors while a background job changes the galaxy | 87 (2026-10-01 03:26Z to 05:29Z) | open |
 | UX.4 | Phenomenon pages (new parent) | none | done (UX.17 and UX.18) |
 | UX.5 | Place facilities from the web interface | 31 (2026-09-30 18:14Z); 36 (2026-09-30 18:39Z to 2026-10-01 04:37Z) | done in 7.47.0, PR #167 |
@@ -655,7 +662,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
-| UX.21 | Clean up the web interface: overlapping buttons and dead controls | none | open |
+| UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
@@ -820,6 +827,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.69 | Intermittent failure in the colony test (bug) | none | open |
 | TEST.70 | Tests for the map JavaScript | none | open |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
+| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
