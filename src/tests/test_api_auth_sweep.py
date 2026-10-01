@@ -37,6 +37,7 @@ import pytest
 from api import auth as auth_routes
 from api.app import create_app
 from api.config import Config
+from api.limiter import limiter
 from stellarObjects import _db, adminAuth
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
@@ -69,7 +70,9 @@ def admins(mysql_config):
         CONTROL_MYSQL_CONFIG = mysql_config
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = SECRET
-        # The sweep sends hundreds of requests from one address.
+        # The sweep sends hundreds of requests from one address. The
+        # limiter is one object for the whole process and keeps this
+        # setting for every later app, so the fixture turns it back on.
         RATELIMIT_ENABLED = False
 
     _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
@@ -100,7 +103,10 @@ def admins(mysql_config):
     state.fresh_pending = app.test_client()
     response = _login(state.fresh_pending, "newcomer", PASSWORD_B)
     assert response.get_json()["must_change_credentials"] is True
-    return state
+    try:
+        yield state
+    finally:
+        limiter.enabled = True
 
 
 _counter = iter(range(1, 10 ** 6))
