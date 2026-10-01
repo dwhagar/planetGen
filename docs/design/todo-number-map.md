@@ -360,8 +360,8 @@ Sorted by old number, then date.
 | 88 | 2026-10-01 03:26Z to 05:29Z | PERF.4 | Second progress bar for slow plan layers | open |
 | 89 | 2026-10-01 03:36Z to 05:29Z | PERF.5 | Scatter bright stars in stages | open |
 | 90 | 2026-10-01 03:46Z to 05:29Z | PERF.6 | Rate-limit SQL calls, do more per call | done: investigation, then PR #222, #223 and #225 (PERF.8 caps the writers) |
-| 91 | 2026-10-01 03:46Z to 05:29Z | PERF.7 | Parallelize sector and system generation | open |
-| 92 | 2026-10-01 03:46Z to 05:29Z | PERF.8 | Parallel background work queue in the API | done, PR #225 (its bright-star scatter tasks and decaying ETA went to PERF.7) |
+| 91 | 2026-10-01 03:46Z to 05:29Z | PERF.7 | Parallelize sector and system generation | done, PR #225 and #227 |
+| 92 | 2026-10-01 03:46Z to 05:29Z | PERF.8 | Parallel background work queue in the API | done, PR #225 and #227 |
 | 93 | 2026-10-01 04:50Z to 05:29Z | PERF.9 | Weight the bright-star ETA by the shape of the galaxy | open |
 | 94 | 2026-10-01 04:58Z to 05:29Z | PERF.10 | Record generation speed across a log scale of densities | open |
 | 95 | 2026-10-01 04:58Z to 05:29Z | PERF.11 | Store each sector's expected and actual density | open |
@@ -489,8 +489,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.4 | Second progress bar for slow plan layers | 88 (2026-10-01 03:26Z to 05:29Z) | open |
 | PERF.5 | Scatter bright stars in stages | 89 (2026-10-01 03:36Z to 05:29Z) | open |
 | PERF.6 | Rate-limit SQL calls, do more per call | 90 (2026-10-01 03:46Z to 05:29Z) | done: investigation, then PR #222, #223 and #225 (PERF.8 caps the writers) |
-| PERF.7 | Parallelize sector and system generation | 91 (2026-10-01 03:46Z to 05:29Z) | open |
-| PERF.8 | Parallel background work queue in the API | 92 (2026-10-01 03:46Z to 05:29Z) | done, PR #225 (its bright-star scatter tasks and decaying ETA went to PERF.7) |
+| PERF.7 | Parallelize sector and system generation | 91 (2026-10-01 03:46Z to 05:29Z) | done, PR #225 and #227 |
+| PERF.8 | Parallel background work queue in the API | 92 (2026-10-01 03:46Z to 05:29Z) | done, PR #225 and #227 |
 | PERF.9 | Weight the bright-star ETA by the shape of the galaxy | 93 (2026-10-01 04:50Z to 05:29Z) | open |
 | PERF.10 | Record generation speed across a log scale of densities | 94 (2026-10-01 04:58Z to 05:29Z) | open |
 | PERF.11 | Store each sector's expected and actual density | 95 (2026-10-01 04:58Z to 05:29Z) | open |

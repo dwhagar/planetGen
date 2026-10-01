@@ -92,9 +92,9 @@ maps, search, NAV, admin auth and wiki publishing.
 
 The bug round (MAP.17 to MAP.19, MAP.26, MAP.37, MAP.43 to MAP.51,
 UX.15, UX.16, UX.19, UX.20, ADM.9), login security (SEC.1, SEC.20 to
-SEC.28) and the database-call work (PERF.6, PERF.8, PERF.12 to
-PERF.17) are done. Boss (2026-10-01 14:41Z) set the next
-round, run as parallel threads:
+SEC.28), the database-call work (PERF.6, PERF.12 to PERF.17) and
+parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
+14:41Z) set the next round, run as parallel threads:
 
 1. **First:** PERF.5 (scatter bright stars in stages).
 2. **Galaxy Map and units:** UX.13, UX.14, MAP.30 (now a layer slider to
@@ -105,8 +105,7 @@ round, run as parallel threads:
 4. **Admin editing:** ADM.1 and its subitems, starting with the validate
    module (ADM.5).
 
-Waiting behind those: PERF.7 (the bright-star scatter on the work queue
-and the decaying-average ETA), PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
 bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -550,33 +549,6 @@ with `clamp()`.
     systems in place, skip those sectors, or mark them for ADM.8's
     regenerate? Must the new band draw from the same random stream, so a
     500-then-100 galaxy matches a straight-to-100 one?
-
-  - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
-    Boss (2026-10-01): "add a TODO item to parallelize
-    sector and system generation and update the progress bars so that
-    they stay stable, I want to keep the ETA until done and elapsed time
-    and I know that'll require some customization of the status bar code
-    as time estimates are to be calculated from a decaying average based
-    on number of runs per second." Sector fill already runs in parallel
-    through PERF.8's work queue (PR #225, `stellarObjects/workQueue.py`,
-    control schema v5): one task per sector, which builds its own
-    systems (a system takes about 8 ms, too little to send to another
-    process), with the run that queued the work acting as supervisor.
-    Still to do: the plan's bright-star scatter runs through the same
-    queue, one layer (or one ring batch of a dense layer) per task, not
-    one per star; the bars stay pinned at the bottom without flicker (as
-    PERF.4 requires) with many workers reporting; every bar keeps
-    elapsed time and an ETA until done; and the ETA comes from a custom
-    column using a decaying (exponentially weighted) average of tasks
-    finished per second instead of rich's built-in estimate. PERF.3's
-    measured stars per second and PERF.4's slow-layer bar use the same
-    rate. Open questions: the decay constant (how
-    fast the average forgets older runs); whether the rate is counted in
-    systems, stars or sectors (sectors differ a lot in size, so systems
-    per second may be steadier; the default is systems); and whether
-    `progress.json` for the web jobs reports the same decayed rate so
-    the Generate page and UX.3's banner show the same ETA (default:
-    yes).
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
