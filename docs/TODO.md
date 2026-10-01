@@ -611,6 +611,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window is resized. Under MAP.58's locked zoom, the locked level is
   this whole-wedge fit, not a closer one.
 
+- [ ] **MAP.79 Rogue planets clog the Sector Map: a show/hide button per kind of object (bug)**
+  Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,
+  make each dim, visible but the points for stars, comets, and other
+  objects should shine through. Or let's say provide a button that
+  turns each phenomena on and off in the sector map." Today every rogue
+  planet gets a bright glow and a fixed-size ring on the Sector Map
+  (`sectormap.js`, MAP.46), so in a busy sector they cover the stars.
+  Done (default taken, Boss's second wording): the Sector Map has one
+  toggle button per kind of object it draws (stars, rogue planets,
+  interstellar comets, black holes, neutron stars, nebulae and so on),
+  all on by default; turning one off hides those points, their rings
+  and their labels, and hidden kinds can't be hovered or picked. The
+  choice is kept in the URL so a bookmark keeps it. Ties in with
+  MAP.61 (one control set for both maps). Open question: should rogue
+  planets also be drawn dimmer by default (no ring, a faint point that
+  stars show through), as in Boss's first wording?
+
+- [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
+  Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
+  the galactic arc it is close enough to see almost all stars in the
+  sector including pulsars, quasars, and black holes." Today the Galaxy
+  Map's level of detail (MAP.14, MAP.51) thins out the points drawn in
+  a filled sector, so at the last drill-down stage a sector shows only
+  some of its stars and its phenomena may be missing. Done: once the
+  view is zoomed to sector level, the sector is drawn with nearly all
+  of its stars and every pulsar, quasar and black hole in it, as close
+  as the Sector Map shows them; the thinning only applies farther out.
+  Ties in with MAP.66 (the sector as the drill-down's last stage).
+  Open question, read from Boss's wording: is this the fix wanted, or
+  is it a note that the level of detail already does this?
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
@@ -875,6 +906,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     length, so a hop can be very long in a sparse region. Open question
     for Boss: should a route have a maximum hop (a ship's range)?
     Default: no limit, but the longest hop is shown.
+
+- [ ] **NAV.29 Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug)**
+  Boss (2026-10-01 21:15Z): "when navigating the "nav from and have to" buttons take you
+  to different pages, so should be replaced by "Star Here" Or "End
+  Here" and then the user goes to the next stage navigating back out
+  from where their start or end is." Today a system or phenomenon's
+  info panel on the maps offers "Nav from here" and "Nav to here"
+  (`appendNavActions` in `sectormap.js`), which jump to the NAV page's
+  own pickers and leave the map. Done: while picking a course, the panel
+  offers "Start Here" (or "End Here" once the start is set); choosing
+  it keeps the user on the map, and they pick the other end by stepping
+  back out from where the first end is (NAV.13's step out and step in)
+  and in again, without a page change. Outside pick mode the panel
+  offers the same two buttons, which start the course from that object.
+  Ties in with NAV.3, NAV.13 and NAV.15.
+
+- [ ] **NAV.30 Hide "View phenomenon" and "View system" links while picking a course (bug)**
+  Boss (2026-10-01 21:15Z): "don't show the view phenomena when navigating as it'll take
+  you out of the page." Today the info panel shows "View phenomenon →"
+  (and "View system →") in pick mode too (`sectormap.js`,
+  `galaxymap3d.js`), and following it drops the course being built.
+  Done: in pick mode the panel shows only the pick buttons (NAV.29),
+  no link that leaves the picking flow. Ties in with NAV.15.
+
+- [ ] **NAV.31 Galaxy wedges don't highlight on the navigation screens (bug)**
+  Boss (2026-10-01 21:15Z): "in the navigation screen the wedges of the galaxy do not
+  highlight at all and they should." Done: when picking a course on
+  the Galaxy Map, hovering highlights the wedge under the cursor the
+  same way the Galaxy Map does outside pick mode (MAP.52), and every
+  later stage's hover highlight works too. Ties in with NAV.32.
+
+- [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
+  Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
+  should be functional in the nav screens." Done: picking a course
+  uses the same maps with the same controls as browsing them: hover
+  highlight, wedge, slab and segment picks, zoom, rotate, the slab
+  buttons, toggles (MAP.79), breadcrumb and bookmarkable URLs; pick
+  mode only adds the Start Here and End Here buttons (NAV.29) and hides
+  the links that leave the page (NAV.30). Best done by building pick
+  mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
+  rather than as a separate copy; until then each map fix must be
+  checked in pick mode too.
 
 ## GEN: Generation and physics
 

@@ -14,8 +14,8 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.24 |
-| MAP | MAP.79 |
-| NAV | NAV.29 |
+| MAP | MAP.81 |
+| NAV | NAV.33 |
 | GEN | GEN.34 |
 | PERF | PERF.18 |
 | DB | DB.2 |
@@ -532,6 +532,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.76 | Leader-line layout | none | open |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | open |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
+| MAP.79 | Rogue planets clog the Sector Map: a show/hide button per kind of object (bug) | none | open |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -560,6 +562,10 @@ Parents marked "new parent" had no old number of their own.
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
+| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
+| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | open |
+| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
+| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
