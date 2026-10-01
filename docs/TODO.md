@@ -322,6 +322,115 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with a note, the SVG never holds NaN or inf, and the strict xfail
   test for it passes.
 
+- [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
+  Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
+  and out manually. This should only be within a short range ... they
+  can zoom in to about, say, twice as close as it starts out and they
+  can zoom out back to the full galaxy, but no further. When we get into
+  smaller chunks like blocks and wedges that aren't as large as the full
+  galactic wedge, we're going to lock the zoom ... The system will still
+  be able to zoom in stages as we've discussed but the user won't be
+  able to arbitrarily zoom in and out." Today every view below the whole
+  galaxy and its quarters can be zoomed freely with the wheel, a pinch
+  or the zoom keys (`isFree` in `galaxystageview.js`), from
+  `MIN_ZOOM` = 1/8 of the stage's fitted camera distance (8 times
+  closer) to `MAX_ZOOM` = 2.5 times it, and the galaxy and its quarters
+  can't be zoomed at all. Done:
+  - On the full galaxy wedge (the 40-degree wedge of MAP.52, fitted to
+    the window by MAP.53), the user can zoom in to about twice as close
+    as the fitted view, and out only until the whole galaxy fits, with
+    the wheel, pinch, keys and any zoom buttons.
+  - On every smaller view (slabs, segments, blocks, the sector cube),
+    user zoom is locked: the wheel scrolls the page, and pinch and the
+    zoom keys do nothing. The staged zoom of each pick (MAP.53, MAP.56)
+    still animates to its fitted view.
+  - Rotation (MAP.53) and panning are not affected.
+  - Reset (MAP.55) returns to the fitted zoom.
+  Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
+  whole-galaxy view itself zoom (today it doesn't)? Should a locked view
+  keep panning, or only rotate?
+
+- [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
+  Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
+  zoomed into a specific slab, that we're viewing a specific slab and
+  not a wedge. I'm not sure how to do that so do some research on that
+  and then add the to-do items to make it happen."
+
+  Why it looks like a wedge today: once a slab is picked, only that
+  slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
+  layer of the wedge (a sector layer inside a level-3 block, otherwise
+  9 or 27 sector layers, `slabLayers` in `galaxystages.js`), so seen
+  from the isometric tilt it looks like a flat wedge. Nothing on screen
+  shows the rest of the stack, and the slab's height range appears only
+  as "Slab 3" in the breadcrumb.
+
+  Options (from how 3D map, CAD and volume viewers show a selected
+  slice):
+  1. **Ghost of the parent wedge.** The other slabs of the wedge stay in
+     view as a faint, see-through outline (wireframe edges only), and
+     the picked slab is the one solid layer inside it. This is the cut-away
+     or "section view" of CAD tools and of floor pickers in building
+     maps. It shows at a glance that this is one layer of a taller stack.
+  2. **Slab thickness edges.** Draw the slab's top and bottom faces and
+     its vertical side edges in a distinct line color, so it reads as a
+     slice with depth rather than a surface.
+  3. **A labelled header over the map**, such as "Slab 3 of 9 · 120 to
+     160 pc above the plane (layers 25 to 33)", replacing the bare
+     "Slab 3". The breadcrumb crumb says "Slab 3 of 9" too.
+  4. **Side-view inset.** A small fixed diagram in a corner of the map
+     shows the wedge edge-on as a stack of bars, with the picked slab
+     highlighted and the galactic plane marked. This is the slice
+     indicator of medical and volume viewers. It doubles as a slab
+     picker if clicks on it are allowed.
+  5. **Tint.** The picked slab gets a color band that differs from a
+     whole wedge, kept the same at every depth.
+
+  Boss's answers (2026-10-01 20:50Z): "Ghost of the other wedges should
+  be just wire lines and faint and yes I want to implement a mini map
+  that shows the segment of the whole galaxy. When we zoom in to a slab
+  off to the side, have a locked view in isometric form of the block,
+  highlighting which slab we're in. Then add navigation tools so that
+  if the user goes and clicks on another slab in the isometric view, it
+  switches to the slab in the main view", and for the height: "both".
+  So the build is options 1, 2, 3 and 4.
+
+  Done:
+  - **Ghost:** with a slab picked, the rest of the wedge or block is
+    drawn as faint wire lines only, with no fill, around the solid,
+    edge-lined picked slab. The ghost is not clickable and doesn't block
+    clicks on the slab or its segments.
+  - **Mini map:** beside the main view sits a small, locked isometric
+    view of the whole block (or wedge) the slab belongs to, showing
+    every slab of it with the current one highlighted, and where that
+    block sits in the whole galaxy. It doesn't rotate or zoom. Clicking
+    (or tapping, or picking with the keyboard) another slab in it
+    switches the main view to that slab, the same way picking a slab
+    does today, with the URL and breadcrumb following.
+  - **Header and breadcrumb:** "Slab N of M" with its height both ways:
+    the distance above or below the galactic plane in the map's chosen
+    units (pc or ly, the units setting of PR #234) and its sector layer
+    numbers, e.g. "Slab 3 of 9 · 120 to 160 pc above the plane · layers
+    25 to 33". The same applies one level down ("Layer N of M" inside a
+    block).
+  - Everything stays aligned when the main view rotates or zooms.
+
+  Ties in with MAP.53 (rotation keeps the ghost aligned), MAP.54 (the
+  picked slab's button and line stay highlighted; the mini map is a
+  second way to pick a slab), MAP.55 (where the mini map sits next to
+  the slab buttons and the Sector cell panel, and below the map on a
+  phone), MAP.56 (the segment pick happens on the solid slab) and
+  MAP.58 (the mini map is never zoomable).
+
+- [ ] **MAP.60 Galaxy Map scale readout: one scale line**
+  Boss (2026-10-01 20:50Z): "I want to trim the scale information from
+  the galactic map so that it just has one scale line." Today the
+  readout under the Galaxy Map (`updateScaleBar` in `galaxymap3d.js`,
+  `#galaxymap3d-scale`) stacks three lines: "1 px ≈" (what one screen
+  pixel spans), "1 block =" (the size of one drawn block) and a scale
+  bar of about 70 px with its length. Done: only the scale bar and its
+  length remain, on one line, in the map's chosen units (sectors and pc
+  or ly, as now).
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**

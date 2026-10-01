@@ -75,8 +75,8 @@
   {%- if sector.placed %}
   <p class="hint">Fills in every not-yet-generated sector within 12 pc (about
   39 ly) of this one (already-generated sectors are skipped), and gives the
-  100 ly around every new sector its bright stars. That can take several
-  minutes; the page will not respond until it completes. The size and time
+  100 ly around every new sector its bright stars. It runs as a job on the
+  Generate page, so it keeps going if you close this page. The size and time
   are shown first, to confirm.</p>
   {%- if estimate %}
   <p id="neighborhood-estimate">{{ estimate.summary }}</p>
