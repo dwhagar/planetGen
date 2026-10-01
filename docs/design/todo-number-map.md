@@ -13,14 +13,14 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.19 |
+| UX | UX.21 |
 | MAP | MAP.51 |
 | NAV | NAV.3 |
 | GEN | GEN.23 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
-| ADM | ADM.9 |
+| ADM | ADM.10 |
 | SEC | SEC.28 |
 | USR | USR.8 |
 | OPS | OPS.5 |
@@ -395,6 +395,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
+| ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
@@ -553,6 +554,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.16 | Always leave space between buttons (bug) | none | done, PR #195 |
 | UX.17 | A view that suits each phenomenon | 25 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.57.0, PR #178 |
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
+| UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | open |
+| UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -921,7 +924,9 @@ never appear in TODO.md, since finished items are deleted):
   trusted-device cookie, the `/account` password-guessing bug, a password
   blocklist, hashing cost, two-factor sign-in and a fail2ban recipe),
   then MAP.49 (bug, planet orbits drawn inside an asteroid belt) and
-  MAP.50 (bug, names running off the edge of the map).
+  MAP.50 (bug, names running off the edge of the map), then UX.19,
+  UX.20 and ADM.9 (bugs: belt rows, scientific notation, the facility
+  form).
 - Flat IDs (after PR #190): every dotted ID above was replaced by the
   next number in its category (see "Tree IDs to flat IDs"). A bug with no
   open item it breaks is now a top-level "(bug)" item (UX.15, UX.16)
