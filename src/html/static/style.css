@@ -870,6 +870,21 @@ a:focus-visible .galaxymap-star-core {
   min-width: 12rem;
 }
 
+/* The Sector Map's NAV pick-mode banner (web/sector_page.py
+   `_pick_mode`) and the info panel's "Use as destination" button. */
+.pick-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-subtle);
+}
+
+.starmap-pick {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+}
+
 /* Phenomenon view: a rendered picture of the object
    (html/lib/phenomenonrender.py, static/phenomenonrender.js). The SVG
    still shows until the script swaps in the canvas. Always dark: it is

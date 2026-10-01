@@ -131,12 +131,6 @@ can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
     map and refreshed when the job ends. Web owns `generate.py` and the
     Generate page; Galaxy Map owns the buttons.
 
-74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
-    Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
-    start/destination" button on a system or phenomenon, which lands on
-    `/nav?from=...&to=...`; system and phenomenon pages and the Sector
-    Map panel get "Nav from here" and "Nav to here".
-
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as
     we have now or the galactic map interface to select. If it's within

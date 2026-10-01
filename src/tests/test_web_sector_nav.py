@@ -740,3 +740,52 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
     assert resp.status_code == 200
     assert '<p class="error" role="alert">' in html
     assert "Traceback" not in html
+
+
+# --- NAV links and pick mode (TODO 74, design doc sections 9.1-9.2) ----------------
+
+def test_sector_map_entries_carry_nav_links(app, client, fake):
+    scene = _scene(client.get("/sector/5").get_data(as_text=True))
+    with app.test_request_context():
+        alpha_from = nav_url(origin=endpoint("system", 1001))
+        veil_to = nav_url(destination=endpoint("nebula", 3))
+    alpha = next(star for star in scene["stars"] if star["href"] == "/system/1001")
+    assert alpha["nav"] == {"from": alpha_from, "to": nav_url_for(app, None, "system:1001"),
+                            "pick": None, "pickLabel": None}
+    assert scene["clouds"][0]["nav"]["to"] == veil_to
+    assert "pick-banner" not in client.get("/sector/5").get_data(as_text=True)
+
+
+def nav_url_for(app, origin, destination):
+    with app.test_request_context():
+        return nav_url(origin=origin, destination=destination)
+
+
+def test_pick_destination_mode(app, client, fake):
+    html = client.get("/sector/5?pick=to&from=system:12").get_data(as_text=True)
+    banner = re.search(r'<p class="pick-banner".*?</p>', html, re.S).group(0)
+    assert "Choosing a destination" in banner and "Use as destination" in banner
+    assert f'href="{escape(nav_url_for(app, "system:12", None))}">Cancel</a>' in banner
+    scene = _scene(html)
+    alpha = next(star for star in scene["stars"] if star["href"] == "/system/1001")
+    assert alpha["nav"]["pick"] == nav_url_for(app, "system:12", "system:1001")
+    assert alpha["nav"]["pickLabel"] == "Use as destination"
+    assert scene["clouds"][0]["nav"]["pick"] == nav_url_for(app, "system:12", "nebula:3")
+
+
+def test_pick_start_mode_without_the_other_end(app, client, fake):
+    html = client.get("/sector/5?pick=from").get_data(as_text=True)
+    assert "Choosing a start" in html
+    assert f'href="{escape(nav_url_for(app, None, None))}">Cancel</a>' in html
+    alpha = next(star for star in _scene(html)["stars"] if star["href"] == "/system/1001")
+    assert alpha["nav"]["pick"] == nav_url_for(app, "system:1001", None)
+    assert alpha["nav"]["pickLabel"] == "Use as start"
+
+
+@pytest.mark.parametrize("query", ["pick=sideways", "pick=to&from=planet:3", "pick=to&from=system:x"])
+def test_bad_pick_mode_is_ignored(client, fake, query):
+    resp = client.get(f"/sector/5?{query}")
+    assert resp.status_code == 200
+    html = resp.get_data(as_text=True)
+    assert "pick-banner" not in html
+    assert all(star["nav"]["pick"] is None for star in _scene(html)["stars"])

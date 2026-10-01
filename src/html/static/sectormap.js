@@ -100,6 +100,7 @@ function showObjectInfo(entry) {
     addField(dl, "Radius", entry.radiusText);
     addField(dl, "Distance", entry.distanceText);
     panel.appendChild(dl);
+    appendNavActions(panel, entry);
     panel.appendChild(navLink(entry, "View phenomenon →"));
     return;
   }
@@ -108,7 +109,35 @@ function showObjectInfo(entry) {
   addField(dl, "Octant", entry.quadrant);
   addField(dl, "Location", entry.location);
   panel.appendChild(dl);
+  appendNavActions(panel, entry);
   panel.appendChild(navLink(entry, "View system →"));
+}
+
+// NAV links for a system or phenomenon (`entry.nav`, built by the sector
+// page): in pick mode a "Use as destination" (or start) button that
+// lands on the plotted course, then "Nav from here" and "Nav to here".
+function appendNavActions(panel, entry) {
+  var nav = entry.nav;
+  if (!nav) {
+    return;
+  }
+  if (nav.pick) {
+    var pick = document.createElement("a");
+    pick.href = nav.pick;
+    pick.className = "btn starmap-pick";
+    pick.textContent = nav.pickLabel;
+    panel.appendChild(pick);
+  }
+  var links = document.createElement("p");
+  links.className = "page-actions";
+  [["from", "Nav from here"], ["to", "Nav to here"]].forEach(function (pair) {
+    var link = document.createElement("a");
+    link.href = nav[pair[0]];
+    link.className = "btn btn-small";
+    link.textContent = pair[1];
+    links.appendChild(link);
+  });
+  panel.appendChild(links);
 }
 
 // A neighboring sector's own address -- shared display convention with
