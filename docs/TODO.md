@@ -685,12 +685,12 @@ MAP.48 and MAP.37, all fixed.
       the server's `Com_insert`/`Com_select` counts.
 
     - [x] **PERF.12 Check the schema once per process during generation**
-      Done:
+      Done (PR #222):
       `get_connection` replays `schema.sql` once per process per
       database, so a filled sector sends no schema statements.
 
     - [x] **PERF.13 Write each sector in batches**
-      Done: `insert_sector` writes inside `Connection.batched()`, one
+      Done (PR #222): `insert_sector` writes inside `Connection.batched()`, one
       multi-row INSERT per table and statement shape, with ids from the
       new `id_blocks` table (schema v45); containment, octant and
       bright-star links are written as `CASE id` updates. Measured on a
@@ -698,7 +698,7 @@ MAP.48 and MAP.37, all fixed.
       before, 0.54 s and about 186 statements after.
 
     - [x] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
-      Done: a sector's systems and named phenomena reserve their names
+      Done (PR #222): a sector's systems and named phenomena reserve their names
       in one sorted multi-row upsert of `system_name_registry` (row
       locks only, no gap locks), the sector save runs at READ COMMITTED
       and retries on 1213 and 1205, and DBUtils no longer silently
