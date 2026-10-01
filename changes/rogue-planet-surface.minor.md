@@ -1,6 +1,6 @@
 ### Added
 
-- Rogue planets have surface conditions. With no star, a rogue's only heat
+- Rogue planets have surface conditions (GEN.26). With no star, a rogue's only heat
   is its own: radioactive decay and leftover formation heat in a rocky
   rogue, slow cooling in a giant or brown dwarf. From that the generator
   works out its age, heat flow, effective temperature and surface: bare
