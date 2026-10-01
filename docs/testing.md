@@ -92,7 +92,8 @@ look; update the check only with a source for the new value.
   through another fixture);
 - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
   `test_bughunt_*`);
-- `browser`: the headless-browser checks (`test_web_a11y.py`);
+- `browser`: the headless-browser checks (`test_web_a11y.py`,
+  `test_web_browser_layout.py`, `test_web_browser_maps.py`);
 - `mathcheck`: the math check gate (`test_math_check.py`,
   `test_web_math_check.py`), run first.
 
@@ -154,6 +155,24 @@ than MariaDB, so a query that works locally can still fail there.
   They need `pip install -e ".[browser]"` and `python -m playwright install
   chromium` plus the MySQL test server, and skip without them. CI runs
   them in their own `browser-a11y` job.
+- **More browser checks** (`test_web_browser_layout.py`,
+  `test_web_browser_maps.py`), with the same needs and database: no two
+  controls overlap or run off the screen on any page at 390, 600, 820 and
+  1280 px in both themes (with folded sections open too); every map
+  button changes the view (the 3D maps draw with SwiftShader WebGL, and
+  a canvas screenshot that doesn't change is a dead button); the System
+  Map's selection and measuring; and the Galaxy Map's drill-down by
+  clicks, with Back, Forward and the free camera.
+- **Page-script tests under node** (`js/*.test.mjs`, run by
+  `test_js_unit.py`, skipped without node): `js/fakedom.mjs` is a small
+  stand-in for the browser's DOM (elements, selectors, events, fake
+  timers, history, fetch), enough to run the Galaxy Map's stage view and
+  buttons, the Sector Map (with a renderer that draws nothing), the
+  diagram's zoom, the Generate job panel and the facility form without a
+  browser. `test_js_unit.py` hands them what they compare against from
+  Python (the density shape, sector designations, the panels' buttons)
+  in `PLANETGEN_JS_FIXTURES`. To run one by hand, from `src/`:
+  `PLANETGEN_JS_FIXTURES="$(python -m tests.test_js_unit)" node --test tests/js/<name>.test.mjs`.
 
 A known bug that is not fixed yet is kept as a test marked
 `xfail(strict=True)` whose reason names the bug and a repro. When someone
