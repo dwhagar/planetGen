@@ -75,12 +75,28 @@
   <p class="hint">Fills in every not-yet-generated sector within a 100 ly sphere
   around this one (already-generated sectors are skipped). That sphere can hold
   thousands of candidate sectors, so this can take anywhere from a few minutes
-  to a few hours to finish; the page will not respond until it completes.</p>
+  to a few hours to finish; the page will not respond until it completes. The
+  size and time are shown first, to confirm.</p>
+  {%- if estimate %}
+  <p id="neighborhood-estimate">{{ estimate.summary }}</p>
+  {%- if estimate.refused %}
+  <p class="error" role="alert">{{ estimate.refusal }}</p>
+  {%- else %}
+  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="generate_neighborhood">
+    <input type="hidden" name="estimate_ok" value="1">
+    <button type="submit" class="btn">Generate these {{ num(estimate.sectors) }} sectors</button>
+    <a class="btn" href="{{ url_for('web.sector', sector_id=sector_id) }}">Cancel</a>
+  </form>
+  {%- endif %}
+  {%- else %}
   <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="generate_neighborhood">
     <button type="submit" class="btn">Generate more sectors around this one</button>
   </form>
+  {%- endif %}
   {%- else %}
   <p class="hint">This sector has never been placed in a galaxy. Generating a
   neighborhood around it requires a galaxy-placed sector (one generated with

@@ -48,6 +48,11 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 # already uses the cores.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# Test runs never read or add to the control database's generation speed
+# and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
+# them on where it checks them.
+os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+
 # The control schema (admin logins, sessions, the work queue's lease) is
 # one fixed name by default (`planetgen_control`), shared by everything on
 # a server. Code that falls back to it (migrateDb seeding, the work queue)

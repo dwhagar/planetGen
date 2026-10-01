@@ -251,3 +251,36 @@ CREATE TABLE IF NOT EXISTS work_lease (
     job_id           VARCHAR(32) NULL,
     heartbeat_at     DATETIME(6) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v6 (PERF.3, PERF.10): how fast this server generates and how much
+-- space a galaxy takes (`stellarObjects/generationStats.py`).
+-- `generation_stats` is one row per kind of task ("sector" fill, or a
+-- "scatter" layer of bright stars) and log-scale density bucket (two per
+-- decade from 0.01, open-ended upward), each a decaying average over
+-- every task that ever finished in it. `generation_size` is one row per
+-- galaxy database: its bytes per star system, measured from its own
+-- tables after each run. Bulk generation reads both for its size and
+-- time estimate. A galaxy reset keeps them (they describe the server).
+CREATE TABLE IF NOT EXISTS generation_stats (
+    kind                 VARCHAR(16) NOT NULL,     -- sector, scatter
+    bucket               INT NOT NULL,             -- floor(2 * log10(density / 0.01))
+    density_low          DOUBLE NOT NULL,
+    density_high         DOUBLE NOT NULL,
+    samples              BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    seconds_per_task     DOUBLE NOT NULL DEFAULT 0,  -- worker wall time
+    seconds_per_system   DOUBLE NOT NULL DEFAULT 0,
+    systems_per_task     DOUBLE NOT NULL DEFAULT 0,
+    stars_per_system     DOUBLE NOT NULL DEFAULT 0,
+    max_density          DOUBLE NOT NULL DEFAULT 0,
+    updated_at           DATETIME(6) NOT NULL,
+
+    PRIMARY KEY (kind, bucket)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS generation_size (
+    database_name        VARCHAR(64) NOT NULL PRIMARY KEY,
+    bytes_per_system     DOUBLE NOT NULL,
+    systems              BIGINT UNSIGNED NOT NULL,
+    total_bytes          BIGINT UNSIGNED NOT NULL,
+    measured_at          DATETIME(6) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
