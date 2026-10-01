@@ -8,6 +8,11 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled, unlabeled]
 
+# A new push or label change supersedes the PR's earlier check.
+concurrency:
+  group: release-note-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   release-note:
     runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
@@ -22,9 +27,13 @@ jobs:
 
       - name: Check the PR's release note
         env:
-          BASE_REF: ${{ github.base_ref }}
           NO_RELEASE: ${{ contains(github.event.pull_request.labels.*.name, 'no-release') }}
         run: |
           flag=""
           if [ "$NO_RELEASE" = "true" ]; then flag="--allow-no-fragment"; fi
-          python scripts/bump_version.py --check-pr "origin/$BASE_REF" $flag
+          # HEAD is GitHub's merge of the PR into the base as it stood when
+          # the run was triggered, and HEAD^1 is that base. Comparing with
+          # HEAD^1 rather than today's origin/$BASE_REF keeps a run that
+          # waited in the queue while main moved on from failing on changes
+          # main made in the meantime.
+          python scripts/bump_version.py --check-pr HEAD^1 $flag
