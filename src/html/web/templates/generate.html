@@ -54,6 +54,33 @@
 {%- if jobs_error %}
 <p class="error" role="alert">Jobs can't run on this server: {{ jobs_error }}</p>
 {%- endif %}
+{%- if estimate %}
+
+<section class="panel" id="estimate" aria-labelledby="estimate-heading">
+  <h2 id="estimate-heading">{{ estimate_title }}: size and time</h2>
+  <dl class="estimate-facts">
+    <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
+    <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
+    <dt>Database disk</dt><dd>{{ estimate.disk_text or "Not measured: the database runs on another machine, so nothing is refused for space." }}</dd>
+  </dl>
+  {%- if estimate.refused %}
+  <p class="error" role="alert">{{ estimate.refusal }}</p>
+  {%- else %}
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    {%- for name, value in estimate_fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <input type="hidden" name="{{ estimate_confirm_field }}" value="1">
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if active %} disabled{% endif %}>Generate</button>
+      <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
+    </div>
+  </form>
+  {%- endif %}
+</section>
+{%- endif %}
 
 <section class="panel" id="current-job" aria-labelledby="current-job-heading"
   data-status-url="{{ url_for('web.generate_status') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
@@ -190,6 +217,26 @@
     </div>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Rebuild bright stars</button>
+    </div>
+  </form>
+</section>
+
+<section class="panel" id="bright-band" aria-labelledby="bright-band-heading">
+  <h2 id="bright-band-heading">Add a dimmer layer of bright stars</h2>
+  <p class="hint">Keeps every bright star already placed and adds only the stars from a lower level up to
+  the current one, then lowers the galaxy's star-fill level. Sectors already generated are left out: their
+  own systems were drawn below the old level, so they already hold stars that bright.
+  {%- if summary.bright and summary.bright.scattered %} The star-fill level is now
+  {{ num(summary.bright.min_luminosity_sol, ",.0f") }} solar luminosities.{% else %} Needs a bright-star
+  scatter first.{% endif %}</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="bright_band">
+    <div class="search-fields">
+      {{ field("down_to", "Go down to (solar luminosities)", value="", min=1, required=True, placeholder="100") }}
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy or not (summary.bright and summary.bright.scattered) %} disabled{% endif %}>Add layer</button>
     </div>
   </form>
 </section>

@@ -130,6 +130,12 @@ class FakeAuth:
         return {"items": self.names[offset:offset + limit], "total": len(self.names),
                 "limit": limit, "offset": offset}
 
+    generation = {"available": True, "sizes": {}, "buckets": []}
+
+    def admin_generation_stats(self, cookie_header):
+        self.calls.append(("admin_generation_stats",))
+        return self.generation
+
     def admin_lockouts(self, cookie_header):
         self.calls.append(("admin_lockouts",))
         return {"items": self.lockouts, "proxy_warning": False}
@@ -152,7 +158,7 @@ class FakeAuth:
 
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
-          "admin_duplicate_names", "admin_login_failures", "admin_lockouts",
+          "admin_duplicate_names", "admin_login_failures", "admin_lockouts", "admin_generation_stats",
           "admin_lift_lockout", "auth_totp_status")
 
 
@@ -661,6 +667,24 @@ def test_admin_stats_renders(client, fake):
     assert "Planet/moon collisions" not in html
     assert '<a href="/admin/stats" aria-current="page">Stats</a>' in html
     assert "<form" not in re.search(r'<main.*</main>', html, re.S).group(0)
+
+
+def test_admin_stats_shows_generation_speed(client, fake):
+    """PERF.10: the measured speed per density bucket, and this galaxy's
+    size per system."""
+    _logged_in(client, fake)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "Nothing measured yet" in html
+    fake.generation = {"available": True, "sizes": {DB: {"bytes_per_system": 62000.0, "systems": 1200,
+                                                         "total_bytes": 74_400_000}},
+                       "buckets": [{"kind": "sector", "bucket": 4, "density_low": 1.0, "density_high": 3.1623,
+                                    "samples": 76, "seconds_per_task": 1.269, "seconds_per_system": 0.0551,
+                                    "systems_per_task": 23.8, "stars_per_system": 1.3, "max_density": 3.0}]}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "60.5 KB per star system (1,200 systems, 71.0 MB)" in html
+    assert "<td>Sector fill</td><td>1 to 3.16</td>" in html and "1.27 s" in html and "55.1 ms" in html
+    fake.generation = {"available": False, "sizes": {}, "buckets": []}
+    assert "run <code>update.sh</code>" in client.get("/admin/stats").get_data(as_text=True)
 
 
 def test_admin_stats_counts_bright_stars(client, fake):

@@ -505,6 +505,42 @@ tbody tr:last-child td {
   margin-bottom: 0.4rem;
 }
 
+/* The admin Delete and Regenerate buttons (ADM.8): a <details> confirm
+   step each (templates/partials/edit_controls.html). */
+.edit-buttons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: flex-start;
+}
+
+.edit-confirm > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.edit-confirm > summary::-webkit-details-marker {
+  display: none;
+}
+
+.edit-confirm[open] > summary {
+  margin-bottom: 0.4rem;
+}
+
+.edit-confirm .hint {
+  max-width: 45ch;
+  margin: 0 0 0.4rem;
+}
+
+.edit-indent {
+  padding-left: 1.5rem;
+}
+
+.edit-drop {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
 /* The facility form's orbit slider (ADM.9): the full row, hidden unless
    the placement is "in orbit" (static/facilityform.js toggles `hidden`;
    `.search-field`'s own display would otherwise override it). */
@@ -762,6 +798,25 @@ tbody tr:last-child td {
 
 .starmap-info dd {
   margin: 0;
+}
+
+/* Generate page: the size and time estimate shown before a job starts
+   (PERF.3, web/generate_page.py). */
+.estimate-facts {
+  margin: 0 0 0.85rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+}
+
+.estimate-facts dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.estimate-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 /* Galaxy map: flat SVG plot of galaxy-placed sectors (html/lib/galaxymap.py,

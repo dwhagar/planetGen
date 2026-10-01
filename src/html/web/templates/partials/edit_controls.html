@@ -1,0 +1,32 @@
+{#- html/web/templates/partials/edit_controls.html -- the admin Delete and
+    Regenerate buttons (ADM.8, web/edit_actions.py). Each is a <details>
+    confirm step around a small POST form back to `action_url`. -#}
+
+{%- macro edit_buttons(action_url, target, label, regenerate_note, delete_note, facilities=True, regenerate_facilities=False) -%}
+<span class="edit-buttons">
+  <details class="edit-confirm"><summary class="btn btn-small">Regenerate</summary>
+    <form method="post" action="{{ action_url }}" class="table-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="edit_action" value="regenerate">
+      <input type="hidden" name="edit_target" value="{{ target }}">
+      <p class="hint">{{ regenerate_note }}</p>
+      {%- if regenerate_facilities %}
+      <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> Also delete facilities that would go with it</label>
+      {%- endif %}
+      <button type="submit" class="btn">Yes, regenerate {{ label }}</button>
+    </form>
+  </details>
+  <details class="edit-confirm"><summary class="btn btn-small">Delete</summary>
+    <form method="post" action="{{ action_url }}" class="table-form">
+      {{ csrf_field() }}
+      <input type="hidden" name="edit_action" value="delete">
+      <input type="hidden" name="edit_target" value="{{ target }}">
+      <p class="hint">{{ delete_note }}</p>
+      {%- if facilities %}
+      <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> Also delete its facilities</label>
+      {%- endif %}
+      <button type="submit" class="btn">Yes, delete {{ label }}</button>
+    </form>
+  </details>
+</span>
+{%- endmacro -%}

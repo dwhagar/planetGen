@@ -13,6 +13,14 @@ population is averaged over angle bins, drawn as a Poisson count, and
 each star then lands in a qualifying slot of a bin picked in proportion
 to that population's density.
 
+The scatter can go down in stages (`generate.py plan
+--bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add
+only the band from, say, 100 up to (not including) 500, keeping every
+star already placed. `galaxy_shape.bright_star_min_luminosity_sol` holds
+the level reached so far. A sector already filled gets none of the new
+band: its own systems were drawn below the old level, so they already
+include stars that bright.
+
 The backfill (GEN.23, `backfill_cells`) goes the other way: around each
 generated sector, block by block, it adds the stars between a lower floor
 (`BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL`) and whatever was already
@@ -36,7 +44,8 @@ from .galaxyGeometry import (
 )
 from .spaceSector import _sample_poisson_count
 from .stellarPopulation import (
-    band_fraction, bright_star_fraction, pick_population, sample_bright_stars, sample_stars_between,
+    band_fraction, bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars,
+    sample_stars_between,
 )
 from .utils import pc_to_ly
 
@@ -139,10 +148,12 @@ def _row(ring_index, layer_index, slot, point, population, params, rng):
 
 
 def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-            skip_addresses=None, on_layer=None):
+            skip_addresses=None, on_layer=None, max_luminosity_sol=None):
     """
     Draws and places every bright star in the galaxy's outline, one
-    layer after another (`scatter_layer`).
+    layer after another (`scatter_layer`), or, with `max_luminosity_sol`,
+    only the band below it (a staged scatter going one layer dimmer keeps
+    the brighter stars already placed).
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -157,19 +168,22 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
             out (sectors already filled).
         on_layer (callable, optional): Called as `on_layer(done, total)`
             after each layer.
+        max_luminosity_sol (float, optional): The band's upper limit
+            (exclusive), the level already scattered; `None` for every
+            star at or above the threshold.
 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
     for done, (layer_index, outer_ring) in enumerate(extents, start=1):
         yield from scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
-                                 min_luminosity_sol, seed, skip_addresses)
+                                 min_luminosity_sol, seed, skip_addresses, max_luminosity_sol=max_luminosity_sol)
         if on_layer is not None:
             on_layer(done, len(extents))
 
 
 def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-                  skip_addresses=None):
+                  skip_addresses=None, max_luminosity_sol=None):
     """
     One layer of `scatter`: every bright star from ring 0 out to
     `outer_ring` at `layer_index`. Each layer draws from its own random
@@ -182,7 +196,8 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     """
     rng = random.Random(f"{seed}:{layer_index}")
     skip_addresses = skip_addresses or set()
-    fractions = {population: bright_star_fraction(min_luminosity_sol, population) for population in POPULATIONS}
+    fractions = {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population)
+                 for population in POPULATIONS}
     placed = {population: [] for population in POPULATIONS}
     for ring_index in range(outer_ring + 1):
         slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
@@ -201,7 +216,8 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     for population, spots in placed.items():
         if not spots:
             continue
-        stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng)
+        stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
+                                    max_luminosity_sol=max_luminosity_sol)
         for (ring_index, slot, point), params in zip(spots, stars):
             yield _row(ring_index, layer_index, slot, point, population, params, rng)
 

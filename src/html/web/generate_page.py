@@ -14,6 +14,9 @@ needs a terminal on the server. Four actions, each a background job
   count it placed; a checkbox on either form skips it.
 - Rebuild bright stars: the scatter alone, on the stored plan
   (`--force` leaves already filled sectors out instead of refusing).
+- Add a dimmer layer: keep the bright stars already placed and add only
+  those from a lower level up to the current one
+  (`generate.py plan --bright-stars-down-to N`).
 - Generate sectors: `generate.py galaxy` in any of its four modes
   (random start, a whole ring, around a sector, one address).
 - Reset: wipe the database only.
@@ -32,13 +35,16 @@ and any POST or status request without an admin session gets a 403.
 Every form carries `csrf_field()` (checked app-wide by `csrf.protect`).
 """
 
+import json
+import os
+import subprocess
 import time
 
 from flask import abort, current_app, jsonify, make_response, redirect, request, url_for
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog, log, program_constants
+from stellarObjects import activitylog, generationStats, log, program_constants
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 from stellarObjects.generationLimits import (
@@ -91,13 +97,61 @@ GALAXY_MODES = (
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
 
+BAND_LABEL = "Add a dimmer layer of bright stars"
+
 SCATTER_LABEL = "Scatter the bright stars"
 """str: The step that pre-places every bright star
 (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
 
+ESTIMATE_TIMEOUT_S = 120
+"""int: How long the page waits for `generate.py galaxy --estimate-only`."""
+
+ESTIMATE_PREFIX = "ESTIMATE "
+"""str: `generate.ESTIMATE_PREFIX`: the line the estimate is read from."""
+
+ESTIMATE_CONFIRM_FIELD = "estimate_ok"
+"""str: The form field a confirmed estimate's "Generate" button adds."""
+
+
 class FormError(ValueError):
     """A form value the page rejects; the message is shown to the admin."""
+
+
+def run_estimate(argv, env):
+    """
+    PERF.3: the size and time a Generate sectors job would take, from
+    `generate.py galaxy ... --estimate-only` (run here, while the admin
+    waits, before anything is written).
+
+    Args:
+        argv (list): The job step's command line.
+        env (dict): `jobs.mysql_env`.
+
+    Returns:
+        dict: `generationStats.Estimate.as_dict()` plus `what`.
+
+    Raises:
+        FormError: The estimate couldn't be made; the message says why
+            (`generate.py`'s own last lines, e.g. a ring too large to
+            generate without a limit).
+    """
+    try:
+        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, capture_output=True,
+                              text=True, timeout=ESTIMATE_TIMEOUT_S, check=False)
+    except subprocess.TimeoutExpired:
+        raise FormError("Working out the size and time took too long. Nothing was generated.") from None
+    except OSError as exc:
+        raise FormError(f"The size and time couldn't be worked out: {exc}") from None
+    for line in reversed(done.stdout.splitlines()):
+        if line.startswith(ESTIMATE_PREFIX):
+            try:
+                return json.loads(line[len(ESTIMATE_PREFIX):])
+            except ValueError:
+                break
+    tail = [line.strip() for line in (done.stderr + "\n" + done.stdout).splitlines() if line.strip()]
+    message = " ".join(tail[-3:]) if tail else f"generate.py exited with {done.returncode}"
+    raise FormError(f"Nothing was generated: {message}")
 
 
 def _number(form, name, label, kind, required=False, minimum=None, maximum=None, exclusive_max=False):
@@ -287,6 +341,10 @@ def build_job(action, form, database):
         if form.get("bright_force"):
             argv.append("--force")
         return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
+    if action == "bright_band":
+        down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
+        argv = generate + ["plan", "--bright-stars-down-to", f"{down_to:g}"]
+        return "bright_band", f"Bright stars down to {down_to:g} L\u2609", [{"label": BAND_LABEL, "argv": argv}]
     if action == "galaxy":
         argv, description = galaxy_argv(form)
         label = f"Generate sectors {description}"
@@ -381,7 +439,7 @@ def format_elapsed(seconds):
     return f"{secs} s"
 
 
-def _page(admin, error=None, status=200, form=None):
+def _page(admin, error=None, status=200, form=None, estimate=None, estimate_title=None, estimate_fields=()):
     database = db_name()
     try:
         root = jobs.jobs_dir()
@@ -414,6 +472,10 @@ def _page(admin, error=None, status=200, form=None):
         max_limit=MAX_GENERATE_LIMIT,
         error=error,
         form=form or {},
+        estimate=estimate,
+        estimate_title=estimate_title,
+        estimate_fields=estimate_fields,
+        estimate_confirm_field=ESTIMATE_CONFIRM_FIELD,
         status=status,
     ))
 
@@ -447,6 +509,23 @@ def generate():
             return _no_store(make_response(jsonify({"error": str(exc)}), 400))
         return _page(admin, error=str(exc), status=400, form=request.form)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
+    if kind == "galaxy" and not request.form.get(ESTIMATE_CONFIRM_FIELD):
+        # PERF.3: show the size and time first; the admin confirms (or the
+        # disk refuses it) before the job starts.
+        try:
+            estimate = run_estimate(steps[0]["argv"], env)
+        except FormError as exc:
+            if wants_json:
+                return _no_store(make_response(jsonify({"error": str(exc)}), 400))
+            return _page(admin, error=str(exc), status=400, form=request.form)
+        if wants_json:
+            return _no_store(make_response(jsonify({
+                "error": estimate["refusal"] or f"Confirm first: {estimate['summary']}",
+                "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
+            }), 409))
+        return _page(admin, form=request.form, estimate=_estimate_view(estimate), estimate_title=title,
+                     estimate_fields=[(name, value) for name, value in request.form.items(multi=True)
+                                      if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD)])
     try:
         job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
         activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
@@ -469,6 +548,17 @@ def generate():
             "status_url": url_for("web.generate_status", job=job_id),
         }), 202))
     return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+
+
+def _estimate_view(estimate):
+    """`run_estimate`'s dict plus the text the page shows."""
+    view = dict(estimate)
+    view["size_text"] = generationStats.format_bytes(estimate.get("bytes"))
+    view["time_text"] = generationStats.format_duration(estimate.get("seconds"))
+    disk = estimate.get("disk")
+    view["disk_text"] = (f"{generationStats.format_bytes(disk['free_bytes'])} free of "
+                         f"{generationStats.format_bytes(disk['total_bytes'])}") if disk else None
+    return view
 
 
 def _wants_json():

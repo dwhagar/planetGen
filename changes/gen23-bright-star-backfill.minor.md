@@ -8,7 +8,9 @@
   block is only drawn once, and sectors that are already filled are
   never touched. The new stars show on the Galaxy Map like the plan's
   bright stars, and later sectors in those blocks build their systems
-  around them.
+  around them. A later `generate.py plan --bright-stars-down-to` band
+  leaves those blocks out and tops each one up below its own level, so
+  no star is ever drawn twice.
 
 ### Changed
 - **The default generate-around sphere is 12 pc (about 39 ly), not

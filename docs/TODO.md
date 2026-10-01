@@ -97,15 +97,15 @@ SEC.28), the database-call work (PERF.6, PERF.12 to PERF.17) and
 parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 14:41Z) set the next round, run as parallel threads:
 
-1. **First:** PERF.5 (scatter bright stars in stages).
+1. **First:** PERF.5 (scatter bright stars in stages), done in PR #229.
 2. **Galaxy Map and units:** GEN.23 (UX.13, UX.14, MAP.15, MAP.30 and
    MAP.2 shipped in PR #234).
-3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
-   and PERF.10.
+3. **Generation estimates and progress:** PERF.4 and PERF.9 (PERF.3 and
+   PERF.10 done in PR #238).
 4. **Admin editing:** ADM.1 and its subitems, on the validate module
    (ADM.5, done in PR #235).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -212,30 +212,6 @@ No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
 MAP.30) shipped in PR #234.
 
 ## GEN: Generation and physics
-
-- [ ] **GEN.8 Give rogue planets a planet class, with a rogue flag in the class constants**
-  Boss (2026-10-01): "Rogue plants should get a
-  planet class, add TODO item to TODO.md that we should add to the
-  zone data for planet class constants a flag for if a planet is
-  acceptable to be rogue or not (zone r for the purposes of the
-  constants)." Today each class in `program_constants.PLANET_CLASSES`
-  carries zone flags `"h"`, `"e"` and `"c"` (hot, ecosphere and cold
-  zones), and a rogue planet (`stellarObjects/roguePlanetData.py`,
-  `RoguePlanet`) has no class: just a `planet_type` of `'t'` or `'g'`
-  picked by mass from the rogue mass bins. Done: every class in
-  `PLANET_CLASSES` gets an `"r"` flag saying whether it can be a rogue
-  planet; a rogue planet is given a class drawn only from the classes
-  with `"r": True` that fit its mass and type; the class is stored and
-  shown on the rogue planet's page and the Sector Map like any other
-  planet's; and the class override and validation items (ADM.5 to
-  ADM.7) treat `"r"` as the rogue planet's zone. Open questions: which
-  classes are allowed to be rogue (frozen, gas giant and barren classes
-  are the obvious ones; does a class with life ever qualify)? Are the
-  probabilities `PLANET_CLASS_PROBABILITIES` reweighted for rogues, or
-  a separate rogue table? What happens to rogue planets already
-  generated: a migration that assigns classes from their stored mass
-  and type, or a regenerate? Does a rogue class change its rendering
-  (it has no star to light it)?
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
   Boss (2026-10-01): "Lay the groundwork for different galaxies within
@@ -375,49 +351,6 @@ MAP.30) shipped in PR #234.
   code is mostly `generate.py`, `web/generate_page.py`, `web/jobs.py` and
   `stellarObjects/brightStars.py`.
 
-  - [ ] **PERF.3 Estimate size and time before bulk generation, and refuse what won't fit**
-    Boss (2026-10-01): "any directive to generate
-    sectors in bulk should have a size estimate calculated +10% and make
-    sure that it warns the user approximate size of the generated content
-    before it generates it. Same for time, which means we'll have to
-    store in the control database somewhere how fast stars are generated
-    in exact terms as we can, which we'll get from the generate phase,
-    not from the plan, but from when we start generating sectors, have
-    the program keep track of it's average stars per second and then
-    we'll use the expected stellar density of all the sectors being asked
-    to generate to determine the amount of time it is estimated to take.
-    Also it should refuse to generate anything that would take more than
-    1/4 of the total disk space OR would leave less than 5 GB of space
-    estimated to be left." Today nothing estimates size or time up front:
-    `generate.py` only shows elapsed time and a running ETA once
-    generation has started, and `stellarObjects/generationLimits.py`
-    caps input sizes (radius, ring counts, orbits), not output size.
-    Done, for every bulk path (`generate.py galaxy`/`sector` over many
-    sectors, the admin Generate page's jobs, the Galaxy Map's block,
-    layer and neighborhood generation (MAP.20), and ADM.8's sector
-    regenerate):
-    - Before starting, compute the expected star count from the expected
-      stellar density of the requested sectors, then an estimated size
-      (bytes per star from measured data, plus 10%) and an estimated
-      time (stars / measured stars per second), and show both to the
-      user, who confirms before anything is written.
-    - Measure speed during sector fill, not during the plan: the program
-      tracks its average stars per second while generating sectors and
-      stores it in the control database (a new table or row next to
-      `admin_users` in `control_schema.sql`), updated after each run.
-    - Refuse when the estimate would use more than 1/4 of the total disk
-      or leave less than 5 GB free, saying why and how much space it
-      needs.
-
-    Open questions: which disk counts (the MySQL data directory's volume,
-    which may be another machine, or the planetGen host); how bytes per
-    star are calibrated (measured from the database's own table sizes
-    after each run, or fixed from the 2026-09-30 galaxy-size study in the
-    project's `galaxy-studies/`); what rate to use before any run has
-    been measured (a conservative default?); whether the rate is kept per
-    server or per kind of sector (bright-star and bulge sectors cost
-    more per star); and whether an admin can override the refusal.
-
   - [ ] **PERF.4 A second progress bar for slow layers in the plan**
     Boss
     (2026-10-01): "For building the layers, when the rate drops below 1
@@ -447,38 +380,6 @@ MAP.30) shipped in PR #234.
     bar was removed for exactly that); and whether the same rule applies
     to sector fill (`Sectors (ring … layer …)`), where PERF.3's rate is
     measured.
-
-  - [ ] **PERF.5 Scatter bright stars in stages, one luminosity band at a time**
-    Boss (2026-10-01): "let's do a default of 100 solar
-    luminosities for the star map, but then add to the TODO.md to allow
-    us to add another layer down (i.e. so when I generate I do say 500
-    solar luminosities because I want to be quick and do testing but then
-    after I want to generate down to 100 solar luminosities, so we have
-    to make sure when I do that, it only generates between the limits
-    (i.e. doesn't generate more brighter stars). Probably add a value for
-    the star-fill level." Boss then kept the default at 500 (2026-10-01):
-    "OMG, no, so let's make the default 500 then, sorry, I am now down
-    with adding 35 gigs to the database." So the default threshold
-    (`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`) is 500, and going
-    down to 100 later is the kind of extra layer this item adds. Today
-    the plan's scatter (`generate.py`, `--bright-star-min-luminosity`)
-    clears `bright_stars` and redraws everything at or above the
-    threshold, and refuses when any sector is already filled unless
-    `--force` leaves those sectors out. Done: the galaxy stores its
-    current star-fill level (the lowest luminosity already scattered); a
-    scatter to a lower threshold keeps the existing bright stars and adds
-    only stars from the new threshold up to (not including) the stored
-    level, then lowers the stored level; asking for a level at or above
-    the stored one does nothing (or says so); the Generate page and the
-    CLI show the current level and offer "go down to N"; and PERF.3's
-    size and time estimates cover just the new band. Open questions:
-    where the level is stored (the control database, a `galaxy` row next
-    to the skeleton, or derived from `MIN(luminosity_w)` in
-    `bright_stars`)? What happens to sectors already filled when new,
-    dimmer bright stars land in them: add the stars and build their
-    systems in place, skip those sectors, or mark them for ADM.8's
-    regenerate? Must the new band draw from the same random stream, so a
-    500-then-100 galaxy matches a straight-to-100 one?
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
@@ -510,35 +411,6 @@ MAP.30) shipped in PR #234.
     stored with the galaxy skeleton? Once PERF.8 runs layers in
     parallel and out of order, does the ETA add up the expected work
     still queued rather than following the layer order?
-
-  - [ ] **PERF.10 Record generation speed across a log scale of densities**
-    Boss (2026-10-01): "record generation stats such as time per star,
-    time per sector for a log scale of densities from 0.01 to the max
-    expected density / actual density found. ... Both of these will be
-    continued to be refined and calculated as long as the galaxy is in
-    existence but as a decaying average." Today nothing records how long
-    generation takes per star or per sector, and PERF.3's planned
-    stars-per-second figure is a single number for the whole server.
-    Done: density is split into log-scale buckets from 0.01 up to the
-    highest density expected or found; every sector fill adds its time
-    per star and time per sector to its density's bucket as a decaying
-    average; the buckets keep updating for as long as the galaxy exists;
-    and they can be read back by the tools below. These stats feed
-    PERF.3 (time estimates before bulk generation, per bucket instead
-    of one rate), UX.3 (the banner's ETA), PERF.4 (the slow-layer
-    bar's stars-remaining ETA), PERF.5 (the time for a new luminosity
-    band), PERF.7 (the decaying-average rate) and PERF.9 (weighting
-    the bright-star ETA by expected work per layer). Open questions: how
-    many buckets and where their edges sit (per decade, half-decade?);
-    whether the top edge is fixed from the density model's expected
-    maximum or moves up when a denser sector is found; the decay
-    constant (how fast old runs fade); whether the plan's bright-star
-    scatter gets its own buckets (its cost per star differs from sector
-    fill); whether it lives in the control database (survives a new
-    galaxy, as PERF.3 suggests for stars per second) or the galaxy
-    database (resets with it), and so what a regenerate or reset does to
-    it; and whether PERF.8's parallel workers count wall time or CPU
-    time per task.
 
   - [ ] **PERF.11 Store each sector's expected and actual density**
     Boss
