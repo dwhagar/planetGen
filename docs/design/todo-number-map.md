@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.21 |
+| UX | UX.22 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
 | GEN | GEN.25 |
@@ -563,6 +563,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
+| UX.21 | Clean up the web interface: overlapping buttons and dead controls | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
