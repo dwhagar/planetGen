@@ -42,9 +42,10 @@ import re
 import tempfile
 import time
 
-from apiclient import get_galaxy_changes, get_galaxy_tiles
+from apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from privatedir import ensure_private_dir
 from stellarObjects.appconfig import load_config
+from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
 from stellarObjects.galaxyViewport import parse_tile_key, tile_key
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
@@ -211,6 +212,22 @@ def _delete_tiles(generation_dir, tile_keys):
             pass
 
 
+def _stage_filename(key):
+    """A drill-down stage's cache file: `sgalaxy.json` for the galaxy,
+    else `s<m>_<ring>_<wedge>_<slab>.json`."""
+    if key == "galaxy":
+        return "sgalaxy.json"
+    return "s" + format_drill_key(parse_drill_key(key)).replace(".", "_") + ".json"
+
+
+def _delete_stages(generation_dir, stage_keys):
+    for key in stage_keys:
+        try:
+            os.unlink(os.path.join(generation_dir, _stage_filename(key)))
+        except (OSError, ValueError):
+            pass
+
+
 def _trim_history(history):
     """The newest `history` entries that fit `HISTORY_MAX_ENTRIES` and
     `HISTORY_MAX_KEYS`."""
@@ -257,11 +274,13 @@ def current_stamp(db, root=None):
         return {"stamp": stamp, "generation": None, "history": []}
 
     stale = []
+    stale_stages = []
     if remembered is not None and not changes.get("full"):
         generation = remembered["generation"]
         history = remembered["history"]
         if stamp != remembered["stamp"]:
             stale = [str(key) for key in changes.get("tiles") or []]
+            stale_stages = [str(key) for key in changes.get("stages") or []]
             history = _trim_history(history + [{"from": remembered["stamp"], "to": stamp, "tiles": stale}])
     else:
         generation = stamp
@@ -274,8 +293,10 @@ def current_stamp(db, root=None):
     # (see `fetch_tiles`), so whichever side of the write it lands on, a
     # tile fetched before the change doesn't survive it.
     _delete_tiles(generation_dir, stale)
+    _delete_stages(generation_dir, stale_stages)
     _write_json(stamp_path, info)
     _delete_tiles(generation_dir, stale)
+    _delete_stages(generation_dir, stale_stages)
     try:
         for entry in os.scandir(db_dir):
             if entry.is_dir() and entry.name != generation:
@@ -415,6 +436,44 @@ def fetch_tiles(db, tile_keys, known_stamp=None):
     if history is not None:
         result["history"] = history
     return result
+
+
+def fetch_stage(db, at=None):
+    """
+    One Galaxy Map drill-down stage (`queryDb.galaxy_stage`), from the disk
+    cache when it's there, else from `GET /api/galaxy/stage` (and then
+    cached). A sector change deletes just its chain's stages (`stages` in
+    `/api/galaxy/changes`), the same way tiles are refreshed.
+
+    Args:
+        db (str): The `?db=` value.
+        at (str or None): A block key `m.ring.wedge.slab`, or `None` for
+            the galaxy.
+
+    Returns:
+        dict: The stage, plus `stamp`.
+
+    Raises:
+        TileRequestError: On a malformed key.
+        apiclient.ApiError / NotFoundError: If the API is needed and fails.
+    """
+    try:
+        key = format_drill_key(parse_drill_key(at)) if at else "galaxy"
+    except ValueError as exc:
+        raise TileRequestError(str(exc))
+    root = cache_dir()
+    info = current_stamp(db, root)
+    stamp = info["stamp"]
+    generation = info["generation"]
+    generation_dir = os.path.join(_db_dir(root, db), generation) if root and generation else None
+    path = os.path.join(generation_dir, _stage_filename(key)) if generation_dir else None
+
+    stage = _read_json(path) if path else None
+    if not isinstance(stage, dict):
+        stage = get_galaxy_stage(db, None if key == "galaxy" else key)
+        if path and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
+            _write_json(path, stage)
+    return {**stage, "stamp": stamp}
 
 
 def prune(root, max_bytes=None):

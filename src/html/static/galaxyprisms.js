@@ -301,6 +301,135 @@ export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
   return { first: Math.max(0, first), last: Math.min(n - 1, last) };
 }
 
+// --- Drill-down ladder ------------------------------------------------------
+//
+// The drill-down's nested blocks (docs/design/galaxy-drilldown-navigation.md,
+// section 3): 243, 27, 3 and 1 sectors a side, each block wholly inside one
+// block of the next size up. A block is {m, ring, wedge, slab}; at m = 1 it
+// is a sector, with the slot as `wedge` and the layer as `slab`.
+// stellarObjects/galaxyDrill.py is the same rules for the server, and
+// tests/test_galaxydrill.py checks that the two agree.
+
+export var DRILL_LEVELS = [243, 27, 3, 1];
+
+function drillStep(m) {
+  return m === 3 ? 3 : 9;
+}
+
+function drillTarget(ring) {
+  return Math.max(3, Math.round(2 * Math.PI * (ring + 0.5)));
+}
+
+// Wedges in block ring `ring` at size m. 243 keeps blockWedgeCount; 27 and
+// 3 take the parent ring's count times max(1, round(target / parent)), so
+// every parent wedge line is also a child wedge line; 1 is the ring's
+// slots.
+export function drillWedgeCount(m, ring) {
+  if (m === 1) return ringSectorCount(ring);
+  if (m === 243) return blockWedgeCount(ring, 243);
+  var parent = drillWedgeCount(m * 9, Math.floor(ring / 9));
+  return parent * Math.max(1, Math.round(drillTarget(ring) / parent));
+}
+
+// The block one size up holding `block`, or null at 243. A sector joins
+// the level-3 wedge holding its slot's center.
+export function drillParent(block) {
+  var m = block.m;
+  if (m === 243) return null;
+  if (m === 1) {
+    var ring3 = Math.floor(block.ring / 3);
+    return {
+      m: 3, ring: ring3,
+      wedge: Math.floor(((2 * block.wedge + 1) * drillWedgeCount(3, ring3)) / (2 * ringSectorCount(block.ring))),
+      slab: Math.floor((block.slab + 1) / 3),
+    };
+  }
+  var ring = Math.floor(block.ring / 9);
+  var q = drillWedgeCount(m, block.ring) / drillWedgeCount(m * 9, ring);
+  return { m: m * 9, ring: ring, wedge: Math.floor(block.wedge / q), slab: Math.floor((block.slab + 4) / 9) };
+}
+
+// Sector (ring, layer, slot)'s blocks from the top: [243, 27, 3, sector].
+export function drillChainOf(ring, layer, slot) {
+  var chain = [{ m: 1, ring: ring, wedge: slot, slab: layer }];
+  while (chain[chain.length - 1].m !== 243) chain.push(drillParent(chain[chain.length - 1]));
+  return chain.reverse();
+}
+
+// A block's child slabs, lowest first (at m = 3, sector layers). For the
+// galaxy (block null), the level-243 slabs reaching maxLayer (the
+// outline's galaxy_layer), or just slab 0 without one.
+export function drillSlabs(block, maxLayer) {
+  var lo, hi;
+  if (!block) {
+    if (maxLayer == null) return [0];
+    hi = Math.floor((maxLayer + 121) / 243);
+    lo = -hi;
+  } else {
+    var half = (drillStep(block.m) - 1) / 2;
+    lo = block.slab * drillStep(block.m) - half;
+    hi = block.slab * drillStep(block.m) + half;
+  }
+  var slabs = [];
+  for (var s = lo; s <= hi; s++) slabs.push(s);
+  return slabs;
+}
+
+// The sectors of level-3 block `block` on sector layer `layer`: the slots
+// whose centers fall in its wedge, in each of its three rings.
+export function drillBlockSectors(block, layer) {
+  var wedges = drillWedgeCount(3, block.ring);
+  var sectors = [];
+  for (var i = 3 * block.ring; i < 3 * block.ring + 3; i++) {
+    var slots = blockSlotRange(block.ring, block.wedge, 3, i, wedges);
+    for (var k = slots.first; k <= slots.last; k++) sectors.push({ m: 1, ring: i, wedge: k, slab: layer });
+  }
+  return sectors;
+}
+
+// A block's children grouped by child slab, lowest first: [{slab, blocks}].
+// A level-3 block's are its sectors, by layer. For the galaxy (block
+// null), every level-243 block out to sector ring maxRing on
+// drillSlabs(null, maxLayer); whether the outline allows any sector in
+// them is blockExists's job.
+export function drillChildren(block, maxRing, maxLayer) {
+  return drillSlabs(block, maxLayer).map(function (slab) {
+    var blocks = [];
+    if (!block) {
+      for (var r = 0; r <= Math.floor(maxRing / 243); r++) {
+        for (var w = 0; w < drillWedgeCount(243, r); w++) blocks.push({ m: 243, ring: r, wedge: w, slab: slab });
+      }
+    } else if (block.m === 3) {
+      blocks = drillBlockSectors(block, slab);
+    } else {
+      var f = drillStep(block.m);
+      var childM = block.m / f;
+      var parentWedges = drillWedgeCount(block.m, block.ring);
+      for (var i = block.ring * f; i < block.ring * f + f; i++) {
+        var q = drillWedgeCount(childM, i) / parentWedges;
+        for (var s = block.wedge * q; s < block.wedge * q + q; s++) blocks.push({ m: childM, ring: i, wedge: s, slab: slab });
+      }
+    }
+    return { slab: slab, blocks: blocks };
+  });
+}
+
+// "m.ring.wedge.slab", a stage URL's `at`.
+export function formatDrillKey(block) {
+  return [block.m, block.ring, block.wedge, block.slab].join(".");
+}
+
+// formatDrillKey's inverse, or null: a known size, ring and wedge in range.
+export function parseDrillKey(key) {
+  var parts = String(key == null ? "" : key).split(".");
+  if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
+  var v = parts.map(Number);
+  var block = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
+  if ([243, 27, 3].indexOf(block.m) < 0 || block.ring < 0 || !Number.isSafeInteger(block.ring)) return null;
+  if (block.wedge < 0 || block.wedge >= drillWedgeCount(block.m, block.ring)) return null;
+  return block;
+}
+
 // Whether sector (ring, layer) can exist: the galaxy's density bound at
 // its ring centerline and layer center reaches shape.sector_min_density
 // (the skeleton's rule, stellarObjects.galaxySkeleton). Without a

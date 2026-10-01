@@ -36,8 +36,9 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
-   70-72 first, in order; it replaces the map's click-to-center and
-   double-click zoom.
+   70 (the nested block ladder) and 71 (the stage contents API) have
+   shipped; 72 next. It
+   replaces the map's click-to-center and double-click zoom.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
@@ -101,27 +102,10 @@ a sector. Admins can generate a sector, a layer or a neighborhood (radius
 asked in light-years) at the sector level, and the NAV page can pick its
 start and destination on the map or in a sector. Everything below is
 specified, with the math, in the design doc named in the heading; each
-item names its section. Items 70-72 go in order (Galaxy Map thread); Web
+item names its section. Item 72 is next (Galaxy Map thread; 70, the
+nested ladder, is in `stellarObjects/galaxyDrill.py`, and 71 is `GET
+/api/galaxy/stage`); Web
 can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
-
-70. [ ] **Nested ladder geometry (design doc section 3).** Today's
-    `blockWedgeCount` picks each level's wedges on its own, so a child
-    block sits inside one parent only sometimes (109 of 143 rings at
-    243 -> 27, 1,162 of 1,286 at 27 -> 3). Done: the nested wedge rule
-    (each level's wedge count a whole multiple of its parent's),
-    sectors joining the level-3 block that holds their center, and
-    `drillWedgeCount`, `drillParent`, `drillChildren`, `drillSlabs`,
-    `drillBlockSectors`, `drillChainOf` in `static/galaxyprisms.js` with
-    the same functions in `stellarObjects/galaxyGeometry.py`; a node
-    parity test shows both agree and that a parent's sectors are exactly
-    its children's.
-
-71. [ ] **Stage contents API (section 7).** Done: `GET
-    /api/galaxy/stage?at=m.I.s.S` returns one container's children with
-    generated counts (generated sectors listed at m = 3), and the whole
-    galaxy's level-243 blocks with no `at`; cached by `lib/tilecache.py`
-    under the stamp, a change invalidating only its ancestor chain. No
-    schema change.
 
 72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
     eight stages on the Galaxy Map, with slab hover highlight, pull-out

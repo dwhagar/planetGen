@@ -443,9 +443,17 @@ def get_galaxy_tiles(db, tile_keys):
     return _request("/galaxy/tiles", {"db": db, "tiles": ",".join(tile_keys)})
 
 
+def get_galaxy_stage(db, at=None):
+    """Returns `GET /api/galaxy/stage`'s payload (`at`/`child_m`/
+    `children`/`sectors` -- see `queryDb.galaxy_stage`). Callers go
+    through `lib/tilecache.py`, which caches each stage on disk."""
+    _require_db(db)
+    return _request("/galaxy/stage", {"db": db, "at": at})
+
+
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
-    `tiles`) -- which cube tiles changed since `since`, an earlier call's
+    `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's
     `state` (see `queryDb.galaxy_changes`). `lib/tilecache.py` uses it to
     refresh only the tiles an edit touched."""
     _require_db(db)

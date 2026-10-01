@@ -58,6 +58,7 @@ from queryDb import (
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    galaxy_stage,
     galaxy_tiles,
     list_phenomena,
     list_sectors,
@@ -757,6 +758,22 @@ def galaxy_tiles_route():
         raise ApiError(f"at most {MAX_TILES_PER_REQUEST} tiles per request")
     try:
         return jsonify(galaxy_tiles(get_db(), tile_keys))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
+@bp.route("/galaxy/stage")
+def galaxy_stage_route():
+    """
+    One Galaxy Map drill-down stage: `?at=m.ring.wedge.slab` (a block key,
+    `stellarObjects.galaxyDrill`), or no `at` for the galaxy. Returns how
+    many generated sectors each child block holds, and at a level-3 block
+    the generated sectors themselves -- see `queryDb.galaxy_stage`.
+    Called by `/galaxy/stage` (`html/web/galaxy_views.py`), which caches
+    each stage on disk.
+    """
+    try:
+        return jsonify(galaxy_stage(get_db(), request.args.get("at") or None))
     except ValueError as exc:
         raise ApiError(str(exc))
 

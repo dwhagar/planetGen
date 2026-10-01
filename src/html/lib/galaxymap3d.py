@@ -298,7 +298,8 @@ def _json_script(data):
 
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
-                              sector_url=None, generate=None, phenomenon_url=None):
+                              sector_url=None, generate=None, phenomenon_url=None,
+                              system_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -343,6 +344,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         phenomenon_url (str, optional): A phenomenon page URL with
             `{type}` and `{id}` where they go, for a cloud's "View
             phenomenon" link; without it the panel shows no link.
+        system_url (str, optional): A star system page URL with `{id}`
+            where the id goes, for a filled bright star's "View system"
+            link; without it the panel shows no link.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -356,6 +360,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
+        "systemUrl": system_url,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
@@ -408,7 +413,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
   pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
   grows more solid the more of its sectors are generated (fully solid when all are); a single generated sector
-  takes its real stellar density's color &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
+  takes its real stellar density's color &middot; glowing points are the brightest stars (500 L&#9737; and up), placed before their sectors are generated &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
   follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
