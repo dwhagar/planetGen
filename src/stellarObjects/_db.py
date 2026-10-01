@@ -87,7 +87,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 42
+SCHEMA_VERSION = 43
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -3374,6 +3374,99 @@ def refresh_after_motion(conn, refiled_sectors=()):
     return rewritten
 
 
+# ---------------------------------------------------------------------------
+# Bright-star pre-placement (schema v43) -- storage. The scatter itself
+# (generate.py plan) and the fill draw stars from Physics' sampling API.
+# ---------------------------------------------------------------------------
+
+BRIGHT_STAR_COLUMNS = (
+    "ring_index", "layer_index", "ring_slot_index", "position_x_mpc", "position_y_mpc", "position_z_mpc",
+    "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
+    "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed",
+)
+"""tuple: The `bright_stars` columns a scatter writes, in the order
+`insert_bright_stars` expects each row's values."""
+
+
+def clear_bright_stars(conn):
+    """
+    Empties `bright_stars` and forgets the scatter's threshold and seed --
+    a plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
+    commit), since a real scatter leaves tens of millions of rows.
+    """
+    conn.execute("TRUNCATE TABLE bright_stars")
+    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL")
+    conn.commit()
+
+
+def record_bright_star_scatter(conn, min_luminosity_sol, seed):
+    """Stores the threshold and seed a finished scatter used, so a fill
+    reads them rather than today's constant."""
+    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = ?, bright_star_seed = ? WHERE id = 1",
+                 (min_luminosity_sol, seed))
+
+
+def bright_star_scatter_settings(conn):
+    """`(min_luminosity_sol, seed)` of the galaxy's scatter, or `None`
+    when none has run (a fill then behaves exactly as before)."""
+    row = conn.execute(
+        "SELECT bright_star_min_luminosity_sol, bright_star_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row["bright_star_min_luminosity_sol"] is None:
+        return None
+    return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
+
+
+def insert_bright_stars(conn, rows, batch_size=10000):
+    """
+    Bulk-writes scattered bright stars (`BRIGHT_STAR_COLUMNS` order) in
+    batches of `batch_size`, which need no server setting (`LOAD DATA
+    LOCAL INFILE` would need `local_infile` on both ends).
+
+    Returns:
+        int: Rows written.
+    """
+    columns = ", ".join(BRIGHT_STAR_COLUMNS)
+    marks = ", ".join("?" * len(BRIGHT_STAR_COLUMNS))
+    written = 0
+    batch = []
+    for row in rows:
+        batch.append(tuple(row))
+        if len(batch) >= batch_size:
+            conn.executemany(f"INSERT INTO bright_stars ({columns}) VALUES ({marks})", batch)
+            written += len(batch)
+            batch = []
+    if batch:
+        conn.executemany(f"INSERT INTO bright_stars ({columns}) VALUES ({marks})", batch)
+        written += len(batch)
+    return written
+
+
+def bright_stars_for_sector(conn, ring_index, layer_index, ring_slot_index):
+    """The pre-placed stars in one sector cell not yet built into a
+    system, brightest first, as dicts of every `bright_stars` column."""
+    return [dict(row) for row in conn.execute(
+        "SELECT * FROM bright_stars WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?"
+        " AND star_system_id IS NULL ORDER BY luminosity_w DESC, id",
+        (ring_index, layer_index, ring_slot_index),
+    ).fetchall()]
+
+
+def filled_sector_addresses(conn):
+    """The `(ring, layer, slot)` of every galaxy sector already filled."""
+    return {
+        (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        for row in conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE ring_index IS NOT NULL"
+        ).fetchall()
+    }
+
+
+def mark_bright_star_filled(conn, bright_star_id, star_system_id):
+    """Links a pre-placed star to the system its sector's fill built
+    around it."""
+    conn.execute("UPDATE bright_stars SET star_system_id = ? WHERE id = ?", (star_system_id, bright_star_id))
+
+
 def sectors_reached_by(conn, center_pc, radius_pc):
     """The ids of every placed sector a sphere of `radius_pc` around
     `center_pc` (galaxy-frame parsecs) overlaps."""
@@ -3465,11 +3558,14 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     confirm_sector_name(conn, name_base, sector_id)
 
     for entry in sector.entries:
-        insert_star_system(
+        star_system_id = insert_star_system(
             conn, entry.star_system, entry.system_config,
             sector_id=sector_id, position=entry.position,
             location=_location_for_entry(sector, entry),
         )
+        bright_star_id = getattr(entry, "bright_star_id", None)
+        if bright_star_id is not None:
+            mark_bright_star_filled(conn, bright_star_id, star_system_id)
 
     for entry in sector.phenomena:
         inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
@@ -3718,7 +3814,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     k_norm = VALUES(k_norm),
                     edge_pc = VALUES(edge_pc),
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
-                    outer_ring_index = VALUES(outer_ring_index)
+                    outer_ring_index = VALUES(outer_ring_index),
+                    bright_star_min_luminosity_sol = NULL,
+                    bright_star_seed = NULL
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
@@ -6468,6 +6566,22 @@ def _migrate_v41_to_v42(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (42)")
 
 
+def _migrate_v42_to_v43(conn):
+    """
+    Adds bright-star pre-placement's storage -- see `schema.sql`'s "v43"
+    header note: the `bright_stars` table (empty; the next
+    `generate.py plan` scatters) and `galaxy_shape`'s threshold and seed.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "galaxy_shape", "bright_star_min_luminosity_sol"):
+        conn.execute("ALTER TABLE galaxy_shape ADD COLUMN bright_star_min_luminosity_sol DOUBLE, "
+                     "ADD COLUMN bright_star_seed BIGINT UNSIGNED")
+    conn.execute(_schema_statement("bright_stars"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (43)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -6569,6 +6683,7 @@ def _migration_steps():
         (40, _migrate_v39_to_v40),
         (41, _migrate_v40_to_v41),
         (42, _migrate_v41_to_v42),
+        (43, _migrate_v42_to_v43),
     ]
 
 

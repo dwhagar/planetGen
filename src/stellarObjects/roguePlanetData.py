@@ -25,7 +25,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import (format_galactic_orbit, generate_galactic_orbit_fields,
+from .utils import (format_body_radius_km, format_galactic_orbit, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, reseed_rng)
 
 
@@ -235,7 +235,8 @@ class RoguePlanet:
         what = "brown dwarf" if self.kind_label == "Brown Dwarf" else "planet"
         description = (
             f"{self.name} is a free-floating {what} adrift in interstellar space, bound to no star. It has a "
-            f"radius of roughly {self.radius_km:,.0f} km and is composed of {self.composition}."
+            f"radius of roughly {format_body_radius_km(self.system_config, self.radius_km)} and is composed of "
+            f"{self.composition}."
         )
 
         sentences = [description]

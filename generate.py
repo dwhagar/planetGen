@@ -78,7 +78,7 @@ from rich.progress import (
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, generationLimits, log, physical_constants, program_constants, progressFile
+from stellarObjects import _db, brightStars, generationLimits, log, physical_constants, program_constants, progressFile
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
@@ -96,6 +96,7 @@ from stellarObjects.quasarData import Quasar
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
 from stellarObjects.starData import STAR_TYPE_PATTERN
+from stellarObjects.stellarPopulation import bright_star_fraction
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import render_star_system
@@ -1106,7 +1107,27 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     return sector.add_phenomenon(black_hole, "black-hole", position=position)
 
 
-def generate_sector(args, galactic_center_dist_ly=None, cell=None):
+def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
+    """Builds a full system around each of the sector's pre-placed bright
+    stars (`fill.bright_rows`) and places it first, at its stored point.
+    Each one's companion, planets and moons come from its own stored
+    `seed`, without disturbing the run's random state."""
+    for row in fill.bright_rows:
+        cfg = build_system_config(args)
+        cfg.POPULATION = row["population"]
+        state = random.getstate()
+        random.seed(row["seed"])
+        try:
+            system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly,
+                                primary_star_params=brightStars.star_params(row))
+        finally:
+            random.setstate(state)
+        entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
+                                            system_config=cfg)
+        entry.bright_star_id = row["id"]
+
+
+def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
     """
     Builds a fully populated `SpaceSector` from parsed args, without
     rendering, printing, or saving anything -- the shared core `run_sector`
@@ -1131,6 +1152,12 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
             cylindrical cell, in light-years, for a galaxy-placed sector --
             systems and phenomena are then placed inside it rather than in
             a cube (see `SpaceSector.cell`).
+        fill (brightStars.FillContext, optional): For a galaxy-placed
+            sector: its pre-placed bright stars are built and placed
+            first, and every other system takes its age from the stellar
+            population mix there and stays below the bright-star
+            threshold; a `--density` count shrinks by the bright stars'
+            share so the expected total is unchanged.
 
     Returns:
         tuple: `(sector_name, SpaceSector)` -- `sector_name` is
@@ -1169,6 +1196,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name, cell=cell)
+    if fill is not None:
+        _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly)
 
     # `--density` resolves to a concrete system count per sector (this
     # sector's own volume, sampled fresh each call) rather than once at
@@ -1182,10 +1211,14 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
         # An astronomical --density (1e308) can overflow the mean to inf;
         # any count that large just fills the sector (see "Capacity").
         mean = min(sector.expected_system_count() * args.density, sys.float_info.max)
+        if fill is not None:
+            mean *= 1.0 - fill.bright_share()
         args.num_systems = _sample_poisson_count(mean)
 
     total = args.num_systems
     for i, cfg in enumerate(iter_sector_configs(args)):
+        if fill is not None:
+            fill.apply(cfg)
         with log.timed_phase(f"generate system {i + 1}/{total}"):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly)
 
@@ -1223,6 +1256,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None):
         # explicit --num-systems, including 0, is a deliberate request
         # this never overrides).
         fallback_config = build_system_config(args)
+        if fill is not None:
+            fill.apply(fallback_config)
         fallback_system = StarSystem(system_config=fallback_config, galactic_center_dist_ly=galactic_center_dist_ly)
         sector.add_system(fallback_system, system_config=fallback_config)
 
@@ -1608,6 +1643,24 @@ def _edge_pc():
     return float(program_constants.DEFAULT_SECTOR_EDGE_PC)
 
 
+def _fill_context(args, address, position_pc):
+    """The `brightStars.FillContext` for one galaxy sector: its population
+    mix, and its unfilled pre-placed bright stars when a scatter ran.
+    `None` without a stored skeleton (nothing to take the mix from)."""
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            return None
+        settings = _db.bright_star_scatter_settings(conn)
+        if settings is None:
+            return brightStars.FillContext(position_pc, skeleton.shape)
+        rows = _db.bright_stars_for_sector(conn, *address)
+    finally:
+        conn.close()
+    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=settings[0])
+
+
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     """
     Generates one sector via `generate_sector` inside its real grid cell
@@ -1630,7 +1683,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     radius_pc = galactic_radius_pc(position_pc)
     cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
 
-    _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell)
+    fill = _fill_context(args, address, position_pc)
+    _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill)
     if address == NUCLEUS_ADDRESS:
         add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
 
@@ -2366,6 +2420,19 @@ def add_plan_arguments(parser):
 
     parser.add_argument('--max-ring', type=int, default=DEFAULT_MAX_RING,
                         help=f"Hard cap on how far out a layer is scanned. Default: {DEFAULT_MAX_RING}.")
+
+    bright_group = parser.add_argument_group("bright-star pre-placement (stellarObjects.brightStars)")
+    bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,
+                              default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+                              help="Every star at least this bright (solar luminosities) is generated "
+                                   "and placed galaxy-wide after the plan. Default: "
+                                   f"{program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
+    bright_group.add_argument('--no-bright-stars', action='store_true',
+                              help="Build the plan without scattering bright stars.")
+    bright_group.add_argument('--bright-stars-only', action='store_true',
+                              help="Re-scatter the bright stars on the stored plan without rebuilding it.")
+    bright_group.add_argument('--force', action='store_true',
+                              help="Scatter even when sectors are already filled, leaving those sectors out.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -2409,6 +2476,13 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized ({exc}).")
     if not (math.isfinite(shape.k_norm) and shape.k_norm > 0):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
+    if args.no_bright_stars and args.bright_stars_only:
+        parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
+    if not args.no_bright_stars:
+        try:
+            bright_star_fraction(args.bright_star_min_luminosity)
+        except ValueError as exc:
+            parser.error(f"--bright-star-min-luminosity: {exc}")
 
 
 def build_skeleton(args):
@@ -2464,6 +2538,12 @@ def build_skeleton(args):
     elapsed = time.perf_counter() - t0
 
     mysql_config = _db.mysql_config_from_args(args)
+    # A new outline invalidates every pre-placed bright star (schema v43).
+    conn = _db.get_connection(mysql_config)
+    try:
+        _db.clear_bright_stars(conn)
+    finally:
+        conn.close()
     _db.replace_galaxy_layers(extents, config=mysql_config)
     _db.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_ring_index=outer_ring_index,
@@ -2480,14 +2560,86 @@ def build_skeleton(args):
     }
 
 
+def scatter_bright_stars(args):
+    """
+    Pre-places every bright star on the stored plan (`brightStars.scatter`)
+    into `bright_stars`, replacing any earlier scatter, one layer per
+    commit, with a progress bar.
+
+    Refuses when sectors are already filled (they'd never get their bright
+    stars) unless `--force`, which leaves those sectors out.
+
+    Returns:
+        dict or None: `counts` (per population), `total` and `elapsed_s`;
+            `None` when it refused.
+    """
+    mysql_config = _db.mysql_config_from_args(args)
+    conn = _db.get_connection(mysql_config)
+    try:
+        skeleton = _db.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
+        extents = _db.get_galaxy_layers(conn)
+        filled = _db.filled_sector_addresses(conn)
+        if filled and not args.force:
+            log.normal(
+                f"Not scattering bright stars: {len(filled):,} sectors are already filled and would never "
+                f"get theirs. Reset the galaxy first, or re-run with --force to leave those sectors out."
+            )
+            return None
+        min_luminosity_sol = float(args.bright_star_min_luminosity)
+        seed = random.SystemRandom().getrandbits(63)
+        _db.clear_bright_stars(conn)
+
+        counts = {population: 0 for population in brightStars.POPULATIONS}
+        t0 = time.perf_counter()
+        with _generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                task = progress.add_task("Bright stars (layers)", total=len(extents))
+                batch = []
+                for row in brightStars.scatter(
+                    skeleton.shape, extents, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
+                    min_luminosity_sol, seed, skip_addresses=filled,
+                    on_layer=lambda done, _total: progress.update(task, completed=done),
+                ):
+                    counts[row[6]] += 1
+                    batch.append(row)
+                    if len(batch) >= 10000:
+                        _db.insert_bright_stars(conn, batch)
+                        conn.commit()
+                        batch = []
+                if batch:
+                    _db.insert_bright_stars(conn, batch)
+                _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
+                conn.commit()
+            finally:
+                log.reset_console()
+    finally:
+        conn.close()
+    elapsed = time.perf_counter() - t0
+    total = sum(counts.values())
+    log.normal(
+        f"Placed {total:,} bright stars (at least {min_luminosity_sol:g} L_sun) in {elapsed:.1f}s: "
+        + ", ".join(f"{count:,} {population}" for population, count in counts.items()) + "."
+    )
+    log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
+    return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
 def run_plan(args):
     """
-    Builds and persists the galaxy's density skeleton.
+    Builds and persists the galaxy's density skeleton, then scatters its
+    bright stars (unless `--no-bright-stars`; `--bright-stars-only` skips
+    the rebuild).
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
+    if getattr(args, "bright_stars_only", False):
+        scatter_bright_stars(args)
+        return
     summary = build_skeleton(args)
     if summary["layer_count"]:
         layers = f"{summary['layer_count']} layers ({summary['top_layer_index']} to {-summary['top_layer_index']})"
@@ -2503,6 +2655,8 @@ def run_plan(args):
             f"galaxy's true edge was not reached. Re-run with a larger --max-ring if these shape "
             f"parameters really do produce a galaxy this large."
         )
+    if summary["layer_count"] and not getattr(args, "no_bright_stars", False):
+        scatter_bright_stars(args)
 
 
 # ===========================================================================

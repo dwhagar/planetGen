@@ -45,9 +45,9 @@ from .config import SystemConfig
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
-from .utils import (calculate_habitable_zone, format_age_string, format_galactic_orbit,
-                    format_length_km, format_relative_to_sol, generate_galactic_orbit_fields,
-                    properties_to_string, reseed_rng, to_scientific_notation)
+from .utils import (calculate_habitable_zone, format_age_string, format_body_radius_km, format_distance_km,
+                    format_galactic_orbit, format_length_km, format_relative_to_sol,
+                    generate_galactic_orbit_fields, properties_to_string, reseed_rng)
 
 
 def _log_uniform(low, high):
@@ -336,7 +336,7 @@ class BlackHole(CompactRemnant):
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
             ) * physical_constants.AU_TO_KM
-            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 
     def to_paragraph_list(self):
@@ -489,7 +489,7 @@ class NeutronStar(CompactRemnant):
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
             ) * physical_constants.AU_TO_KM
-            properties["wobble"] = f"{to_scientific_notation(self.system_config, offset_km)} km from its nominal position, pulled by its own planets"
+            properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 
     def to_paragraph_list(self):
@@ -515,7 +515,7 @@ class NeutronStar(CompactRemnant):
         sentence = (
             f"{self.name} is a neutron star, the collapsed core of a massive star left behind by a supernova "
             f"approximately {age_str} ago, packing more mass than the Sun into a sphere only "
-            f"{self.radius:,.1f} km across."
+            f"{format_body_radius_km(self.system_config, self.radius)} in radius."
         )
         if self.pulsar_type != "non-pulsing":
             sentence += (

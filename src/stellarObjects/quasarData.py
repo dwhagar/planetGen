@@ -32,7 +32,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import generate_phoneme_salad_name, reseed_rng
+from .utils import format_distance_km, format_distance_ly, generate_phoneme_salad_name, reseed_rng
 
 
 def _log_uniform(low, high):
@@ -172,7 +172,7 @@ class Quasar:
         description = (
             f"{self.name} is the galaxy's active nucleus: a supermassive black hole of "
             f"{self.black_hole_mass_solar:.2e} solar masses, its event horizon "
-            f"{self.event_horizon_radius_km / physical_constants.AU_TO_KM:,.1f} AU in radius, swallowing "
+            f"{format_distance_km(self.event_horizon_radius_km)} in radius, swallowing "
             f"about {self.accretion_rate_solar_per_year:,.1f} solar masses of gas every year. Its accretion disk "
             f"radiates {self.luminosity_w:.2e} W ({self.eddington_ratio:.0%} of its Eddington limit), "
             f"roughly {self.galaxy_luminosity_multiple:,.0f} times the combined light of every star in a "
@@ -187,7 +187,7 @@ class Quasar:
         if self.is_radio_loud:
             paragraphs.append(
                 f"It is radio-loud: twin relativistic jets punch out of the galaxy entirely, feeding radio "
-                f"lobes some {self.jet_length_ly:,.0f} light-years from end to end."
+                f"lobes some {format_distance_ly(self.jet_length_ly)} from end to end."
             )
         else:
             paragraphs.append("It is radio-quiet, with no large-scale jets.")
