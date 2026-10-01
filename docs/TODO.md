@@ -588,6 +588,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     for the canvas; a fallback to the diagram where WebGL is missing.
     Open question: should 3D be the default?
 
+- [ ] **MAP.77 Galaxy Map draws block divisions inside a picked slab before zooming to it (bug)**
+  Boss (2026-10-01 21:11Z): "when zooming in and navigating from the
+  galactic map, when selecting a slab, don't show the divisions between
+  interior blocks, only show divisions between the slabs. Then on a
+  slab show the divisions between the blocks." Done: while slabs are
+  being picked (the wedge view, MAP.52), the map draws only the
+  boundaries between slabs, with no lines between the blocks inside
+  each slab; once the view is on one slab (MAP.53, MAP.56), it draws
+  the divisions between that slab's blocks, which are the segments the
+  user picks next. The faint wire ghost of the other slabs (MAP.59)
+  shows their outlines only, never their blocks. This repeats at every
+  level of the slab and segment ladder of MAP.56.
+
+- [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
+  Boss (2026-10-01 21:11Z): "when the system zooms into a wedge, make
+  sure it is the entire wedge as you drill down." Done: whenever the
+  view zooms to a wedge (MAP.52) or to a slab or segment inside it
+  (MAP.56), the zoom frames all of what was picked, with no part cropped
+  by the map's edges or by the controls over it; the fit uses the map's
+  actual size (MAP.53) and holds while the view rotates and when the
+  window is resized. Under MAP.58's locked zoom, the locked level is
+  this whole-wedge fit, not a closer one.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
