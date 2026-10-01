@@ -53,6 +53,18 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 
+# The control schema (admin logins, sessions, the work queue's lease) is
+# one fixed name by default (`planetgen_control`), shared by everything on
+# a server. Code that falls back to it (migrateDb seeding, the work queue)
+# would make parallel pytest-xdist workers share one control database, and
+# a developer's own PLANETGEN_CONTROL_DATABASE could point tests at a real
+# one. Each test process gets its own throwaway name instead, dropped when
+# the session ends (`_drop_session_control_database` below). It doesn't
+# start with the `planetgen` prefix, so `/api/databases` never lists it.
+_XDIST_WORKER = os.environ.get("PYTEST_XDIST_WORKER", "main")
+SESSION_CONTROL_DATABASE = f"pgtest_control_{_XDIST_WORKER}_{uuid.uuid4().hex[:8]}"
+os.environ[_db.CONTROL_DB_ENV_VAR] = SESSION_CONTROL_DATABASE
+
 
 def _test_server_kwargs():
     """Connection kwargs (host/port/user/password -- no database) for the
@@ -83,6 +95,16 @@ def _mysql_server_available():
             f"No MySQL test server reachable ({exc}) -- set PLANETGEN_TEST_MYSQL_HOST "
             f"(and _PORT/_USER/_PASSWORD as needed) to run database-backed tests."
         )
+    yield
+    # The per-process control database (SESSION_CONTROL_DATABASE above),
+    # if anything created it.
+    conn = pymysql.connect(**_test_server_kwargs(), connect_timeout=3)
+    try:
+        with conn.cursor() as cur:
+            cur.execute(f"DROP DATABASE IF EXISTS `{SESSION_CONTROL_DATABASE}`")
+        conn.commit()
+    finally:
+        conn.close()
 
 
 @pytest.fixture
