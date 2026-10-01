@@ -46,7 +46,7 @@
   {%- elif not names["items"] %}
   <p class="hint">No names have had to be made unique.</p>
   {%- else %}
-  <div class="table-scroll"><table>
+  <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Base name</th><th scope="col">Collided as</th><th scope="col">Now named</th></tr></thead>
     <tbody>
       {%- for item in names["items"] %}
