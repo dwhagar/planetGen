@@ -127,7 +127,10 @@ def list_sectors(conn, limit=None, offset=None):
                sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index, COUNT(ss.id) AS system_count
         FROM sectors sec
         LEFT JOIN star_systems ss ON ss.sector_id = sec.id
-        GROUP BY sec.id
+        -- Every selected column, not just the key: MariaDB's
+        -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
+        GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+                 sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
         ORDER BY sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id
         """
     params = []
@@ -3314,21 +3317,29 @@ FULLTEXT_STOPWORDS = frozenset((
 """frozenset: InnoDB's default full-text stopwords, which its index
 leaves out -- `_name_match` checks these words with REGEXP instead."""
 
-_min_token_sizes = {}
+_token_sizes = {}
+
+
+def _fulltext_token_sizes(conn):
+    """The server's `innodb_ft_min_token_size` and `_max_token_size` (3
+    and 84 unless changed), cached per database: shorter and longer words
+    aren't in a FULLTEXT index."""
+    config = getattr(conn, "_config", None)
+    key = config._key() if config is not None else None
+    if key not in _token_sizes:
+        try:
+            row = conn.execute(
+                "SELECT @@innodb_ft_min_token_size AS n, @@innodb_ft_max_token_size AS x").fetchone()
+            _token_sizes[key] = (int(row["n"]), int(row["x"]))
+        except pymysql.MySQLError:
+            _token_sizes[key] = (3, 84)
+    return _token_sizes[key]
 
 
 def _fulltext_min_word(conn):
-    """The server's `innodb_ft_min_token_size` (3 unless changed), cached
-    per database: shorter words aren't in a FULLTEXT index."""
-    config = getattr(conn, "_config", None)
-    key = config._key() if config is not None else None
-    if key not in _min_token_sizes:
-        try:
-            row = conn.execute("SELECT @@innodb_ft_min_token_size AS n").fetchone()
-            _min_token_sizes[key] = int(row["n"])
-        except pymysql.MySQLError:
-            _min_token_sizes[key] = 3
-    return _min_token_sizes[key]
+    """The server's `innodb_ft_min_token_size`: shorter words aren't in a
+    FULLTEXT index."""
+    return _fulltext_token_sizes(conn)[0]
 
 
 def _word_pattern(word, prefix=False):
@@ -3344,9 +3355,10 @@ def _name_match(conn, column, term, prefix_last=False):
     a whole word (PERF.16, Boss 2026-10-01: "full text index, to match
     whole words"), so "ara" no longer finds "Kemaral". Words long enough
     for the FULLTEXT index (v46) go through `MATCH ... AGAINST` in boolean
-    mode; shorter words and stopwords (Greek letters like "Mu", numerals
-    like "IV") are checked with a word-boundary REGEXP on the rows the
-    index found -- or on every row, when no word is long enough.
+    mode; shorter words, stopwords (Greek letters like "Mu", numerals
+    like "IV") and words too long for the index are checked with a
+    word-boundary REGEXP on the rows the index found -- or on every row,
+    when no word fits the index.
 
     Args:
         conn (stellarObjects._db.Connection): An open connection.
@@ -3361,11 +3373,11 @@ def _name_match(conn, column, term, prefix_last=False):
     words = re.findall(r"\w+", term or "")
     if not words:
         return "1 = 0", []
-    min_word = _fulltext_min_word(conn)
+    min_word, max_word = _fulltext_token_sizes(conn)
     against, clauses, params = [], [], []
     for index, word in enumerate(words):
         prefix = prefix_last and index == len(words) - 1
-        if len(word) >= min_word and word.lower() not in FULLTEXT_STOPWORDS:
+        if min_word <= len(word) <= max_word and word.lower() not in FULLTEXT_STOPWORDS:
             against.append(f"+{word}*" if prefix else f"+{word}")
         else:
             clauses.append(f"{column} REGEXP ?")

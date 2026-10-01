@@ -893,6 +893,13 @@
 --   backfill has reached, the dimmest luminosity its stars have been
 --   drawn down to. `_migrate_v48_to_v49` creates it empty.
 --
+-- v50: no new shape -- a database migrated from an old version is brought
+--   to exactly this file's (TEST.8 migrates every released schema and
+--   compares). `_migrate_v49_to_v50` drops the placeholder DEFAULTs the
+--   v9-v13 and v38 steps left on NOT NULL columns, and remakes
+--   `nebulae`/`asteroid_fields`' `sector_id` foreign keys, still ON DELETE
+--   CASCADE where v16/v17 made them, as ON DELETE SET NULL.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every

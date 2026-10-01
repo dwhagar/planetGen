@@ -90,7 +90,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 49
+SCHEMA_VERSION = 50
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -267,12 +267,34 @@ def _statement_timeout_sql(config, seconds):
     return f"SESSION MAX_EXECUTION_TIME = {int(float(seconds) * 1000)}"
 
 
+SQL_MODE_ENV_VAR = "PLANETGEN_MYSQL_SQL_MODE"
+"""str: Env var that, when set, pins every pooled connection's session
+`sql_mode` to its value (TEST.7). The test suite sets it to MySQL 8's
+default (`STRICT_SQL_MODE`), so a GROUP BY or a truncation MariaDB's
+looser default forgives fails locally too, not only in CI. Unset (every
+deployment): the server's own `sql_mode` applies."""
+
+STRICT_SQL_MODE = ("ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,"
+                   "ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION")
+"""str: MySQL 8.0's default `sql_mode`, valid on MariaDB too."""
+
+
+def _session_sql_mode():
+    mode = os.environ.get(SQL_MODE_ENV_VAR, "").strip()
+    if mode and not re.fullmatch(r"[A-Za-z_,]+", mode):
+        raise ValueError(f"{SQL_MODE_ENV_VAR} must be a comma-separated list of sql_mode names, not {mode!r}")
+    return mode
+
+
 def _get_pool(config, statement_timeout_s=None):
     key = config._key() if not statement_timeout_s else (config._key(), float(statement_timeout_s))
     if key not in _pools:
         init = "SET time_zone = '+00:00'"
         if statement_timeout_s:
             init += ", " + _statement_timeout_sql(config, statement_timeout_s)
+        sql_mode = _session_sql_mode()
+        if sql_mode:
+            init += f", SESSION sql_mode = '{sql_mode}'"
         _pools[key] = PooledDB(
             creator=pymysql,
             mincached=1,
@@ -6542,6 +6564,106 @@ def _has_constraint(conn, table, constraint_name):
     return row is not None
 
 
+def _split_top_level(text):
+    """`text` split at the commas outside parentheses and quotes -- the
+    clauses of one `ALTER TABLE`."""
+    parts, depth, quote, start = [], 0, None, 0
+    for index, char in enumerate(text):
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in "'\"`":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "," and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return [part.strip() for part in parts if part.strip()]
+
+
+_ALTER_RE = re.compile(r"^\s*ALTER\s+TABLE\s+`?(\w+)`?\s+(.*?)\s*;?\s*$", re.IGNORECASE | re.DOTALL)
+_NAME = r"`?(\w+)`?"
+_CLAUSE_GUARDS = (
+    # (clause pattern, whether the clause still has work to do)
+    (re.compile(rf"ADD\s+COLUMN\s+{_NAME}", re.I), lambda conn, table, m: not _has_column(conn, table, m[1])),
+    (re.compile(rf"ADD\s+(?:UNIQUE\s+|FULLTEXT\s+|SPATIAL\s+)?(?:KEY|INDEX)\s+{_NAME}", re.I),
+     lambda conn, table, m: not _has_index(conn, table, m[1])),
+    (re.compile(r"ADD\s+PRIMARY\s+KEY", re.I), lambda conn, table, m: not _has_index(conn, table, "PRIMARY")),
+    (re.compile(rf"ADD\s+CONSTRAINT\s+{_NAME}", re.I), lambda conn, table, m: not _has_constraint(conn, table, m[1])),
+    (re.compile(rf"DROP\s+COLUMN\s+{_NAME}", re.I), lambda conn, table, m: _has_column(conn, table, m[1])),
+    (re.compile(rf"DROP\s+(?:INDEX|KEY)\s+{_NAME}", re.I), lambda conn, table, m: _has_index(conn, table, m[1])),
+    (re.compile(rf"DROP\s+(?:FOREIGN\s+KEY|CHECK|CONSTRAINT)\s+{_NAME}", re.I),
+     lambda conn, table, m: _has_constraint(conn, table, m[1])),
+    (re.compile(rf"(?:CHANGE\s+COLUMN|RENAME\s+COLUMN)\s+{_NAME}\s+(?:TO\s+)?{_NAME}", re.I),
+     lambda conn, table, m: m[1].lower() == m[2].lower() or _has_column(conn, table, m[1])),
+)
+_TABLE_OPTION_RE = re.compile(r"^(ALGORITHM|LOCK)\s*=", re.IGNORECASE)
+
+
+def _rerunnable_sql(conn, sql):
+    """
+    `sql` as a migration step may safely run it again (TEST.8, TEST.9):
+    an `ALTER TABLE` loses each clause whose work is already there (a
+    column, index or constraint it adds that exists, or one it drops that
+    is gone), and a plain `CREATE TABLE`/`DROP TABLE` gains `IF NOT
+    EXISTS`/`IF EXISTS`. `None` when nothing is left to run.
+
+    MySQL commits DDL as it goes, so a step that stopped halfway leaves its
+    first changes behind, and a database migrated from an old version
+    already has every brand-new table in its newest shape (`_ensure_schema`
+    makes them before the steps run). Either way a step meets some of its
+    own work done, which a bare `ADD COLUMN` would refuse.
+    """
+    match = _ALTER_RE.match(sql)
+    if match:
+        table, kept, actions = match[1], [], 0
+        for clause in _split_top_level(match[2]):
+            if _TABLE_OPTION_RE.match(clause):
+                kept.append(clause)
+                continue
+            for pattern, needed in _CLAUSE_GUARDS:
+                found = pattern.match(clause)
+                if found:
+                    if needed(conn, table, found):
+                        kept.append(clause)
+                        actions += 1
+                    break
+            else:
+                kept.append(clause)
+                actions += 1
+        return f"ALTER TABLE {table} {', '.join(kept)}" if actions else None
+    sql = re.sub(r"^(\s*CREATE\s+TABLE\s+)(?!IF\s+NOT\s+EXISTS)", r"\1IF NOT EXISTS ", sql, flags=re.I)
+    sql = re.sub(r"^(\s*DROP\s+TABLE\s+)(?!IF\s+EXISTS)", r"\1IF EXISTS ", sql, flags=re.I)
+    return re.sub(r"^(\s*)INSERT\s+INTO\s+schema_migrations\b", r"\1INSERT IGNORE INTO schema_migrations", sql,
+                  flags=re.I)
+
+
+class _MigrationConnection:
+    """
+    The connection each migration step runs on: `execute` passes every
+    statement through `_rerunnable_sql` first, so a step can run against
+    a database that already has part of its work -- after a crash halfway
+    through it, or twice -- and finish the job rather than fail. Anything
+    else goes to the real `Connection`.
+    """
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        rerunnable = _rerunnable_sql(self._conn, sql)
+        if rerunnable is None:
+            return self._conn.execute("DO 0")
+        return self._conn.execute(rerunnable, params)
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def _migrate_v22_to_v23(conn):
     """
     Adds v23's wiki-publishing link columns -- see `schema.sql`'s header
@@ -7331,7 +7453,44 @@ def _drop_checks_mentioning(conn, table, column):
         (table, f"%{column}%"),
     ).fetchall()
     for name in {row["name"] for row in rows}:
-        conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT `{name}`")
+        definition = _mariadb_column_check_definition(conn, table, name)
+        if definition is not None:
+            # MariaDB keeps an inline CHECK with its column, and DROP
+            # CONSTRAINT can't reach it (error 1091); redefining the
+            # column without it drops it (TEST.8).
+            conn.execute(f"ALTER TABLE {table} MODIFY {definition}")
+        else:
+            conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT `{name}`")
+
+
+def _mariadb_column_check_definition(conn, table, name):
+    """The definition of column `name` without its inline CHECK, when
+    `name` is a MariaDB column-level CHECK (whose name is its column's);
+    `None` for any other constraint."""
+    row = conn.execute(
+        "SELECT 1 FROM information_schema.check_constraints"
+        " WHERE constraint_schema = DATABASE() AND table_name = ? AND constraint_name = ? AND level = 'Column'",
+        (table, name),
+    ).fetchone() if _is_mariadb_connection(conn) else None
+    if row is None:
+        return None
+    create = conn.execute(f"SHOW CREATE TABLE {table}").fetchone()["Create Table"]
+    for line in create.splitlines():
+        line = line.strip().rstrip(",")
+        if line.startswith(f"`{name}` "):
+            start = line.index(" CHECK (")
+            depth = 0
+            for end in range(start + len(" CHECK "), len(line)):
+                depth += {"(": 1, ")": -1}.get(line[end], 0)
+                if depth == 0:
+                    return (line[:start] + line[end + 1:]).rstrip()
+    raise ValueError(f"no inline CHECK on {table}.{name} in SHOW CREATE TABLE")
+
+
+def _is_mariadb_connection(conn):
+    """Whether `conn` is to a MariaDB server (whose information_schema
+    has columns MySQL's lacks, such as `check_constraints.level`)."""
+    return "mariadb" in conn.execute("SELECT VERSION() AS v").fetchone()["v"].lower()
 
 
 def _migrate_v37_to_v38(conn):
@@ -7731,6 +7890,68 @@ def _migrate_v48_to_v49(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (49)")
 
 
+_V50_PLACEHOLDER_DEFAULTS = {
+    "planets": ("orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+                "rotation_period_hours", "position_x_km", "position_y_km", "position_z_km",
+                "orbital_speed_kms", "min_update_interval_years"),
+    "moons": ("orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+              "rotation_period_hours", "position_x_km", "position_y_km", "position_z_km",
+              "orbital_speed_kms", "min_update_interval_years"),
+    "stars": ("galactic_orbital_speed_kms", "galactic_orbital_period_gy", "galactic_orbital_phase_deg",
+              "galactic_min_update_interval_years"),
+    "nebulae": ("nebula_class", "dominant_species", "density_cm3", "temperature_k", "extinction_av"),
+    "supernova_remnants": ("remnant_class", "dominant_species", "density_cm3", "temperature_k", "extinction_av"),
+    "asteroid_fields": ("field_class", "composition_family"),
+}
+"""dict: `{table: columns}` the v9-v13 and v38 steps added `NOT NULL`
+with a placeholder DEFAULT (to fill existing rows) and never dropped it;
+`schema.sql` gives them none."""
+
+_V50_SET_NULL_FOREIGN_KEYS = (
+    ("nebulae", "fk_nebulae_sector"),
+    ("asteroid_fields", "fk_asteroid_fields_sector"),
+)
+"""tuple: `(table, constraint)` of the `sector_id` foreign keys v16/v17
+created `ON DELETE CASCADE`; `schema.sql` has had them `ON DELETE SET
+NULL` since v18 with no step changing an existing database."""
+
+
+def _migrate_v49_to_v50(conn):
+    """
+    Brings a database migrated from an old version to exactly the shape
+    `schema.sql` gives a new one (TEST.8, which migrates every released
+    schema and compares) -- see `schema.sql`'s "v50" header note: drops
+    the placeholder DEFAULTs in `_V50_PLACEHOLDER_DEFAULTS`, and remakes
+    the two `_V50_SET_NULL_FOREIGN_KEYS` as `ON DELETE SET NULL`, so
+    deleting a sector keeps its nebulae and asteroid fields (unplaced)
+    there too. Checks each first; a database that never had them is
+    untouched.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table, columns in _V50_PLACEHOLDER_DEFAULTS.items():
+        rows = conn.execute(
+            "SELECT column_name AS name FROM information_schema.columns WHERE table_schema = DATABASE()"
+            f" AND table_name = ? AND column_default IS NOT NULL AND column_name IN ({', '.join('?' * len(columns))})",
+            (table, *columns),
+        ).fetchall()
+        if rows:
+            conn.execute(f"ALTER TABLE {table} "
+                         + ", ".join(f"ALTER COLUMN {row['name']} DROP DEFAULT" for row in rows))
+    for table, constraint in _V50_SET_NULL_FOREIGN_KEYS:
+        row = conn.execute(
+            "SELECT delete_rule AS delete_rule FROM information_schema.referential_constraints"
+            " WHERE constraint_schema = DATABASE() AND table_name = ? AND constraint_name = ?",
+            (table, constraint),
+        ).fetchone()
+        if row is not None and row["delete_rule"] != "SET NULL":
+            conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY {constraint}")
+            conn.execute(f"ALTER TABLE {table} ADD CONSTRAINT {constraint} "
+                         "FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (50)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -7839,6 +8060,7 @@ def _migration_steps():
         (47, _migrate_v46_to_v47),
         (48, _migrate_v47_to_v48),
         (49, _migrate_v48_to_v49),
+        (50, _migrate_v49_to_v50),
     ]
 
 
@@ -7935,7 +8157,7 @@ def migrate_database(config=None, on_step=None):
         for number, (target, step) in enumerate(pending, start=1):
             if on_step is not None:
                 on_step(number, len(pending), version, target)
-            step(conn)
+            step(_MigrationConnection(conn))
             activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
                               from_version=version, to_version=target)
             version = target
