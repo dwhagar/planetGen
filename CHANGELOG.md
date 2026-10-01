@@ -1,5 +1,24 @@
 # Changelog
 
+## [7.121.284] - 2026-10-01
+
+### Fixed
+
+- A parallel run no longer stops when the control database drops mid-run: the task rows are only a record, so the run finishes its sectors and its lease goes stale on its own (TEST.20).
+- When a worker process dies, the tasks it never got are recorded as cancelled and the ones in flight as failed, instead of being left as running (TEST.20).
+- Cancelling a parallel run from the Generate page (or any SIGTERM to its process group) now ends it as cancelled: each worker rolls back its unfinished sector and the pool stays whole, instead of the workers being killed and the run recorded as failed (TEST.21).
+
+## [7.120.278] - 2026-10-01
+
+### Changed
+
+- "Generate the neighborhood" on the Sector Map now starts a background job (followed on the Generate page and Admin, Queue) instead of running inside the page request, so closing the browser no longer matters (ADM.11).
+
+### Fixed
+
+- Two admins starting a job at the same moment could both start one: the job lock was briefly empty and the second caller cleared it as stale. The lock now appears with the job id in it, and only one caller clears a stale lock (TEST.40).
+- A job id drawn twice in the same second gets a fresh one, and pruning old jobs never removes the running one (TEST.41).
+
 ## [7.119.271] - 2026-10-01
 
 ### Changed

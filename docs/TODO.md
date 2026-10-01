@@ -105,7 +105,7 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
    and ADM.7 in PR #260).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -315,6 +315,227 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one block, or a run of blocks along the arc when a block is too small
   to click on a small screen?
 
+- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
+  Found by the generation tests (2026-10-01): a body whose computed
+  position is NaN or infinite is written straight into the System
+  Map's SVG. Done: such a body is left out or drawn at a safe place
+  with a note, the SVG never holds NaN or inf, and the strict xfail
+  test for it passes.
+
+- [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
+  Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
+  and out manually. This should only be within a short range ... they
+  can zoom in to about, say, twice as close as it starts out and they
+  can zoom out back to the full galaxy, but no further. When we get into
+  smaller chunks like blocks and wedges that aren't as large as the full
+  galactic wedge, we're going to lock the zoom ... The system will still
+  be able to zoom in stages as we've discussed but the user won't be
+  able to arbitrarily zoom in and out." Today every view below the whole
+  galaxy and its quarters can be zoomed freely with the wheel, a pinch
+  or the zoom keys (`isFree` in `galaxystageview.js`), from
+  `MIN_ZOOM` = 1/8 of the stage's fitted camera distance (8 times
+  closer) to `MAX_ZOOM` = 2.5 times it, and the galaxy and its quarters
+  can't be zoomed at all. Done:
+  - On the full galaxy wedge (the 40-degree wedge of MAP.52, fitted to
+    the window by MAP.53), the user can zoom in to about twice as close
+    as the fitted view, and out only until the whole galaxy fits, with
+    the wheel, pinch, keys and any zoom buttons.
+  - On every smaller view (slabs, segments, blocks, the sector cube),
+    user zoom is locked: the wheel scrolls the page, and pinch and the
+    zoom keys do nothing. The staged zoom of each pick (MAP.53, MAP.56)
+    still animates to its fitted view.
+  - Rotation (MAP.53) and panning are not affected.
+  - Reset (MAP.55) returns to the fitted zoom.
+  Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
+  whole-galaxy view itself zoom (today it doesn't)? Should a locked view
+  keep panning, or only rotate?
+
+- [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
+  Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
+  zoomed into a specific slab, that we're viewing a specific slab and
+  not a wedge. I'm not sure how to do that so do some research on that
+  and then add the to-do items to make it happen."
+
+  Why it looks like a wedge today: once a slab is picked, only that
+  slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
+  layer of the wedge (a sector layer inside a level-3 block, otherwise
+  9 or 27 sector layers, `slabLayers` in `galaxystages.js`), so seen
+  from the isometric tilt it looks like a flat wedge. Nothing on screen
+  shows the rest of the stack, and the slab's height range appears only
+  as "Slab 3" in the breadcrumb.
+
+  Options (from how 3D map, CAD and volume viewers show a selected
+  slice):
+  1. **Ghost of the parent wedge.** The other slabs of the wedge stay in
+     view as a faint, see-through outline (wireframe edges only), and
+     the picked slab is the one solid layer inside it. This is the cut-away
+     or "section view" of CAD tools and of floor pickers in building
+     maps. It shows at a glance that this is one layer of a taller stack.
+  2. **Slab thickness edges.** Draw the slab's top and bottom faces and
+     its vertical side edges in a distinct line color, so it reads as a
+     slice with depth rather than a surface.
+  3. **A labelled header over the map**, such as "Slab 3 of 9 · 120 to
+     160 pc above the plane (layers 25 to 33)", replacing the bare
+     "Slab 3". The breadcrumb crumb says "Slab 3 of 9" too.
+  4. **Side-view inset.** A small fixed diagram in a corner of the map
+     shows the wedge edge-on as a stack of bars, with the picked slab
+     highlighted and the galactic plane marked. This is the slice
+     indicator of medical and volume viewers. It doubles as a slab
+     picker if clicks on it are allowed.
+  5. **Tint.** The picked slab gets a color band that differs from a
+     whole wedge, kept the same at every depth.
+
+  Boss's answers (2026-10-01 20:50Z): "Ghost of the other wedges should
+  be just wire lines and faint and yes I want to implement a mini map
+  that shows the segment of the whole galaxy. When we zoom in to a slab
+  off to the side, have a locked view in isometric form of the block,
+  highlighting which slab we're in. Then add navigation tools so that
+  if the user goes and clicks on another slab in the isometric view, it
+  switches to the slab in the main view", and for the height: "both".
+  So the build is options 1, 2, 3 and 4.
+
+  Done:
+  - **Ghost:** with a slab picked, the rest of the wedge or block is
+    drawn as faint wire lines only, with no fill, around the solid,
+    edge-lined picked slab. The ghost is not clickable and doesn't block
+    clicks on the slab or its segments.
+  - **Mini map:** beside the main view sits a small, locked isometric
+    view of the whole block (or wedge) the slab belongs to, showing
+    every slab of it with the current one highlighted, and where that
+    block sits in the whole galaxy. It doesn't rotate or zoom. Clicking
+    (or tapping, or picking with the keyboard) another slab in it
+    switches the main view to that slab, the same way picking a slab
+    does today, with the URL and breadcrumb following.
+  - **Header and breadcrumb:** "Slab N of M" with its height both ways:
+    the distance above or below the galactic plane in the map's chosen
+    units (pc or ly, the units setting of PR #234) and its sector layer
+    numbers, e.g. "Slab 3 of 9 · 120 to 160 pc above the plane · layers
+    25 to 33". The same applies one level down ("Layer N of M" inside a
+    block).
+  - Everything stays aligned when the main view rotates or zooms.
+
+  Ties in with MAP.53 (rotation keeps the ghost aligned), MAP.54 (the
+  picked slab's button and line stay highlighted; the mini map is a
+  second way to pick a slab), MAP.55 (where the mini map sits next to
+  the slab buttons and the Sector cell panel, and below the map on a
+  phone), MAP.56 (the segment pick happens on the solid slab) and
+  MAP.58 (the mini map is never zoomable).
+
+- [ ] **MAP.60 Galaxy Map scale readout: one scale line**
+  Boss (2026-10-01 20:50Z): "I want to trim the scale information from
+  the galactic map so that it just has one scale line." Today the
+  readout under the Galaxy Map (`updateScaleBar` in `galaxymap3d.js`,
+  `#galaxymap3d-scale`) stacks three lines: "1 px ≈" (what one screen
+  pixel spans), "1 block =" (the size of one drawn block) and a scale
+  bar of about 70 px with its length. Done: only the scale bar and its
+  length remain, on one line, in the map's chosen units (sectors and pc
+  or ly, as now).
+
+- [ ] **MAP.61 One map engine and control set for the Galaxy Map and the Sector Map**
+  Boss (2026-10-01 20:55Z): "unify the sector view with the galactic
+  view so it's all the same code and control set, because right now
+  they're different." Today the Galaxy Map (`galaxymap3d.js`,
+  `galaxystageview.js`, `galaxystages.js`) and the Sector Map
+  (`sectormap.js`) are separate three.js pages, with their own camera,
+  controls, picking, tooltips and scale readouts. Done: one shared
+  engine (scene, camera, controls, picking, hover, info panel, scale
+  line, bookmarks, keys and touch) draws both. The sector is the
+  deepest stage of the galaxy drill-down, with the same buttons and
+  gestures, and the only differences are the data each level shows.
+  Ties in with NAV.3 (the shared picker), MAP.53 to MAP.60 (the
+  Galaxy Map controls being reworked now) and MAP.62 (the system view
+  joins the same engine).
+
+- [ ] **MAP.62 A full 3D star system view with a free camera**
+  Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
+  movable free-camera motion view." Today the System Map
+  (`systemmap.js`, `lib/systemmap.py`) is a flat SVG diagram. Done: a
+  star system is drawn in 3D (its stars, planets, moons, belts and
+  comets on their orbits, sizes and distances shown legibly, with a
+  scale option), and the camera can be moved freely (orbit, pan, zoom,
+  fly to a body), using the shared engine of MAP.61 and the shared
+  picker of NAV.3. Clicking a body opens or selects it. The flat
+  diagram stays available.
+
+## NAV: Navigation and courses
+
+- [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
+  Boss (2026-10-01 20:55Z): "completely functionalize all functions
+  for the Galactic Picker and join it up with functionalizing the
+  Sector Display and Star System Display so that the user, upon
+  clicking on things in the navigation segment, can: go from one
+  specific item (say, a moon in a star system) and go back out;
+  navigate visually via the UI; select another sector, another star
+  system, stellar phenomena, or anything like that, and vice versa to
+  go from one to the other, so that we don't have to repeat code for
+  the visual interfaces." Today the NAV page (`web/nav_page.py`) picks
+  endpoints from dropdowns (a sector, then a system), and the Galaxy
+  Map's drill-down, the Sector Map and the System Map each have their
+  own picking code. Done: one picker module, shared by every visual
+  display and the NAV page, that can:
+  - pick any object at any level: a sector, a star system, a
+    phenomenon, a star, a planet or a moon;
+  - step out from any item to its parents (moon to planet to system to
+    sector to the galaxy) and back in, visually and through a
+    breadcrumb;
+  - move sideways from one item to another of any kind.
+  The NAV page uses it for both endpoints, so a course's ends are
+  picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
+  NAV.6.
+
+- [ ] **NAV.4 Save a course**
+  Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
+  as a user ... Actually just have it save both so the user has either,
+  no matter what they wanted in the first place." Today a course
+  (`/nav?from=...&to=...`, `queryDb.nav_between`) can only be
+  bookmarked as a URL. Done: a signed-in user can save a course under a
+  name. A saved course always keeps both forms:
+  - the direct, point-to-point line (its bearing and mark, NAV.1);
+  - the system-to-system route (the chain of systems it hops through).
+  The user can list, open, rename and delete their saved courses. The
+  saved course shows whichever form the user views, and they can switch
+  between the two. Needs user accounts (USR.1) and their storage. Open
+  question: until user accounts exist, should saving be admin-only, or
+  per browser like bookmarks?
+
+- [ ] **NAV.5 Show a course on the Galaxy Map**
+  Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
+  to view the route in the context of the galactic map, zoomed in as far
+  as it can be zoomed in and still show the entire path. The course
+  path, direct and system-to-system, should then be specially
+  highlighted as a course." Today the NAV page draws its own flat map
+  of the route (`lib/navmap.py`), and the Galaxy Map only takes
+  `?course=` for an end point. Done: from the NAV page (and a saved
+  course, NAV.4), the course opens on the Galaxy Map, zoomed in as far
+  as it can be while showing the whole path. Both the direct line and
+  the system-to-system route are drawn in a distinct course style,
+  told apart from each other, with their end points and hops marked
+  and clickable. The same works inside a sector. Ties in with MAP.58
+  (zoom limits: a course view may need a fitted zoom outside the user
+  range) and MAP.61.
+
+- [ ] **NAV.6 Courses that steer clear of gravity wells**
+  Boss (2026-10-01 20:55Z): "we need to factor gravitational bodies into
+  the course. A ship piloting would adjust the course to avoid falling
+  into the gravitational field of objects it knows about. We'll need to
+  have the system automatically adjust the course to avoid objects,
+  attempting to stay out of the Hill sphere of each object. We're also
+  going to use this within the sector and within the star system."
+  Today a course is a straight line between its ends (NAV.1), and the
+  route is a chain of systems. Done: course planning finds the bodies
+  near the path that it knows about, and bends the path to stay outside
+  each one's Hill sphere (or a safe radius where a Hill sphere doesn't
+  apply, such as a star in the galaxy or a black hole). This works:
+  - between systems in the galaxy (stars, black holes, neutron stars,
+    nebulae and other phenomena);
+  - inside a sector;
+  - inside a star system (planets and moons, around the star).
+  The adjusted path, its extra length and its time at each speed (NAV.2)
+  are shown with the course, and the straight line stays available for
+  comparison. Open questions: a Hill sphere needs an orbit around a
+  heavier body, so what radius applies to a star or a lone object? And
+  does the system level need the bodies' positions at a given time?
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
@@ -435,6 +656,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
 
+- [ ] **GEN.31 A point just under layer 0's top face lands in layer 1 (bug)**
+  Found by the generation tests (TEST.4-36 work, 2026-10-01): a point
+  one float step below layer 0's top face is put in layer 1, both in
+  the Python grid code (`galaxyGeometry`, `sector_address_at`) and in
+  the map's `galaxyprisms.js`. Done: a point inside a layer's own
+  height range always maps to that layer, in Python and JavaScript
+  alike, and the strict xfail test for it passes. [MAP]
+
+- [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
+  Found by the generation tests (2026-10-01): if `generate.py plan
+  --bright-stars-down-to N` stops part way and is run again, the layers
+  it already finished get the band a second time. Done: a re-run adds
+  only the layers the interrupted run didn't finish (or starts the band
+  over cleanly), never the same stars twice, and the strict xfail test
+  for it passes.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -490,7 +727,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (ADM.5's validator), refuse sectors that were filled meanwhile, save
   them the same way a server-side run does (names, ids, bright-star
   levels, caches and tiles invalidated), and report what was added. A
-  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  remote run appears in the job tree and job page (ADM.10, PR #294; ADM.12, PR #285) like
   a server-side one. Boss's answers (2026-10-01 19:28Z):
   - Generate and keep in memory: the local machine needs no database of
     its own.
@@ -552,9 +789,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later granted to users) but every write route, the remote upload
   routes of API.3 above all, answers 403 for it; an admin key keeps
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
-  and TEST.44 (what an API key may do). Open question: does a
-  user-level key belong to a user account (USR.1) or stand alone until
-  user accounts exist?
+  and PR #293 (TEST.44), which already answers 403 to
+  any API key that makes keys, changes credentials or 2FA, or logs
+  out. Open question: does a user-level key belong to a user account
+  (USR.1) or stand alone until user accounts exist?
 
 - [ ] **API.7 Investigate and plan upload limits**
   Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
@@ -565,7 +803,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client does when it hits one (wait and retry, shrink the batch).
   Measured against real sectors and the web server's own limits
   (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
-  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  `MAX_CONTENT_LENGTH`, set to 2 MB by PR #293) and the API limiter
   (`api/limiter.py`). The plan only; building the limits is a later
   item.
 
@@ -588,107 +826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## ADM: Admin tools
 
-- [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
-  Boss (2026-10-01): "In generation screen each section should be
-  collapsible and generate around a sector should have the option to
-  locate an existing filled sector or put in the coordinates." Today
-  the admin Generate page (`web/templates/generate.html`) shows every
-  section (Current job, One-off system, New galaxy, Generate sectors,
-  Plan the galaxy, Rebuild the bright stars, Reset) open, one after
-  another, and "around a sector" (`mode == "center"`) asks for a
-  numeric sector ID and a radius. Done: each section can be collapsed
-  and expanded (a `<details>` or a heading button, keyboard and screen
-  reader friendly); "around a sector" lets the admin either find an
-  existing filled sector (search by name or designation, or pick it on
-  the Galaxy Map or from a list) or type coordinates (a ring, layer and
-  slot address, or galaxy-frame x, y, z). Open questions: which
-  sections start open (only Current job, or the last one used,
-  remembered per browser)? Which coordinates: a sector address, a
-  position in pc or ly, or both? Does "locate" reuse the Sector Map pick
-  mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
-
-- [ ] **ADM.10 An admin page to view and manage the work queue**
-  Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
-  manage the work queue", and (19:05Z): "For the job management page I
-  want it to tell me how many worker are currently active, load in the
-  standard x / x / x format. I want cancel / retry as well as pause /
-  resume depending on what I'm doing." Today the parallel runs of
-  PERF.8 (PR #225) record themselves in the control database
-  (`work_jobs`, `work_tasks` and the one-row `work_lease`, control
-  schema v5, written by `stellarObjects/workQueue.py`), but nothing on
-  the web shows them; the Generate page's "Current job" section shows
-  only the web job runner's own job (`web/jobs.py`: a job directory
-  with `state.json`, the log, `runner.pid` and the `cancel` file).
-  Built on ADM.12's job tree. Done: an admin-only page shows, at the
-  top, how many workers are active right now and the server's load
-  average as "x / x / x" (1, 5 and 15 minutes); below it the job trees
-  (newest first, paged like every list), each node with its state,
-  title, start, end, duration, progress, tasks queued, running, done
-  and failed, and ETA, expandable from the master job down to single
-  tasks, plus the web job and log that started it and who holds the
-  lease and how stale its heartbeat is. Controls, chosen for the
-  selected node (a whole job, a subtree, or one task) and each
-  confirmed and written to the admin activity log: cancel, retry
-  (failed or cancelled nodes), pause (stop handing out that subtree's
-  tasks, finish the ones running) and resume; plus clearing a stale
-  lease whose holder is gone and deleting finished jobs. Boss
-  (2026-10-01 19:07Z): "Paused jobs go into standby and don't block
-  the queue but there is the option to pause the entire queue which
-  would lock the queue." So a paused job goes into standby and gives
-  up the lease, and other jobs can run; resuming puts it back in line.
-  Separately, "Pause the queue" holds the lease so no job starts or
-  takes tasks until the queue is resumed. Open questions: does the
-  page also show CLI runs started by hand in a terminal, and may the
-  web pause or cancel those? On Windows, which has no load average,
-  the load line shows CPU percent averaged over the same 1, 5 and 15
-  minute windows, in the same "x / x / x" form (Boss, 2026-10-01
-  19:08Z).
-
-- [ ] **ADM.11 Jobs keep running after the browser closes**
-  Boss (2026-10-01 19:03Z): "we need to make sure that generate or
-  other jobs continue even if the user closes the browser." Today a
-  web job runs in its own detached process (`web/jobs.py`
-  `_detached_options`: a new session on POSIX, a new process group
-  broken away from the server's job object on Windows), so closing the
-  page should not stop it; the one-off system page
-  (`web/system_page.py`) instead waits inside the request, since a
-  system takes about a second. Done: every long job started from the
-  web (each Generate page mode, plan, bright-star rebuild, reset,
-  admin regenerate and delete from ADM.8, population runs) is checked
-  and, where needed, changed so that it depends on no open page or
-  live request: closing the tab, losing the connection, or the browser
-  stopping its polling leaves the job running to the end, and coming
-  back to the Generate page (or ADM.10's page) shows it with its
-  progress and log. A web server restart (Apache reload, IIS recycle)
-  is checked too. A test starts a job, drops the client, and sees it
-  finish. Open question: should anything else that runs inside a
-  request for more than a few seconds move to a job?
-
-- [ ] **ADM.12 Jobs as a tree, with timing for every node**
-  Boss (2026-10-01 19:05Z): "we'll have to add a job management system,
-  main job, subjobs, etc (main job, generate bright stars, subjobs the
-  individual layers, sub-subjobs, the individual segments of the ring,
-  etc) as a tree. Same for sectors and systems. Everything has a tree
-  from the master large task at the top and the smaller tasks at the
-  bottom, timing information stored for each, so we can get accurate
-  time measurements." Today PERF.8's `work_jobs` holds one row per run
-  and `work_tasks` a flat list of that run's tasks. Done: every job is
-  a tree, from the master job (for example a plan) through subjobs
-  (generate bright stars, fill sectors) and their subjobs (one per
-  layer) down to the smallest unit (a ring segment, a sector, a star
-  system); the same shape for sector and system generation. Every node
-  stores its state, start, end and duration, and its parent's totals
-  roll up from its children, so time measurements and ETAs (PERF.3,
-  PERF.7, PERF.9) come from measured times per kind of node. Likely an
-  extension of `work_jobs`/`work_tasks` (a parent id and per-node
-  timing columns, a control schema migration) rather than new tables.
-  Cancel, retry, pause and resume (ADM.10) work on any node and its
-  subtree. Open questions: how deep the tree goes for a single system
-  (stars, planets, moons as nodes, or the system as the leaf); how
-  long finished trees are kept (today `KEEP_DAYS`), and whether their
-  timings are summarized into speed records before they are pruned;
-  whether a web job (`web/jobs.py`) becomes the root node of its tree.
-
 - [ ] **ADM.13 Incomplete uploads page**
   Boss (2026-10-01 19:32Z): "Admin will have to have a page where they
   can see incomplete uploads and clear them but reserved sectors by ID
@@ -699,9 +836,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Clearing one, confirmed and written to the admin activity log, throws
   away its staged data and releases its sectors and id blocks; until
   then nothing else (a server-side run, another upload) may use them.
-  Part of, or linked from, the job page (ADM.10). Open question: should
+  Part of, or linked from, the job page (ADM.10, PR #294). Open question: should
   an upload with no contact for a long time be flagged as stale on the
   page?
+
+- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
+  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
+  boxes not the headings. Text boxes should all be even with each
+  other". Today each field on the admin Generate page
+  (`web/templates/generate.html`, the `field` macro inside
+  `search-fields`) puts its label above its input, and the fields flow
+  side by side, so inputs start at different heights and widths
+  wherever a label wraps or is longer. Done: down every form on the page
+  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
+  stars, Add a dimmer layer, One-off system), the text boxes share one
+  left edge and width and sit level with each other, however long their
+  labels are, at desktop and phone widths, in both themes. This includes
+  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
+  #295).
 
 ## SEC: Security
 
@@ -823,16 +975,6 @@ clears each one.
   `random.seed(task_seed(...))`; the parallel path does, and the only
   test compares 2 with 3). [GEN, PERF]
 
-- [ ] **TEST.20 Work queue failure paths**
-  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
-  pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
-  the control database drops mid-run, lease expiry under clock skew.
-  [PERF]
-
-- [ ] **TEST.21 Cancelling a run**
-  SIGTERM, Ctrl+C and SystemExit during a parallel run end the job as
-  cancelled, free the lease and leave no half-written sector. [PERF]
-
 - [ ] **TEST.22 Every bulk mode in parallel**
   `--shell`, `--block`, `--column`, `--center-sector`, random start and
   `sector --num-sectors N` with `--workers 2`, checking run counts and
@@ -921,78 +1063,6 @@ clears each one.
   coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
 
 ### Web, API and jobs
-
-- [ ] **TEST.40 Two admins start a job at once**
-  Exactly one job runs (suspected bug: `_take_lock` creates an empty
-  lock before writing the job id, so a second caller can read it as
-  stale, delete it and start its own job). [ADM]
-
-- [ ] **TEST.41 Job files damaged**
-  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
-  holding garbage; job id collision; unwritable jobs directory; prune
-  never removes the running job; cancel with unknown, malformed or
-  finished job ids. [ADM]
-
-- [ ] **TEST.42 Pages fresh after a CLI write**
-  After `generate.py` writes straight to the database, `/galaxy`,
-  `/sector`, tiles and lists show the new data (only API writes are
-  tested today). [UX, PERF]
-
-- [ ] **TEST.43 Auth sweep over every route**
-  Generated from `app.url_map`: every API write route gives 401 to
-  anonymous, garbage Bearer and revoked keys; every admin route gives
-  403 to an admin who must still change credentials. [SEC, API]
-
-- [ ] **TEST.44 What an API key may do**
-  Whether a Bearer key can change credentials, set up or turn off TOTP,
-  make keys, or log out, pinned to the intended answer. [SEC, API]
-
-- [ ] **TEST.45 More than one admin**
-  Admin B can't revoke admin A's key, lifting another admin's lockout is
-  audited, two admins editing the same system. [SEC, ADM]
-
-- [ ] **TEST.46 Trusted device and TOTP edge cases**
-  Expired, tampered and other-user device cookies; turning TOTP off
-  voids trust; a code reused across the API and `/login/code`; a pending
-  login that expires. [SEC]
-
-- [ ] **TEST.47 Oversized requests**
-  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
-  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
-  today). [SEC]
-
-- [ ] **TEST.48 Security headers everywhere**
-  CSP and the other headers on JSON responses, 404/405/500 pages and
-  redirects, not only pages. [SEC]
-
-- [ ] **TEST.49 Thin API routes**
-  Unknown ids, empty galaxy, paging limits and wrong-system ids for
-  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
-  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
-  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
-  `/api/systems/<id>/owner`; deleting a sector that has facilities or
-  wiki pages. [API]
-
-- [ ] **TEST.50 Galaxy URLs combined**
-  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
-  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
-  out-of-range coordinates, ambiguous names. [MAP]
-
-- [ ] **TEST.51 Page-number sweep gaps**
-  `/species?species_page=` and `/polities?polities_page=` join the
-  page-clamping sweep. [UX]
-
-- [ ] **TEST.52 Old URLs and error codes**
-  Unknown `/<name>.py`, case variants, redirect chains; 400 for
-  malformed form encoding; HEAD and OPTIONS on pages. [UX]
-
-- [ ] **TEST.53 Formatters with bad numbers**
-  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
-  and None; empty tables; huge values. [UX]
-
-- [ ] **TEST.54 Caches under threads**
-  Page cache fill and clear from real threads; two writers to the same
-  tile file. [PERF]
 
 ### Browser and JavaScript
 

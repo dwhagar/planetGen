@@ -404,25 +404,120 @@ def log_tail(job_id, max_bytes=64 * 1024, root=None):
 # Starting and stopping jobs
 # ---------------------------------------------------------------------
 
-def _take_lock(root, job_id):
-    """Creates the `active` lock for `job_id`, clearing a stale one.
-    Raises `JobBusy` when a live job holds it."""
-    lock = os.path.join(root, LOCK_NAME)
-    for _attempt in range(2):
+CLEARING_NAME = "active.clearing"
+"""str: Held (created exclusively) by whoever is clearing a stale lock,
+so two admins starting a job at once can't both clear it, the second
+deleting the lock the first has just taken (TEST.40)."""
+
+
+def _lock_age(path):
+    try:
+        return time.time() - os.path.getmtime(path)
+    except OSError:
+        return None
+
+
+def _write_lock(lock, job_id):
+    """Creates `lock` holding `job_id` in one step, so nobody ever reads
+    it empty: the id goes into a temporary file that is then hard-linked
+    to the lock's name (which fails if the lock exists). Where hard links
+    aren't available, creates it exclusively and then writes it.
+
+    Raises:
+        FileExistsError: The lock exists.
+    """
+    directory = os.path.dirname(lock)
+    fd, tmp = tempfile.mkstemp(prefix=".active-", dir=directory)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(job_id)
         try:
-            fd = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
+            os.link(tmp, lock)
+            return
         except FileExistsError:
-            holder = active_job(root)
-            if holder is not None:
-                raise JobBusy(holder)
+            raise
+        except (OSError, NotImplementedError):
+            pass
+    finally:
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+    fd = os.open(lock, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        f.write(job_id)
+
+
+def _read_lock(lock):
+    try:
+        with open(lock, "r", encoding="utf-8") as f:
+            return f.read(256).strip()
+    except OSError:
+        return None
+
+
+def _clear_stale_lock(root, lock, holder):
+    """Removes `lock` if it still holds `holder` (judged stale), under
+    `CLEARING_NAME`. Returns whether the caller may try again now."""
+    clearing = os.path.join(root, CLEARING_NAME)
+    try:
+        fd = os.open(clearing, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o640)
+    except FileExistsError:
+        age = _lock_age(clearing)
+        if age is not None and age > STARTING_GRACE_SECONDS:
+            # Left by a process that died while clearing.
+            try:
+                os.remove(clearing)
+            except OSError:
+                pass
+        return False
+    os.close(fd)
+    try:
+        if _read_lock(lock) == holder:
             try:
                 os.remove(lock)
             except OSError:
                 pass
-            continue
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            f.write(job_id)
-        return
+        return True
+    finally:
+        try:
+            os.remove(clearing)
+        except OSError:
+            pass
+
+
+def _take_lock(root, job_id):
+    """
+    Creates the `active` lock for `job_id`, clearing a stale one. A lock
+    counts as stale when the job it names has finished, or is unknown
+    (garbage, an id whose `job.json` is missing or unreadable) and the
+    lock is older than `STARTING_GRACE_SECONDS` -- a younger one may
+    belong to a job still being written.
+
+    Raises:
+        JobBusy: A live job (or one still starting) holds it.
+    """
+    lock = os.path.join(root, LOCK_NAME)
+    for _attempt in range(3):
+        try:
+            _write_lock(lock, job_id)
+            return
+        except FileExistsError:
+            pass
+        holder = _read_lock(lock)
+        if holder is None:
+            continue  # gone meanwhile
+        job = get_job(holder, root) if JOB_ID_RE.match(holder) else None
+        if job is not None and not job["finished"]:
+            raise JobBusy(job)
+        if job is None:
+            age = _lock_age(lock)
+            if age is None:
+                continue
+            if age < STARTING_GRACE_SECONDS:
+                raise JobBusy(None)
+        if not _clear_stale_lock(root, lock, holder):
+            raise JobBusy(active_job(root))
     raise JobBusy(active_job(root))
 
 
@@ -437,11 +532,21 @@ def _release_lock(root, job_id):
 
 
 def _prune(root, keep):
+    """Deletes all but the newest `keep` jobs' directories. Never the
+    one the lock names, one still running or starting, or one whose
+    `job.json` can't be read yet less than `STARTING_GRACE_SECONDS` old."""
     names = sorted((name for name in os.listdir(root) if JOB_ID_RE.match(name)), reverse=True)
+    holder = _read_lock(os.path.join(root, LOCK_NAME))
     for name in names[keep:]:
+        if name == holder:
+            continue
         job = get_job(name, root)
         if job is not None and not job["finished"]:
             continue
+        if job is None:
+            age = _lock_age(os.path.join(root, name))
+            if age is None or age < STARTING_GRACE_SECONDS:
+                continue
         shutil.rmtree(os.path.join(root, name), ignore_errors=True)
 
 
@@ -468,11 +573,24 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
         OSError: No writable jobs directory, or the runner can't start.
     """
     root = root or jobs_dir()
-    job_id = new_job_id()
-    path = os.path.join(root, job_id)
-    _take_lock(root, job_id)
+    # The directory first, under a fresh id if two jobs drew the same one
+    # in the same second (TEST.41); then the lock.
+    for _attempt in range(20):
+        job_id = new_job_id()
+        path = os.path.join(root, job_id)
+        try:
+            os.makedirs(path, mode=0o750)
+            break
+        except FileExistsError:
+            continue
+    else:
+        raise OSError(f"could not create a job directory in {root}")
     try:
-        os.makedirs(path, mode=0o750)
+        _take_lock(root, job_id)
+    except BaseException:
+        shutil.rmtree(path, ignore_errors=True)
+        raise
+    try:
         job = {
             "id": job_id, "kind": kind, "title": title, "admin": admin, "database": database,
             "created_at": time.time(), "cwd": REPO_DIR, "steps": steps, "env": env or {},

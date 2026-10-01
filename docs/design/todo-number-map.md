@@ -14,13 +14,13 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.57 |
-| NAV | NAV.3 |
-| GEN | GEN.31 |
+| MAP | MAP.63 |
+| NAV | NAV.7 |
+| GEN | GEN.33 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.9 |
-| ADM | ADM.14 |
+| ADM | ADM.15 |
 | SEC | SEC.29 |
 | TEST | TEST.70 |
 | USR | USR.8 |
@@ -392,16 +392,17 @@ Parents marked "new parent" had no old number of their own.
 | ADM.1 | Admin editing: overrides, delete, regenerate (new parent) | none | done (all subitems: PRs #235, #244, #260) |
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
-| ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
+| ADM.4 | Collapsible Generate page sections; pick the center sector | none | done, PR #279 |
 | ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | done, PR #235 |
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | done, PR #244 |
 | ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | done, PR #211 |
-| ADM.10 | Admin page to view and manage the work queue | none | open |
-| ADM.11 | Jobs keep running after the browser closes | none | open |
-| ADM.12 | Jobs as a tree, with timing for every node | none | open |
+| ADM.10 | Admin page to view and manage the work queue | none | done, PR #294 |
+| ADM.11 | Jobs keep running after the browser closes | none | done, PR #302 |
+| ADM.12 | Jobs as a tree, with timing for every node | none | done, PR #285 |
 | ADM.13 | Incomplete uploads page | none | open |
+| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
@@ -443,7 +444,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
-| GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PR #295 |
+| GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
+| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
+| GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -500,8 +503,18 @@ Parents marked "new parent" had no old number of their own.
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
+| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
+| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
+| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
+| MAP.60 | Galaxy Map scale readout: one scale line | none | open |
+| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
+| MAP.62 | A full 3D star system view with a free camera | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
+| NAV.4 | Save a course | none | open |
+| NAV.5 | Show a course on the Galaxy Map | none | open |
+| NAV.6 | Courses that steer clear of gravity wells | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -698,8 +711,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.17 | Batched writes at the limits | none | open |
 | TEST.18 | Full-text search edge cases | none | open |
 | TEST.19 | Same galaxy at any worker count | none | open |
-| TEST.20 | Work queue failure paths | none | open |
-| TEST.21 | Cancelling a run | none | open |
+| TEST.20 | Work queue failure paths | none | done, PR #305 |
+| TEST.21 | Cancelling a run | none | done, PR #305 |
 | TEST.22 | Every bulk mode in parallel | none | open |
 | TEST.23 | Resume after an interrupted fill | none | open |
 | TEST.24 | Bright-star scatter edge cases | none | open |
@@ -718,21 +731,21 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.37 | Names under parallel saves | none | open |
 | TEST.38 | Population incremental rescans | none | open |
 | TEST.39 | Navigation graph | none | open |
-| TEST.40 | Two admins start a job at once | none | open |
-| TEST.41 | Job files damaged | none | open |
-| TEST.42 | Pages fresh after a CLI write | none | open |
-| TEST.43 | Auth sweep over every route | none | open |
-| TEST.44 | What an API key may do | none | open |
-| TEST.45 | More than one admin | none | open |
-| TEST.46 | Trusted device and TOTP edge cases | none | open |
-| TEST.47 | Oversized requests | none | open |
-| TEST.48 | Security headers everywhere | none | open |
-| TEST.49 | Thin API routes | none | open |
-| TEST.50 | Galaxy URLs combined | none | open |
-| TEST.51 | Page-number sweep gaps | none | open |
-| TEST.52 | Old URLs and error codes | none | open |
-| TEST.53 | Formatters with bad numbers | none | open |
-| TEST.54 | Caches under threads | none | open |
+| TEST.40 | Two admins start a job at once | none | done, PR #302 |
+| TEST.41 | Job files damaged | none | done, PR #302 |
+| TEST.42 | Pages fresh after a CLI write | none | done, PR #293 |
+| TEST.43 | Auth sweep over every route | none | done, PR #293 |
+| TEST.44 | What an API key may do | none | done, PR #293 |
+| TEST.45 | More than one admin | none | done, PR #293 |
+| TEST.46 | Trusted device and TOTP edge cases | none | done, PR #293 |
+| TEST.47 | Oversized requests | none | done, PR #293 |
+| TEST.48 | Security headers everywhere | none | done, PR #293 |
+| TEST.49 | Thin API routes | none | done, PR #293 |
+| TEST.50 | Galaxy URLs combined | none | done, PR #293 |
+| TEST.51 | Page-number sweep gaps | none | done, PR #293 |
+| TEST.52 | Old URLs and error codes | none | done, PR #293 |
+| TEST.53 | Formatters with bad numbers | none | done, PR #293 |
+| TEST.54 | Caches under threads | none | done, PR #293 |
 | TEST.55 | Map buttons do something | none | open |
 | TEST.56 | No overlapping controls | none | open |
 | TEST.57 | Galaxy Map JavaScript logic | none | open |
