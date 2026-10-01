@@ -28,7 +28,7 @@ SCAN_FILES = ("generate.py", "install.sh", "update.sh", "install.ps1", "update.p
 
 # This file and the installer test name tags on purpose (the latter checks
 # that the old "TODO(installers #50)" tag stays gone).
-SKIP_FILES = {"test_todo_tags.py", "test_install_python_deps.py"}
+SKIP_FILES = {"test_todo_tags.py"}
 SKIP_DIRS = {"__pycache__", "vendor", "node_modules", ".git"}
 
 TAG_RE = re.compile(r"\bTODO\(([^)]*)\)")

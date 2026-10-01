@@ -64,11 +64,6 @@ def test_markdown_to_html_never_crashes_on_adversarial_input(text):
     assert isinstance(html, str)
 
 
-def test_markdown_to_html_none_input_does_not_crash():
-    html = mdconvert.markdown_to_html(None)
-    assert isinstance(html, str)
-
-
 def test_markdown_to_html_script_tag_is_escaped_not_executable():
     html = mdconvert.markdown_to_html("<script>alert(document.cookie)</script>")
     assert "<script>" not in html

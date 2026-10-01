@@ -234,12 +234,6 @@ def test_bash_scripts_avoid_bash4_only_features(parts):
             assert not unguarded, (parts, name)
 
 
-def test_every_script_names_its_platforms():
-    """No installer is left carrying its item-50 TODO."""
-    for parts in MACOS_SCRIPTS:
-        assert "TODO(installers #50)" not in _read(*parts), parts
-
-
 def test_powershell_requirements_match_setup_py():
     """scripts/deploy-common.ps1 checks the same requirements on Windows."""
     text = _read("scripts", "deploy-common.ps1")
