@@ -335,9 +335,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               territory_path="/galaxy/territories", pick=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
-    galaxymap3d.js` renders an interactive WebGL scene into (drag to
-    rotate, scroll or the zoom buttons to zoom, click to center/select,
-    double-click to center/select AND zoom in -- no right-click action),
+    galaxymap3d.js` renders an interactive WebGL scene into (always
+    seen from above and driven by the drill-down's picks: quarter,
+    layer, arc, ..., sector -- no free camera, MAP.17),
     plus a `<script type="application/json">` block carrying the
     zoom-range numbers (`view_radius_bounds`), the tile settings the
     client needs to pick tiles the same way `initial_tile_request` does,
@@ -497,17 +497,15 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">The map opens on the whole galaxy in big blocks: hover a slab (a layer of blocks) and click it to
-  see it from above, click a block there to fly into it, and so on down to single sectors (Esc or the path above the
-  map goes back up; arrow keys and Enter pick too) &middot; Free look switches to the free camera: drag to rotate
-  &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
-  center the view there and see what it holds &middot; double-click to do the same AND zoom in (bigger steps while
-  zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
-  pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
-  grows more solid the more of its sectors are generated (fully solid when all are); a single generated sector
-  takes its real stellar density's color &middot; glowing points are the brightest stars (500 L&#9737; and up), placed before their sectors are generated &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
-  follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
-  (degrees counterclockwise from +X, ring slot 0)</span>
+  <span class="hint">Always seen from above (MAP.17): click a quarter of the galaxy, then pick a slab (a layer of the
+  disk) from the list beside the map, then click an arc of the ring band in view to zoom into it, and so on (layer,
+  arc, layer, arc) down to single sectors &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
+  Whole galaxy starts over &middot; arrow keys and Enter pick too &middot; blocks are colored by predicted density
+  (brighter = denser): unfilled space is see-through, and a block with generated sectors is amber, more solid the
+  more of them are generated &middot; glowing points are the brightest stars (500 L&#9737; and up), placed before
+  their sectors are generated; click one (inside a quarter's block) to see it &middot; wedge lines follow the
+  sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing (degrees
+  counterclockwise from +X, ring slot 0)</span>
 </div>
 {pick_banner}{shape_hint}{course_hint}
 <form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
@@ -522,30 +520,26 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive 3D Galaxy Map. Up and down arrows pick a slab, Enter opens it; in a slab seen
-     from above, arrow keys pick a block and Enter flies into it; Escape goes back up and Home returns to
-     the whole galaxy. With Free look on, drag or use arrow keys to rotate, scroll or the zoom buttons to
-     zoom, click a block to center the view there and select it, double-click to do the same and
-     zoom in."></canvas>
+     aria-label="Interactive Galaxy Map, seen from above. Arrow keys move among the parts you can pick
+     and Enter takes one; slabs are picked from the list beside the map; Escape or Backspace goes one step
+     back out and Home returns to the whole galaxy."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 <div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
-  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
-  <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
-  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+  <button type="button" class="starmap-btn" data-action="back" disabled>Back</button>
+  <button type="button" class="starmap-btn" data-action="forward" disabled>Forward</button>
+  <button type="button" class="starmap-btn" data-action="up" disabled
+          title="One step back out (Esc)">Up</button>
+  <button type="button" class="starmap-btn" data-action="reset" title="Back to the whole galaxy (Home)">Whole galaxy</button>
   <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
-  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true" data-free-only hidden
-          title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
-  <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false" data-stage-only
+  <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false"
           title="Dim every block with no generated sectors">Generated only</button>
-{territory_button}  <button type="button" class="starmap-btn" data-action="free-look" aria-pressed="false"
-          title="Fly the camera freely instead of stepping through slabs and blocks">Free look</button>
-</div>
+{territory_button}</div>
 <div class="galaxy-slabs" id="galaxymap3d-slabs" hidden></div>
 {territory_box}<aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Hover a slab of blocks, then click it to see it from above.</p>
+<p class="hint">Click a quarter of the galaxy to look at it more closely.</p>
 </aside>
 </div>
 </div>
