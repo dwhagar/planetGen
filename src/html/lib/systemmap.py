@@ -77,7 +77,7 @@ import colorsys
 import math
 import statistics
 
-from fmt import esc, format_distance_km, format_speed_kms
+from fmt import esc, format_distance_km, format_speed_kms, format_temperature_k
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -745,7 +745,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "life": planet.get("life_chemical"),
         "atmosphere": _atmosphere_text(planet),
         "composition": planet.get("composition"),
-        "surfacetemp": f"{round(surface_temp_k)} K" if surface_temp_k is not None else None,
+        "surfacetemp": format_temperature_k(surface_temp_k) if surface_temp_k is not None else None,
         # Presence alone (not the description text) is what the 3D preview
         # needs to decide whether to draw an atmosphere glow shell at all --
         # `_data_attrs` omits a `None` value entirely, so this attribute's

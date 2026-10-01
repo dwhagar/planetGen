@@ -34,7 +34,9 @@ try:
         format_duration_seconds,
         format_number,
         format_period_years,
+        format_pressure_pa,
         format_speed_kms,
+        format_temperature_k,
     )
 except ImportError:
     # Without the planetGen package there is no ladder; plain units still
@@ -68,6 +70,12 @@ except ImportError:
 
     def format_period_years(years):
         return "\u2013" if years is None else f"{years:,.3g} years"
+
+    def format_temperature_k(kelvin):
+        return "\u2013" if kelvin is None else f"{kelvin:,.0f} K"
+
+    def format_pressure_pa(pascals):
+        return "\u2013" if pascals is None else f"{pascals:,.3g} Pa"
 
 
 def _read_package_version():

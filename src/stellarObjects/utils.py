@@ -432,6 +432,95 @@ def format_period_years(years):
     return format_duration_seconds(None if years is None else years * physical_constants.SECONDS_PER_YEAR)
 
 
+def _whole_or_tenths(value):
+    """`value` to whole units, or to one decimal when under 10 in size
+    ("15", "-40", "5.9", "0"), in `format_number`'s style."""
+    text = format_number(value, ",.1f" if abs(value) < 10 else ",.0f")
+    if text.endswith(".0"):
+        text = text[:-2]
+    return "0" if text in ("-0", "+0") else text
+
+
+def format_temperature_k(kelvin):
+    """
+    A surface temperature in kelvin with Celsius and Fahrenheit alongside
+    (Boss, 2026-10-01: "temperatures should be reported in K, C, and F for
+    surface conditions"). Kelvin to three significant figures in
+    `format_distance_m`'s number style; °C and °F to whole degrees, or one
+    decimal when under 10 in size. Star effective temperatures stay in K
+    alone and don't use this.
+
+    Args:
+        kelvin (float): The temperature, in K.
+
+    Returns:
+        str: e.g. "288 K (15 °C, 59 °F)", "737 K (464 °C, 867 °F)". `None`
+             gives an en dash.
+    """
+    if kelvin is None:
+        return "–"
+    kelvin = float(kelvin)
+    if not math.isfinite(kelvin):
+        return f"{kelvin:g} K"
+    celsius = kelvin - physical_constants.CELSIUS_ZERO_K
+    fahrenheit = celsius * 9 / 5 + 32
+    return f"{_three_figures(kelvin)} K ({_whole_or_tenths(celsius)} °C, {_whole_or_tenths(fahrenheit)} °F)"
+
+
+def _three_figures_or_tiny(value):
+    """`_three_figures`, but scientific below a thousandth, where a
+    secondary unit would otherwise run to a row of zeros."""
+    if value != 0 and abs(value) < 1e-3:
+        return scientific_text(value)
+    return _three_figures(value)
+
+
+# The pressure ladder, smallest first: (label, pascals). A pressure is
+# shown in the largest unit it is at least 1 of.
+PRESSURE_LADDER = (
+    ("Pa", 1.0),
+    ("kPa", 1e3),
+    ("MPa", 1e6),
+    ("GPa", 1e9),
+)
+
+
+def format_pressure_pa(pascals):
+    """
+    A pressure with a metric primary on the Pa < kPa < MPa < GPa ladder and
+    customary atm and psi alongside, all to three significant figures
+    (Boss, 2026-10-01: "Atmospheric pressure and surface conditions should
+    show customary units as well as a secondary to help contextualize the
+    metric values given").
+
+    Args:
+        pascals (float): The pressure, in Pa (the schema's
+            `atmospheric_pressure_pa`).
+
+    Returns:
+        str: e.g. "101 kPa (1 atm, 14.7 psi)", "9.2 MPa (90.8 atm,
+             1,334 psi)". `None` gives an en dash.
+    """
+    if pascals is None:
+        return "–"
+    pascals = float(pascals)
+    if not math.isfinite(pascals):
+        return f"{pascals:g} Pa"
+    size = abs(pascals)
+    label, unit_pa = PRESSURE_LADDER[0]
+    for candidate_label, candidate_pa in PRESSURE_LADDER:
+        if size >= candidate_pa * (1 - 1e-12):
+            label, unit_pa = candidate_label, candidate_pa
+    atm = _three_figures_or_tiny(pascals / physical_constants.STANDARD_ATMOSPHERE_PA)
+    psi = _three_figures_or_tiny(pascals / physical_constants.PSI_PA)
+    return f"{_three_figures(pascals / unit_pa)} {label} ({atm} atm, {psi} psi)"
+
+
+def format_pressure_atm(atm):
+    """`format_pressure_pa` for a value in standard atmospheres."""
+    return format_pressure_pa(None if atm is None else atm * physical_constants.STANDARD_ATMOSPHERE_PA)
+
+
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,
