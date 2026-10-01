@@ -1394,11 +1394,6 @@ clears each one.
   correct database; every step idempotent when applied twice; empty or
   gapped `schema_migrations`. [DB]
 
-- [ ] **TEST.10 Database newer than the code**
-  A galaxy or control database with a version above the code's is
-  refused with a clear message (suspected bug: `migrateDb.py` says "no
-  migration path available yet" and the app uses it anyway). [DB]
-
 - [ ] **TEST.11 Every column round-trips**
   Walk `INFORMATION_SCHEMA.COLUMNS` and prove each column is written by
   an insert and read back by a loader, so a new column left NULL or
@@ -1535,25 +1530,6 @@ clears each one.
 
 ### Scripts and ops
 
-- [ ] **TEST.60 Admin script command lines**
-  `main()` tests for `queryDb`, `adminStats`, `checkRenderParity`,
-  `dedupeNames`; bad port, unknown database, empty password vs
-  environment for every script; `resetDb --yes --dry-run`;
-  `updateOrbits` with the clock moved back; `loginLockouts` with bad
-  IPv6. [OPS]
-
-- [ ] **TEST.61 SQLite import script**
-  `migrateSqliteToMysql.py` has no tests and (suspected bug) can't run:
-  it requires the SQLite file to be at today's schema version (46),
-  which no SQLite database ever was. Test it from a v12 file, or retire
-  the script. [OPS, DB]
-
-- [ ] **TEST.62 update.sh against a real database**
-  A CI job runs `update.sh` (and `install.sh`'s database step) on Linux
-  against a live database: up to date, needs migrating, newer than the
-  code, unreachable, failed migration. Today they're only
-  syntax-checked. [OPS]
-
 - [ ] **TEST.70 Tests for the map JavaScript**
   Today only the pure modules (`galaxystages.js`, `galaxyprisms.js`,
   number and distance formatting) have node tests, run from pytest; the
@@ -1684,33 +1660,13 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.5 Install and update check the log locations and say how to fix them**
-  Boss (2026-10-01 19:09Z): "make sure install and update looks for the
-  log file destination either default or configured and if it can't set
-  it up by itself it advises the user how. Either in Windows or
-  whatever OS." Today the debug log's path is `PLANETGEN_LOG_FILE`, else
-  `"log_file"` in `config.json`, else `/var/log/planetgen.log`
-  (`appconfig.log_file_path`), and the always-on activity log lives
-  under `"log_dir"` (`appconfig.activity_log_path`). On Linux,
-  `install.sh` and `update.sh` run `examples/apache/setup-debug-log.sh`,
-  which creates the debug log only when `debug` is on; on Windows,
-  `install.ps1` and `update.ps1` (`scripts/deploy-common.ps1`) create the
-  log folders under `C:\ProgramData\planetgen`; on macOS logs go to
-  `/usr/local/planetgen/log` (`scripts/deploy-common.sh`). Done: on
-  every supported OS (Linux, macOS, Windows), install and update work
-  out each log destination, the debug log and the activity log, from
-  the environment, the configured value or the default, whether or not
-  `debug` is on; check that its folder exists and that the web server's
-  user (and the CLI users' group) can write to it; create the folder and
-  set ownership and permissions when they can; and when they can't (no
-  rights, a path on a read-only or missing drive, a user that doesn't
-  exist), finish without failing and print the exact commands for that
-  OS to fix it (`mkdir`, `chown`, `chmod` or `icacls`), or how to point
-  `log_file` and `log_dir` somewhere writable. The app's own fallback
-  when the log can't be opened stays as it is. A log that can't be set
-  up only warns; it never stops the install or update (Boss, 2026-10-01
-  19:11Z).
-
+- [ ] **OPS.6 Admin scripts accept impossible `--mysql-port` values (bug)**
+  Found while building TEST.60 (PR #288): the admin scripts take
+  `--mysql-port 0`, `-1` or `70000` and only fail later with a
+  connection error, because `_db.add_mysql_connection_args` doesn't
+  range-check the port. Done: every script that takes `--mysql-port`
+  rejects anything outside 1 to 65535 with a clear argument error
+  before connecting, with a test in `test_admin_script_cli.py`.
 
 ## VIEW: The view from a planet
 
