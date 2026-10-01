@@ -727,7 +727,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (ADM.5's validator), refuse sectors that were filled meanwhile, save
   them the same way a server-side run does (names, ids, bright-star
   levels, caches and tiles invalidated), and report what was added. A
-  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  remote run appears in the job tree and job page (ADM.10, PR #294; ADM.12, PR #285) like
   a server-side one. Boss's answers (2026-10-01 19:28Z):
   - Generate and keep in memory: the local machine needs no database of
     its own.
@@ -826,88 +826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## ADM: Admin tools
 
-- [ ] **ADM.10 An admin page to view and manage the work queue**
-  Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
-  manage the work queue", and (19:05Z): "For the job management page I
-  want it to tell me how many worker are currently active, load in the
-  standard x / x / x format. I want cancel / retry as well as pause /
-  resume depending on what I'm doing." Today the parallel runs of
-  PERF.8 (PR #225) record themselves in the control database
-  (`work_jobs`, `work_tasks` and the one-row `work_lease`, control
-  schema v5, written by `stellarObjects/workQueue.py`), but nothing on
-  the web shows them; the Generate page's "Current job" section shows
-  only the web job runner's own job (`web/jobs.py`: a job directory
-  with `state.json`, the log, `runner.pid` and the `cancel` file).
-  Built on ADM.12's job tree. Done: an admin-only page shows, at the
-  top, how many workers are active right now and the server's load
-  average as "x / x / x" (1, 5 and 15 minutes); below it the job trees
-  (newest first, paged like every list), each node with its state,
-  title, start, end, duration, progress, tasks queued, running, done
-  and failed, and ETA, expandable from the master job down to single
-  tasks, plus the web job and log that started it and who holds the
-  lease and how stale its heartbeat is. Controls, chosen for the
-  selected node (a whole job, a subtree, or one task) and each
-  confirmed and written to the admin activity log: cancel, retry
-  (failed or cancelled nodes), pause (stop handing out that subtree's
-  tasks, finish the ones running) and resume; plus clearing a stale
-  lease whose holder is gone and deleting finished jobs. Boss
-  (2026-10-01 19:07Z): "Paused jobs go into standby and don't block
-  the queue but there is the option to pause the entire queue which
-  would lock the queue." So a paused job goes into standby and gives
-  up the lease, and other jobs can run; resuming puts it back in line.
-  Separately, "Pause the queue" holds the lease so no job starts or
-  takes tasks until the queue is resumed. Open questions: does the
-  page also show CLI runs started by hand in a terminal, and may the
-  web pause or cancel those? On Windows, which has no load average,
-  the load line shows CPU percent averaged over the same 1, 5 and 15
-  minute windows, in the same "x / x / x" form (Boss, 2026-10-01
-  19:08Z).
-
-- [ ] **ADM.11 Jobs keep running after the browser closes**
-  Boss (2026-10-01 19:03Z): "we need to make sure that generate or
-  other jobs continue even if the user closes the browser." Today a
-  web job runs in its own detached process (`web/jobs.py`
-  `_detached_options`: a new session on POSIX, a new process group
-  broken away from the server's job object on Windows), so closing the
-  page should not stop it; the one-off system page
-  (`web/system_page.py`) instead waits inside the request, since a
-  system takes about a second. Done: every long job started from the
-  web (each Generate page mode, plan, bright-star rebuild, reset,
-  admin regenerate and delete from ADM.8, population runs) is checked
-  and, where needed, changed so that it depends on no open page or
-  live request: closing the tab, losing the connection, or the browser
-  stopping its polling leaves the job running to the end, and coming
-  back to the Generate page (or ADM.10's page) shows it with its
-  progress and log. A web server restart (Apache reload, IIS recycle)
-  is checked too. A test starts a job, drops the client, and sees it
-  finish. Open question: should anything else that runs inside a
-  request for more than a few seconds move to a job?
-
-- [ ] **ADM.12 Jobs as a tree, with timing for every node**
-  Boss (2026-10-01 19:05Z): "we'll have to add a job management system,
-  main job, subjobs, etc (main job, generate bright stars, subjobs the
-  individual layers, sub-subjobs, the individual segments of the ring,
-  etc) as a tree. Same for sectors and systems. Everything has a tree
-  from the master large task at the top and the smaller tasks at the
-  bottom, timing information stored for each, so we can get accurate
-  time measurements." Today PERF.8's `work_jobs` holds one row per run
-  and `work_tasks` a flat list of that run's tasks. Done: every job is
-  a tree, from the master job (for example a plan) through subjobs
-  (generate bright stars, fill sectors) and their subjobs (one per
-  layer) down to the smallest unit (a ring segment, a sector, a star
-  system); the same shape for sector and system generation. Every node
-  stores its state, start, end and duration, and its parent's totals
-  roll up from its children, so time measurements and ETAs (PERF.3,
-  PERF.7, PERF.9) come from measured times per kind of node. Likely an
-  extension of `work_jobs`/`work_tasks` (a parent id and per-node
-  timing columns, a control schema migration) rather than new tables.
-  Cancel, retry, pause and resume (ADM.10) work on any node and its
-  subtree. Open questions: how deep the tree goes for a single system
-  (stars, planets, moons as nodes, or the system as the leaf); how
-  long finished trees are kept (today `KEEP_DAYS`), and whether their
-  timings are summarized into speed records before they are pruned;
-  whether a web job (`web/jobs.py`) becomes the root node of its tree.
-
 - [ ] **ADM.13 Incomplete uploads page**
   Boss (2026-10-01 19:32Z): "Admin will have to have a page where they
   can see incomplete uploads and clear them but reserved sectors by ID
@@ -918,7 +836,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Clearing one, confirmed and written to the admin activity log, throws
   away its staged data and releases its sectors and id blocks; until
   then nothing else (a server-side run, another upload) may use them.
-  Part of, or linked from, the job page (ADM.10). Open question: should
+  Part of, or linked from, the job page (ADM.10, PR #294). Open question: should
   an upload with no contact for a long time be flagged as stale on the
   page?
 
@@ -1057,16 +975,6 @@ clears each one.
   `random.seed(task_seed(...))`; the parallel path does, and the only
   test compares 2 with 3). [GEN, PERF]
 
-- [ ] **TEST.20 Work queue failure paths**
-  A worker dies (BrokenProcessPool), `on_done` raises, a payload won't
-  pickle, a result isn't JSON, two tasks share a key, heartbeat fails,
-  the control database drops mid-run, lease expiry under clock skew.
-  [PERF]
-
-- [ ] **TEST.21 Cancelling a run**
-  SIGTERM, Ctrl+C and SystemExit during a parallel run end the job as
-  cancelled, free the lease and leave no half-written sector. [PERF]
-
 - [ ] **TEST.22 Every bulk mode in parallel**
   `--shell`, `--block`, `--column`, `--center-sector`, random start and
   `sector --num-sectors N` with `--workers 2`, checking run counts and
@@ -1155,17 +1063,6 @@ clears each one.
   coordinates, k = 0 and k >= n, NaN positions, travel time table. [NAV]
 
 ### Web, API and jobs
-
-- [ ] **TEST.40 Two admins start a job at once**
-  Exactly one job runs (suspected bug: `_take_lock` creates an empty
-  lock before writing the job id, so a second caller can read it as
-  stale, delete it and start its own job). [ADM]
-
-- [ ] **TEST.41 Job files damaged**
-  Corrupt or truncated `job.json`, `state.json`, `progress.json`; a lock
-  holding garbage; job id collision; unwritable jobs directory; prune
-  never removes the running job; cancel with unknown, malformed or
-  finished job ids. [ADM]
 
 ### Browser and JavaScript
 

@@ -398,9 +398,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | done, PR #260 |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | done, PR #244 |
 | ADM.9 | "Place a facility": host by placement, log orbit slider, moving belt facilities (bug) | none | done, PR #211 |
-| ADM.10 | Admin page to view and manage the work queue | none | open |
-| ADM.11 | Jobs keep running after the browser closes | none | open |
-| ADM.12 | Jobs as a tree, with timing for every node | none | open |
+| ADM.10 | Admin page to view and manage the work queue | none | done, PR #294 |
+| ADM.11 | Jobs keep running after the browser closes | none | done, PR #302 |
+| ADM.12 | Jobs as a tree, with timing for every node | none | done, PR #285 |
 | ADM.13 | Incomplete uploads page | none | open |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
@@ -711,8 +711,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.17 | Batched writes at the limits | none | open |
 | TEST.18 | Full-text search edge cases | none | open |
 | TEST.19 | Same galaxy at any worker count | none | open |
-| TEST.20 | Work queue failure paths | none | open |
-| TEST.21 | Cancelling a run | none | open |
+| TEST.20 | Work queue failure paths | none | done, PR #305 |
+| TEST.21 | Cancelling a run | none | done, PR #305 |
 | TEST.22 | Every bulk mode in parallel | none | open |
 | TEST.23 | Resume after an interrupted fill | none | open |
 | TEST.24 | Bright-star scatter edge cases | none | open |
@@ -731,8 +731,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.37 | Names under parallel saves | none | open |
 | TEST.38 | Population incremental rescans | none | open |
 | TEST.39 | Navigation graph | none | open |
-| TEST.40 | Two admins start a job at once | none | open |
-| TEST.41 | Job files damaged | none | open |
+| TEST.40 | Two admins start a job at once | none | done, PR #302 |
+| TEST.41 | Job files damaged | none | done, PR #302 |
 | TEST.42 | Pages fresh after a CLI write | none | done, PR #293 |
 | TEST.43 | Auth sweep over every route | none | done, PR #293 |
 | TEST.44 | What an API key may do | none | done, PR #293 |
