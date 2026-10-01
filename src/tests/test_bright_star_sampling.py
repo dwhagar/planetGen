@@ -47,9 +47,10 @@ def young_brute_force():
     return draws, _brute_force("young", draws, seed=11)
 
 
-def test_threshold_must_be_above_every_white_dwarf():
+def test_threshold_must_be_at_least_every_white_dwarf():
     with pytest.raises(ValueError):
-        sp.bright_star_fraction(prog_c.WD_LUMINOSITY_RANGE_SOL[1])
+        sp.bright_star_fraction(prog_c.WD_LUMINOSITY_RANGE_SOL[1] * 0.99)
+    assert sp.bright_star_fraction(prog_c.WD_LUMINOSITY_RANGE_SOL[1]) > 0.0
     with pytest.raises(ValueError):
         sp.sample_bright_stars(1, float("nan"))
     with pytest.raises(ValueError):
@@ -186,3 +187,17 @@ def test_preplaced_position_must_be_inside_the_sector():
         sector.add_preplaced_system(_system(), (6.0, 0.0, 0.0))
     with pytest.raises(ValueError):
         sector.add_preplaced_system(_system(), (float("nan"), 0.0, 0.0))
+
+
+def test_the_dim_cap_never_removes_a_white_dwarf(monkeypatch):
+    # The hottest white dwarfs are clamped to exactly the lowest allowed
+    # cap; they are never pre-placed, so the dim draw must keep them.
+    from stellarObjects import stellarEvolution
+    cap = prog_c.WD_LUMINOSITY_RANGE_SOL[1]
+    white_dwarf = {"yerkes_class": "VII", "luminosity_sol": cap}
+    monkeypatch.setattr(stellarEvolution, "evolve_star", lambda mass, age, rng: dict(white_dwarf))
+    assert stellarEvolution.sample_living_star(max_luminosity_sol=cap)[2] == white_dwarf
+    giant = {"yerkes_class": "III", "luminosity_sol": cap}
+    monkeypatch.setattr(stellarEvolution, "evolve_star", lambda mass, age, rng: dict(giant))
+    with pytest.raises(ValueError):
+        stellarEvolution.sample_living_star(max_luminosity_sol=cap)

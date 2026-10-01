@@ -1737,7 +1737,6 @@ def system_detail(conn, system_id):
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
-        "inside": containing_cloud(conn, system),
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": [dict(b) for b in belts],
