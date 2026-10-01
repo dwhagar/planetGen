@@ -12,6 +12,7 @@ fake data layer; the last runs a real population pass.
 
 import re
 
+import markupsafe
 import pytest
 
 from api.app import create_app
@@ -223,7 +224,8 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
         conn.close()
 
     listing = real_client.get("/species").get_data(as_text=True)
-    assert 'href="/species"' in _nav(listing) and name in listing
+    # The page escapes the name; some draws have an apostrophe ("Epteyn'Ska").
+    assert 'href="/species"' in _nav(listing) and str(markupsafe.escape(name)) in listing
     assert real_client.get("/polities").status_code == 200
     system = real_client.get(f"/system/{galaxy['a']}").get_data(as_text=True)
     assert "Dominant species:" in system and "Territory of" in system

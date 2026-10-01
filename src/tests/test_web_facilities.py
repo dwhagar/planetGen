@@ -14,6 +14,7 @@ without a MySQL test server.
 """
 
 import re
+from html import escape
 
 import pytest
 
@@ -487,7 +488,9 @@ def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     assert all(p["inhabited"] == (p["life_stage"] == "technological_civilization") for p in others)
 
     html = db_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
-    row = html[html.index(f'<span class="body-name">{planet["name"]}</span>'):]
+    # The page escapes the name: some draws have an apostrophe in it
+    # ("Illata Ch'Oba I"), which a raw search missed (TEST.69).
+    row = html[html.index(f'<span class="body-name">{escape(planet["name"])}</span>'):]
     row = row[:row.index("</summary>")]
     assert '<span class="flag flag-yes">Inhabited</span>' in row
     assert "New Hope" in _panel(html)

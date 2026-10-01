@@ -13,21 +13,19 @@ type coercion, a dropped nested value, a stale cached value) shows up as a
 dict-equality mismatch here regardless of which specific class or seed
 triggers it.
 
-Also reports (Tier 2 -- informational, not a hard failure) any instance
-attribute NOT present in that class's own `SERIALIZABLE_FIELDS` -- a
-currently-undetectable "field drift" risk (`serialization.py`'s own
-docstring: a class attribute silently isn't persisted until someone adds
-it to the allowlist). This is intentionally soft: several classes hold
-legitimate non-serialized attributes (back-references like `Planet.star`,
-recursively-serialized children like `Planet.moons`) that would otherwise
-show up as constant false positives.
+Also fails on any instance attribute of a star, planet, moon or belt NOT
+in that class's own `SERIALIZABLE_FIELDS` and not on the short known list
+of runtime-only attributes (back-references like `Planet.star`, children
+serialized on their own like `Planet.moons`) -- the "field drift" risk
+`serialization.py`'s own docstring names: an attribute silently isn't
+persisted until someone adds it to the allowlist.
 """
 
 import random
 
 import pytest
 
-from tests.bughunt_support import FUZZ_SEEDS, tier2
+from tests.bughunt_support import FUZZ_SEEDS
 
 from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -117,33 +115,40 @@ def test_compact_remnant_roundtrip_fuzz(cls):
 _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 
 
-@tier2
-def test_starsystem_children_roundtrip_fuzz_soft_field_drift_report():
-    """Tier 2 companion to the Tier 1 test below -- same generation loop,
-    but only responsible for the soft "field not in SERIALIZABLE_FIELDS"
-    report, kept separate so a Tier 1 failure there never masks it."""
-    from tests.bughunt_support import Tier2Report, run_seeded
+# Attributes a generated body may hold that `SERIALIZABLE_FIELDS` leaves
+# out on purpose: back-references and the config (rebuilt by `from_dict`),
+# children `to_dict` writes itself (moons, a belt's composition), and the
+# galactic distance the star's serialized perimeter and orbit come from.
+_RUNTIME_ONLY = {
+    Star: {"system_config", "galactic_center_dist_ly"},
+    Planet: {"system_config", "star", "moons"},
+    AsteroidBelt: {"system_config", "composition"},
+}
 
-    report = Tier2Report()
+
+def test_starsystem_children_have_no_unlisted_attributes():
+    """Every attribute generation sets is either serialized or known to be
+    runtime-only, so a new field can't silently drop out of saves (TEST.4:
+    was a Tier 2 report that listed the same expected extras every run)."""
+    from tests.bughunt_support import run_seeded
 
     def check(seed):
-        star_type = random.choice(_STAR_TYPES)
         cfg = SystemConfig()
         cfg.BINARY_SYSTEM = False
-        cfg.STAR_TYPE = star_type
+        cfg.STAR_TYPE = random.choice(_STAR_TYPES)
         system = StarSystem(system_config=cfg)
-        for star in system.stars:
-            extra = set(vars(star)) - set(Star.SERIALIZABLE_FIELDS)
-            if extra:
-                report.add(f"Star seed={seed}: attrs not in SERIALIZABLE_FIELDS: {sorted(extra)}")
+        bodies = list(system.stars)
         for obj in system.planets:
-            if isinstance(obj, Planet):
-                extra = set(vars(obj)) - set(Planet.SERIALIZABLE_FIELDS)
-                if extra:
-                    report.add(f"Planet seed={seed}: attrs not in SERIALIZABLE_FIELDS: {sorted(extra)}")
+            bodies.append(obj)
+            bodies.extend(getattr(obj, "moons", None) or [])
+        for body in bodies:
+            cls = type(body)
+            if cls not in _RUNTIME_ONLY:
+                continue
+            extra = set(vars(body)) - set(cls.SERIALIZABLE_FIELDS) - _RUNTIME_ONLY[cls]
+            assert not extra, f"{cls.__name__} seed={seed}: attrs not in SERIALIZABLE_FIELDS: {sorted(extra)}"
 
-    run_seeded(check, seeds=_SEEDS[:10])
-    report.flush("starsystem-field-drift")
+    run_seeded(check, seeds=_SEEDS)
 
 
 def test_starsystem_star_and_planet_roundtrip_fuzz():

@@ -1,7 +1,7 @@
 # tests/test_bughunt_render_edges.py
 
 """
-Tier 1/Tier 2 bug-hunt coverage: `mdconvert.py`/`systemmap.py` fed
+Tier 1 bug-hunt coverage: `mdconvert.py`/`systemmap.py` fed
 adversarial or degenerate data -- the two rendering layers most exposed to
 whatever the database actually holds (mdconvert renders the stored
 wikitext/Markdown write-up; systemmap renders raw `planets`/`stars`/
@@ -13,28 +13,27 @@ literal), across a battery of malformed/adversarial markdown/wikitext
 (broken tables, unterminated formatting, huge input, control characters,
 `None`).
 
-Tier 2 (not fixed -- see this test's own docstring below for why):
-`render_system_map_panel` given a `NaN`/`Inf` position or radius (never
+Known bug (strict xfail, TEST.4; was a Tier 2 report):
+`render_system_map_panel` given a `NaN`/`Inf` position (never
 produced by normal generation -- every physics function that could yield
 one either already guards against it or was hardened by
 `test_bughunt_physics_edges.py`/`test_bughunt_serialization_fuzz.py`, so
 this is a defense-in-depth check at the render boundary, not a live path)
 does not crash, but does silently embed the literal string "nan"/"inf"
 into an SVG numeric attribute -- invalid SVG a browser will just fail to
-draw that one element for, not a page-level crash. Reported here as a
-known, tracked soft finding (the fix would touch every `:.1f`-style
+draw that one element for, not a page-level crash. Kept as a strict xfail
+(the fix would touch every `:.1f`-style
 coordinate format across 5 separate map-rendering files -- `starmap.py`/
 `systemmap.py`/`galaxymap.py`/`navmap.py`/`phenomenonmap.py` -- a wider
-change than this pass's scope) rather than silently left uncovered.
+change than this pass's scope). A `None` or negative radius renders clean.
 """
 
 import math
 import os
+import re
 import sys
 
 import pytest
-
-from tests.bughunt_support import Tier2Report, tier2
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
@@ -97,24 +96,34 @@ def _planet(id_, star_id, x_km, y_km, **kw):
     return d
 
 
-@tier2
-def test_system_map_degenerate_values_do_not_crash_soft_nan_report():
-    """See this file's module docstring -- Tier 2, tracked-not-fixed."""
-    report = Tier2Report()
-    system = {"name": "Test", "binary_configuration": None}
+# A number-valued attribute holding NaN or infinity (`cx="nan"`,
+# `data-xkm="inf"`): matched as a whole attribute value, so class names like
+# `sysmap-info` don't count (the old Tier 2 check did match them, which is
+# why it flagged even the None and negative radius cases).
+_NON_FINITE_ATTR = re.compile(r'[\w-]+="-?(?:nan|inf)(?: km)?"', re.IGNORECASE)
 
-    cases = {
-        "None radius_km": _planet(1, 1, 1e8, 0.0, radius_km=None),
-        "NaN position": _planet(1, 1, float("nan"), 0.0),
-        "Inf position": _planet(1, 1, float("inf"), 0.0),
-        "negative radius_km": _planet(1, 1, 1e8, 0.0, radius_km=-100.0),
-    }
-    for label, planet in cases.items():
-        try:
-            html = sm.render_system_map_panel(system, [_star(1)], [planet], [])
-        except Exception as exc:  # noqa: BLE001
-            pytest.fail(f"{label}: render_system_map_panel raised {type(exc).__name__}: {exc}")
-        if "nan" in html.lower() or "inf" in html.lower():
-            report.add(f"{label}: rendered SVG contains a literal 'nan'/'inf' numeric attribute")
 
-    report.flush("systemmap-degenerate-values")
+def _non_finite_attrs(planet):
+    html = sm.render_system_map_panel({"name": "Test", "binary_configuration": None}, [_star(1)], [planet], [])
+    return _NON_FINITE_ATTR.findall(html)
+
+
+@pytest.mark.parametrize("planet", [
+    _planet(1, 1, 1e8, 0.0, radius_km=None),
+    _planet(1, 1, 1e8, 0.0, radius_km=-100.0),
+    _planet(1, 1, 1e8, 0.0, radius_km=0.0),
+], ids=["None radius", "negative radius", "zero radius"])
+def test_system_map_odd_radius_renders_finite_numbers(planet):
+    """TEST.4: was half of a Tier 2 report; these already render clean."""
+    assert _non_finite_attrs(planet) == []
+
+
+@pytest.mark.xfail(strict=True, reason="systemmap writes NaN/inf positions straight into SVG attributes "
+                                       "(cx=\"nan\", data-xkm=\"inf\"); generation never stores one, so "
+                                       "this is defense in depth at the render boundary")
+@pytest.mark.parametrize("x_km", [float("nan"), float("inf")], ids=["NaN", "inf"])
+def test_system_map_non_finite_position_renders_finite_numbers(x_km):
+    """TEST.4: the other half of the old Tier 2 report, now a strict xfail.
+    The page still renders (no exception); only the bad body's own numbers
+    are broken."""
+    assert _non_finite_attrs(_planet(1, 1, x_km, 0.0)) == []
