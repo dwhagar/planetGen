@@ -60,19 +60,6 @@ renumber when items are added or finished.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
 
-### Performance
-
-8. [ ] **Add a cache so pages don't hit the database on every request.**
-   Every page calls the Flask API through `html/lib/apiclient.py`,
-   and every API route queries MySQL fresh, including results that rarely
-   change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
-   detail). The 3D Galaxy Map already has one: its cube tiles are cached
-   on disk by the web layer (`html/lib/tilecache.py`) and in the browser,
-   and an edit refreshes only the tiles it touched (`GET /api/galaxy/
-   changes`, from the v27 `modified_at` columns). Extend that pattern to
-   the other pages, invalidating each page from its own rows'
-   `modified_at`.
-
 ### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
 Today the map draws the analytic density as shrunk prisms, m sectors a
