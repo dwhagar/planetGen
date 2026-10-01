@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.19 |
-| MAP | MAP.49 |
+| MAP | MAP.51 |
 | NAV | NAV.3 |
 | GEN | GEN.23 |
 | PERF | PERF.18 |
@@ -374,7 +374,7 @@ Sorted by old number, then date.
 | 102 | 2026-10-01 05:27Z to 05:29Z | UX.13 | One meaningful-unit ladder for speeds | open |
 | 103 | 2026-10-01 05:27Z to 05:29Z | UX.14 | One meaningful-unit ladder for time periods | open |
 | 104 | 2026-10-01 05:40Z to 05:54Z | MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | open |
-| 105 | 2026-10-01 05:43Z to 05:54Z | UX.15 | Put an object's data beside its 3D render when there's room (bug) | open |
+| 105 | 2026-10-01 05:43Z to 05:54Z | UX.15 | Put an object's data beside its 3D render when there's room (bug) | done, PR #195 |
 | 106 | 2026-10-01 05:43Z to 05:54Z | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | open |
 | 107 | 2026-10-01 05:44Z to 05:54Z | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | open |
 | 108 | 2026-10-01 05:44Z to 05:54Z | MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | open |
@@ -469,6 +469,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | 107 (2026-10-01 05:44Z to 05:54Z) | open |
 | MAP.47 | Bright stars vanish when zoomed out (bug) | 97 (2026-10-01 05:15Z to 05:29Z) | open |
 | MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | open |
+| MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | open |
+| MAP.50 | Names run off the edge of the map (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -547,7 +549,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.12 | System page: one ordered list of everything in orbit | 61 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:08Z to 22:36Z) | done in 7.12.0, PR #126 |
 | UX.13 | One meaningful-unit ladder for speeds | 102 (2026-10-01 05:27Z to 05:29Z) | open |
 | UX.14 | One meaningful-unit ladder for time periods | 103 (2026-10-01 05:27Z to 05:29Z) | open |
-| UX.15 | Put an object's data beside its 3D render when there's room (bug) | 105 (2026-10-01 05:43Z to 05:54Z) | open |
+| UX.15 | Put an object's data beside its 3D render when there's room (bug) | 105 (2026-10-01 05:43Z to 05:54Z) | done, PR #195 |
+| UX.16 | Always leave space between buttons (bug) | none | done, PR #195 |
 | UX.17 | A view that suits each phenomenon | 25 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.57.0, PR #178 |
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | VIEW.1 | View from a planet (new parent) | none | open |
@@ -916,7 +919,9 @@ never appear in TODO.md, since finished items are deleted):
 - Added in the bugs-and-security plan (after PR #192): SEC.20 to SEC.27
   (login logging, the per-username backoff in the control database, a
   trusted-device cookie, the `/account` password-guessing bug, a password
-  blocklist, hashing cost, two-factor sign-in and a fail2ban recipe).
+  blocklist, hashing cost, two-factor sign-in and a fail2ban recipe),
+  then MAP.49 (bug, planet orbits drawn inside an asteroid belt) and
+  MAP.50 (bug, names running off the edge of the map).
 - Flat IDs (after PR #190): every dotted ID above was replaced by the
   next number in its category (see "Tree IDs to flat IDs"). A bug with no
   open item it breaks is now a top-level "(bug)" item (UX.15, UX.16)

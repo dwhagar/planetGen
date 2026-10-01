@@ -103,7 +103,10 @@ of the SEC section.
       out), then MAP.48 (pop in after a zoom).
    3. MAP.43 (wedge lines past the galaxy's edge) and MAP.37
       (generated systems hard to find).
-   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   4. MAP.49: planet orbits drawn inside an asteroid belt on the System
+      Map.
+   5. MAP.50: names running off the edge of the map.
+   6. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -610,6 +613,45 @@ MAP.48 and MAP.37 below.
   emitting light (quasars, neutron stars and accreting black holes
   yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
+
+- [ ] **MAP.49 (bug) The System Map shows planet orbits inside an asteroid belt**
+  Boss (2026-10-01): "the system view still is showing orbits of
+  planets inside the orbit of an asteroid belt." Generation already
+  keeps planets clear of belts (a planet after a belt keeps 5 Hill
+  radii clear of its outer edge, and belts can't overlap the next
+  planet out, per the CHANGELOG), so the first lead is the drawing:
+  `html/lib/systemmap.py` places every orbit on a shared log scale
+  (`_radial_px`), but `_belt_band_px` draws the belt's ring width
+  linearly (`radius_px * (upper - lower) / distance`) and clamps it to
+  9-40 px, so on the log scale the drawn band can reach past a
+  neighboring planet's orbit. Second lead: systems stored before those
+  generation fixes, which a regenerate would clear. Done: the belt's
+  ring is drawn from its inner and outer edges mapped through the same
+  log scale as the orbits (with a minimum visible width that never
+  crosses a neighbor's orbit), on the System Map and in the 3D system
+  view if it draws belts too; a test checks that no drawn planet orbit
+  falls inside a drawn belt band for systems with belts; and a check
+  over the stored data reports any planet whose orbit really is inside
+  a belt (if there are any, that is a generation bug to fix too).
+
+- [ ] **MAP.50 (bug) Names run off the edge of the map**
+  Boss (2026-10-01): "names should not run off the screen edge." Taken
+  to mean the name labels on the maps, the System Map first. Lead:
+  `html/lib/systemmap.py` draws into a fixed 700 x 700 viewBox and
+  places each label with `_label_sides_2d`, which tries below, above,
+  right and left to avoid other labels and markers but never checks the
+  candidate against the viewBox edges, so a name near the edge (an
+  outer planet, a long name) is cut off; `static/systemmap.js`'s
+  `layoutLabels` measures the real text the same way. Done: on the
+  System Map (and its moon views), a label that would cross an edge
+  picks a direction that fits, or is shifted inward, so every name is
+  fully on screen at every size class; the Sector Map's and Galaxy
+  Map's name labels are checked for the same problem and fixed if they
+  have it; a test places labels for bodies near every edge and checks
+  each label rectangle lies inside the view. Open question: when no
+  direction fits, shift the label inward along the edge, or shorten it
+  with an ellipsis and show the full name on hover? Default: shift it
+  inward.
 
 ## GEN: Generation and physics
 
