@@ -299,11 +299,13 @@ def test_sector_wiki_link_never_links_a_non_http_url(client, fake, wiki_url):
 def test_admin_sees_forms_with_csrf_token(client, fake):
     _log_in(client, fake)
     html = client.get("/sector/5").get_data(as_text=True)
-    forms = re.findall(r'<form method="post" action="/sector/5".*?</form>', html, re.S)
-    assert len(forms) == 2
-    for form in forms:
+    every_form = re.findall(r'<form method="post" action="/sector/5".*?</form>', html, re.S)
+    for form in every_form:
         assert f'name="{csrf.FIELD_NAME}"' in form
         assert 'name="db"' not in form and 'name="id"' not in form
+    # The Edit panel's Regenerate and Delete forms (ADM.8) aside:
+    forms = [form for form in every_form if 'name="edit_action"' not in form]
+    assert len(forms) == 2 and len(every_form) == 4
     assert 'value="upload_wiki"' in forms[0] and 'value="wikijs"' in forms[0] and "mediawiki" not in forms[0]
     assert 'value="generate_neighborhood"' in forms[1]
 
