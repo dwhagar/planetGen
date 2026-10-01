@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.23 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
-| GEN | GEN.26 |
+| GEN | GEN.30 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
 | ADM | ADM.10 |
 | SEC | SEC.29 |
-| TEST | TEST.63 |
+| TEST | TEST.69 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -429,6 +429,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | open |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
+| GEN.26 | Rogue planet surface conditions | none | open |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
+| GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
+| GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -720,6 +724,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
+| TEST.63 | Math check that runs first (new parent) | none | open |
+| TEST.64 | Reference values | none | open |
+| TEST.65 | Identities and invariants | none | open |
+| TEST.66 | Distributions match their targets | none | open |
+| TEST.67 | Runs first in the suite and in CI | none | open |
+| TEST.68 | Gate before bulk generation | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
