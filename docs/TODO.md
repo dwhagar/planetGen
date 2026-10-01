@@ -971,9 +971,9 @@ and 84 are blocked on it; item 85 is not.
 
 ## Population and Politics
 
-Items 51-54 shipped as schema v44 (`generate.py population`, the
+Items 51-54 shipped: schema v44 (`generate.py population`, the
 `/api/species`, `/api/polities` and `/api/territories` endpoints; see
-`docs/design/population-and-politics.md`). Still open, unnumbered until
-the planned renumbering: the pages that show it (a Species list and page,
-a polity page, "Dominant species" on a life world, "Territory of ..." on
-an owned system) and a territory overlay on the Galaxy Map.
+`docs/design/population-and-politics.md`), the Galaxy Map's Territories
+overlay, and the pages (Species and a species page, Polities and a
+polity page, "Dominant species" on a life world and "Territory of ..."
+on an owned system), all hidden until population data exists.

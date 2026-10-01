@@ -17,7 +17,7 @@ from flask import abort
 from classref import catalog, class_entry, class_type, class_url_parts
 
 from . import bp
-from .helpers import crumb, page_url, render_page
+from .helpers import crumb, page_url, population_status, render_page
 
 
 def class_url(type_slug, code):
@@ -48,7 +48,20 @@ def classes():
         breadcrumbs=[crumb("Classes")],
         description="Every class of star, planet, nebula and other object this galaxy generator assigns.",
         rows=rows,
+        population=_population_links(),
     )
+
+
+def _population_links():
+    """The Species and Polities pages, listed beside the classes once
+    population data exists."""
+    status = population_status()
+    links = []
+    if status["species"]:
+        links.append({"label": "Species", "url": page_url("species")})
+    if status["polities"]:
+        links.append({"label": "Polities", "url": page_url("polities")})
+    return links
 
 
 @bp.route("/classes/<type_slug>")

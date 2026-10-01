@@ -20,5 +20,9 @@
       {%- endfor %}
     </tbody>
   </table></div>
+  {%- if population %}
+  <p class="inline-links">The galaxy's peoples:
+    {%- for link in population %} <a href="{{ link.url }}">{{ link.label }}</a>{{ "," if not loop.last }}{% endfor %}</p>
+  {%- endif %}
 </section>
 {% endblock %}

@@ -1,0 +1,25 @@
+{#- One species (/species/<id>, web/population_pages.py). -#}
+{% extends "base.html" %}
+{% block subhead %}
+<p class="badges">
+  {%- if species.era %}<span class="badge">{{ species.era }}</span>{% endif %}
+  <span class="badge">{{ "Spacefaring" if species.spacefaring else "Not spacefaring" }}</span>
+  {%- if species.polity_url %}<span class="badge"><a href="{{ species.polity_url }}">{{ species.polity }}</a></span>{% endif -%}
+</p>
+{% endblock %}
+{% block content %}
+<section class="panel" aria-labelledby="species-facts-heading">
+  <h2 id="species-facts-heading">About This Species</h2>
+  <div class="table-scroll" tabindex="0"><table>
+    <tbody>
+      {%- for label, text in facts %}
+      <tr><th scope="row">{{ label }}</th><td>
+        {%- if label == "Star system" and species.system_url %}<a href="{{ species.system_url }}">{{ text }}</a>
+        {%- else %}{{ text }}{% endif -%}
+      </td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <p><a href="{{ page_url('species') }}">All species</a></p>
+</section>
+{% endblock %}

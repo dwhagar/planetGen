@@ -38,7 +38,9 @@ from stellarObjects.program_constants import NEBULA_CLASSES
 from . import bp
 from . import system_facilities
 from .class_pages import class_url
-from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
+from .helpers import (
+    crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
+)
 from .nav_page import endpoint, nav_url
 
 # ---------------------------------------------------------------------
@@ -164,6 +166,41 @@ def _wiki_upload_options(system, wiki_config):
             if wiki_config.get(value) and not uploaded[value]]
 
 
+def _species_by_planet(db, system):
+    """`{planet_id: {"name", "url"}}`: each life world's dominant species
+    (only planets with life can have one), or `{}` before population has
+    made any species."""
+    if not population_status()["species"]:
+        return {}
+    found = {}
+    for planet in system["planets"]:
+        if not planet.get("life_chemical"):
+            continue
+        try:
+            species = apiclient.get_planet_species(db, planet["id"])
+        except (apiclient.ApiError, apiclient.NotFoundError):
+            species = None
+        if species:
+            found[planet["id"]] = {"name": species["name"],
+                                   "url": page_url("species_page", species_id=species["id"])}
+    return found
+
+
+def _territory(db, system_id):
+    """`{"name", "url", "color"}` of the polity whose territory this
+    system is in, or `None` (also before population has made any)."""
+    if not population_status()["territories"]:
+        return None
+    try:
+        owner = apiclient.get_system_owner(db, system_id)
+    except (apiclient.ApiError, apiclient.NotFoundError):
+        return None
+    if not owner:
+        return None
+    return {"name": owner["polity_name"], "color": owner.get("color"),
+            "url": page_url("polity_page", polity_id=owner["polity_id"])}
+
+
 @bp.route("/system/<int:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
@@ -219,7 +256,9 @@ def system(system_id):
         code_content=code_content,
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
-        system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities)),
+        system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities,
+                                                       species=_species_by_planet(db, detail))),
+        territory=_territory(db, system_id),
         stars_html=trusted_html(stars_html(detail["stars"], class_url)),
         wiki_options=wiki_options,
         wiki_status=wiki_status,

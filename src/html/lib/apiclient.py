@@ -524,6 +524,70 @@ def get_polities(db, limit=None, offset=None):
     return _request("/polities", {"db": db, "limit": limit, "offset": offset})
 
 
+def get_polity(db, polity_id, limit=None, offset=None):
+    """Returns `GET /api/polities/<id>`: one polity plus a page of its
+    `systems` (nearest the capital first). Raises `NotFoundError` for an
+    unknown polity."""
+    _require_db(db)
+    return _request(f"/polities/{int(polity_id)}", {"db": db, "limit": limit, "offset": offset})
+
+
+def get_species_list(db, spacefaring=None, limit=None, offset=None):
+    """Returns `GET /api/species`' paginated envelope, species by name;
+    `spacefaring` (`True`/`False`) filters, `None` lists every one."""
+    _require_db(db)
+    flag = None if spacefaring is None else ("1" if spacefaring else "0")
+    return _request("/species", {"db": db, "spacefaring": flag, "limit": limit, "offset": offset})
+
+
+def get_species(db, species_id):
+    """Returns `GET /api/species/<id>`. Raises `NotFoundError` for an
+    unknown species."""
+    _require_db(db)
+    return _request(f"/species/{int(species_id)}", {"db": db})
+
+
+def get_planet_species(db, planet_id):
+    """The dominant species whose homeworld is this planet
+    (`GET /api/planets/<id>/species`), or `None` when it has none."""
+    _require_db(db)
+    try:
+        return _request(f"/planets/{int(planet_id)}/species", {"db": db})
+    except NotFoundError:
+        return None
+
+
+def get_system_owner(db, system_id):
+    """The polity that owns a system (`GET /api/systems/<id>/owner`'s
+    `owner`: `polity_id`, `polity_name`, `color`, `distance_ly`), or
+    `None` when no polity does."""
+    _require_db(db)
+    return _request(f"/systems/{int(system_id)}/owner", {"db": db})["owner"]
+
+
+POPULATION_NONE = {"generated": False, "species": False, "polities": False, "territories": False}
+"""dict: `get_population_status`'s answer when there is nothing to show."""
+
+
+def get_population_status(db):
+    """
+    What population data exists (`GET /api/population`): `generated`,
+    `species`, `polities` and `territories` booleans. Before that endpoint
+    existed it is worked out from the species and polity counts. Any
+    failure (a database from before population, schema v44) means none.
+    """
+    _require_db(db)
+    try:
+        try:
+            return dict(POPULATION_NONE, **_request("/population", {"db": db}))
+        except NotFoundError:
+            species = get_species_list(db, limit=1)["total"] > 0
+            polities = get_polities(db, limit=1)["total"] > 0
+            return {"generated": species, "species": species, "polities": polities, "territories": polities}
+    except (ApiError, NotFoundError):
+        return dict(POPULATION_NONE)
+
+
 def get_galaxy_locate(db, q):
     """Returns `GET /api/galaxy/locate`'s `matches` (sectors and systems
     named like `q`, each with its sector address -- see

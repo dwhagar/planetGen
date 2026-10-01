@@ -176,6 +176,10 @@ URLs" below).
 | `/classes` | (new) | The class reference: every class type (star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets, comets) with how many classes it has. |
 | `/classes/<type>` | (new) | One type's classes, each linking to its page, plus notes (an asteroid field's size digit, for one). `<type>` is `star-spectral`, `star-luminosity`, `planet`, `nebula`, `supernova-remnant`, `asteroid-field`, `black-hole`, `rogue-planet` or `comet`; anything else is a 404. |
 | `/classes/<type>/<code>` | (new) | One class's facts, e.g. `/classes/planet/M`, `/classes/star-luminosity/IA+`, `/classes/comet/halley_type`. An unknown code is a 404. The system page links a star's type and a planet's or comet's class here, and the phenomenon page its Class (an asteroid field's `C3` by its letter) and a rogue planet's Mass Class. |
+| `/species` | (new) | Every species, paged with `?species_page=N`; `?spacefaring=1` or `0` filters. Like every population page it is a 404, and the header's Species section is hidden, until a population pass has made species (`GET /api/population`). |
+| `/species/<id>` | (new) | One species: homeworld, body plan, era, civilization age and polity. |
+| `/polities` | (new) | Every polity (`?polities_page=N`): species, government, capital, systems held, reach. A 404 until there are polities. |
+| `/polities/<id>` | (new) | One polity and the systems it holds, nearest its capital first (`?systems_page=N`). |
 | `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
