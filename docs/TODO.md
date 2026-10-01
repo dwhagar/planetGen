@@ -708,6 +708,49 @@ for a mouse; spacing and type sized with `clamp()`.
     and type, or a regenerate? Does a rogue class change its rendering
     (it has no star to light it)?
 
+107. [ ] **Bug: rogue planets are hard to find on the Sector Map.**
+    Boss (2026-10-01): "in sector view make sure rogue planets can be
+    easily located." Today `static/sectormap.js` draws a rogue planet as
+    a dim, dark-purple textured sphere (`roguePlanet`: core `#6b5a8a`
+    fading to `#2a2438`, glow `#7d6aa8` at strength 0.8), "a dim,
+    starless world lit only by its own internal heat", which nearly
+    vanishes against the dark scene. Done: every rogue planet in a
+    sector is easy to spot at the default zoom and when zoomed out, in
+    both themes, without looking like a star; the sector page's list of
+    its contents can point at each one on the map. Goes with item 104
+    (rogue planets drawn outside the wireframe), whose bright-color test
+    makes the same objects visible, and item 108's point-of-light style.
+    Open questions: what makes them findable (a marker or ring around
+    each, a brighter but still cool color, a label, a "highlight rogue
+    planets" toggle, or a list that flies the camera to each)? Does the
+    same apply to other dark objects (quiescent black holes, interstellar
+    comets)?
+
+108. [ ] **Stars and glowing phenomena as points of light on the Sector
+    Map.** Boss (2026-10-01): "make the stars in a sector more realistic
+    sizes with bright auras, I prefer the tiny point of light in the map
+    for stars, same for any stellar phenomena which has a glow / emits
+    light, it should be a point of glowing light. Still make brightness
+    and size relevant just more like a point of light." Today
+    `static/sectormap.js` draws each star (and black hole, neutron star,
+    quasar, rogue planet, interstellar comet) as a textured sphere with a
+    fresnel glow shell (`bodyRendering.js`), sized in scene units so it
+    looks like a ball; the Galaxy Map draws its bright stars as a tiny
+    core with a soft halo at a fixed pixel size (`galaxymap3d.js`,
+    "Bright stars", `STAR_MIN_PX` to `STAR_MAX_PX`). Done: on the Sector
+    Map, stars and every light-emitting phenomenon draw as a tiny bright
+    point with a glowing aura, like the Galaxy Map's bright stars, with
+    brightness and halo size still scaling with luminosity (and color
+    with spectral type), so they read as points of light rather than
+    balls; clicking one still selects it. Open questions: does the size
+    stay fixed in pixels at every zoom (as on the Galaxy Map) or grow a
+    little as the camera gets close? Is the textured sphere kept for a
+    close-up (the System Map still shows bodies as spheres)? How is a
+    binary's pair kept distinguishable? Which phenomena count as
+    emitting light (quasars, neutron stars and accreting black holes
+    yes; quiescent black holes and rogue planets, which item 107 must
+    keep findable, probably not)?
+
 ### Star population (from the galaxy studies of 2026-09-30)
 
 The random star model (mass from the Kroupa IMF, an age, then evolution:
