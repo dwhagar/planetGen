@@ -355,6 +355,23 @@ for a mouse; spacing and type sized with `clamp()`.
     does); and whether elapsed-time and ETA displays for jobs (items 86-88)
     and the admin pages use the same function.
 
+105. [ ] **Bug: put an object's data beside its 3D render when there's
+    room.** Boss (2026-10-01): "if there is enough room next to the 3D
+    render of an object, put the data segment next to the object." The
+    3D renders (`static/bodyRendering.js`, used by the System Map,
+    `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
+    show an object's details in an info panel, which today can sit below
+    the render even when the screen has space beside it. Done: when the
+    space next to the render is wide enough, the data panel sits beside
+    the object; when it isn't (phones, narrow windows), it stays below;
+    the switch follows the Responsive Web Design Standards' size classes
+    and container queries (see the notes above item 62), with no layout
+    jump while the render loads. Open questions: which panels this
+    covers (the System Map and Sector Map info panels, the object pages
+    for planets, moons, stars and phenomena, or all of them)? What
+    "enough room" means (a minimum width for the render plus a readable
+    45-75 character text column)? Which side the panel goes on?
+
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 86. [ ] **Estimate size and time before bulk generation, and refuse
@@ -666,6 +683,30 @@ for a mouse; spacing and type sized with `clamp()`.
     from the sector's own (dimmer, outside-only, or a toggle)? If the
     stored positions turn out wrong, do existing galaxies need a
     migration or a regenerate?
+
+106. [ ] **Give rogue planets a planet class, with a rogue flag in the
+    class constants.** Boss (2026-10-01): "Rogue plants should get a
+    planet class, add TODO item to TODO.md that we should add to the
+    zone data for planet class constants a flag for if a planet is
+    acceptable to be rogue or not (zone r for the purposes of the
+    constants)." Today each class in `program_constants.PLANET_CLASSES`
+    carries zone flags `"h"`, `"e"` and `"c"` (hot, ecosphere and cold
+    zones), and a rogue planet (`stellarObjects/roguePlanetData.py`,
+    `RoguePlanet`) has no class: just a `planet_type` of `'t'` or `'g'`
+    picked by mass from the rogue mass bins. Done: every class in
+    `PLANET_CLASSES` gets an `"r"` flag saying whether it can be a rogue
+    planet; a rogue planet is given a class drawn only from the classes
+    with `"r": True` that fit its mass and type; the class is stored and
+    shown on the rogue planet's page and the Sector Map like any other
+    planet's; and the class override and validation items (57-59) treat
+    `"r"` as the rogue planet's zone. Open questions: which classes are
+    allowed to be rogue (frozen, gas giant and barren classes are the
+    obvious ones; does a class with life ever qualify)? Are the
+    probabilities `PLANET_CLASS_PROBABILITIES` reweighted for rogues, or
+    a separate rogue table? What happens to rogue planets already
+    generated: a migration that assigns classes from their stored mass
+    and type, or a regenerate? Does a rogue class change its rendering
+    (it has no star to light it)?
 
 ### Star population (from the galaxy studies of 2026-09-30)
 
