@@ -577,7 +577,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
   and PR #293 (TEST.44), which already answers 403 to
   any API key that makes keys, changes credentials or 2FA, or logs
-  out). Open question: does a user-level key belong to a user account
+  out. Open question: does a user-level key belong to a user account
   (USR.1) or stand alone until user accounts exist?
 
 - [ ] **API.7 Investigate and plan upload limits**
