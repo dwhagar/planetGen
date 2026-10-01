@@ -348,3 +348,28 @@ console.log(JSON.stringify({S: path.S, a, b, ms: S.flightMs(path.S), still: [sti
     assert 500 <= out["ms"] <= 1600
     assert out["still"] == pytest.approx([100, 10])
     assert out["S"] > 0
+
+
+def test_a_block_one_sector_tall_shows_its_sectors():
+    """A level-27 block whose sectors all lie in one layer skips its
+    level-3 blocks: its view is the sectors, picked by arcs."""
+    out = _run("""
+let found = null;
+for (let ring = 0; ring * 27 <= outline.maxRing && !found; ring += 3) {
+  for (let slab = 0; slab <= Math.ceil(outline.maxLayer / 27) + 1 && !found; slab++) {
+    const at = {m: 27, ring, wedge: 0, slab};
+    if (S.drillBlockTotal(at, outline) > 0 && S.thinSectors(at, outline, edge)) found = at;
+  }
+}
+const r = found && S.settleStage({at: found, picks: []}, outline, edge);
+const plane = S.thinSectors({m: 27, ring: 10, wedge: 0, slab: 0}, outline, edge);
+console.log(JSON.stringify({found, plane, kind: r && r.kind,
+  sectors: r && r.view.blocks.every(b => b.m === 1),
+  layers: r && new Set(r.view.blocks.map(b => b.slab)).size,
+  total: r && r.view.blocks.length, expected: found && S.drillBlockTotal(found, outline)}));
+""")
+    assert out["found"], "no thin block in the test galaxy"
+    assert out["plane"] is None
+    assert out["sectors"] and out["layers"] == 1
+    assert out["kind"] == "region"
+    assert out["total"] == out["expected"]

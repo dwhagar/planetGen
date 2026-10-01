@@ -189,10 +189,32 @@ function columnsOf(blocks) {
   return new Set(blocks.map(function (b) { return b.ring + "/" + b.wedge; }));
 }
 
-// The container's whole view: every child, and the bearings it spans.
+// The sectors of a level-27 block whose sectors all lie in one layer, or
+// null: such a block is only one sector tall, so its view skips the
+// level-3 blocks and shows the sectors themselves (Boss, 2026-10-01).
+export function thinSectors(at, outline, edgePc) {
+  if (!at || at.m !== 27 || outline.shapeless) return null;
+  const groups = childrenOf(at, outline, edgePc);
+  if (groups.length !== 1) return null;
+  const sectors = [];
+  const layers = new Set();
+  groups[0].blocks.forEach(function (block) {
+    childrenOf(stripBlock(block), outline, edgePc).forEach(function (g) {
+      layers.add(g.slab);
+      Array.prototype.push.apply(sectors, g.blocks);
+    });
+  });
+  return layers.size === 1 && sectors.length ? sectors : null;
+}
+
+// The container's whole view: every child (or a thin block's sectors),
+// and the bearings it spans.
 function containerView(at, outline, edgePc) {
-  const blocks = [];
-  childrenOf(at, outline, edgePc).forEach(function (g) { Array.prototype.push.apply(blocks, g.blocks); });
+  let blocks = thinSectors(at, outline, edgePc);
+  if (!blocks) {
+    blocks = [];
+    childrenOf(at, outline, edgePc).forEach(function (g) { Array.prototype.push.apply(blocks, g.blocks); });
+  }
   let a0 = 0;
   let a1 = TWO_PI;
   if (at) {
