@@ -298,6 +298,96 @@ project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
     file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
     way).
 
+### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
+
+Boss asked for these on 2026-10-01 (quoted where it matters). None is
+designed yet; the open questions are listed in each item.
+
+57. [ ] **Central validate module in `stellarObjects`.** Boss: "we should
+    get a whole set of validate functions in their own file within the
+    stellarObjects class (if we don't already) so that we can have a
+    central place to validate a system (lunar system, star system) which
+    includes validating planets." There isn't one today; validation is
+    spread out: `SystemData.validate_system`,
+    `_validate_cross_star_clearance` and `_trim_to_orbit_ceiling`
+    (`systemData.py`) for orbits, the `_validate_*` checks in
+    `planetPhysics.py` for a planet's class/radius/mass, and
+    `moon_orbit_bounds_km`/`drop_unstable_moons` (`planetPhysics.py`)
+    for moons. Done: one module (for example
+    `stellarObjects/validation.py`) that validates a planet, a lunar
+    system and a star system, which generation and items 58-59 both
+    call, with existing behavior unchanged. Prerequisite for 58 and 59.
+
+58. [ ] **Admin override of a planet's or moon's class.** Boss: "it should
+    have the option to do 'recommended' which are other classes that fit
+    within the given space or I can 'force' which means it sets it to what
+    I want no matter what. During validation orbital paths in the way of a
+    class change get recalculated and moved around until the system is
+    stable. This should be recursive, so that say a moon is changed, then
+    that lunar system is changed, then it goes out from there to recheck
+    all the planets, etc. It does this until the system can validate."
+    "The system will always try to have a stable system and will warn the
+    user if that isn't possible." Done: an admin control on a planet or
+    moon offering a "recommended" list (classes that fit its current
+    space) and a "force" choice; after a change, revalidate outward
+    (moon, its lunar system, then every planet of the star system) with
+    item 57's functions, re-spacing orbits until it validates, and warn
+    the admin when no stable layout exists. Open questions: does a forced
+    change that can't be made stable still save (with the warning), or is
+    it rolled back? May revalidation remove other bodies, or only move
+    them?
+
+59. [ ] **Admin override of a star.** Boss: "that will change the entire
+    system but it will change the system to have as many objects as the
+    original system had just their orbital positions will change, caveat
+    there is if there are too many objects for the star (say a large star
+    with a lot of objects changes to a small star that does not have
+    orbital space, then it'll be truncated." Done: an admin control to
+    change a system's star; the system keeps its planets, moons and belts
+    (same count), orbits are re-spaced for the new star with item 57's
+    validation, and outer objects are dropped when the new star lacks the
+    room, telling the admin what was removed. Open questions: do the
+    planets keep their classes, or are classes re-checked against the new
+    star's zones (which could chain into item 58's revalidation)? Does
+    this cover companion stars in multiple systems too?
+
+60. [ ] **Delete and regenerate buttons on everything, sector down.**
+    Boss: "I also want a delete function across the board, so I can
+    manually remove a system. With that a regen button ... regenerate a
+    system, phenomena, planet, asteroid belt, sector, basically anything
+    from a sector to anything in a sector should have a delete and regen
+    buttons when admin is logged in." `DELETE /api/sectors/<id>` and
+    `DELETE /api/systems/<id>` exist (`src/html/api/routes.py`); there is
+    nothing for a single phenomenon, planet, moon or belt, and no
+    regenerate for any of them. Done: admin-only Delete and Regenerate
+    buttons on the sector, system, phenomenon, planet and asteroid belt
+    pages (Boss's list; moons are an open question), with a confirm step,
+    an audit-log entry, and item 57's validation after a single body is
+    removed or regenerated. Open questions: does regenerating a sector
+    keep manual overrides (items 58-59), renamed objects and placed
+    facilities (item 35), or replace everything? Does regenerating keep
+    the object's name? Does deleting a sector leave its slot unfilled
+    (so it can be filled again) or mark it empty?
+
+61. [ ] **Lock out an IP address after failed logins.** Boss: "3 failed
+    login attempts triggers the script refusing to allow that IP address
+    to login again for an increasing amount of time (Starts at 5 minutes,
+    doubles every time for a max of 1 day). This should get integrated
+    into the control database." This is separate from the per-username
+    backoff already shipped (`src/html/api/loginbackoff.py`: 10 free
+    failures per username, then 1 s doubling to 15 min, kept in memory
+    per worker). Done: a table in the control database
+    (`control_schema.sql`, alongside `admin_users`/`admin_sessions`)
+    recording failures and lockouts per client IP (`request.remote_addr`,
+    which already honors the `proxy_fix` setting); after 3 failures that
+    IP gets 429 + `Retry-After` for 5 minutes, doubling on each further
+    lockout up to 1 day; checked before the password, shared by all
+    workers, and logged to `admin_audit_log`. Open questions: does a
+    successful login reset the doubling? Do both limits stay (per IP and
+    per username), or does this replace the in-memory one? Should
+    localhost or a configured allowlist be exempt so an admin can't lock
+    themselves out, and should there be an admin "unlock" command?
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
