@@ -194,6 +194,26 @@
   </form>
 </section>
 
+<section class="panel" id="bright-band" aria-labelledby="bright-band-heading">
+  <h2 id="bright-band-heading">Add a dimmer layer of bright stars</h2>
+  <p class="hint">Keeps every bright star already placed and adds only the stars from a lower level up to
+  the current one, then lowers the galaxy's star-fill level. Sectors already generated are left out: their
+  own systems were drawn below the old level, so they already hold stars that bright.
+  {%- if summary.bright and summary.bright.scattered %} The star-fill level is now
+  {{ num(summary.bright.min_luminosity_sol, ",.0f") }} solar luminosities.{% else %} Needs a bright-star
+  scatter first.{% endif %}</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="bright_band">
+    <div class="search-fields">
+      {{ field("down_to", "Go down to (solar luminosities)", value="", min=1, required=True, placeholder="100") }}
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy or not (summary.bright and summary.bright.scattered) %} disabled{% endif %}>Add layer</button>
+    </div>
+  </form>
+</section>
+
 <section class="panel" id="reset" aria-labelledby="reset-heading">
   <h2 id="reset-heading">Reset</h2>
   <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.

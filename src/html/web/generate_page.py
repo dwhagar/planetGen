@@ -14,6 +14,9 @@ needs a terminal on the server. Four actions, each a background job
   count it placed; a checkbox on either form skips it.
 - Rebuild bright stars: the scatter alone, on the stored plan
   (`--force` leaves already filled sectors out instead of refusing).
+- Add a dimmer layer: keep the bright stars already placed and add only
+  those from a lower level up to the current one
+  (`generate.py plan --bright-stars-down-to N`).
 - Generate sectors: `generate.py galaxy` in any of its four modes
   (random start, a whole ring, around a sector, one address).
 - Reset: wipe the database only.
@@ -89,6 +92,8 @@ GALAXY_MODES = (
 )
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
+
+BAND_LABEL = "Add a dimmer layer of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
 """str: The step that pre-places every bright star
@@ -286,6 +291,10 @@ def build_job(action, form, database):
         if form.get("bright_force"):
             argv.append("--force")
         return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
+    if action == "bright_band":
+        down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
+        argv = generate + ["plan", "--bright-stars-down-to", f"{down_to:g}"]
+        return "bright_band", f"Bright stars down to {down_to:g} L\u2609", [{"label": BAND_LABEL, "argv": argv}]
     if action == "galaxy":
         argv, description = galaxy_argv(form)
         label = f"Generate sectors {description}"
