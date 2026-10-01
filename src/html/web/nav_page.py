@@ -227,6 +227,29 @@ def _destination_pickers(origin, to_sector_raw):
     return pickers
 
 
+def _map_picks(pick, other):
+    """
+    The "pick on a map" links beside the pickers (TODO 75, design doc
+    section 9): choose the `pick` endpoint (`"from"`/`"to"`) on the
+    Galaxy Map (`/galaxy?pick=...`, whose stage 8 hands a sector click to
+    the Sector Map's pick mode) or, once the `other` endpoint is a known
+    system in a sector, straight in that sector's Sector Map pick mode
+    (`/sector/<id>?pick=...`). Both carry `other` along.
+
+    Args:
+        pick (str): `"from"` or `"to"`.
+        other (dict or None): The other endpoint, `_resolve`d.
+    """
+    other_param = _param_of(other) if other else None
+    keep = {("to" if pick == "from" else "from"): other_param}
+    links = []
+    if other is not None and other["sector_id"] is not None:
+        links.append({"label": "Pick in this sector",
+                      "url": page_url("sector", sector_id=other["sector_id"], pick=pick, **keep)})
+    links.append({"label": "Pick on Galaxy Map", "url": page_url("galaxy", pick=pick, **keep)})
+    return links
+
+
 def _route_names(route, known):
     """`{node key: name}` for every stop on the route, looking up only
     intermediate systems (a phenomenon is only ever the first or last
@@ -360,11 +383,11 @@ def nav():
     page = {"section": "nav", "description": "Plot a course between two star systems or phenomena."}
 
     if not from_raw:
-        if to_raw:
-            parse_endpoint(to_raw)  # a malformed `to` is a 404 now, not after choosing an origin
+        destination = _resolve(*parse_endpoint(to_raw)) if to_raw else None  # a bad `to` is a 404 now
         return render_page(
             "nav.html", title="Nav", breadcrumbs=[crumb("Nav")],
-            pickers=_origin_pickers(request.args.get("from_sector", ""), to_raw), **page,
+            pickers=_origin_pickers(request.args.get("from_sector", ""), to_raw),
+            map_picks=_map_picks("from", destination), map_picks_heading="Or pick a start on a map", **page,
         )
 
     origin = _resolve(*parse_endpoint(from_raw))
@@ -377,7 +400,8 @@ def nav():
     if not to_raw:
         return render_page(
             "nav.html", title=title, breadcrumbs=crumbs, origin=origin,
-            pickers=_destination_pickers(origin, request.args.get("to_sector", "")), **page,
+            pickers=_destination_pickers(origin, request.args.get("to_sector", "")),
+            map_picks=_map_picks("to", origin), map_picks_heading="Or pick a destination on a map", **page,
         )
 
     to_kind, to_id = parse_endpoint(to_raw)

@@ -865,3 +865,62 @@ def test_bright_stars_fail_open(client, fake, monkeypatch):
     resp = client.get("/sector/5")
     assert resp.status_code == 200
     assert "brightStars" not in _scene(resp.get_data(as_text=True))["neighbors"][1]
+
+
+# --- Map picks on the NAV page (TODO 75) and "Show on Galaxy Map" (TODO 78) ---------------
+
+def _map_picks(html):
+    match = re.search(r'<section class="panel" aria-labelledby="map-picks-heading">.*?</section>', html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_nav_origin_step_offers_map_picks(client, fake):
+    picks = _map_picks(client.get("/nav").get_data(as_text=True))
+    assert "Or pick a start on a map" in picks
+    assert 'href="/galaxy?pick=from">Pick on Galaxy Map</a>' in picks
+    assert "Pick in this sector" not in picks  # no other endpoint yet
+    picks = _map_picks(client.get("/nav?to=system:2001").get_data(as_text=True))
+    assert 'href="/sector/9?pick=from&amp;to=system:2001">Pick in this sector</a>' in picks
+    assert 'href="/galaxy?pick=from&amp;to=system:2001">Pick on Galaxy Map</a>' in picks
+    picks = _map_picks(client.get("/nav?to=nebula:3").get_data(as_text=True))
+    assert "Pick in this sector" not in picks  # a phenomenon has no sector
+    assert 'href="/galaxy?pick=from&amp;to=nebula:3"' in picks
+
+
+def test_nav_destination_step_offers_map_picks(client, fake):
+    picks = _map_picks(client.get("/nav?from=system:1001").get_data(as_text=True))
+    assert "Or pick a destination on a map" in picks
+    assert 'href="/sector/5?pick=to&amp;from=system:1001">Pick in this sector</a>' in picks
+    assert 'href="/galaxy?pick=to&amp;from=system:1001">Pick on Galaxy Map</a>' in picks
+
+
+def test_nav_course_has_no_map_picks(client, fake):
+    assert _map_picks(client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)) == ""
+
+
+def test_nav_bad_preset_destination_is_404(client, fake):
+    assert client.get("/nav?to=system:999").status_code == 404
+
+
+def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
+    from stellarObjects.galaxyGeometry import provisional_sector_designation
+
+    html = client.get("/sector/5").get_data(as_text=True)
+    designation = provisional_sector_designation(5, 1, 20)
+    assert f'<a href="/galaxy?sector={designation}">Show on Galaxy Map</a>' in html
+    fake.sectors[5] = _sector_detail(placed=False)
+    assert "Show on Galaxy Map" not in client.get("/sector/5").get_data(as_text=True)
+
+
+def test_galaxy_map_redirects(client, fake):
+    from stellarObjects.galaxyGeometry import provisional_sector_designation
+
+    designation = provisional_sector_designation(5, 1, 20)
+    resp = client.get("/sector/5/galaxy")
+    assert resp.status_code == 302 and resp.headers["Location"].endswith(f"/galaxy?sector={designation}")
+    resp = client.get("/system/1001/galaxy")
+    assert resp.status_code == 302 and resp.headers["Location"].endswith(f"/galaxy?sector={designation}")
+    assert client.get("/system/3000/galaxy").headers["Location"].endswith("/galaxy")
+    assert client.get("/sector/404/galaxy").status_code == 404
+    fake.sectors[5] = _sector_detail(placed=False)
+    assert client.get("/sector/5/galaxy").headers["Location"].endswith("/galaxy")

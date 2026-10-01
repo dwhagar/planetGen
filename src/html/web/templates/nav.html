@@ -20,6 +20,17 @@
 </section>
 {%- endif %}
 
+{%- if map_picks %}
+<section class="panel" aria-labelledby="map-picks-heading">
+  <h2 id="map-picks-heading">{{ map_picks_heading }}</h2>
+  <p class="page-actions">
+    {%- for link in map_picks %}
+    <a class="btn btn-small" href="{{ link.url }}">{{ link.label }}</a>
+    {%- endfor %}
+  </p>
+</section>
+{%- endif %}
+
 {%- for picker in pickers or [] %}
 <section class="panel" aria-labelledby="picker-{{ loop.index }}">
   <h2 id="picker-{{ loop.index }}">{{ picker.heading }}</h2>

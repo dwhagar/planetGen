@@ -16,8 +16,11 @@
   {%- if debris %}
   <span class="badge">{{ debris }}</span>
   {%- endif %}
+  {%- if galaxy_url %}
+  <span class="badge"><a href="{{ galaxy_url }}">Show on Galaxy Map</a></span>
+  {%- endif %}
   {%- if quadrant %}
-  <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">View on Galaxy Map (Quadrant {{ quadrant }})</a></span>
+  <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a></span>
   {%- endif %}
 </p>
 {% endblock %}

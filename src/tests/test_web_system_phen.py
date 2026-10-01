@@ -577,3 +577,10 @@ def test_real_admin_upload_without_wiki_config(db_app, mysql_config):
     assert resp.headers["Location"] == f"/system/{system_id}?wiki=unconfigured#wiki-upload"
     html = client.get(resp.headers["Location"]).get_data(as_text=True)
     assert "That wiki is not configured for this site." in html
+
+
+def test_system_page_shows_it_on_the_galaxy_map(client, fake):
+    html = client.get("/system/5").get_data(as_text=True)
+    assert 'href="/system/5/galaxy">Show on Galaxy Map</a>' in html
+    fake.system = _system_detail(sector_id=None)
+    assert "Show on Galaxy Map" not in client.get("/system/5").get_data(as_text=True)

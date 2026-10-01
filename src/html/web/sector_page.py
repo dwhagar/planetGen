@@ -40,6 +40,7 @@ from starmap import render_map_panel
 from systempage import facility_kind_label
 
 from api.common import is_http_url
+from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 
 from . import bp
@@ -363,6 +364,42 @@ def _nav_for(pick):
     return nav
 
 
+def galaxy_map_url(sector):
+    """
+    "Show on Galaxy Map" for a sector (TODO 78): `/galaxy?sector=
+    <designation>`, which opens the map's stage 8 holding that sector with
+    it selected (design doc section 8.1). `None` for a sector with no
+    galaxy address.
+    """
+    address = (sector.get("ring_index"), sector.get("layer_index"), sector.get("ring_slot_index"))
+    if None in address:
+        return None
+    try:
+        designation = provisional_sector_designation(*address)
+    except ValueError:
+        return None
+    return page_url("galaxy", sector=designation)
+
+
+@bp.route("/sector/<int:sector_id>/galaxy")
+def sector_on_galaxy_map(sector_id):
+    """Redirects to the sector on the Galaxy Map (for links that know
+    only the sector's id, like search results), or to the plain map when
+    the sector has no galaxy address."""
+    url = galaxy_map_url(apiclient.get_sector(db_name(), sector_id))
+    return redirect(url or page_url("galaxy"), code=302)
+
+
+@bp.route("/system/<int:system_id>/galaxy")
+def system_on_galaxy_map(system_id):
+    """Redirects to a system's sector on the Galaxy Map, or to the plain
+    map for a system outside any sector."""
+    system = apiclient.get_system(db_name(), system_id)
+    if system["sector_id"] is None:
+        return redirect(page_url("galaxy"), code=302)
+    return sector_on_galaxy_map(system["sector_id"])
+
+
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`?contents_page=N`), and
@@ -421,6 +458,7 @@ def sector(sector_id):
         debris=debris_html(detail.get("interstellar_debris_count")),
         phenomenon_count=phenomenon_count,
         quadrant=quadrant,
+        galaxy_url=galaxy_map_url(detail),
         map_html=trusted_html(map_html),
         rows=page_rows,
         total_rows=len(rows),

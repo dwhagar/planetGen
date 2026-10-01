@@ -167,7 +167,9 @@ stages themselves don't need it.
     sector" once the other end is known, and a Bookmarks select. The
     Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
     to NAV, keeps "Generated only" on, and a sector click opens that
-    sector in pick mode.
+    sector in pick mode. The NAV page's side is in too: "Pick on Galaxy
+    Map" and "Pick in this sector" at each step. Only the Bookmarks
+    select is left, and it waits on 76.
 
 76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
     info panels saves a stage, sector, system or phenomenon in
@@ -175,10 +177,6 @@ stages themselves don't need it.
     tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
     entries offered by the NAV pickers. Shared bookmarks need Boss's
     decision 4 and a migration.
-
-78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
-    link goes to the Quadrant table today. Done: sector, system and
-    search pages link to `/galaxy?sector=<designation>`.
 
 100. [ ] **Bug: no free camera; drill down from a top-down view by
     wedge, slice and block.** Boss (2026-10-01): "bugfix, remove the

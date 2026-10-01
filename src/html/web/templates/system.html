@@ -17,6 +17,7 @@
   <p class="page-actions">
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+    <a class="btn btn-small" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
   </p>
   {%- endif %}
   {%- if location_html %}

@@ -68,18 +68,18 @@
   <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ "{:,}".format(p.total) }})</span></h2>
   <div class="table-scroll"><table>
     {%- if p.panel == "sectors" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th><th scope="col">Galaxy Map</th></tr></thead>
     <tbody>
       {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ "{:,.2f}".format(row.edge_mpc) }} mpc</td></tr>
-      {%- else %}<tr><td colspan="2"><em>None</em></td></tr>{% endfor %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ "{:,.2f}".format(row.edge_mpc) }} mpc</td><td><a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a></td></tr>
+      {%- else %}<tr><td colspan="3"><em>None</em></td></tr>{% endfor %}
     </tbody>
     {%- elif p.panel == "systems" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Sector</th><th scope="col">Binary</th><th scope="col">Star type</th></tr></thead>
+    <thead><tr><th scope="col">Name</th><th scope="col">Sector</th><th scope="col">Binary</th><th scope="col">Star type</th><th scope="col">Galaxy Map</th></tr></thead>
     <tbody>
       {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td><td>{{ "Yes" if row.is_binary else "No" }}</td><td>{{ row.star_summary }}</td></tr>
-      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td><td>{{ "Yes" if row.is_binary else "No" }}</td><td>{{ row.star_summary }}</td><td>{% if row.galaxy_url %}<a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a>{% else %}—{% endif %}</td></tr>
+      {%- else %}<tr><td colspan="5"><em>None</em></td></tr>{% endfor %}
     </tbody>
     {%- elif p.panel == "stars" %}
     <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Type</th><th scope="col">Radius</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
