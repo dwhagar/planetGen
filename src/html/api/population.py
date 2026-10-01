@@ -93,8 +93,11 @@ def polity_detail(polity_id):
 @bp.route("/systems/<int:system_id>/owner")
 def system_owner(system_id):
     """`GET /api/systems/<id>/owner` -- the polity that owns a system, or
-    `{"owner": null}` when none does."""
-    return jsonify({"owner": population.system_owner(get_db(), system_id)})
+    `{"owner": null}` when none does; 404 for an unknown system."""
+    db = get_db()
+    if db.execute("SELECT 1 FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
+        raise ApiError(f"no such system: {system_id}", status_code=404)
+    return jsonify({"owner": population.system_owner(db, system_id)})
 
 
 @bp.route("/territories")

@@ -344,7 +344,8 @@ connectivity to that specific schema rather than the default one.
   of the systems it owns (`id`, `name`, `distance_ly` from the capital),
   nearest first; `404` if unknown.
 - `GET /api/systems/<id>/owner` — `{"owner": {polity_id, polity_name,
-  color, distance_ly}}`, or `{"owner": null}` when no polity holds it.
+  color, distance_ly}}`, or `{"owner": null}` when no polity holds it;
+  `404` for an unknown system.
 - `GET /api/territories` — `points`: up to 20,000 owned systems with
   galaxy-frame positions in parsecs (`x`, `y`, `z`) and their polity's
   `color`, nearest their capitals first; `polities`: each polity's `id`,
