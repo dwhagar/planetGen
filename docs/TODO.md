@@ -566,6 +566,47 @@ invite links too.
     Do bookmarks survive a galaxy regenerate (object ids change), and if
     not, what does a broken bookmark show?
 
+### Project process (Boss's notes of 2026-10-01)
+
+80. [ ] **Number TODO items by category, and build the version from
+    them.** Boss (2026-10-01): "I want to renumber the TODO items in
+    groups so like UI changes get 'UX.1' and API Changes at 'API.1' kind
+    of thing, so that we can better track changes. We'll revamp
+    everything so that tags are consistent through the documentation.
+    We'll then build the build number (major feature set.revision.build)
+    to be a composite of the change numbers for each category added up.
+    (i.e. if we're on UX.4, API.8, and DB.12 we'd add those up to be
+    4+8+12)." Nothing is renumbered yet. Today items carry one running
+    number across groups (this file's "How to use this document" says to
+    renumber when items are added or finished), code sites carry
+    `TODO(<area> #N)` tags (`grep TODO(`), and the version (README badge,
+    `src/stellarObjects/_version.py`, `CHANGELOG.md`; 7.37.0 as of this
+    item) is bumped by `.github/workflows/stamp-version.yml` and
+    `scripts/bump_version.py` from each merged PR's
+    `changes/<name>.<patch|minor|major>.md` note. Done: every open item
+    gets a category ID (`UX.1`, `API.1`, `DB.1`, ...); the same IDs are
+    used in `TODO(...)` code tags, `changes/` notes, the changelog, PR
+    titles and the design docs; and the version's third number is the
+    sum of each category's counter. Open questions:
+    - The category list and what each covers (for example UX, API, DB,
+      MAP for the Galaxy/Sector/System maps, GEN for generation and
+      physics, NAV, SEC for security, OPS for installers and hosting,
+      DOC).
+    - Is a category's counter the number of changes shipped in it, or the
+      highest item ID? Does a finished item keep its ID (no more
+      renumbering), so IDs are never reused?
+    - How the post-merge Action counts: does each `changes/` note name its
+      category and item ID (for example `ux-62.patch.md` or a front-matter
+      line), and what happens to a PR that touches two categories or none
+      (a pure bug fix)?
+    - What "major feature set" and "revision" mean and who bumps them
+      (still the `patch`/`minor`/`major` level of the note?). Does the
+      build number reset when they go up? It can't, if it's a running sum
+      of counters, so the version would only ever grow in its third
+      place.
+    - Do the 1-79 numbers already in commits, PRs and the changelog get a
+      mapping table to the new IDs?
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
