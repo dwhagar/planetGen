@@ -1429,6 +1429,26 @@ DB.1 shipped in 7.35.0 (PR #152).
   ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
   #295).
 
+- [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
+  Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
+  change the worker count including a "Ludicrous Speed" that will
+  basically change the system to run max CPU power on the system up to
+  95% of available CPU power but periodized so that the web interface
+  still works (even though they will be slow) and DB calls still work
+  (even though they will be slow). This speed mode will not care if
+  mysql is running and will have the goal of saturating the host CPU
+  safely." Today the worker count is fixed when a run starts
+  (`--workers`, `PLANETGEN_WORKERS`, or `worker_count()` in
+  `stellarObjects/workQueue.py`: 80% of the cores, one fewer when MySQL
+  is on this machine), with workers at lowered priority, and the admin
+  Queue page (`admin_queue.html`, ADM.10/11) can't change it. Done: an
+  admin can set the worker count on the Queue page (for running and
+  future work) and pick "Ludicrous Speed", which aims to saturate the
+  host's CPU up to 95% of its capacity without keeping a core back for a
+  local MySQL, while still giving the web site and database calls enough
+  time that they keep working, if slowly. The change is written to the
+  admin activity log.
+
 ## SEC: Security
 
 No open items. The login protection of 2026-10-01 (SEC.1, SEC.20 to
