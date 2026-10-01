@@ -1018,8 +1018,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   exist), finish without failing and print the exact commands for that
   OS to fix it (`mkdir`, `chown`, `chmod` or `icacls`), or how to point
   `log_file` and `log_dir` somewhere writable. The app's own fallback
-  when the log can't be opened stays as it is. Open question: should a
-  log that can't be set up stop the install, or only warn?
+  when the log can't be opened stays as it is. A log that can't be set
+  up only warns; it never stops the install or update (Boss, 2026-10-01
+  19:11Z).
 
 
 ## VIEW: The view from a planet
