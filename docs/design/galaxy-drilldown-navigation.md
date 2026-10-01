@@ -2,7 +2,7 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 This is a plan: nothing here is built yet. The work items are in
-`docs/TODO.md` (items 64-73), and each one points back to a section here.
+`docs/TODO.md` (items 70-79), and each one points back to a section here.
 
 ## 1. What Boss asked for
 
@@ -507,19 +507,19 @@ Each has a default, and work can start on it.
 
 | TODO | Piece | Owner | Depends on |
 | --- | --- | --- | --- |
-| 64 | Nested ladder geometry, JS and Python, with a parity test (section 3) | Galaxy Map | none |
-| 65 | Stage contents API and caching (section 7) | Galaxy Map | 64 |
-| 66 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1) | Galaxy Map | 64, 65, TODO 63 |
-| 67 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6) | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | 64 (Python), 66 |
-| 68 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2) | Web | the URL formats only |
-| 69 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | 66, 68 |
-| 70 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | 66 |
-| 71 | Address bar (section 9.3) | Galaxy Map | 66 |
-| 72 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | 66's URL format |
-| 73 | Course on the Galaxy Map (section 9.4) | Galaxy Map and Web | 66, 69 |
+| 70 | Nested ladder geometry, JS and Python, with a parity test (section 3) | Galaxy Map | none |
+| 71 | Stage contents API and caching (section 7) | Galaxy Map | 70 |
+| 72 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1) | Galaxy Map | 70, 71, TODO 63 |
+| 73 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6) | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | 70 (Python), 72 |
+| 74 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2) | Web | the URL formats only |
+| 75 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | 72, 74 |
+| 76 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | 72 |
+| 77 | Address bar (section 9.3) | Galaxy Map | 72 |
+| 78 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | 72's URL format |
+| 79 | Course on the Galaxy Map (section 9.4) | Galaxy Map and Web | 72, 75 |
 
-64 to 66 run in order in the Galaxy Map thread. Web can do TODO 63 and
-68 at the same time, then 69 and 72 once 66 fixes the URL formats.
+70 to 72 run in order in the Galaxy Map thread. Web can do TODO 63 and
+74 at the same time, then 75 and 78 once 72 fixes the URL formats.
 
 ## 13. Sources
 
