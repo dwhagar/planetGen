@@ -4,7 +4,9 @@ run under node (skipped where node isn't installed): its density must
 match `stellarObjects.galaxyDensity.relative_density` exactly, its
 mega-blocks must follow the pixel scale, hold whole sectors, list only the
 solid's surface and stay within budget, and its geometry must be well
-formed.
+formed. Also `html/static/galaxyblocks.js`, which packs a view's blocks
+for the GPU (in the page's Web Worker): every block once, filled sectors
+counted into the right blocks, and arrays that agree with each other.
 """
 
 import json
@@ -19,7 +21,9 @@ from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
 from stellarObjects.galaxyGeometry import ring_sector_count
 
 NODE = shutil.which("node")
-MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "galaxyprisms.js")
+STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static")
+MODULE = os.path.join(STATIC, "galaxyprisms.js")
+BLOCKS_MODULE = os.path.join(STATIC, "galaxyblocks.js")
 
 pytestmark = pytest.mark.skipif(NODE is None, reason="node is not installed")
 
@@ -29,10 +33,12 @@ GALAXY_RADIUS_PC = 24000.0
 
 
 def _run(script):
-    """Runs `script` as an ES module with the prisms module imported as `P`
-    and the test shape as `shape`; returns its JSON output."""
+    """Runs `script` as an ES module with the prisms module imported as `P`,
+    the block scene module as `B` and the test shape as `shape`; returns
+    its JSON output."""
     source = (
         f"import * as P from {json.dumps('file://' + os.path.abspath(MODULE))};\n"
+        f"import * as B from {json.dumps('file://' + os.path.abspath(BLOCKS_MODULE))};\n"
         f"const shape = {json.dumps(SHAPE._asdict())};\n"
         f"{script}\n"
     )
@@ -411,3 +417,114 @@ console.log(JSON.stringify({{checked, sectors, bare: P.blockAt(4, 1, 0, {m}, {ED
         for (ring, layer, slot), address in out["sectors"]:
             assert (address["ring"], address["slab"], address["seg"]) == (ring, layer, slot)
     assert out["bare"]["density"] is None
+
+
+# --- galaxyblocks.js -----------------------------------------------------------
+
+PALETTE = {"dim": [0.01, 0.02, 0.05], "accent": [0.1, 0.2, 0.9], "hot": [0.8, 0.85, 1.0],
+           "placedLow": [0.06, 0.05, 0.03], "placedHigh": [1.0, 0.92, 0.75]}
+
+
+def _build(view, points=(), shape_expr="shape"):
+    """galaxyblocks' build for `view`, with filled `points` ([x, y, z,
+    count, is_sector, relative]); returns the parts' arrays as lists plus
+    what the same view's listing holds."""
+    config = {"edgePc": EDGE_PC, "galaxyRadius": GALAXY_RADIUS_PC, "minPx": 4, "budget": 60000, "palette": PALETTE}
+    return _run(f"""
+const config = Object.assign({json.dumps(config)}, {{shape: {shape_expr}}});
+const scene = B.createBlockScene(config);
+scene.setFilled(Float64Array.from({json.dumps([v for p in points for v in p])}));
+const view = {json.dumps(view)};
+const built = scene.build(view);
+const listed = config.shape ? P.blocksForView(view.center, view.viewRadius, {EDGE_PC}, {GALAXY_RADIUS_PC}, config.shape, () => null,
+  {{pcPerPixel: view.pcPerPixel, sliceZ: view.sliceZ, viewerZ: view.viewerZ, minPx: 4, budget: 60000}}) : {{blocks: []}};
+const plain = part => Object.fromEntries(Object.entries(part).map(([k, v]) => [k, ArrayBuffer.isView(v) ? Array.from(v) : v]));
+console.log(JSON.stringify({{m: built.m, solid: plain(built.solid), glass: plain(built.glass), cellStride: B.CELL_STRIDE,
+  pointStride: B.POINT_STRIDE, listed: listed.blocks.map(b => [b.ring, b.seg, b.slab]),
+  transfers: B.transferablesOf(built).length}}));
+""")
+
+
+def _cells(part, stride):
+    cells = part["cells"]
+    return [cells[i:i + stride] for i in range(0, len(cells), stride)]
+
+
+VIEW = {"center": [8000.0, 0.0, 0.0], "viewRadius": 120.0, "pcPerPixel": 2.0, "sliceZ": 0.0, "viewerZ": 300.0,
+        "eye": [8200.0, 0.0, 300.0]}
+
+
+def test_block_scene_packs_every_listed_block_once():
+    out = _build(VIEW)
+    stride = out["cellStride"]
+    assert out["pointStride"] == 6
+    keys = [tuple(int(v) for v in cell[:3]) for part in ("solid", "glass") for cell in _cells(out[part], stride)]
+    assert sorted(keys) == sorted(tuple(b) for b in out["listed"])
+    assert len(set(keys)) == len(keys)
+    assert out["transfers"] == 18
+    for name in ("solid", "glass"):
+        part = out[name]
+        count = part["vertexCount"]
+        assert len(part["positions"]) == len(part["centers"]) == len(part["colors"]) == 3 * count
+        assert len(part["uvs"]) == 2 * count
+        assert len(part["alphas"]) == len(part["fills"]) == len(part["owners"]) == count
+        assert all(0 <= owner < len(part["cells"]) // stride for owner in part["owners"])
+        assert all(0 <= index < count for index in part["indices"])
+    # Nothing is filled, so everything is translucent glass, 50-80% opaque.
+    assert out["solid"]["vertexCount"] == 0
+    assert all(127 <= a <= 205 for a in out["glass"]["alphas"])
+    assert set(out["glass"]["fills"]) == {0}
+
+
+def test_block_scene_sorts_glass_far_to_near():
+    out = _build(VIEW)
+    glass = out["glass"]
+    eye = VIEW["eye"]
+    seen = []
+    for v, owner in enumerate(glass["owners"]):
+        if not seen or seen[-1][0] != owner:
+            center = glass["centers"][3 * v:3 * v + 3]
+            seen.append((owner, math.dist(center, eye)))
+    distances = [d for _, d in seen]
+    assert distances == sorted(distances, reverse=True)
+
+
+def test_block_scene_counts_filled_sectors_into_blocks():
+    """At one sector per block: a generated sector's own block is solid,
+    keeps its point index and takes the warm color; a coarse cell's count
+    lands in the block holding its middle, unless the slice hides it."""
+    view = dict(VIEW, pcPerPixel=0.1, viewRadius=40.0)
+    ring, layer, slot = 2000, 0, 5
+    center = _run(f"console.log(JSON.stringify(P.cellCoordinates(P.sectorCellBounds({ring}, {layer}, {slot}, {EDGE_PC})).cartesian));")
+    points = [[*center, 1, 1, 1.0], [8010.0, 3.0, 0.0, 5, 0, 0], [8010.0, 3.0, 8.0, 2, 0, 0]]
+    out = _build(view, points)
+    stride = out["cellStride"]
+    assert out["m"] == 1
+    solid = _cells(out["solid"], stride)
+    by_address = {tuple(int(v) for v in cell[:3]): cell for cell in solid}
+    sector_cell = by_address.pop((ring, slot, layer))
+    assert sector_cell[5] == sector_cell[6] == 1  # filled == total
+    assert sector_cell[10] == 0  # the first point
+    assert sector_cell[7:10] == pytest.approx(center)
+    # Five in one sector's block counts as all of it.
+    [(_, coarse)] = by_address.items()
+    assert coarse[5] == coarse[6] == 5 and coarse[10] is None
+    assert set(out["solid"]["alphas"]) == {255} and set(out["solid"]["fills"]) == {255}
+    # The sector's warm placed color: red above blue, unlike the bluish
+    # density ramp the other block takes.
+    owners = out["solid"]["owners"]
+    colors = out["solid"]["colors"]
+    sector_index = solid.index(sector_cell)
+    v_sector = owners.index(sector_index)
+    v_coarse = owners.index(1 - sector_index)
+    assert colors[3 * v_sector] > colors[3 * v_sector + 2]
+    assert colors[3 * v_coarse] < colors[3 * v_coarse + 2]
+    assert all(cell[5] == 0 for cell in _cells(out["glass"], stride))
+
+
+def test_block_scene_without_a_shape_draws_only_filled_blocks():
+    out = _build(dict(VIEW, pcPerPixel=0.1), [[8000.0, 0.0, 0.0, 1, 0, 0]], shape_expr="null")
+    stride = out["cellStride"]
+    cells = _cells(out["solid"], stride) + _cells(out["glass"], stride)
+    assert len(cells) == 1
+    assert cells[0][3] is None  # no density without a shape (NaN, as JSON null)

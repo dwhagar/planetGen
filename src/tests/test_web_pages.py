@@ -145,6 +145,21 @@ def test_api_keeps_its_own_csp(client):
     assert resp.headers["Content-Security-Policy"] == "default-src 'none'"
 
 
+def test_static_scripts_get_the_page_csp(client):
+    """A script can be started as a Web Worker, which runs under its own
+    response's CSP (the Galaxy Map's galaxyblocks.js imports
+    galaxyprisms.js), so scripts get the pages' policy, not 'none'."""
+    from web import CONTENT_SECURITY_POLICY
+
+    resp = client.get("/static/galaxyblocks.js")
+    assert resp.status_code == 200
+    assert resp.headers["Content-Security-Policy"] == CONTENT_SECURITY_POLICY
+    resp.close()
+    resp = client.get("/static/style.css")
+    assert resp.headers["Content-Security-Policy"] == "default-src 'none'"
+    resp.close()
+
+
 @pytest.mark.parametrize("path,label", [("/sectors", "Sectors"), ("/systems", "Systems")])
 def test_section_pages_mark_current_section_and_breadcrumbs(client, fake, path, label):
     html = client.get(path).get_data(as_text=True)
