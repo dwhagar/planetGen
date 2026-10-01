@@ -6,8 +6,30 @@ repository root (`pytest.ini` puts `.`, `src` and `src/html` on the path).
 ```sh
 pip install -e ".[test,api]"
 python -m nltk.downloader words
-pytest
+pytest -n auto
 ```
+
+## Running in parallel
+
+`-n auto` (pytest-xdist, part of the `test` extra) runs one worker process
+per core. Plain `pytest` still runs everything serially in one process,
+which is easier to read when debugging a single failure. On a 4-core
+machine with the database tests on, the whole suite took 17 min 21 s
+serially and 5 min 57 s with `-n 4` (2026-10-01).
+
+Workers never share database state:
+
+- each test that uses `mysql_config` gets its own uniquely named database;
+- each worker process gets its own control database
+  (`PLANETGEN_CONTROL_DATABASE` is set to `pgtest_control_<worker>_<random>`
+  by `conftest.py`, overriding any value in your environment, and dropped
+  at the end of the run), so nothing in the suite touches
+  `planetgen_control` or a real control schema;
+- generation runs in-process (`PLANETGEN_WORKERS=1`), so a test's
+  patched functions are the ones that run.
+
+`--dist worksteal` (what CI uses) lets idle workers take queued tests from
+busy ones, which helps when a few slow tests land on the same worker.
 
 ## The database tests
 
@@ -25,9 +47,8 @@ Each one falls back to the matching `PLANETGEN_MYSQL_*` variable, then to
 the built-in default (`127.0.0.1:3306`, user `planetgen`).
 
 The user needs to create and drop databases: each test gets its own
-uniquely named, throwaway database. Run the suite serially (no `pytest -n`)
-when these are set; a few API tests share server-wide state and can trip
-over each other under parallel workers.
+uniquely named, throwaway database, so the database tests are safe under
+`pytest -n auto` (see "Running in parallel" above).
 
 ## Kinds of test
 
