@@ -83,7 +83,7 @@ def test_default_config_matches_example_shape():
     assert appconfig.DEFAULT_CONFIG["proxy_fix"] == {"x_for": 0, "x_proto": 0, "x_host": 0}
     assert set(appconfig.DEFAULT_CONFIG["jobs"].keys()) == {"dir", "keep", "python"}
     assert set(appconfig.DEFAULT_CONFIG["mysql"].keys()) == {
-        "host", "port", "user", "password", "database", "database_prefix",
+        "host", "port", "user", "password", "database", "database_prefix", "statement_timeout_seconds",
     }
     assert set(appconfig.DEFAULT_CONFIG["ratelimit"].keys()) == {"default", "storage_uri", "pages"}
     assert set(appconfig.DEFAULT_CONFIG["ratelimit"]["pages"].keys()) == {

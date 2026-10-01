@@ -866,6 +866,12 @@
 --   rows can be written many at a time with their parents' ids already
 --   known. `_migrate_v44_to_v45` creates it; the rows fill on first use.
 --
+-- v46: whole-word name search (PERF.16) -- a FULLTEXT index on `name` in
+--   `sectors`, `star_systems`, `stars`, `planets` and `moons`, which
+--   `queryDb`'s search and the Galaxy Map's address bar match words
+--   against instead of scanning with `LIKE '%term%'`.
+--   `_migrate_v45_to_v46` adds them.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -977,6 +983,7 @@ CREATE TABLE IF NOT EXISTS sectors (
 
     KEY idx_sectors_galactic_radius_pc (galactic_radius_pc),
     KEY idx_sectors_name (name),
+    FULLTEXT KEY ft_sectors_name (name),
     -- v25: lets `queryDb.galaxy_sectors_in_view`'s bounding-box query
     -- range-scan on center_x_pc instead of a full table scan -- see the
     -- header comment's "v25" note.
@@ -1234,6 +1241,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     KEY idx_star_systems_sector_id (sector_id),
     KEY idx_star_systems_system_config_id (system_config_id),
     KEY idx_star_systems_name (name),
+    FULLTEXT KEY ft_star_systems_name (name),
     -- v27: see the header comment's "v27" note.
     KEY idx_star_systems_modified_at (modified_at),
     -- v39: containment -- see the header comment's "v39" note.
@@ -1286,6 +1294,7 @@ CREATE TABLE IF NOT EXISTS stars (
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     KEY idx_stars_star_system_id (star_system_id),
     KEY idx_stars_name (name),
+    FULLTEXT KEY ft_stars_name (name),
     KEY idx_stars_yerkes_class (yerkes_class)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1372,6 +1381,7 @@ CREATE TABLE IF NOT EXISTS planets (
     KEY idx_planets_star_system_id (star_system_id),
     KEY idx_planets_star_id (star_id),
     KEY idx_planets_name (name),
+    FULLTEXT KEY ft_planets_name (name),
     KEY idx_planets_planet_class (planet_class),
     KEY idx_planets_body_type (body_type),
     KEY idx_planets_life_chemical (life_chemical)
@@ -1478,6 +1488,7 @@ CREATE TABLE IF NOT EXISTS moons (
     KEY idx_moons_star_system_id (star_system_id),
     KEY idx_moons_star_id (star_id),
     KEY idx_moons_name (name),
+    FULLTEXT KEY ft_moons_name (name),
     KEY idx_moons_planet_class (planet_class),
     KEY idx_moons_body_type (body_type),
     KEY idx_moons_life_chemical (life_chemical)

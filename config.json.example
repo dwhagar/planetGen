@@ -12,7 +12,8 @@
     "user": "planetgen",
     "password": "",
     "database": "planetgen",
-    "database_prefix": "planetgen"
+    "database_prefix": "planetgen",
+    "statement_timeout_seconds": 10
   },
   "control_database": "planetgen_control",
   "ratelimit": {

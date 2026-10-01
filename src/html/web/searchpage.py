@@ -324,7 +324,8 @@ def _rows(panel, rows):
 
 def result_panels(state, results):
     """The result panels that ran, each `{"panel", "heading", "total",
-    "rows", "pager"}`. Every pager keeps the search and every other
+    "total_capped", "rows", "pager"}` (`total_capped`: more matches than
+    `total`, shown as "300+"). Every pager keeps the search and every other
     panel's page as the API actually returned it (a past-the-end page
     comes back as the last one)."""
     shown = [(panel, heading, results.get(panel)) for panel, heading in RESULT_PANELS
@@ -339,6 +340,7 @@ def result_panels(state, results):
             "panel": panel,
             "heading": heading,
             "total": result["total"],
+            "total_capped": result.get("total_capped", False),
             "rows": _rows(panel, result["rows"]),
             "pager": trusted_html(render_pagination(
                 action, base, f"{panel}_page", pages[panel], result["total"], page_size=result["limit"],

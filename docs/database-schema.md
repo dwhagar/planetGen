@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v45" notes) rather than duplicated here, since that
+comment ("v2" through "v46" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v44_to_v45`. `migrate_database`
+version, through `_migrate_v45_to_v46`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v45), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v46), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -536,6 +536,17 @@ MAX(id) + 1) + n)`, 64 ids at first and doubling up to 4,096, so writers
 never wait on each other's transactions; unused ids and rolled-back
 sectors only leave gaps. `_migrate_v44_to_v45` creates it empty, and a
 database without it yet simply falls back to AUTO_INCREMENT.
+
+**Full-text name search (v46, PERF.16).** `sectors`, `star_systems`,
+`stars`, `planets` and `moons` each carry a `FULLTEXT KEY
+ft_<table>_name (name)` beside their plain `idx_<table>_name`. Search
+(`queryDb._name_match`) matches whole words in boolean mode, so a
+search never scans every row with `LIKE '%term%'`; words below the
+server's `innodb_ft_min_token_size` or on its stopword list fall back
+to a whole-word `REGEXP` on the rows the other words narrowed.
+`_migrate_v45_to_v46` adds the indexes in place (`ALGORITHM=INPLACE,
+LOCK=SHARED`): reads keep working, but writes to those tables wait
+until each index is built, which on a large galaxy can take minutes.
 
 **Population and politics (v44).** Filled by `generate.py population`
 (or `--population` on a `sector`/`galaxy` run, or the optional question

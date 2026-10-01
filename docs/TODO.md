@@ -707,33 +707,37 @@ MAP.48 and MAP.37, all fixed.
       the same sectors at once, finish with no errors and no duplicate
       names.
 
-    - [ ] **PERF.15 Fewer queries per web page**
-      Done, in `queryDb.py`: search facets (12 queries per request,
-      including `COUNT(*)` of every star, planet and moon) are cached
-      until `galaxy_content_state` changes; `system_detail` loads moons
-      once per system, not once per planet; `sector_detail` loads its
-      stars in one query, not one per system; `list_systems` and
-      `_search_result_systems` join `stars` once instead of three
-      correlated subqueries per row, with an index on
-      `stars (star_system_id, role)`; and `galaxy_placed_sectors` reads a
-      stored system count (with PERF.11) instead of counting per sector.
+    - [x] **PERF.15 Fewer queries per web page**
+      Done (PR #PR2): search facets and autocomplete lists (12 queries
+      per request, including `COUNT(*)` of every star, planet and moon)
+      are cached for up to 10 minutes, and dropped as soon as a sector or
+      system is added or changed; `system_detail` loads moons once per
+      system, not once per planet; `sector_detail` loads its stars in one
+      query, not one per system; `list_systems` and
+      `_search_result_systems` read the page's star types in one query
+      instead of three correlated subqueries per row (the existing
+      `stars (star_system_id)` index covers it); and
+      `galaxy_placed_sectors` counts systems with one grouped join instead
+      of a subquery per sector (a stored count waits for PERF.11).
 
-    - [ ] **PERF.16 Search names without scanning every row**
-      Search builds `LIKE '%term%'` (`_search_like_pattern`) and counts
-      every match exactly (`_search_page`), a full scan of each body
-      table that won't survive a large galaxy. Done: names are searched
-      with a FULLTEXT index on whole words, and counts stop at the
-      300-row result cap ("300+"). Boss (2026-10-01): "full text index,
-      to match whole words", so a search no longer finds text in the
-      middle of a word ("ara" doesn't find "Kemaral").
+    - [x] **PERF.16 Search names without scanning every row**
+      Done (PR #PR2, schema v46): a FULLTEXT index on `name` in
+      sectors, star_systems, stars, planets and moons. Search matches
+      whole words (boolean mode, every word required), so "ara" no
+      longer finds "Kemaral". Words shorter than the server's
+      `innodb_ft_min_token_size`, or full-text stopwords ("Mu", "IV"),
+      are matched as whole words with a REGEXP on the rows the other
+      words already narrowed. The Galaxy Map's locate box keeps
+      type-ahead by matching the start of the last word. Result counts
+      stop at 300 (shown as "300+").
 
-    - [ ] **PERF.17 A time limit on web database statements**
-      Web connections have no statement timeout, so one runaway query
-      holds one of mod_wsgi's 5 threads until Apache's 60 s request
-      timeout. Done: the read-only pool's init command sets
-      `max_statement_time` (MariaDB) or `MAX_EXECUTION_TIME` (MySQL),
-      default 10 s, configurable in `config.json`; a timed-out query
-      returns a clear error page.
+    - [x] **PERF.17 A time limit on web database statements**
+      Done (PR #PR2): the web's read pool sets `max_statement_time`
+      (MariaDB) or `MAX_EXECUTION_TIME` (MySQL) on each connection,
+      default 10 s, `mysql.statement_timeout_seconds` in `config.json`
+      (0 turns it off). A timed-out query returns a 504 "Took too long"
+      page, or `QUERY_TIMEOUT` from the API. Generation and admin writes
+      have no limit.
 
   - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
     Boss (2026-10-01): "add a TODO item to parallelize
