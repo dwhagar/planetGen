@@ -1257,10 +1257,18 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
         ).fetchall()
 
         phenomenon_rows = []
+        # A supernova remnant's core is filed under its remnant's sector but
+        # has drifted off by its birth kick, often out of that cell.
+        core_filter = {
+            "black_holes": " AND id NOT IN (SELECT compact_remnant_black_hole_id FROM supernova_remnants"
+                           " WHERE compact_remnant_black_hole_id IS NOT NULL)",
+            "neutron_stars": " AND id NOT IN (SELECT compact_remnant_neutron_star_id FROM supernova_remnants"
+                             " WHERE compact_remnant_neutron_star_id IS NOT NULL)",
+        }
         for table, label in _CHECKABLE_PHENOMENON_TABLES:
             rows = conn.execute(
                 f"SELECT sector_id, id, center_x_pc, center_y_pc, center_z_pc FROM {table} "
-                f"WHERE center_x_pc IS NOT NULL"
+                f"WHERE center_x_pc IS NOT NULL{core_filter.get(table, '')}"
             ).fetchall()
             phenomenon_rows.extend((label, row) for row in rows)
     finally:

@@ -63,6 +63,7 @@ import logging
 import math
 import os
 import random
+import re
 import secrets
 import sys
 import time
@@ -90,7 +91,7 @@ from stellarObjects.galaxyGeometry import (
 from stellarObjects.galaxySkeleton import (
     DEFAULT_MAX_RING, build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
-from stellarObjects.nebulaData import Nebula
+from stellarObjects.nebulaData import Nebula, choose_weighted_class
 from stellarObjects.quasarData import Quasar
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
@@ -608,6 +609,7 @@ SECTOR_PHENOMENON_KINDS = (
     ("neutron-star", "neutron-star",
      lambda config, dist_ly: NeutronStar(config, galactic_center_dist_ly=dist_ly)),
     ("planetary-nebula", "nebula", lambda config, dist_ly: Nebula(config, nebula_type="planetary")),
+    ("molecular-cloud", "nebula", lambda config, dist_ly: Nebula(config, nebula_type="dark")),
     ("supernova-remnant", "supernova-remnant", lambda config, dist_ly: SupernovaRemnant(config)),
     ("rogue-planet", "rogue-planet", lambda config, dist_ly: RoguePlanet(config)),
     ("brown-dwarf", "rogue-planet", lambda config, dist_ly: RoguePlanet(config, mass_bin="brown-dwarf")),
@@ -617,9 +619,13 @@ SECTOR_PHENOMENON_KINDS = (
 """tuple: `(program_constants.PHENOMENON_DENSITY_PC3 key, phenomenon type,
 factory)` for each kind `generate_sector_phenomena` rolls. A factory takes
 `(config, galactic_center_dist_ly)`; only black holes and neutron stars
-use the distance (their Hill sphere and galactic orbit). Runaway and
-hypervelocity stars are flags on ordinary systems (`flag_fast_stars`), and
-molecular clouds wait for TODO item 27."""
+use the distance (their Hill sphere and galactic orbit). A planetary
+nebula is generated around its own new hot white dwarf system
+(`_add_planetary_nebula`). Runaway and hypervelocity stars are flags on
+ordinary systems (`flag_fast_stars`), and emission and reflection nebulae
+grow around a sector's own hot stars (`add_star_hosted_nebulae`). Diffuse
+gas (classes A-B) fills about half the disk, so it is the background, not
+generated."""
 
 
 def add_shared_generation_options(parser):
@@ -874,12 +880,6 @@ def iter_sector_configs(args):
         yield config
 
 
-# TODO(phenomena #27): nebulae and supernova remnants must actually be
-# generated (rates from PHENOMENON_DENSITY_PC3) and bring the central object their class needs:
-# O/B stars for H II regions, a B or A star for reflection, one hot central
-# star for a planetary nebula, none for molecular clouds, a neutron star or
-# black hole for core-collapse remnants. They span many sectors, so later
-# sectors generated inside one must see it (_db.refresh_containment does, v39).
 def sector_star_count(sector):
     """How many stars `sector`'s systems hold (a binary counts two) --
     what every per-star phenomenon rate multiplies."""
@@ -937,6 +937,11 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
             phenomenon_config = SystemConfig()
             phenomenon_config.MARKDOWN = args.markdown
             phenomenon = factory(phenomenon_config, galactic_center_dist_ly)
+            if kind == "planetary-nebula":
+                entry = _add_planetary_nebula(sector, args, phenomenon, galactic_center_dist_ly)
+                if entry is not None:
+                    new_entries.append(entry)
+                continue
             try:
                 new_entries.append(sector.add_phenomenon(phenomenon, phenomenon_type))
             except ValueError:
@@ -947,7 +952,69 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
                 # phenomenon type, or the whole sector.
                 continue
 
+    new_entries.extend(add_star_hosted_nebulae(sector, args))
     return new_entries
+
+
+def _spectral_code(star):
+    """A star's spectral code (`"G2V"`), the first word of `Star.type`."""
+    return (getattr(star, "type", "") or "").split(" ", 1)[0]
+
+
+def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None):
+    """
+    Adds `nebula` (a planetary nebula) around a new system whose star is
+    its hot central white dwarf (`PLANETARY_NEBULA_CENTRAL_STAR_TYPES`),
+    placed like any other system. Returns the nebula's entry, or `None`
+    when the sector has no room left for the system.
+    """
+    config = SystemConfig()
+    config.MARKDOWN = args.markdown
+    config.STAR_TYPE = random.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
+    config.BINARY_SYSTEM = False
+    system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
+    try:
+        system_entry = sector.add_system(system, system_config=config)
+    except ValueError:
+        return None
+    log.debug(f"Sector {sector.name!r}: planetary nebula {nebula.name!r} around new central star "
+              f"{config.STAR_TYPE} {system.name!r}")
+    return sector.add_phenomenon(nebula, "nebula", position=system_entry.position)
+
+
+def add_star_hosted_nebulae(sector, args):
+    """
+    Grows emission and reflection nebulae around `sector`'s own hot
+    stars (TODO item 27): each system whose primary is a main-sequence
+    star matching a `NEBULA_HOST_RULES` row rolls that row's chance, and
+    on a hit gets a nebula of one of the row's classes centered on it.
+
+    Returns:
+        list: The new nebulae's `SectorPhenomenonEntry` instances.
+    """
+    entries = []
+    for system_entry in list(sector.entries):
+        stars = getattr(system_entry.star_system, "stars", None) or []
+        if not stars:
+            continue
+        code = _spectral_code(stars[0])
+        match = re.fullmatch(r"([OBAFGKM])([0-9])V", code)
+        if match is None:
+            continue
+        letter, subclass = match.group(1), int(match.group(2))
+        for rule_letter, low, high, classes, chance in program_constants.NEBULA_HOST_RULES:
+            if letter != rule_letter or not (low <= subclass <= high):
+                continue
+            if random.random() < chance:
+                config = SystemConfig()
+                config.MARKDOWN = args.markdown
+                nebula_class = choose_weighted_class(classes, "Star-hosted nebula class")
+                nebula = Nebula(config, nebula_class=nebula_class)
+                log.debug(f"Sector {sector.name!r}: {code} star {system_entry.star_system.name!r} "
+                          f"lights class {nebula_class} nebula {nebula.name!r}")
+                entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
+            break
+    return entries
 
 
 def _log_uniform(low, high):
