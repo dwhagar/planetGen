@@ -2588,6 +2588,17 @@ LIFE_WORLD_STAGES = ("multicellularity", "technological_civilization")
 make a planet a life world with a named dominant species. Simpler
 biospheres keep their life chemistry but get no `species` row."""
 
+CIVILIZATION_CHANCE = 0.001
+"""float: The chance that a planet whose timeline reached the
+`technological_civilization` milestone (which only says the window for one
+has opened -- about one generated system in seven reaches it) actually has
+a civilization now. 1 in 1,000 gives about one civilization per 7,000
+systems, so spacefaring neighbors sit roughly 150-200 ly apart and their
+territories (`TERRITORY_REACH_CAP_LY`) just about meet. A system generated
+with intelligent life forced on (`system_configs.intelligent_life = 1`)
+always has one. The rest still get a named dominant species, with no
+civilization."""
+
 CIVILIZATION_MIN_AGE_YEARS = 100.0
 """float: The youngest a technological civilization can be. Its age is a
 log-uniform draw between this and the time since its homeworld's

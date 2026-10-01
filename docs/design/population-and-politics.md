@@ -48,9 +48,20 @@ named object, like a star or a system).
 
 ### Civilization age (54)
 
-Only `technological_civilization` species have a civilization. The
-timeline says when the window for a civilization opened (the milestone's
-age on that pace); the civilization itself is younger than that window.
+The timeline's `technological_civilization` milestone only says the
+window for a civilization has opened, and it opens on about one generated
+system in seven (measured on 150 generated sectors: 235 such worlds among
+1,639 systems). Taken literally that would fill the galaxy with empires,
+so a world past the milestone has a civilization now only with
+`CIVILIZATION_CHANCE` (default 1 in 1,000), or always when its system was
+generated with intelligent life forced on. That gives about one
+civilization per 7,000 systems; at the disk's local density (about 0.1
+systems per cubic parsec) spacefaring neighbors sit roughly 150 to 200 ly
+apart, so territories at the 100 ly cap just about meet. Every other world
+past the milestone still gets its named dominant species, with no
+civilization.
+
+A civilization is younger than its window.
 Its age is a log-uniform draw between 100 years and the window
 (`star age - milestone age`, both read back from the stored paragraph),
 so ages spread evenly across orders of magnitude and none is older than
@@ -170,3 +181,5 @@ Defaults above are being built; answers replace them here.
 4. Territory reach cap: 100 ly (default), 500 ly, or none?
 5. Recompute territories automatically after each fill: yes (default) or
    manual only?
+6. How common are civilizations among worlds past the milestone: 1 in
+   1,000 (default), 1 in 100, or 1 in 10,000?

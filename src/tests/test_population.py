@@ -65,6 +65,16 @@ def test_parse_timeline_reads_real_generated_paragraphs():
     pytest.fail("no generated timeline reached a civilization")
 
 
+def test_civilizations_are_rare_unless_forced():
+    tech = population.Timeline("technological_civilization", 4.6e9, 4.5e9)
+    multicellular = population.Timeline("multicellularity", 4.6e9, 1e9)
+    rng = random.Random(3)
+    assert population.has_civilization(tech, True, rng)
+    assert not population.has_civilization(multicellular, True, rng)
+    draws = sum(population.has_civilization(tech, None, rng) for _ in range(20000))
+    assert draws == pytest.approx(20000 * program_constants.CIVILIZATION_CHANCE, abs=20)
+
+
 def test_civilization_age_stays_inside_the_window():
     rng = random.Random(1)
     low = program_constants.CIVILIZATION_MIN_AGE_YEARS

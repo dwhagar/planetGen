@@ -112,6 +112,20 @@ def species_traits(gravity_g, surface_temperature_k, rng):
     return {"build": build, "climate": climate, "size": size}
 
 
+def has_civilization(timeline, forced, rng):
+    """
+    Whether a life world has a technological civilization now: its
+    timeline must have reached the milestone, and then either intelligent
+    life was forced on for its system (`forced`, `system_configs.
+    intelligent_life`) or a `CIVILIZATION_CHANCE` draw succeeds.
+    """
+    if timeline.life_stage != "technological_civilization":
+        return False
+    if forced:
+        return True
+    return rng.random() < program_constants.CIVILIZATION_CHANCE
+
+
 def civilization_age(window_years, rng):
     """
     A technological civilization's age in years: log-uniform between
@@ -305,8 +319,10 @@ def scan_life_worlds(conn):
         high = min(top, low + SCAN_BATCH)
         rows = conn.execute(
             "SELECT p.id, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
-            "e.paragraph FROM planets p "
+            "cfg.intelligent_life, e.paragraph FROM planets p "
             "JOIN planet_evolutionary_paragraphs e ON e.planet_id = p.id "
+            "JOIN star_systems ss ON ss.id = p.star_system_id "
+            "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
             "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
             "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
             "AND (e.paragraph LIKE ? OR e.paragraph LIKE ?) ORDER BY p.id, e.position",
@@ -325,7 +341,7 @@ def scan_life_worlds(conn):
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
             age = era = None
             spacefaring = False
-            if timeline.life_stage == "technological_civilization":
+            if has_civilization(timeline, row["intelligent_life"], rng):
                 age = civilization_age(timeline.window_years, rng)
                 era, spacefaring = era_for_age(age)
             name = _unique_species_name(conn, taken)
