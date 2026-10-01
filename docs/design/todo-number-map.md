@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.23 |
 | MAP | MAP.52 |
 | NAV | NAV.3 |
-| GEN | GEN.25 |
+| GEN | GEN.26 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.3 |
@@ -304,7 +304,7 @@ Sorted by old number, then date.
 | 56 | 2026-09-30 23:48Z to 2026-10-01 02:41Z | GEN.22 | Pre-place bright stars at plan time | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | 56 | 2026-10-01 01:19Z to 04:37Z | UX.1 | Class reference pages | done in 7.46.0, PR #167 |
 | 57 | 2026-09-30 19:02Z to 20:27Z | GEN.19 | A binary's secondary outweighs its primary (bug) | done in 7.9.1, PR #123 |
-| 57 | 2026-10-01 01:15Z to 05:29Z | ADM.5 | Central validate module | open |
+| 57 | 2026-10-01 01:15Z to 05:29Z | ADM.5 | Central validate module | done, PR #235 |
 | 58 | 2026-09-30 19:02Z to 20:27Z | GEN.20 | Sector growth ignores black holes and neutron stars (bug) | done in 7.6.1, PR #116 |
 | 58 | 2026-10-01 01:15Z to 05:29Z | ADM.6 | Override a planet's or moon's class | open |
 | 59 | 2026-09-30 19:02Z to 19:17Z | POP.1 | Government ownership of systems | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
@@ -393,7 +393,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
 | ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
-| ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | open |
+| ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | done, PR #235 |
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.8 | Delete and regenerate buttons, sector down | 60 (2026-10-01 01:15Z to 05:29Z) | open |
@@ -428,6 +428,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | open |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
+| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
