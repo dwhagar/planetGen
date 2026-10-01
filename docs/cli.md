@@ -236,6 +236,14 @@ other. A run stopped with Ctrl-C, or Cancel on the Generate page, lets
 the sectors already being saved finish and queues nothing more; a run
 that was killed outright frees the lease after 30 seconds.
 
+Every run is also recorded as a job tree (control schema v7): the run
+at the top, its phases (the skeleton, the bright stars, the population
+pass) under it, each work queue under those, and the queue's sectors or
+layers as its leaves, each with its own start, end and duration. A run
+the Generate page started hangs under that page job and its step. This
+happens with one worker too (without the lease), and is skipped without
+the control database.
+
 ### Size and time estimates
 
 Before a bulk run writes anything (`generate.py galaxy` in every mode,

@@ -50,6 +50,37 @@ The user needs to create and drop databases: each test gets its own
 uniquely named, throwaway database, so the database tests are safe under
 `pytest -n auto` (see "Running in parallel" above).
 
+## The math check runs first
+
+`src/stellarObjects/mathCheck.py` is a fixed list of checks that the
+generator's math gives the right answers (TEST.63): known values from real
+astronomy (the Sun, Earth's and Jupiter's orbits, the habitable zone, white
+dwarf sizes, Holman & Wiegert's stability limits, the Kepler and Barker
+equations), identities that hold for any input (unit round trips, the
+constants agreeing with each other, energy conservation around a Kepler
+orbit, the sector grid tiling each ring), and seeded draws from every
+sampler checked against its intended shares with a chi-square test. Each
+check names the function it calls, the expected value, the tolerance and
+where the expected value comes from. It takes well under a second.
+
+- Before any test runs, `conftest.py` runs the whole list once; if a check
+  fails, the run stops there with the failed checks listed, since every
+  other failure would be noise.
+- `test_math_check.py` repeats each check as its own test (marker
+  `mathcheck`), sorted to the front of the run.
+- CI runs it as its own first job, `mathcheck`; every other job waits for it.
+- The website runs it once when it starts and shows admins a warning on
+  every page if it failed (the site keeps serving).
+
+```sh
+cd src && python -m stellarObjects.mathCheck -v   # the report, exit 1 on failure
+pytest -m mathcheck                               # just the math check tests
+```
+
+A check that fails after a deliberate change to a constant or formula
+means the check's expected value, its source or the change needs a second
+look; update the check only with a source for the new value.
+
 ## Picking a slice of the suite
 
 `conftest.py` marks every test (markers registered in `pytest.ini`):
@@ -58,7 +89,9 @@ uniquely named, throwaway database, so the database tests are safe under
   through another fixture);
 - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
   `test_bughunt_*`);
-- `browser`: the headless-browser checks (`test_web_a11y.py`).
+- `browser`: the headless-browser checks (`test_web_a11y.py`);
+- `mathcheck`: the math check gate (`test_math_check.py`,
+  `test_web_math_check.py`), run first.
 
 ```sh
 pytest -n auto -m "not db and not slow"   # quick loop: about a minute on 4 cores
