@@ -1,5 +1,28 @@
 # Changelog
 
+## [7.44.0] - 2026-10-01
+
+### Added
+
+- The Galaxy Map opens on the drill-down: the whole galaxy in blocks 243 sectors a side, where hovering a slab highlights it and clicking pulls it out to a view from above; clicking a block there flies into it and shows its contents as blocks a ninth the size, down to single sectors, where a click opens the sector (or, for a sector not generated yet, shows where it is and its Generate buttons for an admin). A breadcrumb with sibling menus, a slab list with generated counts, a hover tooltip, keys (arrows, Enter, Escape, Home), touch taps and a "Generated only" toggle come with it. Each stage has its own URL (`/galaxy?slab=`, `?at=`, `?sector=<designation>`), so Back and Forward work and a stage can be linked. The old free camera stays behind a Free look button.
+
+## [7.43.0] - 2026-10-01
+
+### Added
+
+- **The API can add a system to an existing sector and regenerate a
+  system in place.** `POST /api/systems` takes an optional `sector_id`
+  (and `position`): the new system is placed clear of the sector's other
+  systems' Hill spheres, with its location, containment and nearest
+  systems filled in. `PATCH /api/systems/<id>` takes `{"regenerate":
+  recipe}` to replace a system's stars, planets, moons, belts and comets
+  while keeping its id, name, place and links.
+
+## [7.42.1] - 2026-10-01
+
+### Changed
+- **Lighter Galaxy Map meshes where sectors are generated.** Blocks whose sectors are all generated (drawn solid) no longer draw the faces they share with each other, which nobody can see. A fully generated neighborhood now needs about a twentieth of the vertices it did, which matters most on phones. Translucent blocks keep every face, since those faces draw the block grid you see through the glass.
+
 ## [7.42.0] - 2026-10-01
 
 ### Added

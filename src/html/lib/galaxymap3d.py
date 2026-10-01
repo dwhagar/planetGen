@@ -299,7 +299,7 @@ def _json_script(data):
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
-                              system_url=None):
+                              system_url=None, stage_path="/galaxy/stage"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -347,6 +347,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         system_url (str, optional): A star system page URL with `{id}`
             where the id goes, for a filled bright star's "View system"
             link; without it the panel shows no link.
+        stage_path (str): The drill-down's stage endpoint
+            (`/galaxy/stage`), which the map opens on
+            (`static/galaxystageview.js`).
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -357,6 +360,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     scene_data = {
         "storageKey": db_name,
         "fetchPath": fetch_path,
+        "stagePath": stage_path,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -408,7 +412,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
+  <span class="hint">The map opens on the whole galaxy in big blocks: hover a slab (a layer of blocks) and click it to
+  see it from above, click a block there to fly into it, and so on down to single sectors (Esc or the path above the
+  map goes back up; arrow keys and Enter pick too) &middot; Free look switches to the free camera: drag to rotate
+  &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
   center the view there and see what it holds &middot; double-click to do the same AND zoom in (bigger steps while
   zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
   pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
@@ -418,13 +425,18 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
 {shape_hint}
+<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
+<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
+     aria-label="Interactive 3D Galaxy Map. Up and down arrows pick a slab, Enter opens it; in a slab seen
+     from above, arrow keys pick a block and Enter flies into it; Escape goes back up and Home returns to
+     the whole galaxy. With Free look on, drag or use arrow keys to rotate, scroll or the zoom buttons to
      zoom, click a block to center the view there and select it, double-click to do the same and
      zoom in."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
+<div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
@@ -432,11 +444,16 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
   <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
-  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true"
+  <button type="button" class="starmap-btn" data-action="slice" aria-pressed="true" data-free-only hidden
           title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
+  <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false" data-stage-only
+          title="Dim every block with no generated sectors">Generated only</button>
+  <button type="button" class="starmap-btn" data-action="free-look" aria-pressed="false"
+          title="Fly the camera freely instead of stepping through slabs and blocks">Free look</button>
 </div>
+<div class="galaxy-slabs" id="galaxymap3d-slabs" hidden></div>
 <aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click a block for details, or double-click it to zoom in there.</p>
+<p class="hint">Hover a slab of blocks, then click it to see it from above.</p>
 </aside>
 </div>
 </div>

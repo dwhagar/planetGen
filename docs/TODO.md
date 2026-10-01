@@ -36,16 +36,17 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
-   70 (the nested block ladder) and 71 (the stage contents API) have
-   shipped; 72 next. It
-   replaces the map's click-to-center and double-click zoom.
+   70 (the nested block ladder), 71 (the stage contents API) and 72
+   (the stages, which the map now opens on; the old free camera stays
+   behind a Free look button) have shipped; 77 and 79 next.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35, and so have 19's
    follow-ups (opaque blocks drop the faces they share; translucent
    sorting showed no artifacts; block size stays per CSS pixel).
-   Distance-based detail was left to the drill-down: see 72.
+   Distance-based detail was left to the drill-down (see the note under
+   "Galaxy navigation").
 - **Features (25-36)** from the same notes: phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
@@ -95,23 +96,16 @@ a sector. Admins can generate a sector, a layer or a neighborhood (radius
 asked in light-years) at the sector level, and the NAV page can pick its
 start and destination on the map or in a sector. Everything below is
 specified, with the math, in the design doc named in the heading; each
-item names its section. Item 72 is next (Galaxy Map thread; 70, the
-nested ladder, is in `stellarObjects/galaxyDrill.py`, and 71 is `GET
-/api/galaxy/stage`); Web
-can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
-
-72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
-    eight stages on the Galaxy Map, with slab hover highlight, pull-out
-    to a top-down view, the van Wijk-Nuij flight into a block, the slab
-    strip, the breadcrumb with sibling menus, stage URLs
-    (`/galaxy?slab=`, `?at=`, `?sector=`) with Back/Forward, keys,
-    touch taps and the "Generated only" toggle; reduced motion cuts
-    instead of animating. Click-to-center and double-click zoom go away
-    (decision 2 in section 11 decides whether free look stays). Needs
-    63's bigger map for room. If free look stays, its blocks could also
-    grow with distance from the camera (bigger blocks on the far side of
-    the view ball, where the nested ladder keeps the borders seamless);
-    each stage draws one level, so the stages themselves don't need it.
+item names its section. 70 (the nested ladder,
+`stellarObjects/galaxyDrill.py`), 71 (`GET /api/galaxy/stage`) and 72
+(the stages, `static/galaxystages.js` and `static/galaxystageview.js`,
+with stage URLs `/galaxy?slab=`, `?at=`, `?sector=<designation>`) have
+shipped; Web can do 63, 74, 75 and 78 now. The old free camera stays
+behind the map's Free look button until Boss settles decision 2 (section
+11). If it stays, its blocks could also grow with distance from the
+camera (bigger blocks on the far side of the view ball, where the nested
+ladder keeps the borders seamless); each stage draws one level, so the
+stages themselves don't need it.
 
 73. [ ] **Generate from the sector level (section 6).** Boss: "once
     we're down to a sector level we can tell a slice to generate all the
@@ -447,21 +441,6 @@ for a mouse; spacing and type sized with `clamp()`.
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
 
-### Web API (`src/html/api/routes.py`)
-
-Low priority; nobody is waiting on these.
-
-37. [ ] **The API can't create a system inside an existing sector.**
-    `POST /api/systems` only creates standalone systems (`sector_id =
-    NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
-    placement and Hill-sphere separation logic (`SpaceSector.add_system`),
-    which was left out of the write API to keep the admin-auth change
-    small.
-
-38. [ ] **The API can't edit a system's generated content.** `PATCH
-    /api/systems/<id>` only renames. Changing stars/planets/moons/belts
-    means `DELETE` then `POST` (regenerate). It may never need solving;
-    kept here in case it does.
 
 ### Star population (from the galaxy studies of 2026-09-30)
 
