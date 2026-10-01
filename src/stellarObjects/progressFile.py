@@ -10,11 +10,14 @@ progress there as a small JSON object, which the page reads to draw its
 progress bar:
 
     {"description": "Sectors", "completed": 12, "total": 40, "rate": 0.8,
-     "eta_s": 35.0, "updated_at": 1759236000.0}
+     "eta_s": 35.0, "detail": null, "percent": false, "updated_at": 1759236000.0}
 
 `total` is `null` when the amount of work isn't known up front; `rate`
 (units per second) and `eta_s` (seconds left, as of `updated_at`) are
-`null` until the first unit is done. Writes are
+`null` until the first unit is done. `detail` is a second bar under the
+first, or `null`: `{"description", "completed", "total", "eta_s"}` (the
+bright-star layers being drawn, while layers are slow); `percent` asks for
+the bar as a share done rather than counts. Writes are
 atomic (a temp file renamed over the old one) and throttled to a few per
 second, so a fast loop costs nothing. Without the variable (every
 terminal run) `report` does nothing.
@@ -34,7 +37,7 @@ MIN_INTERVAL_SECONDS = 0.5
 _last_write = 0.0
 
 
-def report(completed, total=None, description=None, force=False, rate=None, eta_s=None):
+def report(completed, total=None, description=None, force=False, rate=None, eta_s=None, detail=None, percent=False):
     """
     Writes the current progress to `$PLANETGEN_PROGRESS_FILE`, if set.
     Never raises: progress is a nicety, never a reason to fail a run.
@@ -49,6 +52,11 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
             average the terminal's ETA uses (`progressRate`).
         eta_s (float, optional): Seconds left at that rate, as of
             `updated_at`.
+        detail (dict, optional): A second bar under this one (PERF.4,
+            the bright-star layers being drawn while layers are slow):
+            `description`, `completed`, `total` and `eta_s`.
+        percent (bool): Show this bar as a share done, not as counts
+            (PERF.9's weighted bright-star bar).
     """
     global _last_write
     path = os.environ.get(ENV_VAR)
@@ -64,6 +72,8 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         "total": total,
         "rate": rate,
         "eta_s": eta_s,
+        "detail": detail,
+        "percent": bool(percent),
         "updated_at": now,
     }
     try:

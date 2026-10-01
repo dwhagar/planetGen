@@ -12,12 +12,11 @@ redraws the same parts from /admin/generate/status. -#}
   <progress data-job-progress max="{{ job.progress_total or 1 }}"
     {%- if job.progress_total %} value="{{ job.progress_completed or 0 }}"{% elif job.finished %} value="1"{% endif %}
     aria-labelledby="job-progress-text"></progress>
-  <span id="job-progress-text" data-job-progress-text>
-    {%- if job.progress_description %}{{ job.progress_description }}: {{ num(job.progress_completed|int) }}{% if job.progress_total %} of {{ num(job.progress_total|int) }}{% endif %}{% endif -%}
-  </span>
+  <span id="job-progress-text" data-job-progress-text>{{ job.progress_text }}</span>
   <span class="hint" data-job-elapsed>{{ job.elapsed_text }}</span>
   <span class="hint" data-job-remaining>{% if job.remaining_text %}about {{ job.remaining_text }} left{% endif %}</span>
 </p>
+<p class="hint" data-job-progress-detail{% if not job.progress_detail_text %} hidden{% endif %}>{{ job.progress_detail_text }}</p>
 <p class="error" role="alert" data-job-error{% if not job.error %} hidden{% endif %}>{{ job.error or "" }}</p>
 <pre class="job-log" data-job-log tabindex="0" aria-label="Job output">{{ output or "" }}</pre>
 {%- if cancel and not job.finished %}

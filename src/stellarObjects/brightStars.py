@@ -179,8 +179,82 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
             on_layer(done, len(extents))
 
 
+def band_fractions(min_luminosity_sol, max_luminosity_sol=None):
+    """Per population, the share of its stars in the scatter's band
+    (`bright_band_fraction`)."""
+    return {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population)
+            for population in POPULATIONS}
+
+
+RING_WEIGHT_STARS = 5.0
+"""float: What walking one ring of a layer costs, in stars drawn: a
+ring's density bins take about as long as placing and drawing five
+stars (measured 2026-10-01: 0.2 ms a ring against about 40 us a star),
+so an empty edge layer still counts for something (PERF.9)."""
+
+WEIGHT_RING_SAMPLES = 48
+"""int: Rings sampled per layer by `layer_weight` (evenly spaced)."""
+
+WEIGHT_ANGLE_BINS = 8
+"""int: Angle bins per sampled ring in `layer_weight`."""
+
+
+def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions,
+                         ring_samples=WEIGHT_RING_SAMPLES, angle_bins=WEIGHT_ANGLE_BINS):
+    """
+    About how many bright stars `scatter_layer` will place in one layer:
+    the same per-ring expected counts it draws its Poisson counts from,
+    on `ring_samples` evenly spaced rings with `angle_bins` bins each
+    instead of every ring with `ANGLE_BINS`, so the whole galaxy takes a
+    second or two rather than as long as a scatter (PERF.9).
+
+    Args:
+        fractions (dict): `band_fractions`.
+    """
+    rings = outer_ring + 1
+    if rings <= 0:
+        return 0.0
+    count = min(rings, ring_samples)
+    step = rings / count
+    total_fraction = sum(fractions.values())
+    if total_fraction <= 0.0:
+        return 0.0
+    z = layer_center_z_pc(layer_index, edge_pc)
+    expected = 0.0
+    for k in range(count):
+        ring_index = min(int((k + 0.5) * step), rings - 1)
+        slots = ring_sector_count(ring_index)
+        bins = min(slots, angle_bins)
+        radius = ring_radius_pc(ring_index, edge_pc)
+        ring_expected = 0.0
+        for j in range(bins):
+            theta = (j + 0.5) * 2 * math.pi / bins
+            point = (radius * math.cos(theta), radius * math.sin(theta), z)
+            if not _qualifies(point, shape, expected_at_density_1):
+                continue
+            densities = _densities(point, shape)
+            ring_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
+        expected += expected_at_density_1 * slots / bins * ring_expected * step
+    return expected
+
+
+def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions):
+    """
+    The work one layer of the scatter is expected to take, in stars: its
+    expected stars (`layer_expected_stars`) plus `RING_WEIGHT_STARS` per
+    ring walked. The bright-star progress bar and its ETA count these, so
+    the near-empty layers at the top and bottom of the disk no longer
+    count as much as the dense ones in the middle (PERF.9).
+
+    Returns:
+        tuple: `(weight, expected_stars)`.
+    """
+    expected = layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions)
+    return expected + RING_WEIGHT_STARS * (outer_ring + 1), expected
+
+
 def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-                  skip_addresses=None, max_luminosity_sol=None):
+                  skip_addresses=None, max_luminosity_sol=None, on_progress=None):
     """
     One layer of `scatter`: every bright star from ring 0 out to
     `outer_ring` at `layer_index`. Each layer draws from its own random
@@ -188,34 +262,61 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     drawn in any order, or side by side in worker processes (PERF.7),
     and still give the same stars.
 
+    Args:
+        on_progress (callable, optional): PERF.4: called after every
+            star as `on_progress(done, estimate)`, in stars. Each star is
+            placed while the rings are walked, then drawn (its type and
+            luminosity) at the end, and counts half at each step, so
+            `done` reaches the layer's count when it's finished.
+            `estimate` is the stars placed and still to place in the
+            ring being walked, plus the expected count of the rings not
+            yet walked (exact, from the same per-ring means the draw
+            uses), then the placed total once every ring is walked.
+
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
     rng = random.Random(f"{seed}:{layer_index}")
     skip_addresses = skip_addresses or set()
-    fractions = {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population)
-                 for population in POPULATIONS}
+    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol)
     placed = {population: [] for population in POPULATIONS}
+    rings = []
+    expected_left = 0.0
     for ring_index in range(outer_ring + 1):
         slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
         slots_per_bin = slots / len(bins)
+        means = {}
         for population in POPULATIONS:
             weights = [densities[population] if densities else 0.0 for densities in bins]
-            mean = expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population]
+            means[population] = (weights, expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population])
+            expected_left += max(means[population][1], 0.0)
+        rings.append((ring_index, slots, means))
+    for ring_index, slots, means in rings:
+        for population in POPULATIONS:
+            weights, mean = means[population]
             if mean <= 0.0:
                 continue
-            for _ in range(_sample_poisson_count(mean, rng=rng)):
+            expected_left -= mean
+            count = _sample_poisson_count(mean, rng=rng)
+            for pending in range(count, 0, -1):
                 spot = _place_one(rng, weights, ring_index, layer_index, slots, shape,
                                   expected_at_density_1, edge_pc)
-                if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
-                    continue
-                placed[population].append((ring_index, spot[0], spot[1]))
+                if spot is not None and (ring_index, layer_index, spot[0]) not in skip_addresses:
+                    placed[population].append((ring_index, spot[0], spot[1]))
+                if on_progress is not None:
+                    total_placed = sum(len(spots) for spots in placed.values())
+                    on_progress(total_placed / 2, total_placed + (pending - 1) + max(expected_left, 0.0))
+    total_placed = sum(len(spots) for spots in placed.values())
+    drawn = 0
     for population, spots in placed.items():
         if not spots:
             continue
         stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
                                     max_luminosity_sol=max_luminosity_sol)
         for (ring_index, slot, point), params in zip(spots, stars):
+            drawn += 1
+            if on_progress is not None:
+                on_progress((total_placed + drawn) / 2, total_placed)
             yield _row(ring_index, layer_index, slot, point, population, params, rng)
 
 
@@ -243,8 +344,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    fractions = {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population)
-                 for population in POPULATIONS}
+    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol)
     for ring_index, layer_index, slot in addresses:
         center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
         if not _qualifies(center, shape, expected_at_density_1):
