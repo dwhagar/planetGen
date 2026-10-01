@@ -38,8 +38,7 @@ renumber when items are added or finished.
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
-- **Features (23-36)** from the same notes: Galaxy Map generate buttons (24),
-   phenomena views and stored nearest systems (25-26), nebulae and
+- **Features (25-36)** from the same notes: phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 35 is
@@ -143,20 +142,6 @@ for a mouse; spacing and type sized with `clamp()`.
     stay beside the map on wide screens?
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
-
-24. [ ] **Generate buttons on the Galaxy Map's unfilled sectors.** Boss:
-    "Sector map clicking on an unfilled sector should no longer give a command line
-    but if admin is logged in then it should just add a button to
-    generate that sector by itself or as a neighborhood or to generate
-    the entire shell (not recommended), also let's add a 'generate
-    column' option too." The Sector Map has them (generate.py's
-    `--column`/`--shell`/`--slot --radius-pc`, the Generate page's
-    column and shell modes, `sectormap.js generateButtons`). Left: the
-    Galaxy Map's `showPlannedInfo`/`showCellInfo` in `galaxymap3d.js`
-    still show the CLI snippet; give an admin the same four buttons
-    (the page needs the same admin-only `generate` target
-    `starmap.render_map_panel` gets). Visitors see the address and
-    designation only.
 
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 

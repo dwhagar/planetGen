@@ -38,6 +38,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
+const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
@@ -119,62 +120,6 @@ function formatAddress(ringIndex, layerIndex, slotIndex) {
   return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
 }
 
-// One Generate button: a plain POST form to the admin Generate page
-// (web/generate_page.py), which starts the job and redirects there, so it
-// works like the page's own forms (CSRF token included) with no fetch.
-var NEIGHBORHOOD_RADIUS_PC = "30.7";
-
-function generateForm(target, label, fields, confirmText) {
-  var form = document.createElement("form");
-  form.method = "post";
-  form.action = target.url;
-  form.className = "starmap-generate-form";
-  var all = [[target.csrfField, target.csrfToken], ["action", "galaxy"]].concat(fields);
-  all.forEach(function (pair) {
-    var input = document.createElement("input");
-    input.type = "hidden";
-    input.name = pair[0];
-    input.value = String(pair[1]);
-    form.appendChild(input);
-  });
-  var button = document.createElement("button");
-  button.type = "submit";
-  button.className = "btn";
-  button.textContent = label;
-  form.appendChild(button);
-  if (confirmText) {
-    form.addEventListener("submit", function (event) {
-      if (!window.confirm(confirmText)) {
-        event.preventDefault();
-      }
-    });
-  }
-  return form;
-}
-
-function generateButtons(target, entry) {
-  var ring = entry.ringIndex;
-  var layer = entry.layerIndex;
-  var slot = entry.ringSlotIndex;
-  var address = [["slot_ring", ring], ["slot_layer", layer], ["slot", slot]];
-  var box = document.createElement("div");
-  box.className = "starmap-generate";
-  box.appendChild(generateForm(target, "Generate this sector", [["mode", "slot"]].concat(address)));
-  box.appendChild(generateForm(target, "Generate neighborhood",
-    [["mode", "slot"], ["slot_radius_pc", NEIGHBORHOOD_RADIUS_PC]].concat(address)));
-  box.appendChild(generateForm(target, "Generate column",
-    [["mode", "column"], ["column_ring", ring], ["column_slot", slot]]));
-  box.appendChild(generateForm(target, "Generate the entire shell (not recommended)",
-    [["mode", "shell"], ["shell_ring", ring], ["whole_shell", "1"]],
-    "This generates every sector of ring " + ring + " through every layer, often thousands of " +
-    "sectors, and can run for hours. Start it anyway?"));
-  var hint = document.createElement("p");
-  hint.className = "hint";
-  hint.textContent = "Starts a background job on the Generate page. The neighborhood reaches about 100 ly.";
-  box.appendChild(hint);
-  return box;
-}
-
 // TODO(phenomena #27): draw nebulae and supernova remnants that reach this
 // sector as translucent volumes, even when their center is in another
 // sector.
@@ -199,7 +144,7 @@ function showNeighborInfo(panel, entry) {
   }
 
   if (sceneData && sceneData.generate) {
-    panel.appendChild(generateButtons(sceneData.generate, entry));
+    panel.appendChild(generateButtons(sceneData.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
   }
 }
 

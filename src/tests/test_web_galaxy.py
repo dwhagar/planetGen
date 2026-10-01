@@ -18,6 +18,7 @@ import re
 import pytest
 
 from api.app import create_app
+from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
@@ -25,6 +26,7 @@ import apiclient  # noqa: E402
 import tilecache  # noqa: E402
 from stellarObjects import _db  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from web import csrf  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 
 
@@ -145,6 +147,17 @@ def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
         assert scene["sectorUrl"].replace("{id}", "5") == page_url("sector", sector_id=5)
     assert scene["initial"]["stamp"] == STAMP
     assert scene["initial"]["tiles"]
+    # Visitors get no Generate buttons.
+    assert scene["generate"] is None
+
+
+def test_galaxy_scene_data_gives_an_admin_the_generate_target(client, fake, monkeypatch):
+    monkeypatch.setattr(apiclient, "auth_me", lambda cookie_header: {"username": "admin"})
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+    target = _scene(client.get("/galaxy").get_data(as_text=True))["generate"]
+    assert target["url"] == "/admin/generate"
+    assert target["csrfField"] == csrf.FIELD_NAME
+    assert target["csrfToken"]
 
 
 def test_galaxy_first_view_is_written_to_the_disk_cache(client, fake):
