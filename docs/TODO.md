@@ -105,7 +105,7 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
    and ADM.7 in PR #260).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -315,6 +315,97 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one block, or a run of blocks along the arc when a block is too small
   to click on a small screen?
 
+- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
+  Found by the generation tests (2026-10-01): a body whose computed
+  position is NaN or infinite is written straight into the System
+  Map's SVG. Done: such a body is left out or drawn at a safe place
+  with a note, the SVG never holds NaN or inf, and the strict xfail
+  test for it passes.
+
+- [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
+  Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
+  and out manually. This should only be within a short range ... they
+  can zoom in to about, say, twice as close as it starts out and they
+  can zoom out back to the full galaxy, but no further. When we get into
+  smaller chunks like blocks and wedges that aren't as large as the full
+  galactic wedge, we're going to lock the zoom ... The system will still
+  be able to zoom in stages as we've discussed but the user won't be
+  able to arbitrarily zoom in and out." Today every view below the whole
+  galaxy and its quarters can be zoomed freely with the wheel, a pinch
+  or the zoom keys (`isFree` in `galaxystageview.js`), from
+  `MIN_ZOOM` = 1/8 of the stage's fitted camera distance (8 times
+  closer) to `MAX_ZOOM` = 2.5 times it, and the galaxy and its quarters
+  can't be zoomed at all. Done:
+  - On the full galaxy wedge (the 40-degree wedge of MAP.52, fitted to
+    the window by MAP.53), the user can zoom in to about twice as close
+    as the fitted view, and out only until the whole galaxy fits, with
+    the wheel, pinch, keys and any zoom buttons.
+  - On every smaller view (slabs, segments, blocks, the sector cube),
+    user zoom is locked: the wheel scrolls the page, and pinch and the
+    zoom keys do nothing. The staged zoom of each pick (MAP.53, MAP.56)
+    still animates to its fitted view.
+  - Rotation (MAP.53) and panning are not affected.
+  - Reset (MAP.55) returns to the fitted zoom.
+  Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
+  whole-galaxy view itself zoom (today it doesn't)? Should a locked view
+  keep panning, or only rotate?
+
+- [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
+  Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
+  zoomed into a specific slab, that we're viewing a specific slab and
+  not a wedge. I'm not sure how to do that so do some research on that
+  and then add the to-do items to make it happen."
+
+  Why it looks like a wedge today: once a slab is picked, only that
+  slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
+  layer of the wedge (a sector layer inside a level-3 block, otherwise
+  9 or 27 sector layers, `slabLayers` in `galaxystages.js`), so seen
+  from the isometric tilt it looks like a flat wedge. Nothing on screen
+  shows the rest of the stack, and the slab's height range appears only
+  as "Slab 3" in the breadcrumb.
+
+  Options (from how 3D map, CAD and volume viewers show a selected
+  slice):
+  1. **Ghost of the parent wedge.** The other slabs of the wedge stay in
+     view as a faint, see-through outline (wireframe edges only), and
+     the picked slab is the one solid layer inside it. This is the cut-away
+     or "section view" of CAD tools and of floor pickers in building
+     maps. It shows at a glance that this is one layer of a taller stack.
+  2. **Slab thickness edges.** Draw the slab's top and bottom faces and
+     its vertical side edges in a distinct line color, so it reads as a
+     slice with depth rather than a surface.
+  3. **A labelled header over the map**, such as "Slab 3 of 9 · 120 to
+     160 pc above the plane (layers 25 to 33)", replacing the bare
+     "Slab 3". The breadcrumb crumb says "Slab 3 of 9" too.
+  4. **Side-view inset.** A small fixed diagram in a corner of the map
+     shows the wedge edge-on as a stack of bars, with the picked slab
+     highlighted and the galactic plane marked. This is the slice
+     indicator of medical and volume viewers. It doubles as a slab
+     picker if clicks on it are allowed.
+  5. **Tint.** The picked slab gets a color band that differs from a
+     whole wedge, kept the same at every depth.
+
+  Recommendation: options 1 and 3 together. The ghost keeps the shape
+  of the whole wedge on screen, so the slab is plainly one layer of it,
+  and the header names the slab and its height in words. Add 2 as part
+  of 1 (the solid slab gets edge lines). Leave 4 and 5 out unless 1 and
+  3 aren't enough, since 4 takes room the slab buttons of MAP.54 and
+  the info panel of MAP.55 need on small screens.
+
+  Done (recommended form): with a slab picked, the parent wedge's other
+  slabs are drawn as faint outlines around the solid, edge-lined picked
+  slab. The ghost is not clickable and doesn't block clicks on the slab
+  or its segments. A header over the map and the breadcrumb read "Slab
+  N of M" with its height range above or below the galactic plane in
+  the map's chosen units (pc or ly, the units setting of PR #234). Both rotate and zoom
+  with the view. The same applies one level down (a layer inside a
+  block, "Layer N of M"). Ties in with MAP.53 (rotation keeps the ghost
+  aligned), MAP.54 (the picked slab's button and line stay
+  highlighted), MAP.56 (the segment pick happens on the solid slab) and
+  MAP.58. Open questions for Boss: ghost outlines only, or also a faint
+  fill? Is the side-view inset (option 4) wanted as well? Should the
+  height be shown from the galactic plane or as layer numbers, or both?
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
@@ -435,6 +526,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
 
+- [ ] **GEN.31 A point just under layer 0's top face lands in layer 1 (bug)**
+  Found by the generation tests (TEST.4-36 work, 2026-10-01): a point
+  one float step below layer 0's top face is put in layer 1, both in
+  the Python grid code (`galaxyGeometry`, `sector_address_at`) and in
+  the map's `galaxyprisms.js`. Done: a point inside a layer's own
+  height range always maps to that layer, in Python and JavaScript
+  alike, and the strict xfail test for it passes. [MAP]
+
+- [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
+  Found by the generation tests (2026-10-01): if `generate.py plan
+  --bright-stars-down-to N` stops part way and is run again, the layers
+  it already finished get the band a second time. Done: a re-run adds
+  only the layers the interrupted run didn't finish (or starts the band
+  over cleanly), never the same stars twice, and the strict xfail test
+  for it passes.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -552,9 +659,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later granted to users) but every write route, the remote upload
   routes of API.3 above all, answers 403 for it; an admin key keeps
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
-  and TEST.44 (what an API key may do). Open question: does a
-  user-level key belong to a user account (USR.1) or stand alone until
-  user accounts exist?
+  and PR #293 (TEST.44), which already answers 403 to
+  any API key that makes keys, changes credentials or 2FA, or logs
+  out. Open question: does a user-level key belong to a user account
+  (USR.1) or stand alone until user accounts exist?
 
 - [ ] **API.7 Investigate and plan upload limits**
   Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
@@ -565,7 +673,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client does when it hits one (wait and retry, shrink the batch).
   Measured against real sectors and the web server's own limits
   (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
-  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  `MAX_CONTENT_LENGTH`, set to 2 MB by PR #293) and the API limiter
   (`api/limiter.py`). The plan only; building the limits is a later
   item.
 
@@ -587,25 +695,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 
 ## ADM: Admin tools
-
-- [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
-  Boss (2026-10-01): "In generation screen each section should be
-  collapsible and generate around a sector should have the option to
-  locate an existing filled sector or put in the coordinates." Today
-  the admin Generate page (`web/templates/generate.html`) shows every
-  section (Current job, One-off system, New galaxy, Generate sectors,
-  Plan the galaxy, Rebuild the bright stars, Reset) open, one after
-  another, and "around a sector" (`mode == "center"`) asks for a
-  numeric sector ID and a radius. Done: each section can be collapsed
-  and expanded (a `<details>` or a heading button, keyboard and screen
-  reader friendly); "around a sector" lets the admin either find an
-  existing filled sector (search by name or designation, or pick it on
-  the Galaxy Map or from a list) or type coordinates (a ring, layer and
-  slot address, or galaxy-frame x, y, z). Open questions: which
-  sections start open (only Current job, or the last one used,
-  remembered per browser)? Which coordinates: a sector address, a
-  position in pc or ly, or both? Does "locate" reuse the Sector Map pick
-  mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
 
 - [ ] **ADM.10 An admin page to view and manage the work queue**
   Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
@@ -702,6 +791,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part of, or linked from, the job page (ADM.10). Open question: should
   an upload with no contact for a long time be flagged as stale on the
   page?
+
+- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
+  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
+  boxes not the headings. Text boxes should all be even with each
+  other". Today each field on the admin Generate page
+  (`web/templates/generate.html`, the `field` macro inside
+  `search-fields`) puts its label above its input, and the fields flow
+  side by side, so inputs start at different heights and widths
+  wherever a label wraps or is longer. Done: down every form on the page
+  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
+  stars, Add a dimmer layer, One-off system), the text boxes share one
+  left edge and width and sit level with each other, however long their
+  labels are, at desktop and phone widths, in both themes. This includes
+  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
+  #295).
 
 ## SEC: Security
 
@@ -932,67 +1036,6 @@ clears each one.
   holding garbage; job id collision; unwritable jobs directory; prune
   never removes the running job; cancel with unknown, malformed or
   finished job ids. [ADM]
-
-- [ ] **TEST.42 Pages fresh after a CLI write**
-  After `generate.py` writes straight to the database, `/galaxy`,
-  `/sector`, tiles and lists show the new data (only API writes are
-  tested today). [UX, PERF]
-
-- [ ] **TEST.43 Auth sweep over every route**
-  Generated from `app.url_map`: every API write route gives 401 to
-  anonymous, garbage Bearer and revoked keys; every admin route gives
-  403 to an admin who must still change credentials. [SEC, API]
-
-- [ ] **TEST.44 What an API key may do**
-  Whether a Bearer key can change credentials, set up or turn off TOTP,
-  make keys, or log out, pinned to the intended answer. [SEC, API]
-
-- [ ] **TEST.45 More than one admin**
-  Admin B can't revoke admin A's key, lifting another admin's lockout is
-  audited, two admins editing the same system. [SEC, ADM]
-
-- [ ] **TEST.46 Trusted device and TOTP edge cases**
-  Expired, tampered and other-user device cookies; turning TOTP off
-  voids trust; a code reused across the API and `/login/code`; a pending
-  login that expires. [SEC]
-
-- [ ] **TEST.47 Oversized requests**
-  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
-  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
-  today). [SEC]
-
-- [ ] **TEST.48 Security headers everywhere**
-  CSP and the other headers on JSON responses, 404/405/500 pages and
-  redirects, not only pages. [SEC]
-
-- [ ] **TEST.49 Thin API routes**
-  Unknown ids, empty galaxy, paging limits and wrong-system ids for
-  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
-  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
-  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
-  `/api/systems/<id>/owner`; deleting a sector that has facilities or
-  wiki pages. [API]
-
-- [ ] **TEST.50 Galaxy URLs combined**
-  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
-  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
-  out-of-range coordinates, ambiguous names. [MAP]
-
-- [ ] **TEST.51 Page-number sweep gaps**
-  `/species?species_page=` and `/polities?polities_page=` join the
-  page-clamping sweep. [UX]
-
-- [ ] **TEST.52 Old URLs and error codes**
-  Unknown `/<name>.py`, case variants, redirect chains; 400 for
-  malformed form encoding; HEAD and OPTIONS on pages. [UX]
-
-- [ ] **TEST.53 Formatters with bad numbers**
-  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
-  and None; empty tables; huge values. [UX]
-
-- [ ] **TEST.54 Caches under threads**
-  Page cache fill and clear from real threads; two writers to the same
-  tile file. [PERF]
 
 ### Browser and JavaScript
 
