@@ -46,7 +46,7 @@ import apiclient
 from fmt import utc_time_html
 from stellarObjects import activitylog, generationStats, log, program_constants
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
-from stellarObjects.utils import ly_to_pc, pc_to_ly
+from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
@@ -421,7 +421,32 @@ def _job_view(job):
         updated_at = progress.get("updated_at") or time.time()
         remaining = max(0.0, float(eta_s) - max(0.0, time.time() - float(updated_at)))
     view["remaining_text"] = format_elapsed(remaining)
+    view["progress_text"] = _progress_text(progress)
+    # PERF.4: the second bar (the bright-star layers being drawn while
+    # layers are slow), or blank.
+    detail = progress.get("detail") if not job.get("finished") else None
+    view["progress_detail_text"] = ""
+    if detail:
+        text = _progress_text(detail)
+        if detail.get("eta_s") is not None:
+            text += f", about {format_elapsed(detail['eta_s'])} left"
+        view["progress_detail_text"] = text
     return view
+
+
+def _progress_text(progress):
+    """`"Sectors: 12 of 40"`, or `"Bright stars (3 of 81 layers): 12%"` for
+    a bar written as a share (PERF.9), or `""` before the first report."""
+    description = progress.get("description")
+    if not description:
+        return ""
+    completed, total = progress.get("completed") or 0, progress.get("total")
+    if progress.get("percent") and total:
+        return f"{description}: {100 * float(completed) / float(total):.0f}%"
+    text = f"{description}: {format_number(completed)}"
+    if total:
+        text += f" of {format_number(total)}"
+    return text
 
 
 def format_elapsed(seconds):
