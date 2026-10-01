@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v47" notes) rather than duplicated here, since that
+comment ("v2" through "v48" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v46_to_v47`. `migrate_database`
+version, through `_migrate_v47_to_v48`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v47), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v48), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -553,6 +553,15 @@ rogue's `PLANET_CLASSES` letter, drawn from the classes whose `"r"` flag
 says they can be rogue (C, D, I, J and T) and that fit its type, radius
 and mass. NULL for a brown dwarf. `_migrate_v46_to_v47` gives every
 stored rogue its most probable fitting class.
+
+**Rogue planet surface conditions (v48).** `rogue_planets` gains
+`age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k`,
+`surface_regime`, `surface_temperature_k`, `surface_pressure_pa`,
+`ice_shell_thickness_km`, `ocean_depth_km` and `has_liquid_water`, from
+`rogueSurface.rogue_surface_conditions` (see
+`docs/design/rogue-planet-surface.md`). `_migrate_v47_to_v48` fills them
+for every stored rogue, seeded by its name, and resets
+`has_internal_heat` to the computed answer.
 
 **Population and politics (v44).** Filled by `generate.py population`
 (or `--population` on a `sector`/`galaxy` run, or the optional question
@@ -1370,7 +1379,11 @@ from any star.
 | `mass_bin` | VARCHAR(16) | NOT NULL | Added in v37: `terrestrial`, `sub-neptune`, `saturn`, `jupiter` or `brown-dwarf`. |
 | `mass_kg`, `radius_km` | DOUBLE | NOT NULL | |
 | `composition` | TEXT | NOT NULL | Descriptive bulk-composition string. |
-| `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | |
+| `has_internal_heat`, `has_moons` | BOOLEAN | NOT NULL | `has_internal_heat`: still geologically active (computed since v48; a giant always is). |
+| `age_gy`, `internal_heat_flux_w_m2`, `effective_temperature_k` | DOUBLE | nullable | Added in v48: its age and its own heat (W/m^2, K). |
+| `surface_regime` | VARCHAR(24) | nullable | Added in v48: `bare-rock`, `frozen-atmosphere`, `ice-shell-ocean`, `ice-world`, `hydrogen-envelope`, `gas-giant` or `brown-dwarf`. |
+| `surface_temperature_k`, `surface_pressure_pa` | DOUBLE | nullable | Added in v48: at the ground, or a giant's at 1 bar. |
+| `ice_shell_thickness_km`, `ocean_depth_km`, `has_liquid_water` | DOUBLE, DOUBLE, BOOLEAN | nullable | Added in v48: its ice lid and buried (or envelope-warmed) ocean; NULL when there is none. |
 | `galactic_orbital_speed_kms`, `_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |

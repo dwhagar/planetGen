@@ -76,6 +76,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
 from .nebulaData import Nebula
 from .planetData import Planet
+from .rogueSurface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
 from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
@@ -88,7 +89,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 47
+SCHEMA_VERSION = 48
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2360,6 +2361,14 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
     return cur.lastrowid
 
 
+def _rogue_surface_values(planet):
+    """`ROGUE_SURFACE_FIELDS`' values from `planet`, as stored."""
+    return tuple(
+        int(value) if field == "has_liquid_water" and value is not None else value
+        for field, value in ((field, getattr(planet, field, None)) for field in ROGUE_SURFACE_FIELDS)
+    )
+
+
 def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=None) -> int:
     """
     Inserts a `rogue_planets` row (see `schema.sql`'s "v16"/"v28" header
@@ -2376,18 +2385,20 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     """
     name_base, diminutive_index = _reserve_phenomenon_name(conn, planet)
     cur = conn.execute(
-        """
+        f"""
         INSERT INTO rogue_planets (
             sector_id, name, planet_type, planet_class, mass_bin, mass_kg, radius_km, composition,
-            has_internal_heat, has_moons,
+            has_internal_heat, has_moons, {", ".join(ROGUE_SURFACE_FIELDS)},
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join("?" * len(ROGUE_SURFACE_FIELDS))},
+                  ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
             planet.composition, int(planet.has_internal_heat), int(planet.has_moons),
+            *_rogue_surface_values(planet),
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
             *_placement_values(placement),
@@ -7564,6 +7575,55 @@ def _migrate_v46_to_v47(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
 
 
+ROGUE_SURFACE_COLUMNS = (
+    ("age_gy", "DOUBLE"), ("internal_heat_flux_w_m2", "DOUBLE"), ("effective_temperature_k", "DOUBLE"),
+    ("surface_regime", "VARCHAR(24)"), ("surface_temperature_k", "DOUBLE"), ("surface_pressure_pa", "DOUBLE"),
+    ("ice_shell_thickness_km", "DOUBLE"), ("ocean_depth_km", "DOUBLE"), ("has_liquid_water", "TINYINT(1)"),
+)
+"""tuple: `(column, type)` of each v48 `rogue_planets` column, in
+`ROGUE_SURFACE_FIELDS` order."""
+
+
+def _migrate_v47_to_v48(conn):
+    """
+    Adds rogue planet surface conditions -- see `schema.sql`'s "v48"
+    header note -- and fills them for every stored rogue planet with
+    `rogueSurface.rogue_surface_conditions`, its draws seeded by the
+    rogue's name (as `RoguePlanet.from_dict` does), so a rerun gives the
+    same answers. `has_internal_heat` is reset to the computed answer,
+    so it agrees with the new heat flow. Read in id order a batch at a
+    time.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    missing = [f"ADD COLUMN {column} {kind}" for column, kind in ROGUE_SURFACE_COLUMNS
+               if not _has_column(conn, "rogue_planets", column)]
+    if missing:
+        conn.execute(f"ALTER TABLE rogue_planets {', '.join(missing)}")
+    sets = ", ".join(f"{column} = ?" for column, _kind in ROGUE_SURFACE_COLUMNS)
+    last_id = 0
+    while True:
+        rows = conn.execute(
+            "SELECT id, name, planet_type, mass_bin, mass_kg, radius_km, has_moons FROM rogue_planets "
+            "WHERE id > ? AND surface_regime IS NULL ORDER BY id LIMIT ?",
+            (last_id, ROGUE_CLASS_BACKFILL_BATCH),
+        ).fetchall()
+        if not rows:
+            break
+        params = []
+        for row in rows:
+            conditions = rogue_surface_conditions(
+                row["mass_kg"], row["radius_km"], row["planet_type"], row["mass_bin"], bool(row["has_moons"]),
+                random.Random(row["name"]))
+            values = [conditions[field] for field in ROGUE_SURFACE_FIELDS]
+            values[ROGUE_SURFACE_FIELDS.index("has_liquid_water")] = int(conditions["has_liquid_water"])
+            params.append((*values, int(conditions["has_internal_heat"]), row["id"]))
+        conn.executemany(f"UPDATE rogue_planets SET {sets}, has_internal_heat = ? WHERE id = ?", params)
+        last_id = rows[-1]["id"]
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (48)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -7670,6 +7730,7 @@ def _migration_steps():
         (45, _migrate_v44_to_v45),
         (46, _migrate_v45_to_v46),
         (47, _migrate_v46_to_v47),
+        (48, _migrate_v47_to_v48),
     ]
 
 

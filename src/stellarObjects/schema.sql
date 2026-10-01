@@ -879,6 +879,15 @@
 --   and gives every stored rogue its most probable fitting class
 --   (`roguePlanetData.default_rogue_planet_class`).
 --
+-- v48: rogue planet surface conditions -- `rogue_planets` gains `age_gy`,
+--   `internal_heat_flux_w_m2`, `effective_temperature_k`, `surface_regime`,
+--   `surface_temperature_k` (a giant's at 1 bar), `surface_pressure_pa`,
+--   `ice_shell_thickness_km`, `ocean_depth_km` and `has_liquid_water`
+--   (`rogueSurface.rogue_surface_conditions`: with no star, a rogue's only
+--   heat is its own). `_migrate_v47_to_v48` adds them and fills every
+--   stored rogue, seeded by its name, and resets `has_internal_heat` to
+--   the computed answer.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2019,6 +2028,16 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     composition         TEXT NOT NULL,
     has_internal_heat   TINYINT(1) NOT NULL CHECK (has_internal_heat IN (0, 1)),
     has_moons           TINYINT(1) NOT NULL CHECK (has_moons IN (0, 1)),
+    -- v48: surface conditions (rogueSurface.rogue_surface_conditions).
+    age_gy                   DOUBLE,
+    internal_heat_flux_w_m2  DOUBLE,
+    effective_temperature_k  DOUBLE,
+    surface_regime           VARCHAR(24),
+    surface_temperature_k    DOUBLE,
+    surface_pressure_pa      DOUBLE,
+    ice_shell_thickness_km   DOUBLE,
+    ocean_depth_km           DOUBLE,
+    has_liquid_water         TINYINT(1),
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
