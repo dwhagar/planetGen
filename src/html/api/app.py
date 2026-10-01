@@ -10,7 +10,7 @@ behind the project's existing Apache2 vhost (`examples/apache/`).
 import time
 
 import pymysql
-from flask import Flask, abort, g, jsonify, request
+from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
 from stellarObjects import _db, activitylog, log
 
@@ -41,6 +41,7 @@ def create_app(config_object=Config):
     app = Flask(__name__, static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     app.before_request(_reject_undecodable_query_string)
+    app.before_request(_reject_oversized_body)
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
@@ -98,6 +99,18 @@ def _reject_undecodable_query_string():
         request.query_string.decode("utf-8")
     except UnicodeDecodeError:
         abort(400, description="The query string is not valid UTF-8.")
+
+
+def _reject_oversized_body():
+    """
+    A request whose `Content-Length` is over `MAX_CONTENT_LENGTH` is a 413
+    before anything else runs (TEST.47) -- before the login checks and
+    the database, not only once a route reads the body. A body sent
+    without a length is still cut off at the limit when it's read.
+    """
+    limit = current_app.config.get("MAX_CONTENT_LENGTH")
+    if limit is not None and (request.content_length or 0) > limit:
+        abort(413)
 
 
 _SIGN_IN_PATHS = ("/api/auth/login", "/api/auth/change-credentials")
@@ -242,8 +255,13 @@ def _register_error_handlers(app):
     @app.errorhandler(405)
     def _handle_method_not_allowed(exc):
         if _is_api_request():
-            return jsonify({"error": "method not allowed"}), 405
-        return render_error(405, "This page can't be used that way.")
+            response = make_response(jsonify({"error": "method not allowed"}), 405)
+        else:
+            response = make_response(render_error(405, "This page can't be used that way."))
+        # A 405 names the methods the URL does take (RFC 9110).
+        if getattr(exc, "valid_methods", None):
+            response.headers["Allow"] = ", ".join(exc.valid_methods)
+        return response
 
     @app.errorhandler(500)
     def _handle_internal_error(exc):
@@ -260,6 +278,14 @@ def _register_error_handlers(app):
         app.logger.exception("Unhandled exception while building a page")
         log.exception(f"Unhandled exception while building {request.path}")
         return render_error(500, unexpected_error_message())
+
+    @app.errorhandler(413)
+    def _handle_too_large(exc):
+        # A body over `MAX_CONTENT_LENGTH` (config.py).
+        log.debug(f"Request body too large on {request.method} {request.path}: {request.content_length} bytes")
+        if _is_api_request():
+            return jsonify({"error": "request body too large"}), 413
+        return render_error(413, "That request was too large.")
 
     @app.errorhandler(429)
     def _handle_rate_limit_exceeded(exc):

@@ -110,7 +110,7 @@ _TRACEBACK = re.compile(r"Traceback \(most recent call last\)|File \"[^\"]+\.py\
 SEARCH_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
 SIZE_ENTITIES = ("star", "planet", "moon")
 PAGE_PARAMS = {"page", "sectors_page", "standalone_page", "contents_page", "keys_page", "names_page",
-               *(f"{panel}_page" for panel in SEARCH_PANELS)}
+               "species_page", "polities_page", *(f"{panel}_page" for panel in SEARCH_PANELS)}
 OFFSET_PARAMS = {"offset", *(f"{panel}_offset" for panel in SEARCH_PANELS)}
 SIZE_PARAMS = {f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bound in ("min", "max")}
 
@@ -773,16 +773,29 @@ _PAGE_ROUTES = [
     ("/systems", "standalone_page"), ("/phenomena", "page"), ("/sector/{sector}", "contents_page"),
     ("/galaxy?quadrant=I", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
     ("/search?q=a", "planets_page"), ("/admin", "keys_page"), ("/admin/stats", "names_page"),
+    ("/species", "species_page"), ("/species?spacefaring=1", "species_page"),
+    ("/polities", "polities_page"),  # TEST.51
 ]
+
+_POPULATION_PAGES = ("/species", "/polities")
+"""tuple: Pages that 404 until a population pass has run; the sweep
+switches them on (`apiclient.get_population_status`) so the page number
+still reaches the real API and MySQL's LIMIT/OFFSET (no rows: every page
+clamps back to page 1)."""
 
 
 @pytest.mark.parametrize("path,param", _PAGE_ROUTES, ids=[f"{p}:{n}" for p, n in _PAGE_ROUTES])
 @pytest.mark.parametrize("page", ["-5", "0", "1", "2", "999", str(2 ** 31), str(2 ** 63), "9" * 40, "abc", "1.5", ""])
-def test_page_numbers_clamp(app, admin_client, fuzz_db, path, param, page):
+def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param, page):
     """Every page-number parameter clamps: a page past the end shows the
     last page, a zero/negative/non-numeric one the first -- including
     pages whose row offset would pass MySQL's range (B2)."""
     base = path.format(sector=fuzz_db["sector_id"])
+    if base.startswith(_POPULATION_PAGES):
+        import apiclient
+
+        monkeypatch.setattr(apiclient, "get_population_status",
+                            lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
     sep = "&" if "?" in base else "?"
     client = admin_client if base.startswith("/admin") else app.test_client()
     full = f"{base}{sep}{urlencode({param: page})}"

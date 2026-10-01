@@ -557,7 +557,8 @@ forced credential change. They back the admin stats page
   from the app matches; returns `{"recovery_codes": [...]}`, shown only
   this once (10 codes, each good for one sign-in).
 - `POST /api/auth/totp/disable` `{"current_password", "code"}` — turns
-  it off. Lost the phone and the recovery codes? From a shell:
+  it off, and forgets every trusted device of that admin (the browser
+  that turned it off gets a new device cookie). Lost the phone and the recovery codes? From a shell:
   `python3 src/loginLockouts.py --reset-two-factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
@@ -583,6 +584,13 @@ forced credential change. They back the admin stats page
 Authenticate either with the session cookie (set by `/api/auth/login`,
 used by the `../src/html/` admin pages) or an API key, sent as
 `Authorization: Bearer <key>`, for programmatic callers.
+An API key can do anything a signed-in admin can except manage the
+account: making API keys, changing credentials, setting up, confirming
+or turning off two-factor sign-in and logging out answer `403` to a key
+and need the session cookie, so a leaked key can't make itself a
+replacement before it's revoked. A key can still revoke a key
+(including itself) and read `/api/auth/me`, its keys and the two-factor
+status. When a request carries both, the key is what counts.
 
 ### Pagination
 
@@ -613,10 +621,13 @@ it: a missing sector/system id is a `404`, a missing/invalid query parameter
 or request body (including an out-of-range `limit`/`offset`, a
 non-numeric/non-positive `radius`, or a write endpoint's body failing
 validation — see below) is a `400`, an unmatched URL is a `404`, an
-unsupported HTTP method is a `405`, exceeding a rate limit is a `429`
+unsupported HTTP method is a `405`, a request body over 2 MB
+(`MAX_CONTENT_LENGTH`) is a `413` (`{"error": "request body too large"}`;
+a page answers its own HTML error page), exceeding a rate limit is a `429`
 (`{"error": "rate limit exceeded", "detail": "..."}`, see "Rate limiting"),
-a database that can't be opened is a `503` whose message is just
-`"database unavailable"`, and an unexpected server-side failure is a
+a database that can't be opened (the content database, or the control
+database an admin route checks credentials against) is a `503` whose
+message is just `"database unavailable"`, and an unexpected server-side failure is a
 `500` — the API never falls through to Flask's default HTML error page or
 leaks a stack trace, a connection error or the database's user/host to
 the client (the real detail still reaches Flask's own logger).
