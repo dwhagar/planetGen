@@ -124,7 +124,7 @@ use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
 
-- [ ] **UX.2 Menus sized to what they hold**
+- [ ] **UX.2 Menus sized to what they hold (bug)**
   Boss (2026-10-01): "I want the
   menus to be proportional to the size needed, I noticed on tablet
   screens that menu acts like a phone screen spanning absurdly across
@@ -159,7 +159,7 @@ with `clamp()`.
   (they would need to write the same lock and progress file)? What does
   it say when there's no ETA yet?
 
-- [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls**
+- [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls (bug)**
   Boss (2026-10-01 14:58Z): "clean up the web interface, still have
   buttons overlapping, we have +/- buttons that don't do anything
   anymore, etc. Don't start it yet, but it needs to be done." UX.16
@@ -642,6 +642,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ties in with MAP.66 (the sector as the drill-down's last stage).
   Boss (21:17Z) confirmed it is a fix: "fix it".
 
+- [ ] **MAP.81 Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), first reported in PR #234's thread and left for Boss to decide:
+  the map bookmark shortcuts (`static/bookmarks.js`, lines 23 and 325,
+  MAP.23) use Ctrl+1 to Ctrl+9, which Chrome and Firefox on Windows and
+  Linux take for switching tabs, so the shortcuts don't work there.
+  Done: the bookmark keys use a combination no major browser reserves
+  (for example Alt+Shift+1 to 9, or plain 1 to 9 while the map has
+  focus), the help text says which, and a test pins it. Open question:
+  which keys does Boss want?
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
@@ -1078,7 +1088,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     reference pages, the rogue flag, moon eligibility, and a
     distribution test over 1,000 generated systems.
 
-- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
+- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
   sure they all make sense logically once the new classes are in
   place." After GEN.28. Done: every class's description, composition,
@@ -1104,6 +1114,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only the layers the interrupted run didn't finish (or starts the band
   over cleanly), never the same stars twice, and the strict xfail test
   for it passes.
+
+- [ ] **GEN.34 Gas and ice giants come out too light, so there are no super-Jupiters (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
+  (2026-10-01); the thread held its physics fixes back because Boss
+  hadn't approved them. Not re-measured on current main. The median bulk density of generated giants is about
+  0.25 g/cm³, against 0.69 to 1.64 for real gas and ice giants, so
+  massive giants (super-Jupiters) never appear. Done: giant masses and
+  radii give real densities, super-Jupiters occur, and a test checks the
+  density range over many seeds. Ties in with GEN.28 and GEN.29.
+
+- [ ] **GEN.35 Rocky planets only ever get Class D moons (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
+  (2026-10-01); the thread held its physics fixes back because Boss
+  hadn't approved them. Not re-measured on current main. `generate_moons` applies its moon size rule across the whole
+  size range, so a rocky planet's moons all come out Class D. Done:
+  rocky planets get the moon classes their size and zone allow, with a
+  test over many seeds.
+
+- [ ] **GEN.36 Moon regeneration can produce gas-giant or blacklisted moon classes (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
+  (2026-10-01); the thread held its physics fixes back because Boss
+  hadn't approved them. Not re-measured on current main. `reconcile_zone_and_class` can regenerate a moon as a gas
+  giant or as a class moons are never meant to have. Related to GEN.25
+  (a reclassified moon too large for its planet), but a different
+  failure. Done: a regenerated moon only ever gets a moon-eligible
+  class, with a test.
+
+- [ ] **GEN.37 97% of planets land in the cold zone (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
+  (2026-10-01); the thread held its physics fixes back because Boss
+  hadn't approved them. Not re-measured on current main. Nearly every generated planet is in the cold zone, so hot
+  and temperate planets are rare. Done: the zone mix is measured on
+  current main, the orbit or zone placement is fixed to give a
+  plausible spread, and a test checks the share over many seeds.
+
+- [ ] **GEN.38 Rocky rogue planets over 10,000 km are still classed C (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the GEN.8/GEN.26 thread report (PR #263): Class C's size range
+  tops out at 10,000 km and no other rogue-eligible rocky class exists,
+  so bigger rocky rogues are classed C anyway. Done: they get a class
+  that fits their size. May be solved by GEN.28's S class (rocky
+  super-Earth) if S is rogue-eligible.
+
+- [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
+  positions and star draws use the operating system's random source by
+  design, so even at the same worker count one seed gives a different
+  galaxy each run. This makes TEST.19's goal (the same sectors at any
+  worker count) impossible as written. Done: Boss decides whether
+  generation should be reproducible from its seed; if yes, every draw
+  comes from the seeded generator (per sector, so worker count doesn't
+  matter) and TEST.19 can run; if no, TEST.19 is reworded. Open
+  question for Boss: should a seed reproduce a galaxy?
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -1405,6 +1467,13 @@ clears each one.
   found (loop the test over seeds or runs), the cause is fixed in the
   test or in the code it found, and the test passes on every run tried.
   [infra, ADM]
+
+- [ ] **TEST.72 Intermittent failure in the two-step (2FA) sign-in test (bug)**
+  Found by the bug audit (2026-10-01, `bug-audit.md`): the two-step sign-in test failed once in a full run for PR #263
+  and passed 3 of 3 times alone. Done: the failing case is found (loop
+  it, including near a time-step boundary of the one-time code), the
+  cause is fixed in the test or in the code it found, and the test
+  passes on every run tried. [infra, SEC]
 
 ### Database and migrations
 
