@@ -53,6 +53,13 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 
+# Every pooled connection runs at MySQL 8's default sql_mode (TEST.7) --
+# ONLY_FULL_GROUP_BY and STRICT_TRANS_TABLES included -- on MariaDB too,
+# whose own default leaves ONLY_FULL_GROUP_BY off. A GROUP BY or a
+# truncation only MySQL 8 refuses then fails in a local MariaDB run, not
+# first in CI. Set PLANETGEN_MYSQL_SQL_MODE yourself to try another mode.
+os.environ.setdefault(_db.SQL_MODE_ENV_VAR, _db.STRICT_SQL_MODE)
+
 # The control schema (admin logins, sessions, the work queue's lease) is
 # one fixed name by default (`planetgen_control`), shared by everything on
 # a server. Code that falls back to it (migrateDb seeding, the work queue)

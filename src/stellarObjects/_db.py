@@ -51,6 +51,7 @@ import random
 import re
 import threading
 import time
+import unicodedata
 from types import SimpleNamespace
 from collections import namedtuple
 
@@ -90,7 +91,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 49
+SCHEMA_VERSION = 50
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -335,12 +336,34 @@ def _statement_timeout_sql(config, seconds):
     return f"SESSION MAX_EXECUTION_TIME = {int(float(seconds) * 1000)}"
 
 
+SQL_MODE_ENV_VAR = "PLANETGEN_MYSQL_SQL_MODE"
+"""str: Env var that, when set, pins every pooled connection's session
+`sql_mode` to its value (TEST.7). The test suite sets it to MySQL 8's
+default (`STRICT_SQL_MODE`), so a GROUP BY or a truncation MariaDB's
+looser default forgives fails locally too, not only in CI. Unset (every
+deployment): the server's own `sql_mode` applies."""
+
+STRICT_SQL_MODE = ("ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,"
+                   "ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION")
+"""str: MySQL 8.0's default `sql_mode`, valid on MariaDB too."""
+
+
+def _session_sql_mode():
+    mode = os.environ.get(SQL_MODE_ENV_VAR, "").strip()
+    if mode and not re.fullmatch(r"[A-Za-z_,]+", mode):
+        raise ValueError(f"{SQL_MODE_ENV_VAR} must be a comma-separated list of sql_mode names, not {mode!r}")
+    return mode
+
+
 def _get_pool(config, statement_timeout_s=None):
     key = config._key() if not statement_timeout_s else (config._key(), float(statement_timeout_s))
     if key not in _pools:
         init = "SET time_zone = '+00:00'"
         if statement_timeout_s:
             init += ", " + _statement_timeout_sql(config, statement_timeout_s)
+        sql_mode = _session_sql_mode()
+        if sql_mode:
+            init += f", SESSION sql_mode = '{sql_mode}'"
         _pools[key] = PooledDB(
             creator=pymysql,
             mincached=1,
@@ -459,8 +482,12 @@ may hold their INSERTs back and write them many rows at a time with no
 _ID_BLOCK_MIN = 64
 _ID_BLOCK_MAX = 4096
 _BATCH_ROWS = 500
-"""int: Rows per multi-row INSERT when `Connection.flush` writes a batch,
-which keeps each statement well under `max_allowed_packet`."""
+"""int: Most rows per multi-row INSERT when `Connection.flush` writes a
+batch; fewer when their bytes would pass `max_allowed_packet`."""
+
+_PACKET_MARGIN = 1024
+"""int: Bytes of `max_allowed_packet` `Connection.flush` leaves for the
+protocol around a statement."""
 
 _INSERT_RE = re.compile(
     r"^\s*INSERT\s+INTO\s+`?(\w+)`?\s*\(([^()]*)\)\s*VALUES\s*(\(.*\))\s*;?\s*$",
@@ -478,6 +505,8 @@ _id_blocks = {}
 _id_blocks_off = set()
 _id_lock = threading.Lock()
 _fk_ranks = {}
+_fk_same_rank_parents = {}
+_max_packets = {}
 
 
 def _insert_shape(sql):
@@ -575,11 +604,11 @@ def _table_ranks(conn, key):
     (cached per database for the life of the process). Tables that point
     at each other in a circle (star systems, stars, black holes and
     supernova remnants, through the v39 containment columns) share a
-    rank, and `flush` keeps their first-written order -- the order the
-    insert functions already write parents before children in.
+    rank; `_same_rank_parents` keeps their rows in insertion order (see
+    `Connection._batch_level`).
     """
     ranks = _fk_ranks.get(key)
-    if ranks is None:
+    if ranks is None or key not in _fk_same_rank_parents:
         cur = conn.cursor()
         cur.execute(
             "SELECT TABLE_NAME AS child, REFERENCED_TABLE_NAME AS parent FROM information_schema.KEY_COLUMN_USAGE"
@@ -593,8 +622,32 @@ def _table_ranks(conn, key):
             if child != parent:
                 parents[child].add(parent)
         ranks = _condensed_ranks(parents)
+        _fk_same_rank_parents[key] = {
+            table: {parent for parent in above if ranks[parent] == ranks[table]} for table, above in parents.items()
+        }
         _fk_ranks[key] = ranks
     return ranks
+
+
+def _same_rank_parents(conn, key):
+    """`{table: the tables it refers to that share its rank}` -- non-empty
+    only for the FK cycle's tables (`_table_ranks`)."""
+    _table_ranks(conn, key)
+    return _fk_same_rank_parents[key]
+
+
+def _max_packet(connection):
+    """The server's `max_allowed_packet` for a `Connection` (cached per
+    database), the most bytes one statement may take."""
+    key = connection._config._key() if connection._config is not None else None
+    packet = _max_packets.get(key)
+    if packet is None:
+        cur = connection._conn.cursor()
+        cur.execute("SELECT @@max_allowed_packet AS n")
+        packet = int(cur.fetchone()["n"])
+        if key is not None:
+            _max_packets[key] = packet
+    return packet
 
 
 def _condensed_ranks(parents):
@@ -677,6 +730,7 @@ class Connection:
         self._config = config
         self._batch = None
         self._batch_depth = 0
+        self._batch_levels = {}
         self.prereserved_names = None
         self.deferred_name_confirmations = None
         self._txn_locks = []
@@ -707,7 +761,9 @@ class Connection:
                 shape = shape._replace(columns=["id", *shape.columns], values="(?, " + shape.values[1:], has_id=True)
                 params = (new_id, *params)
             if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
-                self._batch.setdefault((shape.table, tuple(shape.columns), shape.values), []).append(tuple(params))
+                level = self._batch_level(shape.table)
+                self._batch.setdefault((shape.table, tuple(shape.columns), shape.values, level), []).append(
+                    tuple(params))
                 return _InsertedCursor(new_id)
             self.flush()
             if new_id is not None:
@@ -728,24 +784,74 @@ class Connection:
         """
         return _BatchScope(self)
 
+    def _batch_level(self, table):
+        """
+        The round of `flush`'s writes a newly held `table` row goes in:
+        after every held row of a table it refers to that shares its rank
+        (the FK cycle, `_table_ranks`), so those rows keep their insertion
+        order -- a held star never goes ahead of the held system it points
+        at -- while each table's rows still share as few statements as
+        that order allows (every system in round 0, their stars in 1).
+        Always 0 for any other table.
+        """
+        if not self._batch:
+            self._batch_levels = {}
+        levels = self._batch_levels
+        level = levels.get(table, 0)
+        key = self._config._key() if self._config is not None else None
+        for parent in _same_rank_parents(self._conn, key).get(table, ()):
+            if parent in levels:
+                level = max(level, levels[parent] + 1)
+        levels[table] = level
+        return level
+
     def flush(self):
-        """Writes every held-back INSERT, parents before children."""
+        """
+        Writes every held-back INSERT, parents before children (by
+        `_table_ranks`, then `_batch_level`), each statement as many rows
+        as fit both `_BATCH_ROWS` and the server's `max_allowed_packet`.
+
+        Raises:
+            pymysql.err.OperationalError: 1153 for a single row too big to
+                send, before anything of it reaches the server (which would
+                drop the connection instead).
+        """
         batch = self._batch
         if not batch:
             return
         self._batch = {}
         key = self._config._key() if self._config is not None else None
         ranks = _table_ranks(self._conn, key)
-        order = sorted(enumerate(batch.items()), key=lambda item: (ranks.get(item[1][0][0], 0), item[0]))
+        order = sorted(enumerate(batch.items()),
+                       key=lambda item: (ranks.get(item[1][0][0], 0), item[1][0][3], item[0]))
+        budget = _max_packet(self) - _PACKET_MARGIN
         cur = self._conn.cursor()
         start = time.perf_counter()
         statements = 0
-        for _position, ((table, columns, values), rows) in order:
+        for _position, ((table, columns, values, _level), rows) in order:
             head = f"INSERT INTO {table} ({', '.join(columns)}) VALUES "
             values = values.replace("?", "%s")
-            for first in range(0, len(rows), _BATCH_ROWS):
-                chunk = rows[first:first + _BATCH_ROWS]
-                cur.execute(head + ", ".join([values] * len(chunk)), [v for row in chunk for v in row])
+            chunk, size = [], len(head)
+            for row in rows:
+                # A cheap upper bound on the escaped literals -- 32 bytes a
+                # number or NULL, 8 a character of text (4 UTF-8 bytes,
+                # doubled by escaping) -- measured exactly only for a row
+                # that might not fit at all.
+                row_size = len(values) + 2 + 32 * len(row) + 8 * sum(map(len, filter(str.__instancecheck__, row)))
+                if len(head) + row_size > budget:
+                    row_size = len(cur.mogrify(values, row).encode()) + 2
+                    if len(head) + row_size > budget:
+                        raise pymysql.err.OperationalError(
+                            1153, f"A {table} row of {row_size} bytes doesn't fit the server's "
+                                  f"max_allowed_packet ({budget + _PACKET_MARGIN} bytes); nothing was sent for it")
+                if chunk and (len(chunk) >= _BATCH_ROWS or size + row_size > budget):
+                    cur.execute(head + ", ".join([values] * len(chunk)), [v for r in chunk for v in r])
+                    statements += 1
+                    chunk, size = [], len(head)
+                chunk.append(row)
+                size += row_size
+            if chunk:
+                cur.execute(head + ", ".join([values] * len(chunk)), [v for r in chunk for v in r])
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
@@ -1295,15 +1401,16 @@ def insert_system_config(conn, config: SystemConfig) -> int:
     cur = conn.execute(
         """
         INSERT INTO system_configs (
-            markdown, habitable_world, asteroid_belt, large_star, moons,
+            markdown, habitable_world, asteroid_belt, comets, large_star, moons,
             max_planets, planets, star_type, name, age, intelligent_life,
-            binary_system, num_orbits
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            binary_system, wide_binary, num_orbits
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             int(bool(config.MARKDOWN)),
             _tristate(config.HABITABLE_WORLD),
             _tristate(config.ASTEROID_BELT),
+            _tristate(config.COMETS),
             _tristate(config.LARGE_STAR),
             _tristate(config.MOONS),
             _tristate(config.MAX_PLANETS),
@@ -1313,6 +1420,7 @@ def insert_system_config(conn, config: SystemConfig) -> int:
             config.AGE,
             _tristate(config.INTELLIGENT_LIFE),
             _tristate(config.BINARY_SYSTEM),
+            _tristate(config.WIDE_BINARY),
             config.NUM_ORBITS,
         ),
     )
@@ -1367,6 +1475,23 @@ def _rename_comets(conn, where, params, old_host, new_host):
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
             conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
+
+
+SYSTEM_NAME_MAX_LENGTH = 200
+"""int: The longest name a star system or star may be given (TEST.12).
+Every name column is VARCHAR(255), but these names grow after they're
+chosen -- a collision prefixes them ("Omicron ", "Malutki "), and planets,
+moons and comets are named after them (`<name> XII ab`) -- so a 255-character
+system name failed to save, or to rename, with MySQL error 1406."""
+
+
+def check_system_name_length(name):
+    """Raises ValueError when `name` is longer than `SYSTEM_NAME_MAX_LENGTH`.
+    Checked where a name is chosen (`insert_star_system`, the API, the
+    CLI), not in the renames, which also add collision prefixes."""
+    if name is not None and len(name) > SYSTEM_NAME_MAX_LENGTH:
+        raise ValueError(f"a star system or star name may be at most {SYSTEM_NAME_MAX_LENGTH} characters "
+                         f"(this one has {len(name)})")
 
 
 def rename_star_system(conn, star_system_id, new_name):
@@ -1561,7 +1686,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             (base, sector_id),
         )
         row = conn.execute(
-            "SELECT occurrence_count FROM sector_name_registry WHERE base_name = ?", (base,),
+            "SELECT occurrence_count, base_name FROM sector_name_registry WHERE base_name = ?", (base,),
         ).fetchone()
         existing_count = row["occurrence_count"] - 1
 
@@ -1570,7 +1695,10 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             candidate_name = generate_sector_name()
             continue
         if rename is not None:
-            old_name, renamed_to = rename
+            # The holder keeps the spelling it was registered under
+            # (`WHERE name = ?` still finds it: the collation ignores case
+            # and accents).
+            old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
             conn.execute("UPDATE sectors SET name = ? WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
 
         if not _rename_existing_system_for_diminutive(conn, base):
@@ -1652,9 +1780,18 @@ _NAME_BATCH = 500
 """int: Base names per registry statement in `reserve_system_names`."""
 
 
+def _name_key(name):
+    """`name` folded the way the name columns' `utf8mb4_unicode_ci`
+    compares it -- case, accents and trailing spaces ignored ("Vega",
+    "VEGA" and "Véga" are one name to the registries), so the Python side
+    groups names exactly as the unique keys do."""
+    decomposed = unicodedata.normalize("NFKD", name)
+    return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold().rstrip(" ")
+
+
 def _registry_rows(conn, bases):
-    """`system_name_registry` rows for `bases`, keyed by `str.casefold()`
-    of their stored base name (the column's collation ignores case)."""
+    """`system_name_registry` rows for `bases`, keyed by `_name_key` of
+    their stored base name."""
     rows = {}
     for first in range(0, len(bases), _NAME_BATCH):
         chunk = bases[first:first + _NAME_BATCH]
@@ -1663,7 +1800,7 @@ def _registry_rows(conn, bases):
             f"first_object_id FROM system_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
             tuple(chunk),
         ).fetchall():
-            rows[row["base_name"].casefold()] = row
+            rows[_name_key(row["base_name"])] = row
     return rows
 
 
@@ -1714,15 +1851,15 @@ def reserve_system_names(conn, candidate_names):
     while todo:
         counts = {}
         for i in todo:
-            counts[names[i].casefold()] = counts.get(names[i].casefold(), 0) + 1
+            counts[_name_key(names[i])] = counts.get(_name_key(names[i]), 0) + 1
         spelled = {}
         for i in todo:
-            spelled.setdefault(names[i].casefold(), names[i])
+            spelled.setdefault(_name_key(names[i]), names[i])
         keys = sorted(counts)
         sector_hits = set()
         for first in range(0, len(keys), _NAME_BATCH):
             chunk = [spelled[key] for key in keys[first:first + _NAME_BATCH]]
-            sector_hits.update(row["base_name"].casefold() for row in conn.execute(
+            sector_hits.update(_name_key(row["base_name"]) for row in conn.execute(
                 f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
                 tuple(chunk),
             ).fetchall())
@@ -1736,16 +1873,23 @@ def reserve_system_names(conn, candidate_names):
             )
         rows = _registry_rows(conn, [spelled[key] for key in keys])
 
-        retry = []
+        # Keys the collation still counts as one name (a spelling
+        # `_name_key` folds differently) land on one registry row: they
+        # are one name's holders, counted together.
+        by_row = {}
         for key in keys:
             row = rows.get(key)
-            if row is None:  # stored under a spelling casefold() doesn't match
+            if row is None:  # stored under a spelling _name_key() doesn't match
                 row = conn.execute(
                     "SELECT id, base_name, occurrence_count, diminutive_index, first_star_system_id, "
                     "first_object_table, first_object_id FROM system_name_registry WHERE base_name = ?",
                     (spelled[key],),
                 ).fetchone()
-            uses = [i for i in todo if names[i].casefold() == key]
+            by_row.setdefault(row["id"], (row, set()))[1].add(key)
+
+        retry = []
+        for row, row_keys in by_row.values():
+            uses = [i for i in todo if _name_key(names[i]) in row_keys]
             existing_before = row["occurrence_count"] - len(uses)
             diminutive_index = row["diminutive_index"]
             holder = "db" if existing_before > 0 else None
@@ -1761,12 +1905,14 @@ def reserve_system_names(conn, candidate_names):
                     # old name: the holder may carry a diminutive (an
                     # earlier system-vs-sector collision), which the
                     # Greek/Roman decoration replaces; uniqueness holds
-                    # either way.
+                    # either way. The holder keeps its own spelling
+                    # ("Vega" -> "Alpha Vega" when "vega" arrives).
                     if holder == "db":
-                        _rename_registry_holder(conn, row, rename[1])
+                        _rename_registry_holder(
+                            conn, row, resolve_greek_roman_collision(row["base_name"], existing_before + offset)[1][1])
                     elif holder is not None:
-                        results[holder][0] = rename[1]
-                if key in sector_hits:
+                        results[holder][0] = resolve_greek_roman_collision(names[holder], existing_before + offset)[1][1]
+                if row_keys & sector_hits:
                     prefix, diminutive_index = resolve_diminutive(diminutive_index)
                     if prefix is None:
                         names[i] = _regenerate_star_name()
@@ -1813,7 +1959,7 @@ def confirm_system_names(conn, confirmations):
     """
     by_base = {}
     for base, system_id, table, object_id, diminutive_index in confirmations:
-        key = base.casefold()
+        key = _name_key(base)
         if key in by_base:
             by_base[key][4] = diminutive_index
         else:
@@ -3101,6 +3247,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # Name-uniqueness (v24, nameUniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
     # object matches what's stored.
+    check_system_name_length(star_system.name)
     name_base, diminutive_index = _take_name(conn, star_system)
     star_system.assign_names(star_system.name)
     _designate_comets(star_system)
@@ -5065,7 +5212,8 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
     sector -- `sector_id`/`position` are left `None`) in one transaction.
     The single-system counterpart to `save_sector`, for `systemGen.py`
     (which, unlike `sectorGen.py`, generates one system with no natural
-    sector placement of its own).
+    sector placement of its own). Retried like `save_sector` on a
+    deadlock or lock wait timeout (several one-off systems saved at once).
 
     Args:
         star_system (StarSystem): The generated system to persist.
@@ -5076,13 +5224,8 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
     Returns:
         int: The new `star_systems.id`.
     """
-    conn = get_connection(config)
-    try:
-        with conn:
-            star_system_id = insert_star_system(conn, star_system, system_config)
-        return star_system_id
-    finally:
-        conn.close()
+    names = [(star_system, star_system.name)]
+    return _save_with_retries(config, names, lambda conn: insert_star_system(conn, star_system, system_config))
 
 
 RETRYABLE_ERRORS = (1213, 1205)
@@ -5135,20 +5278,40 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
     Returns:
         int: The new `sectors.id`.
     """
-    names = _sector_names(sector)
+    return _save_with_retries(config, _sector_names(sector),
+                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position))
+
+
+def _save_with_retries(config, names, insert):
+    """
+    Runs `insert(conn)` in one READ COMMITTED transaction and returns its
+    result, starting over (up to `SECTOR_SAVE_ATTEMPTS` times, with
+    `names` -- `(object, generated name)` pairs -- restored) on a deadlock
+    or lock wait timeout. Shared by `save_sector` and `save_system`. When
+    it finally fails, the names are restored too: the rollback dropped the
+    reservations behind any renaming, and a later save of the same objects
+    must start from their generated names (TEST.15).
+
+    READ COMMITTED matters for the name registry too, not only for gap
+    locks: a writer that waited on another's registry row must then see
+    that writer's new system to rename it "Alpha ..." (a REPEATABLE READ
+    snapshot taken before the wait doesn't).
+    """
     for attempt in range(1, SECTOR_SAVE_ATTEMPTS + 1):
         conn = get_connection(config)
         try:
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
             with conn:
-                return insert_sector(conn, sector, galaxy_position=galaxy_position)
-        except pymysql.err.OperationalError as exc:
-            if not exc.args or exc.args[0] not in RETRYABLE_ERRORS or attempt == SECTOR_SAVE_ATTEMPTS:
-                raise
-            log.debug(f"Sector save hit MySQL error {exc.args[0]} ({exc.args[1] if len(exc.args) > 1 else ''}); "
-                        f"retrying ({attempt}/{SECTOR_SAVE_ATTEMPTS - 1}).")
+                return insert(conn)
+        except Exception as exc:
+            retry = (isinstance(exc, pymysql.err.OperationalError) and exc.args
+                     and exc.args[0] in RETRYABLE_ERRORS and attempt < SECTOR_SAVE_ATTEMPTS)
             for obj, name in names:
                 obj.name = name
+            if not retry:
+                raise
+            log.debug(f"Save hit MySQL error {exc.args[0]} ({exc.args[1] if len(exc.args) > 1 else ''}); "
+                      f"retrying ({attempt}/{SECTOR_SAVE_ATTEMPTS - 1}).")
             time.sleep(random.uniform(0.05, 0.25) * attempt)
         finally:
             conn.close()
@@ -5214,6 +5377,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "markdown": bool(row["markdown"]),
         "habitable_world": _tristate_from_db(row["habitable_world"]),
         "asteroid_belt": _tristate_from_db(row["asteroid_belt"]),
+        "comets": _tristate_from_db(row["comets"]),
         "large_star": _tristate_from_db(row["large_star"]),
         "moons": _tristate_from_db(row["moons"]),
         "max_planets": _tristate_from_db(row["max_planets"]),
@@ -5223,6 +5387,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "age": row["age"],
         "intelligent_life": _tristate_from_db(row["intelligent_life"]),
         "binary_system": _tristate_from_db(row["binary_system"]),
+        "wide_binary": _tristate_from_db(row["wide_binary"]),
         "num_orbits": row["num_orbits"],
         "slots": slots,
     })
@@ -6676,6 +6841,106 @@ def _has_constraint(conn, table, constraint_name):
     return row is not None
 
 
+def _split_top_level(text):
+    """`text` split at the commas outside parentheses and quotes -- the
+    clauses of one `ALTER TABLE`."""
+    parts, depth, quote, start = [], 0, None, 0
+    for index, char in enumerate(text):
+        if quote:
+            if char == quote:
+                quote = None
+        elif char in "'\"`":
+            quote = char
+        elif char == "(":
+            depth += 1
+        elif char == ")":
+            depth -= 1
+        elif char == "," and depth == 0:
+            parts.append(text[start:index])
+            start = index + 1
+    parts.append(text[start:])
+    return [part.strip() for part in parts if part.strip()]
+
+
+_ALTER_RE = re.compile(r"^\s*ALTER\s+TABLE\s+`?(\w+)`?\s+(.*?)\s*;?\s*$", re.IGNORECASE | re.DOTALL)
+_NAME = r"`?(\w+)`?"
+_CLAUSE_GUARDS = (
+    # (clause pattern, whether the clause still has work to do)
+    (re.compile(rf"ADD\s+COLUMN\s+{_NAME}", re.I), lambda conn, table, m: not _has_column(conn, table, m[1])),
+    (re.compile(rf"ADD\s+(?:UNIQUE\s+|FULLTEXT\s+|SPATIAL\s+)?(?:KEY|INDEX)\s+{_NAME}", re.I),
+     lambda conn, table, m: not _has_index(conn, table, m[1])),
+    (re.compile(r"ADD\s+PRIMARY\s+KEY", re.I), lambda conn, table, m: not _has_index(conn, table, "PRIMARY")),
+    (re.compile(rf"ADD\s+CONSTRAINT\s+{_NAME}", re.I), lambda conn, table, m: not _has_constraint(conn, table, m[1])),
+    (re.compile(rf"DROP\s+COLUMN\s+{_NAME}", re.I), lambda conn, table, m: _has_column(conn, table, m[1])),
+    (re.compile(rf"DROP\s+(?:INDEX|KEY)\s+{_NAME}", re.I), lambda conn, table, m: _has_index(conn, table, m[1])),
+    (re.compile(rf"DROP\s+(?:FOREIGN\s+KEY|CHECK|CONSTRAINT)\s+{_NAME}", re.I),
+     lambda conn, table, m: _has_constraint(conn, table, m[1])),
+    (re.compile(rf"(?:CHANGE\s+COLUMN|RENAME\s+COLUMN)\s+{_NAME}\s+(?:TO\s+)?{_NAME}", re.I),
+     lambda conn, table, m: m[1].lower() == m[2].lower() or _has_column(conn, table, m[1])),
+)
+_TABLE_OPTION_RE = re.compile(r"^(ALGORITHM|LOCK)\s*=", re.IGNORECASE)
+
+
+def _rerunnable_sql(conn, sql):
+    """
+    `sql` as a migration step may safely run it again (TEST.8, TEST.9):
+    an `ALTER TABLE` loses each clause whose work is already there (a
+    column, index or constraint it adds that exists, or one it drops that
+    is gone), and a plain `CREATE TABLE`/`DROP TABLE` gains `IF NOT
+    EXISTS`/`IF EXISTS`. `None` when nothing is left to run.
+
+    MySQL commits DDL as it goes, so a step that stopped halfway leaves its
+    first changes behind, and a database migrated from an old version
+    already has every brand-new table in its newest shape (`_ensure_schema`
+    makes them before the steps run). Either way a step meets some of its
+    own work done, which a bare `ADD COLUMN` would refuse.
+    """
+    match = _ALTER_RE.match(sql)
+    if match:
+        table, kept, actions = match[1], [], 0
+        for clause in _split_top_level(match[2]):
+            if _TABLE_OPTION_RE.match(clause):
+                kept.append(clause)
+                continue
+            for pattern, needed in _CLAUSE_GUARDS:
+                found = pattern.match(clause)
+                if found:
+                    if needed(conn, table, found):
+                        kept.append(clause)
+                        actions += 1
+                    break
+            else:
+                kept.append(clause)
+                actions += 1
+        return f"ALTER TABLE {table} {', '.join(kept)}" if actions else None
+    sql = re.sub(r"^(\s*CREATE\s+TABLE\s+)(?!IF\s+NOT\s+EXISTS)", r"\1IF NOT EXISTS ", sql, flags=re.I)
+    sql = re.sub(r"^(\s*DROP\s+TABLE\s+)(?!IF\s+EXISTS)", r"\1IF EXISTS ", sql, flags=re.I)
+    return re.sub(r"^(\s*)INSERT\s+INTO\s+schema_migrations\b", r"\1INSERT IGNORE INTO schema_migrations", sql,
+                  flags=re.I)
+
+
+class _MigrationConnection:
+    """
+    The connection each migration step runs on: `execute` passes every
+    statement through `_rerunnable_sql` first, so a step can run against
+    a database that already has part of its work -- after a crash halfway
+    through it, or twice -- and finish the job rather than fail. Anything
+    else goes to the real `Connection`.
+    """
+
+    def __init__(self, conn):
+        self._conn = conn
+
+    def execute(self, sql, params=()):
+        rerunnable = _rerunnable_sql(self._conn, sql)
+        if rerunnable is None:
+            return self._conn.execute("DO 0")
+        return self._conn.execute(rerunnable, params)
+
+    def __getattr__(self, name):
+        return getattr(self._conn, name)
+
+
 def _migrate_v22_to_v23(conn):
     """
     Adds v23's wiki-publishing link columns -- see `schema.sql`'s header
@@ -7456,16 +7721,57 @@ def _drop_checks_mentioning(conn, table, column):
     automatic name: `<table>_chk_<n>` on MySQL, the column's own name on
     MariaDB).
     """
+    # MariaDB's unnamed table CHECKs are CONSTRAINT_<n> per table, so its
+    # rows must match by table too (only its check_constraints has one).
+    same_table = " AND cc.table_name = tc.table_name" if _is_mariadb_connection(conn) else ""
     rows = conn.execute(
         "SELECT tc.constraint_name AS name FROM information_schema.table_constraints tc"
         " JOIN information_schema.check_constraints cc"
         "   ON cc.constraint_schema = tc.constraint_schema AND cc.constraint_name = tc.constraint_name"
+        + same_table +
         " WHERE tc.table_schema = DATABASE() AND tc.table_name = ? AND tc.constraint_type = 'CHECK'"
         "   AND cc.check_clause LIKE ?",
         (table, f"%{column}%"),
     ).fetchall()
     for name in {row["name"] for row in rows}:
-        conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT `{name}`")
+        definition = _mariadb_column_check_definition(conn, table, name)
+        if definition is not None:
+            # MariaDB keeps an inline CHECK with its column, and DROP
+            # CONSTRAINT can't reach it (error 1091); redefining the
+            # column without it drops it (TEST.8).
+            conn.execute(f"ALTER TABLE {table} MODIFY {definition}")
+        else:
+            conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT `{name}`")
+
+
+def _mariadb_column_check_definition(conn, table, name):
+    """The definition of column `name` without its inline CHECK, when
+    `name` is a MariaDB column-level CHECK (whose name is its column's);
+    `None` for any other constraint."""
+    row = conn.execute(
+        "SELECT 1 FROM information_schema.check_constraints"
+        " WHERE constraint_schema = DATABASE() AND table_name = ? AND constraint_name = ? AND level = 'Column'",
+        (table, name),
+    ).fetchone() if _is_mariadb_connection(conn) else None
+    if row is None:
+        return None
+    create = conn.execute(f"SHOW CREATE TABLE {table}").fetchone()["Create Table"]
+    for line in create.splitlines():
+        line = line.strip().rstrip(",")
+        if line.startswith(f"`{name}` "):
+            start = line.index(" CHECK (")
+            depth = 0
+            for end in range(start + len(" CHECK "), len(line)):
+                depth += {"(": 1, ")": -1}.get(line[end], 0)
+                if depth == 0:
+                    return (line[:start] + line[end + 1:]).rstrip()
+    raise ValueError(f"no inline CHECK on {table}.{name} in SHOW CREATE TABLE")
+
+
+def _is_mariadb_connection(conn):
+    """Whether `conn` is to a MariaDB server (whose information_schema
+    has columns MySQL's lacks, such as `check_constraints.level`)."""
+    return "mariadb" in conn.execute("SELECT VERSION() AS v").fetchone()["v"].lower()
 
 
 def _migrate_v37_to_v38(conn):
@@ -7865,6 +8171,73 @@ def _migrate_v48_to_v49(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (49)")
 
 
+_V50_PLACEHOLDER_DEFAULTS = {
+    "planets": ("orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+                "rotation_period_hours", "position_x_km", "position_y_km", "position_z_km",
+                "orbital_speed_kms", "min_update_interval_years"),
+    "moons": ("orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
+              "rotation_period_hours", "position_x_km", "position_y_km", "position_z_km",
+              "orbital_speed_kms", "min_update_interval_years"),
+    "stars": ("galactic_orbital_speed_kms", "galactic_orbital_period_gy", "galactic_orbital_phase_deg",
+              "galactic_min_update_interval_years"),
+    "nebulae": ("nebula_class", "dominant_species", "density_cm3", "temperature_k", "extinction_av"),
+    "supernova_remnants": ("remnant_class", "dominant_species", "density_cm3", "temperature_k", "extinction_av"),
+    "asteroid_fields": ("field_class", "composition_family"),
+}
+"""dict: `{table: columns}` the v9-v13 and v38 steps added `NOT NULL`
+with a placeholder DEFAULT (to fill existing rows) and never dropped it;
+`schema.sql` gives them none."""
+
+_V50_SET_NULL_FOREIGN_KEYS = (
+    ("nebulae", "fk_nebulae_sector"),
+    ("asteroid_fields", "fk_asteroid_fields_sector"),
+)
+"""tuple: `(table, constraint)` of the `sector_id` foreign keys v16/v17
+created `ON DELETE CASCADE`; `schema.sql` has had them `ON DELETE SET
+NULL` since v18 with no step changing an existing database."""
+
+
+def _migrate_v49_to_v50(conn):
+    """
+    Brings a database migrated from an old version to exactly the shape
+    `schema.sql` gives a new one (TEST.8, which migrates every released
+    schema and compares) -- see `schema.sql`'s "v50" header note: drops
+    the placeholder DEFAULTs in `_V50_PLACEHOLDER_DEFAULTS`, and remakes
+    the two `_V50_SET_NULL_FOREIGN_KEYS` as `ON DELETE SET NULL`, so
+    deleting a sector keeps its nebulae and asteroid fields (unplaced)
+    there too. Checks each first; a database that never had them is
+    untouched. Also adds `system_configs.comets` and `.wide_binary`, so a
+    stored recipe keeps `--comets`/`--wide-binary` (TEST.12 found both
+    dropped on save: regenerating from the stored config lost them).
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table, columns in _V50_PLACEHOLDER_DEFAULTS.items():
+        rows = conn.execute(
+            "SELECT column_name AS name FROM information_schema.columns WHERE table_schema = DATABASE()"
+            f" AND table_name = ? AND column_default IS NOT NULL AND column_name IN ({', '.join('?' * len(columns))})",
+            (table, *columns),
+        ).fetchall()
+        if rows:
+            conn.execute(f"ALTER TABLE {table} "
+                         + ", ".join(f"ALTER COLUMN {row['name']} DROP DEFAULT" for row in rows))
+    for table, constraint in _V50_SET_NULL_FOREIGN_KEYS:
+        row = conn.execute(
+            "SELECT delete_rule AS delete_rule FROM information_schema.referential_constraints"
+            " WHERE constraint_schema = DATABASE() AND table_name = ? AND constraint_name = ?",
+            (table, constraint),
+        ).fetchone()
+        if row is not None and row["delete_rule"] != "SET NULL":
+            conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY {constraint}")
+            conn.execute(f"ALTER TABLE {table} ADD CONSTRAINT {constraint} "
+                         "FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL")
+    conn.execute("ALTER TABLE system_configs"
+                 " ADD COLUMN comets TINYINT(1) CHECK (comets IN (0, 1)) AFTER asteroid_belt,"
+                 " ADD COLUMN wide_binary TINYINT(1) CHECK (wide_binary IN (0, 1)) AFTER binary_system")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (50)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -7973,6 +8346,7 @@ def _migration_steps():
         (47, _migrate_v46_to_v47),
         (48, _migrate_v47_to_v48),
         (49, _migrate_v48_to_v49),
+        (50, _migrate_v49_to_v50),
     ]
 
 
@@ -8081,7 +8455,7 @@ def migrate_database(config=None, on_step=None):
         for number, (target, step) in enumerate(pending, start=1):
             if on_step is not None:
                 on_step(number, len(pending), version, target)
-            step(conn)
+            step(_MigrationConnection(conn))
             activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
                               from_version=version, to_version=target)
             version = target

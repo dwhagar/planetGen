@@ -893,6 +893,15 @@
 --   backfill has reached, the dimmest luminosity its stars have been
 --   drawn down to. `_migrate_v48_to_v49` creates it empty.
 --
+-- v50: `system_configs` gains `comets` and `wide_binary`, so a stored
+--   recipe keeps `--comets`/`--wide-binary` (both were dropped on save).
+--   And a database migrated from an old version is brought
+--   to exactly this file's (TEST.8 migrates every released schema and
+--   compares). `_migrate_v49_to_v50` drops the placeholder DEFAULTs the
+--   v9-v13 and v38 steps left on NOT NULL columns, and remakes
+--   `nebulae`/`asteroid_fields`' `sector_id` foreign keys, still ON DELETE
+--   CASCADE where v16/v17 made them, as ON DELETE SET NULL.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1105,6 +1114,7 @@ CREATE TABLE IF NOT EXISTS system_configs (
     markdown          TINYINT(1) NOT NULL DEFAULT 0 CHECK (markdown IN (0, 1)),
     habitable_world   TINYINT(1) CHECK (habitable_world IN (0, 1)),
     asteroid_belt     TINYINT(1) CHECK (asteroid_belt IN (0, 1)),
+    comets            TINYINT(1) CHECK (comets IN (0, 1)),          -- v50
     large_star        TINYINT(1) CHECK (large_star IN (0, 1)),
     moons             TINYINT(1) CHECK (moons IN (0, 1)),
     max_planets       TINYINT(1) CHECK (max_planets IN (0, 1)),
@@ -1114,6 +1124,7 @@ CREATE TABLE IF NOT EXISTS system_configs (
     age               VARCHAR(16) CHECK (age IN ('young', 'old')),
     intelligent_life  TINYINT(1) CHECK (intelligent_life IN (0, 1)),
     binary_system     TINYINT(1) CHECK (binary_system IN (0, 1)),
+    wide_binary       TINYINT(1) CHECK (wide_binary IN (0, 1)),     -- v50
     num_orbits        INT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
