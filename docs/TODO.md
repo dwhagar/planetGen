@@ -102,8 +102,8 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
    MAP.2 shipped in PR #234).
 3. **Generation estimates and progress:** done (PERF.3 and PERF.10 in
    PR #238, PERF.4 and PERF.9 in PR #258).
-4. **Admin editing:** ADM.1 and its subitems, on the validate module
-   (ADM.5, done in PR #235).
+4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
+   and ADM.7 in PR #260).
 
 Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
 user accounts (USR.1,
@@ -454,63 +454,6 @@ MAP.30) shipped in PR #234.
 
 ## ADM: Admin tools
 
-- [ ] **ADM.1 Admin editing: overrides, delete and regenerate**
-  Boss asked for these on 2026-10-01 (quoted where it matters). None is
-  designed yet; the open questions are listed in each subitem.
-
-  - [ ] **ADM.6 Admin override of a planet's or moon's class**
-    Boss: "it should
-    have the option to do 'recommended' which are other classes that fit
-    within the given space or I can 'force' which means it sets it to what
-    I want no matter what. During validation orbital paths in the way of a
-    class change get recalculated and moved around until the system is
-    stable. This should be recursive, so that say a moon is changed, then
-    that lunar system is changed, then it goes out from there to recheck
-    all the planets, etc. It does this until the system can validate."
-    "The system will always try to have a stable system and will warn the
-    user if that isn't possible." Done: an admin control on a planet or
-    moon offering a "recommended" list (classes that fit its current
-    space) and a "force" choice; after a change, revalidate outward
-    (moon, its lunar system, then every planet of the star system) with
-    ADM.5's functions, re-spacing orbits until it validates, and warn
-    the admin when no stable layout exists. Open questions: does a forced
-    change that can't be made stable still save (with the warning), or is
-    it rolled back? May revalidation remove other bodies, or only move
-    them?
-
-  - [ ] **ADM.7 Admin override of a star**
-    Boss: "that will change the entire
-    system but it will change the system to have as many objects as the
-    original system had just their orbital positions will change, caveat
-    there is if there are too many objects for the star (say a large star
-    with a lot of objects changes to a small star that does not have
-    orbital space, then it'll be truncated." Done: an admin control to
-    change a system's star; the system keeps its planets, moons and belts
-    (same count), orbits are re-spaced for the new star with ADM.5's
-    validation, and outer objects are dropped when the new star lacks the
-    room, telling the admin what was removed. Open questions: do the
-    planets keep their classes, or are classes re-checked against the new
-    star's zones (which could chain into ADM.6's revalidation)? Does
-    this cover companion stars in multiple systems too?
-
-  - [ ] **ADM.8 Delete and regenerate buttons on everything, sector down**
-    Boss: "I also want a delete function across the board, so I can
-    manually remove a system. With that a regen button ... regenerate a
-    system, phenomena, planet, asteroid belt, sector, basically anything
-    from a sector to anything in a sector should have a delete and regen
-    buttons when admin is logged in." `DELETE /api/sectors/<id>` and
-    `DELETE /api/systems/<id>` exist (`src/html/api/routes.py`); there is
-    nothing for a single phenomenon, planet, moon or belt, and no
-    regenerate for any of them. Done: admin-only Delete and Regenerate
-    buttons on the sector, system, phenomenon, planet and asteroid belt
-    pages (Boss's list; moons are an open question), with a confirm step,
-    an audit-log entry, and ADM.5's validation after a single body is
-    removed or regenerated. Open questions: does regenerating a sector
-    keep manual overrides (ADM.6 and ADM.7), renamed objects and
-    placed facilities (DB.1), or replace everything? Does regenerating
-    keep the object's name? Does deleting a sector leave its slot
-    unfilled (so it can be filled again) or mark it empty?
-
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
   Boss (2026-10-01): "In generation screen each section should be
   collapsible and generate around a sector should have the option to
@@ -562,6 +505,18 @@ clears each one.
 - [ ] **TEST.5 Real 4 pc in boundary tests**
   `test_bughunt_galaxy_boundaries.py` uses `EDGE_PC = 10.0`; run it at
   the real 4 pc sector edge too. [infra, GEN]
+
+- [ ] **TEST.69 Intermittent failure in the colony test**
+  `test_web_facilities.py::test_real_colony_makes_its_world_inhabited`
+  failed once in a full parallel run on main plus ADM.6 and ADM.7, then
+  passed in 9 isolated and parallel reruns, bare main included (reported
+  by the ADM.1 thread, 2026-10-01). It likely depends on the randomly
+  generated system: `_system_with_terrestrial` or one of its asserts
+  (the other planets' `inhabited` matching `life_stage`, or the
+  `habitable` flag staying the same) fails on some draws. Done: the
+  failing draw is found (loop the test over seeds), the cause is fixed
+  in the test or in the code it found, and the test passes on every
+  seed tried. [infra, web]
 
 ### Database and migrations
 
