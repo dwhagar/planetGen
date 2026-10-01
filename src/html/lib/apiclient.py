@@ -835,6 +835,50 @@ def admin_generation_stats(cookie_header):
     return body
 
 
+def admin_work(cookie_header, limit=None, offset=None):
+    """`GET /api/admin/work?limit=&offset=` -- the work queue's state and
+    one page of job trees (ADM.10)."""
+    query = _build_query({"limit": limit, "offset": offset})
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work?{query}", cookie_header=cookie_header)
+    return body
+
+
+def admin_work_tree(cookie_header, node_id):
+    """`GET /api/admin/work/<id>` -- the whole job tree holding a node."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}",
+                                              cookie_header=cookie_header)
+    return body
+
+
+def admin_work_control(cookie_header, node_id, action):
+    """`POST /api/admin/work/<id>/control` -- pause, resume or cancel a
+    node and its subtree. Returns whether it took."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/control",
+                                              cookie_header=cookie_header, json_body={"action": action})
+    return body["ok"]
+
+
+def admin_work_delete(cookie_header, node_id):
+    """`POST /api/admin/work/<id>/delete` -- deletes a finished tree."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/delete",
+                                              cookie_header=cookie_header)
+    return body["ok"]
+
+
+def admin_work_queue(cookie_header, action):
+    """`POST /api/admin/work/queue` -- pauses or resumes the whole queue."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/queue", cookie_header=cookie_header,
+                                              json_body={"action": action})
+    return body["ok"]
+
+
+def admin_work_clear_lease(cookie_header):
+    """`POST /api/admin/work/lease/clear` -- frees a stale lease; returns
+    the holder it cleared, or `None`."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/lease/clear", cookie_header=cookie_header)
+    return body["cleared"]
+
+
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):
     """`POST /api/admin/lockouts/lift` -- one lockout, or every one with
     `lift_all`. Returns how many were lifted."""

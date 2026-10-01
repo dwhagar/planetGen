@@ -2990,3 +2990,66 @@ body.app {
 .nav-bookmarks {
   margin-top: 0.75rem;
 }
+
+/* The admin work queue (ADM.10): job trees as nested details, each node's
+   facts as a wrapping row of label/value pairs. */
+.queue-jobs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.queue-job {
+  border-top: 1px solid var(--border);
+  padding: 0.5rem 0;
+}
+
+.queue-node {
+  border-left: 2px solid var(--border);
+  margin: 0.4rem 0 0.4rem 0.25rem;
+  padding-left: 0.75rem;
+  min-width: 0;
+}
+
+.queue-tasks {
+  list-style: none;
+  margin: 0.4rem 0;
+  padding: 0;
+}
+
+.queue-tasks li {
+  padding: 0.15rem 0;
+  overflow-wrap: anywhere;
+}
+
+.queue-node > summary {
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.queue-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0.4rem 0;
+}
+
+.queue-facts dt {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.queue-facts dd {
+  margin: 0;
+}
+
+.queue-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.badge.job-paused,
+.badge.job-cancelled {
+  border-style: dashed;
+}
