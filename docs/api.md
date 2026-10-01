@@ -216,7 +216,8 @@ connectivity to that specific schema rather than the default one.
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
   `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...},
-  "clouds": [...], "stars": [...]}}, "edge_pc": ..., "has_shape": ...}`:
+  "clouds": [...], "stars": [...], "generated": [...]}}, "edge_pc": ...,
+  "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
@@ -235,9 +236,18 @@ connectivity to that specific schema rather than the default one.
   `{type, id, name, descriptor, class, radius_pc, x, y, z}`. `stars`
   lists the tile's pre-placed bright stars (`bright_stars`, filled or
   not; `queryDb.galaxy_bright_stars_in_box`), most luminous first, at
-  most 400: `{id, x, y, z, luminosity_sol, temperature_k, star_type,
-  yerkes_class, ring_index, layer_index, ring_slot_index, system_id}`
-  (`system_id` is `null` until the star's sector is filled). Predicted density isn't
+  most 400: `{id, x, y, z, luminosity_sol, temperature_k, radius_sol,
+  star_type, yerkes_class, ring_index, layer_index, ring_slot_index,
+  system_id}` (`system_id` is `null` until the star's sector is filled).
+  `generated` lists the stars of the tile's generated systems (by their
+  sector's center; `queryDb.galaxy_generated_stars_in_box`) at or above
+  the tile level's luminosity floor (`queryDb.generated_star_floor_sol`:
+  every star at level 12, four times brighter per coarser level, none
+  past 1,000 L☉), most luminous first, at most 1,000, read from at most
+  1,500 of its sectors (a hashed sample past that); a star already in
+  `stars` isn't repeated: `{id, name, x, y, z, luminosity_sol,
+  temperature_k, radius_sol, star_type, ring_index, layer_index,
+  ring_slot_index, system_id}` (`id` is the `stars` row). Predicted density isn't
   served: the page evaluates the galaxy's shape itself
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
