@@ -159,6 +159,39 @@ def _add_bright_stars(config, count=300):
         conn.close()
 
 
+def _add_population(config):
+    """One spacefaring species on the first generated planet, its polity
+    and the systems it holds, as `generate.py population` would write
+    them (a real pass makes civilizations too rarely to rely on here),
+    so the population pages have something to show."""
+    conn = _db.get_connection(config)
+    try:
+        if conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]:
+            return
+        planet = conn.execute(
+            "SELECT id, star_system_id FROM planets WHERE id NOT IN (SELECT homeworld_planet_id FROM species) "
+            "ORDER BY id LIMIT 1").fetchone()
+        conn.execute(
+            "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
+            "climate, size, civilization_age_years, era, spacefaring) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            ("Velarix", planet["id"], planet["star_system_id"], "chlorophyll", "technological_civilization",
+             "medium", "temperate", "medium", 60000.0, "established", 1),
+        )
+        species_id = conn.execute("SELECT id FROM species WHERE homeworld_planet_id = ?",
+                                  (planet["id"],)).fetchone()["id"]
+        conn.execute(
+            "INSERT INTO polities (name, species_id, capital_system_id, government, color, reach_ly) "
+            "VALUES (?, ?, ?, ?, ?, ?)",
+            ("Velarix Concord", species_id, planet["star_system_id"], "Concord", "#3366cc", 40.0),
+        )
+        polity_id = conn.execute("SELECT id FROM polities WHERE species_id = ?", (species_id,)).fetchone()["id"]
+        conn.execute("REPLACE INTO system_owners (star_system_id, polity_id, distance_ly) VALUES (?, ?, 0)",
+                     (planet["star_system_id"], polity_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 @pytest.fixture(scope="module")
 def site_db(_mysql_server_available):
     """A throwaway database with a small generated galaxy in it, for the
@@ -187,6 +220,7 @@ def site_db(_mysql_server_available):
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
+            _add_population(config)
         finally:
             random.setstate(state)
         yield config
@@ -307,6 +341,8 @@ def sample_params(site_app, sample_job):
         "name": "index",  # web.old_page: /index.py, an old CGI URL
         "type_slug": "nebula",  # web.class_type_page / web.class_page
         "code": "D",
+        "species_id": items("/api/species")[0]["id"],
+        "polity_id": items("/api/polities")[0]["id"],
     }
 
 

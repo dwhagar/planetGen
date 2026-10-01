@@ -54,7 +54,7 @@ from api.limiter import page_limit  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402
-from .helpers import SECTIONS, current_admin, page_url  # noqa: E402
+from .helpers import current_admin, page_url, visible_sections  # noqa: E402
 
 # `default-src 'self'` covers scripts, styles, images, fonts and fetch():
 # the pages only load same-origin `static/` files, the map pages build
@@ -110,7 +110,7 @@ def _template_globals():
     return {
         "site_name": load_config()["site_name"],
         "site_version": STATIC_VERSION,
-        "sections": SECTIONS,
+        "sections": visible_sections,
         "static_url": static_url,
         "page_url": page_url,
         "current_admin": current_admin,
@@ -128,6 +128,7 @@ from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, sector_page  # noqa: E402,F401 -- /nav, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
+from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
 from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 

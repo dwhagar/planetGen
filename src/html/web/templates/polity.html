@@ -1,0 +1,41 @@
+{#- One polity and its systems (/polities/<id>, web/population_pages.py). -#}
+{% extends "base.html" %}
+{% block subhead %}
+<p class="badges">
+  {%- if polity.color %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ polity.color }}"/></svg> Map color</span>{% endif %}
+  <span class="badge">{{ polity.government }}</span>
+  {%- if polity.era %}<span class="badge">{{ polity.era }}</span>{% endif %}
+  {%- if territories %}<span class="badge"><a href="{{ page_url('galaxy') }}">Territories on the Galaxy Map</a></span>{% endif %}
+</p>
+{% endblock %}
+{% block content %}
+<section class="panel" aria-labelledby="polity-facts-heading">
+  <h2 id="polity-facts-heading">About This Polity</h2>
+  <div class="table-scroll" tabindex="0"><table>
+    <tbody>
+      <tr><th scope="row">Species</th><td>{% if polity.species_url %}<a href="{{ polity.species_url }}">{{ polity.species }}</a>{% else %}{{ polity.species }}{% endif %}</td></tr>
+      <tr><th scope="row">Government</th><td>{{ polity.government }}</td></tr>
+      <tr><th scope="row">Capital</th><td>{% if polity.capital_url %}<a href="{{ polity.capital_url }}">{{ polity.capital }}</a>{% else %}{{ polity.capital }}{% endif %}</td></tr>
+      <tr><th scope="row">Reach</th><td>{{ polity.reach }}</td></tr>
+      <tr><th scope="row">Systems held</th><td>{{ "{:,}".format(polity.systems) }}</td></tr>
+    </tbody>
+  </table></div>
+</section>
+<section class="panel" id="polity-systems" aria-labelledby="polity-systems-heading">
+  <div class="panel-header">
+    <h2 id="polity-systems-heading">Systems</h2>
+  </div>
+  <p>Nearest the capital first.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">System</th><th scope="col">From the capital</th></tr></thead>
+    <tbody>
+      {%- for row in systems %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.distance }}</td></tr>
+      {%- else %}
+      <tr><td colspan="2"><em>None</em></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ pager }}
+</section>
+{% endblock %}

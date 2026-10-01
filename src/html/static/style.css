@@ -2580,3 +2580,26 @@ body.app {
   font-variant-numeric: tabular-nums;
   text-align: right;
 }
+
+/* Population pages (web/population_pages.py): the Species filter links
+   and a polity's map color. */
+.filter-links ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+}
+.filter-links a[aria-current="page"] {
+  font-weight: 700;
+  text-decoration: none;
+}
+.polity-swatch {
+  display: inline-block;
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  vertical-align: -0.05rem;
+}
