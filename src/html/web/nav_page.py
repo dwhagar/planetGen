@@ -229,7 +229,7 @@ def _destination_pickers(origin, to_sector_raw):
 
 def _map_picks(pick, other):
     """
-    The "pick on a map" links beside the pickers (MAP.2.4, design doc
+    The "pick on a map" links beside the pickers (MAP.22, design doc
     section 9): choose the `pick` endpoint (`"from"`/`"to"`) on the
     Galaxy Map (`/galaxy?pick=...`, whose stage 8 hands a sector click to
     the Sector Map's pick mode) or, once the `other` endpoint is a known

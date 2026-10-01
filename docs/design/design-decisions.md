@@ -26,7 +26,7 @@ doubling outward), so slot boundaries line up from the center out. Details:
 - 7.0.0 (2026-09-30, schema v33): 4 pc edge, the same slot count on every
   layer (aligned columns), per-layer skeleton, bounds checked before
   generating.
-- 7.13.0 (2026-09-30, schema v35, MAP.5.3): hybrid master-wedge slot counts.
+- 7.13.0 (2026-09-30, schema v35, MAP.33): hybrid master-wedge slot counts.
 
 **Why:**
 - Sectors should "follow the flat disk instead of a ball" (CHANGELOG 6.0.0).
@@ -91,7 +91,7 @@ a CDN.
 - 5.41.0 (2026-09-19): the Sector Map moves from a CSS 3D illusion to a
   three.js WebGL scene.
 - 5.46.13 (2026-09-23): the 3D Galaxy Map, with live viewport queries.
-- 2026-10-01 (PR #153, MAP.5.9): the choice re-checked for the Galaxy Map
+- 2026-10-01 (PR #153, MAP.40): the choice re-checked for the Galaxy Map
   and recorded in `docs/html-interface.md`, "Why the maps use three.js".
 
 **Why:**
@@ -325,7 +325,7 @@ Free look button for now. Details: `galaxy-drilldown-navigation.md`.
 
 **When:**
 - 7.41.2 and 7.41.3 (PR #160): the block ladder and the stage API.
-- 7.44.0 (2026-10-01, PR #171, MAP.2.1): the stages on the map.
+- 7.44.0 (2026-10-01, PR #171, MAP.16): the stages on the map.
 - 7.50.0, 7.52.0, 7.58.0: the address bar, the NAV course on the map, and
   the Sector Map's pick mode, all built on the stage URLs.
 
@@ -335,7 +335,7 @@ animated flights. Each stage draws at most about 900 blocks, so the
 phone-performance limits of the free camera stop mattering. Boss chose
 243, 27, 3, 1 ("the bigger targets") over 81, 9, 1.
 
-**Still open:** MAP.2.1.1 (2026-10-01) asks to remove the free camera and
+**Still open:** MAP.17 (2026-10-01) asks to remove the free camera and
 every drag-rotate and to start top-down, picking a wedge, then a slice,
 then a block. That would settle the design doc's decision 2 against Free
 look and change how the first stages work.

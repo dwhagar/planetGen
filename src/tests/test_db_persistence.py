@@ -2748,7 +2748,7 @@ def _remnant_with_core(name):
 
 
 def test_phenomena_share_the_system_name_registry(mysql_config):
-    """GEN.4.4 (v40): a nebula whose name clashes with a system's is
+    """GEN.13 (v40): a nebula whose name clashes with a system's is
     decorated like a second system would be, and the first holder is
     renamed whichever kind it is."""
     from stellarObjects.nebulaData import Nebula
@@ -2907,7 +2907,7 @@ def _sector_with_systems(name, positions_ly):
 
 
 def test_nearest_systems_cross_sector_boundaries(mysql_config):
-    """UX.4.2 (v41): a system at a sector's edge lists a system just
+    """UX.18 (v41): a system at a sector's edge lists a system just
     across the boundary once that sector is generated."""
     import queryDb
     from stellarObjects.utils import pc_to_ly

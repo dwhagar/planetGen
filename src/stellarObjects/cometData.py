@@ -61,7 +61,7 @@ only, not consulted by generation or propagation."""
 PERIODIC_COMET_MAX_PERIOD_YEARS = 200
 """float: A bound comet with an orbital period under this many years is
 periodic (`P/`); every other star-bound comet is `C/` -- the IAU's own
-split (GEN.4.4, v40)."""
+split (GEN.13, v40)."""
 
 
 def comet_designation(host_name, index, comet):

@@ -2,7 +2,7 @@
 
 """
 The per-type "View" on a phenomenon page (`lib/phenomenonrender.py`,
-UX.4.1): a render for neutron stars, black holes, quasars, rogue planets
+UX.17): a render for neutron stars, black holes, quasars, rogue planets
 and comets, the AU diagram for nebulae and remnants, nothing for an
 asteroid field.
 """

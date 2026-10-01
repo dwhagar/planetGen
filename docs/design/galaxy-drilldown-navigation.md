@@ -6,21 +6,21 @@ Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
 | Piece | Section | TODO | Built in |
 |---|---|---|---|
-| Block ladder (`stellarObjects/galaxyDrill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.2.9 | 7.41.2, PR #160 |
-| Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.2.10 | 7.41.3, PR #160 |
-| The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only"; the old camera behind Free look | 4, 5, 8.1 | MAP.2.1 | 7.44.0, PR #171 |
-| Address bar (`/galaxy/locate`) | 9.3 | MAP.2.6 | 7.50.0, PR #172 |
-| Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.2.8 | 7.52.0, PR #176 |
-| Map Generate buttons and the light-year radius dialog | 6 | MAP.2.2 (map side) | 7.53.0, PR #177 |
-| Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.2.3 | 7.58.0, PR #178 |
-| Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.2.2 | not built |
-| NAV page pickers | 9 | MAP.2.4 | not built |
-| Bookmarks | 8.2 | MAP.2.5 | not built |
-| "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.2.7 | not built (`?sector=` itself works) |
+| Block ladder (`stellarObjects/galaxyDrill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.28 | 7.41.2, PR #160 |
+| Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.29 | 7.41.3, PR #160 |
+| The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only"; the old camera behind Free look | 4, 5, 8.1 | MAP.16 | 7.44.0, PR #171 |
+| Address bar (`/galaxy/locate`) | 9.3 | MAP.24 | 7.50.0, PR #172 |
+| Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.27 | 7.52.0, PR #176 |
+| Map Generate buttons and the light-year radius dialog | 6 | MAP.20 (map side) | 7.53.0, PR #177 |
+| Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.21 | 7.58.0, PR #178 |
+| Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.20 | not built |
+| NAV page pickers | 9 | MAP.22 | not built |
+| Bookmarks | 8.2 | MAP.23 | not built |
+| "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | not built (`?sector=` itself works) |
 
-Two later requests change this design: MAP.2.1.1 (no free camera and no
+Two later requests change this design: MAP.17 (no free camera and no
 drag-rotate at all; start top-down and pick a wedge, then a slice, then a
-block), which settles decision 2 against Free look, and MAP.2.7.1 ("Show on
+block), which settles decision 2 against Free look, and MAP.26 ("Show on
 Galaxy Map" opens at the sector level, and the map gets its own Back and
 Forward). Neither is built. The open work items are in `docs/TODO.md`,
 and each one points back to a section here.
@@ -442,12 +442,12 @@ one: `{ring, layer, slot, id, name, system_count}`.
   check them; it only serves `/galaxy/stage` for a valid `at`.
 - `?sector=<designation>` opens the stage 8 that holds that sector, with
   it selected (built in 7.44.0). Sector, system and search pages are to
-  link this way (MAP.2.7, not built; the sector page still links to the
+  link this way (MAP.25, not built; the sector page still links to the
   Quadrant table).
 
 ### 8.2 Bookmarks
 
-Not built yet (MAP.2.5).
+Not built yet (MAP.23).
 
 - A ☆ button on the breadcrumb and on each info panel saves the current
   stage, sector, system or phenomenon:
@@ -468,7 +468,7 @@ Not built yet (MAP.2.5).
 ## 9. NAV integration
 
 The NAV page keeps its sector-then-system dropdowns. Each endpoint gains
-the following (the NAV page part, MAP.2.4, is not built yet; 9.1 to 9.4
+the following (the NAV page part, MAP.22, is not built yet; 9.1 to 9.4
 are):
 
 1. **Pick on Galaxy Map**, which links to `/galaxy?pick=from&to=system:40`
@@ -524,7 +524,7 @@ As built (7.52.0): the link is `/galaxy?course=<from>,<to>`;
 `web/galaxy_views.py` asks `nav_page.galaxy_course` for the waypoints in
 galaxy-frame parsecs, and the map draws the course through its stops,
 each ringed and the two ends named. A course that stays inside one sector
-opens that sector instead. MAP.2.7.1 asks for every "Show on Galaxy Map"
+opens that sector instead. MAP.26 asks for every "Show on Galaxy Map"
 link, this one included, to open at the sector level.
 
 ## 10. What changes on today's map
@@ -532,7 +532,7 @@ link, this one included, to open at the sector level.
 - Click-to-center and double-click zoom are replaced by the stages. The
   free continuous zoom stays only if decision 2 keeps a "Free look"
   toggle. (As built: the map opens on the stages and keeps Free look as
-  a button; MAP.2.1.1 would remove it.)
+  a button; MAP.17 would remove it.)
 - Wedge lines, density shading, the filled-share look, the sector/pc/ly
   scale readout and the info panel all stay.
 - Each stage draws at most about 900 blocks, so the phone-performance
@@ -553,7 +553,7 @@ Each has a default, and work can start on it.
 2. **Free camera.** Default: drag-rotate inside the 3D stages only, with
    no free fly. Alternative: keep today's free zoom as a "Free look"
    toggle. *(As built in 7.44.0: the stages drag-rotate and Free look is
-   kept as a button until Boss decides. Boss's MAP.2.1.1 of 2026-10-01
+   kept as a button until Boss decides. Boss's MAP.17 of 2026-10-01
    goes further than the default: no Free look and no drag-rotate at any
    stage, starting top-down with a wedge pick. Not built yet.)*
 3. **Bigger generate buttons.** Default: sector, layer or slab, and
@@ -573,22 +573,22 @@ Each has a default, and work can start on it.
 
 | TODO | Piece | Owner | Depends on |
 | --- | --- | --- | --- |
-| MAP.2.9 | Nested ladder geometry, JS and Python, with a parity test (section 3). **Built, 7.41.2, PR #160** | Galaxy Map | none |
-| MAP.2.10 | Stage contents API and caching (section 7). **Built, 7.41.3, PR #160** | Galaxy Map | MAP.2.9 |
-| MAP.2.1 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.2.9, MAP.2.10, MAP.3 |
-| MAP.2.2 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177**; `--block`, the form and progress open | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.2.9 (Python), MAP.2.1 |
-| MAP.2.3 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
-| MAP.2.4 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | MAP.2.1, MAP.2.3 |
-| MAP.2.5 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.2.1 |
-| MAP.2.6 | Address bar (section 9.3). **Built, 7.50.0, PR #172** | Galaxy Map | MAP.2.1 |
-| MAP.2.7 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | MAP.2.1's URL format |
-| MAP.2.8 | Course on the Galaxy Map (section 9.4). **Built, 7.52.0, PR #176** | Galaxy Map and Web | MAP.2.1, MAP.2.4 |
-| MAP.2.1.1 | No free camera; drill down top-down by wedge, slice and block (bug against MAP.2.1; decision 2) | Galaxy Map | MAP.2.1 |
-| MAP.2.7.1 | "Show on Galaxy Map" opens at the sector level; the map's own Back and Forward (bug; folds in MAP.2.7) | Galaxy Map and Web | MAP.2.1.1, MAP.2.7 |
+| MAP.28 | Nested ladder geometry, JS and Python, with a parity test (section 3). **Built, 7.41.2, PR #160** | Galaxy Map | none |
+| MAP.29 | Stage contents API and caching (section 7). **Built, 7.41.3, PR #160** | Galaxy Map | MAP.28 |
+| MAP.16 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.28, MAP.29, MAP.3 |
+| MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177**; `--block`, the form and progress open | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
+| MAP.21 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
+| MAP.22 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9) | Web | MAP.16, MAP.21 |
+| MAP.23 | Bookmarks (section 8.2) | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.16 |
+| MAP.24 | Address bar (section 9.3). **Built, 7.50.0, PR #172** | Galaxy Map | MAP.16 |
+| MAP.25 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | MAP.16's URL format |
+| MAP.27 | Course on the Galaxy Map (section 9.4). **Built, 7.52.0, PR #176** | Galaxy Map and Web | MAP.16, MAP.22 |
+| MAP.17 | No free camera; drill down top-down by wedge, slice and block (bug against MAP.16; decision 2) | Galaxy Map | MAP.16 |
+| MAP.26 | "Show on Galaxy Map" opens at the sector level; the map's own Back and Forward (bug; folds in MAP.25) | Galaxy Map and Web | MAP.17, MAP.25 |
 
-MAP.3 (the bigger map) shipped in 7.55.0. MAP.2.8 shipped before MAP.2.4, using
-the NAV result's link rather than the NAV pickers. What is left is MAP.2.2's
-`--block` mode, MAP.2.4, MAP.2.5 and MAP.2.7, and the two bugs MAP.2.1.1 and MAP.2.7.1, which
+MAP.3 (the bigger map) shipped in 7.55.0. MAP.27 shipped before MAP.22, using
+the NAV result's link rather than the NAV pickers. What is left is MAP.20's
+`--block` mode, MAP.22, MAP.23 and MAP.25, and the two bugs MAP.17 and MAP.26, which
 change sections 4, 5 and 8.1 once Boss's open questions in them are
 answered.
 
@@ -629,7 +629,7 @@ answered.
   stage query reads at most one row per generated sector.
 - **A Free look button, for now.** Decision 2 was still open when the
   stages shipped, so the old camera stayed behind a button rather than
-  being removed (7.44.0). MAP.2.1.1 is Boss's answer: remove it.
+  being removed (7.44.0). MAP.17 is Boss's answer: remove it.
 - **Addresses parsed on the page, names on the server.** A designation,
   ring/layer/slot or coordinates map to a sector with pure math the page
   already has, so only a name needs the database (`/galaxy/locate`).

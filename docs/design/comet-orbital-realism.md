@@ -116,7 +116,7 @@ proposed comet cases in `test_orbital_motion.py` were placed in
   within about 3 AU of a Sun-like star, whatever its orbit type. A flat roll
   would let a comet that never comes near its star show a tail.
 - **IAU-style names.** Boss asked that comets and asteroid fields get names
-  that say something about them in a standard way (GEN.4.4); the real IAU
+  that say something about them in a standard way (GEN.13); the real IAU
   `P/`, `C/` and `I/` prefixes do that (CHANGELOG 7.31.0).
 
 ### Alternatives not taken
