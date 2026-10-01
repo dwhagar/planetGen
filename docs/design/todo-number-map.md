@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.24 |
 | MAP | MAP.82 |
 | NAV | NAV.34 |
-| GEN | GEN.40 |
+| GEN | GEN.44 |
 | PERF | PERF.21 |
 | DB | DB.6 |
 | API | API.15 |
@@ -465,6 +465,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.37 | 97% of planets land in the cold zone (bug) | none | open |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | open |
+| GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
+| GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
+| GEN.42 | A pass that drops sectors from a region by probability | none | open |
+| GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
