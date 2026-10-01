@@ -1917,6 +1917,12 @@ GALAXY_TILE_MAX_FILLED_CELLS = 5000
 """int: Most cells one tile's filled summary lists. Past this the cells
 grow three times bigger until they fit."""
 
+GALAXY_TILE_MAX_CLOUDS = 200
+"""int: Most nebulae and supernova remnants one tile lists
+(`galaxy_clouds_in_box`), the largest first. A tile wide enough to hold
+more shows the map at a scale where the smaller ones are under a pixel
+anyway."""
+
 MAX_TILES_PER_REQUEST = 128
 """int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
 needs at most 27 view tiles plus about 64 planned tiles at once."""
@@ -2087,6 +2093,87 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
         g *= 3
 
 
+_CLOUD_TABLES = (
+    ("nebulae", "nebula", "nebula_type"),
+    ("supernova_remnants", "supernova_remnant", "morphology"),
+)
+"""tuple: `(table, type_label, descriptor_column)` for the phenomena the
+Galaxy Map draws as clouds -- the ones with a real extent worth seeing
+at galaxy scale (an asteroid field is far smaller)."""
+
+
+def _cloud_margins_pc(conn):
+    """`{table: widest placed radius in pc}` for each `_CLOUD_TABLES`
+    table with a placed row -- `galaxy_clouds_in_box`'s prefilter margin,
+    read once per tile request."""
+    margins = {}
+    for table, _type_label, _descriptor_column in _CLOUD_TABLES:
+        widest = conn.execute(
+            f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchone()
+        if widest is not None and widest["r"] is not None:
+            margins[table] = ly_to_pc(float(widest["r"]))
+    return margins
+
+
+def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margins=None):
+    """
+    Every placed nebula and supernova remnant whose sphere reaches into the
+    box `[lo, hi)` -- not just the ones centered there, so a big cloud
+    shows from every tile it covers (the map drops the repeats by type and
+    id). The Galaxy Map (`static/galaxymap3d.js`) draws each as a
+    translucent cloud.
+
+    Each table is read with a bounding-box prefilter widened by its own
+    widest radius (so `idx_<table>_center` can range-scan it), then the
+    sphere is tested against the box exactly.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` lower corner, parsecs.
+        hi (tuple): `(x, y, z)` upper corner, parsecs.
+        max_clouds (int): See `GALAXY_TILE_MAX_CLOUDS`.
+        margins (dict, optional): An already-read `_cloud_margins_pc`.
+
+    Returns:
+        list[dict]: Largest first: `type` (`"nebula"` or
+            `"supernova_remnant"`), `id`, `name`, `descriptor` (a nebula's
+            type, a remnant's morphology), `class` (letter class or
+            `None`), `radius_pc`, and `x`/`y`/`z` (center, parsecs).
+    """
+    if margins is None:
+        margins = _cloud_margins_pc(conn)
+    clouds = []
+    for table, type_label, descriptor_column in _CLOUD_TABLES:
+        if table not in margins:
+            continue
+        margin = margins[table]
+        rows = conn.execute(
+            f"""
+            SELECT id, name, {descriptor_column} AS descriptor, radius_ly,
+                   {_PHENOMENON_CLASS_COLUMNS[table]} AS class_code,
+                   center_x_pc, center_y_pc, center_z_pc
+            FROM {table}
+            WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ?
+              AND center_z_pc BETWEEN ? AND ?
+            """,
+            (lo[0] - margin, hi[0] + margin, lo[1] - margin, hi[1] + margin, lo[2] - margin, hi[2] + margin),
+        ).fetchall()
+        for row in rows:
+            radius_pc = ly_to_pc(float(row["radius_ly"] or 0.0))
+            center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            gap = math.sqrt(sum(max(lo[i] - center[i], 0.0, center[i] - hi[i]) ** 2 for i in range(3)))
+            if radius_pc <= 0 or gap > radius_pc:
+                continue
+            clouds.append({
+                "type": type_label, "id": row["id"], "name": row["name"],
+                "descriptor": row["descriptor"], "class": row["class_code"], "radius_pc": radius_pc,
+                "x": center[0], "y": center[1], "z": center[2],
+            })
+    clouds.sort(key=lambda cloud: (-cloud["radius_pc"], cloud["type"], cloud["id"]))
+    return clouds[:max_clouds]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -2102,9 +2189,9 @@ def galaxy_tiles(conn, tile_keys):
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "filled": {...}}}`, see `galaxy_sectors_in_box`,
-            `galaxyViewport.planned_slots_in_tile` and
-            `galaxy_filled_in_box`),
+            "filled": {...}, "clouds": [...]}}`, see
+            `galaxy_sectors_in_box`, `galaxyViewport.planned_slots_in_tile`,
+            `galaxy_filled_in_box` and `galaxy_clouds_in_box`),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2125,6 +2212,7 @@ def galaxy_tiles(conn, tile_keys):
         shape = None
         expected_system_count = None
 
+    cloud_margins = _cloud_margins_pc(conn) if parsed else {}
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
@@ -2136,7 +2224,8 @@ def galaxy_tiles(conn, tile_keys):
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses,
         )
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
-        tiles[key] = {"placed": placed, "planned": planned, "filled": filled}
+        clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
+        tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds}
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

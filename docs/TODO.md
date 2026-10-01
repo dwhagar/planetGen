@@ -190,8 +190,9 @@ for a mouse; spacing and type sized with `clamp()`.
     `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
     off-center by its birth kick. `queryDb.phenomena_near_sector` already
     lists every cloud that reaches a sector.
-    - Left: the Sector Map draws each cloud's extent (`sectormap.js`) and
-      the Galaxy Map shows them (`galaxymap3d.js`).
+    - The Galaxy Map draws them (2026-10-01): each tile lists the clouds
+      reaching into it (`queryDb.galaxy_clouds_in_box`).
+    - Left: the Sector Map draws each cloud's extent (`sectormap.js`).
 
 ### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
 

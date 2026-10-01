@@ -49,6 +49,15 @@ def sector_url_template():
     return page_url("sector", sector_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
 
 
+def phenomenon_url_template():
+    """
+    The URL of a phenomenon page with `{type}` and `{id}` where they go,
+    for `static/galaxymap3d.js`'s "View phenomenon" link on a cloud.
+    """
+    url = page_url("phenomenon", phenomenon_type="nebula", phenomenon_id=_ID_PLACEHOLDER)
+    return url.replace("/nebula/", "/{type}/").replace(str(_ID_PLACEHOLDER), "{id}")
+
+
 def _parse_quadrant(raw):
     quadrant = (raw or "").strip().upper()
     return quadrant if quadrant in QUADRANT_LABELS else None
@@ -111,6 +120,7 @@ def galaxy():
         fetch_path=url_for("web.galaxy_tiles"),
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
+        phenomenon_url=phenomenon_url_template(),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}

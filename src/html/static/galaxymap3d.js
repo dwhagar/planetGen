@@ -38,6 +38,10 @@
 // shows its address or ranges, counts, coordinates and 8 corners; at one
 // sector per block, a generated sector's panel links to its page.
 //
+// Nebulae and supernova remnants are drawn over the blocks as soft
+// translucent spheres their real size (each tile lists the ones reaching
+// into it); clicking one shows it and links to its page -- see "Clouds".
+//
 // Zooming stays smooth: the blocks for a view are built in a Web Worker
 // (./galaxyblocks.js), built views are kept and the next zoom step's are
 // prepared ahead, zoom steps glide instead of jumping, and a change of
@@ -243,6 +247,106 @@ function showCellInfo(cell) {
   if (single && !(cell.filled > 0) && sceneData.generate) {
     panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot));
   }
+}
+
+// --- Clouds: nebulae and supernova remnants --------------------------------
+
+// A nebula's color by its type, the same hues the Sector Map uses
+// (lib/starmap.py's _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core
+// and edge opacity). A dark nebula is a near-black silhouette.
+var NEBULA_LOOKS = {
+  diffuse: ["#e3a6c8", 0.47, 0.14],
+  emission: ["#ff6f91", 0.69, 0.25],
+  reflection: ["#6fa8ff", 0.63, 0.22],
+  planetary: ["#5be8c9", 0.66, 0.24],
+  dark: ["#1c1c24", 0.91, 0.56],
+};
+var DEFAULT_NEBULA_LOOK = ["#c9a8e0", 0.56, 0.22];
+
+function capitalize(text) {
+  text = String(text || "");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+// "Emission Nebula", "Supernova Remnant (Shell)".
+function cloudTypeLabel(cloud) {
+  if (cloud.type === "nebula") {
+    return cloud.descriptor ? capitalize(cloud.descriptor) + " Nebula" : "Nebula";
+  }
+  return "Supernova Remnant" + (cloud.descriptor ? " (" + capitalize(cloud.descriptor) + ")" : "");
+}
+
+// The phenomenon page's URL: the server's template (sceneData.phenomenonUrl)
+// with the type and id filled in.
+function phenomenonUrl(cloud) {
+  return String(sceneData.phenomenonUrl || "")
+    .replace("{type}", encodeURIComponent(cloud.type))
+    .replace("{id}", encodeURIComponent(cloud.id));
+}
+
+function showCloudInfo(cloud) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  panel.textContent = "";
+  var heading = document.createElement("h3");
+  heading.textContent = cloud.name || cloudTypeLabel(cloud);
+  panel.appendChild(heading);
+  var dl = document.createElement("dl");
+  addField(dl, "Type", cloudTypeLabel(cloud));
+  addField(dl, "Class", cloud.class);
+  addField(dl, "Radius", formatDistancePc(cloud.radius_pc));
+  addField(dl, "Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
+  addField(dl, "Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z)));
+  panel.appendChild(dl);
+  if (sceneData.phenomenonUrl) {
+    panel.appendChild(pageLink(phenomenonUrl(cloud), "View phenomenon →"));
+  }
+}
+
+function rgba(hex, alpha) {
+  var n = parseInt(hex.slice(1), 16);
+  return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + alpha + ")";
+}
+
+// A cloud's sprite texture, drawn so the sphere's edge is the texture's
+// edge (the sprite is scaled to the cloud's diameter): a nebula glows
+// from a denser core out to nothing; a remnant is a thin bright shell
+// around a faint interior, as Cassiopeia A or the Veil look.
+var cloudTextures = new Map();
+
+function cloudTexture(cloud) {
+  var key = cloud.type === "nebula" ? "nebula:" + (NEBULA_LOOKS[cloud.descriptor] ? cloud.descriptor : "") : "remnant";
+  var texture = cloudTextures.get(key);
+  if (texture) {
+    return texture;
+  }
+  var size = 128;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = size;
+  canvasEl.height = size;
+  var ctx = canvasEl.getContext("2d");
+  var gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  if (cloud.type === "nebula") {
+    var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
+    gradient.addColorStop(0, rgba(look[0], look[1]));
+    gradient.addColorStop(0.35, rgba(look[0], look[1] * 0.8));
+    gradient.addColorStop(0.75, rgba(look[0], look[2]));
+    gradient.addColorStop(1, rgba(look[0], 0));
+  } else {
+    gradient.addColorStop(0, rgba("#ffb07a", 0.12));
+    gradient.addColorStop(0.6, rgba("#ffb07a", 0.2));
+    gradient.addColorStop(0.82, rgba("#ff8a5c", 0.7));
+    gradient.addColorStop(0.9, rgba("#8fd6ff", 0.6));
+    gradient.addColorStop(1, rgba("#8fd6ff", 0));
+  }
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  cloudTextures.set(key, texture);
+  return texture;
 }
 
 // --- Sprite textures -------------------------------------------------------
@@ -1454,6 +1558,108 @@ function initGalaxyMap3d(canvasEl, data) {
   absorb(data.initial);
   purgeStoredTiles(true);
 
+  // --- Clouds ----------------------------------------------------------------
+  //
+  // Each tile lists the nebulae and supernova remnants that reach into it
+  // (queryDb.galaxy_clouds_in_box); a cloud is a sprite the size of its
+  // sphere, drawn over the blocks without a depth test (a flat sprite
+  // through a cloud's middle would otherwise be cut in half by the blocks
+  // around it, though the cloud fills that space). One that is only a pixel or two across
+  // is hidden, and one the camera comes close to fades out so it never
+  // fills the screen.
+  var CLOUD_MIN_PX = 2;
+  var CLOUD_OPACITY = 1;
+  var CLOUD_NEAR_FADE = [1.2, 2.0];
+  // Clicking picks a cloud only while it is small enough on screen to aim
+  // at; up close, clicks go to the sectors inside it.
+  var CLOUD_PICK_MAX_PX = 150;
+  var cloudGroup = new THREE.Group();
+  cloudGroup.renderOrder = 4;
+  scene.add(cloudGroup);
+  var cloudSprites = new Map();
+  var cloudSignature = "";
+
+  function cloudKey(cloud) {
+    return cloud.type + ":" + cloud.id;
+  }
+
+  // Shows exactly `clouds` (one entry per type and id).
+  function setClouds(clouds) {
+    var wanted = new Map();
+    clouds.forEach(function (cloud) {
+      wanted.set(cloudKey(cloud), cloud);
+    });
+    cloudSprites.forEach(function (sprite, key) {
+      if (!wanted.has(key)) {
+        cloudGroup.remove(sprite);
+        sprite.material.dispose();
+        cloudSprites.delete(key);
+      }
+    });
+    wanted.forEach(function (cloud, key) {
+      if (cloudSprites.has(key)) {
+        return;
+      }
+      var sprite = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: cloudTexture(cloud), transparent: true, depthWrite: false, depthTest: false, opacity: CLOUD_OPACITY,
+      }));
+      sprite.position.set(cloud.x, cloud.y, cloud.z);
+      sprite.scale.set(2 * cloud.radius_pc, 2 * cloud.radius_pc, 1);
+      sprite.renderOrder = 4;
+      sprite.userData.cloud = cloud;
+      cloudGroup.add(sprite);
+      cloudSprites.set(key, sprite);
+    });
+  }
+
+  // A cloud's radius in pixels from where the camera is.
+  function cloudPixels(cloud, distance) {
+    var heightPx = canvasEl.clientHeight || 1;
+    return (cloud.radius_pc * heightPx) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * Math.max(distance, 1e-6));
+  }
+
+  function updateClouds() {
+    cloudSprites.forEach(function (sprite) {
+      var cloud = sprite.userData.cloud;
+      var distance = camera.position.distanceTo(sprite.position);
+      var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
+      sprite.visible = near > 0 && cloudPixels(cloud, distance) >= CLOUD_MIN_PX;
+      sprite.material.opacity = CLOUD_OPACITY * near;
+    });
+  }
+
+  // The smallest visible cloud under a screen point that is still small
+  // enough to aim at, as {cloud, core} (core: the point is within the
+  // inner CLOUD_CORE of its radius), or null.
+  var CLOUD_CORE = 0.5;
+
+  function cloudAtClientPoint(clientX, clientY) {
+    var ndc = ndcFromClientPoint(clientX, clientY);
+    if (!ndc) {
+      return null;
+    }
+    raycaster.setFromCamera(ndc, camera);
+    var ray = raycaster.ray;
+    var best = null;
+    var bestOffset = 0;
+    cloudSprites.forEach(function (sprite) {
+      var cloud = sprite.userData.cloud;
+      if (!sprite.visible || (best && best.radius_pc <= cloud.radius_pc)) {
+        return;
+      }
+      var distance = camera.position.distanceTo(sprite.position);
+      if (cloudPixels(cloud, distance) > CLOUD_PICK_MAX_PX) {
+        return;
+      }
+      var offset = Math.sqrt(ray.distanceSqToPoint(sprite.position));
+      if (offset <= cloud.radius_pc && ray.direction.dot(new THREE.Vector3().subVectors(sprite.position, ray.origin)) > 0) {
+        best = cloud;
+        bestOffset = offset;
+      }
+    });
+    return best ? { cloud: best, core: bestOffset <= CLOUD_CORE * best.radius_pc } : null;
+  }
+
   // --- Drawing from tiles --------------------------------------------------
 
   // Filled points per tile object (a refetched tile is a new object).
@@ -1468,6 +1674,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var points = [];
     var present = [];
     var missing = [];
+    var clouds = new Map();
     need.keys.forEach(function (key) {
       var tile = getTile(key);
       if (tile === undefined) {
@@ -1481,7 +1688,15 @@ function initGalaxyMap3d(canvasEl, data) {
       }
       present.push(key + "=" + tilePoints.length);
       Array.prototype.push.apply(points, tilePoints);
+      (tile.clouds || []).forEach(function (cloud) {
+        clouds.set(cloudKey(cloud), cloud);
+      });
     });
+    var cloudKeys = Array.from(clouds.keys()).sort().join(",");
+    if (cloudKeys !== cloudSignature) {
+      cloudSignature = cloudKeys;
+      setClouds(Array.from(clouds.values()));
+    }
     var signature = currentStamp + "|" + present.join(",");
     if (signature !== filledSignature) {
       filledSignature = signature;
@@ -1929,7 +2144,12 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // Shows a block's info and rings it: a generated sector's own panel (with
   // its link) at one sector per block, otherwise the block's.
-  function selectCell(point, cell) {
+  function selectCell(point, cell, cloud) {
+    if (cloud) {
+      highlightPosition(point.x, point.y, point.z);
+      showCloudInfo(cloud);
+      return;
+    }
     if (!cell) {
       return;
     }
@@ -1949,11 +2169,11 @@ function initGalaxyMap3d(canvasEl, data) {
   // it possible to walk the camera across the galaxy toward a small/
   // distant block over several clicks without a bad click also zooming
   // into empty space you didn't mean to approach.
-  function centerOn(point, cell) {
+  function centerOn(point, cell, cloud) {
     target.copy(point);
     applyCamera();
     updateScaleBar();
-    selectCell(point, cell);
+    selectCell(point, cell, cloud);
     scheduleFetch(true);
   }
 
@@ -1967,12 +2187,19 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // Resolves a click/double-click's target point the same way for both:
-  // a hit block (its filled sectors' mean position when it has any, so a
-  // double-click zooms in toward them), or (empty space)
+  // a cloud small enough to aim at, clicked near its middle (its center),
+  // else a hit block holding generated sectors (their mean position, so a
+  // double-click zooms in toward them), else such a cloud clicked
+  // anywhere, else any hit block, or (empty space)
   // depthPointAtClientPoint -- shared so the click handlers below never
   // have to duplicate the raycast-then-fall-back logic.
   function resolveClickTarget(clientX, clientY) {
     var hit = cellAtClientPoint(clientX, clientY);
+    var found = cloudAtClientPoint(clientX, clientY);
+    if (found && (found.core || !(hit && hit.cell.filled > 0))) {
+      var cloud = found.cloud;
+      return { point: new THREE.Vector3(cloud.x, cloud.y, cloud.z), cell: null, cloud: cloud };
+    }
     if (hit) {
       return hit;
     }
@@ -1996,7 +2223,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     var resolved = resolveClickTarget(event.clientX, event.clientY);
     if (resolved) {
-      centerOn(resolved.point, resolved.cell);
+      centerOn(resolved.point, resolved.cell, resolved.cloud);
       lastCenterClickAt = Date.now();
     }
   });
@@ -2011,7 +2238,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (Date.now() - lastCenterClickAt > 1000) {
       var resolved = resolveClickTarget(event.clientX, event.clientY);
       if (resolved) {
-        centerOn(resolved.point, resolved.cell);
+        centerOn(resolved.point, resolved.cell, resolved.cloud);
       }
     }
     zoomInOnTarget();
@@ -2163,6 +2390,7 @@ function initGalaxyMap3d(canvasEl, data) {
       updateWedgeLevels(pcPerPixelAtTarget());
     }
     syncBlocks();
+    updateClouds();
     updateHighlightScale();
     updateWedgeLabels();
     renderer.render(scene, camera);
