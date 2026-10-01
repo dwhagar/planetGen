@@ -207,13 +207,45 @@ def test_label_sides_2d_cycles_through_all_four_cardinal_directions():
     # above, right, left in that order before needing to push any of them
     # into a diagonal spot.
     placements = sm._label_sides_2d([
-        (100.0, 100.0, 10.0, "AAAAAAAAAA"),
-        (100.0, 100.0, 10.0, "BBBBBBBBBB"),
-        (100.0, 100.0, 10.0, "CCCCCCCCCC"),
-        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
+        (350.0, 350.0, 10.0, "AAAAAAAAAA"),
+        (350.0, 350.0, 10.0, "BBBBBBBBBB"),
+        (350.0, 350.0, 10.0, "CCCCCCCCCC"),
+        (350.0, 350.0, 10.0, "DDDDDDDDDD"),
     ])
     assert [p["direction"] for p in placements] == ["below", "above", "right", "left"]
     assert all(not p["pushed"] for p in placements)
+
+
+@pytest.mark.parametrize("cx, cy", [
+    (8.0, 350.0), (692.0, 350.0), (350.0, 8.0), (350.0, 692.0),
+    (8.0, 8.0), (692.0, 8.0), (8.0, 692.0), (692.0, 692.0),
+])
+def test_label_sides_2d_keeps_every_label_inside_the_view(cx, cy):
+    # MAP.50: names near any edge or corner of the map stay on screen,
+    # even when neighbors take the first choices (a label with no room
+    # left is dropped, never drawn off the edge).
+    placements = sm._label_sides_2d([(cx, cy, 10.0, "A Very Long Planet Name %d" % n) for n in range(4)])
+    assert placements[0] is not None and placements[1] is not None
+    for placement in filter(None, placements):
+        x1, y1, x2, y2 = placement["rect"]
+        assert 0 <= x1 and x2 <= sm._VIEW_SIZE_PX and 0 <= y1 and y2 <= sm._VIEW_SIZE_PX, placement
+
+
+def test_rendered_label_is_slid_inside_the_view():
+    # An outer planet due west with a long name: its label's drawn text
+    # (middle-anchored below/above, or start/end-anchored beside) stays
+    # within the 700 px frame.
+    name = "Very Long Outer Planet Name"
+    planets = [_planet(1, 10, -30.0 * AU_KM, 0.0), _planet(2, 10, 1.0 * AU_KM, 0.0)]
+    planets[0]["name"] = name
+    html = sm.render_system_map_panel({"name": "Edge", "binary_configuration": None}, [_star(10)], planets, [])
+    match = re.search(r'<text class="sysmap-label" x="([\d.-]+)" y="[\d.-]+" text-anchor="(\w+)">'
+                      + re.escape(name), html)
+    assert match
+    x, anchor = float(match.group(1)), match.group(2)
+    width = 2 * sm._label_half_width_px(name)
+    left = {"start": x, "middle": x - width / 2, "end": x - width}[anchor]
+    assert left >= 0 and left + width <= sm._VIEW_SIZE_PX
 
 
 def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it():
@@ -226,11 +258,11 @@ def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it(
     # width-independent by construction (see _LABEL_PUSH_DIRECTIONS'
     # own comment), so this must still succeed regardless of name length.
     placements = sm._label_sides_2d([
-        (100.0, 100.0, 10.0, "AAAAAAAAAA"),
-        (100.0, 100.0, 10.0, "BBBBBBBBBB"),
-        (100.0, 100.0, 10.0, "CCCCCCCCCC"),
-        (100.0, 100.0, 10.0, "DDDDDDDDDD"),
-        (100.0, 100.0, 10.0, "EEEEEEEEEE"),
+        (350.0, 350.0, 10.0, "AAAAAAAAAA"),
+        (350.0, 350.0, 10.0, "BBBBBBBBBB"),
+        (350.0, 350.0, 10.0, "CCCCCCCCCC"),
+        (350.0, 350.0, 10.0, "DDDDDDDDDD"),
+        (350.0, 350.0, 10.0, "EEEEEEEEEE"),
     ])
     fifth = placements[4]
     assert fifth is not None

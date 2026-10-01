@@ -102,8 +102,7 @@ of the SEC section.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. MAP.50: names running off the edge of the map.
-   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   3. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -587,25 +586,6 @@ MAP.48 and MAP.37, all fixed.
   emitting light (quasars, neutron stars and accreting black holes
   yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
-
-- [ ] **MAP.50 (bug) Names run off the edge of the map**
-  Boss (2026-10-01): "names should not run off the screen edge." Taken
-  to mean the name labels on the maps, the System Map first. Lead:
-  `html/lib/systemmap.py` draws into a fixed 700 x 700 viewBox and
-  places each label with `_label_sides_2d`, which tries below, above,
-  right and left to avoid other labels and markers but never checks the
-  candidate against the viewBox edges, so a name near the edge (an
-  outer planet, a long name) is cut off; `static/systemmap.js`'s
-  `layoutLabels` measures the real text the same way. Done: on the
-  System Map (and its moon views), a label that would cross an edge
-  picks a direction that fits, or is shifted inward, so every name is
-  fully on screen at every size class; the Sector Map's and Galaxy
-  Map's name labels are checked for the same problem and fixed if they
-  have it; a test places labels for bodies near every edge and checks
-  each label rectangle lies inside the view. Open question: when no
-  direction fits, shift the label inward along the edge, or shorten it
-  with an ellipsis and show the full name on hover? Default: shift it
-  inward.
 
 ## GEN: Generation and physics
 
