@@ -51,12 +51,15 @@ def test_a_rescan_after_new_fills_adds_only_the_new_worlds(mysql_config, conn):
     assert population._watermark(conn) == _top_planet(conn)
 
     new_system = _civilized_system(mysql_config)
-    _plain_system(mysql_config)
+    # Plain systems have no intelligent life, but now and then still
+    # a multicellular world, so this one may add a species too.
+    plain = _plain_system(mysql_config)
     second = population.run_pass(conn)
     after = _species(conn)
     added = {planet: row for planet, row in after.items() if planet not in before}
     assert second["new_species"] == len(added) >= 1
-    assert {row["star_system_id"] for row in added.values()} == {new_system}
+    assert new_system in {row["star_system_id"] for row in added.values()}
+    assert {row["star_system_id"] for row in added.values()} <= {new_system, plain}
     # Earlier species keep their ids, names and traits.
     assert {planet: after[planet] for planet in before} == before
     assert population._watermark(conn) == _top_planet(conn)
@@ -165,4 +168,7 @@ def test_territories_grow_to_systems_filled_after_the_first_pass(mysql_config, c
     assert owners[late] == polity
     assert owned_before | {late} <= {system for system, owner in owners.items() if owner == polity}
     assert counts["owned_systems"] == len(owners)
-    assert counts["new_species"] == 0
+    # Only the late system's worlds can be new (a plain system now and
+    # then still has multicellular life).
+    on_late = conn.execute("SELECT COUNT(*) AS n FROM species WHERE star_system_id = ?", (late,)).fetchone()["n"]
+    assert counts["new_species"] == on_late
