@@ -190,6 +190,61 @@ stages themselves don't need it.
     link goes to the Quadrant table today. Done: sector, system and
     search pages link to `/galaxy?sector=<designation>`.
 
+100. [ ] **Bug: no free camera; drill down from a top-down view by
+    wedge, slice and block.** Boss (2026-10-01): "bugfix, remove the
+    ability to free form select a point to center on. Instead, we'll
+    start at a top-down view. The user will select the wedge (quarter)
+    aligned with the wedge lines, that we then zoom in on. From there
+    the user select a slice of blocks that fit the current zoom level.
+    It is selected by the mouse and it should be clearly highlighted the
+    slice the user is going to click on and make sure the block size is
+    such that the user can easily operate it via the correct method
+    (responsive design, if a touch sized screen make sure the user can
+    easily tap with a finger, but if it's a computer then the user is
+    probably using a mouse). Once selected the user can choose any block
+    in that slice. Once selected, the user zooms into that block, they
+    can then see the next group of slices and the process repeats. This
+    occurs until we get to the sector level. At no point can the user
+    free rotate the map anymore." This settles decision 2 of the design
+    doc (section 11, "Free camera"): no free look and no free rotation,
+    not even the default's drag-rotate inside the 3D stages. Today the
+    old free camera (click any point to center on it, drag to rotate)
+    stays behind the map's Free look button (added with item 72, PR
+    #171), and the 3D stages (1, 3, 5, 7, section 5.1) can be
+    drag-rotated. Done:
+    - The Free look button, free-camera picking and every drag-rotate
+      are removed; the map can't be rotated at any stage.
+    - The map opens top-down on the whole galaxy; the user picks a
+      wedge (a quarter, its edges on the wedge lines) and the map zooms
+      in on it.
+    - At each level the user picks a slice of blocks sized to the
+      current zoom, then any block in that slice, and the map zooms
+      into that block and shows its slices; this repeats down to the
+      sector level, where a click opens the sector.
+    - The slice (and then the block) under the pointer is clearly
+      highlighted before the click.
+    - Blocks and slices are sized for the input: big enough to tap with
+      a finger on touch screens (`pointer: coarse`), mouse-sized on a
+      computer (the Responsive Web Design Standards' 44-48 px touch
+      targets, under the Web interface section).
+    - The design doc's sections 5 and 10-11 are updated to match, and
+      breadcrumb, Back, stage URLs (`/galaxy?slab=`, `?at=`), bookmarks
+      (item 76), the address bar (item 77) and the NAV course (item 79)
+      keep working with the new steps.
+    Ties in with the map bugs 96-99 (wedge lines stopping at the
+    galaxy's edge matter more once wedges are what the user picks, and
+    item 99's contrast applies to the slices and blocks). Open
+    questions: how the "wedge (quarter)" maps onto the design's nested
+    ladder (243 -> 27 -> 3 -> 1, section 3): is the first pick always
+    one of four quarters, or one of the master wedges at that ring?
+    What a "slice" is: a ring band, a layer (the current 3D stages pick
+    a slab, a layer), or a row of blocks along the wedge? With no 3D
+    view, how does the user pick a layer above or below the galactic
+    plane (a side view, a layer list, or slices that run through the
+    disk's thickness)? What replaces the free camera for item 73's
+    neighborhood generate and item 75's NAV picking, which may want an
+    arbitrary point?
+
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
 Web workstream. Boss's UX reference for both items below is
