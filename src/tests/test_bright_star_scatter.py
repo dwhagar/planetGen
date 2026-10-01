@@ -138,14 +138,14 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     try:
         assert _db.bright_stars_for_sector(conn, *address) == []
         linked = conn.execute(
-            "SELECT b.luminosity_w AS stored, s.luminosity_w AS built FROM bright_stars b"
+            "SELECT b.luminosity_w AS stored_w, s.luminosity_w AS built FROM bright_stars b"
             " JOIN stars s ON s.star_system_id = b.star_system_id AND s.role IN ('primary', 'single')"
             " JOIN star_systems ss ON ss.id = b.star_system_id WHERE ss.sector_id = ?", (sector_id,)).fetchall()
     finally:
         conn.close()
     assert len(linked) == len(stars)
     for row in linked:
-        assert row["built"] == pytest.approx(row["stored"])
+        assert row["built"] == pytest.approx(row["stored_w"])
 
 
 def test_scatter_refuses_a_galaxy_with_filled_sectors_unless_forced(mysql_config):
