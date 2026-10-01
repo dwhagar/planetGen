@@ -505,7 +505,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
   pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
   grows more solid the more of its sectors are generated (fully solid when all are); a single generated sector
-  takes its real stellar density's color &middot; glowing points are the brightest stars (500 L&#9737; and up), placed before their sectors are generated &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
+  takes its real stellar density's color &middot; glowing points are stars, sized by the star, colored by its temperature, brighter the more luminous: the brightest (500 L&#9737; and up) everywhere, placed before their sectors are generated, and generated systems' stars fainter and fainter as you zoom in &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
   follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
   (degrees counterclockwise from +X, ring slot 0)</span>
 </div>

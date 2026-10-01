@@ -566,6 +566,26 @@ MAP.48 and MAP.37, all fixed.
 - [x] **MAP.14 Bright stars on the Galaxy Map**
   Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
   its bugs.
+  - [x] **MAP.51 (bug) No stars drawn in filled sectors past certain zoom levels**
+    Boss (2026-10-01): "Sectors do not draw any stars beyond certain zoom
+    levels. As one approaches the sector depth it should display more
+    and more stars based on the stars' luminosity in solar luminosities
+    for already generated and placed stars. ... Filled-in sectors should
+    start to become apparent as you get closer because they will have
+    red dwarf stars and things like that start to appear as one zooms
+    in. At all zoom levels stars, if present, should be drawn as points
+    of glowing light, with rough sizes relative to the size of the star,
+    brightness relative to luminosity, and color relative to
+    temperature." Done (2026-10-01). Cause: the map only ever drew the
+    pre-placed bright stars (500 L☉ and up); generated systems' stars
+    were never served. Each tile now also lists its generated systems'
+    stars down to a luminosity floor that drops fourfold per finer tile
+    level (`queryDb.generated_star_floor_sol`: about 260 L☉ on 8 kpc
+    tiles, 1 L☉ on 512 pc, every star on the finest 16 pc tiles), at
+    most 1000 per tile, reading at most 1500 sectors per tile (a hashed
+    sample past that). Every star draws as a point of light: core sized
+    by its radius, halo width and brightness by its luminosity, color
+    by its temperature.
 
 - [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
   Boss (2026-10-01): "make the stars in a sector more realistic

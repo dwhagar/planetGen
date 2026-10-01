@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.21 |
-| MAP | MAP.51 |
+| MAP | MAP.52 |
 | NAV | NAV.3 |
 | GEN | GEN.23 |
 | PERF | PERF.18 |

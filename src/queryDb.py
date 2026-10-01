@@ -52,6 +52,8 @@ from stellarObjects.galaxyGeometry import (
 )
 from stellarObjects.spaceSector import classify_octant
 from stellarObjects.galaxyViewport import (
+    TILE_MAX_LEVEL,
+    TILE_ROOT_EDGE_PC,
     parse_tile_key,
     planned_slots_in_tile,
     tile_bounds_pc,
@@ -2429,6 +2431,11 @@ def bright_star_scatter_status(conn):
     }
 
 
+def _radius_sol(radius_km):
+    """A star's radius in solar radii, from kilometres (`None` stays `None`)."""
+    return None if radius_km is None else radius_km * 1000.0 / physical_constants.SOLAR_RADIUS_M
+
+
 def _bright_star_entry(row):
     """One `bright_stars` row as the dict `galaxy_bright_stars_in_box` and
     `bright_stars_in_sector` return."""
@@ -2437,7 +2444,8 @@ def _bright_star_entry(row):
         "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
         "z": row["position_z_mpc"] / MPC_PER_PC,
         "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
-        "temperature_k": row["temperature_k"], "star_type": row["star_type"],
+        "temperature_k": row["temperature_k"], "radius_sol": _radius_sol(row["radius_km"]),
+        "star_type": row["star_type"],
         "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
         "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
         "system_id": row["star_system_id"],
@@ -2466,7 +2474,7 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     unfilled = " AND star_system_id IS NULL" if unfilled_only else ""
     rows = conn.execute(
         f"""
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
                star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
         FROM bright_stars
         WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?{unfilled}
@@ -2488,7 +2496,7 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
     rows = conn.execute(
         """
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
                star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
         FROM bright_stars FORCE INDEX (idx_bright_stars_luminosity)
         ORDER BY luminosity_w DESC, id DESC
@@ -2532,7 +2540,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
 
     Returns:
         list[dict]: Most luminous first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
-            `luminosity_sol`, `temperature_k`, `star_type`,
+            `luminosity_sol`, `temperature_k`, `radius_sol`, `star_type`,
             `yerkes_class`, `ring_index`, `layer_index`,
             `ring_slot_index` and `system_id` (the star's system once its
             sector is filled, else `None`).
@@ -2600,7 +2608,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         where, index = "(" + " OR ".join(clauses) + ") AND " + box, "idx_bright_stars_address"
     rows = conn.execute(
         f"""
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
                star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
         FROM bright_stars FORCE INDEX ({index})
         WHERE {where}
@@ -2610,6 +2618,113 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         params + box_params + [int(limit)],
     ).fetchall()
     return [_bright_star_entry(row) for row in rows]
+
+
+GALAXY_TILE_MAX_GENERATED_STARS = 1000
+"""int: Most stars of generated systems one tile lists (MAP.51), the most
+luminous first. A finest tile (16 pc, 64 sectors) of a filled region
+holds a few hundred, so up close every star shows, red dwarfs included."""
+
+GENERATED_STAR_FLOOR_SOL_AT_32_PC = 0.004
+"""float: The faintest generated star (solar luminosities) a 32 pc tile
+lists. Each coarser tile level's floor is four times the last (the floor
+grows with the square of the tile's edge, as a star's apparent
+brightness falls with the square of its distance), so zooming in shows
+fainter and fainter stars: about 1 L_sun at 512 pc tiles, 260 L_sun at
+8 kpc. The finest tiles (`TILE_MAX_LEVEL`) list every star."""
+
+GENERATED_STAR_MAX_FLOOR_SOL = 1000.0
+"""float: Tiles whose floor is past this list no generated stars at all:
+they span a good share of the galaxy, where the pre-placed bright stars
+(`galaxy_bright_stars_in_box`) already show everything that bright."""
+
+GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET = 1500
+"""int: Most generated sectors one tile reads stars from. A coarse tile
+over a large filled region reads an even sample of its sectors (every
+k-th, by a hash of the id) instead, so the request stays bounded; zooming in reaches
+tiles small enough to read all of them."""
+
+
+def generated_star_floor_sol(level):
+    """
+    The faintest generated star a tile of `level` lists, in solar
+    luminosities (0 = every star), or `None` when it lists none -- see
+    `GENERATED_STAR_FLOOR_SOL_AT_32_PC`.
+    """
+    if level >= TILE_MAX_LEVEL:
+        return 0.0
+    floor = GENERATED_STAR_FLOOR_SOL_AT_32_PC * (TILE_ROOT_EDGE_PC / 2 ** level / 32.0) ** 2
+    return None if floor > GENERATED_STAR_MAX_FLOOR_SOL else floor
+
+
+def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count,
+                                  limit=GALAXY_TILE_MAX_GENERATED_STARS):
+    """
+    The most luminous stars of generated systems whose sector's center
+    lies in the box `[lo, hi)`, at least `min_luminosity_sol` each, at
+    most `limit` -- what the Galaxy Map draws as points of light once
+    sectors are filled (MAP.51). A star also listed as a pre-placed
+    bright star (`bright_stars.star_system_id`) is left out, so it isn't
+    drawn twice; a bright star's companion is still listed.
+
+    The query walks the sectors in the box by `idx_sectors_center`, then
+    their systems and stars by their `sector_id`/`star_system_id`
+    indexes, so it reads at most `GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET`
+    sectors' stars: when the box holds more, about one in k of them,
+    picked by a hash of the id so the sample has no stripes.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        min_luminosity_sol (float): The faintest star listed.
+        sector_count (int): How many generated (grid-placed) sectors the
+            box holds, as its `galaxy_filled_in_box` summary counts them.
+        limit (int): See `GALAXY_TILE_MAX_GENERATED_STARS`.
+
+    Returns:
+        list[dict]: Most luminous first (ties by descending id): `id`
+            (the `stars` row), `name`, `x`/`y`/`z` (galaxy-frame
+            parsecs), `luminosity_sol`, `temperature_k`, `radius_sol`,
+            `star_type`, `ring_index`, `layer_index`, `ring_slot_index`
+            and `system_id`.
+    """
+    if sector_count <= 0:
+        return []
+    stride = max(1, int(math.ceil(sector_count / float(GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET))))
+    rows = conn.execute(
+        """
+        SELECT st.id, st.name, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
+               ss.id AS system_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+               sec.ring_index, sec.layer_index, sec.ring_slot_index
+        FROM sectors sec FORCE INDEX (idx_sectors_center)
+        JOIN star_systems ss ON ss.sector_id = sec.id
+        JOIN stars st ON st.star_system_id = ss.id
+        LEFT JOIN bright_stars b ON b.star_system_id = ss.id AND st.role <> 'secondary'
+        WHERE sec.center_x_pc >= ? AND sec.center_x_pc < ?
+          AND sec.center_y_pc >= ? AND sec.center_y_pc < ?
+          AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
+          AND sec.ring_index IS NOT NULL AND MOD(CRC32(sec.id), ?) = 0
+          AND ss.position_x_mpc IS NOT NULL
+          AND st.luminosity_w >= ? AND b.id IS NULL
+        ORDER BY st.luminosity_w DESC, st.id DESC
+        LIMIT ?
+        """,
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride,
+         float(min_luminosity_sol) * physical_constants.SOLAR_LUMINOSITY, int(limit)),
+    ).fetchall()
+    return [{
+        "id": row["id"], "name": row["name"],
+        "x": round(row["center_x_pc"] + row["position_x_mpc"] / MPC_PER_PC, 3),
+        "y": round(row["center_y_pc"] + row["position_y_mpc"] / MPC_PER_PC, 3),
+        "z": round(row["center_z_pc"] + row["position_z_mpc"] / MPC_PER_PC, 3),
+        "luminosity_sol": float("%.4g" % (row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY)),
+        "temperature_k": round(row["temperature_k"]),
+        "radius_sol": float("%.3g" % _radius_sol(row["radius_km"])),
+        "star_type": row["star_type"], "ring_index": row["ring_index"], "layer_index": row["layer_index"],
+        "ring_slot_index": row["ring_slot_index"], "system_id": row["system_id"],
+    } for row in rows]
 
 
 def galaxy_tiles(conn, tile_keys):
@@ -2627,10 +2742,12 @@ def galaxy_tiles(conn, tile_keys):
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "filled": {...}, "clouds": [...], "stars": [...]}}`, see
-            `galaxy_sectors_in_box`, `galaxyViewport.planned_slots_in_tile`,
-            `galaxy_filled_in_box`, `galaxy_clouds_in_box` and
-            `galaxy_bright_stars_in_box`),
+            "filled": {...}, "clouds": [...], "stars": [...],
+            "generated": [...]}}`, see `galaxy_sectors_in_box`,
+            `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
+            `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
+            `galaxy_generated_stars_in_box` (its floor from
+            `generated_star_floor_sol`)),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2672,7 +2789,15 @@ def galaxy_tiles(conn, tile_keys):
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
         clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
         stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest)
-        tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars}
+        floor = generated_star_floor_sol(level)
+        generated = []
+        if floor is not None:
+            sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
+            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count)
+        tiles[key] = {
+            "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
+            "generated": generated,
+        }
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

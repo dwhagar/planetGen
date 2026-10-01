@@ -38,9 +38,10 @@
 // translucent spheres their real size (each tile lists the ones reaching
 // into it); clicking one shows it and links to its page -- see "Clouds".
 //
-// Pre-placed bright stars (every star of 500 L☉ or more) are points of
-// light a few pixels across with a big soft glow, the same size at every
-// zoom; clicking one shows it -- see "Bright stars".
+// Stars are points of light a few pixels across with a soft glow, the
+// same size at every zoom: the pre-placed bright stars (500 L☉ or more)
+// everywhere, and the stars of generated systems fainter and fainter as
+// the view closes in (MAP.51); clicking one shows it -- see "Stars".
 //
 // Zooming stays smooth: the blocks for a view are built in a Web Worker
 // (./galaxyblocks.js), built views are kept and the next zoom step's are
@@ -399,10 +400,13 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
-// "12,300 L☉", "1.2 million L☉".
+// "12,300 L☉", "1.2 million L☉", "0.0031 L☉".
 function formatLuminosity(sol) {
   if (sol >= 1e6) {
     return (sol / 1e6).toFixed(sol >= 1e7 ? 0 : 1) + " million L☉";
+  }
+  if (sol < 100) {
+    return Number(sol.toPrecision(2)).toLocaleString("en-US", { maximumSignificantDigits: 2 }) + " L☉";
   }
   return Math.round(sol).toLocaleString("en-US") + " L☉";
 }
@@ -411,8 +415,10 @@ function systemUrl(id) {
   return String(sceneData.systemUrl || "").replace("{id}", encodeURIComponent(id));
 }
 
-// A pre-placed bright star (queryDb.galaxy_bright_stars_in_box): what it
-// is, and its system's page once its sector is filled.
+// A star on the map: a pre-placed bright star
+// (queryDb.galaxy_bright_stars_in_box) or a generated system's star
+// (queryDb.galaxy_generated_stars_in_box, `generated` set): what it is,
+// and its system's page once its sector is filled.
 function showStarInfo(star) {
   var panel = document.getElementById("galaxymap3d-info");
   if (!panel) {
@@ -420,12 +426,15 @@ function showStarInfo(star) {
   }
   panel.textContent = "";
   var heading = document.createElement("h3");
-  heading.textContent = "Bright star";
+  heading.textContent = star.generated ? star.name || "Star" : "Bright star";
   panel.appendChild(heading);
   var dl = document.createElement("dl");
   addField(dl, "Type", [star.star_type, star.yerkes_class].filter(Boolean).join(" "));
   addField(dl, "Luminosity", formatLuminosity(star.luminosity_sol));
   addField(dl, "Temperature", Math.round(star.temperature_k).toLocaleString("en-US") + " K");
+  if (star.radius_sol != null) {
+    addField(dl, "Radius", Number(star.radius_sol.toPrecision(2)).toLocaleString("en-US") + " R☉");
+  }
   addField(dl, "Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z)));
   addField(dl, "Sector", sectorDesignation(star.ring_index, star.layer_index, star.ring_slot_index));
   addField(dl, "Address", formatAddress(star.ring_index, star.layer_index, star.ring_slot_index));
@@ -1819,24 +1828,33 @@ function initGalaxyMap3d(canvasEl, data) {
     return best ? { cloud: best, core: bestOffset <= CLOUD_CORE * best.radius_pc } : null;
   }
 
-  // --- Bright stars ----------------------------------------------------------
+  // --- Stars ---------------------------------------------------------------
   //
   // Each tile lists its most luminous pre-placed stars (bright_stars, v43:
   // every star of 500 L☉ or more, placed before any sector is filled), so
-  // the arms show before anything is generated. Boss: "no matter how far
-  // the user zooms in they should be very small with a big glow" -- each
-  // is a point of light a fixed number of pixels across at every zoom
-  // (never sized by distance): a core of two or three pixels in a soft
-  // halo up to STAR_MAX_PX wide, both a little bigger and brighter for a
-  // brighter star. Halos blend normally rather than adding up, so a
-  // crowded arm zoomed out glows in its stars' colors instead of burning
-  // to white; stars are depth-tested against the blocks without hiding
-  // them.
-  var STAR_MIN_PX = 12;
+  // the arms show before anything is generated, and (MAP.51) the most
+  // luminous stars of its generated systems down to a floor that drops
+  // fourfold with each finer tile level (queryDb.generated_star_floor_sol):
+  // closing in on filled sectors brings out fainter and fainter stars,
+  // down to the red dwarfs at sector depth. Boss: "no matter how far the
+  // user zooms in they should be very small with a big glow", and "rough
+  // sizes relative to the size of the star, brightness relative to
+  // luminosity, and color relative to temperature" -- each is a point of
+  // light a fixed number of pixels across at every zoom (never sized by
+  // distance): a core sized by the star's radius (STAR_CORE_PX, a red
+  // dwarf one pixel, a supergiant four or five) in a soft halo whose width
+  // and strength grow with luminosity (STAR_MIN_PX to STAR_MAX_PX), the
+  // core dimmer for a fainter star, all in the star's blackbody color.
+  // Halos blend normally rather than adding up, so a crowded arm zoomed
+  // out glows in its stars' colors instead of burning to white; stars are
+  // depth-tested against the blocks without hiding them.
+  var STAR_MIN_PX = 5;
   var STAR_MAX_PX = 30;
-  var STAR_CORE_PX = [2.2, 3.2];
-  var STAR_GLOW = [0.3, 0.6];
-  var STAR_LOG_LUMINOSITY = [Math.log10(500), Math.log10(1e6)];
+  var STAR_CORE_PX = [1.1, 4.5];
+  var STAR_LOG_RADIUS = [-1, 3];
+  var STAR_GLOW = [0.12, 0.6];
+  var STAR_CORE_ALPHA = [0.55, 1];
+  var STAR_LOG_LUMINOSITY = [-4, 6];
   // A click within this many pixels of a star's center picks it.
   var STAR_PICK_PX = 7;
   // Stars new to the view fade in over this long (MAP.48: nothing pops
@@ -1858,13 +1876,16 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute float starSize;",
       "attribute float starCore;",
       "attribute float starGlow;",
+      "attribute float starBright;",
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
+      "varying float vBright;",
       "void main() {",
       "  vColor = starColor;",
+      "  vBright = starBright;",
       "  vCore = starCore / starSize;",
       "  vGlow = starGlow;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
@@ -1880,13 +1901,14 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vCore;",
       "varying float vGlow;",
       "varying float vShown;",
+      "varying float vBright;",
       "void main() {",
       "  #include <logdepthbuf_fragment>",
       "  float r = length(gl_PointCoord * 2.0 - 1.0);",
       "  if (r > 1.0) discard;",
       "  float core = 1.0 - smoothstep(vCore * 0.5, vCore, r);",
       "  float halo = vGlow * exp(-r * r * 4.0) * (1.0 - r);",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.75), clamp(core + halo, 0.0, 1.0) * vShown);",
+      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), core * 0.6 * vBright), clamp(core * vBright + halo, 0.0, 1.0) * vShown);",
       "}",
     ].join("\n"),
     transparent: true,
@@ -1898,14 +1920,25 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(starPoints);
   var starList = [];
   // When each drawn star first showed (seconds, performance.now's clock),
-  // so a star already on screen never fades in again.
+  // by starKey, so a star already on screen never fades in again.
   var starBornAt = new Map();
 
   function starClock() {
     return performance.now() / 1000;
   }
 
-  // Draws exactly `stars` (one entry per id).
+  // A star's key among the drawn ones: bright_stars and stars rows are
+  // numbered separately.
+  function starKey(star) {
+    return (star.generated ? "s" : "b") + star.id;
+  }
+
+  // Where `value`'s log10 falls in `range`, 0..1.
+  function logShare(value, range) {
+    return THREE.MathUtils.clamp((Math.log10(Math.max(value, 1e-12)) - range[0]) / (range[1] - range[0]), 0, 1);
+  }
+
+  // Draws exactly `stars` (one entry per starKey).
   function setStars(stars) {
     starList = stars;
     var n = stars.length;
@@ -1913,8 +1946,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var born = new Float32Array(n);
     var bornAt = new Map();
     stars.forEach(function (star, i) {
-      var at = starBornAt.has(star.id) ? starBornAt.get(star.id) : now;
-      bornAt.set(star.id, at);
+      var key = starKey(star);
+      var at = starBornAt.has(key) ? starBornAt.get(key) : now;
+      bornAt.set(key, at);
       born[i] = at;
     });
     starBornAt = bornAt;
@@ -1923,14 +1957,17 @@ function initGalaxyMap3d(canvasEl, data) {
     var sizes = new Float32Array(n);
     var cores = new Float32Array(n);
     var glows = new Float32Array(n);
+    var brights = new Float32Array(n);
     stars.forEach(function (star, i) {
-      var t = THREE.MathUtils.clamp(
-        (Math.log10(Math.max(star.luminosity_sol, 1)) - STAR_LOG_LUMINOSITY[0]) / (STAR_LOG_LUMINOSITY[1] - STAR_LOG_LUMINOSITY[0]), 0, 1);
+      var t = logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
+      // Without a stored radius, guess one from the luminosity.
+      var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
       positions.set([star.x, star.y, star.z], 3 * i);
       colors.set(starColor(star.temperature_k), 3 * i);
-      sizes[i] = THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t);
-      cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], t);
+      cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
+      sizes[i] = Math.max(THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t), 2 * cores[i] + 2);
       glows[i] = THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t);
+      brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
     });
     var geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -1938,6 +1975,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starSize", new THREE.BufferAttribute(sizes, 1));
     geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
     geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
+    geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
@@ -2011,16 +2049,31 @@ function initGalaxyMap3d(canvasEl, data) {
   function carriedStars(key, into) {
     var box = tileBox(key);
     starList.forEach(function (star) {
-      if (!into.has(star.id) && inBox(box, star)) {
-        into.set(star.id, star);
+      if (!into.has(starKey(star)) && inBox(box, star)) {
+        into.set(starKey(star), star);
       }
     });
-    var ancestor = cachedAncestor(key);
-    (ancestor && ancestor.stars || []).forEach(function (star) {
-      if (!into.has(star.id) && inBox(box, star)) {
-        into.set(star.id, star);
+    tileStars(cachedAncestor(key)).forEach(function (star) {
+      if (!into.has(starKey(star)) && inBox(box, star)) {
+        into.set(starKey(star), star);
       }
     });
+  }
+
+  // A tile's stars, bright and generated (each generated one marked),
+  // or none for a missing tile.
+  function tileStars(tile) {
+    if (!tile) {
+      return [];
+    }
+    if (!tile.allStars) {
+      Object.defineProperty(tile, "allStars", {
+        value: (tile.stars || []).concat((tile.generated || []).map(function (star) {
+          return Object.assign({ generated: true }, star);
+        })),
+      });
+    }
+    return tile.allStars;
   }
 
   // Takes the filled sectors from whatever of the needed tiles is already
@@ -2049,8 +2102,8 @@ function initGalaxyMap3d(canvasEl, data) {
       (tile.clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
       });
-      (tile.stars || []).forEach(function (star) {
-        stars.set(star.id, star);
+      tileStars(tile).forEach(function (star) {
+        stars.set(starKey(star), star);
       });
     });
     missing.forEach(function (key) {
