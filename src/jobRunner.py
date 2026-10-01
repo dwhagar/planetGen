@@ -49,6 +49,10 @@ CANCEL_NAME = "cancel"
 """str: The file in a job's directory that asks it to stop (must match
 `jobs.CANCEL_NAME`)."""
 
+CANCELLED_EXIT_CODE = 130
+"""int: A step's exit status when an admin cancelled it from the queue
+page (must match `workQueue.CANCELLED_EXIT_CODE`)."""
+
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
 
@@ -225,11 +229,16 @@ def run(job_dir):
                     except subprocess.TimeoutExpired:
                         pass
                 current["proc"] = None
-                tree.close(step_node, "cancelled" if current["cancelled"] else ("done" if code == 0 else "failed"))
+                tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
+                           else ("done" if code == 0 else "failed"))
                 step_node = None
                 log.write(f"=== Step {index} exited with status {code} after "
                           f"{time.time() - started:.0f} s ===\n".encode("utf-8"))
                 state["exit_code"] = code
+                if code == CANCELLED_EXIT_CODE and not current["cancelled"]:
+                    # Cancelled from the admin queue page (ADM.10).
+                    current["cancelled"] = True
+                    current["by_queue"] = True
                 if current["cancelled"]:
                     break
                 if code != 0:
@@ -238,7 +247,8 @@ def run(job_dir):
                     break
         if current["cancelled"]:
             state["status"] = "cancelled"
-            state["error"] = "Cancelled by an admin."
+            state["error"] = ("Cancelled from the admin queue page." if current.get("by_queue")
+                              else "Cancelled by an admin.")
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost

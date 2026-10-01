@@ -2801,6 +2801,11 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             if sector_id is not None:
                 refresh_containment(conn, [sector_id])
                 refresh_nearest_systems(conn, [sector_id])
+                # The galaxy's content stamp (`queryDb.galaxy_content_state`)
+                # only sees sectors and systems; without this, a phenomenon
+                # added from the command line never reaches a cached tile
+                # or page (TEST.42).
+                touch_sector(conn, sector_id)
             return row_id
     finally:
         conn.close()
@@ -4301,6 +4306,24 @@ def bright_stars_for_sector(conn, ring_index, layer_index, ring_slot_index):
         " AND star_system_id IS NULL ORDER BY luminosity_w DESC, id",
         (ring_index, layer_index, ring_slot_index),
     ).fetchall()]
+
+
+def database_now(conn):
+    """The database server's own clock (`NOW()`), to compare with
+    `created_at` columns."""
+    return conn.execute("SELECT NOW() AS now").fetchone()["now"]
+
+
+def sector_centers_since(conn, since):
+    """The `(x, y, z)` galaxy-frame centers, parsecs, of every galaxy
+    sector created at or after `since` (`database_now`), oldest first."""
+    return [
+        (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        for row in conn.execute(
+            "SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors"
+            " WHERE created_at >= ? AND ring_index IS NOT NULL ORDER BY id", (since,)
+        ).fetchall()
+    ]
 
 
 def filled_sector_addresses(conn):

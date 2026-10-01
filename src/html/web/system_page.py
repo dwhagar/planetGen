@@ -241,7 +241,7 @@ def _page(admin, form=None, result=None, error=None, status=200):
 def generate_system():
     """The one-off system form (GET), and a generated system under it
     (POST, the same form filled in again so it can be re-rolled)."""
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):  # HEAD is a GET without the body, never the POST branch
         admin, response = _admin_or_redirect()
         return response or _page(admin)
 

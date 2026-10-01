@@ -285,14 +285,16 @@ galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
 def galaxy_locate():
     """
     JSON for the map's address bar: `?q=<part of a name>`. Returns
-    `{"matches": [...]}` (`queryDb.galaxy_locate`), an API failure a 502
-    as `{"error": ...}` JSON.
+    `{"matches": [...]}` (`queryDb.galaxy_locate`); a 404 from the API is
+    a 404 and any other API failure a 502, both as `{"error": ...}` JSON.
     """
     q = (request.args.get("q") or "").strip()[:200]
     if not q:
         return jsonify({"matches": []})
     try:
         matches = apiclient.get_galaxy_locate(db_name(), q)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
     except apiclient.ApiError as exc:
         log.exception(f"API error while looking up a name for the galaxy map: {exc}")
         return _json_error("The lookup failed. Please try again shortly.", 502)

@@ -15,8 +15,8 @@ to that population's density.
 
 The backfill (GEN.23, `backfill_cells`) goes the other way: around each
 generated sector, block by block, it adds the stars between a lower floor
-(`BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL`) and whatever was already
-placed there, cell by cell.
+(by the block's distance, `BRIGHT_STAR_BACKFILL_TIERS`, GEN.30) and
+whatever was already placed there, cell by cell.
 
 The scatter can go down in stages (`generate.py plan
 --bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add

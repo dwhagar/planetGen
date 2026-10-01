@@ -145,6 +145,7 @@ from . import admin_pages  # noqa: E402,F401 -- /login, /logout, /account, /admi
 from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
 from . import nav_page, sector_page  # noqa: E402,F401 -- /nav, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
+from . import queue_page  # noqa: E402,F401 -- /admin/queue
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>

@@ -78,6 +78,49 @@ except ImportError:
         return "\u2013" if pascals is None else f"{pascals:,.3g} Pa"
 
 
+_NON_FINITE_TEXT = re.compile(r"\b(?:nan|inf)\b", re.IGNORECASE)
+"""re.Pattern: A "nan"/"inf" a formatter let through (TEST.53)."""
+
+
+def _finite(value):
+    """`value` as a finite float, or `None` for `None`, NaN, an infinity
+    or anything `float()` can't take (an int past float range, a string
+    that isn't a number)."""
+    if value is None:
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError, OverflowError):
+        return None
+    return number if math.isfinite(number) else None
+
+
+def dash_unless_finite(formatter, dash="\u2013"):
+    """`formatter`, but `dash` for a value that isn't a finite number (or
+    whose formatted text would read "nan"/"inf", e.g. 1e300 AU overflowing
+    to infinite km) instead of raising or showing "nan km" (TEST.53)."""
+    def guarded(value, *args, **kwargs):
+        if _finite(value) is None:
+            return dash
+        text = formatter(value, *args, **kwargs)
+        return dash if _NON_FINITE_TEXT.search(text) else text
+    guarded.__name__ = formatter.__name__
+    guarded.__doc__ = formatter.__doc__
+    return guarded
+
+
+format_number = dash_unless_finite(format_number)
+format_speed_kms = dash_unless_finite(format_speed_kms)
+format_duration_seconds = dash_unless_finite(format_duration_seconds)
+format_period_years = dash_unless_finite(format_period_years)
+format_temperature_k = dash_unless_finite(format_temperature_k)
+format_pressure_pa = dash_unless_finite(format_pressure_pa)
+_ladder_km = dash_unless_finite(_ladder_km, "&ndash;")
+_ladder_au = dash_unless_finite(_ladder_au, "&ndash;")
+_ladder_ly = dash_unless_finite(_ladder_ly, "&ndash;")
+_ladder_pc = dash_unless_finite(_ladder_pc, "&ndash;")
+
+
 def _read_package_version():
     """
     The planetGen package version (`src/stellarObjects/_version.py`'s
@@ -219,7 +262,10 @@ def nearest_neighbors_location(location, neighbors, system_url):
 def nearest_systems_html(neighbors, system_url):
     """`{id, name, distance_ly}` neighbors (`queryDb.nearest_systems`) as
     comma-separated links with their distances. HTML-safe markup."""
-    return ", ".join(f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a> ({n["distance_ly"]:.1f} ly)'
+    def _distance(neighbor):
+        distance = _finite(neighbor.get("distance_ly"))
+        return f" ({distance:.1f} ly)" if distance is not None else ""
+    return ", ".join(f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a>{_distance(n)}'
                      for n in neighbors)
 
 
@@ -281,7 +327,10 @@ def utc_time_html(value):
     if value is None or value == "":
         return ""
     if isinstance(value, (int, float)):
-        moment = _dt.datetime.fromtimestamp(value, _dt.timezone.utc)
+        try:
+            moment = _dt.datetime.fromtimestamp(value, _dt.timezone.utc)
+        except (OverflowError, ValueError, OSError):
+            return ""  # NaN, an infinity or a time past what a datetime holds (TEST.53)
     elif isinstance(value, _dt.datetime):
         moment = value
     else:
@@ -314,14 +363,15 @@ def format_density(edge_ly, system_count):
     Returns:
         str: e.g. `"0.00329 systems/ly&sup3; (116% of local average)"`.
     """
-    if not edge_ly:
+    edge_ly, system_count = _finite(edge_ly), _finite(system_count)
+    if not edge_ly or edge_ly < 0 or system_count is None:
         return "n/a"
 
     # Divided one factor at a time rather than by `edge_ly ** 3`, which
     # raises OverflowError for a huge edge and underflows to 0.0
     # (ZeroDivisionError) for a tiny one; an infinite result is n/a too.
     density_ly3 = system_count / edge_ly / edge_ly / edge_ly
-    if math.isinf(density_ly3):
+    if not math.isfinite(density_ly3):
         return "n/a"
     text = f"{format_number(density_ly3, '.5f')} systems/ly&sup3;"
     if LOCAL_STELLAR_DENSITY_LY3:

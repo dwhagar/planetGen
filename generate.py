@@ -1541,6 +1541,10 @@ slots than this (see `ring_sector_count`) -- from ring 321, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
+BACKFILL_FROM_CHOICES = ("requested", "all", "none")
+"""tuple: `--backfill-from`'s choices (GEN.30)."""
+
+
 def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own mode/placement options -- on top
@@ -1608,8 +1612,8 @@ def add_galaxy_arguments(parser):
                              "neighborhood within this radius. With "
                              "neither --ring nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
-                             "sector. Every generated sector also gets the bright stars "
-                             "(100 L_sun and up) within 100 ly of it.")
+                             "sector. Once every sector is generated, the bright stars within 100 ly "
+                             "of the requested sector are backfilled (see --backfill-from).")
     parser.add_argument('--max-ring', type=int,
                         help="With neither --ring nor --center-sector (random-start mode): the highest "
                              "ring the randomly chosen starting sector may land in. Default: anywhere "
@@ -1623,6 +1627,25 @@ def add_galaxy_arguments(parser):
                              "non-qualifying address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
+    backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
+    backfill_group.add_argument('--backfill-from', choices=BACKFILL_FROM_CHOICES, default="requested",
+                                help="Once every sector of the run is generated, backfill the bright stars "
+                                     "around the requested sector only ('requested', the default: the "
+                                     "random start, --center-sector or --slot address, else the generated "
+                                     "sector nearest the middle of the run), around every sector the run "
+                                     "generated ('all', reaching 100 ly past the farthest one), or not at "
+                                     "all ('none'). The backfill goes down to 100 L_sun under 10 ly, 250 "
+                                     "under 25 ly, 500 under 50 ly and 750 out to 100 ly, and never adds "
+                                     "stars to a sector already generated.")
+    backfill_group.add_argument('--then-scatter', action='store_true',
+                                help="After the sectors and before the backfill, scatter the bright stars "
+                                     "galaxy-wide (as 'generate.py plan --bright-stars-only'), leaving out "
+                                     "every sector already generated. A new galaxy uses this, so the "
+                                     "scatter never draws stars for sectors it would fill anyway.")
+    backfill_group.add_argument('--bright-star-min-luminosity', type=finite_float,
+                                default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+                                help="With --then-scatter: the scatter's threshold, solar luminosities. "
+                                     f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
     _db.add_mysql_connection_args(parser)
 
 
@@ -1880,38 +1903,81 @@ def _block_addresses(block):
             for layer in drill_slabs(block) for sector in drill_block_sectors(block, layer)]
 
 
-def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=None):
+def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):
     """
-    The bright-star backfill around a generated sector (GEN.23): every
-    sector block (`galaxyDrill`'s level-3 blocks, 3x3x3 sectors) with a
-    sector within `radius_ly` of `center_pc` gets every star from
-    `min_luminosity_sol` up to the level it already holds (its own
-    `bright_star_blocks` level, else the galaxy scatter's threshold, else
-    no ceiling when no scatter ran), in its sectors that aren't filled
-    yet. Each block is drawn whole, under a row lock, and then records
-    its new level, so a block already that deep is skipped (one query
-    for the whole sphere) and no star is ever drawn twice. A block's draw
-    is seeded from the galaxy's scatter seed, the block and the band, so
-    it is the same whichever sector reached it first.
+    The backfill's distance tiers (GEN.30), as `(out_to_ly,
+    min_luminosity_sol)` pairs, nearest first: `tiers` when given, else
+    one tier when either `radius_ly` or `min_luminosity_sol` is (a single
+    floor out to a single distance, GEN.23's original form; the other
+    defaults to the nearest tier's floor or the farthest tier's
+    distance), else `program_constants.BRIGHT_STAR_BACKFILL_TIERS`.
+
+    Returns:
+        tuple: `(out_to_ly, min_luminosity_sol)` float pairs, sorted by
+            distance.
+    """
+    default = program_constants.BRIGHT_STAR_BACKFILL_TIERS
+    if tiers is None and (radius_ly is not None or min_luminosity_sol is not None):
+        tiers = ((default[-1][0] if radius_ly is None else radius_ly,
+                  default[0][1] if min_luminosity_sol is None else min_luminosity_sol),)
+    return tuple(sorted((float(out_to), float(floor)) for out_to, floor in (tiers or default)))
+
+
+def format_backfill_tiers(tiers):
+    """`tiers` as text for the log ("10:100,25:250,...", ly:L_sun)."""
+    return ",".join(f"{out_to:g}:{floor:g}" for out_to, floor in tiers)
+
+
+def _tier_floor(tiers, distance_ly):
+    """The floor of the first tier reaching `distance_ly`, or None past the last."""
+    for out_to, floor in tiers:
+        if distance_ly < out_to or (out_to, floor) == tiers[-1] and distance_ly <= out_to:
+            return floor
+    return None
+
+
+def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=None, tiers=None):
+    """`backfill_bright_stars_around` one center (see there)."""
+    return backfill_bright_stars_around(config, [center_pc], radius_ly, min_luminosity_sol, tiers)
+
+
+def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminosity_sol=None, tiers=None):
+    """
+    The bright-star backfill around generated sectors (GEN.23, tiered by
+    GEN.30): every sector block (`galaxyDrill`'s level-3 blocks, 3x3x3
+    sectors) with a sector within the farthest tier of any of `centers_pc` gets
+    every star from its tier's floor up to the level it already holds (its
+    own `bright_star_blocks` level, else the galaxy scatter's threshold,
+    else no ceiling when no scatter ran), in its sectors that aren't
+    filled yet (it never adds stars to a generated sector). A block's
+    tier is the one its nearest sector falls in, from the nearest center,
+    so a block straddling two tiers takes the nearer, dimmer floor. Each
+    block is drawn whole, under a row lock, and then records its new
+    level, so a block already that deep is skipped (one query for the
+    whole sphere), a block a nearer sector reaches later is only topped up
+    with the band it lacks, and no star is ever drawn twice. A block's
+    draw is seeded from the galaxy's scatter seed, the block and the band,
+    so it is the same whichever sector reached it first.
 
     Args:
         config (MySQLConfig): Connection parameters.
-        center_pc (tuple): The generated sector's center, galaxy-frame
-            parsecs.
-        radius_ly (float, optional): Defaults to
-            `program_constants.BRIGHT_STAR_BACKFILL_RADIUS_LY` (100 ly).
-        min_luminosity_sol (float, optional): Defaults to
-            `program_constants.BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL`
-            (100 L_sun).
+        centers_pc (list): Generated sectors' `(x, y, z)` centers,
+            galaxy-frame parsecs.
+        radius_ly (float, optional): With `min_luminosity_sol`, one tier
+            instead of the defaults (`backfill_tiers`).
+        min_luminosity_sol (float, optional): See `radius_ly`.
+        tiers (tuple, optional): `(out_to_ly, min_luminosity_sol)` pairs;
+            defaults to `program_constants.BRIGHT_STAR_BACKFILL_TIERS`
+            (100 L_sun under 10 ly, 250 to 25 ly, 500 to 50 ly, 750 to
+            100 ly).
 
     Returns:
         dict: `blocks` (drawn now) and `stars` (placed now), both int;
             zeros without a stored skeleton or when the galaxy scatter
             already went that deep.
     """
-    radius_pc = ly_to_pc(program_constants.BRIGHT_STAR_BACKFILL_RADIUS_LY if radius_ly is None else radius_ly)
-    floor = float(program_constants.BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL
-                  if min_luminosity_sol is None else min_luminosity_sol)
+    tiers = backfill_tiers(radius_ly, min_luminosity_sol, tiers)
+    radius_pc = ly_to_pc(tiers[-1][0])
     summary = {"blocks": 0, "stars": 0}
     conn = _db.get_connection(config)
     try:
@@ -1920,18 +1986,27 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
             return summary
         settings = _db.bright_star_scatter_settings(conn)
         galaxy_level, seed = settings if settings else (None, 0)
-        if galaxy_level is not None and galaxy_level <= floor:
+        if galaxy_level is not None and galaxy_level <= min(floor for _out_to, floor in tiers):
             return summary
         bounds = _db.get_galaxy_bounds(conn)
-        blocks = {
-            drill_parent(DrillBlock(1, ring, slot, layer))
-            for ring, layer, slot, *_rest in enumerate_sectors_within_radius(center_pc, radius_pc, skeleton.edge_pc)
-            if bounds.contains(ring, layer)
-        }
-        levels = _db.bright_star_block_levels(conn, blocks)
-        todo = sorted(block for block in blocks
+        floors = {}
+        for center_pc in centers_pc:
+            for ring, layer, slot, *_xyz, distance_pc in enumerate_sectors_within_radius(
+                    center_pc, radius_pc, skeleton.edge_pc):
+                if not bounds.contains(ring, layer):
+                    continue
+                floor = _tier_floor(tiers, pc_to_ly(distance_pc))
+                if floor is None:
+                    continue
+                block = drill_parent(DrillBlock(1, ring, slot, layer))
+                floors[block] = min(floor, floors.get(block, math.inf))
+        if galaxy_level is not None:
+            floors = {block: floor for block, floor in floors.items() if floor < galaxy_level}
+        levels = _db.bright_star_block_levels(conn, set(floors))
+        todo = sorted(block for block, floor in floors.items()
                       if levels.get((block.ring, block.wedge, block.slab), math.inf) > floor)
         for block in todo:
+            floor = floors[block]
             level = _db.lock_bright_star_block(conn, block)
             if level is not None and level <= floor:
                 conn.commit()
@@ -1947,8 +2022,8 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
     finally:
         conn.close()
     if summary["blocks"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['blocks']} block(s) down to "
-                  f"{floor:g} L_sun")
+        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['blocks']} block(s), tiers "
+                  f"{format_backfill_tiers(tiers)}")
     return summary
 
 
@@ -1974,13 +2049,72 @@ def _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed):
     return rows
 
 
+def _requested_center(args, generated, edge_pc, conn):
+    """
+    `backfill_after_run`'s requested sector: the random start or
+    `--center-sector` (`args.center_sector`), the `--slot` address, else
+    (ring, column, shell and block runs) the generated sector nearest the
+    middle of `generated`. `None` when there is none.
+    """
+    many = (getattr(args, "block", None) is not None or getattr(args, "column", False)
+            or getattr(args, "shell", False))
+    if not many and getattr(args, "slot", None) is not None:
+        return sector_position_pc(args.ring, args.layer, args.slot, edge_pc)
+    if not many and getattr(args, "ring", None) is None and getattr(args, "center_sector", None) is not None:
+        row = _db.get_sector_galaxy_position(conn, args.center_sector)
+        if row is not None:
+            return (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    if not generated:
+        return None
+    middle = tuple(sum(point[axis] for point in generated) / len(generated) for axis in range(3))
+    return min(generated, key=lambda point: math.dist(point, middle))
+
+
+def backfill_after_run(args, edge_pc, started_at):
+    """
+    The bright-star backfill once a `galaxy` run has generated every
+    sector it was asked for (GEN.30): around the requested sector only
+    (`--backfill-from requested`, the default, `_requested_center`),
+    around every sector the run generated (`all`), or not at all
+    (`none`). Nothing when the run generated no sector.
+
+    Args:
+        args (argparse.Namespace): The run's arguments.
+        edge_pc (float): The sector edge, parsecs.
+        started_at (datetime): The database's clock when the run started
+            (`_db.database_now`); sectors created since are the run's.
+
+    Returns:
+        dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
+    """
+    mode = getattr(args, "backfill_from", "requested") or "requested"
+    summary = {"blocks": 0, "stars": 0}
+    if mode == "none":
+        return summary
+    config = _db.mysql_config_from_args(args)
+    conn = _db.get_connection(config)
+    try:
+        generated = _db.sector_centers_since(conn, started_at)
+        if not generated:
+            return summary
+        centers = generated if mode == "all" else [_requested_center(args, generated, edge_pc, conn)]
+    finally:
+        conn.close()
+    centers = [center for center in centers if center is not None]
+    if not centers:
+        return summary
+    log.normal(f"Backfilling the bright stars around {'every generated sector' if mode == 'all' else 'the requested sector'}...")
+    summary = backfill_bright_stars_around(config, centers)
+    log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['blocks']:,} sector blocks.")
+    return summary
+
+
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     """
     Generates one sector via `generate_sector` inside its real grid cell
     and saves it -- the per-sector unit of work every `galaxy` mode
-    repeats. First backfills the bright stars within 100 ly of it
-    (`backfill_bright_stars`, GEN.23), so this sector's own fill already
-    builds its systems around them.
+    repeats. The bright-star backfill runs once the whole run is done
+    (`backfill_after_run`, GEN.30), not per sector.
 
     Args:
         args (argparse.Namespace): Parsed arguments (see `add_galaxy_arguments`).
@@ -1998,7 +2132,6 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     radius_pc = galactic_radius_pc(position_pc)
     cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
 
-    backfill_bright_stars(_db.mysql_config_from_args(args), position_pc)
     fill = _fill_context(args, address, position_pc)
     _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill)
     if address == NUCLEUS_ADDRESS:
@@ -2129,6 +2262,7 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
             raise
         return {"created": False, "qualifies": True, "sector_id": existing_id, "sector_name": None}
 
+    backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
     return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
@@ -2628,8 +2762,9 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     `ValueError` instead of `SystemExit` for an invalid/unplaced sector.
 
     The default radius is `program_constants.DEFAULT_GENERATE_RADIUS_PC`
-    (12 pc, about 100 candidate addresses; GEN.23). The 100 ly around each
-    generated sector gets only its bright stars (`backfill_bright_stars`).
+    (12 pc, about 100 candidate addresses; GEN.23). Once they are all
+    generated, the 100 ly around the center sector gets its bright stars
+    (`backfill_bright_stars`, GEN.30).
     A larger `radius_ly` (100 ly holds roughly 1,500-2,000 addresses) can
     take minutes to hours.
 
@@ -2723,6 +2858,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
             generated += 1
     finally:
         _finish_stats(args)
+    if generated:
+        backfill_bright_stars(config, center)  # GEN.30: once, around the requested sector
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
@@ -3082,6 +3219,11 @@ def run_galaxy(args):
         raise SystemExit(1)
 
     estimate_only = getattr(args, "estimate_only", False)
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        started_at = _db.database_now(conn)
+    finally:
+        conn.close()
     try:
         with _generation_progress(disable=estimate_only) as progress:
             log.set_console(progress.console)
@@ -3094,6 +3236,11 @@ def run_galaxy(args):
         return
     finally:
         _finish_stats(args)
+    # GEN.30: the bright stars come after the sectors, so neither the
+    # scatter nor the backfill draws stars for a sector the run filled.
+    if getattr(args, "then_scatter", False):
+        scatter_bright_stars(args)
+    backfill_after_run(args, edge_pc, started_at)
     run_population_after(args)
 
 
@@ -3162,7 +3309,7 @@ def add_plan_arguments(parser):
     bright_group.add_argument('--bright-stars-only', action='store_true',
                               help="Re-scatter the bright stars on the stored plan without rebuilding it.")
     bright_group.add_argument('--force', action='store_true',
-                              help="Scatter even when sectors are already filled, leaving those sectors out.")
+                              help="No longer needed: the scatter always leaves filled sectors out (GEN.30).")
     bright_group.add_argument('--workers', type=int, default=None,
                               help="How many layers of bright stars to draw at once, each in its own "
                                    "low-priority worker process. Default: 80%% of this machine's cores "
@@ -3314,12 +3461,12 @@ def scatter_bright_stars(args):
     into `bright_stars`, replacing any earlier scatter, one layer per
     commit, with a progress bar.
 
-    Refuses when sectors are already filled (they'd never get their bright
-    stars) unless `--force`, which leaves those sectors out.
+    Sectors already filled are always left out (GEN.30): the scatter never
+    adds stars to a generated sector. `--force` is still accepted and
+    does nothing more.
 
     Returns:
-        dict or None: `counts` (per population), `total` and `elapsed_s`;
-            `None` when it refused.
+        dict: `counts` (per population), `total` and `elapsed_s`.
     """
     mysql_config = _db.mysql_config_from_args(args)
     conn = _db.get_connection(mysql_config)
@@ -3329,12 +3476,8 @@ def scatter_bright_stars(args):
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
         extents = _db.get_galaxy_layers(conn)
         filled = _db.filled_sector_addresses(conn)
-        if filled and not args.force:
-            log.normal(
-                f"Not scattering bright stars: {len(filled):,} sectors are already filled and would never "
-                f"get theirs. Reset the galaxy first, or re-run with --force to leave those sectors out."
-            )
-            return None
+        if filled:
+            log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
         seed = random.SystemRandom().getrandbits(63)
         _db.clear_bright_stars(conn)

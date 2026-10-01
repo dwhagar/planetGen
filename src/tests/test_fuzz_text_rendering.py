@@ -211,7 +211,10 @@ def test_nearest_neighbors_location_escapes_every_name(location, neighbors):
 def test_format_distance_ly_never_raises(distance):
     out = fmt.format_distance_ly(distance)
     units = (" km", " AU", " ly", " ly)", " AU)", " km)")
-    assert out == "&ndash;" if distance is None else out.endswith(units)
+    # No value (None, NaN, an infinity, or one that overflows on the way to
+    # km) is a dash, never "nan km"/"inf km" (TEST.53).
+    assert out == "&ndash;" if distance is None else (out == "&ndash;" or out.endswith(units))
+    assert not re.search(r"\b(?:nan|inf)\b", out, re.IGNORECASE)
 
 
 @given(edge=st.floats(min_value=1e-3, max_value=1e6), count=st.integers(0, 10**7))

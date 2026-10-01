@@ -145,6 +145,15 @@ def test_post_and_status_need_an_admin(site, client, no_spawn):
     assert no_spawn == []
 
 
+def test_head_is_a_get_not_a_form_post(site, client, no_spawn):
+    """HEAD answers like GET (Flask routes it to the same view), so it never
+    reaches the form branch, which would skip the CSRF check."""
+    assert client.head("/admin/generate", data={"action": "plan"}).status_code == 200
+    assert no_spawn == []
+    site.admin = None
+    assert client.head("/admin/generate").status_code == 302
+
+
 def test_post_needs_csrf(site, client, no_spawn):
     resp = client.post("/admin/generate", data={"action": "plan"})
     assert resp.status_code == 400
@@ -237,6 +246,19 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     ({"mode": "ring", "ring": "4000", "whole_ring": "1"}, ["--ring", "4000", "--layer", "0", "--yes"]),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "20"},
      ["--center-sector", "9", "--radius-pc", "20.0"]),
+    ({"mode": "center", "center_by": "sector", "center_sector": "9", "center_radius_pc": "20"},
+     ["--center-sector", "9", "--radius-pc", "20.0"]),
+    ({"mode": "center", "center_by": "address", "center_ring": "40", "center_layer": "-1", "center_slot": "7",
+      "center_radius_pc": "12"},
+     ["--ring", "40", "--layer", "-1", "--slot", "7", "--radius-pc", "12.0"]),
+    ({"mode": "center", "center_by": "address", "center_ring": "40", "center_slot": "7", "center_radius_pc": "12"},
+     ["--ring", "40", "--layer", "0", "--slot", "7", "--radius-pc", "12.0"]),
+    # FakeSite's plan has a 3.5 pc edge: x = 10 is ring 2, z = 4 rounds to layer 1.
+    ({"mode": "center", "center_by": "position", "center_x_pc": "10", "center_y_pc": "0", "center_z_pc": "4",
+      "center_radius_pc": "20"},
+     ["--ring", "2", "--layer", "1", "--slot", "0", "--radius-pc", "20.0"]),
+    ({"mode": "center", "center_by": "position", "center_x_pc": "-10", "center_y_pc": "0", "center_radius_pc": "20"},
+     ["--ring", "2", "--layer", "0", "--slot", "7", "--radius-pc", "20.0"]),
     ({"mode": "slot", "slot_ring": "3", "slot_layer": "1", "slot": "17"},
      ["--ring", "3", "--layer", "1", "--slot", "17"]),
     ({"mode": "slot", "slot_ring": "3", "slot": "17", "slot_radius_pc": "12"},
@@ -275,6 +297,13 @@ def test_galaxy_job_modes(site, client, no_spawn, form, argv):
     ({"mode": "ring", "ring": "3", "limit": "1e30"}, "Limit must be a whole number."),
     ({"mode": "ring", "ring": "3", "limit": "9999999"}, "Limit must be at most"),
     ({"mode": "center", "center_sector": "9", "center_radius_pc": "1e9"}, "Radius (pc) must be at most 200."),
+    ({"mode": "center", "center_by": "address", "center_slot": "1", "center_radius_pc": "5"}, "Ring is required."),
+    ({"mode": "center", "center_by": "position", "center_x_pc": "1", "center_radius_pc": "5"}, "y (pc) is required."),
+    ({"mode": "center", "center_by": "position", "center_x_pc": "1e12", "center_y_pc": "0", "center_radius_pc": "5"},
+     "That position is outside the galaxy grid."),
+    ({"mode": "center", "center_by": "position", "center_x_pc": "inf", "center_y_pc": "0", "center_radius_pc": "5"},
+     "x (pc) must be a finite number."),
+    ({"mode": "center", "center_by": "bogus", "center_radius_pc": "5"}, "Choose how to name the center sector."),
     ({"mode": "slot", "slot_ring": "100001", "slot": "0"}, "Ring must be at most 100000."),
     ({"mode": "slot", "slot_ring": "1", "slot": "0", "slot_radius_pc": "500"}, "Radius (pc) must be at most 200."),
     ({"mode": "column", "column_ring": "1"}, "Slot is required."),
@@ -363,6 +392,78 @@ def test_map_buttons_get_json(site, client, no_spawn, monkeypatch):
     assert resp.status_code == 400 and resp.get_json() == {"error": "Block is required."}
 
 
+def test_center_position_without_a_plan_uses_the_standard_edge(site, client, no_spawn):
+    site.shape = None
+    resp = _post(client, action="galaxy", estimate_ok="1", mode="center", center_by="position",
+                 center_x_pc="10", center_y_pc="0", center_radius_pc="20")
+    assert resp.status_code == 303
+    (job,) = no_spawn
+    assert _argv(job["steps"][-1])[:7] == ["galaxy", "--ring", "2", "--layer", "0", "--slot", "0"]
+
+
+def _fold(html, section):
+    match = re.search(rf'<section[^>]* id="{section}"[^>]*>\s*<details class="fold" data-fold="{section}"([^>]*)>',
+                      html)
+    assert match, section
+    return match.group(1)
+
+
+def test_sections_fold_with_only_current_job_open(site, client):
+    """ADM.4: every section is a <details>; the server opens Current job
+    and leaves the browser's memory (generatefolds.js) to the rest."""
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert "open" in _fold(html, "current-job")
+    for section in ("one-off-system", "new-galaxy", "generate-sectors", "plan", "bright-stars", "bright-band",
+                    "reset", "recent-jobs"):
+        attrs = _fold(html, section)
+        assert "open" not in attrs and "data-fold-keep" not in attrs, section
+        assert f'<summary><h2 id="{section}-heading">' in html
+    assert re.search(r'<script type="module" src="/static/generatefolds.js\?v=[^"]+"></script>', html)
+
+
+@pytest.mark.parametrize("action, section", [
+    ("galaxy", "generate-sectors"), ("plan", "plan"), ("bright_band", "bright-band"), ("reset", "reset"),
+])
+def test_a_form_shown_again_keeps_its_section_open(site, client, no_spawn, action, section):
+    resp = _post(client, action=action, mode="ring", arm_amplitude="5", down_to="", confirm="wrong")
+    assert resp.status_code == 400
+    attrs = _fold(resp.get_data(as_text=True), section)
+    assert " open" in attrs and "data-fold-keep" in attrs
+
+
+def test_around_a_sector_offers_every_way_to_name_the_center(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    for by in ("sector", "address", "position"):
+        assert f'name="center_by" value="{by}"' in html
+    for name in ("center_sector", "center_ring", "center_layer", "center_slot", "center_x_pc", "center_y_pc",
+                 "center_z_pc", "center_radius_pc"):
+        assert f'name="{name}"' in html
+    assert 'data-locate-url="/galaxy/locate"' in html
+    assert 'data-list-url="/admin/generate/sectors"' in html
+
+
+def test_sector_list_pages_filled_sectors(site, client, monkeypatch):
+    asked = []
+
+    def get_sectors(db, limit=None, offset=None):
+        asked.append((limit, offset))
+        return {"items": [{"id": 7, "name": "Aldra", "system_count": 12, "ring_index": 40, "layer_index": 0,
+                           "ring_slot_index": 3}], "total": 51, "limit": limit, "offset": offset}
+
+    monkeypatch.setattr(apiclient, "get_sectors", get_sectors)
+    resp = client.get("/admin/generate/sectors?page=2")
+    assert resp.status_code == 200 and resp.headers["Cache-Control"] == "no-store"
+    assert resp.get_json() == {"items": [{"id": 7, "name": "Aldra", "systems": 12, "ring": 40, "layer": 0,
+                                          "slot": 3}], "total": 51, "page": 2, "pages": 2}
+    assert asked == [(50, 50)]
+    assert client.get("/admin/generate/sectors?page=x").get_json()["page"] == 1
+
+
+def test_sector_list_needs_an_admin(site, client):
+    site.admin = None
+    assert client.get("/admin/generate/sectors").status_code == 403
+
+
 def test_plan_rejects_out_of_range(site, client, no_spawn):
     resp = _post(client, action="plan", arm_amplitude="1")
     assert resp.status_code == 400
@@ -381,12 +482,12 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, scatter, galaxy = _work_steps(job)
+    reset, plan, galaxy = _work_steps(job)
     assert reset["argv"][1] == jobs.RESET_SCRIPT and _argv(reset) == ["--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
-    assert scatter["label"] == generate_page.SCATTER_LABEL
-    assert _argv(scatter) == ["plan", "--bright-stars-only"]
-    assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0"]
+    # GEN.30: the scatter comes after the sectors, inside the galaxy step.
+    assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
+    assert _argv(galaxy) == ["galaxy", "--radius-pc", "40.0", "--then-scatter"]
 
 
 # --- Bright-star scatter ----------------------------------------------------------
@@ -406,13 +507,14 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     (job,) = no_spawn
     labels = [step["label"] for step in _work_steps(job)]
     assert generate_page.SCATTER_LABEL not in labels
+    assert all("--then-scatter" not in step["argv"] for step in job["steps"])
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[-1] == "--no-bright-stars"
 
 
 @pytest.mark.parametrize("form, argv", [
     ({}, ["plan", "--bright-stars-only"]),
-    ({"bright_force": "1"}, ["plan", "--bright-stars-only", "--force"]),
+    ({"bright_min_luminosity": "2500"}, ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2500"]),
 ])
 def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _post(client, action="bright_stars", **form).status_code == 303
@@ -448,13 +550,77 @@ def test_scatter_flags_exist_in_generate_py():
     args = plan.parse_args(["--bright-stars-only", "--force"])
     assert args.bright_stars_only is True and args.force is True
     assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
+    assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
+    galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "2000",
+                                           "--backfill-from", "all"])
+    assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 2000.0
+    assert galaxy.backfill_from == "all"
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert html.count('name="skip_bright_stars"') == 2  # New galaxy and Plan
     assert "Skip the bright-star scatter" in html
-    assert 'name="bright_force"' in html
+    assert 'name="bright_force"' not in html  # GEN.30: filled sectors are always left out
+
+
+# --- GEN.30: the galaxy-wide threshold field -----------------------------------------
+
+def test_page_offers_the_scatter_threshold(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
+    assert generate_page.BRIGHT_THRESHOLD_LABEL in html
+    assert 'placeholder="1,000"' in html
+    assert generate_page.BACKFILL_TEXT in html
+
+
+def test_backfill_text_follows_the_tiers():
+    assert generate_page.BACKFILL_TEXT == (
+        "down to 100 solar luminosities within 10 ly, 250 within 25 ly, 500 within 50 ly "
+        "and 750 out to 100 ly")
+
+
+def test_scatter_uses_the_threshold_field(site, client, no_spawn):
+    assert _post(client, action="plan", bright_min_luminosity="2000").status_code == 303
+    (job,) = no_spawn
+    scatter = next(step for step in job["steps"] if step["label"] == generate_page.SCATTER_LABEL)
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2000"]
+
+
+def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no_spawn):
+    assert _post(client, action="new_galaxy", confirm=DB, bright_min_luminosity="2000").status_code == 303
+    (job,) = no_spawn
+    galaxy = _work_steps(job)[-1]
+    assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "2000"]
+
+
+@pytest.mark.parametrize("action", ["galaxy", "new_galaxy"])
+def test_backfill_from_every_generated_sector_is_a_checkbox(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, estimate_ok="1", backfill_all="1").status_code == 303
+    (job,) = no_spawn
+    galaxy = _work_steps(job)[-1]
+    argv = _argv(galaxy)
+    assert argv[argv.index("--backfill-from") + 1] == "all"
+
+
+def test_backfill_defaults_to_the_requested_sector(site, client, no_spawn):
+    assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
+    (job,) = no_spawn
+    assert "--backfill-from" not in _argv(_work_steps(job)[-1])
+
+
+def test_page_offers_the_backfill_checkbox(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="backfill_all"') == 2  # New galaxy and Generate sectors
+    assert "Backfill from every generated sector (farthest out)" in html
+
+
+@pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
+def test_scatter_threshold_must_be_at_least_one(site, client, no_spawn, value):
+    resp = _post(client, action="plan", bright_min_luminosity=value)
+    assert resp.status_code == 400
+    assert no_spawn == []
+    assert generate_page.BRIGHT_THRESHOLD_LABEL in resp.get_data(as_text=True)
 
 
 def test_one_job_at_a_time(site, client, no_spawn, jobs_root):

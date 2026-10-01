@@ -315,6 +315,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one block, or a run of blocks along the arc when a block is too small
   to click on a small screen?
 
+- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
+  Found by the generation tests (2026-10-01): a body whose computed
+  position is NaN or infinite is written straight into the System
+  Map's SVG. Done: such a body is left out or drawn at a safe place
+  with a note, the SVG never holds NaN or inf, and the strict xfail
+  test for it passes.
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
@@ -435,6 +442,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
 
+- [ ] **GEN.31 A point just under layer 0's top face lands in layer 1 (bug)**
+  Found by the generation tests (TEST.4-36 work, 2026-10-01): a point
+  one float step below layer 0's top face is put in layer 1, both in
+  the Python grid code (`galaxyGeometry`, `sector_address_at`) and in
+  the map's `galaxyprisms.js`. Done: a point inside a layer's own
+  height range always maps to that layer, in Python and JavaScript
+  alike, and the strict xfail test for it passes. [MAP]
+
+- [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
+  Found by the generation tests (2026-10-01): if `generate.py plan
+  --bright-stars-down-to N` stops part way and is run again, the layers
+  it already finished get the band a second time. Done: a re-run adds
+  only the layers the interrupted run didn't finish (or starts the band
+  over cleanly), never the same stars twice, and the strict xfail test
+  for it passes.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -552,9 +575,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later granted to users) but every write route, the remote upload
   routes of API.3 above all, answers 403 for it; an admin key keeps
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
-  and TEST.44 (what an API key may do). Open question: does a
-  user-level key belong to a user account (USR.1) or stand alone until
-  user accounts exist?
+  and PR #293 (TEST.44), which already answers 403 to
+  any API key that makes keys, changes credentials or 2FA, or logs
+  out. Open question: does a user-level key belong to a user account
+  (USR.1) or stand alone until user accounts exist?
 
 - [ ] **API.7 Investigate and plan upload limits**
   Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
@@ -565,7 +589,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   client does when it hits one (wait and retry, shrink the batch).
   Measured against real sectors and the web server's own limits
   (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
-  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  `MAX_CONTENT_LENGTH`, set to 2 MB by PR #293) and the API limiter
   (`api/limiter.py`). The plan only; building the limits is a later
   item.
 
@@ -933,67 +957,6 @@ clears each one.
   never removes the running job; cancel with unknown, malformed or
   finished job ids. [ADM]
 
-- [ ] **TEST.42 Pages fresh after a CLI write**
-  After `generate.py` writes straight to the database, `/galaxy`,
-  `/sector`, tiles and lists show the new data (only API writes are
-  tested today). [UX, PERF]
-
-- [ ] **TEST.43 Auth sweep over every route**
-  Generated from `app.url_map`: every API write route gives 401 to
-  anonymous, garbage Bearer and revoked keys; every admin route gives
-  403 to an admin who must still change credentials. [SEC, API]
-
-- [ ] **TEST.44 What an API key may do**
-  Whether a Bearer key can change credentials, set up or turn off TOTP,
-  make keys, or log out, pinned to the intended answer. [SEC, API]
-
-- [ ] **TEST.45 More than one admin**
-  Admin B can't revoke admin A's key, lifting another admin's lockout is
-  audited, two admins editing the same system. [SEC, ADM]
-
-- [ ] **TEST.46 Trusted device and TOTP edge cases**
-  Expired, tampered and other-user device cookies; turning TOTP off
-  voids trust; a code reused across the API and `/login/code`; a pending
-  login that expires. [SEC]
-
-- [ ] **TEST.47 Oversized requests**
-  Multi-megabyte JSON and form bodies to `/api/systems`, `/login` and
-  the facility form get 413 (there is no `MAX_CONTENT_LENGTH` set
-  today). [SEC]
-
-- [ ] **TEST.48 Security headers everywhere**
-  CSP and the other headers on JSON responses, 404/405/500 pages and
-  redirects, not only pages. [SEC]
-
-- [ ] **TEST.49 Thin API routes**
-  Unknown ids, empty galaxy, paging limits and wrong-system ids for
-  `/api/galaxy/sectors`, `/shape`, `/phenomena`, `/bright-stars`,
-  star/planet/moon PATCH, facilities POST/PATCH/DELETE,
-  `/api/admin/login-failures`, `/api/population`, `/api/species/<id>`,
-  `/api/systems/<id>/owner`; deleting a sector that has facilities or
-  wiki pages. [API]
-
-- [ ] **TEST.50 Galaxy URLs combined**
-  `?at=` with `?p=` and `?sector=` together; `?course=` to deleted
-  objects; `/galaxy/locate` with unicode, very long input, NaN/inf and
-  out-of-range coordinates, ambiguous names. [MAP]
-
-- [ ] **TEST.51 Page-number sweep gaps**
-  `/species?species_page=` and `/polities?polities_page=` join the
-  page-clamping sweep. [UX]
-
-- [ ] **TEST.52 Old URLs and error codes**
-  Unknown `/<name>.py`, case variants, redirect chains; 400 for
-  malformed form encoding; HEAD and OPTIONS on pages. [UX]
-
-- [ ] **TEST.53 Formatters with bad numbers**
-  Every `fmt` and `tabledisplay` formatter with NaN, inf, negative, zero
-  and None; empty tables; huge values. [UX]
-
-- [ ] **TEST.54 Caches under threads**
-  Page cache fill and clear from real threads; two writers to the same
-  tile file. [PERF]
-
 ### Browser and JavaScript
 
 - [ ] **TEST.55 Map buttons do something**
@@ -1044,40 +1007,6 @@ clears each one.
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
-
-- [ ] **TEST.63 Math check that runs first**
-  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
-  before other tests that basically validates the math works, before
-  batch generation, we need to verify the actual math works." One
-  module, `src/stellarObjects/mathCheck.py`: pure functions, no
-  database, network or files, fixed seeds, under 5 seconds. Each check
-  has a name, the function it calls, the expected value, a tolerance and
-  the source of the expected value (a textbook figure, a paper's table,
-  or an exact identity). The same module is used three ways: pytest runs
-  it first, `generate.py` and the Generate page run it before bulk
-  generation, and `update.sh` runs it after an update. The coverage
-  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
-  the reference-value gate in front of them, and TEST.34's Kepler
-  reference values move here.
-
-  TEST.64 to TEST.67 (reference values, identities, distributions, and
-  running first in the suite and in CI) shipped in PR #281; TEST.68,
-  the gate before bulk generation, is what remains.
-
-  Default taken: no skip switch for the bulk gate, since it costs under
-  5 seconds. Open questions for Boss: should there be an emergency skip
-  flag anyway? Should the web app also run it at startup and show admins
-  a warning if it fails? Should the one-off system generator run it too,
-  or only bulk paths?
-
-  - [ ] **TEST.68 Gate before bulk generation**
-    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
-    `sector` over many sectors, `plan`, `population`, the Generate
-    page's jobs and the map's block and neighbourhood generation) runs
-    it first and refuses to start if a check fails, naming the failed
-    check and writing nothing; the Generate page shows the result as the
-    job's first step; `update.sh` runs it after updating and warns on
-    failure.
 
 ## USR: User accounts
 

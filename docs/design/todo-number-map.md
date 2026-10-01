@@ -14,9 +14,9 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.57 |
+| MAP | MAP.58 |
 | NAV | NAV.3 |
-| GEN | GEN.30 |
+| GEN | GEN.33 |
 | PERF | PERF.18 |
 | DB | DB.2 |
 | API | API.9 |
@@ -443,6 +443,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
+| GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
+| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
+| GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -499,6 +502,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
+| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -719,19 +723,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.39 | Navigation graph | none | open |
 | TEST.40 | Two admins start a job at once | none | open |
 | TEST.41 | Job files damaged | none | open |
-| TEST.42 | Pages fresh after a CLI write | none | open |
-| TEST.43 | Auth sweep over every route | none | open |
-| TEST.44 | What an API key may do | none | open |
-| TEST.45 | More than one admin | none | open |
-| TEST.46 | Trusted device and TOTP edge cases | none | open |
-| TEST.47 | Oversized requests | none | open |
-| TEST.48 | Security headers everywhere | none | open |
-| TEST.49 | Thin API routes | none | open |
-| TEST.50 | Galaxy URLs combined | none | open |
-| TEST.51 | Page-number sweep gaps | none | open |
-| TEST.52 | Old URLs and error codes | none | open |
-| TEST.53 | Formatters with bad numbers | none | open |
-| TEST.54 | Caches under threads | none | open |
+| TEST.42 | Pages fresh after a CLI write | none | done, PR #293 |
+| TEST.43 | Auth sweep over every route | none | done, PR #293 |
+| TEST.44 | What an API key may do | none | done, PR #293 |
+| TEST.45 | More than one admin | none | done, PR #293 |
+| TEST.46 | Trusted device and TOTP edge cases | none | done, PR #293 |
+| TEST.47 | Oversized requests | none | done, PR #293 |
+| TEST.48 | Security headers everywhere | none | done, PR #293 |
+| TEST.49 | Thin API routes | none | done, PR #293 |
+| TEST.50 | Galaxy URLs combined | none | done, PR #293 |
+| TEST.51 | Page-number sweep gaps | none | done, PR #293 |
+| TEST.52 | Old URLs and error codes | none | done, PR #293 |
+| TEST.53 | Formatters with bad numbers | none | done, PR #293 |
+| TEST.54 | Caches under threads | none | done, PR #293 |
 | TEST.55 | Map buttons do something | none | open |
 | TEST.56 | No overlapping controls | none | open |
 | TEST.57 | Galaxy Map JavaScript logic | none | open |
@@ -740,12 +744,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
-| TEST.63 | Math check that runs first (new parent) | none | open |
+| TEST.63 | Math check that runs first (new parent) | none | done, PRs #281 and #290 |
 | TEST.64 | Reference values | none | done, PR #281 |
 | TEST.65 | Identities and invariants | none | done, PR #281 |
 | TEST.66 | Distributions match their targets | none | done, PR #281 |
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
-| TEST.68 | Gate before bulk generation | none | open |
+| TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
