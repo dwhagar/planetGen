@@ -424,33 +424,6 @@ for a mouse; spacing and type sized with `clamp()`.
     built at the same time; and what happens to queued and half-done
     tasks when the server restarts or a job is cancelled.
 
-### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
-
-25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
-    stars should be not a 3D map but rather a rendered representation of
-    the neutron star pulsing in rough time with its properties and show
-    some way to show it's spinning from the render. Same for comets,
-    rogue planets, etc, asteroid fields don't get a 3D render at all,
-    black holes should get a 3D render representing their accretion
-    disk around it. Similar for Quasars we should see a 3D rendering
-    similar to what it might look like."
-    - Today `render_phenomenon_map_panel` draws a flat SVG: a circle of
-      `radius_ly` for nebulae, asteroid fields and remnants, a dot for
-      everything else.
-    - Neutron star: pulse in rough time with `spin_period_ms` (slowed to
-      a visible rate, stated on screen), beams or a surface feature so
-      the spin reads; non-pulsing ones just rotate.
-    - Comet, rogue planet: a rendered body (the tail for a comet).
-    - Asteroid field: no render.
-    - Black hole: a three.js accretion disk (tilt, glow; intermediate
-      and stellar sizes differ). Quasar: the disk plus jets when
-      radio-loud.
-    - `prefers-reduced-motion` gets a still frame; pages still read
-      without JavaScript.
-    - Nebulae and supernova remnants: Boss (2026-09-30) wants them
-      generated and placed on the maps (#27); their own view keeps a
-      map until a render is designed for them.
-
 ### Web API (`src/html/api/routes.py`)
 
 Low priority; nobody is waiting on these.

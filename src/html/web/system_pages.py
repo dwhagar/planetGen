@@ -27,6 +27,7 @@ from fmt import (
 )
 from pagination import fetch_page, parse_page
 from phenomenonmap import render_phenomenon_map_panel
+from phenomenonrender import render_phenomenon_view_panel, view_kind
 from systemmap import render_system_map_panel
 from systempage import stars_html, system_list_html
 from tabledisplay import format_star_radius, to_plain_text
@@ -481,11 +482,11 @@ def phenomenon_fields(phenomenon_type, detail):
     return fields
 
 
-# TODO(phenomena #25): pick the per-type view here (render, 3D render or
-# none) instead of always calling render_phenomenon_map_panel.
 @bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>")
 def phenomenon(phenomenon_type, phenomenon_id):
-    """One phenomenon: its data table and AU-scale diagram."""
+    """One phenomenon: its view (a render, the AU-scale diagram, or none
+    for an asteroid field; see `phenomenonrender.view_kind`) and its data
+    table."""
     if phenomenon_type not in TYPE_LABELS:
         abort(404)
     detail = apiclient.get_phenomenon(db_name(), phenomenon_type, phenomenon_id)
@@ -500,11 +501,15 @@ def phenomenon(phenomenon_type, phenomenon_id):
         sector = {"name": detail.get("sector_name") or "Sector",
                   "url": page_url("sector", sector_id=detail["sector_id"])}
 
-    # Offered for every type: nav.py itself says when a phenomenon was
-    # never placed in the galaxy.
-    map_html = render_phenomenon_map_panel(
-        phenomenon_type, detail["name"], detail.get("radius_ly") or 0,
-    )
+    kind = view_kind(phenomenon_type)
+    if kind == "render":
+        map_html = render_phenomenon_view_panel(phenomenon_type, detail)
+    elif kind == "map":
+        map_html = render_phenomenon_map_panel(
+            phenomenon_type, detail["name"], detail.get("radius_ly") or 0,
+        )
+    else:
+        map_html = ""
     return render_page(
         "phenomenon.html",
         title=detail["name"],
@@ -519,6 +524,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
         nav_links=nav_links(phenomenon_type, detail["id"]),
+        view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
     )
