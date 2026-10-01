@@ -1160,12 +1160,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
   positions and star draws use the operating system's random source by
   design, so even at the same worker count one seed gives a different
-  galaxy each run. This makes TEST.19's goal (the same sectors at any
-  worker count) impossible as written. Done: Boss decides whether
-  generation should be reproducible from its seed; if yes, every draw
-  comes from the seeded generator (per sector, so worker count doesn't
-  matter) and TEST.19 can run; if no, TEST.19 is reworded. Open
-  question for Boss: should a seed reproduce a galaxy?
+  galaxy each run, and TEST.19 (retired with PR #321) couldn't check
+  its goal of the same sectors at any worker count. Done: Boss decides
+  whether generation should be reproducible from its seed; if yes,
+  every draw comes from the seeded generator (per sector, so worker
+  count doesn't matter) and a test checks that one seed gives the same
+  sectors at any worker count. Open question for Boss: should a seed
+  reproduce a galaxy?
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
