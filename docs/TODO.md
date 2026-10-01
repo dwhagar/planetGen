@@ -132,8 +132,7 @@ lot with a much higher contrast."
     scale); what "higher contrast" uses (a bright color, an outline, a
     glow like the bright stars); whether a block holding only a few
     filled sectors gets the filled look; and whether it follows the
-    light and dark themes and the Accessibility Standards' contrast
-    rules.
+    light and dark themes and keeps enough contrast in both.
 
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
