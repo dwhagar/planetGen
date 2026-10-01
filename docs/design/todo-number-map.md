@@ -22,7 +22,7 @@ release is stamped.
 | API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
-| TEST | TEST.71 |
+| TEST | TEST.72 |
 | USR | USR.8 |
 | OPS | OPS.7 |
 | DOC | DOC.4 |
@@ -814,8 +814,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.66 | Distributions match their targets | none | done, PR #281 |
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
-| TEST.69 | Intermittent failure in the colony test | none | open |
+| TEST.69 | Intermittent failure in the colony test (bug) | none | open |
 | TEST.70 | Tests for the map JavaScript | none | open |
+| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

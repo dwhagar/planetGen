@@ -1357,7 +1357,7 @@ clears each one.
   `test_bughunt_galaxy_boundaries.py` uses `EDGE_PC = 10.0`; run it at
   the real 4 pc sector edge too. [infra, GEN]
 
-- [ ] **TEST.69 Intermittent failure in the colony test**
+- [ ] **TEST.69 Intermittent failure in the colony test (bug)**
   `test_web_facilities.py::test_real_colony_makes_its_world_inhabited`
   failed once in a full parallel run on main plus ADM.6 and ADM.7, then
   passed in 9 isolated and parallel reruns, bare main included (reported
@@ -1368,6 +1368,14 @@ clears each one.
   failing draw is found (loop the test over seeds), the cause is fixed
   in the test or in the code it found, and the test passes on every
   seed tried. [infra, web]
+
+- [ ] **TEST.71 Intermittent failure in the admin planet-regenerate test (bug)**
+  `test_admin_edits.py::test_system_page_regenerates_a_planet` fails
+  about 1 run in 12 on main (seen by the TODO thread while testing
+  GEN.30, PRs #295 and #296, 2026-10-01). Done: the failing case is
+  found (loop the test over seeds or runs), the cause is fixed in the
+  test or in the code it found, and the test passes on every run tried.
+  [infra, ADM]
 
 ### Database and migrations
 
