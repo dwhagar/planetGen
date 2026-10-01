@@ -894,6 +894,46 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
     assert top["temperature_k"] == 15000.0 and top["yerkes_class"] == "III" and top["system_id"] is None
 
 
+def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(mysql_config, monkeypatch):
+    """A box over the row budget (MAP.47) is answered from the galaxy-wide
+    sample: exactly the box's brightest when the sample holds `limit` of
+    them there, else the sample's stars inside it, still brightest first."""
+    import random
+
+    edge = 3.5
+    rng = random.Random(11)
+    stars = []
+    for _ in range(600):
+        r, theta = 150.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
+        stars.append(((r * math.cos(theta), r * math.sin(theta), rng.uniform(-10.0, 10.0)), rng.uniform(500, 5e5)))
+    monkeypatch.setattr(queryDb, "GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET", 0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        _db.insert_bright_stars(conn, (_bright_row(p, lum, edge) for p, lum in stars))
+        conn.commit()
+        ids = [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
+        ranked = sorted(zip(ids, stars), key=lambda pair: -pair[1][1])
+        reads = []
+
+        def sample_of(count):
+            def brightest():
+                reads.append(count)
+                return queryDb.galaxy_brightest_stars(conn, count)
+            return brightest
+
+        assert [s["id"] for s in queryDb.galaxy_brightest_stars(conn, 5)] == [i for i, _s in ranked[:5]]
+        for lo, hi in [((-200, -200, -50), (200, 200, 50)), ((0, 0, -50), (200, 200, 50)), ((20, -60, -5), (90, 10, 5))]:
+            inside = [i for i, (p, _lum) in ranked if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))]
+            whole = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=20, brightest=sample_of(len(stars)))
+            assert [s["id"] for s in whole] == inside[:20]
+            top = {i for i, _s in ranked[:100]}
+            thinned = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=400, brightest=sample_of(100))
+            assert [s["id"] for s in thinned] == [i for i in inside if i in top]
+        assert reads
+    finally:
+        conn.close()
+
+
 def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
