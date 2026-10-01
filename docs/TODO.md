@@ -135,6 +135,21 @@ with `clamp()`.
     a readable 45-75 character text column)? Which side the panel goes
     on?
 
+  - [ ] **UX.0.2 (bug) Always leave space between buttons**
+    Boss (2026-10-01): "button spacing should always have space between
+    buttons." Some button groups have a gap (`.starmap-controls` uses
+    a flex row with `gap: 0.5rem`), but there is no shared rule, so
+    buttons laid out another way can sit flush against each other.
+    Done: every group of buttons on every
+    page (`.btn`, `.btn-small`, `.starmap-btn` and plain `<button>`s)
+    has visible space between neighbors, across and between wrapped
+    lines, at every size class, from one shared rule in
+    `static/style.css` rather than per-page fixes. Open questions: one
+    spacing value everywhere (for example `0.5rem`) or a `clamp()` that
+    grows with the screen? Do touch screens (`pointer: coarse`) get more,
+    so 44-48 px targets don't sit edge to edge? Which pages show the
+    problem today (to be listed when the fix starts)?
+
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
   menus to be proportional to the size needed, I noticed on tablet
