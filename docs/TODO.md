@@ -129,10 +129,11 @@ of the SEC section.
    - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
      finishes the NAV page's map picks, MAP.22).
    - Sector Map stars as points of light (MAP.15).
-   - Generation at scale (PERF.1): the per-sector density stats
-     (PERF.11) and speed records (PERF.10) feed the estimates (PERF.3,
-     PERF.9); the work queue (PERF.8) comes before parallel generation
-     (PERF.7).
+   - Generation at scale (PERF.1): batched sector writes and safe name
+     reservation (PERF.12, PERF.13, PERF.14) come first; the per-sector
+     density stats (PERF.11) and speed records (PERF.10) feed the
+     estimates (PERF.3, PERF.9); the work queue (PERF.8) comes before
+     parallel generation (PERF.7).
    - Admin editing (ADM.1) starts with the validate module (ADM.5);
      user accounts (USR.1) start with roles (USR.2).
    - View from a planet (VIEW.1) waits on a research session with Boss,
@@ -832,26 +833,86 @@ MAP.48 and MAP.37 below.
     Boss
     (2026-10-01): "ratelimiting calls to the sql database and seeing if
     we can investigate some way to make our DB calls more efficient, do
-    more with less calls without impacting performance." Today every
-    database call goes through `stellarObjects/_db.py`'s `PooledDB`
-    (one pool per config, `maxconnections=10`, `blocking=True`), with no
-    limit on how often calls are made, and the Database thread measured
-    about 60% of generation time going to per-row planet and moon saves.
-    Done: an investigation first, written up before any code changes,
-    that lists the hottest call sites (per-row inserts during sector
-    fill, per-row reads on the web pages) and for each one whether it can
-    be batched (`executemany`, multi-row `INSERT`, one save per system
-    instead of per body, fewer round trips per page); then the batching
-    changes that measure faster, and a rate limit on calls to the
-    database. Open questions: what the rate limit protects against (the
-    MySQL server being swamped by PERF.8's parallel workers, or web
-    users hammering the API), and so whether it is a calls-per-second cap,
-    a cap on concurrent connections, or both; whether it is one limit
-    shared by generation and the web site or separate ones; how it
-    interacts with the pool size once PERF.8 runs several workers at
-    once (each process gets its own pool today); and what benchmark
-    decides "without impacting performance" (a fixed test sector timed
-    before and after?).
+    more with less calls without impacting performance." The
+    investigation is done (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13). Measured on
+    a 40-system sector: 1.0 s generating, 1.9 s saving, through about
+    98 single-row INSERTs and 17 SELECTs per system; one `executemany`
+    wrote the same moon rows 2.8x faster than one INSERT each. The
+    batching work is the subitems below. Decided defaults for the open
+    questions:
+    - Two separate limits. Generation: a cap on how many sector writers
+      run at once (PERF.8's parents), at low priority, not a
+      calls-per-second cap (batching already cuts its calls 30 to 50
+      times). Web: Flask-Limiter's per-IP limits as today, plus a
+      statement time limit (PERF.17).
+    - Pools: each generation worker process keeps a pool of 1 or 2
+      connections, so the total is the worker count plus the web's 10.
+    - Benchmark: `generate.py sector --num-systems 40` five times before
+      and after on the same machine; compare the median save time and
+      the server's `Com_insert`/`Com_select` counts.
+
+    - [ ] **PERF.12 Check the schema once per process during generation**
+      `_db.get_connection(ensure_schema=True)` replays all of
+      `schema.sql` (about 122 statements) on every checkout, and galaxy
+      fill checks out twice per sector (`generate.py` `_fill_context`,
+      `_db.save_sector`). Done: generation checks the schema once per
+      process (`open_write`, or a per-process flag), and a filled sector
+      sends no schema statements.
+
+    - [ ] **PERF.13 Write each sector in batches**
+      `insert_sector` and `insert_star_system` in `_db.py` write every
+      system, star, planet, moon, belt, comet, composition row, life
+      paragraph and spectrum value with its own INSERT. Done: a sector's
+      rows are built in memory and each table is written with one
+      `executemany` (multi-row INSERT) in the sector's transaction; row
+      ids come from a small id-block table (one
+      `UPDATE ... LAST_INSERT_ID(next + n)` per table per sector) so
+      children know their parents' ids without relying on
+      auto-increment order; `refresh_containment` writes its changes in
+      one statement; and PERF.6's benchmark shows the save faster with
+      the same rows written.
+
+    - [ ] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
+      Four `generate.py sector` runs started together (2026-10-01) hit 3
+      deadlocks on `system_name_registry`: `reserve_system_name`'s
+      `SELECT ... FOR UPDATE` of a name not yet there takes a gap lock,
+      and two writers then insert into each other's gap. 3 of the 4 runs
+      failed (with error 1452 after the rollback), and nothing retries
+      error 1213. Today only `web/jobs.py`'s one-job lock prevents this.
+      Done: a sector reserves all its names in one
+      `SELECT ... WHERE base_name IN (...)`, resolves collisions in
+      Python and writes one multi-row upsert, locking names in sorted
+      order; the sector's transaction is retried on 1213 and 1205; and
+      the 4-process test runs clean. PERF.8's parallel writers depend on
+      this.
+
+    - [ ] **PERF.15 Fewer queries per web page**
+      Done, in `queryDb.py`: search facets (12 queries per request,
+      including `COUNT(*)` of every star, planet and moon) are cached
+      until `galaxy_content_state` changes; `system_detail` loads moons
+      once per system, not once per planet; `sector_detail` loads its
+      stars in one query, not one per system; `list_systems` and
+      `_search_result_systems` join `stars` once instead of three
+      correlated subqueries per row, with an index on
+      `stars (star_system_id, role)`; and `galaxy_placed_sectors` reads a
+      stored system count (with PERF.11) instead of counting per sector.
+
+    - [ ] **PERF.16 Search names without scanning every row**
+      Search builds `LIKE '%term%'` (`_search_like_pattern`) and counts
+      every match exactly (`_search_page`), a full scan of each body
+      table that won't survive a large galaxy. Done: names are searched
+      by prefix plus a FULLTEXT index, and counts stop at the 300-row
+      result cap ("300+"). Open question: does Boss need matches in the
+      middle of a name ("ara" finding "Kemaral")? FULLTEXT matches whole
+      words, not arbitrary substrings.
+
+    - [ ] **PERF.17 A time limit on web database statements**
+      Web connections have no statement timeout, so one runaway query
+      holds one of mod_wsgi's 5 threads until Apache's 60 s request
+      timeout. Done: the read-only pool's init command sets
+      `max_statement_time` (MariaDB) or `MAX_EXECUTION_TIME` (MySQL),
+      default 10 s, configurable in `config.json`; a timed-out query
+      returns a clear error page.
 
   - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
     Boss (2026-10-01): "add a TODO item to parallelize
@@ -869,12 +930,21 @@ MAP.48 and MAP.37 below.
     ETA until done; and the ETA comes from a custom column that uses a
     decaying (exponentially weighted) average of tasks finished per
     second rather than rich's built-in estimate. PERF.3's measured stars
-    per second and PERF.4's slow-layer bar use the same rate. Open
-    questions: the decay constant (how fast the average forgets older
-    runs); whether the rate is counted in systems, stars or sectors
-    (sectors differ a lot in size, so systems per second may be steadier);
-    and whether `progress.json` for the web jobs reports the same decayed
-    rate so the Generate page and UX.3's banner show the same ETA.
+    per second and PERF.4's slow-layer bar use the same rate. How
+    (report of 2026-10-01): each system's child task only builds the
+    system (no database); its sector's parent places each system as it
+    comes back (placement uses the built system's size, so it can't
+    happen first) and writes the whole sector in one batched
+    transaction (PERF.13, PERF.14); the bright-star scatter's tasks are
+    one layer (or one ring batch of a dense layer) each, not one per
+    star, since 63 million tasks would cost more than the work. Needs
+    PERF.13 and PERF.14 first. Open questions: the decay constant (how
+    fast the average forgets older runs); whether the rate is counted in
+    systems, stars or sectors (sectors differ a lot in size, so systems
+    per second may be steadier; the default is systems); and whether
+    `progress.json` for the web jobs reports the same decayed rate so
+    the Generate page and UX.3's banner show the same ETA (default:
+    yes).
 
   - [ ] **PERF.8 A parallel background work queue in the API**
     Boss
@@ -890,13 +960,19 @@ MAP.48 and MAP.37 below.
     information to calculate how long it iwll take to complete a given
     series of tasks that got handed out. We'll also need limits so the
     system never uses more than 80% of the total CPU power and defers to
-    other running processes in process scheduling." Today background work
+    other running processes in process scheduling." Boss (2026-10-01) on
+    the scheduler: "we should see if we want the task scheduler to be a
+    daemon or if it'll only spin up a loop when there are tasks, since
+    99.99% of the time there won't be." Today background work
     is `web/jobs.py`'s one-job-at-a-time runner (an `active` lock,
     `state.json`, `progress.json`) launching `generate.py`, which does
     everything serially. Done:
-    - A work queue the API owns, with a pool of workers.
-    - Plan phase: each bright star generated for the selected level
-      (PERF.5's band) is one task.
+    - A work queue with a pool of workers, run by an on-demand
+      supervisor, not a daemon: queuing work starts the supervisor when
+      none is alive, it runs while there are tasks, and it exits after
+      about 60 s idle, so an idle server runs nothing.
+    - Plan phase: the bright-star scatter for the selected level
+      (PERF.5's band) runs as parallel tasks.
     - Sector fill: each sector is one parent task that stays running
       until its sector is full; each star system in it is its own child
       task that the queue runs in parallel.
@@ -908,18 +984,39 @@ MAP.48 and MAP.37 below.
       macOS, below-normal priority on Windows) so other processes on the
       machine come first.
 
-    Open questions: processes or threads (Python's GIL means CPU-bound
-    generation needs processes, which then each need their own database
-    connections, so the pool size and PERF.6's rate limit have to fit
-    the worker count); how 80% is enforced (a worker count of 80% of the
-    cores, or measuring load and throttling); whether the queue lives
-    inside the API process or in a separate worker service the API talks
-    to, and how command-line `generate.py` runs use it; how random seeds
-    are handed to tasks so a galaxy comes out the same however many
-    workers ran it and in whatever order they finished; how two systems
-    in one sector avoid clashing on names and positions when they are
-    built at the same time; and what happens to queued and half-done
-    tasks when the server restarts or a job is cancelled.
+    Decided defaults (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13):
+    - Processes, not threads (the GIL), through a `ProcessPoolExecutor`
+      with the spawn start method so Linux, macOS and Windows behave the
+      same.
+    - 80%: `max(1, floor(0.8 x cores))` workers, one fewer when MySQL
+      runs on the same machine, each at `os.nice(10)` or
+      `BELOW_NORMAL_PRIORITY_CLASS`; optionally hold back new tasks
+      while the load average is above 80% of the cores.
+    - Not in the API process: mod_wsgi runs one process with 5 threads
+      that serve every page and is recycled by Apache. The supervisor is
+      its own detached process (`src/workQueue.py`), spawned the way
+      `web/jobs.py` spawns `jobRunner.py` today; no systemd unit,
+      launchd plist or Windows service to install. Command-line
+      `generate.py` becomes the supervisor itself, in the foreground with
+      its bars.
+    - Queue storage: a `tasks` table in the control database (job,
+      parent, kind, payload, state, attempts, timings, result) plus a
+      supervisor lease row refreshed every 5 s; a lease older than 30 s
+      counts as dead and the next enqueue or Generate page load starts a
+      new supervisor. Claims are `UPDATE ... LIMIT n` (no `SKIP LOCKED`,
+      which MariaDB 10.4 lacks). Only sector-level and scatter tasks go
+      in the table, added a ring batch at a time; per-system child tasks
+      live in the supervisor's memory.
+    - Seeds: each child task seeds `random` from the job seed, its sector
+      address and its request number, so results don't depend on worker
+      count or finish order (positions stay OS-random, as today).
+    - Names and positions: children don't touch the database; the
+      parent places systems and reserves names in bulk (PERF.14).
+    - Restart or cancel: a sector is one transaction, so a half-done
+      sector rolls back and its task returns to the queue; cancelling a
+      job stops new dispatches and ends its workers.
+    - Reset, the skeleton build and schema work keep `web/jobs.py`'s
+      one-at-a-time lock.
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
