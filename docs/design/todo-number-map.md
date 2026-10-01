@@ -22,7 +22,7 @@ release is stamped.
 | API | API.3 |
 | ADM | ADM.10 |
 | SEC | SEC.29 |
-| TEST | TEST.63 |
+| TEST | TEST.69 |
 | USR | USR.8 |
 | OPS | OPS.5 |
 | DOC | DOC.4 |
@@ -724,6 +724,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.60 | Admin script command lines | none | open |
 | TEST.61 | SQLite import script | none | open |
 | TEST.62 | update.sh against a real database | none | open |
+| TEST.63 | Math check that runs first (new parent) | none | open |
+| TEST.64 | Reference values | none | open |
+| TEST.65 | Identities and invariants | none | open |
+| TEST.66 | Distributions match their targets | none | open |
+| TEST.67 | Runs first in the suite and in CI | none | open |
+| TEST.68 | Gate before bulk generation | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
