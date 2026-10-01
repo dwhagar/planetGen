@@ -1270,10 +1270,6 @@ slots than this (see `ring_sector_count`) -- from ring 321, ~4,200 ly
 out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
-# TODO(sector-map #23): add a "column" mode (every sector of one (ring,
-# slot), all layers between galaxy_column's layer_index_min/max for that
-# ring) and a "shell" mode (every slot of one ring through every layer,
-# guarded by --limit/--yes like the ring batch).
 def add_galaxy_arguments(parser):
     """
     Adds the `galaxy` subcommand's own mode/placement options -- on top
@@ -1304,13 +1300,25 @@ def add_galaxy_arguments(parser):
                              "(exit status 1) if it doesn't qualify (would hold no real content at this "
                              "galaxy's own predicted density) or reports its existing sector_id if it "
                              "was already generated.")
+    parser.add_argument('--column', action='store_true',
+                        help="With --ring I --slot K: column mode, generating every not-yet-generated "
+                             "sector at that ring and slot through every layer the galaxy's stored "
+                             "outline reaches there (galaxy_column).")
+    parser.add_argument('--shell', action='store_true',
+                        help="With --ring I: shell mode, generating every not-yet-generated sector in "
+                             "ring I through every layer the outline reaches (a cylindrical shell). Far "
+                             "larger than one ring at one layer, so it needs --limit or --yes past "
+                             "LARGE_RING_WARNING_THRESHOLD sectors.")
     parser.add_argument('--limit', type=int,
-                        help="With --ring: generate only the first N not-yet-generated slots.")
+                        help="With --ring (or --ring --shell): generate only the first N not-yet-generated "
+                             "slots.")
     parser.add_argument('--yes', action='store_true',
-                        help="With --ring: skip the confirmation normally required before generating a "
-                             "ring whose slot count exceeds LARGE_RING_WARNING_THRESHOLD.")
+                        help="With --ring (or --ring --shell): skip the confirmation normally required "
+                             "before generating more than LARGE_RING_WARNING_THRESHOLD sectors.")
     parser.add_argument('--radius-pc', type=finite_float,
                         help="With --center-sector: the neighborhood search radius, in parsecs. With "
+                             "--ring --slot: after generating that address, also generate its "
+                             "neighborhood within this radius. With "
                              "neither --ring nor --center-sector (random-start mode): overrides the "
                              "default 100 ly neighborhood radius around the randomly chosen starting "
                              "sector.")
@@ -1350,6 +1358,21 @@ def validate_galaxy_args(args, parser):
         parser.error("--ring must be >= 0.")
     if args.ring is not None and args.ring > generationLimits.MAX_GENERATE_RING:
         parser.error(f"--ring must be at most {generationLimits.MAX_GENERATE_RING}.")
+    if args.column and (args.ring is None or args.slot is None):
+        parser.error("--column requires --ring and --slot.")
+    if args.shell and args.ring is None:
+        parser.error("--shell requires --ring.")
+    if args.column and args.shell:
+        parser.error("--column and --shell can't be combined.")
+    if (args.column or args.shell) and args.layer is not None:
+        parser.error("--column and --shell cover every layer, so they don't take --layer.")
+    if args.shell and args.slot is not None:
+        parser.error("--shell covers every slot of the ring; use --column for one slot.")
+    if args.column and args.slot is not None and args.slot < 0:
+        parser.error("--slot must be >= 0.")
+    if args.column:
+        # Validated as column mode below, not single-address mode.
+        column_slot, args.slot = args.slot, None
     if args.layer is not None and args.ring is None:
         parser.error("--layer requires --ring.")
     if args.ring is not None and args.layer is None:
@@ -1363,8 +1386,6 @@ def validate_galaxy_args(args, parser):
         parser.error("--limit only applies to --ring (batch mode), not --ring --slot (single-address mode).")
     if args.slot is not None and args.yes:
         parser.error("--yes only applies to --ring (batch mode), not --ring --slot (single-address mode).")
-    if args.slot is not None and args.radius_pc is not None:
-        parser.error("--radius-pc doesn't apply to --ring --slot (single-address mode).")
     if args.slot is not None and (args.density is not None or args.num_systems is not None):
         parser.error("--density/--num-systems can't be combined with --ring --slot (single-address "
                      "mode) -- ensure_sector_generated always uses this address's own real predicted "
@@ -1372,9 +1393,9 @@ def validate_galaxy_args(args, parser):
 
     if args.center_sector is not None and args.radius_pc is None:
         parser.error("--center-sector requires --radius-pc.")
-    if args.radius_pc is not None and args.ring is not None:
-        parser.error("--radius-pc only applies to --center-sector or random-start mode (neither "
-                     "--ring nor --center-sector), not --ring.")
+    if args.radius_pc is not None and args.ring is not None and args.slot is None:
+        parser.error("--radius-pc only applies to --center-sector, --ring --slot, or random-start mode "
+                     "(neither --ring nor --center-sector), not --ring alone.")
     if args.radius_pc is not None and args.radius_pc <= 0:
         parser.error("--radius-pc must be a positive number.")
     if args.radius_pc is not None and args.radius_pc > generationLimits.MAX_GENERATE_RADIUS_PC:
@@ -1388,6 +1409,10 @@ def validate_galaxy_args(args, parser):
         parser.error(f"--limit must be at most {generationLimits.MAX_GENERATE_LIMIT}.")
     if args.yes and args.ring is None:
         parser.error("--yes only applies to --ring.")
+    if args.column:
+        if args.limit is not None or args.yes:
+            parser.error("--limit and --yes don't apply to --column.")
+        args.slot = column_slot
 
     if args.max_ring is not None and not random_start:
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
@@ -2045,7 +2070,9 @@ def run_single_slot(args, edge_pc, progress):
     Single-address mode: generates exactly the one sector at `(--ring I,
     --layer J, --slot K)` via the same `ensure_sector_generated` the
     galaxy map's "recalculate on visit" path uses -- the direct route from
-    an address copied out of the interactive 3D Galaxy Map.
+    an address copied out of the interactive 3D Galaxy Map. With
+    `--radius-pc`, then generates that sector's neighborhood
+    (`run_local_neighborhood`), the Sector Map's "Generate neighborhood".
 
     Raises:
         SystemExit: If `--slot` is out of range for the ring, or the
@@ -2086,11 +2113,111 @@ def run_single_slot(args, edge_pc, progress):
             f"(sector_id={result['sector_id']})."
         )
 
+    if args.radius_pc is not None:
+        # Then its neighborhood, the same way random-start mode follows
+        # its seed sector.
+        args.center_sector = result["sector_id"]
+        run_local_neighborhood(args, edge_pc, progress)
+
+
+def _layers_reaching(bounds, ring_index):
+    """Every layer the galaxy's stored outline reaches at `ring_index`,
+    lowest first (the column `galaxy_column` stores for that ring)."""
+    return sorted(layer for layer in bounds.outer_ring if bounds.contains(ring_index, layer))
+
+
+def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density):
+    """
+    Generates every not-yet-generated, qualifying address of `addresses`
+    in order (up to `args.limit`, when set) -- the loop behind column and
+    shell modes; see `run_ring_batch` for what "qualifying" means.
+    """
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        occupied = set(_db.get_occupied_addresses(conn, {a[0] for a in addresses}))
+    finally:
+        conn.close()
+
+    pending = [a for a in addresses if a not in occupied]
+    limit = getattr(args, "limit", None)
+    task = progress.add_task(f"Sectors ({what})", total=len(pending))
+    generated = skipped = 0
+    for address in pending:
+        if limit is not None and generated >= limit:
+            break
+        position_pc = sector_position_pc(*address, edge_pc)
+        sector_args = batch_density.resolve(args, address, position_pc)
+        progress.update(task, advance=1)
+        if sector_args is None:
+            skipped += 1
+            continue
+        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+        generated += 1
+        _log_saved(sector_id, sector_name, sector, sector_args, address)
+
+    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
+    log.normal(
+        f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
+        f"{len(addresses) - len(pending)} already existed{skip_note})."
+    )
+
+
+def run_column(args, edge_pc, progress):
+    """
+    Column mode: every sector at `(--ring I, --slot K)` through every
+    layer the galaxy's outline reaches at ring I.
+
+    Raises:
+        SystemExit: If `--slot` is out of range for the ring, or the
+                   outline doesn't reach the ring at all.
+    """
+    total_slots = ring_sector_count(args.ring)
+    if not (0 <= args.slot < total_slots):
+        log.error(
+            f"--slot {args.slot} is out of range for ring {args.ring} (holds {total_slots} slots, "
+            f"0..{total_slots - 1})."
+        )
+        raise SystemExit(1)
+    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    layers = _layers_reaching(batch_density.bounds, args.ring)
+    if not layers:
+        _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+    addresses = [(args.ring, layer, args.slot) for layer in layers]
+    _generate_addresses(args, addresses, f"the column at ring {args.ring} slot {args.slot}",
+                        edge_pc, progress, batch_density)
+
+
+def run_shell(args, edge_pc, progress):
+    """
+    Shell mode: every sector of ring `--ring I` through every layer the
+    galaxy's outline reaches there. Needs `--limit` or `--yes` when that
+    is more than `LARGE_RING_WARNING_THRESHOLD` sectors.
+
+    Raises:
+        SystemExit: If the outline doesn't reach the ring, or the shell is
+                   too large and neither `--limit` nor `--yes` was given.
+    """
+    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    layers = _layers_reaching(batch_density.bounds, args.ring)
+    if not layers:
+        _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+    total_slots = ring_sector_count(args.ring)
+    total = total_slots * len(layers)
+    if total > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
+        log.error(
+            f"The shell at ring {args.ring} holds {total} sector slots ({total_slots} slots across "
+            f"{len(layers)} layers) -- pass --limit N to generate only the first N, or --yes to "
+            f"confirm generating all of them."
+        )
+        raise SystemExit(1)
+    addresses = [(args.ring, layer, slot) for layer in layers for slot in range(total_slots)]
+    _generate_addresses(args, addresses, f"the shell at ring {args.ring}", edge_pc, progress, batch_density)
+
 
 def run_galaxy(args):
     """
-    Dispatches to single-address, ring-batch, local-neighborhood, or
-    random-start mode, owning the one `rich.progress.Progress` display
+    Dispatches to column, shell, single-address, ring-batch,
+    local-neighborhood, or random-start mode, owning the one `rich.progress.Progress` display
     they share. First checks the galaxy has been planned at the standard
     sector edge, since every mode validates its addresses against that
     plan's stored outline before generating anything.
@@ -2121,7 +2248,11 @@ def run_galaxy(args):
     with _generation_progress() as progress:
         log.set_console(progress.console)
         try:
-            if args.slot is not None:
+            if args.column:
+                run_column(args, edge_pc, progress)
+            elif args.shell:
+                run_shell(args, edge_pc, progress)
+            elif args.slot is not None:
                 run_single_slot(args, edge_pc, progress)
             elif args.ring is not None:
                 run_ring_batch(args, edge_pc, progress)

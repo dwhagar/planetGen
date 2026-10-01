@@ -293,3 +293,15 @@ def format_density(edge_ly, system_count):
         relative_pct = (density_ly3 / LOCAL_STELLAR_DENSITY_LY3) * 100
         text += f" ({relative_pct:,.0f}% of local average)"
     return text
+
+
+def runaway_text(system):
+    """`"Runaway star, 84 km/s"` / `"Hypervelocity star, 720 km/s"` for a
+    system flagged fast (`star_systems.runaway_class`, schema v37), else
+    `None`."""
+    kind = system.get("runaway_class")
+    if not kind:
+        return None
+    text = f"{kind.capitalize()} star"
+    speed = system.get("runaway_speed_kms")
+    return f"{text}, {speed:,.0f} km/s" if speed is not None else text

@@ -868,7 +868,7 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     body = response.get_json()
     assert set(body["facets"]) == {
         "type", "spectral", "luminosity", "class", "body", "life",
-        "moon_class", "moon_body", "moon_life", "density",
+        "moon_class", "moon_body", "moon_life", "density", "phenomenon", "phenomenon_class",
     }
     assert body["results"]["stars"] is None  # no filter active yet -- no reason to run
 

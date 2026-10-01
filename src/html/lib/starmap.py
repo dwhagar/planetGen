@@ -35,10 +35,11 @@ flat CSS transform now.
 two, depending on whether the sector has a galaxy placement: a sector with
 a grid address gets its real cylindrical cell (see
 `galaxyGeometry.sector_cell_vertices_pc` -- one ring wide, one layer tall,
-one slot's angle across); one without a placement falls back to a plain axis-aligned cube of edge `edge_mpc`. `sectormap.js`
-no longer draws this shape as a wireframe (dropped as visual clutter), but
-its extent still drives `_default_zoom`'s fallback framing for a sector
-with nothing else plotted in it (see that function's own docstring).
+one slot's angle across, its curved edges sampled as arcs); one without a
+placement falls back to a plain axis-aligned cube of edge `edge_mpc`.
+`sectormap.js` draws it as a faint wireframe, and its extent drives
+`_default_zoom`'s fallback framing for a sector with nothing else plotted
+in it (see that function's own docstring).
 
 Clicking a star/cloud (or activating one of the accessible fallback
 list's own buttons) doesn't navigate straight to the system/phenomenon
@@ -74,7 +75,14 @@ except ImportError:
     SOLAR_RADIUS_M = 6.957e8
 
 try:
-    from stellarObjects.galaxyGeometry import sector_cell_vertices_pc, sector_orientation, sector_position_pc
+    from stellarObjects.galaxyGeometry import (
+        layer_bounds_pc,
+        ring_bounds_pc,
+        sector_cell_vertices_pc,
+        sector_orientation,
+        sector_position_pc,
+        slot_angle_bounds,
+    )
     from stellarObjects.utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
     # Same deployment gap as above -- without these, a sector with no
@@ -88,6 +96,9 @@ except ImportError:
     sector_position_pc = None
     sector_cell_vertices_pc = None
     sector_orientation = None
+    ring_bounds_pc = None
+    layer_bounds_pc = None
+    slot_angle_bounds = None
     mpc_to_pc = None
     pc_to_mpc = None
     milliparsecs_to_ly = None
@@ -151,7 +162,7 @@ def _default_zoom(extent_radii_px):
 
 _SUN_RADIUS_KM = SOLAR_RADIUS_M / 1000.0
 _MIN_DOT_R = 3.0
-_MAX_DOT_R = 14.0
+_MAX_DOT_R = 20.0
 
 # Secondary-star offset (binary systems), as a fraction of the primary's
 # own dot radius -- "down and to the right", overlapping the primary
@@ -323,16 +334,61 @@ def _cell_edges_px(address, edge_mpc, half_edge):
     return points
 
 
-# TODO(web-pages #47): send the cell's arc edges as sampled points (from
-# the ring radii and slot angles) so sectormap.js can draw curved faces,
-# not only the 8 corners.
+_ARC_STEP_RAD = math.pi / 90
+"""Angle between samples along a cell's curved edges (2 degrees): a slot's
+inner and outer faces are arcs of the ring's radius, so each arc edge is
+drawn as a polyline of this many-degree steps rather than one chord."""
+
+
+def _cell_arc_edges_px(address, edge_mpc, half_edge):
+    """
+    The sector's cell outline as 12 polylines in the same scene frame as
+    `_cell_edges_px`: the 8 edges between corners that differ in radius or
+    height are straight, and the 4 that differ in slot angle (corners `i`
+    and `i ^ 1`) follow the ring's arc, sampled every `_ARC_STEP_RAD`.
+
+    Returns:
+        list[list[tuple]] or None: One point list per `_EDGE_PAIRS` edge
+            (2 points for a straight edge, more for an arc), or `None`
+            when `_cell_edges_px` would be.
+    """
+    corners = _cell_edges_px(address, edge_mpc, half_edge)
+    if corners is None or ring_bounds_pc is None:
+        return None
+
+    ring_index, layer_index, slot_index = address
+    edge_pc = mpc_to_pc(edge_mpc)
+    center_pc = sector_position_pc(*address, edge_pc)
+    r_bounds = ring_bounds_pc(ring_index, edge_pc)
+    z_bounds = layer_bounds_pc(layer_index, edge_pc)
+    t_start, t_end = slot_angle_bounds(ring_index, slot_index)
+    steps = max(2, int(math.ceil(abs(t_end - t_start) / _ARC_STEP_RAD)))
+
+    def to_px(r, z, theta):
+        nx = pc_to_mpc(r * math.cos(theta) - center_pc[0]) / half_edge
+        ny = pc_to_mpc(r * math.sin(theta) - center_pc[1]) / half_edge
+        nz = pc_to_mpc(z - center_pc[2]) / half_edge
+        return (nx * _SCENE_HALF_PX, -ny * _SCENE_HALF_PX, nz * _SCENE_HALF_PX)
+
+    edges = []
+    for i, j in _EDGE_PAIRS:
+        if i ^ j == 1:
+            r, z = r_bounds[(i >> 2) & 1], z_bounds[(i >> 1) & 1]
+            edges.append([to_px(r, z, t_start + (t_end - t_start) * k / steps) for k in range(steps + 1)])
+        else:
+            edges.append([corners[i], corners[j]])
+    return edges
+
+
 def _outline_data(address, edge_mpc, half_edge):
     """
     Builds the scene's outline as `{"kind": "cell"|"cube", "edges": [...]}`
-    -- 12 `[point, point]` pairs either way (see `_EDGE_PAIRS`), from the
-    sector's real grid cell (`_cell_edges_px`) when it has a grid address,
-    or the plain axis-aligned fallback cube's own corners
-    (`_cube_corners_px`) otherwise.
+    -- 12 edges (see `_EDGE_PAIRS`), each a list of points to draw as one
+    line. A sector with a grid address gets its real cylindrical cell
+    (`_cell_arc_edges_px`), whose inner and outer faces' edges are sampled
+    arcs; anything else gets the plain axis-aligned fallback cube's
+    straight edges (`_cube_corners_px`). `sectormap.js` draws it as a
+    faint wireframe.
 
     Returns:
         tuple[dict, list[float]]: The outline data, and the extent (from
@@ -340,14 +396,15 @@ def _outline_data(address, edge_mpc, half_edge):
                                   its vertices -- for `_default_zoom`'s
                                   empty-scene fallback.
     """
-    cell_vertices = _cell_edges_px(address, edge_mpc, half_edge)
-    if cell_vertices is not None:
-        vertices, kind = cell_vertices, "cell"
-    else:
+    edges = _cell_arc_edges_px(address, edge_mpc, half_edge)
+    kind = "cell"
+    if edges is None:
         vertices, kind = _cube_corners_px(_SCENE_HALF_PX), "cube"
+        edges = [[vertices[i], vertices[j]] for i, j in _EDGE_PAIRS]
 
-    edges = [[list(vertices[i]), list(vertices[j])] for i, j in _EDGE_PAIRS]
-    extent_radii_px = [math.sqrt(vx * vx + vy * vy + vz * vz) for vx, vy, vz in vertices]
+    points = [point for edge in edges for point in edge]
+    extent_radii_px = [math.sqrt(vx * vx + vy * vy + vz * vz) for vx, vy, vz in points]
+    edges = [[[round(c, 2) for c in point] for point in edge] for edge in edges]
     return {"kind": kind, "edges": edges}, extent_radii_px
 
 
@@ -409,7 +466,7 @@ _NEIGHBOR_INDICATOR_RADIUS_PX = 7.0
 """A neighboring-sector indicator's own drawn size -- fixed, unlike a star
 dot's radius (`_star_dot_radius`), since there's no real "size" a sector
 address has; comparable to a real star dot's own range (`_MIN_DOT_R`
-3-`_MAX_DOT_R` 14) so it reads as a marker of similar visual weight."""
+3-`_MAX_DOT_R` 20) so it reads as a marker of similar visual weight."""
 
 
 def _neighbor_indicator_data(link_url, neighbor):
@@ -605,18 +662,27 @@ def _star_color(star_type, temperature_k, luminosity_w):
     return fill, stroke
 
 
-# TODO(sector-map #55): the 14 px cap draws every giant the same size; use
-# a log scale so giants (10-200 solar radii) read larger than dwarfs.
+_SUN_DOT_R = 7.0
+"""The Sun's own dot radius -- the pivot of `_star_dot_radius`'s log scale."""
+_DOT_R_PER_DECADE_BELOW_SUN = 2.25
+_DOT_R_PER_DECADE_ABOVE_SUN = 4.33
+"""How much a dot grows per factor of ten in radius: gently below the Sun
+(0.01 solar radii, a white dwarf, lands on `_MIN_DOT_R`), faster above it
+so 10, 100 and 1000 solar radii (giants, bright giants, supergiants) each
+read clearly larger, 1000 reaching `_MAX_DOT_R`."""
+
+
 def _star_dot_radius(radius_km):
-    """Maps a star's physical radius to a dot radius in scene units --
-    square-root scaled against the Sun's radius (linear scaling would make
-    red dwarfs invisible next to giants, which differ by 2+ orders of
-    magnitude in radius_km) and clamped so the map stays legible at either
-    extreme."""
+    """Maps a star's physical radius to a dot radius in scene units on a
+    log scale pivoting at the Sun (`_SUN_DOT_R`), so a white dwarf, a red
+    dwarf, the Sun, a giant and a supergiant are all visibly different
+    sizes; clamped to `_MIN_DOT_R`..`_MAX_DOT_R` so the map stays legible
+    at either extreme."""
     if not radius_km or radius_km <= 0:
         return _MIN_DOT_R
-    ratio = radius_km / _SUN_RADIUS_KM
-    dot_r = _MIN_DOT_R + 4.0 * math.sqrt(ratio)
+    decades = math.log10(radius_km / _SUN_RADIUS_KM)
+    per_decade = _DOT_R_PER_DECADE_ABOVE_SUN if decades > 0 else _DOT_R_PER_DECADE_BELOW_SUN
+    dot_r = _SUN_DOT_R + per_decade * decades
     return max(_MIN_DOT_R, min(_MAX_DOT_R, dot_r))
 
 
@@ -663,12 +729,14 @@ _MAX_CLOUD_RADIUS_PX = 6 * (2 * _SCENE_HALF_PX)
 # definition an opaque silhouette, not a glow at all -- hence its own
 # near-black, higher-opacity fill instead of a lighter translucent one).
 _NEBULA_TYPE_COLORS = {
+    "diffuse": "#e3a6c8",
     "emission": "#ff6f91",
     "reflection": "#6fa8ff",
     "planetary": "#5be8c9",
     "dark": "#1c1c24",
 }
 _NEBULA_TYPE_ALPHA = {
+    "diffuse": (0x78, 0x24),
     "emission": (0xB0, 0x40),
     "reflection": (0xA0, 0x38),
     "planetary": (0xA8, 0x3c),
@@ -820,7 +888,7 @@ def _noscript_list_html(link_url, systems, phenomena, neighbors=None):
 
 
 def render_map_panel(
-    link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None,
+    link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
 ):
     """
     Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
@@ -837,8 +905,7 @@ def render_map_panel(
     (see `_outline_data`/`sector_cell_vertices_pc`) when this sector has a
     grid address and
     the geometry helpers are importable, or the plain axis-aligned cube
-    otherwise -- is no longer drawn as a wireframe (`sectormap.js` dropped
-    it as visual clutter); it's still computed here purely to drive
+    otherwise -- is drawn as a faint wireframe, and its extent drives
     `_default_zoom`'s fallback framing for a sector with nothing else
     plotted in it.
 
@@ -890,6 +957,12 @@ def render_map_panel(
                               small clickable indicator just past the
                               scene's own edge (`_neighbor_indicator_data`).
                               `None`/empty draws no indicators.
+        generate (dict or None): For a logged-in admin only:
+                              `{"url", "csrfField", "csrfToken"}`, the
+                              Generate page's form target and a CSRF
+                              token, so an unfilled neighbor's panel can
+                              offer Generate buttons. `None` (every
+                              visitor) shows the address alone.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -992,6 +1065,7 @@ def render_map_panel(
         "stars": stars_data,
         "clouds": clouds_data,
         "neighbors": neighbors_data,
+        "generate": generate,
     }
 
     if systems or clouds_data:

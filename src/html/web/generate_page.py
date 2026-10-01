@@ -58,9 +58,6 @@ PLAN_FIELDS = (
 """tuple: The `plan` options the page offers, with `generate.py`'s own
 defaults (a test checks they still match `generate.py plan`'s parser)."""
 
-# TODO(sector-map #24): add "column" and "shell" (#23) modes, and accept a
-# one-click POST from the maps' buttons with the sector's ring/layer/slot
-# pre-filled.
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
@@ -71,7 +68,13 @@ GALAXY_MODES = (
     ("center", "Around a sector",
      "Every not-yet-generated sector within a radius of an existing sector."),
     ("slot", "One address",
-     "Exactly one sector, by ring, layer and slot (the address the Galaxy Map shows)."),
+     "Exactly one sector, by ring, layer and slot (the address the Galaxy Map shows). "
+     "With a radius, its neighborhood too."),
+    ("column", "A column",
+     "Every sector at one ring and slot, through every layer the galaxy reaches there."),
+    ("shell", "A shell (not recommended)",
+     "Every sector of one ring through every layer: a whole cylinder, usually thousands of sectors, "
+     "so it needs a limit or the confirmation box."),
 )
 
 CONFIRM_ACTIONS = frozenset({"new_galaxy", "reset"})
@@ -155,8 +158,27 @@ def galaxy_argv(form):
         ring = _number(form, "slot_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         layer = _number(form, "slot_layer", "Layer", int) or 0
         slot = _number(form, "slot", "Slot", int, required=True, minimum=0)
-        return (["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)],
-                f"at ring {ring} layer {layer} slot {slot}")
+        argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
+        description = f"at ring {ring} layer {layer} slot {slot}"
+        radius = _number(form, "slot_radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
+        if radius is not None:
+            argv += ["--radius-pc", str(radius)]
+            description = f"around ring {ring} layer {layer} slot {slot}"
+        return argv, description
+    if mode == "column":
+        ring = _number(form, "column_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        slot = _number(form, "column_slot", "Slot", int, required=True, minimum=0)
+        return (["--ring", str(ring), "--slot", str(slot), "--column"],
+                f"in the column at ring {ring} slot {slot}")
+    if mode == "shell":
+        ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
+        argv = ["--ring", str(ring), "--shell"]
+        limit = _number(form, "shell_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
+        if limit is not None:
+            argv += ["--limit", str(limit)]
+        elif form.get("whole_shell"):
+            argv.append("--yes")
+        return argv, f"in the shell at ring {ring}"
     raise FormError("Choose what to generate.")
 
 

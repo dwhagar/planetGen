@@ -95,6 +95,13 @@
       <tr><td>{{ row.name }}</td><td>{{ row.planet_class or "—" }}</td><td>{{ row.body }}</td><td>{{ radius_cell(row) }}</td><td>{{ row.life_chemical or "—" }}</td>{% if p.panel == "moons" %}<td>{{ row.planet_name }}</td>{% endif %}<td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
       {%- else %}<tr><td colspan="{{ 8 if p.panel == 'moons' else 7 }}"><em>None</em></td></tr>{% endfor %}
     </tbody>
+    {%- elif p.panel == "phenomena" %}
+    <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Class</th><th scope="col">Sector</th></tr></thead>
+    <tbody>
+      {%- for row in p.rows %}
+      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.type_label }}</td><td>{{ row.phenomenon_class or "—" }}</td><td>{{ sector_cell(row.sector_url) }}</td></tr>
+      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
+    </tbody>
     {%- else %}
     <thead><tr><th scope="col">Density</th><th scope="col">Composition</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
     <tbody>

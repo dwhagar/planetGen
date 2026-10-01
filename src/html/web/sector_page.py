@@ -22,19 +22,20 @@ with the error next to its form. A POST without an admin session, or with
 an unknown `action`, just redirects back to the page.
 """
 
+import math
 import re
 
 from flask import flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
-from fmt import format_distance_ly, linkify_location
+from fmt import format_distance_ly, linkify_location, runaway_text
 from galaxymap import sector_quadrant
 from pagination import page_slice, parse_page
 from starmap import render_map_panel
 
 from api.common import is_http_url
 
-from . import bp
+from . import bp, csrf
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
@@ -90,6 +91,45 @@ def _map_system(row):
     }
 
 
+def debris_html(count):
+    """The sector's estimated interstellar comets and planetesimals
+    (`queryDb.interstellar_debris_count`, a computed figure, not rows) as
+    "About 7&times;10<sup>13</sup> ...", or `None` for an empty sector."""
+    if not count or count < 1:
+        return None
+    exponent = int(math.floor(math.log10(count)))
+    mantissa = round(count / 10 ** exponent)
+    if mantissa == 10:
+        mantissa, exponent = 1, exponent + 1
+    figure = f"{round(count):,}" if exponent < 4 else f"{mantissa}&times;10<sup>{exponent}</sup>"
+    return trusted_html(f"About {figure} interstellar comets and planetesimals (estimated)")
+
+
+def _rogue_group_row(rogues):
+    """One Contents row holding every rogue planet near the sector (a
+    `<details>` list in the Name cell), placed by the nearest one."""
+    rogues = sorted(rogues, key=lambda r: (r["distance_ly"] is None, r["distance_ly"] or 0.0, r["name"]))
+    members = [
+        {
+            "name": row["name"],
+            "url": page_url("phenomenon", phenomenon_type="rogue_planet", phenomenon_id=row["id"]),
+            "details": (row["descriptor"] or "").capitalize(),
+            "distance": trusted_html(format_distance_ly(row["distance_ly"])),
+        }
+        for row in rogues
+    ]
+    return {
+        "distance_ly": rogues[0]["distance_ly"],
+        "name": f"{len(rogues)} rogue planets",
+        "url": None,
+        "members": members,
+        "type": PHENOMENON_TYPE_LABELS["rogue_planet"],
+        "details": "Unbound planets drifting between the stars",
+        "octant": None,
+        "location": None,
+    }
+
+
 def _contents(sector):
     """
     Every system and phenomenon as Contents rows, nearest the sector's
@@ -110,14 +150,22 @@ def _contents(sector):
             "name": row["name"],
             "url": system_url(row["id"]),
             "type": "Binary Star System" if row["is_binary"] else "Star System",
-            "details": _system_star_type(row),
+            "details": ", ".join(bit for bit in (_system_star_type(row), runaway_text(row)) if bit),
             "octant": row["quadrant"],
             "location": trusted_html(linkify_location(row["location"], name_to_id, system_url)),
         })
         if row["position_x_mpc"] is not None and row["stars"]:
             map_systems.append(_map_system(row))
 
-    for row in (sector.get("phenomena") or []):
+    phenomena = sector.get("phenomena") or []
+    rogues = [row for row in phenomena if row["type"] == "rogue_planet"]
+    if len(rogues) > 1:
+        # Boss's choice: many rogue planets read as one folded row, not a
+        # screenful of near-identical ones.
+        phenomena = [row for row in phenomena if row["type"] != "rogue_planet"]
+        rows.append(_rogue_group_row(rogues))
+
+    for row in phenomena:
         details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
         if row["radius_ly"]:
             details.append(f"{format_distance_ly(row['radius_ly'])} radius")
@@ -186,6 +234,14 @@ def _handle_post(sector_id, admin):
     return page_again
 
 
+def _generate_target(admin):
+    """Where the Sector Map's Generate buttons post, for an admin who can
+    use the Generate page; `None` for everyone else."""
+    if admin is None or admin.get("must_change_credentials"):
+        return None
+    return {"url": url_for("web.generate"), "csrfField": csrf.FIELD_NAME, "csrfToken": csrf.csrf_token()}
+
+
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`?contents_page=N`), and
@@ -214,6 +270,7 @@ def sector(sector_id):
         page_url, detail["edge_mpc"],
         (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
         center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
+        generate=_generate_target(admin),
     )
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
@@ -236,6 +293,8 @@ def sector(sector_id):
         sector_id=sector_id,
         edge_text=format_distance_ly(detail['edge_ly']),
         system_count=system_count,
+        star_count=detail.get("star_count"),
+        debris=debris_html(detail.get("interstellar_debris_count")),
         phenomenon_count=phenomenon_count,
         quadrant=quadrant,
         map_html=trusted_html(map_html),
