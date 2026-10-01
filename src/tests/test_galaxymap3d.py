@@ -96,6 +96,11 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="zoom-out"' in html
     assert 'data-action="reset"' in html
     assert 'id="galaxymap3d-info"' in html
+    # The drill-down's breadcrumb, slab strip, tooltip and toggles.
+    for element in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
+        assert f'id="{element}"' in html
+    assert 'data-action="free-look"' in html
+    assert 'data-action="generated-only"' in html
 
 
 def test_panel_json_payload_has_every_field_the_client_reads():
@@ -107,6 +112,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["storageKey"] == "mydb"
     assert "db" not in data
     assert data["fetchPath"] == "/galaxy/tiles"
+    assert data["stagePath"] == "/galaxy/stage"
     assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True
     for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest",

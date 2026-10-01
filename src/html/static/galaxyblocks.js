@@ -32,7 +32,8 @@ if (IN_WORKER) {
 }
 
 const {
-  blockAddressAt, blockAt, blockSectorCount, blockSizeForScale, blocksForView, buildPrismGeometry, cellCoordinates,
+  blockAddressAt, blockAt, blockSectorCount, blockSizeForScale, blocksForView, boundsDensity, buildPrismGeometry,
+  cellCoordinates,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // Unfilled space: this opaque at the sparsest drawn density, rising to
@@ -131,7 +132,8 @@ export function prismShade(cell, armAmplitude) {
 // - minPx, budget (galaxyprisms.blocksForView's);
 // - palette: linear [r, g, b] for dim, accent and hot (the density ramp)
 //   and placedLow, placedHigh (a generated sector's own color).
-// Returns {setFilled(points), build(view)}; see each below.
+// Returns {setFilled(points), build(view), buildCells(cells, eye, dim)};
+// see each below.
 export function createBlockScene(config) {
   const edgePc = config.edgePc || 1;
   const galaxyRadius = config.galaxyRadius;
@@ -336,7 +338,38 @@ export function createBlockScene(config) {
     return { m: listed.m, solid: pack(solid, true), glass: pack(glass, false) };
   }
 
-  return { setFilled: setFilled, build: build };
+  // Packs an explicit list of blocks the same way (the drill-down's
+  // stages, which pick their own blocks): each cell has ring, seg, slab
+  // and bounds r0..z1, and optionally filled and total. Density comes
+  // from the shape. `dim` (optional) is a test: cells it accepts are drawn
+  // at a fifth of their opacity (the "Generated only" toggle). Returns
+  // {solid, glass} as build does, plus `cells`: [solid cells, glass
+  // cells], in the order each part's `owners` index them.
+  function buildCells(cells, eye, dim) {
+    const solid = [];
+    const glass = [];
+    cells.forEach(function (cell) {
+      if (shape && cell.density === undefined) {
+        const sampled = boundsDensity(cell, shape);
+        cell.density = sampled.density;
+        cell.meanDensity = sampled.mean;
+      }
+      cell.opacity = blockOpacity(cell);
+      if (dim && dim(cell)) {
+        cell.opacity *= 0.2;
+      }
+      (cell.opacity >= 1 ? solid : glass).push(cell);
+    });
+    eye = eye || [0, 0, 0];
+    glass.forEach(function (cell) {
+      const mid = cellCoordinates(cell).cartesian;
+      cell.eyeDistance = Math.hypot(mid[0] - eye[0], mid[1] - eye[1], mid[2] - eye[2]);
+    });
+    glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
+    return { solid: pack(solid, true), glass: pack(glass, false), cells: [solid, glass] };
+  }
+
+  return { setFilled: setFilled, build: build, buildCells: buildCells };
 }
 
 // Every typed array in a built scene, to hand over without copying.

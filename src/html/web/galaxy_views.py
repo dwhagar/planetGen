@@ -126,6 +126,7 @@ def galaxy():
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
+        stage_path=url_for("web.galaxy_stage"),
         sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         phenomenon_url=phenomenon_url_template(),
