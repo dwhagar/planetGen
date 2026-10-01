@@ -39,6 +39,12 @@
 
 ### Fixed
 
+- `set-permissions.sh`, `create-cache-dir.sh` and `setup-debug-log.sh`
+  stopped silently (exit 1, no message) on a Debian or Ubuntu server with
+  Apache installed: reading `/etc/apache2/envvars` under `set -u` hit its
+  unset `$APACHE_CONFDIR` and killed the user/group lookup. It is read
+  safely now, and a lookup that still fails says so.
+
 - `checkRenderParity.py`, `dedupeNames.py`, `resetDb.py` and
   `loginLockouts.py` print `error: ...` and exit 1 on a database they
   can't reach instead of a traceback.

@@ -20,12 +20,17 @@ detect_apache_group() {
     # APACHE_RUN_GROUP in /etc/apache2/envvars (default www-data) -- this
     # is the authoritative source, since it's what apachectl itself reads
     # to decide who the worker processes run as.
-    if [[ -r /etc/apache2/envvars ]]; then
+    # APACHE_ENVVARS points the tests at a copy.
+    local envvars="${APACHE_ENVVARS:-/etc/apache2/envvars}"
+    if [[ -r "$envvars" ]]; then
         local user group
         # Run in a subshell so envvars' own `export`s and any unrelated
-        # variables it sets don't leak into this script.
-        user="$(source /etc/apache2/envvars >/dev/null 2>&1; echo "$APACHE_RUN_USER")"
-        group="$(source /etc/apache2/envvars >/dev/null 2>&1; echo "$APACHE_RUN_GROUP")"
+        # variables it sets don't leak into this script. `set +eu` there:
+        # envvars reads $APACHE_CONFDIR unset, which under a caller's
+        # `set -u` killed the subshell, and with it (silently) every
+        # script that reads this function's output (TEST.62 found it).
+        user="$(set +eu; source "$envvars" >/dev/null 2>&1; echo "${APACHE_RUN_USER:-}")" || user=""
+        group="$(set +eu; source "$envvars" >/dev/null 2>&1; echo "${APACHE_RUN_GROUP:-}")" || group=""
         if [[ -n "$group" ]]; then
             echo "$user" "$group"
             return 0

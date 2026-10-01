@@ -148,8 +148,8 @@ def test_the_log_setup_never_stops_an_install_or_update():
         with open(os.path.join(REPO_DIR, script), encoding="utf-8") as f:
             text = f.read()
         assert 'setup-debug-log.sh" \\\n    || echo "warning:' in text, script
-    code = _code_lines("setup-debug-log.sh")
-    assert "exit 1" not in code.split("# Prints")[-1].split("$EUID")[-1].replace("    exit 1\nfi", "", 2)
+    # Only running it without root, or with no Python at all, is an error.
+    assert _code_lines("setup-debug-log.sh").count("exit 1") == 2
 
 
 # --- log-locations.py (OPS.5), run as the current user -----------------------
@@ -351,3 +351,40 @@ def test_create_cache_dir_gives_apache_only_the_runtime_dirs(tmp_path):
         info = os.stat(path)
         assert (info.st_uid, info.st_gid, stat.S_IMODE(info.st_mode)) == (uid, gid, 0o750)
     assert os.stat(tmp_path / "cache").st_uid == 0
+
+
+# --- apache-identity.sh ------------------------------------------------------
+
+DEBIAN_ENVVARS = """\
+unset HOME
+if [ "${APACHE_CONFDIR##/etc/apache2-}" != "${APACHE_CONFDIR}" ] ; then
+\tSUFFIX="-${APACHE_CONFDIR##/etc/apache2-}"
+else
+\tSUFFIX=
+fi
+export APACHE_RUN_USER=www-data
+export APACHE_RUN_GROUP=www-data
+"""
+
+
+def test_apache_identity_reads_debians_envvars_under_set_u(tmp_path):
+    """Debian's envvars reads $APACHE_CONFDIR unset; under the callers'
+    `set -u` that used to kill detect_apache_group silently, and with it
+    set-permissions.sh, create-cache-dir.sh and setup-debug-log.sh (TEST.62)."""
+    envvars = tmp_path / "envvars"
+    envvars.write_text(DEBIAN_ENVVARS)
+    script = ('set -euo pipefail; source "$1"; '
+              'read -r user group < <(detect_apache_group); echo "$user:$group"')
+    env = dict(os.environ, APACHE_ENVVARS=str(envvars))
+    env.pop("APACHE_CONFDIR", None)
+    result = subprocess.run(["bash", "-c", script, "t", os.path.join(APACHE_DIR, "apache-identity.sh")],
+                            env=env, capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    assert result.stdout.strip() == "www-data:www-data"
+
+
+@pytest.mark.parametrize("name", ["set-permissions.sh", "create-cache-dir.sh", "setup-debug-log.sh"])
+def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
+    code = _code_lines(name)
+    assert "couldn't work out Apache's user and group" in code
+    assert 'read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]' in code

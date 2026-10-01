@@ -108,7 +108,11 @@ ACTIVITY_DIR="$(dirname "$ACTIVITY_LOG")"
 
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
-read -r APACHE_USER APACHE_GROUP < <(detect_apache_group)
+if ! read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]; then
+    echo "warning: couldn't work out Apache's user and group (see above), so the logs were not set up." >&2
+    echo "  Install the web server (sudo apt install apache2), then run sudo ./update.sh again." >&2
+    exit 0
+fi
 
 # Both log files, their folders, owners and modes, and whether Apache's
 # user and group can really write them; it only ever warns.
