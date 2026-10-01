@@ -10,3 +10,7 @@
   core first; or give a sector address (ring, layer and slot), or a
   galaxy-frame position in parsecs. An address or position that isn't
   generated yet is generated first, then its neighborhood.
+
+### Fixed
+- **A HEAD request to the Generate page no longer runs its form.** It
+  is answered like a GET, so it can't skip the form's CSRF check.

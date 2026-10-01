@@ -606,7 +606,7 @@ def generate():
     """The Generate page (GET) and its forms (POST, answered with a 303
     back to the page, or the page again with an error when nothing
     started)."""
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):
         admin, response = _admin_or_redirect()
         return response or _page(admin)
 

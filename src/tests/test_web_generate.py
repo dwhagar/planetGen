@@ -145,6 +145,15 @@ def test_post_and_status_need_an_admin(site, client, no_spawn):
     assert no_spawn == []
 
 
+def test_head_is_a_get_not_a_form_post(site, client, no_spawn):
+    """HEAD answers like GET (Flask routes it to the same view), so it never
+    reaches the form branch, which would skip the CSRF check."""
+    assert client.head("/admin/generate", data={"action": "plan"}).status_code == 200
+    assert no_spawn == []
+    site.admin = None
+    assert client.head("/admin/generate").status_code == 302
+
+
 def test_post_needs_csrf(site, client, no_spawn):
     resp = client.post("/admin/generate", data={"action": "plan"})
     assert resp.status_code == 400
