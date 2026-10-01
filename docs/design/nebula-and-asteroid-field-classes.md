@@ -118,8 +118,13 @@ compact objects keep their own tables and need no letters.
   exposing its planets to cosmic rays, mesospheric ozone loss, cooling
   and comet showers. Inside an emission nebula the sky stays dark and
   starry; inside a molecular cloud background stars vanish. This feeds
-  system text, habitability, and the navigation hand-off radius (item
-  33 uses a fixed ~120 AU heliopause today).
+  system text, habitability, and the navigation hand-off radius. Built
+  for the system text and navigation: `starData.compressed_heliosphere_radius`
+  scales the stored open-space radius by `(P_ISM / P_cloud)^1/2`, with
+  `P_cloud` the cloud's ram pressure at 26 km/s plus `n k T`;
+  `queryDb.system_detail` returns it as `heliopause_au`. At nH 3,000
+  cm^-3 that puts this program's Sun (~85 AU in open space) at ~0.6 AU.
+  Habitability doesn't use it yet.
 
 ## Naming (item 30, built in v40)
 

@@ -42,6 +42,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirna
 import generate  # noqa: E402
 
 from queryDb import (
+    facilities_for_system,
+    facilities_in_sector,
+    facility_detail,
     NO_SECTOR,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
@@ -68,6 +71,7 @@ from queryDb import (
     systems_within_radius,
 )
 from stellarObjects import _db, generationLimits, program_constants
+from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
@@ -1369,6 +1373,121 @@ def delete_system(system_id):
     if not deleted:
         raise ApiError(f"no such system: {system_id}", status_code=404)
     audit("system.delete", target=f"system:{system_id}")
+    return jsonify({"status": "ok"})
+
+
+# ---------------------------------------------------------------------
+# Facilities (schema v42): starbases, colonies and
+# outposts. See stellarObjects/facilities.py for the placement rules.
+# ---------------------------------------------------------------------
+
+FACILITY_FIELDS = {
+    "name": (str, lambda v: bool(v.strip()) and len(v) <= MAX_NAME_LENGTH),
+    "kind": (str, lambda v: v in program_constants.FACILITY_KINDS),
+    "placement": (str, lambda v: v in facility_rules.PLACEMENTS),
+    "host_type": (str, lambda v: v in facility_rules.HOST_TYPES),
+    "host_id": (int, lambda v: v > 0),
+    "distance_km": ((int, float), lambda v: math.isfinite(v) and v > 0),
+    "phase_deg": ((int, float), math.isfinite),
+    "offset_ly": (list, lambda v: len(v) == 3 and all(
+        isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c) for c in v)),
+    "description": (str, lambda v: len(v) <= 4000),
+}
+"""dict: The `POST /api/facilities` body shape."""
+
+
+@bp.route("/facilities/<int:facility_id>")
+def facility(facility_id):
+    """`GET /api/facilities/<id>` -- one facility."""
+    found = facility_detail(get_db(), facility_id)
+    if found is None:
+        raise ApiError(f"no such facility: {facility_id}", status_code=404)
+    return jsonify(found)
+
+
+@bp.route("/systems/<int:system_id>/facilities")
+def system_facilities(system_id):
+    """`GET /api/systems/<id>/facilities` -- every facility in a system.
+    404 for an unknown system."""
+    db = get_db()
+    if db.execute("SELECT 1 FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
+        raise ApiError(f"no such system: {system_id}", status_code=404)
+    return jsonify({"items": facilities_for_system(db, system_id)})
+
+
+@bp.route("/sectors/<int:sector_id>/facilities")
+def sector_facilities(sector_id):
+    """`GET /api/sectors/<id>/facilities` -- stand-alone facilities parked
+    in a sector and those on its asteroid fields. 404 for an unknown
+    sector."""
+    db = get_db()
+    if db.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
+        raise ApiError(f"no such sector: {sector_id}", status_code=404)
+    return jsonify({"items": facilities_in_sector(db, sector_id)})
+
+
+@bp.route("/facilities/orbit")
+def facility_orbit():
+    """`GET /api/facilities/orbit?host_type=star|planet|moon&host_id=N[&distance_km=X]`
+    -- the orbit (distance, period, speed) an orbital facility would get,
+    without saving anything, so a form can show it first."""
+    host_type = request.args.get("host_type", "")
+    try:
+        host_id = int(request.args.get("host_id", ""))
+        raw_distance = request.args.get("distance_km")
+        distance_km = None if raw_distance in (None, "") else float(raw_distance)
+    except ValueError:
+        raise ApiError("host_id must be a whole number and distance_km a number")
+    try:
+        return jsonify(_db.facility_orbit(get_db(), host_type, host_id, distance_km))
+    except _db.FacilityError as exc:
+        raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
+
+
+@bp.route("/facilities", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def create_facility():
+    """`POST /api/facilities` `{"name", "kind", "placement", "host_type",
+    "host_id"}` (required) plus optional `distance_km`/`phase_deg`
+    (orbital), `offset_ly` (stand-alone, `[x, y, z]` from the sector's
+    center) and `description` -- adds a facility (`_db.add_facility`).
+    400 when the placement rules refuse it, 404 when the host is missing."""
+    body = require_json_body()
+    _validate_sector_fields(body, required={"name", "kind", "placement", "host_type", "host_id"},
+                            allowed=FACILITY_FIELDS)
+    conn = _write_conn()
+    try:
+        with conn:
+            facility_id = _db.add_facility(
+                conn, body["name"].strip(), body["kind"], body["placement"], body["host_type"], body["host_id"],
+                distance_km=body.get("distance_km"), phase_deg=body.get("phase_deg"),
+                offset_ly=body.get("offset_ly"), description=body.get("description"),
+            )
+    except _db.FacilityError as exc:
+        raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
+    finally:
+        conn.close()
+
+    audit("facility.create", target=f"facility:{facility_id}",
+          detail=str({key: body[key] for key in ("name", "kind", "placement", "host_type", "host_id")}))
+    return jsonify({"id": facility_id}), 201
+
+
+@bp.route("/facilities/<int:facility_id>", methods=["DELETE"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def delete_facility(facility_id):
+    """`DELETE /api/facilities/<id>` -- no request body."""
+    conn = _write_conn()
+    try:
+        with conn:
+            deleted = _db.delete_facility(conn, facility_id)
+    finally:
+        conn.close()
+    if not deleted:
+        raise ApiError(f"no such facility: {facility_id}", status_code=404)
+    audit("facility.delete", target=f"facility:{facility_id}")
     return jsonify({"status": "ok"})
 
 

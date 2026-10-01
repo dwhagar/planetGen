@@ -35,16 +35,22 @@ renumber when items are added or finished.
 
 - **Extend the cache (8)**.
 - **Class reference pages (56)**: Web, after its class display work.
+- **Galaxy navigation (70-79):** Boss's drill-down design of
+   2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
+   70-72 first, in order; it replaces the map's click-to-center and
+   double-click zoom.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
+   slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (25-36)** from the same notes: phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 35 is
-   a schema change; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39, 30 (naming) in v40, 26's storage in v41.
+   and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
+   shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
+   26's storage in v41 and 35 (facilities) in v42; 32 (the
+   correlative update moves everything) shipped with them, and so did
+   33-34 (navigation frames and speeds).
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -74,18 +80,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-18. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
-   - Babylon.js is several MB, and deck.gl needs a bundler.
-   - regl and raw WebGPU would mean rewriting picking, sprites and
-     lighting by hand.
-   - The CSP (`default-src 'self'`) and the no-build-step vendoring rule
-     favor one vendored file.
-   - The bottleneck is JavaScript listing work, not the renderer.
-
-   three r186 already has InstancedMesh, BatchedMesh and a
-   WebGPURenderer to move to later. Done means the rendering choice is
-   written into `docs/html-interface.md`.
-
 19. [ ] **Follow-ups (edge cases).**
    - Distance-based detail (bigger blocks farther from the camera), which
      the aligned wedges from 5 make seamless.
@@ -96,6 +90,96 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      vertex count; past that, one InstancedMesh per wedge-arc count.
    - DPR: `pcPerPixel` is per CSS pixel.
 
+
+### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
+
+Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
+pick a slab; it is pulled out and shown from above; pick a block; its
+contents fill the view as blocks 1/9 the size; repeat until single
+sectors, where a click opens the sector. The ladder is 243 -> 27 -> 3 ->
+1 sectors a side ("the bigger targets"), eight clicks from the galaxy to
+a sector. Admins can generate a sector, a layer or a neighborhood (radius
+asked in light-years) at the sector level, and the NAV page can pick its
+start and destination on the map or in a sector. Everything below is
+specified, with the math, in the design doc named in the heading; each
+item names its section. Items 70-72 go in order (Galaxy Map thread); Web
+can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
+
+70. [ ] **Nested ladder geometry (design doc section 3).** Today's
+    `blockWedgeCount` picks each level's wedges on its own, so a child
+    block sits inside one parent only sometimes (109 of 143 rings at
+    243 -> 27, 1,162 of 1,286 at 27 -> 3). Done: the nested wedge rule
+    (each level's wedge count a whole multiple of its parent's),
+    sectors joining the level-3 block that holds their center, and
+    `drillWedgeCount`, `drillParent`, `drillChildren`, `drillSlabs`,
+    `drillBlockSectors`, `drillChainOf` in `static/galaxyprisms.js` with
+    the same functions in `stellarObjects/galaxyGeometry.py`; a node
+    parity test shows both agree and that a parent's sectors are exactly
+    its children's.
+
+71. [ ] **Stage contents API (section 7).** Done: `GET
+    /api/galaxy/stage?at=m.I.s.S` returns one container's children with
+    generated counts (generated sectors listed at m = 3), and the whole
+    galaxy's level-243 blocks with no `at`; cached by `lib/tilecache.py`
+    under the stamp, a change invalidating only its ancestor chain. No
+    schema change.
+
+72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
+    eight stages on the Galaxy Map, with slab hover highlight, pull-out
+    to a top-down view, the van Wijk-Nuij flight into a block, the slab
+    strip, the breadcrumb with sibling menus, stage URLs
+    (`/galaxy?slab=`, `?at=`, `?sector=`) with Back/Forward, keys,
+    touch taps and the "Generated only" toggle; reduced motion cuts
+    instead of animating. Click-to-center and double-click zoom go away
+    (decision 2 in section 11 decides whether free look stays). Needs
+    63's bigger map for room.
+
+73. [ ] **Generate from the sector level (section 6).** Boss: "once
+    we're down to a sector level we can tell a slice to generate all the
+    sectors in that slice or click on a sector and generate it from the
+    UI if you're admin", and "add a 'generate neighborhood' when at a
+    sector selection level that will ask the radius in ly." Done, for an
+    admin at stages 7-8: Generate this sector (today's `slot` mode),
+    Generate this layer or slab (a new `generate.py galaxy --block
+    m.I.s.S [--block-layer j]` mode plus a Generate page form), and
+    Generate neighborhood with a light-year radius dialog (default 100
+    ly, 13-652 ly, converted with `ly_to_pc`, an "up to about N sectors"
+    estimate, a confirmation above 5,000), started without leaving the
+    map and refreshed when the job ends. Web owns `generate.py` and the
+    Generate page; Galaxy Map owns the buttons.
+
+74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
+    Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
+    start/destination" button on a system or phenomenon, which lands on
+    `/nav?from=...&to=...`; system and phenomenon pages and the Sector
+    Map panel get "Nav from here" and "Nav to here".
+
+75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
+    menu select start and destination using either the text dropdowns as
+    we have now or the galactic map interface to select. If it's within
+    sector then it'll just use the sector interface." Done: beside each
+    dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
+    forced on, ending in 74's Sector Map pick mode), "Pick in this
+    sector" once the other end is known, and a Bookmarks select.
+
+76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
+    info panels saves a stage, sector, system or phenomenon in
+    `static/bookmarks.js` (per browser, up to 100, storage failures
+    tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
+    entries offered by the NAV pickers. Shared bookmarks need Boss's
+    decision 4 and a migration.
+
+77. [ ] **Address bar (section 9.3).** Done: a field over the breadcrumb
+    takes a designation, `ring/layer/slot`, `x, y, z` pc or a name and
+    flies to that sector's stage 8, in pick mode too.
+
+78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
+    link goes to the Quadrant table today. Done: sector, system and
+    search pages link to `/galaxy?sector=<designation>`.
+
+79. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
+    result's "Show on Galaxy Map" opens the smallest stage holding both
+    endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
@@ -192,77 +276,14 @@ for a mouse; spacing and type sized with `clamp()`.
     has `quadrant`, and `nearest_systems` holds the 3 nearest star
     systems to every placed system and phenomenon, searched across
     sector boundaries (`_db.refresh_nearest_systems`, filled at
-    generation; the correlative update refreshes it with #32).
+    generation and refreshed by the correlative update, `updateOrbits.py`).
     `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
     `sector_detail` returns `nearest` per system, and
     `queryDb.nearest_systems(conn, table, ids)` serves any page.
     - Left: show them on the sector page (`sector_page._contents`'s
       `octant`/`location`), system page and phenomenon page.
 
-27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
-    shipped (2026-09-30): sectors now generate molecular clouds,
-    planetary nebulae around their own hot white dwarf, H II regions
-    around O and early-B stars and reflection nebulae around later B and
-    A stars (`generate.add_star_hosted_nebulae`,
-    `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
-    off-center by its birth kick. `queryDb.phenomena_near_sector` already
-    lists every cloud that reaches a sector.
-    - The Sector Map draws each cloud that reaches the sector as a
-      see-through volume (`sectormap.js makeCloudVolume`), even with its
-      center in another sector. Left: the Galaxy Map shows them
-      (`galaxymap3d.js`).
-
-### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
-
-32. [ ] **Check and finish the correlative update.** Boss: "We need to
-    double check our 'correlative update' to move everything (planets,
-    moons, stars, phenomena, etc) in their orbital path, we had a script
-    for it but let's make sure it's working for the current version.
-    Each time this is run it should recalculate the nearest systems and
-    store it in the database after it calculates the new galactic
-    location."
-    - `updateOrbits.py` advances phases through
-      `_db.advance_orbital_phases`/`advance_comet_orbits`: planets,
-      moons, stars, binaries, standalone phenomena's galactic phase and
-      comets. No stale columns were found against schema v34, but it
-      needs a real run against a v34 database.
-    - It never moves anything's galactic position:
-      `sectors.center_*_pc`, `star_systems.position_*_mpc`, phenomena
-      `center_*_pc` and sector membership stay where they were. Move
-      them along their galactic orbits, then recompute the nearest
-      systems (#26).
-    - Quasars aren't in the phenomena loop.
-    - When an object's orbit carries it out of its sector it moves to
-      the new sector. Boss (2026-09-30): "when a sector changes then we
-      make sure the DB and all text is changed to point at the new
-      sector location": `sector_id`, sector-relative positions, octant
-      (`quadrant`), `star_systems.location`, containing nebula (`_db.refresh_containment`),
-      and any stored or rendered text naming the old sector.
-
 ### Facilities (new)
-
-35. [ ] **Starbases, colonies and outposts in the database.** Boss: "I
-    am going to have starbases, colonies, outposts, that kind of thing.
-    Terrestrial facilities, orbital facilities, and stand-alone
-    facilities (those parked in space)." Add them to the database and
-    wire up adding a facility to a location, with these rules:
-    - Gas giants can't have terrestrial facilities (orbital only).
-    - Terrestrial worlds can have colonies (which automatically make
-      the planet inhabited: OR it into `queryDb._with_life_fields`) and
-      orbital facilities.
-    - Asteroid belts can have asteroid facilities (an asteroid outpost
-      or mining colony); asteroid fields can have asteroid outposts.
-    - A star system can have an outpost in orbit around the star itself.
-    - Stand-alone facilities are parked in space (a galactic position,
-      like a phenomenon).
-    - Orbits (around a star or a planet) get distance, period and speed
-      from the host's approximate mass, the same way everything else
-      does (`planetPhysics.calculate_orbital_period_years`,
-      `utils.circular_orbital_speed_kms`), and move with #32.
-    - Schema: one `facilities` table (kind, name, exactly one host,
-      orbit columns), migration, API routes in `html/api/routes.py`.
-    - Moons can host terrestrial and orbital facilities (Boss,
-      2026-09-30).
 
 36. [ ] **Place facilities from the web interface.** Boss: "The web
     interface should have a way to select within a star system where a
@@ -273,6 +294,16 @@ for a mouse; spacing and type sized with `clamp()`.
     calculated distance and speed before saving; facilities listed on
     the system page and drawn on the System Map; stand-alone ones on the
     sector page.
+    - The database side shipped in schema v42 (2026-09-30): the
+      `facilities` table, the rules in `program_constants.FACILITY_RULES`
+      (`stellarObjects/facilities.py`), `_db.add_facility`, and the API:
+      `POST /api/facilities`, `DELETE /api/facilities/<id>`,
+      `GET /api/facilities/<id>`, `GET /api/systems/<id>/facilities`,
+      `GET /api/sectors/<id>/facilities` and
+      `GET /api/facilities/orbit?host_type=&host_id=&distance_km=` (the
+      orbit to show before saving). See `docs/api.md`.
+    - A colony makes its world inhabited: OR
+      `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
 
 ### Web API (`src/html/api/routes.py`)
 
@@ -299,16 +330,24 @@ bright/dim sampling API (`stellarObjects/stellarPopulation.py`),
 population densities (`galaxyDensity.population_densities`) and
 `SpaceSector.add_preplaced_system` have shipped (bugs S1-S8 of the
 project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
-`bright-star-preplacement-plan.md`). What's left:
+`bright-star-preplacement-plan.md`), and so has the fill in
+`generate.py` that uses them (population ages and pre-placed bright stars).
 
-55. [ ] **Use population ages at sector fill (S7 call site).** In
-    `generate.py`'s `generate_sector`, set each system's
-    `SystemConfig.POPULATION` to
-    `stellarPopulation.pick_population(galaxyDensity.population_densities(position_pc, shape))`
-    for a galaxy-placed sector, so O/B stars and supergiants sit in the
-    arms near the plane and the bulge has none (Database/Web own that
-    file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
-    way).
+49. [ ] **System Map names never overlap.** Boss: "we need to make sure
+    names on the system map clickable interface do not overlap."
+    - Today `systemmap._label_sides_2d` places each label (4 directions,
+      then a pushed "below"/"above" with a leader line, else dropped)
+      against the others (plus seeded star-label rects) using an
+      estimated width (`_label_half_width_px`: character count times a
+      fixed width). Real text can run wider than the estimate, so
+      labels can still collide.
+    - Fix: make sure every star label and marker is in the collision
+      set; measure the real text in the browser
+      (`getBBox()` in `systemmap.js` after load and after each zoom
+      step in `mapzoom.js`) and nudge or hide labels that still
+      overlap, keeping the server placement as the no-script fallback.
+    - Check every scene: single star, close and wide binaries, and the
+      moon-centered scenes, at 390 px and 1280 px.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
@@ -399,6 +438,238 @@ designed yet; the open questions are listed in each item.
     per username), or does this replace the in-memory one? Should
     localhost or a configured allowlist be exempt so an admin can't lock
     themselves out, and should there be an admin "unlock" command?
+
+### User accounts (Boss's notes of 2026-10-01)
+
+Boss (2026-10-01): "a full user level interface to allow users to
+bookmark this will, of course, require an email loop for password setting
+/ resetting, invite only, so only an admin can invite a user which is done
+by unique link". Today there are only admin accounts: `admin_users`,
+`admin_sessions`, `admin_api_keys` and `admin_audit_log` in
+`stellarObjects/control_schema.sql`, managed by `stellarObjects/adminAuth.py`.
+Install seeds one admin with a random first password and
+`must_change_credentials` (`bootstrap_control_schema`), and nothing in the
+web interface or the CLI adds another account. There is no email support
+and no saved-bookmark feature (pages only have bookmarkable URLs). Order:
+64, then 65 and 66, then 67, 68 and 69. Login protection already exists
+per username (`src/html/api/loginbackoff.py`, PR #131) and is planned per
+IP address (item 61); both must cover user logins, password resets and
+invite links too.
+
+64. [ ] **Accounts with roles: user, admin and Owner.** Boss: "Admin can
+    then make a user admin or take away admin rights on everything but the
+    primary 1st admin account generated at install, that'll have a
+    designation of 'Owner' and no other account can override that." Done:
+    one accounts table in the control database (with an email address)
+    holding a role per account (user, admin, Owner); exactly one Owner,
+    which is the account install creates; an admin page where admins
+    promote a user to admin or demote an admin to user, refused for the
+    Owner; sessions and API keys that work for every role while the
+    admin-only pages and API routes stay admin-only; each role change
+    written to the audit log. Open questions: does `admin_users` become
+    this table (renamed, with a role column) or do users get their own
+    table? Which existing account becomes Owner on a server that already
+    has several admins (the lowest id?)? Can an admin demote themselves,
+    or another admin? Can an admin delete or disable a user account? Do
+    users get API keys?
+
+65. [ ] **SMTP settings in the admin config.** Boss: "We'll use SMTP for
+    email which means admin config needs SMTP settings." Done: SMTP host,
+    port, security (STARTTLS or TLS), username, password and From address,
+    set from an admin page (and the config file/installer), with a "send
+    test email" button; one small mail module that every flow in 66-68
+    uses, which logs failures and never shows the SMTP password. Open
+    questions: is the SMTP password kept in the config file (like the
+    database password) or in the control database, and is it encrypted
+    there? Who can change SMTP settings: any admin, or only the Owner?
+    What do invites and resets do when SMTP isn't configured (show the
+    link to the admin to pass on by hand?)?
+
+66. [ ] **Invite-only sign-up by unique link.** Boss: "only an admin can
+    invite a user which is done by unique link, admin can select how many
+    uses the link has or if it expires in 1 hour, 4, 6, 12, 24, 3 days, 7
+    days, 1 month, 1 year, or never. Likewise invite # of uses the link
+    gets can be infinite but infinite and never expire in combo ask for
+    confirmation as this is not recommended." Done: an admin page that
+    creates invite links (a random token stored hashed, like session
+    tokens) with a use count (a number, or infinite) and one of the
+    expiry choices above; infinite uses together with never expires asks
+    the admin to confirm and says it isn't recommended; a list of invites
+    with uses left, expiry and who made them, and a way to revoke one;
+    opening a valid link lets someone register (username, email), then
+    item 67's email loop sets their password; the account is a user, not
+    an admin. Open questions: does an admin optionally type the invitee's
+    email so the link is sent for them, or only copy the link? Is the
+    invite page rate-limited, and is there a cap on open invites? Does
+    a multi-use link record who used it?
+
+67. [ ] **Email loop for setting and resetting passwords.** Boss: "an
+    email loop for password setting / resetting". Done: a new account
+    sets its first password from an emailed link; "forgot password" on
+    the login page emails a reset link; links are single-use, short-lived
+    (stored hashed) and end the account's other sessions once used; the
+    page never says whether an email address has an account; resets are
+    rate-limited per address and per IP alongside the existing login
+    backoff and item 61. Open questions: how long a reset link lasts
+    (30 minutes? 1 hour?); does changing the email address also need an
+    email confirmation to the old and new addresses; does the Owner's
+    reset need anything extra?
+
+68. [ ] **Owner transfer.** Boss: "The owner CAN (with specific approval
+    and double password confirmation and email loop confirmation) assign
+    owner to someone else who then has to accept via email loop." Done:
+    only the Owner can start a transfer, from a page that asks them to
+    confirm the choice explicitly, enter their password twice, and then
+    confirm from an email link; the chosen account then gets an email and
+    must accept from its own link; only when both are done does Owner
+    move; every step goes to the audit log. Open questions: what the old
+    Owner becomes (admin?); does the new Owner have to be an admin
+    already; how long the pending transfer lasts and whether the Owner
+    can cancel it; what happens if the Owner loses their email or
+    password (recovery from the server's command line?).
+
+69. [ ] **A user-level interface with bookmarks.** Boss: "a full user
+    level interface to allow users to bookmark". Done: signed-in users
+    (any role) get an account page and can bookmark sectors, systems,
+    planets, phenomena and NAV courses, see them in a list, name them and
+    remove them; bookmarks are stored per account in the control
+    database. Open questions: which objects can be bookmarked, and can
+    users also add notes? What else a user can do that an anonymous
+    visitor can't (is the site still public to read, or sign-in only?)?
+    Do bookmarks survive a galaxy regenerate (object ids change), and if
+    not, what does a broken bookmark show?
+
+### Project process (Boss's notes of 2026-10-01)
+
+80. [ ] **Number TODO items by category, and build the version from
+    them.** Boss (2026-10-01): "I want to renumber the TODO items in
+    groups so like UI changes get 'UX.1' and API Changes at 'API.1' kind
+    of thing, so that we can better track changes. We'll revamp
+    everything so that tags are consistent through the documentation.
+    We'll then build the build number (major feature set.revision.build)
+    to be a composite of the change numbers for each category added up.
+    (i.e. if we're on UX.4, API.8, and DB.12 we'd add those up to be
+    4+8+12)." Nothing is renumbered yet. Today items carry one running
+    number across groups (this file's "How to use this document" says to
+    renumber when items are added or finished), code sites carry
+    `TODO(<area> #N)` tags (`grep TODO(`), and the version (README badge,
+    `src/stellarObjects/_version.py`, `CHANGELOG.md`; 7.37.0 as of this
+    item) is bumped by `.github/workflows/stamp-version.yml` and
+    `scripts/bump_version.py` from each merged PR's
+    `changes/<name>.<patch|minor|major>.md` note. Done: every open item
+    gets a category ID (`UX.1`, `API.1`, `DB.1`, ...); the same IDs are
+    used in `TODO(...)` code tags, `changes/` notes, the changelog, PR
+    titles and the design docs; and the version's third number is the
+    sum of each category's counter. Open questions:
+    - The category list and what each covers (for example UX, API, DB,
+      MAP for the Galaxy/Sector/System maps, GEN for generation and
+      physics, NAV, SEC for security, OPS for installers and hosting,
+      DOC).
+    - Is a category's counter the number of changes shipped in it, or the
+      highest item ID? Does a finished item keep its ID (no more
+      renumbering), so IDs are never reused?
+    - How the post-merge Action counts: does each `changes/` note name its
+      category and item ID (for example `ux-62.patch.md` or a front-matter
+      line), and what happens to a PR that touches two categories or none
+      (a pure bug fix)?
+    - What "major feature set" and "revision" mean and who bumps them
+      (still the `patch`/`minor`/`major` level of the note?). Does the
+      build number reset when they go up? It can't, if it's a running sum
+      of counters, so the version would only ever grow in its third
+      place.
+    - Do the 1-79 numbers already in commits, PRs and the changelog get a
+      mapping table to the new IDs?
+
+81. [ ] **A structural design document: the program's "circuitry".**
+    Boss (2026-10-01): "build a structural design document of how the
+    program works overall, bridging file names to what they contain and
+    basically lays out the 'circuitry' of the program." Nothing like it
+    exists today: `docs/` has reference docs per area (`api.md`,
+    `database-schema.md`, `html-interface.md`, `config.md`,
+    `testing.md`, ...) and `docs/design/` has topic designs, but nothing
+    shows the whole. Done: one document (for example
+    `docs/design/architecture.md`) that maps every top-level script,
+    package and important module (`generate.py`, `src/stellarObjects/`,
+    `src/html/api/`, `src/html/web/`, `src/html/lib/`, `src/html/static/`,
+    installers, workflows) to what it holds, and traces the main flows
+    through them: generating a galaxy, sector and system; storing and
+    migrating the database; serving a page and a map; admin login and
+    jobs; releases. Open questions: diagrams (Mermaid, which GitHub
+    renders) or text only? How is it kept current (a CI check that every
+    module is listed, or a rule that PRs update it)?
+
+82. [ ] **Bring the design documents up to date, with the reasons.** Boss
+    (2026-10-01): "clean up the design documents make sure they are all
+    current, document how the program works the way it does and why and
+    what choices were made that influenced each." Done: every file in
+    `docs/design/` and `docs/analysis/` (and the reference docs in
+    `docs/`) checked against the code, fixed or marked as historical; each
+    says how that part works, why, and which choices and alternatives
+    shaped it (for example the cylindrical sector grid, rendering systems
+    from the database, three.js for the Galaxy Map, Flask-only site),
+    drawing on the PRs and `CHANGELOG.md`. Open questions: do superseded
+    designs get deleted or kept in an archive folder? Does this wait for
+    item 80's category IDs so the docs are tagged once? Best done after
+    item 81, which gives the map to hang them on.
+
+### View from a planet (Boss's notes of 2026-10-01)
+
+**Research first.** Boss: "view-from-planet will have to do calculations
+on colors and A LOT Of stuff, so make special note of that, it will need
+a full research pass." Before any code for items 83-84, Boss wants a
+research session with him "into exactly how one would do that". Items 83
+and 84 are blocked on it; item 85 is not.
+
+83. [ ] **A starmap seen from a planet. RESEARCH WITH BOSS FIRST.** Boss:
+    "Build a function to select a planet and generate an effective starmap
+    from that planet based on all visible stars, this will have to include
+    a lot, A LOT, of math so remind me to do research when we get there
+    into exactly how one would do that, but it would have to account for
+    where each star would have been at that light years back in time?"
+    Done: pick a planet (or moon), and get every star visible from it
+    with its direction and brightness as seen there, placed where it was
+    when the light now arriving left it (light-travel time back along
+    its galactic orbit; the correlative update now moves everything along
+    galactic orbits, TODO 32, PR #157). The research pass covers at least:
+    - which stars are visible (apparent magnitude from luminosity and
+      distance, a magnitude cut, interstellar extinction and reddening by
+      dust, and whether stars beyond the generated sectors are included,
+      for example from the density skeleton or the `bright_stars` table
+      from PR #159);
+    - star colors as seen from the planet (colour from temperature,
+      reddening, the planet's atmosphere and its own star's glare; Boss
+      singled out colors as needing real work);
+    - light-time positions (the star's position at "now minus distance /
+      c" along its galactic orbit), and where the planet is in its own
+      orbit and its sky orientation (axial tilt, rotation, latitude);
+    - nebulae, the galactic band, the companion stars of the planet's own
+      system, and performance (millions of stars per view).
+
+84. [ ] **Render the view as a PNG, with constellations.** Boss: "when
+    it does that it will generate a PNG and it will generate
+    constellations." Done: item 83's view is drawn to a PNG (a sky
+    projection, star size and colour by apparent brightness), and the
+    brighter stars are grouped into constellations with lines and names
+    from item 85, stored so a planet keeps the same constellations each
+    time. Blocked on item 83's research pass. Open questions: whole-sky
+    or a horizon view from a point on the surface? How are constellations
+    chosen (bright-star patterns, by clustering, a set number per sky)?
+    Are the PNGs cached on disk and served by the web interface, or made
+    on request?
+
+85. [ ] **Constellation names in the name generator.** Boss: "add to our
+    name generator constellation name support based on constellation
+    names throughout all known languages and then slice it up like we do
+    for all our naming". Done: a constellation name list in
+    `stellarObjects/names.py` gathered from constellation and star-group
+    names across the world's languages and sky cultures (not just the 88
+    IAU ones), and a constellation name generator that slices and
+    recombines them into new names the same way stars, planets and
+    sectors are named (`split_into_syllables` in `utils.py`, the
+    prefix/suffix lists, the `offensive_words.txt` filter). Used by item
+    84. Open questions: what counts as a source list (licensing of sky
+    culture data such as Stellarium's), transliteration of non-Latin
+    scripts, and whether names are unique per planet or galaxy-wide.
 
 ## Population and Politics
 

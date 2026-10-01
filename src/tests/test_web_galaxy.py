@@ -145,6 +145,8 @@ def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
     assert "{id}" in scene["sectorUrl"]
     with app.test_request_context("/"):
         assert scene["sectorUrl"].replace("{id}", "5") == page_url("sector", sector_id=5)
+        assert scene["phenomenonUrl"].replace("{type}", "supernova_remnant").replace("{id}", "7") == page_url(
+            "phenomenon", phenomenon_type="supernova_remnant", phenomenon_id=7)
     assert scene["initial"]["stamp"] == STAMP
     assert scene["initial"]["tiles"]
     # Visitors get no Generate buttons.

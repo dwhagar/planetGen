@@ -122,6 +122,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["galaxyRadiusPc"] == pytest.approx(galaxy_extent_pc(EDGE_PC, {"outer_ring_index": 50}))
     assert data["initial"] == view
     assert data["generate"] is None
+    assert data["phenomenonUrl"] is None
 
 
 def test_panel_passes_the_admin_generate_target_through():

@@ -41,8 +41,9 @@ import re
 import pymysql
 
 from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
-                                mysql_config_from_args)
-from stellarObjects import program_constants
+                                mysql_config_from_args, surrounding_cloud)
+from stellarObjects import physical_constants, program_constants
+from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
     galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, sector_position_pc,
@@ -919,10 +920,82 @@ def _center_distance_ly(row):
     )
 
 
+_FACILITY_SELECT = """
+    SELECT f.*,
+           COALESCE(st.name, p.name, m.name, af.name, sec.name) AS host_name
+    FROM facilities f
+    LEFT JOIN stars st ON st.id = f.star_id
+    LEFT JOIN planets p ON p.id = f.planet_id
+    LEFT JOIN moons m ON m.id = f.moon_id
+    LEFT JOIN asteroid_fields af ON af.id = f.asteroid_field_id
+    LEFT JOIN sectors sec ON sec.id = f.sector_id
+"""
+
+
+def _facility_dict(row):
+    """One `facilities` row (plus `host_name`, `None` for an asteroid
+    belt, which has no name) as the API returns it."""
+    facility = {key: row[key] for key in (
+        "id", "name", "kind", "placement", "host_type", "star_system_id", "star_id", "planet_id", "moon_id",
+        "asteroid_belt_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
+        "orbit_distance_km", "orbit_period_years", "orbital_speed_kms", "orbit_phase_deg", "description",
+        "host_name",
+    )}
+    host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                    "asteroid_field": "asteroid_field_id", "space": "sector_id"}
+    facility["host_id"] = row[host_columns[row["host_type"]]]
+    return facility
+
+
+def facility_detail(conn, facility_id):
+    """One facility (schema v42), or `None`."""
+    row = conn.execute(_FACILITY_SELECT + " WHERE f.id = ?", (facility_id,)).fetchone()
+    return None if row is None else _facility_dict(row)
+
+
+def facilities_for_system(conn, system_id):
+    """Every facility on a host inside one star system (its stars,
+    planets, moons and belts), by name."""
+    rows = conn.execute(_FACILITY_SELECT + " WHERE f.star_system_id = ? ORDER BY f.name, f.id",
+                        (system_id,)).fetchall()
+    return [_facility_dict(row) for row in rows]
+
+
+def facilities_in_sector(conn, sector_id):
+    """The facilities a sector holds outside its systems: stand-alone ones
+    parked in it, and those on its asteroid fields."""
+    rows = conn.execute(
+        _FACILITY_SELECT + " WHERE f.sector_id = ? OR af.sector_id = ? ORDER BY f.name, f.id",
+        (sector_id, sector_id),
+    ).fetchall()
+    return [_facility_dict(row) for row in rows]
+
+
+def colonized_body_ids(conn, system_id):
+    """
+    The planets and moons in one system with a colony on them -- a colony
+    makes its world inhabited (schema v42).
+
+    Returns:
+        dict: `{"planets": set of ids, "moons": set of ids}`.
+    """
+    found = {"planets": set(), "moons": set()}
+    for row in conn.execute(
+        "SELECT planet_id, moon_id FROM facilities WHERE star_system_id = ? AND kind = 'colony'"
+        " AND placement = 'terrestrial'",
+        (system_id,),
+    ).fetchall():
+        if row["planet_id"] is not None:
+            found["planets"].add(row["planet_id"])
+        if row["moon_id"] is not None:
+            found["moons"].add(row["moon_id"])
+    return found
+
+
 def containing_cloud(conn, row):
     """
     The nebula or supernova remnant a row sits inside (schema v39), from
-    its `inside_nebula_id`/`inside_remnant_id`.
+    its `inside_nebula_id`/`inside_remnant_id`: `_db.surrounding_cloud`.
 
     Args:
         conn (Connection): An open connection.
@@ -932,21 +1005,10 @@ def containing_cloud(conn, row):
 
     Returns:
         dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class"}`, or `None` in open space.
+            "name", "class", "density_cm3", "temperature_k"}`, or `None`
+            in open space.
     """
-    if row["inside_nebula_id"] is not None:
-        found = conn.execute("SELECT id, name, nebula_class AS class FROM nebulae WHERE id = ?",
-                             (row["inside_nebula_id"],)).fetchone()
-        kind = "nebula"
-    elif row["inside_remnant_id"] is not None:
-        found = conn.execute("SELECT id, name, remnant_class AS class FROM supernova_remnants WHERE id = ?",
-                             (row["inside_remnant_id"],)).fetchone()
-        kind = "supernova_remnant"
-    else:
-        return None
-    if found is None:
-        return None
-    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"]}
+    return surrounding_cloud(conn, row)
 
 
 def sector_detail(conn, sector_id):
@@ -1540,6 +1602,27 @@ def phenomena_near_sector(conn, sector_id):
     return matches
 
 
+def _heliopause_au(conn, system, cloud):
+    """
+    `(open-space heliopause, heliopause inside `cloud`)` in AU for a
+    `star_systems` row: a close pair's shared bubble, otherwise the
+    primary (or single) star's. `(None, None)` when nothing stores one.
+    """
+    if system["binary_configuration"] == "close" and system["binary_heliosphere_radius_km"] is not None:
+        radius_km = system["binary_heliosphere_radius_km"]
+    else:
+        star = conn.execute(
+            "SELECT heliosphere_radius_km FROM stars WHERE star_system_id = ? AND role IN ('primary', 'single')"
+            " ORDER BY id LIMIT 1", (system["id"],)).fetchone()
+        radius_km = star["heliosphere_radius_km"] if star else None
+    if radius_km is None:
+        return None, None
+    open_space_au = radius_km / physical_constants.AU_TO_KM
+    if cloud is None:
+        return open_space_au, open_space_au
+    return open_space_au, compressed_heliosphere_radius(open_space_au, cloud["density_cm3"], cloud["temperature_k"])
+
+
 def system_detail(conn, system_id):
     """
     Returns one system's full web-display detail: stars, planets (each
@@ -1577,9 +1660,11 @@ def system_detail(conn, system_id):
             `location`'s "nearest: ..." names without a second round
             trip), and `nearest_neighbors` (`{id, name, distance_ly}` for
             the closest same-sector systems, nearest first -- see
-            `_nearest_sector_siblings`), and `inside` (the nebula or
-            supernova remnant the system sits in, or `None` -- see
-            `containing_cloud`).
+            `_nearest_sector_siblings`), `inside` (`containing_cloud`), and
+            `heliopause_au` (the system's heliopause, pressed in by the
+            cloud it sits inside, if any -- the System Local Frame's edge for
+            navigation) with `heliopause_open_space_au` (the same without
+            the cloud); both `None` when no star row has one.
 
     Raises:
         ValueError: If no such system exists.
@@ -1632,6 +1717,9 @@ def system_detail(conn, system_id):
         sector_siblings = [{"id": r["id"], "name": r["name"]} for r in sibling_rows]
         nearest_neighbors = _nearest_sector_siblings(system, sibling_rows)
 
+    cloud = containing_cloud(conn, system)
+    open_space_au, heliopause_au = _heliopause_au(conn, system, cloud)
+
     return {
         "id": system["id"], "name": system["name"], "sector_id": system["sector_id"],
         "quadrant": system["quadrant"], "location": system["location"],
@@ -1649,6 +1737,9 @@ def system_detail(conn, system_id):
         "comets": [dict(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
+        "inside": cloud,
+        "heliopause_au": heliopause_au,
+        "heliopause_open_space_au": open_space_au,
     }
 
 
@@ -1670,8 +1761,8 @@ def _life_stages(conn, paragraph_table, id_column, body_table, system_id):
     return {body_id: life_stage_from_paragraphs(texts) for body_id, texts in paragraphs.items()}
 
 
-# TODO(facilities #35): a colony on a terrestrial world makes it inhabited;
-# OR that into `inhabited` here.
+# TODO(facilities #36): a colony on a terrestrial world makes it inhabited;
+# OR `colonized_body_ids` into `inhabited` here.
 def _with_life_fields(body, stages):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
@@ -1920,6 +2011,12 @@ GALAXY_TILE_MAX_FILLED_CELLS = 5000
 """int: Most cells one tile's filled summary lists. Past this the cells
 grow three times bigger until they fit."""
 
+GALAXY_TILE_MAX_CLOUDS = 200
+"""int: Most nebulae and supernova remnants one tile lists
+(`galaxy_clouds_in_box`), the largest first. A tile wide enough to hold
+more shows the map at a scale where the smaller ones are under a pixel
+anyway."""
+
 MAX_TILES_PER_REQUEST = 128
 """int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
 needs at most 27 view tiles plus about 64 planned tiles at once."""
@@ -2090,6 +2187,87 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
         g *= 3
 
 
+_CLOUD_TABLES = (
+    ("nebulae", "nebula", "nebula_type"),
+    ("supernova_remnants", "supernova_remnant", "morphology"),
+)
+"""tuple: `(table, type_label, descriptor_column)` for the phenomena the
+Galaxy Map draws as clouds -- the ones with a real extent worth seeing
+at galaxy scale (an asteroid field is far smaller)."""
+
+
+def _cloud_margins_pc(conn):
+    """`{table: widest placed radius in pc}` for each `_CLOUD_TABLES`
+    table with a placed row -- `galaxy_clouds_in_box`'s prefilter margin,
+    read once per tile request."""
+    margins = {}
+    for table, _type_label, _descriptor_column in _CLOUD_TABLES:
+        widest = conn.execute(
+            f"SELECT MAX(radius_ly) AS r FROM {table} WHERE center_x_pc IS NOT NULL"
+        ).fetchone()
+        if widest is not None and widest["r"] is not None:
+            margins[table] = ly_to_pc(float(widest["r"]))
+    return margins
+
+
+def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margins=None):
+    """
+    Every placed nebula and supernova remnant whose sphere reaches into the
+    box `[lo, hi)` -- not just the ones centered there, so a big cloud
+    shows from every tile it covers (the map drops the repeats by type and
+    id). The Galaxy Map (`static/galaxymap3d.js`) draws each as a
+    translucent cloud.
+
+    Each table is read with a bounding-box prefilter widened by its own
+    widest radius (so `idx_<table>_center` can range-scan it), then the
+    sphere is tested against the box exactly.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` lower corner, parsecs.
+        hi (tuple): `(x, y, z)` upper corner, parsecs.
+        max_clouds (int): See `GALAXY_TILE_MAX_CLOUDS`.
+        margins (dict, optional): An already-read `_cloud_margins_pc`.
+
+    Returns:
+        list[dict]: Largest first: `type` (`"nebula"` or
+            `"supernova_remnant"`), `id`, `name`, `descriptor` (a nebula's
+            type, a remnant's morphology), `class` (letter class or
+            `None`), `radius_pc`, and `x`/`y`/`z` (center, parsecs).
+    """
+    if margins is None:
+        margins = _cloud_margins_pc(conn)
+    clouds = []
+    for table, type_label, descriptor_column in _CLOUD_TABLES:
+        if table not in margins:
+            continue
+        margin = margins[table]
+        rows = conn.execute(
+            f"""
+            SELECT id, name, {descriptor_column} AS descriptor, radius_ly,
+                   {_PHENOMENON_CLASS_COLUMNS[table]} AS class_code,
+                   center_x_pc, center_y_pc, center_z_pc
+            FROM {table}
+            WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ?
+              AND center_z_pc BETWEEN ? AND ?
+            """,
+            (lo[0] - margin, hi[0] + margin, lo[1] - margin, hi[1] + margin, lo[2] - margin, hi[2] + margin),
+        ).fetchall()
+        for row in rows:
+            radius_pc = ly_to_pc(float(row["radius_ly"] or 0.0))
+            center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+            gap = math.sqrt(sum(max(lo[i] - center[i], 0.0, center[i] - hi[i]) ** 2 for i in range(3)))
+            if radius_pc <= 0 or gap > radius_pc:
+                continue
+            clouds.append({
+                "type": type_label, "id": row["id"], "name": row["name"],
+                "descriptor": row["descriptor"], "class": row["class_code"], "radius_pc": radius_pc,
+                "x": center[0], "y": center[1], "z": center[2],
+            })
+    clouds.sort(key=lambda cloud: (-cloud["radius_pc"], cloud["type"], cloud["id"]))
+    return clouds[:max_clouds]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -2105,9 +2283,9 @@ def galaxy_tiles(conn, tile_keys):
 
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "filled": {...}}}`, see `galaxy_sectors_in_box`,
-            `galaxyViewport.planned_slots_in_tile` and
-            `galaxy_filled_in_box`),
+            "filled": {...}, "clouds": [...]}}`, see
+            `galaxy_sectors_in_box`, `galaxyViewport.planned_slots_in_tile`,
+            `galaxy_filled_in_box` and `galaxy_clouds_in_box`),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2128,6 +2306,7 @@ def galaxy_tiles(conn, tile_keys):
         shape = None
         expected_system_count = None
 
+    cloud_margins = _cloud_margins_pc(conn) if parsed else {}
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
@@ -2139,7 +2318,8 @@ def galaxy_tiles(conn, tile_keys):
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses,
         )
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
-        tiles[key] = {"placed": placed, "planned": planned, "filled": filled}
+        clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
+        tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds}
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

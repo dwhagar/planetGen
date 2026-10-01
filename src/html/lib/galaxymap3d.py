@@ -298,7 +298,7 @@ def _json_script(data):
 
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
-                              sector_url=None, generate=None):
+                              sector_url=None, generate=None, phenomenon_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (drag to
@@ -340,6 +340,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             `{"url", "csrfField", "csrfToken"}`
             (`web.helpers.generate_target`), where an unfilled sector's
             Generate buttons post. `None` (every visitor) shows no buttons.
+        phenomenon_url (str, optional): A phenomenon page URL with
+            `{type}` and `{id}` where they go, for a cloud's "View
+            phenomenon" link; without it the panel shows no link.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -352,6 +355,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "fetchPath": fetch_path,
         "sectorUrl": sector_url,
         "generate": generate,
+        "phenomenonUrl": phenomenon_url,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,

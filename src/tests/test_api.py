@@ -753,6 +753,7 @@ def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
     # Neither sector has a grid address, so neither is in a filled summary.
     assert tiles[near]["filled"] == {"g": 1, "cells": []}
     assert tiles[whole]["filled"]["cells"] == []
+    assert tiles[near]["clouds"] == [] and tiles[whole]["clouds"] == []
     assert "density" not in body
     assert body["has_shape"] is False
 
@@ -797,6 +798,44 @@ def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
     for summary in (grouped, coarse):
         assert summary["g"] == 3
         assert {tuple(cell[:3]): cell[3] for cell in summary["cells"]} == expected_cells(3)
+
+
+def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
+    """A tile lists each nebula or supernova remnant whose sphere reaches
+    into it, wherever its center is, largest first; past `max_clouds` the
+    smallest are dropped. Point-like phenomena aren't clouds."""
+    from stellarObjects.nebulaData import Nebula
+    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from stellarObjects.utils import pc_to_ly
+
+    cfg = SystemConfig()
+    sector_id = _place_sector(mysql_config, "Cloud Home", (0.0, 0.0, 0.0))
+    placement = {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 0.0}
+    nebula = Nebula(cfg, name="Big Cloud")
+    nebula.radius_ly = pc_to_ly(30.0)
+    remnant = SupernovaRemnant(cfg, name="Small Shell")
+    remnant.radius_ly = pc_to_ly(2.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        nebula_id = _db.insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
+        remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=placement)
+        conn.commit()
+        home = queryDb.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0))
+        reached = queryDb.galaxy_clouds_in_box(conn, (25.0, -10.0, -10.0), (45.0, 10.0, 10.0))
+        corner = queryDb.galaxy_clouds_in_box(conn, (25.0, 25.0, 25.0), (45.0, 45.0, 45.0))
+        capped = queryDb.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0), max_clouds=1)
+    finally:
+        conn.close()
+
+    assert [(c["type"], c["id"]) for c in home] == [("nebula", nebula_id), ("supernova_remnant", remnant_id)]
+    assert home[0]["radius_pc"] == pytest.approx(30.0)
+    assert home[0]["name"] == "Big Cloud"
+    assert home[0]["class"] and home[0]["descriptor"]
+    # 25 pc from the center along x: the 30 pc nebula reaches, the shell doesn't.
+    assert [c["id"] for c in reached] == [nebula_id]
+    # The near corner is 25*sqrt(3) ~ 43 pc away: out of reach.
+    assert corner == []
+    assert [c["id"] for c in capped] == [nebula_id]
 
 
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
@@ -1588,3 +1627,33 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     assert client.get("/api/galaxy/cell?ring=0&layer=0&slot=4").status_code == 400
     assert client.get("/api/galaxy/cell?ring=1").status_code == 400
     assert client.get("/api/galaxy/cell?x=nan&y=0&z=0").status_code == 400
+
+
+def test_facility_routes(admin_client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        moon_id = conn.execute("SELECT id FROM moons WHERE star_system_id = ? LIMIT 1", (system_id,)).fetchone()["id"]
+    finally:
+        conn.close()
+
+    orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={moon_id}").get_json()
+    assert orbit["period_years"] > 0 and orbit["orbital_speed_kms"] > 0
+    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=999999999").status_code == 404
+
+    response = admin_client.post("/api/facilities", json={
+        "name": "Moonport", "kind": "station", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+    })
+    assert response.status_code == 201
+    facility_id = response.get_json()["id"]
+    assert admin_client.post("/api/facilities", json={
+        "name": "Bad", "kind": "mining-colony", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+    }).status_code == 400
+
+    detail = admin_client.get(f"/api/facilities/{facility_id}").get_json()
+    assert (detail["name"], detail["host_type"], detail["host_id"]) == ("Moonport", "moon", moon_id)
+    listed = admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"]
+    assert [f["id"] for f in listed] == [facility_id]
+
+    assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
+    assert admin_client.get(f"/api/facilities/{facility_id}").status_code == 404

@@ -848,6 +848,13 @@
 --   phenomenon, across sector boundaries. `_migrate_v40_to_v41` adds
 --   both and fills them.
 --
+-- v42: facilities (starbases, colonies, outposts) -- the `facilities`
+--   table below, one host each. `_migrate_v41_to_v42` creates it.
+--
+-- v43: bright-star pre-placement -- the `bright_stars` table below, and
+--   `galaxy_shape.bright_star_min_luminosity_sol`/`bright_star_seed`.
+--   `_migrate_v42_to_v43` adds them (empty: the next plan scatters).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1009,7 +1016,13 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- The last ring with any qualifying content (the plane's layer reaches
     -- farthest) -- this galaxy's real edge, found by `generate.py plan`,
     -- not picked as an arbitrary radius. (v32; was `outer_shell_index`.)
-    outer_ring_index            INT NOT NULL
+    outer_ring_index            INT NOT NULL,
+
+    -- v43: the luminosity threshold (L_sun) and seed the bright-star
+    -- scatter used (`bright_stars`); NULL when none has run. A fill reads
+    -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
+    bright_star_min_luminosity_sol  DOUBLE,
+    bright_star_seed                BIGINT UNSIGNED
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per layer that holds content (v33; replaces v32's
@@ -2209,13 +2222,6 @@ CREATE TABLE IF NOT EXISTS sector_name_registry (
         FOREIGN KEY (first_sector_id) REFERENCES sectors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- TODO(facilities #35): add facilities (starbases, colonies, outposts):
--- terrestrial, orbital and stand-alone (parked in space). One facilities
--- table with kind, name and exactly one host (planet, moon, asteroid belt,
--- asteroid field, star system orbit, or a free position), plus orbit
--- columns (distance_km, period_years, orbital_speed_kms, phase) for orbital
--- ones. Moons can host terrestrial and orbital facilities too. See
--- docs/TODO.md item 35 for the placement rules.
 CREATE TABLE IF NOT EXISTS system_name_registry (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     base_name              VARCHAR(255) NOT NULL,
@@ -2270,6 +2276,113 @@ CREATE TABLE IF NOT EXISTS nearest_systems (
     CONSTRAINT fk_nearest_systems_neighbor
         FOREIGN KEY (neighbor_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- facilities (v42): starbases, colonies and outposts. Exactly one host,
+-- named by `host_type`: a star (`star_system_id`, plus `star_id` unless
+-- it's a close pair's shared orbit), a planet, a moon, an asteroid belt,
+-- an asteroid field, or open space (`sector_id` plus a galaxy-frame
+-- center, like a phenomenon). `star_system_id` is set for every host in a
+-- system so a system's facilities list in one lookup. `placement` is
+-- terrestrial, orbital, asteroid or standalone, and
+-- `program_constants.FACILITY_RULES` says which kinds may go where
+-- (`facilities.check_facility`). An orbital facility's circular orbit
+-- (`orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`,
+-- `orbit_phase_deg`) comes from its host's mass the way a moon's does.
+-- Every host foreign key cascades, so a deleted host takes its
+-- facilities along. "Exactly one host" is checked by `_db.add_facility`,
+-- not a CHECK: MySQL refuses a CHECK on a column with a cascading
+-- foreign key.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS facilities (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name                 VARCHAR(255) NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    placement            VARCHAR(16) NOT NULL,
+    host_type            VARCHAR(16) NOT NULL,
+    star_system_id       BIGINT UNSIGNED,
+    star_id              BIGINT UNSIGNED,
+    planet_id            BIGINT UNSIGNED,
+    moon_id              BIGINT UNSIGNED,
+    asteroid_belt_id     BIGINT UNSIGNED,
+    asteroid_field_id    BIGINT UNSIGNED,
+    sector_id            BIGINT UNSIGNED,
+    center_x_pc          DOUBLE,
+    center_y_pc          DOUBLE,
+    center_z_pc          DOUBLE,
+    galactic_radius_pc   DOUBLE,
+    orbit_distance_km    DOUBLE,
+    orbit_period_years   DOUBLE,
+    orbital_speed_kms    DOUBLE,
+    orbit_phase_deg      DOUBLE,
+    description          TEXT,
+
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+
+    KEY idx_facilities_star_system (star_system_id),
+    KEY idx_facilities_sector (sector_id),
+    KEY idx_facilities_name (name),
+    CONSTRAINT chk_facilities_kind CHECK (kind IN ('colony', 'outpost', 'mining-colony', 'station', 'starbase')),
+    CONSTRAINT chk_facilities_placement CHECK (placement IN ('terrestrial', 'orbital', 'asteroid', 'standalone')),
+    CONSTRAINT fk_facilities_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_star
+        FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_asteroid_belt
+        FOREIGN KEY (asteroid_belt_id) REFERENCES asteroid_belts(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_asteroid_field
+        FOREIGN KEY (asteroid_field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
+    CONSTRAINT fk_facilities_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- bright_stars (v43): every star at least
+-- `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
+-- placed galaxy-wide by `generate.py plan`'s scatter step before any
+-- sector is filled. Each row is a finished star (no planets or companion
+-- yet, and no name: it's named when its system is made) at a galaxy-frame
+-- position (milliparsecs) inside its sector's cell. Filling that sector
+-- builds a full system around it and sets `star_system_id`; the row is
+-- kept as the Galaxy Map's index of bright stars. A plan re-run or reset
+-- empties the table. See
+-- /mnt/project-files/galaxy-studies/bright-star-preplacement-plan.md.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS bright_stars (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ring_index           INT NOT NULL,
+    layer_index          SMALLINT NOT NULL,
+    ring_slot_index      INT NOT NULL,
+    position_x_mpc       BIGINT NOT NULL,
+    position_y_mpc       BIGINT NOT NULL,
+    position_z_mpc       BIGINT NOT NULL,
+    population           VARCHAR(12) NOT NULL,
+    star_type            VARCHAR(64) NOT NULL,
+    yerkes_class         VARCHAR(16) NOT NULL,
+    mass_kg              DOUBLE NOT NULL,
+    radius_km            DOUBLE NOT NULL,
+    temperature_k        DOUBLE NOT NULL,
+    luminosity_w         DOUBLE NOT NULL,
+    age_gy               DOUBLE NOT NULL,
+    lifespan_gy          DOUBLE,
+    initial_mass_sol     DOUBLE NOT NULL,
+    phase_end_age_gy     DOUBLE,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    star_system_id       BIGINT UNSIGNED,
+    created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    KEY idx_bright_stars_address (ring_index, layer_index, ring_slot_index),
+    KEY idx_bright_stars_luminosity (luminosity_w),
+    CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
+    CONSTRAINT fk_bright_stars_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 
 
 -- ---------------------------------------------------------------------

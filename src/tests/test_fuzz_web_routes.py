@@ -428,7 +428,7 @@ def real_values(rule, seed):
         values[name] = {
             "sector_id": seed["sector_id"], "system_id": seed["system_ids"][0], "phenomenon_type": "nebula",
             "phenomenon_id": seed["nebula_id"], "filename": "style.css", "key_id": 1,
-            "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1,
+            "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1, "facility_id": 1,
         }.get(name, "x")
     return values
 
