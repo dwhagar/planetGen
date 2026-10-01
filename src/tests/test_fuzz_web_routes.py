@@ -629,6 +629,12 @@ def test_int_path_params_accept_digit_aliases(app, fuzz_db, rule, alias):
     path = build_path(rule, values)
     response = app.test_client().get(path)
     check_response(response, path)
+    if rule.rule.endswith("/galaxy"):
+        # "Show on Galaxy Map" (`/sector/<id>/galaxy`, `/system/<id>/galaxy`)
+        # always answers a 302 to the Galaxy Map.
+        assert response.status_code == 302, f"{path} -> {response.status_code}"
+        assert urlsplit(response.headers["Location"]).path.endswith("/galaxy"), response.headers["Location"]
+        return
     # 400: /near without its required radius.
     assert response.status_code in (200, 400, 404), f"{path} -> {response.status_code}"
 
