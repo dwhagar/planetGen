@@ -272,19 +272,6 @@ MAP.30) shipped in PR #234.
   10^(1/3)) or mass <= planet mass / 10. Done: 1,000 generated systems
   pass `check_star_system` with no moon-size problems.
 
-- [ ] **GEN.26 Rogue planet surface conditions**
-  Boss (2026-10-01): "I also want to calculate surface conditions,
-  knowing they will be extremely cold with no star to warm the
-  surface", with his pasted research: an energy balance with internal
-  heat flux plus the cosmic microwave background, radiogenic and
-  primordial heat, and three outcomes (frozen atmosphere, hydrogen
-  envelope, ocean under an ice lid), with adiabats for gas giants.
-  Being built by the GEN.8 thread as schema v48. `has_internal_heat`
-  stops being a 40% roll (`ROGUE_PLANET_INTERNAL_HEAT_CHANCE` goes): it
-  is computed, true when heat flow is at least 0.04 W/m2 and always for
-  giants. Its design document (`docs/design/rogue-planet-surface.md`)
-  arrives with its PR.
-
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
   appears in the habitable zone and adjust so that it fits there." P is

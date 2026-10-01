@@ -1,5 +1,108 @@
 # Changelog
 
+## [7.109.254] - 2026-10-01
+
+### Added
+
+- Rogue planets have surface conditions (GEN.26). With no star, a rogue's only heat
+  is its own: radioactive decay and leftover formation heat in a rocky
+  rogue, slow cooling in a giant or brown dwarf. From that the generator
+  works out its age, heat flow, effective temperature and surface: bare
+  frozen rock, a frozen-out atmosphere, an ice shell over a liquid ocean,
+  ice to the rock, a thick hydrogen envelope warming the ground (with an
+  ocean beneath when it is warm enough), or, for a giant, the temperature
+  at 1 bar. The rogue's page and description show it all; "Internal Heat"
+  is now "Geologically Active", computed rather than rolled. The model and
+  its defaults are in `docs/design/rogue-planet-surface.md`. Schema v48
+  adds the columns and fills them for stored rogue planets, so run
+  `update.sh` (or `migrateDb.py`).
+
+## [7.108.254] - 2026-10-01
+
+### Added
+- **Change a planet's or moon's class, or a system's star (ADM.6,
+  ADM.7).** On the system page's Edit panel an admin can pick a new class
+  for any planet or moon: the menu lists the classes that fit where it
+  is without moving any other planet first, and every other class under
+  "Force", which is kept even where it couldn't form. A single-star
+  system can have its star replaced by any spectral type: planets,
+  moons and belts keep their classes and their orbits scale with the new
+  star's light, and the page lists anything that had to move or that no
+  longer had a stable orbit and was removed. New API routes: `GET
+  /api/systems/<id>/class-options`, `POST /api/planets/<id>/class`,
+  `POST /api/moons/<id>/class` and `POST /api/systems/<id>/star`.
+
+## [7.107.254] - 2026-10-01
+
+### Changed
+
+- The bright-star scatter's progress bar and its time left now count each layer's expected stars (a quick sample of the density model before the scatter starts, plus a little for every ring walked) rather than layers, and move as layers in progress report their stars, so the thin layers at the edges of the disk no longer throw the estimate off (PERF.9). It shows a share done, "Bright stars (12 of 1,271 layers) 34%".
+- While layers take longer than 30 seconds each, a second bar under it shows the stars of the layers being drawn, done of their estimate, with its own time left; it goes once layers finish faster than one every 20 seconds (PERF.4). The Generate page shows both, and each layer's time goes into the speed stats as a "scatter" task.
+
+## [7.106.254] - 2026-10-01
+
+### Added
+- **Delete and Regenerate buttons on sectors, systems, planets, moons,
+  asteroid belts and phenomena (ADM.8).** An admin sees an Edit panel on
+  the sector, system and phenomenon pages; each button asks for
+  confirmation first. Regenerating rolls the object again in the same
+  place and keeps its name; after a body changes, the rest of the system
+  is re-checked and re-spaced until it is stable, and the page says what
+  moved and anything still unstable. Deleting a sector removes everything
+  in it and leaves its place in the galaxy free to generate again. New
+  API routes: `DELETE`/`POST .../regenerate` on `/api/planets`,
+  `/api/moons`, `/api/belts` and `/api/phenomena/<type>`, plus
+  `DELETE /api/sectors/<id>/contents` and `POST /api/sectors/<id>/regenerate`.
+
+## [7.105.254] - 2026-10-01
+
+### Added
+
+- Every bulk generation now shows its size and time before it writes
+  anything, and refuses one the database disk can't hold (PERF.3).
+  `generate.py galaxy` (every mode) and `generate.py sector
+  --num-sectors` print the expected sectors, star systems, database
+  growth (+10%) and time, and on a terminal ask `Generate these N
+  sectors? [y/N]` (`--yes` skips it). A run that would take more than a
+  quarter of the database disk, or leave under 5 GB free, is refused
+  with what it needs. `--estimate-only` prints the estimate and stops.
+  The Generate page, the Galaxy Map's and Sector Map's Generate buttons,
+  and a sector page's "Generate more sectors around this one" show the
+  estimate and ask before starting.
+- The server records how fast it generates, per star density (PERF.10):
+  every filled sector adds its time to a log-scale density bucket (two
+  per decade from 0.01) as a decaying average, and each galaxy's bytes
+  per star system are measured after every run. The estimates use them;
+  the admin Stats page and `GET /api/admin/generation-stats` show them.
+  Control schema v6 (`generation_stats`, `generation_size`): run
+  `update.sh`.
+
+## [7.104.254] - 2026-10-01
+
+### Added
+
+- Bright stars can now be scattered in stages (PERF.5). `generate.py plan
+  --bright-stars-down-to 100` keeps every bright star already placed and
+  adds only those from 100 up to the galaxy's current star-fill level (500
+  by default), then lowers the level. The Generate page shows the level
+  and has a new "Add a dimmer layer of bright stars" panel. Sectors already
+  filled are left out, since their own systems already include stars that
+  bright. No database change.
+
+## [7.103.254] - 2026-10-01
+
+### Added
+
+- Rogue planets have a planet class (GEN.8). Each planet class now says
+  whether a rogue planet can have it (a new `"r"` zone flag in
+  `PLANET_CLASSES`): dead worlds (C), icy bodies (D), ice giants (I), gas
+  giants (J) and gas dwarfs (T). A rogue draws its class from those that fit
+  its type, radius and mass; a brown dwarf has none. The class shows on the
+  rogue's page (linked to the class page), in the sector's Contents and on
+  the Sector Map, and the class reference lists "Interstellar space" as a
+  zone. Schema v47 adds `rogue_planets.planet_class` and gives stored rogue
+  planets their class, so run `update.sh` (or `migrateDb.py`).
+
 ## [7.102.253] - 2026-10-01
 
 ### Added

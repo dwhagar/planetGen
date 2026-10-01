@@ -429,7 +429,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v49, PR #226) |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
-| GEN.26 | Rogue planet surface conditions | none | open |
+| GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
