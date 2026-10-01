@@ -105,6 +105,14 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="generated-only"' in html
 
 
+def test_panel_leaves_territories_out_when_there_are_none():
+    """No polities yet: no Territories button, no legend, no endpoint."""
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), territory_path=None)
+    assert 'data-action="territories"' not in html
+    assert 'id="galaxymap3d-territories"' not in html
+    assert _json_payload(html)["territoryPath"] is None
+
+
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
     html = render_galaxy_map3d_panel("mydb", {"outer_ring_index": 50}, EDGE_PC, view,
