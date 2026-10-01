@@ -59,6 +59,11 @@ class FakeData:
         self.tile_calls = []
         self.fail_tiles = None
         self.stage_calls = []
+        self.polity_total = 2
+
+    def get_polities(self, db, limit=None, offset=None):
+        self.dbs.add(db)
+        return {"items": [], "total": self.polity_total, "limit": limit, "offset": offset}
 
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
@@ -95,7 +100,7 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     data = FakeData()
-    for name in ("get_galaxy_sectors", "get_galaxy_shape", "auth_me"):
+    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
@@ -304,6 +309,27 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
         assert resp.status_code == 400
         assert "error" in resp.get_json()
     assert fake.stage_calls == []
+
+
+def test_galaxy_page_offers_territories_once_polities_exist(client, fake):
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert 'data-action="territories"' in html
+    assert _scene(html)["territoryPath"] == "/galaxy/territories"
+
+
+@pytest.mark.parametrize("failure", [None, apiclient.ApiError("down")])
+def test_galaxy_page_hides_territories_without_population(client, fake, monkeypatch, failure):
+    """No polities generated (or the count can't be read): no button."""
+    if failure is None:
+        fake.polity_total = 0
+    else:
+        def fail(db, limit=None, offset=None):
+            raise failure
+        monkeypatch.setattr(apiclient, "get_polities", fail)
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert 'data-action="territories"' not in html
+    assert 'id="galaxymap3d-territories"' not in html
+    assert _scene(html)["territoryPath"] is None
 
 
 # --- /galaxy/territories -----------------------------------------------------------------
