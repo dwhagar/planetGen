@@ -16,9 +16,13 @@ python3 generate.py sector [options]      # one or more independent sectors
 python3 generate.py galaxy [options]      # many sectors placed as one galaxy
 python3 generate.py plan [options]        # the galaxy's density skeleton
 python3 generate.py phenomenon [options]  # one exotic stellar phenomenon
+python3 generate.py population [options]  # species, civilizations and territories
+python3 generate.py check-math [-v]       # the math check bulk runs start with
 ```
 
-Run `python3 generate.py <command> --help` for that command's own full option list. Every subcommand saves what it generates to the database.
+Run `python3 generate.py <command> --help` for that command's own full option list. Every subcommand except `check-math` saves what it generates to the database.
+
+**The math check comes first.** `check-math` runs `stellarObjects/mathCheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. One system, one sector or one phenomenon is not gated. `update.sh` and `update.ps1` run it after updating and warn (and skip the population pass) if it fails.
 
 To generate a new star system:
 
