@@ -23,11 +23,11 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from stellarObjects import _db, adminAuth, program_constants  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
-from web import csrf  # noqa: E402
+from web import csrf, generate_page, jobs  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 from web.nav_page import endpoint, nav_url  # noqa: E402
 
@@ -357,18 +357,34 @@ def test_a_refused_neighborhood_has_no_generate_button(app, client, fake):
     assert ("generate", 5) not in fake.calls
 
 
-def test_generate_neighborhood_posts_then_redirects_to_get(app, client, fake):
+def test_generate_neighborhood_starts_a_job_then_redirects_to_get(app, client, fake, monkeypatch, tmp_path):
+    """ADM.11: the confirmed run is a Generate page job (detached from the
+    request), not a request that only ends when the generation does."""
+    monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
+    started = []
+    real_start = jobs.start_job
+    monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, steps, kw))
+                        or real_start(kind, title, steps, spawn=False, **kw))
     _log_in(client, fake)
     token = _csrf(app, client)
     resp = client.post("/sector/5?contents_page=2",
                        data={"action": "generate_neighborhood", "estimate_ok": "1", csrf.FIELD_NAME: token})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/sector/5"
-    assert ("generate", 5) in fake.calls
+    assert ("generate", 5) not in fake.calls
+    kind, steps, kw = started[0]
+    assert kind == "galaxy" and kw["database"] == DB
+    assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
+    assert steps[-1]["argv"][-5:] == ["galaxy", "--center-sector", "5", "--radius-pc",
+                                      str(program_constants.DEFAULT_GENERATE_RADIUS_PC)]
     html = client.get("/sector/5").get_data(as_text=True)
-    assert "Generated 4 new sector(s) (2 already existed, 6 candidate slot(s) within radius)." in html
+    assert "keeps running if you close this page" in html
     # The message is shown once.
-    assert "Generated 4 new sector(s)" not in client.get("/sector/5").get_data(as_text=True)
+    assert "keeps running if you close" not in client.get("/sector/5").get_data(as_text=True)
+    # A second one while it runs is refused on the page.
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", "estimate_ok": "1",
+                                          csrf.FIELD_NAME: _csrf(app, client)})
+    assert resp.status_code == 200 and "is still running" in resp.get_data(as_text=True)
 
 
 def test_wiki_upload_posts_then_redirects_to_get(app, client, fake):
