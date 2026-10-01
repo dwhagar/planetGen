@@ -29,7 +29,10 @@
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see
-#      migrate_or_reset_db in scripts/deploy-common.sh.
+#      migrate_or_reset_db in scripts/deploy-common.sh. Then it offers
+#      (y/N, 30 seconds, default N; skipped with no terminal) to run the
+#      population pass, `generate.py population`; POPULATION=1 runs it
+#      without asking (offer_population_pass in scripts/deploy-common.sh).
 #   5. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
@@ -48,6 +51,7 @@
 # Usage:
 #   sudo ./update.sh
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (a Python other than python3)
+#   sudo POPULATION=1 ./update.sh                 (also run the population pass)
 #
 # Forces the checkout to match origin's branch tip even if there are
 # uncommitted local changes to tracked files (a `git reset --hard` after
@@ -141,6 +145,7 @@ ensure_nltk_words "$NLTK_DATA_DIR"
 echo
 echo "== 4/8: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
+offer_population_pass
 
 echo
 echo "== 5/8: Checking Apache's modules (macOS: the gunicorn daemon) =="

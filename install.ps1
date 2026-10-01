@@ -20,7 +20,9 @@
          the database settings), then src\migrateDb.py with the same
          migrate-or-delete question as install.sh (y/N, 30 seconds,
          default N) and its progress bar. Skipped, with a note, while
-         mysql.password is still the example's CHANGE-ME.
+         mysql.password is still the example's CHANGE-ME. Then it offers
+         (y/N, 30 seconds, default N; skipped with no console) to run the
+         population pass, generate.py population.
       4. The tile cache, jobs and log folders (<DataDir>\tiles, jobs, logs
          by default, or wherever config.json points).
       5. Permissions with icacls, as set-permissions.sh does on Linux: the
@@ -50,13 +52,19 @@
 .PARAMETER SkipDatabase
     Leaves out the database step, for a host whose database isn't set up
     yet (and for CI). Run update.ps1 once it is.
+
+.PARAMETER Population
+    Runs the population pass (generate.py population: species,
+    civilizations, territories) after the database step without asking.
+    Off by default.
 #>
 [CmdletBinding()]
 param(
     [string]$VenvDir = "C:\srv\planetgen-venv",
     [string]$DataDir = (Join-Path $env:ProgramData "planetgen"),
     [string]$ServiceAccount = "NT SERVICE\planetgen",
-    [switch]$SkipDatabase
+    [switch]$SkipDatabase,
+    [switch]$Population
 )
 
 $ErrorActionPreference = "Stop"
@@ -80,6 +88,7 @@ if ($SkipDatabase) {
     Write-Host "  $(Join-Path $Root 'config.json'), then run update.ps1."
 } else {
     Invoke-MigrateOrReset
+    Invoke-OptionalPopulation -Run:$Population
 }
 
 Write-Step "4/6: Creating the tile cache, jobs and log folders"

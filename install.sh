@@ -35,7 +35,10 @@
 #      covers, nothing later attempts a download of its own. See
 #      `docs/TODO.md`'s "Deployment bugs found in production" section for the
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
-#      this fixes.
+#      this fixes. Then, unless --skip-database, it offers (y/N, 30
+#      seconds, default N; skipped with no terminal) to run the
+#      population pass, `generate.py population`; POPULATION=1 runs it
+#      without asking (offer_population_pass in scripts/deploy-common.sh).
 #   4. Makes the repo's shell scripts (and `src/html/`'s Python files) executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see
 #      `docs/TODO.md` -- a `core.fileMode=false` git config on the authoring
@@ -65,6 +68,7 @@
 #
 # Usage:
 #   sudo ./install.sh [--skip-database]
+#   sudo POPULATION=1 ./install.sh   (also run the population pass)
 #
 # --skip-database leaves out step 2, for a host whose database isn't set
 # up yet (and for CI); run `sudo ./update.sh` once it is.
@@ -125,6 +129,11 @@ echo
 echo "== 3/8: Fetching the NLTK 'words' corpus into $NLTK_DATA_DIR =="
 # Skipped when it's already there (scripts/deploy-common.sh).
 ensure_nltk_words "$NLTK_DATA_DIR"
+
+if (( ! SKIP_DATABASE )); then
+    # After the corpus: the population pass names species with it.
+    offer_population_pass
+fi
 
 echo
 echo "== 4/8: Making the web app's Python files and the shell scripts executable =="

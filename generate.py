@@ -56,8 +56,8 @@ sections build on earlier ones):
    its own sparse, science-based population of the same seven types.
 6. Population and politics (`population`) -- species, civilizations
    and territories from what is already stored
-   (`stellarObjects/population.py`); also run after every `sector` and
-   `galaxy` run unless `--no-population`.
+   (`stellarObjects/population.py`); also run after a `sector` or
+   `galaxy` run given `--population`.
 7. The unified CLI itself (argument parsing/validation, dispatch,
    `main`).
 """
@@ -691,10 +691,10 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
-    parser.add_argument('--no-population', action='store_true',
-                        help="Skip the population pass (species, civilizations, territories) that "
-                             "otherwise runs after the sectors are saved; 'generate.py population' "
-                             "runs it later.")
+    parser.add_argument('--population', action='store_true',
+                        help="Also run the population pass (species, civilizations, territories) "
+                             "after the sectors are saved. Off by default; 'generate.py population' "
+                             "runs it any time.")
 
     add_logging_arguments(parser)
 
@@ -3002,9 +3002,9 @@ def run_population(args):
 
 
 def run_population_after(args):
-    """The population pass after a `sector` or `galaxy` run, unless
-    `--no-population`."""
-    if getattr(args, "no_population", False):
+    """The population pass after a `sector` or `galaxy` run, only with
+    `--population` (off by default, Boss 2026-10-01)."""
+    if not getattr(args, "population", False):
         return
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
