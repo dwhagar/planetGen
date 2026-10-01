@@ -1168,6 +1168,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sectors at any worker count. Open question for Boss: should a seed
   reproduce a galaxy?
 
+- [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
+  Boss (2026-10-01 22:22Z): "see if we can cut down the number of
+  sectors that need to be backfilled by taking the star density
+  calculation and using it to weed out sectors from the star
+  scattering. Might manage probability of getting a region through
+  eliminating x number of sectors from the region so that the region
+  probability matches what we're looking for. One pass would eliminate
+  sectors based on probability, then the back fill would literally have
+  less work to do. We would need to make sure that we don't over-filter
+  though because bright stars in odd places is really neat and
+  realistic." Today the GEN.30 backfill (`backfill_bright_stars_around`
+  in `generate.py`, `brightStars.backfill_cells`) works out the
+  densities and makes a Poisson draw for every unfilled sector of every
+  block in range, most of which get no star. Investigate first; the
+  subitems split the work.
+
+  - [ ] **GEN.41 Investigate: how much backfill work a density pre-pass would save**
+    Measure how many sectors the backfill visits per run and how many
+    end up with a star, by tier and by density, and work out how many a
+    pass that drops sectors by probability would skip. Done: numbers
+    written up for Boss, with a go or no-go for GEN.42.
+
+  - [ ] **GEN.42 A pass that drops sectors from a region by probability**
+    One pass over a region (a sector block, or a tier's shell) uses the
+    star density calculation (`galaxyDensity.population_densities`) to
+    eliminate some of its sectors, chosen so that the region's chance of
+    getting each bright star is still what the density says; the
+    backfill then draws only in the sectors left. Done: the pass runs
+    before the backfill, the backfill visits fewer sectors, and the same
+    seed still gives the same stars wherever it lands (see GEN.39).
+
+  - [ ] **GEN.43 Don't over-filter: keep bright stars in odd places**
+    The pass in GEN.42 must not strip the rare bright star from
+    low-density places (between the arms, the halo, far out in the
+    disk), which Boss calls "really neat and realistic". Done: no
+    sector's chance drops to zero just for being low density, and a
+    test over many seeds checks that the number and spread of bright
+    stars, including in low-density regions, match the backfill without
+    the pass.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
