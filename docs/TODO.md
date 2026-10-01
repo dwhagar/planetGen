@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, SEC, DOC and POP have no open items today.
+NAV, DB, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -208,8 +208,33 @@ with `clamp()`.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
-MAP.30) shipped in PR #234.
+MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
+
+- [ ] **MAP.52 Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug)**
+  Boss (2026-10-01 19:35Z): "galaxy map still doesn't highlight
+  correctly. highlights should be tween valid beginning and end points,
+  adjust the quadrant philosophy to selecting a wedge of the galaxy in
+  40 degree arcs and not set, the cursor point will be the center of
+  the arc, so it will always be +/- 20 degrees from the cursor's
+  merdidian snapped to the available meridians from the center that go
+  from the center to the edge." Today the first pick on the Galaxy Map
+  is a fixed quarter of the disk (`galaxystages.js`, `kind:
+  "quadrant"`, four arcs, MAP.19), later picks are fixed regions, and
+  the hover highlight (`galaxystageview.js`) can start or end where no
+  wedge line is. Done: the first pick is a 40-degree wedge centered on
+  the cursor's angle from the galaxy's center, running from the center
+  to the edge, its two sides snapped to the nearest meridians (the
+  wedge lines that run from the center to the edge, MAP.42 to MAP.44);
+  the highlight always starts and ends on such valid lines and follows
+  the cursor as it moves; clicking zooms to that wedge (the wedge zoom
+  of PR #243) with no gaps between blocks (PR #224); the URL and the
+  breadcrumb label name the wedge by its angles rather than "Quarter
+  n". Open questions: how snapping works where meridians stop short of
+  the core (the inner rings have fewer slots), and whether a snapped
+  wedge may come out wider or narrower than 40 degrees (round to the
+  nearest meridian, or always the next one out so it is never
+  narrower)? Do the later picks (regions inside the wedge) follow the
+  same cursor-centered rule?
 
 ## GEN: Generation and physics
 
