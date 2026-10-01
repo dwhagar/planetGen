@@ -2,9 +2,10 @@
 
 """
 Admin editing endpoints (TODO ADM.1): delete and regenerate one planet,
-moon, asteroid belt, phenomenon or sector (ADM.8). Every route needs an
-admin whose credentials are current, writes an audit-log row, and answers
-with what the edit did.
+moon, asteroid belt, phenomenon or sector (ADM.8), change a planet's or
+moon's class (ADM.6) and change a single-star system's star (ADM.7).
+Every write needs an admin whose credentials are current, writes an
+audit-log row, and answers with what the edit did.
 
 A body edit loads its system (`_db.load_star_system`), changes it with
 `stellarObjects.adminEdits`, re-validates it from the moons outward
@@ -21,7 +22,7 @@ import random
 from flask import Blueprint, jsonify, request
 
 import generate
-from stellarObjects import _db, adminEdits, editStore
+from stellarObjects import _db, adminEdits, editStore, program_constants, validation
 from stellarObjects.config import SystemConfig
 
 from .authz import audit, require_admin
@@ -35,16 +36,22 @@ _BODY_TABLES = {"planet": "planets", "moon": "moons", "belt": "asteroid_belts"}
 _FACILITY_COLUMNS = {"planet": "planet_id", "moon": "moon_id", "belt": "asteroid_belt_id"}
 
 
-def _options():
-    """The optional JSON body: `{"drop_facilities": bool}`."""
+def _json_object(allowed):
+    """The optional JSON body, checked for unknown fields."""
     body = request.get_json(silent=True)
     if body is None:
         body = {}
     if not isinstance(body, dict):
         raise ApiError("request body must be a JSON object")
-    unknown = set(body) - {"drop_facilities"}
+    unknown = set(body) - set(allowed)
     if unknown:
         raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
+    return body
+
+
+def _options():
+    """The optional JSON body: `{"drop_facilities": bool}`."""
+    body = _json_object({"drop_facilities"})
     drop = body.get("drop_facilities", False)
     if not isinstance(drop, bool):
         raise ApiError("'drop_facilities' must be a boolean")
@@ -129,6 +136,151 @@ def _body_routes(kind, plural):
 _body_routes("planet", "planets")
 _body_routes("moon", "moons")
 _body_routes("belt", "belts")
+
+
+# ---------------------------------------------------------------------
+# ADM.6 and ADM.7: a body's class, a system's star
+# ---------------------------------------------------------------------
+
+def _load_system_of(conn, kind, body_id):
+    row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?", (body_id,)).fetchone()
+    if row is None:
+        raise ApiError(f"no such {kind}: {body_id}", status_code=404)
+    return row["star_system_id"], _db.load_star_system(conn, row["star_system_id"])
+
+
+@bp.route("/systems/<int:system_id>/class-options")
+@require_admin()
+def system_class_options(system_id):
+    """`GET /api/systems/<id>/class-options` -- for each planet and moon
+    (`"planet:<id>"`, `"moon:<id>"`), the classes it could take without
+    moving anything (`recommended`, most common first), plus every class
+    code (`all`) for a forced change."""
+    conn = _write_conn()
+    try:
+        try:
+            system = _db.load_star_system(conn, system_id)
+        except ValueError:
+            raise ApiError(f"no such system: {system_id}", status_code=404)
+        options = adminEdits.class_options(system)
+    finally:
+        conn.close()
+    return jsonify({"recommended": options, "all": sorted(program_constants.PLANET_CLASSES)})
+
+
+def _change_class(kind, body_id):
+    body = _json_object({"class", "force"})
+    planet_class = body.get("class")
+    force = body.get("force", False)
+    if not isinstance(planet_class, str) or planet_class not in program_constants.PLANET_CLASSES:
+        raise ApiError(f"'class' must be one of {', '.join(sorted(program_constants.PLANET_CLASSES))}")
+    if not isinstance(force, bool):
+        raise ApiError("'force' must be a boolean")
+    conn = _write_conn()
+    try:
+        with conn:
+            system_id, system = _load_system_of(conn, kind, body_id)
+            target, owner = adminEdits.find_body(system, kind, body_id)
+            try:
+                result = adminEdits.change_class(system, target, owner, planet_class, force=force)
+            except ValueError as exc:
+                raise ApiError(str(exc), status_code=409)
+            editStore.save_system_edits(conn, system_id, system)
+    finally:
+        conn.close()
+    audit(f"{kind}.class", target=f"{kind}:{body_id}", detail=f"{planet_class} force={force}: {result.summary}")
+    return _result_json(result, star_system_id=system_id)
+
+
+@bp.route("/planets/<int:body_id>/class", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def change_planet_class(body_id):
+    """`POST /api/planets/<id>/class` `{"class": "M", "force": false}` --
+    changes a planet's class (ADM.6). Without `force` only a recommended
+    class is accepted (409 otherwise); with it any class. The rest of the
+    system is re-spaced to fit, never trimmed; what still doesn't validate
+    comes back in `warnings`, and the change is saved either way."""
+    return _change_class("planet", body_id)
+
+
+@bp.route("/moons/<int:body_id>/class", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def change_moon_class(body_id):
+    """`POST /api/moons/<id>/class` -- as for a planet, for a moon."""
+    return _change_class("moon", body_id)
+
+
+def _removed_rows(system_before_ids, system):
+    """The planet, moon and belt rows an edit dropped:
+    `[(facility column, row id)]`."""
+    kept = set()
+    for _star, planets in validation.star_lists(system):
+        for body in planets:
+            kind = "belt" if body.body_type == 'a' else "planet"
+            kept.add((kind, getattr(body, "db_id", None)))
+            for moon in getattr(body, "moons", ()):
+                kept.add(("moon", getattr(moon, "db_id", None)))
+    return [(_FACILITY_COLUMNS[kind], row_id) for kind, row_id in system_before_ids if (kind, row_id) not in kept]
+
+
+def _body_ids(system):
+    ids = []
+    for _star, planets in validation.star_lists(system):
+        for body in planets:
+            ids.append(("belt" if body.body_type == 'a' else "planet", body.db_id))
+            for moon in getattr(body, "moons", ()):
+                ids.append(("moon", moon.db_id))
+    return ids
+
+
+@bp.route("/systems/<int:system_id>/star", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def change_system_star(system_id):
+    """`POST /api/systems/<id>/star` `{"star_type": "K2V"}` -- replaces a
+    single-star system's star with a new one of that type (ADM.7). Every
+    planet, moon and belt keeps its class; orbits scale with the new
+    star's light and are re-spaced, and bodies past its farthest stable
+    orbit (or moons a planet moved inward can no longer hold) are removed
+    and listed in `removed`. 409 for a binary, a black hole or neutron
+    star, a system built around a pre-placed bright star, or when removed
+    bodies host facilities and `"drop_facilities": true` isn't sent."""
+    body = _json_object({"star_type", "drop_facilities"})
+    star_type = body.get("star_type")
+    drop_facilities = body.get("drop_facilities", False)
+    if not isinstance(star_type, str):
+        raise ApiError("'star_type' must be a spectral type such as \"K2V\"")
+    if not isinstance(drop_facilities, bool):
+        raise ApiError("'drop_facilities' must be a boolean")
+    conn = _write_conn()
+    try:
+        with conn:
+            try:
+                system = _db.load_star_system(conn, system_id)
+            except ValueError:
+                raise ApiError(f"no such system: {system_id}", status_code=404)
+            if _db.system_content_blockers(conn, system_id)["bright_star"]:
+                raise ApiError("this system is built around a pre-placed bright star, so its star can't be changed",
+                               status_code=409)
+            before = _body_ids(system)
+            try:
+                result, new_star = adminEdits.change_star(system, star_type)
+            except ValueError as exc:
+                raise ApiError(str(exc), status_code=409 if "single star" in str(exc) or "black hole" in str(exc)
+                               else 400)
+            lost = sum(conn.execute(f"SELECT COUNT(*) AS n FROM facilities WHERE {column} = ?",
+                                    (row_id,)).fetchone()["n"]
+                       for column, row_id in _removed_rows(before, system))
+            if lost and not drop_facilities:
+                raise ApiError(f"this would delete {lost} facilit{'y' if lost == 1 else 'ies'} on the bodies "
+                               "with no room left; send \"drop_facilities\": true to go ahead", status_code=409)
+            editStore.save_system_edits(conn, system_id, system, stars=[new_star])
+    finally:
+        conn.close()
+    audit("system.star", target=f"system:{system_id}", detail=f"{star_type}: {result.summary}")
+    return _result_json(result, star_system_id=system_id, star_type=new_star.type.split()[0])
 
 
 # ---------------------------------------------------------------------

@@ -1,7 +1,7 @@
 """
 Admin editing (TODO ADM.1): the delete and regenerate endpoints for one
-planet, moon, asteroid belt, phenomenon or sector (ADM.8,
-`src/html/api/edits.py`), the in-place writer behind them
+planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
+(ADM.6) and star (ADM.7) changes (`src/html/api/edits.py`), the in-place writer behind them
 (`stellarObjects/editStore.py`) and the object edits
 (`stellarObjects/adminEdits.py`), against a real throwaway database.
 """
@@ -9,7 +9,7 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth, adminEdits, editStore, validation
+from stellarObjects import _db, adminAuth, adminEdits, editStore, program_constants, validation
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.spaceSector import SpaceSector
@@ -354,3 +354,122 @@ def test_phenomenon_page_regenerates_and_deletes(web_app, mysql_config):
     assert "Regenerated Test Veil." in client.get(response.headers["Location"]).get_data(as_text=True)
     response = _edit(web_app, client, url, "delete", f"nebula:{nebula_id}")
     assert response.headers["Location"].endswith("/phenomena")
+
+
+# ---------------------------------------------------------------------
+# ADM.6: class changes; ADM.7: star changes
+# ---------------------------------------------------------------------
+
+def _first_planet(system):
+    return next(p for p in system.planets if p.body_type != 'a')
+
+
+def _with_planet(system):
+    return any(p.body_type != 'a' for p in system.planets)
+
+
+def test_class_options_lists_recommended_classes(admin, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
+    system = _load(mysql_config, system_id)
+    response = admin.get(f"/api/systems/{system_id}/class-options")
+    assert response.status_code == 200
+    body = response.get_json()
+    planet = _first_planet(system)
+    recommended = body["recommended"][f"planet:{planet.db_id}"]
+    assert planet.planet_class not in recommended
+    assert set(recommended) <= set(body["all"])
+
+
+def test_recommended_class_change_saves_and_validates(admin, mysql_config):
+    def has_option(system):
+        return any(adminEdits.recommended_classes(system, p, system.planets)
+                   for p in system.planets if p.body_type != 'a')
+    _sector_id, system_id = _saved_system(mysql_config, has_option)
+    system = _load(mysql_config, system_id)
+    planet = next(p for p in system.planets
+                  if p.body_type != 'a' and adminEdits.recommended_classes(system, p, system.planets))
+    new_class = adminEdits.recommended_classes(system, planet, system.planets)[0]
+    response = admin.post(f"/api/planets/{planet.db_id}/class", json={"class": new_class})
+    assert response.status_code == 200, response.get_json()
+    row = _rows(mysql_config, "SELECT name, planet_class FROM planets WHERE id = ?", (planet.db_id,))[0]
+    assert row["planet_class"] == new_class
+    assert row["name"] == planet.name
+
+
+def test_unrecommended_class_needs_force(admin, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
+    system = _load(mysql_config, system_id)
+    planet = _first_planet(system)
+    recommended = adminEdits.recommended_classes(system, planet, system.planets)
+    other = next(c for c in sorted(program_constants.PLANET_CLASSES)
+                 if c not in recommended and c != planet.planet_class)
+    assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other}).status_code == 409
+    assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": "?"}).status_code == 400
+    response = admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other, "force": True})
+    assert response.status_code == 200, response.get_json()
+    assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
+                 (planet.db_id,))[0]["planet_class"] == other
+
+
+def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
+    before = _load(mysql_config, system_id)
+    response = admin.post(f"/api/systems/{system_id}/star", json={"star_type": "K2V", "drop_facilities": True})
+    assert response.status_code == 200, response.get_json()
+    body = response.get_json()
+    assert body["star_type"] == "K2V"
+    after = _load(mysql_config, system_id)
+    assert after.star.type.split()[0] == "K2V"
+    assert after.star.name == before.star.name
+    kept = {p.db_id: p.planet_class for p in after.planets if p.body_type != 'a'}
+    for planet in before.planets:
+        if planet.body_type != 'a' and planet.db_id in kept:
+            assert kept[planet.db_id] == planet.planet_class
+    assert not validation.check_star_system(after) or body["warnings"]
+
+
+def test_change_star_refuses_bad_types(admin, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config)
+    assert admin.post(f"/api/systems/{system_id}/star", json={"star_type": "G10V"}).status_code == 400
+    assert admin.post(f"/api/systems/{system_id}/star", json={"star": "G2V"}).status_code == 400
+    assert admin.post("/api/systems/999999/star", json={"star_type": "G2V"}).status_code == 404
+
+
+def test_change_star_refuses_a_binary(mysql_config):
+    for _ in range(200):
+        cfg = SystemConfig()
+        cfg.BINARY_SYSTEM = True
+        system = StarSystem(cfg)
+        if system.binary_type is not None:
+            break
+    else:
+        pytest.skip("no binary generated")
+    with pytest.raises(ValueError, match="single star"):
+        adminEdits.change_star(system, "K2V")
+
+
+def test_system_page_changes_a_class(web_app, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
+    planet = _first_planet(_load(mysql_config, system_id))
+    client = _web_admin(web_app, mysql_config)
+    html = client.get(f"/system/{system_id}").get_data(as_text=True)
+    assert "Change class" in html and "Change star" in html
+    other = "J" if planet.planet_class != "J" else "T"
+    response = _edit(web_app, client, f"/system/{system_id}", "class", f"planet:{planet.db_id}",
+                     planet_class=f"force:{other}")
+    assert response.status_code == 303
+    page = client.get(response.headers["Location"]).get_data(as_text=True)
+    assert f"to class {other}" in page
+    response = _edit(web_app, client, f"/system/{system_id}", "class", f"system:{system_id}", planet_class="J")
+    page = client.get(response.headers["Location"]).get_data(as_text=True)
+    assert "something on this page" in page
+
+
+def test_system_page_changes_the_star(web_app, mysql_config):
+    _sector_id, system_id = _saved_system(mysql_config)
+    client = _web_admin(web_app, mysql_config)
+    response = _edit(web_app, client, f"/system/{system_id}", "star", f"system:{system_id}", star_type="k2v",
+                     drop_facilities="1")
+    assert response.status_code == 303
+    client.get(response.headers["Location"])
+    assert _load(mysql_config, system_id).star.type.split()[0] == "K2V"

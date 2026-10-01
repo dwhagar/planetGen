@@ -241,6 +241,18 @@ sector regenerate to the new sector. Every page shows those flashed
 lines under its heading (`base.html`), read only when the request
 carries a Flask session cookie.
 
+**Change class and Change star (ADM.6, ADM.7).** In the same panel on
+the system page, every planet and moon also has a Change class button:
+its menu lists the recommended classes first (from `GET
+/api/systems/<id>/class-options`, ones that fit without moving
+anything) and every other class under "Force"; the form posts
+`edit_action=class` with `planet_class` (`M`, or `force:M`). A
+single-star system's own row has Change star, a spectral-type field
+(`edit_action=star`, `star_type`) with the same "also delete
+facilities" checkbox, since bodies the new star can't hold are removed.
+Both flash the outcome as above, including what moved and what was
+removed (see `docs/api.md`, "Changing a class or a star").
+
 **System page facilities.** The system page lists the system's
 facilities (starbases, colonies, outposts; `GET /api/systems/<id>/
 facilities`) in a Facilities panel (name, kind, host, placement, and an
@@ -445,7 +457,7 @@ src/html/web/
   views.py            /, /sectors, /systems, /search
   system_pages.py     /system/<id>, /phenomena, /phenomenon/<type>/<id>
   system_facilities.py  the system page's facility form
-  edit_actions.py     the admin Delete and Regenerate buttons (ADM.8)
+  edit_actions.py     the admin Delete, Regenerate, Change class and Change star forms (ADM.6-8)
   sector_page.py      /sector/<id>
   nav_page.py         /nav
   galaxy_views.py     /galaxy and its JSON routes
