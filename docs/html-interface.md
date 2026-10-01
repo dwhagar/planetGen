@@ -538,7 +538,9 @@ the visitor (a limited login shows "Too many login attempts" with a
   value is never sent with requests to the rest of the site) that the
   next `/admin` view reads and deletes, never in the URL. The one exception is a wrong password on
   `/login` or `/account`: nothing changed, so the form is shown again
-  directly with the error and the username typed.
+  directly with the error and the username typed (with status 401 on
+  `/login`, so the web server's access log shows the failed login; every
+  failure is also a line in the [activity log](config.md#the-activity-log)).
 - `GET /logout` never logs out: it shows a "Log out" button.
 - A visitor who isn't logged in is sent to `/login?next=<the page>`, and
   an admin still on the seeded first login (random password printed once

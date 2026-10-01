@@ -72,6 +72,11 @@ class AuthError(Exception):
     """
 
 
+class WrongPasswordError(AuthError):
+    """The `AuthError` for a wrong current password on a credential
+    change, so the caller can count it as a failed sign-in (SEC.20)."""
+
+
 def hash_password(password):
     """Returns a salted hash of `password` (`werkzeug.security.
     generate_password_hash`) -- never the plaintext, never a reversible
@@ -428,7 +433,7 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
     row = conn.execute("SELECT * FROM admin_users WHERE id = ?", (admin_user_id,)).fetchone()
     if row is None or not isinstance(current_password, str) \
             or not verify_password(current_password, row["password_hash"]):
-        raise AuthError("current password is incorrect")
+        raise WrongPasswordError("current password is incorrect")
 
     if new_username is not None and not isinstance(new_username, str):
         raise AuthError("username must be a string")
@@ -477,3 +482,69 @@ def record_audit(conn, admin_user_id, admin_username, action, target=None, detai
         (admin_user_id, admin_username, action, target, detail),
     )
     conn.commit()
+
+
+LOGIN_FAILURE_ACTIONS = ("login.failed", "login.locked", "password.failed")
+"""tuple: The `admin_audit_log` actions a refused sign-in writes (SEC.20):
+a wrong username or password, a locked login, and a wrong current
+password on a credential change."""
+
+LOGIN_FAILURE_RETENTION_DAYS = 90
+"""int: Failure rows older than this are deleted as new ones are written,
+so a flood of failed logins can't grow `admin_audit_log` without bound.
+Every other audit row is kept."""
+
+
+def record_login_failure(conn, action, username, ip=None, detail=None, admin_user_id=None):
+    """
+    Writes one `admin_audit_log` row for a refused sign-in (one of
+    `LOGIN_FAILURE_ACTIONS`) and prunes such rows past
+    `LOGIN_FAILURE_RETENTION_DAYS`. Never the password.
+
+    Args:
+        conn (Connection): Open control-schema connection.
+        action (str): One of `LOGIN_FAILURE_ACTIONS`.
+        username (str): The username as typed (cut to
+            `MAX_USERNAME_LENGTH`); it may not exist.
+        ip (str, optional): The client address, kept as the row's target
+            (`ip:<address>`).
+        detail (str, optional): Free-form extra context.
+        admin_user_id (int, optional): The admin, when known (a wrong
+            current password comes from a logged-in admin).
+    """
+    if action not in LOGIN_FAILURE_ACTIONS:
+        raise ValueError(f"not a login failure action: {action!r}")
+    name = (username or "")[:MAX_USERNAME_LENGTH] or "-"
+    conn.execute(
+        "INSERT INTO admin_audit_log (admin_user_id, admin_username, action, target, detail) VALUES (?, ?, ?, ?, ?)",
+        (admin_user_id, name, action, f"ip:{ip}" if ip else None, detail),
+    )
+    placeholders = ", ".join("?" for _ in LOGIN_FAILURE_ACTIONS)
+    conn.execute(
+        f"DELETE FROM admin_audit_log WHERE action IN ({placeholders}) "
+        f"AND created_at < DATE_SUB(CURRENT_TIMESTAMP, INTERVAL ? DAY)",
+        (*LOGIN_FAILURE_ACTIONS, LOGIN_FAILURE_RETENTION_DAYS),
+    )
+    conn.commit()
+
+
+def recent_login_failures(conn, limit=20):
+    """
+    The newest refused sign-ins (`LOGIN_FAILURE_ACTIONS` rows), newest
+    first, for the admin stats page.
+
+    Returns:
+        list[dict]: `{"action", "username", "ip", "created_at"}` rows.
+    """
+    placeholders = ", ".join("?" for _ in LOGIN_FAILURE_ACTIONS)
+    rows = conn.execute(
+        f"SELECT action, admin_username, target, created_at FROM admin_audit_log "
+        f"WHERE action IN ({placeholders}) ORDER BY created_at DESC, id DESC LIMIT ?",
+        (*LOGIN_FAILURE_ACTIONS, int(limit)),
+    ).fetchall()
+    return [{
+        "action": row["action"],
+        "username": row["admin_username"],
+        "ip": row["target"][3:] if row["target"] and row["target"].startswith("ip:") else None,
+        "created_at": row["created_at"],
+    } for row in rows]

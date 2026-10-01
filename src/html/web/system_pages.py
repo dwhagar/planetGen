@@ -33,6 +33,7 @@ from systempage import stars_html, system_list_html
 from tabledisplay import format_star_radius, to_plain_text
 
 from classref import ROGUE_MASS_CLASS_NAMES
+from stellarObjects import activitylog
 from stellarObjects.program_constants import NEBULA_CLASSES
 
 from . import bp
@@ -281,6 +282,7 @@ def _upload_to_wiki(system_id):
     fixed `?wiki=<outcome>` code, so a reload never re-posts.
     """
     if current_admin() is None:
+        activitylog.event("AUTHZ", "admin.required", path=request.path)
         abort(403)
     backend = request.form.get("backend", "")
     path = (request.form.get("path") or "").strip() or None

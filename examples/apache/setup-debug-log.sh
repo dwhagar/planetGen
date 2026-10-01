@@ -2,9 +2,10 @@
 #
 # examples/apache/setup-debug-log.sh
 #
-# Prepares planetGen's debug log (see src/stellarObjects/log.py) and its
-# log rotation. Safe to run again. Called by install.sh, and by update.sh
-# when there's nothing new to install.
+# Prepares planetGen's debug log (see src/stellarObjects/log.py), its
+# always-on activity log (src/stellarObjects/activitylog.py), and the
+# rotation for both. Safe to run again. Called by install.sh, and by
+# update.sh when there's nothing new to install.
 #
 #   1. When debug is on (config.json's "debug": true, or PLANETGEN_DEBUG in
 #      this shell), creates the log file -- "log_file" in config.json,
@@ -25,6 +26,16 @@
 #      On macOS, which has newsyslog instead of logrotate, installs
 #      /etc/newsyslog.d/planetgen.conf: rotated past 100 MB, 7 compressed
 #      copies kept (newsyslog runs hourly by itself).
+#   4. Creates the activity log's folder ("log_dir" in config.json, default
+#      /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS),
+#      owned by root and Apache's group, mode 2770 (the setgid bit keeps
+#      new files in that group), and the log file itself, mode 0660 owned
+#      by Apache's user and group: the same "Apache and its group write,
+#      nobody else reads" rule as the debug log. Installs its rotation:
+#      /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept) on
+#      Linux, /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB,
+#      30 kept) on macOS. While that file exists the program leaves
+#      rotation to the system (appconfig.log_rotation_mode).
 #
 # Runs on Linux and macOS. Windows has no rotation for it; install.ps1
 # only creates the logs folder.
@@ -70,9 +81,11 @@ appconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(appconfig)
 config = appconfig.load_config()
 print(1 if appconfig.debug_enabled(config) else 0, appconfig.log_file_path(config))
+print(appconfig.activity_log_path(config))
 PY
-read -r DEBUG_ON LOG_FILE < "$SETTINGS"
+{ read -r DEBUG_ON LOG_FILE; read -r ACTIVITY_LOG; } < "$SETTINGS"
 rm -f "$SETTINGS"
+ACTIVITY_DIR="$(dirname "$ACTIVITY_LOG")"
 
 # shellcheck source=examples/apache/apache-identity.sh
 source "$APACHE_DIR/apache-identity.sh"
@@ -93,9 +106,31 @@ elif [[ "$DEBUG_ON" != "1" ]]; then
     echo "Debug is off: no debug log to create (set \"debug\": true in config.json and re-run to create $LOG_FILE)."
 fi
 
+# The activity log is always on, so its folder and file always exist.
+mkdir -p "$ACTIVITY_DIR"
+chown "root:$APACHE_GROUP" "$ACTIVITY_DIR"
+chmod 2770 "$ACTIVITY_DIR"
+touch "$ACTIVITY_LOG"
+chown "$APACHE_USER:$APACHE_GROUP" "$ACTIVITY_LOG"
+chmod 0660 "$ACTIVITY_LOG"
+echo "Activity log: $ACTIVITY_LOG (folder root:$APACHE_GROUP 2770, file $APACHE_USER:$APACHE_GROUP 0660)"
+
 # Rotation is set up whether or not debug is on right now, so turning it on
 # later is covered.
 if [[ "$(uname -s)" == Darwin ]]; then
+    # The activity log: daily at midnight ($D0) or past 100 MB, 30 kept,
+    # bzip2 (J), no process to signal (N): the program notices the move
+    # and reopens the file itself (WatchedFileHandler).
+    mkdir -p /etc/newsyslog.d
+    cat > /etc/newsyslog.d/planetgen-log.conf <<EOF
+# planetGen activity log -- written by examples/apache/setup-debug-log.sh
+# (install.sh/update.sh). Edits here are overwritten on the next run.
+# logfilename            [owner:group]              mode count size(KB) when  flags
+$ACTIVITY_LOG  $APACHE_USER:$APACHE_GROUP  660  30  102400  \$D0  JN
+EOF
+    chmod 0644 /etc/newsyslog.d/planetgen-log.conf
+    echo "Activity log rotation: /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB, 30 kept)"
+
     # newsyslog: owner:group, mode, copies kept, size in KB, no time
     # rotation, Z = gzip. It creates the new file with that owner and mode.
     mkdir -p /etc/newsyslog.d
@@ -131,14 +166,39 @@ EOF
 chmod 0644 /etc/logrotate.d/planetgen
 echo "Log rotation: /etc/logrotate.d/planetgen (daily or past 100 MB, 7 kept)"
 
+# The activity log: kept longer (30 copies) since it is the record of
+# who signed in and what changed. `su` because the folder is writable by
+# Apache's group, which logrotate otherwise refuses.
+cat > /etc/logrotate.d/planetgen-log <<EOF
+# planetGen activity log -- written by examples/apache/setup-debug-log.sh
+# (install.sh/update.sh). Edits here are overwritten on the next run.
+$ACTIVITY_DIR/*.log {
+    daily
+    maxsize 100M
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    # Seconds in the name: the hourly size check can rotate twice a day.
+    dateformat -%Y%m%d-%s
+    su root $APACHE_GROUP
+    create 0660 $APACHE_USER $APACHE_GROUP
+}
+EOF
+chmod 0644 /etc/logrotate.d/planetgen-log
+echo "Activity log rotation: /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept)"
+
 if [[ -d /etc/cron.hourly ]]; then
     cat > /etc/cron.hourly/planetgen-logrotate <<'EOF'
 #!/bin/sh
-# planetGen: rotate the debug log as soon as it passes its maxsize instead of
-# waiting for the daily logrotate run. Written by
+# planetGen: rotate the debug and activity logs as soon as they pass their
+# maxsize instead of waiting for the daily logrotate run. Written by
 # examples/apache/setup-debug-log.sh.
 command -v logrotate >/dev/null 2>&1 || exit 0
-exec logrotate /etc/logrotate.d/planetgen
+logrotate /etc/logrotate.d/planetgen
+exec logrotate /etc/logrotate.d/planetgen-log
 EOF
     chmod 0755 /etc/cron.hourly/planetgen-logrotate
     echo "Hourly size check: /etc/cron.hourly/planetgen-logrotate"

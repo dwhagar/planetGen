@@ -286,22 +286,29 @@ function Invoke-OptionalPopulation([switch]$Run) {
 
 # The tile cache and jobs folders config.json names (read the way
 # create-cache-dir.sh reads them, with examples\apache\deploy-paths.py),
-# the debug log's folder, and the logs folder the services write to.
+# the debug log's folder, the always-on activity log's folder (logs under
+# the checkout unless "log_dir" says otherwise; the app rotates it
+# itself), and the logs folder the services write to.
 function Get-RuntimeDirs {
     $python = Get-VenvPython
     $paths = @(& $python -I (Join-Path $Root "examples\apache\deploy-paths.py") $Root)
     if ($LASTEXITCODE -ne 0) { throw "Could not read the folders from config.json (see above)." }
-    $logFile = & $python -I -c @"
+    $logPaths = @(& $python -I -c @"
 import importlib.util, os, sys
 spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'stellarObjects', 'appconfig.py'))
 appconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(appconfig)
-print(appconfig.log_file_path(appconfig.load_config()))
-"@ $Root
+config = appconfig.load_config()
+print(appconfig.log_file_path(config))
+print(os.path.dirname(appconfig.activity_log_path(config)))
+"@ $Root)
     $dirs = @()
     $logDir = $null
+    $logFile = $logPaths[0]
+    $activityDir = $null
+    if ($logPaths.Count -gt 1 -and "$($logPaths[1])".Trim()) { $activityDir = "$($logPaths[1])".Trim() }
     if ("$logFile".Trim()) { $logDir = Split-Path "$logFile".Trim() }
-    foreach ($path in @($paths[0], $paths[1], $logDir, (Join-Path $DataDir "logs"))) {
+    foreach ($path in @($paths[0], $paths[1], $logDir, $activityDir, (Join-Path $DataDir "logs"))) {
         if ($path -and ($dirs -notcontains $path)) { $dirs += $path }
     }
     $dirs

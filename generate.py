@@ -64,6 +64,7 @@ sections build on earlier ones):
 
 import argparse
 import copy
+import getpass
 import logging
 import math
 import os
@@ -84,7 +85,7 @@ from rich.progress import (
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
+    _db, activitylog, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -606,8 +607,20 @@ def run_system(args):
 
     mysql_config = _db.mysql_config_from_args(args)
     star_system_id = _db.save_system(system, system_config, config=mysql_config)
+    RUN_COUNTS["systems"] += 1
     log.normal(f"Saved system '{system.name}' to the database (star_system_id={star_system_id}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
+
+
+RUN_COUNTS = Counter()
+"""Counter: What this run saved (`sectors`, `systems`, `phenomena`), for
+the activity log's `generate.finish` line."""
+
+
+def _count_sector(sector):
+    RUN_COUNTS["sectors"] += 1
+    RUN_COUNTS["systems"] += len(sector.entries)
+    RUN_COUNTS["phenomena"] += len(sector.phenomena)
 
 
 # ===========================================================================
@@ -1363,6 +1376,7 @@ def run_sector(args):
 
         mysql_config = _db.mysql_config_from_args(args)
         sector_id = _db.save_sector(sector, config=mysql_config)
+        _count_sector(sector)
 
         phenomena_note = f", {len(sector.phenomena)} phenomena" if sector.phenomena else ""
         log.normal(
@@ -1743,6 +1757,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
     }
     sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
+    _count_sector(sector)
     return sector_id, sector.name, sector
 
 
@@ -2946,6 +2961,7 @@ def run_phenomenon(args):
     mysql_config = _db.mysql_config_from_args(args)
     phenomenon_id = _db.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,
                                          sector_id=args.sector_id)
+    RUN_COUNTS["phenomena"] += 1
     log.normal(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
 
@@ -3164,14 +3180,42 @@ def main():
     log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
               f"option exists to reproduce this run).")
 
+    # One start and one finish line per run in the activity log (SEC.28);
+    # a `system --output` run writes no database, so it isn't logged.
+    logged = not getattr(args, "output", None)
+    try:
+        database = _db.mysql_config_from_args(args).database
+    except AttributeError:  # a subcommand without the --mysql-* options
+        database = _db.DEFAULT_MYSQL_CONFIG.database
+    started = time.monotonic()
+    if logged:
+        activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
+    status = "failed"
     try:
         _COMMAND_HANDLERS[args.command](args)
+        status = "ok"
     except pymysql.err.MySQLError as exc:
         _fatal(f"database error: {exc}")
     except OSError as exc:
         # e.g. an unwritable --output path.
         where = f" ({exc.filename})" if getattr(exc, "filename", None) else ""
         _fatal(f"{exc.strerror or exc}{where}")
+    except KeyboardInterrupt:
+        status = "interrupted"
+        raise
+    finally:
+        if logged:
+            activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
+                              status=status, seconds=round(time.monotonic() - started, 1),
+                              **{key: RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
+
+
+def _run_user():
+    """Who ran this: the login name (`getpass.getuser`), or `None`."""
+    try:
+        return getpass.getuser()
+    except Exception:  # noqa: BLE001 -- no user name in this environment
+        return None
 
 
 def _fatal(message, logger_ready=True):

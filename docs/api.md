@@ -464,6 +464,14 @@ forced credential change. They back the admin stats page
   `system`, `body`); each row is `{"kind", "id", "name"}` with
   `sector_id` for a system and `star_system_id`/`system_name` for a
   planet or moon.
+- `GET /api/admin/login-failures` — the newest refused sign-ins (wrong
+  username or password, a locked login, a wrong current password on
+  change-credentials), newest first: `{"items": [{"action", "username",
+  "ip", "created_at"}]}`, `action` being `login.failed`, `login.locked`
+  or `password.failed`. `?limit=` (1-200, default 20). Takes no `?db=`:
+  the rows live in the control schema's `admin_audit_log`, kept 90 days.
+  Each one is also an `AUTH` line in the activity log
+  ([`config.md`](config.md#the-activity-log)).
 
 ### Authentication
 

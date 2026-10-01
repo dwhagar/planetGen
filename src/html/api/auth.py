@@ -20,7 +20,7 @@ separate CSRF token scheme is layered on top of that).
 
 from flask import Blueprint, current_app, g, jsonify, request
 
-from stellarObjects import adminAuth
+from stellarObjects import activitylog, adminAuth, log
 
 from .authz import SESSION_COOKIE_NAME, require_admin
 from .common import ApiError, get_control_db, require_json_body
@@ -81,6 +81,21 @@ def _clear_session_cookie(resp):
     resp.delete_cookie(SESSION_COOKIE_NAME, path="/")
 
 
+def _record_failure(conn, action, username, admin_user_id=None, **fields):
+    """
+    A refused sign-in (SEC.20): one activity-log line (`AUTH <action>`
+    with the client address and the username as typed) and one
+    `admin_audit_log` row. A database error writing the row is logged,
+    never raised -- the caller's own 401/429 still goes out.
+    """
+    activitylog.event("AUTH", action, user=username, **fields)
+    try:
+        adminAuth.record_login_failure(conn, action, username, ip=activitylog.clean_ip(request.remote_addr),
+                                       admin_user_id=admin_user_id)
+    except Exception as exc:  # noqa: BLE001
+        log.error(f"Could not record {action} for {username!r} in admin_audit_log: {exc}")
+
+
 def _too_many_failures(wait):
     """The 429 for a username locked by `loginbackoff`: the wait in the
     body (`retry_after`) and the standard `Retry-After` header."""
@@ -116,19 +131,21 @@ def login():
     # learns anything, right or wrong.
     use_backoff = current_app.config.get("LOGIN_BACKOFF_ENABLED", True)
     wait = backoff.retry_after(username) if use_backoff else 0
+    conn = get_control_db()
     if wait:
+        _record_failure(conn, "login.locked", username, scope="username", retry_after=wait)
         return _too_many_failures(wait)
 
-    conn = get_control_db()
     try:
         admin = adminAuth.authenticate(conn, username, password)
     except adminAuth.AuthError as exc:
-        if use_backoff:
-            backoff.record_failure(username)
+        lock = backoff.record_failure(username) if use_backoff else 0
+        _record_failure(conn, "login.failed", username, locks_for=int(lock) if lock else None)
         raise ApiError(str(exc), status_code=401)
     if use_backoff:
         backoff.record_success(username)
 
+    activitylog.event("AUTH", "login.ok", user=admin["username"])
     raw_token = adminAuth.create_session(conn, admin["id"])
     resp = jsonify(_admin_public_dict(admin))
     _set_session_cookie(resp, raw_token)
@@ -140,6 +157,7 @@ def login():
 def logout():
     """`POST /api/auth/logout` -- ends the current session, clears the cookie."""
     adminAuth.end_session(get_control_db(), request.cookies.get(SESSION_COOKIE_NAME))
+    activitylog.event("AUTH", "logout", user=g.admin_user["username"])
     resp = jsonify({"status": "ok"})
     _clear_session_cookie(resp)
     return resp
@@ -175,10 +193,15 @@ def change_credentials():
     conn = get_control_db()
     try:
         adminAuth.change_credentials(conn, g.admin_user["id"], current_password, new_username, new_password)
+    except adminAuth.WrongPasswordError as exc:
+        _record_failure(conn, "password.failed", g.admin_user["username"], admin_user_id=g.admin_user["id"])
+        raise ApiError(str(exc), status_code=400)
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)
 
     updated = conn.execute("SELECT * FROM admin_users WHERE id = ?", (g.admin_user["id"],)).fetchone()
+    activitylog.event("AUTH", "credentials.changed", user=updated["username"],
+                      old_user=g.admin_user["username"] if g.admin_user["username"] != updated["username"] else None)
     raw_token = adminAuth.create_session(conn, updated["id"])
     resp = jsonify(_admin_public_dict(updated))
     _set_session_cookie(resp, raw_token)
@@ -223,6 +246,7 @@ def create_api_key():
         raise ApiError(f"'label' must be at most {MAX_API_KEY_LABEL_LENGTH} characters")
 
     key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label)
+    activitylog.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label)
     return jsonify({"id": key_id, "label": label, "key": raw_key}), 201
 
 
@@ -234,4 +258,5 @@ def revoke_api_key(key_id):
     revoked = adminAuth.revoke_api_key(get_control_db(), g.admin_user["id"], key_id)
     if not revoked:
         raise ApiError(f"no active API key {key_id} for this admin", status_code=404)
+    activitylog.event("AUTH", "apikey.revoke", user=g.admin_user["username"], key_id=key_id)
     return jsonify({"status": "ok"})

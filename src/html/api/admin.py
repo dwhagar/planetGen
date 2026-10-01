@@ -19,11 +19,11 @@ import pymysql
 from flask import Blueprint, jsonify, request
 
 import adminStats
-from stellarObjects import _db
+from stellarObjects import _db, adminAuth
 from stellarObjects._version import __version__
 
 from .authz import require_admin
-from .common import ApiError
+from .common import ApiError, get_control_db
 from .routes import _paginate, _resolve_requested_db_config, get_db
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -116,6 +116,37 @@ def stats():
     }
     body["query_ms"] = round((time.perf_counter() - started) * 1000, 1)
     return jsonify(body)
+
+
+LOGIN_FAILURES_DEFAULT_LIMIT = 20
+LOGIN_FAILURES_MAX_LIMIT = 200
+
+
+@bp.route("/login-failures")
+@require_admin(fresh=True)
+def login_failures():
+    """
+    `GET /api/admin/login-failures[?limit=]` -- the newest refused sign-ins
+    (wrong username or password, a locked login, a wrong current password
+    on change-credentials), newest first: `{"items": [{"action",
+    "username", "ip", "created_at"}]}`. `limit` defaults to 20, at most
+    200. Kept for `adminAuth.LOGIN_FAILURE_RETENTION_DAYS` days.
+    """
+    raw = request.args.get("limit")
+    limit = LOGIN_FAILURES_DEFAULT_LIMIT
+    if raw not in (None, ""):
+        try:
+            limit = int(raw)
+        except ValueError:
+            raise ApiError("'limit' must be an integer")
+        if not 1 <= limit <= LOGIN_FAILURES_MAX_LIMIT:
+            raise ApiError(f"'limit' must be between 1 and {LOGIN_FAILURES_MAX_LIMIT}")
+    rows = adminAuth.recent_login_failures(get_control_db(), limit=limit)
+    return jsonify({"items": [{
+        **row,
+        # UTC (the connection's zone), with an explicit offset.
+        "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
+    } for row in rows]})
 
 
 @bp.route("/duplicate-names")

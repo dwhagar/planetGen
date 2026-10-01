@@ -83,6 +83,8 @@ now, `config.json`).
 | `api_base_url` | Base URL of the Flask API's `/api` mount point, used by `../src/html/lib/apiclient.py` only outside the Flask app (the pages call the API in-process). Defaults to `http://127.0.0.1/api`; override when the API is deployed at a different host/port. Equivalent to `PLANETGEN_API_BASE_URL`. |
 | `debug` | When true, every part of planetGen -- the generator CLI, the maintenance scripts, the `html/` pages and the API -- writes a verbose debug log to `log_file`: every decision the generator makes and why, every random roll (with the source line that asked for it and the probabilities or thresholds that line refers to), every SQL statement, every web request, API call and admin access check, and every error with its traceback, each line timestamped to the millisecond and tagged with its process. Off when missing. The log grows fast (a single sector writes megabytes), so `install.sh`/`update.sh` install a logrotate config for it (daily, or past 100 MB; 7 compressed copies kept). The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See `../src/stellarObjects/log.py`. Equivalent to `PLANETGEN_DEBUG` (`1` on, `0` off). |
 | `log_file` | Where the debug log goes; default `/var/log/planetgen.log` (set it explicitly on Windows). With `debug` on, `install.sh`/`update.sh` create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (`sudo usermod -aG www-data <user>`, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to `PLANETGEN_LOG_FILE`. |
+| `log_dir` | The folder of the always-on **activity log** (`planetgen.log`; see [The activity log](#the-activity-log) below). Empty (the default) means the platform's standard place: `/var/log/planetgen` on Linux, `/Library/Logs/planetgen` on macOS, `logs` under the checkout on Windows. `install.sh`/`update.sh` create it (root and Apache's group, mode 2770; the file Apache's user and group, mode 0660); `install.ps1`/`update.ps1` create it and give the app's account write access. Equivalent to `PLANETGEN_LOG_DIR`. |
+| `log_rotation` | How the activity log is rotated: `"auto"` (the default), `"system"` or `"app"`. `"system"` leaves it to logrotate or newsyslog (the program reopens the file after it is moved); `"app"` makes the program rotate it itself (100 MB per file, 30 old copies). `"auto"` means `"system"` where `install.sh`/`update.sh` installed `/etc/logrotate.d/planetgen-log` or `/etc/newsyslog.d/planetgen-log.conf`, else `"app"` (always on Windows). No environment variable. |
 | `mysql.host`/`mysql.port`/`mysql.user`/`mysql.password`/`mysql.database` | The one MySQL connection every entry point uses -- the generation CLIs, `install.sh`/`migrateDb.py`, and the Flask API's reads and writes alike (see `stellarObjects._db.MySQLConfig`). There's no separate write-capable override: give this account whatever grants the most demanding caller needs. Equivalent to `PLANETGEN_MYSQL_HOST`/`_PORT`/`_USER`/`_PASSWORD`/`_DATABASE`. |
 | `mysql.database_prefix` | The schema-name prefix `list_databases`/`resolve_database` filter by, for a deployment with more than one game database on one server (e.g. `planetgen`, `planetgen_alpha`, ...). Equivalent to `PLANETGEN_MYSQL_DATABASE_PREFIX`. |
 | `control_database` | Name of the separate MySQL schema holding admin identities/sessions/API keys/audit log (see `../src/stellarObjects/control_schema.sql`), reached via the account above. Never listed by `/api/databases` or selectable with `?db=`, even when it shares `mysql.database_prefix` (as the default `planetgen_control` does). Equivalent to `PLANETGEN_CONTROL_DATABASE`. |
@@ -96,6 +98,87 @@ now, `config.json`).
 | `jobs.dir`/`jobs.keep`/`jobs.python` | The admin Generate page's background jobs (see `../src/html/web/jobs.py`). `dir` is where each job's command lines, status and output are kept; empty (the default) means `/var/lib/planetgen/jobs` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`), falling back to a private (mode 0700) `planetgen-jobs` folder in the system temp directory, refused under the same conditions as the tile cache's fallback. `keep` is how many finished jobs are kept (default 20). `python` is the interpreter that runs `generate.py` and `resetDb.py`; empty means the web app's own Python (under mod_wsgi, `<sys.prefix>/bin/python3`). Equivalent to `PLANETGEN_JOBS_DIR`/`PLANETGEN_PYTHON`; `keep` has no environment variable. |
 | `wiki.wikijs.base_url`/`.api_token` | The target Wiki.js instance's root URL and a Personal API Token (Admin -> API Access) -- see `../src/wikiClient/wikijs.py`. Leaving `base_url` empty (the default) means Wiki.js isn't offered as an "Upload to Wiki" target at all. Equivalent to `PLANETGEN_WIKIJS_BASE_URL`/`PLANETGEN_WIKIJS_API_TOKEN`. |
 | `wiki.mediawiki.base_url`/`.username`/`.password` | The target MediaWiki instance's API entry point directory (everything up to, not including, `api.php`) and a [Bot Password](https://www.mediawiki.org/wiki/Special:BotPasswords) (`username` in `"User@BotName"` form) -- see `../src/wikiClient/mediawiki.py`. Leaving `base_url` empty (the default) means MediaWiki isn't offered as an upload target. Equivalent to `PLANETGEN_MEDIAWIKI_BASE_URL`/`PLANETGEN_MEDIAWIKI_USERNAME`/`PLANETGEN_MEDIAWIKI_PASSWORD`. |
+
+## The activity log
+
+Separate from the debug log, planetGen always writes a short record of
+who did what to `planetgen.log` in `log_dir` (SEC.28,
+`../src/stellarObjects/activitylog.py`): sign-ins, refused requests and
+every change to the database. It is on whatever `debug` says; with
+`debug` on, each line is copied into the debug log too. Passwords,
+session tokens and API keys are never written.
+
+Every line has the same shape, so a tool such as fail2ban can match it:
+
+```text
+2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+2026-10-01T08:00:09Z planetgen[1234]: DB sector.update ip=203.0.113.5 user="boss" target=sector:42 detail="{'name': 'Home'}"
+```
+
+That is: the time in UTC, `planetgen[<process id>]:`, the category, the
+event, `ip=` (the client address, or `-` with none, as on the command
+line), `user=` (always quoted; the admin, the username as typed, or the
+login name that ran a command; `-` when nobody), then any further
+`key=value` fields. The address always comes before anything a visitor
+typed and is written only when it is a real IPv4 or IPv6 address (else
+`-`). Every value that isn't a plain number or token is quoted, with `"`
+and `\` escaped and control characters written as `\xNN`, so a crafted
+username can't start a new line or fake a field; quoted values are cut
+at 200 characters.
+
+| Category | Events |
+|---|---|
+| `AUTH` | `login.ok`; `login.failed` (wrong username or password); `login.locked` (refused unchecked while the username is locked, with `scope=` and `retry_after=`); `login.ratelimited` (past the per-address limit); `logout`; `credentials.changed` (with `old_user=` after a rename); `password.failed` (a wrong current password on `/account`); `apikey.create`, `apikey.revoke` |
+| `AUTHZ` | `login.required` (an admin route with no session or key); `session.invalid` (an expired, ended or unknown session cookie); `apikey.invalid` (an unknown or revoked API key); `credentials.unchanged` (an admin route refused until the first credentials are changed); `admin.required` (an admin-only page action refused); `csrf.failed` (a form token that doesn't match); each with `path=` |
+| `DB` | every write through the web interface or API (`sector.create`, `system.update`, `star.rename`, `facility.create`, ...: the same action names as `admin_audit_log`, with `target=` and `detail=`); `migrate` (each schema migration step, `db=`, `from_version=`, `to_version=`) |
+| `GEN` | `generate.start` and `generate.finish` for each `generate.py` run that writes the database (`command=`, `db=`; the finish line adds `status=ok/failed/interrupted`, `seconds=`, `sectors=`, `systems=`, `phenomena=`); `job.start` and `job.cancel` for the admin Generate page |
+
+Failed and locked sign-ins and wrong current passwords also go into the
+control database's `admin_audit_log` (kept 90 days), which the admin
+Stats page lists under "Failed sign-ins".
+
+Rotation: `install.sh`/`update.sh` (as root, through
+`examples/apache/setup-debug-log.sh`) install the system's own rotation,
+so nobody has to edit these by hand. For a setup without the installer,
+the samples are:
+
+Linux, `/etc/logrotate.d/planetgen-log` (the user and group are the web
+server's: `www-data` on Debian and Ubuntu, `apache` on RHEL and Fedora):
+
+```conf
+/var/log/planetgen/*.log {
+    daily
+    maxsize 100M
+    rotate 30
+    missingok
+    notifempty
+    compress
+    delaycompress
+    dateext
+    dateformat -%Y%m%d-%s
+    su root www-data
+    create 0660 www-data www-data
+}
+```
+
+macOS, `/etc/newsyslog.d/planetgen-log.conf` (newsyslog runs every hour
+by itself; `$D0` rotates at midnight, the size column in KB rotates
+sooner past 100 MB, `J` compresses with bzip2, `N` means no process to
+signal):
+
+```conf
+# logfilename                              [owner:group]  mode count size(KB) when flags
+/Library/Logs/planetgen/planetgen.log      _www:_www      660  30    102400   $D0  JN
+```
+
+The program reopens the file after either tool moves it, so no restart
+or `copytruncate` is needed. On Windows there is no system rotation: the
+program rotates `logs\planetgen.log` itself (`log_rotation` `"app"`),
+keeping up to 30 numbered copies. A process that can't open the file
+carries on without it and prints one warning to stderr (only when the
+folder exists, so a development checkout stays quiet). A login user who
+runs `generate.py` from a shell needs to be in the web server's group to
+append to it, as for the debug log.
 
 ## Why the real file is gitignored but the example isn't
 

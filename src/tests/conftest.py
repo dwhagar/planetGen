@@ -25,6 +25,7 @@ can still run everything else.
 """
 
 import os
+import tempfile
 import urllib.error
 import urllib.request
 import uuid
@@ -34,6 +35,12 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects._db import MySQLConfig
+
+# The always-on activity log (stellarObjects/activitylog.py) would
+# otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
+# to a throwaway folder instead. Tests that read it point
+# PLANETGEN_LOG_DIR at their own tmp_path and call activitylog.reset().
+os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-test-logs-"))
 
 
 def _test_server_kwargs():

@@ -13,7 +13,7 @@ from functools import wraps
 
 from flask import g, request
 
-from stellarObjects import adminAuth, log
+from stellarObjects import activitylog, adminAuth, log
 
 from .common import ApiError, get_control_db
 
@@ -67,13 +67,16 @@ def require_admin(fresh=False):
         @wraps(view)
         def wrapped(*args, **kwargs):
             admin = _current_admin()
-            via = "API key" if request.headers.get("Authorization", "").startswith(_BEARER_PREFIX) else "session cookie"
+            bearer = request.headers.get("Authorization", "").startswith(_BEARER_PREFIX)
+            via = "API key" if bearer else "session cookie"
             if admin is None:
                 log.debug(f"Access to {request.path} denied: no valid {via} (401)")
+                _log_refusal(bearer)
                 raise ApiError("authentication required", status_code=401)
             if fresh and admin["must_change_credentials"]:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
                           f"not changed yet (403)")
+                activitylog.event("AUTHZ", "credentials.unchanged", user=admin["username"], path=request.path)
                 raise ApiError(
                     "default credentials must be changed (POST /api/auth/change-credentials) "
                     "before this action is allowed",
@@ -84,6 +87,23 @@ def require_admin(fresh=False):
             return view(*args, **kwargs)
         return wrapped
     return decorator
+
+
+def _log_refusal(bearer):
+    """
+    The activity-log line for a 401 (SEC.28): `apikey.invalid` for an
+    unknown or revoked API key, `session.invalid` for a session cookie
+    that names no live session (expired, logged out, or forged), and
+    `login.required` when an admin route got neither. `/api/auth/me` with
+    no credential at all is how a page asks "is anyone logged in?", so it
+    isn't logged.
+    """
+    if bearer:
+        activitylog.event("AUTHZ", "apikey.invalid", path=request.path)
+    elif request.cookies.get(SESSION_COOKIE_NAME):
+        activitylog.event("AUTHZ", "session.invalid", path=request.path)
+    elif request.path != "/api/auth/me":
+        activitylog.event("AUTHZ", "login.required", path=request.path)
 
 
 def audit(action, target=None, detail=None):
@@ -98,6 +118,9 @@ def audit(action, target=None, detail=None):
         action (str): Short machine-readable label, e.g. `"sector.create"`.
         target (str, optional): What was acted on, e.g. `"sector:42"`.
         detail (str, optional): Free-form extra context.
+
+    Also writes the change to the activity log (`DB <action>`, SEC.28).
     """
     admin = g.admin_user
     adminAuth.record_audit(get_control_db(), admin["id"], admin["username"], action, target=target, detail=detail)
+    activitylog.event("DB", action, user=admin["username"], target=target, detail=detail)

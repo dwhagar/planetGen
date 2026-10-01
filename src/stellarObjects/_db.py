@@ -57,7 +57,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import keplerMotion, log, physical_constants, program_constants
+from . import activitylog, keplerMotion, log, physical_constants, program_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
@@ -7019,6 +7019,8 @@ def migrate_database(config=None, on_step=None):
             if on_step is not None:
                 on_step(number, len(pending), version, target)
             step(conn)
+            activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
+                              from_version=version, to_version=target)
             version = target
         conn.commit()
         return version

@@ -226,7 +226,9 @@ def login():
         result, set_cookie_headers = apiclient.auth_login(username, password)
     except apiclient.ApiError as exc:
         if exc.status_code == 401:
-            return _login_page(next_url, error="Invalid username or password.", username=username)
+            # 401, not 200, so the web server's access log shows a failed
+            # login too (SEC.20).
+            return _login_page(next_url, error="Invalid username or password.", username=username, status=401)
         if exc.status_code == 429:
             message = _api_message(exc)
             if "try again in" in message:
@@ -564,6 +566,27 @@ def _names_panel(cookie_header, db):
     }
 
 
+_FAILURE_LABELS = {
+    "login.failed": "Wrong username or password",
+    "login.locked": "Refused while locked",
+    "password.failed": "Wrong current password (account page)",
+}
+
+
+def _failures_panel(cookie_header):
+    """The newest refused sign-ins (SEC.20), for the stats page."""
+    try:
+        items = apiclient.admin_login_failures(cookie_header)
+    except apiclient.ApiError as exc:
+        return {"error": _api_message(exc), "items": []}
+    return {"error": None, "items": [{
+        "what": _FAILURE_LABELS.get(item["action"], item["action"]),
+        "username": item["username"],
+        "ip": item["ip"] or "unknown",
+        "created_at": item["created_at"],
+    } for item in items]}
+
+
 @bp.route("/admin/stats")
 def admin_stats():
     """Server health and statistics about the site's database, plus
@@ -578,7 +601,8 @@ def admin_stats():
     api_ms = (time.perf_counter() - started) * 1000
     database = stats["database"]
 
-    context = {"health": _health(stats, api_ms, tile_cache_info()), "database": database}
+    context = {"health": _health(stats, api_ms, tile_cache_info()), "database": database,
+               "failures": _failures_panel(cookie_header)}
     if database["reachable"]:
         counts = database["counts"]
         collisions = database["name_collisions"]

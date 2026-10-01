@@ -38,6 +38,7 @@ rest of this project's config plumbing.
 import copy
 import json
 import os
+import sys
 
 # stellarObjects/ lives at src/stellarObjects/ (src layout) -- three levels
 # up from this file, not two, to reach the actual repo root.
@@ -56,6 +57,12 @@ DEFAULT_CONFIG = {
     "api_base_url": "http://127.0.0.1/api",
     "debug": False,
     "log_file": "/var/log/planetgen.log",
+    # The always-on activity log's folder (stellarObjects/activitylog.py).
+    # Empty means the platform's standard place (`default_log_dir`).
+    "log_dir": "",
+    # "auto", "system" (logrotate/newsyslog moves the file) or "app" (the
+    # program rotates it itself); see `log_rotation_mode`.
+    "log_rotation": "auto",
     "mysql": {
         "host": "127.0.0.1",
         "port": 3306,
@@ -208,3 +215,80 @@ def log_file_path(config=None):
     if config is None:
         config = load_config()
     return config.get("log_file") or DEFAULT_CONFIG["log_file"]
+
+
+ACTIVITY_LOG_NAME = "planetgen.log"
+"""str: The activity log's file name inside `log_dir_path()`."""
+
+SYSTEM_ROTATION_FILES = ("/etc/logrotate.d/planetgen-log", "/etc/newsyslog.d/planetgen-log.conf")
+"""tuple: The rotation configs `examples/apache/setup-debug-log.sh`
+installs for the activity log (Linux, macOS). While one exists, `"auto"`
+rotation leaves the file to the system tool."""
+
+
+def default_log_dir(platform=None):
+    """
+    The platform's standard folder for the activity log: `/var/log/
+    planetgen` on Linux (and other Unix systems), `/Library/Logs/planetgen`
+    on macOS, and `logs` under the checkout on Windows.
+
+    Args:
+        platform (str, optional): A `sys.platform` value (default this
+            one's).
+    """
+    platform = platform or sys.platform
+    if platform.startswith("win"):
+        return os.path.join(_PROJECT_ROOT, "logs")
+    if platform == "darwin":
+        return "/Library/Logs/planetgen"
+    return "/var/log/planetgen"
+
+
+def log_dir_path(config=None):
+    """
+    The activity log's folder: `PLANETGEN_LOG_DIR` when set, else
+    `config.json`'s `"log_dir"`, else `default_log_dir()`.
+    """
+    env = os.environ.get("PLANETGEN_LOG_DIR")
+    if env:
+        return env
+    if config is None:
+        config = load_config()
+    value = config.get("log_dir")
+    if value and not isinstance(value, str):
+        raise TypeError(f'"log_dir" must be a string, not {type(value).__name__}')
+    return value or default_log_dir()
+
+
+def activity_log_path(config=None):
+    """
+    The activity log file: `planetgen.log` in `log_dir_path()`, or
+    `planetgen-activity.log` there when that would be the very file the
+    debug log uses (`log_file_path()`), so the two never share a file.
+    """
+    if config is None:
+        config = load_config()
+    folder = os.path.abspath(log_dir_path(config))
+    path = os.path.join(folder, ACTIVITY_LOG_NAME)
+    if os.path.normcase(path) == os.path.normcase(os.path.abspath(log_file_path(config))):
+        path = os.path.join(folder, "planetgen-activity.log")
+    return path
+
+
+def log_rotation_mode(config=None):
+    """
+    How the activity log is rotated: `"system"` (logrotate or newsyslog
+    moves the file; the program reopens it) or `"app"` (the program
+    rotates it itself). `config.json`'s `"log_rotation"` picks one;
+    `"auto"` (the default) means `"system"` where one of
+    `SYSTEM_ROTATION_FILES` exists, else `"app"` (always on Windows).
+    """
+    if config is None:
+        config = load_config()
+    value = config.get("log_rotation")
+    value = value.strip().lower() if isinstance(value, str) else "auto"
+    if value in ("system", "app"):
+        return value
+    if sys.platform.startswith("win"):
+        return "app"
+    return "system" if any(os.path.exists(p) for p in SYSTEM_ROTATION_FILES) else "app"

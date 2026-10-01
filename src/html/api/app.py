@@ -11,7 +11,7 @@ import time
 
 from flask import Flask, abort, g, jsonify, request
 
-from stellarObjects import log
+from stellarObjects import activitylog, log
 
 from .admin import bp as admin_bp
 from .auth import bp as auth_bp
@@ -96,6 +96,10 @@ def _reject_undecodable_query_string():
     except UnicodeDecodeError:
         abort(400, description="The query string is not valid UTF-8.")
 
+
+_SIGN_IN_PATHS = ("/api/auth/login", "/api/auth/change-credentials")
+"""tuple: The routes where a 429 from the rate limiter means password
+guessing, logged as `AUTH login.ratelimited`."""
 
 _SECRET_WORDS = ("password", "token", "secret", "key")
 
@@ -253,6 +257,10 @@ def _register_error_handlers(app):
         # /galaxy/tiles is fetched by the map's script, which wants JSON
         # like the API; every other page gets the HTML error page.
         log.debug(f"Rate limit exceeded by {request.remote_addr} on {request.path}: {exc.description}")
+        if request.path in _SIGN_IN_PATHS:
+            # A password guesser past the per-address limit (SEC.20);
+            # the form never got as far as reading a username.
+            activitylog.event("AUTH", "login.ratelimited", path=request.path)
         if not _is_api_request() and request.endpoint != "web.galaxy_tiles":
             return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429

@@ -47,6 +47,7 @@ from flask import abort, current_app, g, request
 from markupsafe import Markup, escape
 
 from api.authz import SESSION_COOKIE_NAME
+from stellarObjects import activitylog
 
 COOKIE_NAME = "pg_csrf"
 FIELD_NAME = "csrf_token"
@@ -115,6 +116,7 @@ def protect():
         return None
     submitted = request.form.get(FIELD_NAME) or request.headers.get("X-CSRF-Token")
     if not valid(submitted, request.cookies.get(COOKIE_NAME), _session()):
+        activitylog.event("AUTHZ", "csrf.failed", path=request.path)
         abort(400, description="This form has expired or was not sent from this site. "
                                "Go back, reload the page and try again.")
     return None
