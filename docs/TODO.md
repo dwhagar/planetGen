@@ -198,8 +198,10 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
     off-center by its birth kick. `queryDb.phenomena_near_sector` already
     lists every cloud that reaches a sector.
-    - Left: the Sector Map draws each cloud's extent (`sectormap.js`) and
-      the Galaxy Map shows them (`galaxymap3d.js`).
+    - The Sector Map draws each cloud that reaches the sector as a
+      see-through volume (`sectormap.js makeCloudVolume`), even with its
+      center in another sector. Left: the Galaxy Map shows them
+      (`galaxymap3d.js`).
 
 30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
     comets should be named using a method that tells something about

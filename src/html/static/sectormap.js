@@ -175,9 +175,6 @@ function generateButtons(target, entry) {
   return box;
 }
 
-// TODO(phenomena #27): draw nebulae and supernova remnants that reach this
-// sector as translucent volumes, even when their center is in another
-// sector.
 
 // A neighboring sector that already exists just links straight to it
 // (same as a star/cloud entry); one that doesn't yet shows its address
@@ -444,6 +441,88 @@ function makeBodySpheres(radius, coreTexture, coreColorHex, glow) {
   return { core: core, glow: glowMesh };
 }
 
+// Nebulae and supernova remnants are gas, not bodies: each is drawn as a
+// see-through volume whose opacity at a pixel grows with how much of the
+// cloud the line of sight crosses (1 - exp(-density * path / diameter)),
+// so it is densest through the middle and fades to nothing at the edge.
+// The path is worked out per pixel by intersecting the view ray with the
+// sphere, and only the far side of the mesh is drawn, so a cloud far
+// larger than the sector still reads correctly with the camera inside it.
+// A remnant is a shell: the path through its inner hollow (innerRatio of
+// the radius) is left out, so it shows the bright rim the Veil does.
+var CLOUD_VOLUME_VERTEX_SHADER = [
+  "varying vec3 vWorld;",
+  "void main() {",
+  "  vec4 world = modelMatrix * vec4(position, 1.0);",
+  "  vWorld = world.xyz;",
+  "  gl_Position = projectionMatrix * viewMatrix * world;",
+  "}",
+].join("\n");
+
+var CLOUD_VOLUME_FRAGMENT_SHADER = [
+  "uniform vec3 cloudColor;",
+  "uniform vec3 cloudCenter;",
+  "uniform float cloudRadius;",
+  "uniform float innerRatio;",
+  "uniform float density;",
+  "uniform float maxAlpha;",
+  "varying vec3 vWorld;",
+  "float pathThrough(vec3 origin, vec3 dir, float radius) {",
+  "  vec3 oc = origin - cloudCenter;",
+  "  float b = dot(dir, oc);",
+  "  float h = b * b - (dot(oc, oc) - radius * radius);",
+  "  if (h <= 0.0) return 0.0;",
+  "  h = sqrt(h);",
+  "  return max(-b + h, 0.0) - max(-b - h, 0.0);",
+  "}",
+  "void main() {",
+  "  vec3 dir = normalize(vWorld - cameraPosition);",
+  "  float path = pathThrough(cameraPosition, dir, cloudRadius);",
+  "  if (innerRatio > 0.0) path -= pathThrough(cameraPosition, dir, cloudRadius * innerRatio);",
+  "  float alpha = (1.0 - exp(-density * path / (2.0 * cloudRadius))) * maxAlpha;",
+  "  if (alpha < 0.004) discard;",
+  "  gl_FragColor = vec4(cloudColor, alpha);",
+  "}",
+].join("\n");
+
+// Per kind: innerRatio (0 for a filled cloud), density, and the color and
+// peak opacity (a nebula's come from lib/starmap.py's per-type coreColor).
+var CLOUD_VOLUMES = {
+  nebula: { innerRatio: 0, density: 1.6 },
+  supernovaRemnant: { innerRatio: 0.82, density: 3.0, color: "#ff8a5c", alpha: 0.5 },
+};
+
+function makeCloudVolume(cloud, volume) {
+  var color = volume.color || (cloud.coreColor || "#c9a8e090").slice(0, 7);
+  var alpha = volume.alpha;
+  if (alpha === undefined) {
+    // coreColor's last two hex digits are its alpha (lib/starmap.py).
+    var baked = parseInt((cloud.coreColor || "#c9a8e090").slice(7, 9), 16);
+    alpha = Math.min(0.45, (isNaN(baked) ? 0x90 : baked) / 255);
+  }
+  var material = new THREE.ShaderMaterial({
+    uniforms: {
+      cloudColor: { value: new THREE.Color(color) },
+      cloudCenter: { value: new THREE.Vector3(cloud.x, cloud.y, cloud.z) },
+      cloudRadius: { value: cloud.r },
+      innerRatio: { value: volume.innerRatio },
+      density: { value: volume.density },
+      maxAlpha: { value: alpha },
+    },
+    vertexShader: CLOUD_VOLUME_VERTEX_SHADER,
+    fragmentShader: CLOUD_VOLUME_FRAGMENT_SHADER,
+    side: THREE.BackSide,
+    transparent: true,
+    depthWrite: false,
+  });
+  var mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 48, 32), material);
+  mesh.scale.setScalar(cloud.r);
+  mesh.position.set(cloud.x, cloud.y, cloud.z);
+  // Only its far wall is drawn, so a star inside the cloud (nearer than
+  // that wall) is never tinted over and stays easy to pick out.
+  return mesh;
+}
+
 function makeTextSprite(text, color) {
   var measuring = document.createElement("canvas").getContext("2d");
   var font = "600 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
@@ -594,6 +673,13 @@ function initStarmap(canvasEl, data) {
   });
 
   (data.clouds || []).forEach(function (cloud) {
+    var volume = CLOUD_VOLUMES[cloud.kind];
+    if (volume) {
+      var mesh = makeCloudVolume(cloud, volume);
+      interactiveGroup.add(mesh);
+      entryByObject.set(mesh, cloud);
+      return;
+    }
     var bodies = makeBodySpheres(cloud.r, textureForCloud(cloud), 0xffffff, glowRecipeForCloud(cloud));
     bodies.core.position.set(cloud.x, cloud.y, cloud.z);
     bodies.glow.position.set(cloud.x, cloud.y, cloud.z);
