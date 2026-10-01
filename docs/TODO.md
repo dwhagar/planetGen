@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
+MAP, NAV, DB, API, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -993,7 +993,34 @@ clears each one.
 
 ## OPS: Installers, hosting, CI, releases
 
-No open items; OPS.1 shipped with the version scheme in `changes/README.md`.
+OPS.1 shipped with the version scheme in `changes/README.md`.
+
+- [ ] **OPS.5 Install and update check the log locations and say how to fix them**
+  Boss (2026-10-01 19:09Z): "make sure install and update looks for the
+  log file destination either default or configured and if it can't set
+  it up by itself it advises the user how. Either in Windows or
+  whatever OS." Today the debug log's path is `PLANETGEN_LOG_FILE`, else
+  `"log_file"` in `config.json`, else `/var/log/planetgen.log`
+  (`appconfig.log_file_path`), and the always-on activity log lives
+  under `"log_dir"` (`appconfig.activity_log_path`). On Linux,
+  `install.sh` and `update.sh` run `examples/apache/setup-debug-log.sh`,
+  which creates the debug log only when `debug` is on; on Windows,
+  `install.ps1` and `update.ps1` (`scripts/deploy-common.ps1`) create the
+  log folders under `C:\ProgramData\planetgen`; on macOS logs go to
+  `/usr/local/planetgen/log` (`scripts/deploy-common.sh`). Done: on
+  every supported OS (Linux, macOS, Windows), install and update work
+  out each log destination, the debug log and the activity log, from
+  the environment, the configured value or the default, whether or not
+  `debug` is on; check that its folder exists and that the web server's
+  user (and the CLI users' group) can write to it; create the folder and
+  set ownership and permissions when they can; and when they can't (no
+  rights, a path on a read-only or missing drive, a user that doesn't
+  exist), finish without failing and print the exact commands for that
+  OS to fix it (`mkdir`, `chown`, `chmod` or `icacls`), or how to point
+  `log_file` and `log_dir` somewhere writable. The app's own fallback
+  when the log can't be opened stays as it is. Open question: should a
+  log that can't be set up stop the install, or only warn?
+
 
 ## VIEW: The view from a planet
 
