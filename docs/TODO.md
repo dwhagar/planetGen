@@ -164,13 +164,12 @@ stages themselves don't need it.
     sector then it'll just use the sector interface." Done: beside each
     dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
     forced on, ending in 74's Sector Map pick mode), "Pick in this
-    sector" once the other end is known, and a Bookmarks select. Web's
-    part is built: the NAV page offers "Pick on Galaxy Map"
-    (`/galaxy?pick=from&to=...` or `pick=to&from=...`) and "Pick in this
-    sector" (74's `/sector/<id>?pick=...`) at each step. Still open: the
-    Galaxy Map reading `?pick=` (banner, generated-only forced on, a stage
-    8 sector click going to `/sector/<id>?pick=...`; Galaxy Map's), and
-    the Bookmarks select, which waits on 76.
+    sector" once the other end is known, and a Bookmarks select. The
+    Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
+    to NAV, keeps "Generated only" on, and a sector click opens that
+    sector in pick mode. The NAV page's side is in too: "Pick on Galaxy
+    Map" and "Pick in this sector" at each step. Only the Bookmarks
+    select is left, and it waits on 76.
 
 76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
     info panels saves a stage, sector, system or phenomenon in
@@ -356,6 +355,23 @@ for a mouse; spacing and type sized with `clamp()`.
     year length it uses (Julian 365.25 days, as `years_to_time_string`
     does); and whether elapsed-time and ETA displays for jobs (items 86-88)
     and the admin pages use the same function.
+
+105. [ ] **Bug: put an object's data beside its 3D render when there's
+    room.** Boss (2026-10-01): "if there is enough room next to the 3D
+    render of an object, put the data segment next to the object." The
+    3D renders (`static/bodyRendering.js`, used by the System Map,
+    `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
+    show an object's details in an info panel, which today can sit below
+    the render even when the screen has space beside it. Done: when the
+    space next to the render is wide enough, the data panel sits beside
+    the object; when it isn't (phones, narrow windows), it stays below;
+    the switch follows the Responsive Web Design Standards' size classes
+    and container queries (see the notes above item 62), with no layout
+    jump while the render loads. Open questions: which panels this
+    covers (the System Map and Sector Map info panels, the object pages
+    for planets, moons, stars and phenomena, or all of them)? What
+    "enough room" means (a minimum width for the render plus a readable
+    45-75 character text column)? Which side the panel goes on?
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
@@ -636,6 +652,105 @@ for a mouse; spacing and type sized with `clamp()`.
     and what happens to the stats when a sector is regenerated
     (item 60) or the galaxy is reset.
 
+
+104. [ ] **Bug: rogue planets (and maybe other objects) drawn outside
+    the sector's wireframe.** Boss (2026-10-01): "rogue planets (and
+    probably other objects) are shown outside the wireframe of the
+    sector, so one of them is wrong. when you tackle this one, do a test
+    where the rogue planets are a bright color and the background a dark
+    color so you can see the distance. This is at the sector level".
+    On the Sector Map (`html/lib/starmap.py`, `static/sectormap.js`) the
+    wireframe is the sector's cylindrical grid cell (`_outline_data`),
+    and the phenomena come from `queryDb.phenomena_near_sector`. Leads
+    to check, not yet confirmed: that query takes every phenomenon whose
+    sphere reaches the sector's bounding sphere (sized for the old cube,
+    `edge_pc * sqrt(3) / 2`) plus every one generated with this
+    sector "wherever it sits", so some outside points may be expected
+    neighbors; or the phenomena's positions and the wireframe use
+    different frames (the cell is rotated to the galaxy frame, and
+    phenomena positions are galaxy-placed). Done: find which side is
+    wrong (the wireframe, the object positions, or which objects are
+    picked) and fix it, so every object generated in a sector is drawn
+    inside its wireframe and anything shown from a neighboring sector
+    reads as outside on purpose; check every phenomenon type and the
+    star systems, not just rogue planets. As Boss asks, the fix includes
+    a visual test that draws the rogue planets in a bright color on a
+    dark background so the distance past the boundary is easy to see,
+    plus an automated check that a sector's own objects fall inside its
+    cell (`galaxyGeometry`'s `sector_address_at` giving back the
+    sector's own address). Open questions: should nearby phenomena from
+    other sectors still be drawn (they are on purpose today, per the
+    map's hint "near this sector"), and if so, how are they told apart
+    from the sector's own (dimmer, outside-only, or a toggle)? If the
+    stored positions turn out wrong, do existing galaxies need a
+    migration or a regenerate?
+
+106. [ ] **Give rogue planets a planet class, with a rogue flag in the
+    class constants.** Boss (2026-10-01): "Rogue plants should get a
+    planet class, add TODO item to TODO.md that we should add to the
+    zone data for planet class constants a flag for if a planet is
+    acceptable to be rogue or not (zone r for the purposes of the
+    constants)." Today each class in `program_constants.PLANET_CLASSES`
+    carries zone flags `"h"`, `"e"` and `"c"` (hot, ecosphere and cold
+    zones), and a rogue planet (`stellarObjects/roguePlanetData.py`,
+    `RoguePlanet`) has no class: just a `planet_type` of `'t'` or `'g'`
+    picked by mass from the rogue mass bins. Done: every class in
+    `PLANET_CLASSES` gets an `"r"` flag saying whether it can be a rogue
+    planet; a rogue planet is given a class drawn only from the classes
+    with `"r": True` that fit its mass and type; the class is stored and
+    shown on the rogue planet's page and the Sector Map like any other
+    planet's; and the class override and validation items (57-59) treat
+    `"r"` as the rogue planet's zone. Open questions: which classes are
+    allowed to be rogue (frozen, gas giant and barren classes are the
+    obvious ones; does a class with life ever qualify)? Are the
+    probabilities `PLANET_CLASS_PROBABILITIES` reweighted for rogues, or
+    a separate rogue table? What happens to rogue planets already
+    generated: a migration that assigns classes from their stored mass
+    and type, or a regenerate? Does a rogue class change its rendering
+    (it has no star to light it)?
+
+107. [ ] **Bug: rogue planets are hard to find on the Sector Map.**
+    Boss (2026-10-01): "in sector view make sure rogue planets can be
+    easily located." Today `static/sectormap.js` draws a rogue planet as
+    a dim, dark-purple textured sphere (`roguePlanet`: core `#6b5a8a`
+    fading to `#2a2438`, glow `#7d6aa8` at strength 0.8), "a dim,
+    starless world lit only by its own internal heat", which nearly
+    vanishes against the dark scene. Done: every rogue planet in a
+    sector is easy to spot at the default zoom and when zoomed out, in
+    both themes, without looking like a star; the sector page's list of
+    its contents can point at each one on the map. Goes with item 104
+    (rogue planets drawn outside the wireframe), whose bright-color test
+    makes the same objects visible, and item 108's point-of-light style.
+    Open questions: what makes them findable (a marker or ring around
+    each, a brighter but still cool color, a label, a "highlight rogue
+    planets" toggle, or a list that flies the camera to each)? Does the
+    same apply to other dark objects (quiescent black holes, interstellar
+    comets)?
+
+108. [ ] **Stars and glowing phenomena as points of light on the Sector
+    Map.** Boss (2026-10-01): "make the stars in a sector more realistic
+    sizes with bright auras, I prefer the tiny point of light in the map
+    for stars, same for any stellar phenomena which has a glow / emits
+    light, it should be a point of glowing light. Still make brightness
+    and size relevant just more like a point of light." Today
+    `static/sectormap.js` draws each star (and black hole, neutron star,
+    quasar, rogue planet, interstellar comet) as a textured sphere with a
+    fresnel glow shell (`bodyRendering.js`), sized in scene units so it
+    looks like a ball; the Galaxy Map draws its bright stars as a tiny
+    core with a soft halo at a fixed pixel size (`galaxymap3d.js`,
+    "Bright stars", `STAR_MIN_PX` to `STAR_MAX_PX`). Done: on the Sector
+    Map, stars and every light-emitting phenomenon draw as a tiny bright
+    point with a glowing aura, like the Galaxy Map's bright stars, with
+    brightness and halo size still scaling with luminosity (and color
+    with spectral type), so they read as points of light rather than
+    balls; clicking one still selects it. Open questions: does the size
+    stay fixed in pixels at every zoom (as on the Galaxy Map) or grow a
+    little as the camera gets close? Is the textured sphere kept for a
+    close-up (the System Map still shows bodies as spheres)? How is a
+    binary's pair kept distinguishable? Which phenomena count as
+    emitting light (quasars, neutron stars and accreting black holes
+    yes; quiescent black holes and rogue planets, which item 107 must
+    keep findable, probably not)?
 
 ### Star population (from the galaxy studies of 2026-09-30)
 
@@ -973,9 +1088,9 @@ and 84 are blocked on it; item 85 is not.
 
 ## Population and Politics
 
-Items 51-54 shipped as schema v44 (`generate.py population`, the
+Items 51-54 shipped: schema v44 (`generate.py population`, the
 `/api/species`, `/api/polities` and `/api/territories` endpoints; see
-`docs/design/population-and-politics.md`). Still open, unnumbered until
-the planned renumbering: the pages that show it (a Species list and page,
-a polity page, "Dominant species" on a life world, "Territory of ..." on
-an owned system) and a territory overlay on the Galaxy Map.
+`docs/design/population-and-politics.md`), the Galaxy Map's Territories
+overlay, and the pages (Species and a species page, Polities and a
+polity page, "Dominant species" on a life world and "Territory of ..."
+on an owned system), all hidden until population data exists.

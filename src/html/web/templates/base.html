@@ -11,7 +11,7 @@ subhead (badges or actions under the <h1>). -#}
 {%- macro section_links(label) -%}
 <nav class="site-sections" aria-label="{{ label }}">
   <ul>
-    {%- for name, text in sections %}
+    {%- for name, text in sections() %}
     <li><a href="{{ page_url(name) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
     {%- endfor %}
   </ul>

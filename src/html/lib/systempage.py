@@ -211,7 +211,7 @@ def _gravity_text(gravity_g):
     return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
 
 
-def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None):
+def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None):
     """
     A planet's (or moon's) row: its class, one type chip, a "Habitable
     moon" chip when one of its moons is habitable, "Inhabited" when it is,
@@ -249,8 +249,13 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
     planet_url = class_url("planet", body["planet_class"]) if class_url and body["planet_class"] else None
     if planet_url:
         class_link = _link(planet_url, f'Planet class {esc(body["planet_class"])}')
+    dominant = None if is_moon else (species or {}).get(body["id"])
+    species_link = ""
+    if dominant:
+        stats.insert(2, f'<span class="stat">Species: {esc(dominant["name"])}</span>')
+        species_link = f'Dominant species: {_link(dominant["url"], esc(dominant["name"]))}'
     return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True,
-                     links=[class_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])))
+                     links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])))
 
 
 def _belt_row_html(belt, sections, by_host=None):
@@ -299,7 +304,7 @@ def _comet_row_html(comet, sections, class_url=None):
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links)
 
 
-def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None):
+def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None):
     """
     A star's (or a close pair's) own bodies in their order out from the
     star: planets and belts by their shared `orbital_index`, and each comet
@@ -316,14 +321,14 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
         while pending and comet_orbit_key_km(pending[0]) < (0, body["distance_km"] or 0.0):
             rows.append(_comet_row_html(pending.pop(0), sections, class_url))
         if kind == "planet":
-            rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host))
+            rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host, species=species))
         else:
             rows.append(_belt_row_html(body, sections, by_host))
     rows.extend(_comet_row_html(comet, sections, class_url) for comet in pending)
     return "".join(rows)
 
 
-def system_list_html(system, sections, class_url=None, facilities=()):
+def system_list_html(system, sections, class_url=None, facilities=(), species=None):
     """
     The system rendered natively: the page's overview (a binary pair's
     own data, the system summary, any flavor text) above an expandable
@@ -338,7 +343,8 @@ def system_list_html(system, sections, class_url=None, facilities=()):
     the star rows at the top level.
 
     `facilities` (`GET /api/systems/<id>/facilities`'s items) are listed
-    in their host's own row.
+    in their host's own row, and `species` (`{planet_id: {"name", "url"}}`)
+    names each life world's dominant species in its row.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
     by_host = _facilities_by_host(facilities)
@@ -352,13 +358,14 @@ def system_list_html(system, sections, class_url=None, facilities=()):
                 sections,
                 class_url,
                 by_host,
+                species,
             )
             children_html = f'<ul class="system-list">{children}</ul>' if children else ""
             rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
         rows_html = "".join(rows)
     else:
         rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host) for star in stars)
-        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host)
+        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
     return f"""

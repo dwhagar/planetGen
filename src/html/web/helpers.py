@@ -150,9 +150,38 @@ SECTIONS = (
     ("phenomena", "Phenomena"),
     ("nav", "Nav"),
     ("classes", "Classes"),
+    ("species", "Species"),
 )
 """tuple: The header's main sections, in order. A view marks one active
 with `render_page(section=...)`."""
+
+POPULATION_SECTIONS = {"species"}
+"""set: Sections shown only once population data exists
+(`population_status()["species"]`)."""
+
+
+def population_status():
+    """
+    What population data this site's database has (`apiclient.
+    get_population_status`: `generated`/`species`/`polities`/
+    `territories`), looked up once per request. Until a population pass
+    has made species, the Species pages, "Dominant species" and
+    "Territory of ..." stay hidden.
+    """
+    status = g.get("web_population")
+    if status is None:
+        try:
+            status = apiclient.get_population_status(db_name())
+        except Exception:  # noqa: BLE001 -- an unreachable API hides the pages, never breaks one
+            status = dict(apiclient.POPULATION_NONE)
+        g.web_population = status
+    return status
+
+
+def visible_sections():
+    """`SECTIONS` less the ones with nothing to show yet."""
+    hidden = set() if population_status()["species"] else POPULATION_SECTIONS
+    return tuple((name, text) for name, text in SECTIONS if name not in hidden)
 
 
 def render_page(template, *, title, section=None, breadcrumbs=(), description=None, status=200, **context):

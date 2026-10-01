@@ -332,6 +332,36 @@ def test_galaxy_page_hides_territories_without_population(client, fake, monkeypa
     assert _scene(html)["territoryPath"] is None
 
 
+def test_galaxy_pick_mode_banner_and_sector_links(client, fake):
+    """NAV's "Pick on Galaxy Map" (design doc section 9): a banner whose
+    Cancel keeps the other endpoint, and sector links that carry the
+    pick on to the Sector Map."""
+    html = client.get("/galaxy?pick=to&from=system:12").get_data(as_text=True)
+    banner = re.search(r'<p class="pick-banner".*?</p>', html, re.S).group(0)
+    assert "Choosing a destination" in banner
+    assert 'href="/nav?from=system:12"' in banner
+    scene = _scene(html)
+    assert scene["pick"] == "to"
+    assert scene["sectorUrl"] == "/sector/{id}?pick=to&from=system:12"
+
+
+def test_galaxy_pick_mode_for_a_start_without_a_destination(client, fake):
+    html = client.get("/galaxy?pick=from").get_data(as_text=True)
+    assert "Choosing a start" in html
+    scene = _scene(html)
+    assert scene["pick"] == "from"
+    assert scene["sectorUrl"] == "/sector/{id}?pick=from"
+
+
+@pytest.mark.parametrize("query", ["", "?pick=sideways", "?pick=to&from=bogus"])
+def test_galaxy_without_a_valid_pick_has_no_banner(client, fake, query):
+    html = client.get("/galaxy" + query).get_data(as_text=True)
+    assert "pick-banner" not in html
+    scene = _scene(html)
+    assert scene["pick"] is None
+    assert scene["sectorUrl"] == "/sector/{id}"
+
+
 # --- /galaxy/territories -----------------------------------------------------------------
 
 def test_territories_endpoint_names_each_polity(client, fake, monkeypatch):
