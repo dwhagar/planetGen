@@ -78,12 +78,20 @@ KINDS = ("sector", "scatter")
 the bright-star scatter, by the layer's mean density."""
 
 
+MAX_BUCKET = BUCKETS_PER_DECADE * 12
+"""int: The top bucket (density 10^10 and up, infinite included): a
+sector that dense is full long before its count, so they all time alike."""
+
+
 def bucket_index(density):
     """The bucket `density` falls in (0 for anything below
-    `MIN_DENSITY`, or not a number)."""
+    `MIN_DENSITY`, or not a number; `MAX_BUCKET` at most)."""
     if density is None or not density > MIN_DENSITY:
         return 0
-    return int(math.floor(BUCKETS_PER_DECADE * math.log10(density / MIN_DENSITY) + 1e-9))
+    if not math.isfinite(density):
+        return MAX_BUCKET
+    index = math.floor(BUCKETS_PER_DECADE * (math.log10(density) - math.log10(MIN_DENSITY)) + 1e-9)
+    return int(min(index, MAX_BUCKET))
 
 
 def bucket_bounds(index):
@@ -385,6 +393,11 @@ class Estimate:
         return text
 
 
+MAX_SYSTEMS_PER_SECTOR = 1e9
+"""float: The most systems one sector counts for in an estimate (an
+absurd or infinite `--density` fills its cube and stops well short)."""
+
+
 def estimate(sectors, stats, database, workers=1, kind="sector"):
     """
     The size and time `sectors` will take, and whether it's refused.
@@ -404,7 +417,7 @@ def estimate(sectors, stats, database, workers=1, kind="sector"):
     worker_seconds = 0.0
     stars_ratio = _stars_per_system(stats, kind)
     for density, expected in sectors:
-        expected = max(float(expected or 0.0), 0.0)
+        expected = min(max(float(expected or 0.0), 0.0), MAX_SYSTEMS_PER_SECTOR)
         result.sectors += 1
         result.systems += expected
         worker_seconds += stats.seconds_per_system(kind, density) * max(expected, 1.0)
@@ -454,6 +467,8 @@ def check_disk(result, disk):
 def format_bytes(count):
     """`"1.4 GB"`, `"820 MB"`, `"12 KB"` (powers of 1000)."""
     count = float(count or 0)
+    if not math.isfinite(count):
+        return "more than any disk holds"
     for unit, scale in (("TB", 1e12), ("GB", 1e9), ("MB", 1e6), ("KB", 1e3)):
         if count >= scale:
             value = count / scale
@@ -463,6 +478,8 @@ def format_bytes(count):
 
 def format_duration(seconds):
     """`"3 days 4 h"`, `"2 h 05 m"`, `"4 m 10 s"`, `"12 s"`."""
+    if seconds is not None and not math.isfinite(seconds):
+        return "longer than anyone will wait"
     seconds = max(int(round(seconds or 0)), 0)
     days, rest = divmod(seconds, 86400)
     hours, rest = divmod(rest, 3600)

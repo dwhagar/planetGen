@@ -310,3 +310,15 @@ def test_the_web_neighborhood_can_be_estimated_and_refused(mysql_config, monkeyp
     with pytest.raises(generate.GenerationRefused, match="must stay free"):
         generate.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config)
     assert len(_all_sectors(mysql_config)) == 3
+
+
+def test_absurd_densities_stay_finite():
+    assert generationStats.bucket_index(float("inf")) == generationStats.MAX_BUCKET
+    assert generationStats.bucket_index(1e308) == generationStats.MAX_BUCKET
+    assert generationStats.bucket_index(float("nan")) == 0
+    stats = generationStats.GenerationStats()
+    result = generationStats.estimate([(float("inf"), float("inf"))], stats, "galaxy")
+    assert result.systems == generationStats.MAX_SYSTEMS_PER_SECTOR
+    assert math.isfinite(result.seconds) and result.bytes > 0
+    assert generationStats.format_bytes(float("inf")) == "more than any disk holds"
+    assert generationStats.format_duration(float("inf")) == "longer than anyone will wait"
