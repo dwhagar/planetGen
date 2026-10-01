@@ -679,17 +679,47 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   })();
 
-  // The part of the galaxy the drill-down shows ({r0, r1, a0, a1}: radii
-  // in pc, bearings in radians), or null for the whole galaxy. Zoomed in,
-  // the wedge lines are kept to it and a margin of WEDGE_CLIP_MARGIN of
-  // its size around it (MAP.44); zoomed out to the galaxy they run to its
-  // edge (MAP.43).
+  // The part of the galaxy the drill-down shows ({r0, r1, a0, a1, z0,
+  // z1}: radii and heights in pc, bearings in radians, and optionally
+  // `cells`, the bounds {r0, r1, t0, t1, z0, z1} of the blocks in view),
+  // or null for the whole galaxy. Zoomed in, only that wedge shows (Boss,
+  // 2026-10-01): the wedge lines, stars and clouds are kept to its blocks
+  // (MAP.44); zoomed out to the galaxy they run to its edge (MAP.43).
   var wedgeClip = null;
-  var WEDGE_CLIP_MARGIN = 0.15;
+  var WEDGE_CLIP_EPSILON = 1e-6;
 
   function setWedgeClip(clip) {
     wedgeClip = clip;
+    markClippedStars();
+    // Zoomed in, the lines lie on the floor of the layers in view, not
+    // the galactic plane, so seen at a slant they run along the blocks.
+    wedgeGroup.position.z = clip && clip.z0 != null ? clip.z0 : 0;
     updateWedgeLevels(pcPerPixelAtTarget());
+    updateClouds();
+  }
+
+  // How far round from bearing a0 bearing `angle` is, 0 to a full turn.
+  function bearingFrom(angle, a0) {
+    return (((angle - a0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  }
+
+  // Whether a point is inside the wedge shown (always, for the whole
+  // galaxy): inside one of its blocks, or its bounds when it lists none.
+  function inWedgeClip(x, y, z) {
+    var c = wedgeClip;
+    if (!c) {
+      return true;
+    }
+    var r = Math.hypot(x, y);
+    var angle = Math.atan2(y, x);
+    var inside = function (b, t0, t1) {
+      return r >= b.r0 && r <= b.r1 && bearingFrom(angle, t0) <= t1 - t0
+        && (b.z0 == null || z >= b.z0) && (b.z1 == null || z <= b.z1);
+    };
+    if (c.cells) {
+      return c.cells.some(function (b) { return inside(b, b.t0, b.t1); });
+    }
+    return inside(c, c.a0, c.a1);
   }
 
   // Shows each zone's lines while neighbours in that zone are at least
@@ -712,21 +742,37 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // Each of a zone's lines from where it starts to the galaxy's edge, or
-  // with a clip, only the part across the clip and its margin (none for a
-  // line whose bearing is outside them).
+  // with a clip, only the part across the clip (none for a line whose
+  // bearing is outside it).
   function clipWedgeLevel(level) {
     var attribute = level.segments.geometry.getAttribute("position");
     var points = attribute.array;
     var c = wedgeClip;
-    var marginR = c ? WEDGE_CLIP_MARGIN * Math.max(c.r1 - c.r0, ((c.r0 + c.r1) / 2) * (c.a1 - c.a0)) : 0;
-    var marginA = c ? Math.max(WEDGE_CLIP_MARGIN * (c.a1 - c.a0), marginR / Math.max(c.r1, 1)) : 0;
+    var marginR = 0;
+    var marginA = c ? WEDGE_CLIP_EPSILON : 0;
     level.lines.forEach(function (line, n) {
       var cos = Math.cos(line.angleRad);
       var sin = Math.sin(line.angleRad);
       var near = line.r0;
       var far = GALAXY_EDGE;
-      if (c) {
-        var off = (((line.angleRad - c.a0 + marginA) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+      if (c && c.cells) {
+        // Only across the blocks the line's bearing passes through.
+        var lo = Infinity;
+        var hi = -Infinity;
+        c.cells.forEach(function (b) {
+          if (bearingFrom(line.angleRad, b.t0 - marginA) <= b.t1 - b.t0 + 2 * marginA) {
+            lo = Math.min(lo, b.r0);
+            hi = Math.max(hi, b.r1);
+          }
+        });
+        if (lo > hi) {
+          far = near;
+        } else {
+          near = Math.max(near, lo);
+          far = Math.min(far, hi);
+        }
+      } else if (c) {
+        var off = bearingFrom(line.angleRad, c.a0 - marginA);
         if (off > c.a1 - c.a0 + 2 * marginA) {
           far = near;
         } else {
@@ -1290,7 +1336,8 @@ function initGalaxyMap3d(canvasEl, data) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
-      sprite.visible = near > 0 && cloudPixels(cloud, distance) >= CLOUD_MIN_PX;
+      sprite.visible = near > 0 && cloudPixels(cloud, distance) >= CLOUD_MIN_PX
+        && inWedgeClip(sprite.position.x, sprite.position.y, sprite.position.z);
       sprite.material.opacity = CLOUD_OPACITY * near;
     });
   }
@@ -1378,6 +1425,7 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute float starBright;",
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
+      "attribute float starClipped;",
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
@@ -1390,6 +1438,11 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
       "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
       "  gl_PointSize = starSize * pixelRatio;",
+      // Outside the wedge shown (setWedgeClip): dropped.
+      "  if (starClipped > 0.5) {",
+      "    gl_PointSize = 0.0;",
+      "    gl_Position = vec4(2.0, 2.0, 2.0, 1.0);",
+      "  }",
       "  #include <logdepthbuf_vertex>",
       "}",
     ].join("\n"),
@@ -1479,8 +1532,22 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
+    geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
+    markClippedStars();
+  }
+
+  // Marks the stars outside the wedge shown, which the shader drops.
+  function markClippedStars() {
+    var attribute = starPoints.geometry.getAttribute("starClipped");
+    if (!attribute) {
+      return;
+    }
+    starList.forEach(function (star, i) {
+      attribute.array[i] = inWedgeClip(star.x, star.y, star.z) ? 0 : 1;
+    });
+    attribute.needsUpdate = true;
   }
 
   // The star whose center is nearest a screen point, within
@@ -1494,6 +1561,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var best = null;
     var bestPx = STAR_PICK_PX;
     starList.forEach(function (star) {
+      if (!inWedgeClip(star.x, star.y, star.z)) {
+        return;
+      }
       projected.set(star.x, star.y, star.z).project(camera);
       if (projected.z < -1 || projected.z > 1) {
         return;

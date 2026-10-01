@@ -217,8 +217,12 @@ sectors of its children.
 
 ## 4. The stages
 
-The whole galaxy and its quarters are seen from straight above and
-can't be turned (MAP.17). Below them (once an arc is picked, and inside
+The whole galaxy is seen from straight above and can't be turned
+(MAP.17). Every view below it, from a quarter down, opens at an
+isometric slant (Boss, 2026-10-01, "turn the angle to be isometric so
+that the user can select layers easier"), so layers can be clicked on
+the map as well as picked from the strip; a quarter itself still can't
+be turned. Below the quarters (once an arc is picked, and inside
 every block) the view can be turned, moved and zoomed freely, to make
 layers, blocks and sectors easier to pick (Boss, 2026-10-01, section
 5.1); each step still opens on its own view. A stage is a container (the galaxy or
@@ -237,6 +241,11 @@ The picks go:
   the view has fewer rings or blocks across), so each arc is about a
   third of the wedge in view. A block belongs to the cell its middle
   falls in. The map zooms into the region picked.
+- A quarter or region reaches as far as its blocks do, not just its
+  even share of the bearings (Boss, 2026-10-01): near the core a block
+  sits between meridians that run all the way in and can be wider than
+  the share (quarter 0°–90° holds the 0°–120° core wedge), so the
+  highlight, the label and the zoom all follow the real wedge.
 
 They alternate: after the quarter, a layer, then a region, then a layer
 and so on (galaxystages.nextPickKind). A layer comes next whenever the
@@ -297,8 +306,10 @@ of a level-3 block.
   every step to another stage (into a pick, Up, Back, a crumb) opens on
   that stage's own view. At the galaxy and its quarters the wheel
   scrolls the page.
-- **Wedge lines** (MAP.44) are kept to the part of the galaxy in view
-  and 15% of its size past each side, and stop there sharply. Over the
+- **Only the wedge in view shows** (MAP.44; Boss, 2026-10-01: "only show
+  the wedge"): the wedge lines, stars and clouds are kept to the part of
+  the galaxy in view (its rings, bearings and layers) and stop there
+  sharply. Over the
   whole galaxy they run to its edge (MAP.43) and carry their bearing
   labels. Ring boundaries are the faces of the blocks in view, so they
   never reach past it.
