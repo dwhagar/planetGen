@@ -949,6 +949,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rather than as a separate copy; until then each map fix must be
   checked in pick mode too.
 
+- [ ] **NAV.33 After picking one end of a course, stay at that zoom level (bug)**
+  Boss (2026-10-01 21:17Z): "when nevigating via the picker, when we
+  pick a start or destination first, it should keep us at that zoom
+  level and let the user zoom out to find their destination via the
+  picker." Today picking one end of a course moves the user to the NAV
+  page's own pickers, away from the map view where they picked it.
+  Done: after the first end is picked (with NAV.29's Start Here or End
+  Here, or the existing "Use as start" and "Use as destination"
+  buttons), the view stays where it was, at the same zoom level, with
+  that end marked; the user zooms or steps out from there (NAV.13) to
+  find the other end with the same picker, and the course is shown
+  once both ends are set. Ties in with NAV.3, NAV.29 and NAV.32.
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
