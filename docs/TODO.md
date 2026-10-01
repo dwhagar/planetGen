@@ -36,7 +36,7 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
+   slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (25-36)** from the same notes: phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
@@ -72,18 +72,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-18. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
-   - Babylon.js is several MB, and deck.gl needs a bundler.
-   - regl and raw WebGPU would mean rewriting picking, sprites and
-     lighting by hand.
-   - The CSP (`default-src 'self'`) and the no-build-step vendoring rule
-     favor one vendored file.
-   - The bottleneck is JavaScript listing work, not the renderer.
-
-   three r186 already has InstancedMesh, BatchedMesh and a
-   WebGPURenderer to move to later. Done means the rendering choice is
-   written into `docs/html-interface.md`.
 
 19. [ ] **Follow-ups (edge cases).**
    - Distance-based detail (bigger blocks farther from the camera), which

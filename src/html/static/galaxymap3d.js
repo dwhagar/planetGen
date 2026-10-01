@@ -1,9 +1,5 @@
 // html/static/galaxymap3d.js
-// TODO(galaxy-map #18): the renderer stays three.js (vendored r186).
-// Babylon.js and deck.gl need a bundler or ship several MB; regl or raw
-// WebGPU would mean rewriting picking, labels and lighting. The slow part
-// is the JavaScript block listing, not drawing. When the map outgrows
-// WebGL, try three's own WebGPURenderer first.
+// (Why three.js and not another renderer: docs/html-interface.md.)
 //
 // Renders the interactive 3D Galaxy Map (lib/galaxymap3d.py) as a real
 // WebGL scene (three.js, vendored at ./vendor/three.module.min.js -- see

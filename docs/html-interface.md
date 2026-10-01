@@ -67,6 +67,21 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/static/systemmap.js` | Toggles which System Map `<svg>` scene is visible (the whole-system view, or one per planet's own moon system) and fills the info side panel -- including "Atmosphere"/"Surface composition"/"Surface temperature"/"Life Chemistry" fields -- from a clicked marker's `data-*` attributes. Every visible scene's star/planet/moon markers also get their own live-rendered 3D sphere on `#sysmap-spheres-canvas` (the same vendored three.js build `sectormap.js` uses): one shared WebGL context, redrawn each frame via a scissored sub-viewport per marker (never one `<canvas>`/context per body -- browsers cap concurrent WebGL contexts), each sized and positioned to exactly cover that marker's own `<circle>` and colored by its `data-color`, banded with a tilted ring for a gas giant (`data-bodytype`), and wrapped in a fresnel-glow atmosphere shell (tinted by `data-surfacetemp`) when `data-hasatmosphere` is set -- the one genuinely 3D layer on this otherwise flat-SVG page, drawn behind the SVG so each marker's own stroke/label/life-badge still shows on top. An appearance layer only (no position data, and no cross-page link of its own to navigate) -- a marker whose sphere renders keeps its flat circle's fill transparent (`sysmap-sphere-active`) but never changes its actual plotted position. Served directly, same as `style.css`. |
 | `../src/html/static/copycode.js` | The system page's Copy button: copies the generated Wikitext/Markdown out of the code box named by the button's `data-copy-target` (clipboard API, falling back to a selection copy on a plain-HTTP deployment). A separate file because the Content-Security-Policy allows no inline script; the box stays selectable by hand without it. Served directly, same as `style.css`. |
 
+**Why the maps use three.js.** The Sector, System and Galaxy Maps all
+draw with three.js (r186), vendored as one minified file. That choice
+was checked again on 2026-09-30 for the Galaxy Map:
+
+- Babylon.js ships several megabytes, and deck.gl needs a bundler. This
+  project has no build step, and the pages' `default-src 'self'` policy
+  favors one vendored file.
+- regl or raw WebGPU would mean writing picking, sprites and lighting by
+  hand.
+- The Galaxy Map's slow part was the JavaScript that lists blocks, not
+  the drawing. That work now runs in a Web Worker (`galaxyblocks.js`).
+
+If the map outgrows WebGL, three's own `InstancedMesh`, `BatchedMesh` and
+`WebGPURenderer` are the next steps, before any other library.
+
 This project recommends (but doesn't enforce in code) pointing the app at a MySQL
 account with `SELECT`-only grants, so it can't write to a database even
 if a query were buggy -- see `queryDb.py`'s module docstring for the same
