@@ -5,7 +5,11 @@ login against password guessing. Written 2026-10-01 for Boss's request
 to plan the login blocking work before any code changes. Which pieces
 are built, and in what order, is tracked in `docs/TODO.md`.
 
-## 1. What the site has today
+Status: steps 1 to 3 are built (SEC.20, SEC.1 and SEC.21; the activity
+log of SEC.28 carries the log lines). Section 1 describes the site as it
+was before them.
+
+## 1. What the site had before (2026-10-01)
 
 - **Per-IP rate limit.** `POST /api/auth/login` allows 10 attempts a
   minute per client address (`auth.LOGIN_RATE_LIMIT`, Flask-Limiter,

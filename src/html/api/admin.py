@@ -16,14 +16,15 @@ import sys
 import time
 
 import pymysql
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 
 import adminStats
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db, adminAuth, loginThrottle
 from stellarObjects._version import __version__
 
-from .authz import require_admin
-from .common import ApiError, get_control_db
+from .authz import audit, require_admin
+from .common import ApiError, get_control_db, require_json_body
+from .loginguard import with_store
 from .routes import _paginate, _resolve_requested_db_config, get_db
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -147,6 +148,79 @@ def login_failures():
         # UTC (the connection's zone), with an explicit offset.
         "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
     } for row in rows]})
+
+
+def _proxy_warning(locked, failures):
+    """
+    Whether the site looks like it sits behind a reverse proxy whose
+    address isn't unwrapped (`proxy_fix.x_for` is 0): a private address is
+    locked, or most recent failed sign-ins share one private or loopback
+    address. Then every visitor shares that address, and a lockout of it
+    would shut everyone out (SEC.1).
+    """
+    if (current_app.config.get("PROXY_FIX") or {}).get("x_for"):
+        return False
+    if any(row["scope"] == loginThrottle.SCOPE_IP and loginThrottle.is_private_address(row["subject"])
+           for row in locked):
+        return True
+    addresses = [row["ip"] for row in failures if row["ip"]]
+    if len(addresses) < 10:
+        return False
+    top = max(set(addresses), key=addresses.count)
+    shared = loginThrottle.is_private_address(top) or top in ("127.0.0.1", "::1")
+    return shared and addresses.count(top) >= 0.9 * len(addresses)
+
+
+@bp.route("/lockouts")
+@require_admin(fresh=True)
+def lockouts():
+    """
+    `GET /api/admin/lockouts` -- every address and username locked right
+    now (SEC.1, SEC.21): `{"items": [{"scope", "subject", "retry_after",
+    "locked_until", "level"}], "proxy_warning": bool}`. `scope` is `ip`
+    (an IPv6 subject is a /64) or `user` (case-folded). `proxy_warning`
+    says the site seems to be behind a reverse proxy without `proxy_fix`.
+    """
+    rows = with_store(loginThrottle.locked_subjects)
+    failures = adminAuth.recent_login_failures(get_control_db(), limit=50)
+    return jsonify({
+        "items": [{
+            "scope": row["scope"],
+            "subject": row["subject"],
+            "retry_after": row["retry_after"],
+            "locked_until": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(row["locked_until"])),
+            "level": row["level"],
+        } for row in rows],
+        "proxy_warning": _proxy_warning(rows, failures),
+    })
+
+
+@bp.route("/lockouts/lift", methods=["POST"])
+@require_admin(fresh=True)
+def lift_lockout():
+    """
+    `POST /api/admin/lockouts/lift` `{"scope": "ip"|"user", "subject": str}`
+    lifts one lockout and forgets its count (an address's doubling level
+    too); `{"all": true}` lifts every one. Returns `{"lifted": n}`.
+    Written to the audit and activity logs as `lockout.lift`.
+    """
+    body = require_json_body()
+    if body.get("all") is True:
+        lifted = with_store(lambda store: store.lift())
+        audit("lockout.lift", target="all", detail=f"lifted={lifted}")
+        return jsonify({"lifted": lifted})
+    scope = body.get("scope")
+    subject = body.get("subject")
+    if scope not in loginThrottle.SCOPES:
+        raise ApiError("'scope' must be 'ip' or 'user'")
+    if not isinstance(subject, str) or not subject.strip() or len(subject) > loginThrottle.MAX_SUBJECT_LENGTH:
+        raise ApiError("'subject' is required")
+    subject = subject.strip()
+    if scope == loginThrottle.SCOPE_USER:
+        subject = loginThrottle.normalize_username(subject)
+    lifted = with_store(lambda store: store.lift(scope, subject))
+    audit("lockout.lift", target=f"{scope}:{subject}", detail=f"lifted={lifted}")
+    return jsonify({"lifted": lifted})
 
 
 @bp.route("/duplicate-names")

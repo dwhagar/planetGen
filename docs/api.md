@@ -472,6 +472,17 @@ forced credential change. They back the admin stats page
   the rows live in the control schema's `admin_audit_log`, kept 90 days.
   Each one is also an `AUTH` line in the activity log
   ([`config.md`](config.md#the-activity-log)).
+- `GET /api/admin/lockouts` — every address and username locked right
+  now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
+  "level"}], "proxy_warning"}`. `proxy_warning` is true when the site
+  looks like it is behind a reverse proxy without `proxy_fix` (a private
+  address is locked, or most recent failures share one private or
+  loopback address).
+- `POST /api/admin/lockouts/lift` `{"scope": "ip"|"user", "subject"}`, or
+  `{"all": true}` — lifts lockouts and forgets their counts; returns
+  `{"lifted": n}`; audited as `lockout.lift`. From a shell (for an admin
+  locked out of the site itself): `python3 src/loginLockouts.py` lists
+  them, `--ip <address>`, `--user <name>` or `--all` lifts them.
 
 ### Authentication
 
@@ -482,13 +493,21 @@ forced credential change. They back the admin stats page
   whether a username exists; an unknown username costs the same password
   hash check as a wrong password, so timing doesn't reveal it either).
   Rate-limited to 10/minute/IP. Failed logins are also counted per
-  username, whatever address they come from: after 10, each further
-  failure locks that username for twice as long as the last (1 s, 2 s,
-  4 s, ... up to 15 minutes), and a login for a locked username is a
-  `429` with `{"error", "retry_after"}` and a `Retry-After` header,
-  before the password is checked. Unknown usernames are counted the same
-  way. A successful login, or an hour without failures, clears the count.
-  The count is kept in memory per worker process.
+  address and per username, in the control database's `login_throttle`
+  (shared by every worker, kept across restarts; SEC.1, SEC.21). Three
+  failures from one address lock it for 5 minutes, and each further
+  lockout of it doubles that, up to 1 day; a successful login clears its
+  count, but its doubling level only halves per day without a lockout.
+  An IPv6 address counts by its /64; loopback and `login_allowlist`
+  addresses are never locked. Per username, whatever address they come
+  from: after 10 failures, each further one locks that username for
+  twice as long as the last (1 s, 2 s, 4 s, ... up to 15 minutes);
+  unknown usernames are counted the same way, and a successful login or
+  an hour without failures clears the count. A login while either is
+  locked is a `429` with `{"error", "retry_after", "scope"}` (`scope`
+  `ip` or `user`) and a `Retry-After` header, before the password is
+  checked. Until `update.sh` has created `login_throttle`, the counts are
+  kept in memory per worker process (with one warning in the error log).
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`

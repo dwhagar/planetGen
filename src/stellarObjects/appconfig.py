@@ -85,6 +85,9 @@ DEFAULT_CONFIG = {
             "other": "300 per minute",
         },
     },
+    # Client addresses or networks (CIDR) never locked out after failed
+    # logins (html/api/loginguard.py); loopback never is either.
+    "login_allowlist": [],
     "admin_cookie_insecure": False,
     "secret_key": "",
     # How many reverse proxies in front of the WSGI server to trust for

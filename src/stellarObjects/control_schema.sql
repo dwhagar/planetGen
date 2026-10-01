@@ -122,3 +122,23 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
     KEY idx_admin_audit_log_admin_user_id (admin_user_id),
     KEY idx_admin_audit_log_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v2 (SEC.1, SEC.21): failed-login counters and lockouts, one row per
+-- client address (`scope` 'ip'; an IPv6 address by its /64) or username
+-- (`scope` 'user', case-folded), shared by every worker process and kept
+-- across restarts. See `stellarObjects/loginThrottle.py` for the rules.
+-- Times are Unix seconds (DOUBLE), compared with the web server's own
+-- clock; 0 means never. Idle rows are deleted after a week.
+CREATE TABLE IF NOT EXISTS login_throttle (
+    scope             VARCHAR(8) NOT NULL,
+    subject           VARCHAR(128) NOT NULL,
+    failures          INT UNSIGNED NOT NULL DEFAULT 0,
+    level             INT UNSIGNED NOT NULL DEFAULT 0,  -- lockouts so far (doubles the next one)
+    locked_until      DOUBLE NOT NULL DEFAULT 0,
+    last_failure_at   DOUBLE NOT NULL DEFAULT 0,
+    last_lockout_at   DOUBLE NOT NULL DEFAULT 0,
+
+    PRIMARY KEY (scope, subject),
+    KEY idx_login_throttle_locked_until (locked_until),
+    KEY idx_login_throttle_last_failure_at (last_failure_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

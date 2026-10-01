@@ -20,12 +20,12 @@ separate CSRF token scheme is layered on top of that).
 
 from flask import Blueprint, current_app, g, jsonify, request
 
-from stellarObjects import activitylog, adminAuth, log
+from stellarObjects import activitylog, adminAuth
 
 from .authz import SESSION_COOKIE_NAME, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .limiter import limiter
-from .loginbackoff import backoff
+from .loginguard import LoginGuard, record_failure_row
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
@@ -38,9 +38,10 @@ LOGIN_RATE_LIMIT = "10 per minute"
 attacker has any reason to hammer (password guessing against the one
 login form), so it gets its own tight per-IP limit
 regardless of how the global default is configured. Failed logins are
-also counted per username (`loginbackoff.py`), which locks a username
-for a growing time after `loginbackoff.FREE_FAILURES` failures whatever
-addresses they came from."""
+also counted per address and per username in the control database
+(`loginguard.py`, `stellarObjects/loginThrottle.py`): 3 from one address
+lock it for 5 minutes doubling to a day, and 10 for one username lock it
+for 1 s doubling to 15 minutes."""
 
 
 def _admin_public_dict(admin):
@@ -81,33 +82,6 @@ def _clear_session_cookie(resp):
     resp.delete_cookie(SESSION_COOKIE_NAME, path="/")
 
 
-def _record_failure(conn, action, username, admin_user_id=None, **fields):
-    """
-    A refused sign-in (SEC.20): one activity-log line (`AUTH <action>`
-    with the client address and the username as typed) and one
-    `admin_audit_log` row. A database error writing the row is logged,
-    never raised -- the caller's own 401/429 still goes out.
-    """
-    activitylog.event("AUTH", action, user=username, **fields)
-    try:
-        adminAuth.record_login_failure(conn, action, username, ip=activitylog.clean_ip(request.remote_addr),
-                                       admin_user_id=admin_user_id)
-    except Exception as exc:  # noqa: BLE001
-        log.error(f"Could not record {action} for {username!r} in admin_audit_log: {exc}")
-
-
-def _too_many_failures(wait):
-    """The 429 for a username locked by `loginbackoff`: the wait in the
-    body (`retry_after`) and the standard `Retry-After` header."""
-    resp = jsonify({
-        "error": f"too many failed logins for this username; try again in {wait} second{'' if wait == 1 else 's'}",
-        "retry_after": wait,
-    })
-    resp.status_code = 429
-    resp.headers["Retry-After"] = str(wait)
-    return resp
-
-
 @bp.route("/login", methods=["POST"])
 @limiter.limit(LOGIN_RATE_LIMIT)
 def login():
@@ -116,9 +90,9 @@ def login():
     the session cookie and returns `{"username", "must_change_credentials"}`.
     A wrong username or password both get the same generic 401 (see
     `adminAuth.authenticate`) -- this endpoint never reveals whether a
-    given username exists. A username locked by too many failures
-    (`loginbackoff.py`) gets a 429 with `retry_after` and `Retry-After`,
-    known or not.
+    given username exists. An address or username locked by too many
+    failures (`loginguard.py`) gets a 429 with `retry_after`, `scope`
+    (`ip` or `user`) and `Retry-After`, known username or not.
     """
     body = require_json_body()
     username = body.get("username")
@@ -129,21 +103,18 @@ def login():
 
     # Checked before the password, so a guess made during a lock never
     # learns anything, right or wrong.
-    use_backoff = current_app.config.get("LOGIN_BACKOFF_ENABLED", True)
-    wait = backoff.retry_after(username) if use_backoff else 0
-    conn = get_control_db()
-    if wait:
-        _record_failure(conn, "login.locked", username, scope="username", retry_after=wait)
-        return _too_many_failures(wait)
+    guard = LoginGuard(username)
+    refused = guard.refusal()
+    if refused is not None:
+        return refused
 
+    conn = get_control_db()
     try:
         admin = adminAuth.authenticate(conn, username, password)
     except adminAuth.AuthError as exc:
-        lock = backoff.record_failure(username) if use_backoff else 0
-        _record_failure(conn, "login.failed", username, locks_for=int(lock) if lock else None)
+        guard.failed("login.failed")
         raise ApiError(str(exc), status_code=401)
-    if use_backoff:
-        backoff.record_success(username)
+    guard.succeeded()
 
     activitylog.event("AUTH", "login.ok", user=admin["username"])
     raw_token = adminAuth.create_session(conn, admin["id"])
@@ -194,7 +165,8 @@ def change_credentials():
     try:
         adminAuth.change_credentials(conn, g.admin_user["id"], current_password, new_username, new_password)
     except adminAuth.WrongPasswordError as exc:
-        _record_failure(conn, "password.failed", g.admin_user["username"], admin_user_id=g.admin_user["id"])
+        activitylog.event("AUTH", "password.failed", user=g.admin_user["username"])
+        record_failure_row("password.failed", g.admin_user["username"], g.admin_user["id"])
         raise ApiError(str(exc), status_code=400)
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)

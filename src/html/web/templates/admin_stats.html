@@ -22,6 +22,35 @@
     </tbody>
   </table></div>
 </section>
+<section class="panel" id="lockouts" aria-labelledby="lockouts-heading">
+  <h2 id="lockouts-heading">Login lockouts</h2>
+  <p class="hint">Addresses locked after 3 failed logins (5 minutes, doubling
+  with each lockout up to a day) and usernames locked after 10 (1 second,
+  doubling up to 15 minutes). Lifting one also forgets its count.</p>
+  {%- if lockouts.proxy_warning %}
+  <p class="error">Failed logins look like they all come from one address on
+  your own network. If the site is behind a reverse proxy, every visitor has
+  that address and a lockout shuts everyone out: set
+  <code>proxy_fix.x_for</code> in <code>config.json</code>, or add the proxy to
+  <code>login_allowlist</code>.</p>
+  {%- endif %}
+  {%- if lockouts.error %}
+  <p class="error">{{ lockouts.error }}</p>
+  {%- elif not lockouts["items"] %}
+  <p class="hint">Nothing is locked.</p>
+  {%- else %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Locked</th><th scope="col">Which</th><th scope="col">Time left</th><th scope="col"><span class="sr-only">Action</span></th></tr></thead>
+    <tbody>
+      {%- for item in lockouts["items"] %}
+      <tr><td>{{ item.what }}</td><td><code>{{ item.subject }}</code></td><td>{{ item.wait }}</td>
+        <td><form method="post" action="{{ url_for('web.lift_lockout') }}">{{ csrf_field() }}<input type="hidden" name="scope" value="{{ item.scope }}"><input type="hidden" name="subject" value="{{ item.subject }}"><button type="submit">Lift</button></form></td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <form method="post" action="{{ url_for('web.lift_lockout') }}">{{ csrf_field() }}<input type="hidden" name="all" value="1"><button type="submit">Lift all</button></form>
+  {%- endif %}
+</section>
 <section class="panel" id="sign-ins" aria-labelledby="sign-ins-heading">
   <h2 id="sign-ins-heading">Failed sign-ins</h2>
   <p class="hint">The newest refused logins and wrong current passwords, with

@@ -203,7 +203,7 @@ URLs" below).
 | `/logout` | `logout.py` | `GET` asks to confirm and changes nothing; the button `POST`s to end the session. |
 | `/account` | `changecreds.py` | Change the admin username and password. |
 | `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
-| `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), and every name made unique (`?names_page=N`). |
+| `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), and the newest failed sign-ins. |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 | `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
 

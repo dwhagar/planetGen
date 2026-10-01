@@ -78,6 +78,7 @@ class FakeAuth:
         self.keys = [_key(1), _key(2, revoked=True)]
         self.login_error = None
         self.failures = []
+        self.lockouts = []
         self.change_error = None
         self.names = [{"base_name": "Vega", "levels": ["system"], "rows": [
             {"kind": "sector", "id": 5, "name": "Vega Alpha"},
@@ -129,6 +130,14 @@ class FakeAuth:
         return {"items": self.names[offset:offset + limit], "total": len(self.names),
                 "limit": limit, "offset": offset}
 
+    def admin_lockouts(self, cookie_header):
+        self.calls.append(("admin_lockouts",))
+        return {"items": self.lockouts, "proxy_warning": False}
+
+    def admin_lift_lockout(self, cookie_header, scope=None, subject=None, lift_all=False):
+        self.calls.append(("admin_lift_lockout", scope, subject, lift_all))
+        return 1
+
     def admin_login_failures(self, cookie_header, limit=None):
         self.calls.append(("admin_login_failures",))
         return self.failures
@@ -139,7 +148,8 @@ class FakeAuth:
 
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
-          "admin_duplicate_names", "admin_login_failures")
+          "admin_duplicate_names", "admin_login_failures", "admin_lockouts",
+          "admin_lift_lockout")
 
 
 @pytest.fixture
@@ -814,3 +824,26 @@ def test_real_login_keeps_rate_limit(db_app):
         assert "Too many login attempts" in last.get_data(as_text=True)
     finally:
         limiter.reset()
+
+
+def test_admin_stats_lists_and_lifts_lockouts(client, fake, admin_token):
+    _logged_in(client, fake)
+    fake.lockouts = [{"scope": "ip", "subject": "93.184.216.34", "retry_after": 290,
+                      "locked_until": "2026-10-01T10:00:00Z", "level": 1}]
+    fake.failures = [{"action": "login.failed", "username": "<b>x</b>", "ip": "93.184.216.34",
+                      "created_at": "2026-10-01T09:55:00Z"}]
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "<code>93.184.216.34</code>" in html and "4m" in html
+    assert "&lt;b&gt;x&lt;/b&gt;" in html and "Wrong username or password" in html
+    resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "scope": "ip",
+                                                      "subject": "93.184.216.34"})
+    assert resp.status_code == 303 and resp.headers["Location"] == "/admin/stats#lockouts"
+    assert fake.called("admin_lift_lockout") == [("admin_lift_lockout", "ip", "93.184.216.34", False)]
+    client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "all": "1"})
+    assert fake.called("admin_lift_lockout")[-1] == ("admin_lift_lockout", None, None, True)
+
+
+def test_lift_lockout_needs_an_admin(client, fake, token):
+    resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: token, "all": "1"})
+    assert resp.status_code == 302 and "/login" in resp.headers["Location"]
+    assert not fake.called("admin_lift_lockout")

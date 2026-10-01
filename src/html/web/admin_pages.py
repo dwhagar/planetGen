@@ -232,7 +232,8 @@ def login():
         if exc.status_code == 429:
             message = _api_message(exc)
             if "try again in" in message:
-                # loginbackoff's per-username lock, which names its wait.
+                # A lockout (per address or per username, loginguard.py),
+                # which names its wait.
                 error = message[0].upper() + message[1:].replace("; try", ". Try") + "."
             else:
                 error = "Too many login attempts. Wait a minute, then try again."
@@ -587,6 +588,38 @@ def _failures_panel(cookie_header):
     } for item in items]}
 
 
+def _lockouts_panel(cookie_header):
+    """Every address and username locked right now (SEC.1, SEC.21)."""
+    try:
+        body = apiclient.admin_lockouts(cookie_header)
+    except apiclient.ApiError as exc:
+        return {"error": _api_message(exc), "items": [], "proxy_warning": False}
+    return {"error": None, "proxy_warning": body.get("proxy_warning", False), "items": [{
+        "scope": item["scope"],
+        "what": "Address" if item["scope"] == "ip" else "Username",
+        "subject": item["subject"],
+        "wait": format_duration(item["retry_after"]),
+        "level": item["level"],
+    } for item in body["items"]]}
+
+
+@bp.route("/admin/stats/lockouts", methods=["POST"])
+def lift_lockout():
+    """The Stats page's "Lift" buttons: one lockout, or all of them."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    try:
+        apiclient.admin_lift_lockout(
+            _cookie_header(), scope=request.form.get("scope"), subject=request.form.get("subject"),
+            lift_all=request.form.get("all") == "1",
+        )
+    except apiclient.ApiError as exc:
+        if exc.status_code is None or exc.status_code >= 500:
+            raise
+    return _see_other(url_for("web.admin_stats", _anchor="lockouts"))
+
+
 @bp.route("/admin/stats")
 def admin_stats():
     """Server health and statistics about the site's database, plus
@@ -602,7 +635,7 @@ def admin_stats():
     database = stats["database"]
 
     context = {"health": _health(stats, api_ms, tile_cache_info()), "database": database,
-               "failures": _failures_panel(cookie_header)}
+               "failures": _failures_panel(cookie_header), "lockouts": _lockouts_panel(cookie_header)}
     if database["reachable"]:
         counts = database["counts"]
         collisions = database["name_collisions"]

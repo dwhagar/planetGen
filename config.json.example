@@ -26,6 +26,7 @@
       "other": "300 per minute"
     }
   },
+  "login_allowlist": [],
   "admin_cookie_insecure": false,
   "secret_key": "",
   "proxy_fix": {
