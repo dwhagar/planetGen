@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
+MAP, NAV, DB, API, SEC, OPS, DOC and POP have no open items today.
 
 ## Background
 
@@ -98,16 +98,15 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 14:41Z) set the next round, run as parallel threads:
 
 1. **First:** PERF.5 (scatter bright stars in stages).
-2. **Galaxy Map and units:** UX.13, UX.14, MAP.30 (now a layer slider to
-   the right of the Galaxy Map), MAP.15, GEN.23 and what is left of
-   MAP.2.
+2. **Galaxy Map and units:** GEN.23 (UX.13, UX.14, MAP.15, MAP.30 and
+   MAP.2 shipped in PR #234).
 3. **Generation estimates and progress:** PERF.3 and PERF.4, then PERF.9
    and PERF.10.
 4. **Admin editing:** ADM.1 and its subitems, on the validate module
    (ADM.5, done in PR #235).
 
 Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
-bookmarks (MAP.23, which finishes MAP.22) and user accounts (USR.1,
+user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
 
@@ -160,54 +159,6 @@ with `clamp()`.
   (they would need to write the same lock and progress file)? What does
   it say when there's no ETA yet?
 
-- [ ] **UX.13 One meaningful-unit ladder for speeds**
-  Boss (2026-10-01):
-  "standardization with speeds, similar to what we do with distances
-  to make them always meaningful, speeds should always be meaningful.
-  Going from km/h on the low speed end to mm/s on the high speed end."
-  Distances already work this way: every page passes them through
-  `stellarObjects.utils.format_distance_m` (and its `_km`/`_au`/`_ly`
-  wrappers, `html/lib/fmt.py`), mirrored by `static/distance.js` for
-  the maps, which picks the largest unit the value is at least 1 of.
-  Speeds have no such function; each page formats its own (km/s on
-  system and facility pages, multiples of c for warp and fold in
-  `stellarObjects/navigation.py`'s `warp_speed_c` and travel tables).
-  Done: one shared speed formatter in Python with a JavaScript mirror,
-  with a fixed ladder of units, used by every page, API text field
-  and map that shows a speed, and the existing call sites converted.
-  Open questions: the ladder reads reversed as written (mm/s is slower
-  than km/h), so what is the intended order from slowest to fastest?
-  For example mm/s, m/s, km/h, km/s, then fractions and multiples of
-  c, with warp and fold factors shown alongside rather than replacing
-  them. Where it switches units (at 1 of the next unit, as distances
-  do, or another rule), and whether it adds a parenthetical in a
-  second unit the way distances add ly or AU. Where it lives
-  (`stellarObjects/utils.py` next to `format_distance_m`, and a
-  `static/speed.js` or a section of `distance.js`).
-
-- [ ] **UX.14 One meaningful-unit ladder for time periods**
-  Boss
-  (2026-10-01): "Same for orbital periods, galactic, lunar, planetary,
-  we should tie all those into a function to do the same. For slowest
-  (measured in Gy) to fastest (measured in microseconds). Those are 2
-  seperate TODO items." Today orbital periods go through
-  `stellarObjects.utils.years_to_time_string` ("x years y days z hours
-  m minutes", via `html/lib/tabledisplay.format_period`), which gets
-  long for galactic orbits and loses anything under a minute; star
-  ages and lifespans are shown in Gy elsewhere, and the admin pages
-  have their own `format_duration`. Done: one shared period formatter
-  in Python with a JavaScript mirror, picking a meaningful unit from
-  Gy at the slow end down to microseconds at the fast end, used for
-  planetary, lunar and galactic orbital periods (and rotation periods,
-  ages and other durations where it fits), with the existing call
-  sites converted. Open questions: the ladder (for example Gy, My, ky,
-  years, days, hours, minutes, seconds, ms, µs) and where it switches;
-  one unit with decimals ("1.88 years") or a mixed form ("1 year 321
-  days") for everyday periods; rounding and significant figures; which
-  year length it uses (Julian 365.25 days, as `years_to_time_string`
-  does); and whether elapsed-time and ETA displays for jobs (PERF.3,
-  UX.3 and PERF.4) and the admin pages use the same function.
-
 - [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls**
   Boss (2026-10-01 14:58Z): "clean up the web interface, still have
   buttons overlapping, we have +/- buttons that don't do anything
@@ -239,126 +190,26 @@ with `clamp()`.
   units as well as a secondary to help contextualize the metric values
   given." Today only distance has a ladder (`format_distance_m` and
   friends in `stellarObjects/utils.py` and `html/lib/fmt.py`, mirrored
-  by `static/distance.js`), with speed (UX.13) and time periods (UX.14)
-  being built. Done: one ladder per quantity, in Python with a JavaScript
+  by `static/distance.js`), speed (UX.13: `format_speed_kms`,
+  `static/speed.js`) and durations (UX.14: `format_duration_seconds`,
+  `format_period_years`, `static/period.js`). Done: one ladder per quantity, in Python with a JavaScript
   mirror, picking a meaningful unit the same way, and every page, map
   panel and form converted to it: mass (kg, Earth, Jupiter and solar
   masses), distance, time, speed, temperature, pressure, gravity,
   density, luminosity, power and any other quantity shown with a unit.
   Surface conditions show temperature in K, °C and °F; atmospheric
   pressure and the other surface conditions show a customary unit
-  (such as atm, psi or g) beside the metric value. The UX thread was
-  asked (2026-10-01 15:10Z) to add the K/°C/°F temperature display now;
-  this item covers the rest. Open questions: the ladder and switch
+  (such as atm, psi or g) beside the metric value. Surface
+  temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
+  #234; this item covers the rest. Open questions: the ladder and switch
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-- [ ] **MAP.2 Drill-down navigation**
-
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
-
-  Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In
-  3D, pick a slab; it is pulled out and shown from above; pick a block;
-  its contents fill the view as blocks 1/9 the size; repeat until single
-  sectors, where a click opens the sector. The ladder is 243 -> 27 -> 3
-  -> 1 sectors a side ("the bigger targets"), eight clicks from the
-  galaxy to a sector. Admins can generate a sector, a layer or a
-  neighborhood (radius asked in light-years) at the sector level, and
-  the NAV page can pick its start and destination on the map or in a
-  sector. Everything below is specified, with the math, in the design
-  doc; each subitem names its section. Shipped: the nested ladder
-  (MAP.28, `stellarObjects/galaxyDrill.py`), the stage contents API
-  (MAP.29, `GET /api/galaxy/stage`), the stages (MAP.16,
-  `static/galaxystages.js`, `static/galaxystageview.js`, stage URLs
-  `/galaxy?at=&p=` and `?sector=<designation>`), the Sector Map pick
-  mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the course
-  overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from the
-  map (MAP.20), the "Show on Galaxy Map" links (MAP.25) and the top-down
-  drill-down (quarter, layer, arc, ..., sector; MAP.17, MAP.18, MAP.19,
-  MAP.44, MAP.26). Since Boss's change of 2026-10-01 09:16Z the camera
-  is locked top-down only at the full galaxy and its quarters, and turns
-  and moves freely from an arc down (PR #219).
-
-  - [ ] **MAP.22 NAV page picks on the map**
-
-    Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
-
-    Boss: "from the nav
-    menu select start and destination using either the text dropdowns as
-    we have now or the galactic map interface to select. If it's within
-    sector then it'll just use the sector interface." Done: beside each
-    dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
-    forced on, ending in MAP.21's Sector Map pick mode), "Pick in this
-    sector" once the other end is known, and a Bookmarks select. The
-    Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
-    to NAV, keeps "Generated only" on, and a sector click opens that
-    sector in pick mode. The NAV page's side is in too: "Pick on Galaxy
-    Map" and "Pick in this sector" at each step. Only the Bookmarks
-    select is left, and it waits on MAP.23.
-
-  - [ ] **MAP.23 Bookmarks**
-
-    Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 8.2
-
-    Done: a ☆ on the breadcrumb and
-    info panels saves a stage, sector, system or phenomenon in
-    `static/bookmarks.js` (per browser, up to 100, storage failures
-    tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
-    entries offered by the NAV pickers. Shared bookmarks need Boss's
-    decision 4 and a migration.
-
-- [x] **MAP.3 A bigger Galaxy Map with controls underneath**
-  Done in 7.55.0 (PR #178); kept as the parent of MAP.30.
-  - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
-    Boss (2026-10-01): "slab selection goes to the left of the galactic
-    map if there is room, given the galactic map shoul dhave a 3:4 aspect
-    ratio to its window or 1:1 if necessary, like in mobile view
-    perhaps." Today the Galaxy Map's viewport (`.galaxymap3d-panel
-    .starmap-viewport` in `static/style.css`) is the full width with a
-    height of `min(100svh - 9rem, max(20rem, 75vw))`, and the stage
-    view's slab list (`.galaxy-slab-row` rows, `static/galaxystageview.js`)
-    sits with the other controls below the map. Done: the map keeps a
-    3:4 aspect ratio within its window, falling back to 1:1 where the
-    window can't fit 3:4 (as on phones); when there's room beside the
-    map, the slab list moves to its left; when there isn't, it stays
-    under the map with the other controls; no layout jump as stages
-    change. The list is now the layer strip of the top-down drill-down
-    (MAP.17): it offers layers when a layer is to be picked
-    and follows the Responsive Web Design Standards notes in the UX
-    section (size classes, container queries). Open questions: is 3:4
-    width to height (taller than wide) or height to width (4:3, wider
-    than tall, close to today's 75vw height)? At what width does the
-    list move to the left (the standards' expanded class, 840 px and up,
-    or whenever a readable list column fits)? Does the rest of MAP.3's
-    controls row stay under the map, or join the list on the left?
-
-- [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
-  Boss (2026-10-01): "make the stars in a sector more realistic
-  sizes with bright auras, I prefer the tiny point of light in the map
-  for stars, same for any stellar phenomena which has a glow / emits
-  light, it should be a point of glowing light. Still make brightness
-  and size relevant just more like a point of light." Today
-  `static/sectormap.js` draws each star (and black hole, neutron star,
-  quasar, rogue planet, interstellar comet) as a textured sphere with a
-  fresnel glow shell (`bodyRendering.js`), sized in scene units so it
-  looks like a ball; the Galaxy Map draws its bright stars as a tiny
-  core with a soft halo at a fixed pixel size (`galaxymap3d.js`,
-  "Bright stars", `STAR_MIN_PX` to `STAR_MAX_PX`). Done: on the Sector
-  Map, stars and every light-emitting phenomenon draw as a tiny bright
-  point with a glowing aura, like the Galaxy Map's bright stars, with
-  brightness and halo size still scaling with luminosity (and color
-  with spectral type), so they read as points of light rather than
-  balls; clicking one still selects it. Open questions: does the size
-  stay fixed in pixels at every zoom (as on the Galaxy Map) or grow a
-  little as the camera gets close? Is the textured sphere kept for a
-  close-up (the System Map still shows bodies as spheres)? How is a
-  binary's pair kept distinguishable? Which phenomena count as
-  emitting light (quasars, neutron stars and accreting black holes
-  yes; quiescent black holes and rogue planets, which MAP.46 must
-  keep findable, probably not)?
+No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
+MAP.30) shipped in PR #234.
 
 ## GEN: Generation and physics
 
@@ -1392,7 +1243,10 @@ clears each one.
     users also add notes? What else a user can do that an anonymous
     visitor can't (is the site still public to read, or sign-in only?)?
     Do bookmarks survive a galaxy regenerate (object ids change), and if
-    not, what does a broken bookmark show?
+    not, what does a broken bookmark show? Per-browser bookmarks
+    (`static/bookmarks.js`, MAP.23) shipped in PR #234; storing them in
+    the database still needs decision 4 of the drill-down design and a
+    migration.
 
 ## OPS: Installers, hosting, CI, releases
 
