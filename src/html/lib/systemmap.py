@@ -1498,7 +1498,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
   <h2>System Map</h2>
   <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; {facility_legend}"Measure distance" then click two bodies for the real distance between them</span>
 </div>
-<div class="starmap-layout" id="sysmap-root">
+<div class="starmap-layout sysmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">
 {spheres_html}
 {''.join(scenes)}

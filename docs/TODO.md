@@ -102,8 +102,10 @@ of the SEC section.
    2. Done: the bright stars on the Galaxy Map (MAP.47, MAP.48), the
       wedge lines past the galaxy's edge (MAP.43) and the generated
       systems that were hard to find (MAP.37).
-   3. UX.16 (button spacing), then UX.15 (data beside the 3D render).
-   4. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+   3. MAP.49: planet orbits drawn inside an asteroid belt on the System
+      Map.
+   4. MAP.50: names running off the edge of the map.
+   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
       camera; big wedge, layer and region picks), with MAP.18 (dim
       everything but the hovered pick) and MAP.44 (lines kept to the
       zoomed block), then MAP.26 (open at the sector; the map's own Back
@@ -124,14 +126,24 @@ of the SEC section.
 
    SEC.20 and SEC.23 are small and touch different files from the bugs,
    so they can run alongside step 1 if Boss wants.
-3. **After that**, as before:
+3. **Database calls, the next update after bugs and security** (Boss,
+   2026-10-01), in this order:
+   1. PERF.12: check the schema once per process during generation.
+   2. PERF.13: write each sector in batches.
+   3. PERF.14: reserve a sector's names in bulk, safe with several
+      writers at once (needed before any parallel generation).
+   4. PERF.15 (fewer queries per web page), PERF.16 (full-text name
+      search on whole words) and PERF.17 (a time limit on web
+      statements). These touch the web read path, not generation, so
+      they can run alongside 1 to 3.
+4. **After that**, as before:
    - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
      finishes the NAV page's map picks, MAP.22).
    - Sector Map stars as points of light (MAP.15).
-   - Generation at scale (PERF.1): the per-sector density stats
-     (PERF.11) and speed records (PERF.10) feed the estimates (PERF.3,
-     PERF.9); the work queue (PERF.8) comes before parallel generation
-     (PERF.7).
+   - The rest of generation at scale (PERF.1): the per-sector density
+     stats (PERF.11) and speed records (PERF.10) feed the estimates
+     (PERF.3, PERF.9); the work queue (PERF.8) comes before parallel
+     generation (PERF.7).
    - Admin editing (ADM.1) starts with the validate module (ADM.5);
      user accounts (USR.1) start with roles (USR.2).
    - View from a planet (VIEW.1) waits on a research session with Boss,
@@ -150,39 +162,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.15 (bug) Put an object's data beside its 3D render when there's room**
-  Boss (2026-10-01): "if there is enough room next to the 3D
-  render of an object, put the data segment next to the object." The
-  3D renders (`static/bodyRendering.js`, used by the System Map,
-  `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
-  show an object's details in an info panel, which today can sit below
-  the render even when the screen has space beside it. Done: when the
-  space next to the render is wide enough, the data panel sits beside
-  the object; when it isn't (phones, narrow windows), it stays below;
-  the switch follows the Responsive Web Design Standards' size classes
-  and container queries (see the notes at the top of this section),
-  with no layout jump while the render loads. Open questions: which
-  panels this covers (the System Map and Sector Map info panels, the
-  object pages for planets, moons, stars and phenomena, or all of
-  them)? What "enough room" means (a minimum width for the render plus
-  a readable 45-75 character text column)? Which side the panel goes
-  on?
-
-- [ ] **UX.16 (bug) Always leave space between buttons**
-  Boss (2026-10-01): "button spacing should always have space between
-  buttons." Some button groups have a gap (`.starmap-controls` uses
-  a flex row with `gap: 0.5rem`), but there is no shared rule, so
-  buttons laid out another way can sit flush against each other.
-  Done: every group of buttons on every
-  page (`.btn`, `.btn-small`, `.starmap-btn` and plain `<button>`s)
-  has visible space between neighbors, across and between wrapped
-  lines, at every size class, from one shared rule in
-  `static/style.css` rather than per-page fixes. Open questions: one
-  spacing value everywhere (for example `0.5rem`) or a `clamp()` that
-  grows with the screen? Do touch screens (`pointer: coarse`) get more,
-  so 44-48 px targets don't sit edge to edge? Which pages show the
-  problem today (to be listed when the fix starts)?
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
@@ -611,6 +590,45 @@ MAP.48 and MAP.37, all fixed.
   yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
 
+- [ ] **MAP.49 (bug) The System Map shows planet orbits inside an asteroid belt**
+  Boss (2026-10-01): "the system view still is showing orbits of
+  planets inside the orbit of an asteroid belt." Generation already
+  keeps planets clear of belts (a planet after a belt keeps 5 Hill
+  radii clear of its outer edge, and belts can't overlap the next
+  planet out, per the CHANGELOG), so the first lead is the drawing:
+  `html/lib/systemmap.py` places every orbit on a shared log scale
+  (`_radial_px`), but `_belt_band_px` draws the belt's ring width
+  linearly (`radius_px * (upper - lower) / distance`) and clamps it to
+  9-40 px, so on the log scale the drawn band can reach past a
+  neighboring planet's orbit. Second lead: systems stored before those
+  generation fixes, which a regenerate would clear. Done: the belt's
+  ring is drawn from its inner and outer edges mapped through the same
+  log scale as the orbits (with a minimum visible width that never
+  crosses a neighbor's orbit), on the System Map and in the 3D system
+  view if it draws belts too; a test checks that no drawn planet orbit
+  falls inside a drawn belt band for systems with belts; and a check
+  over the stored data reports any planet whose orbit really is inside
+  a belt (if there are any, that is a generation bug to fix too).
+
+- [ ] **MAP.50 (bug) Names run off the edge of the map**
+  Boss (2026-10-01): "names should not run off the screen edge." Taken
+  to mean the name labels on the maps, the System Map first. Lead:
+  `html/lib/systemmap.py` draws into a fixed 700 x 700 viewBox and
+  places each label with `_label_sides_2d`, which tries below, above,
+  right and left to avoid other labels and markers but never checks the
+  candidate against the viewBox edges, so a name near the edge (an
+  outer planet, a long name) is cut off; `static/systemmap.js`'s
+  `layoutLabels` measures the real text the same way. Done: on the
+  System Map (and its moon views), a label that would cross an edge
+  picks a direction that fits, or is shifted inward, so every name is
+  fully on screen at every size class; the Sector Map's and Galaxy
+  Map's name labels are checked for the same problem and fixed if they
+  have it; a test places labels for bodies near every edge and checks
+  each label rectangle lies inside the view. Open question: when no
+  direction fits, shift the label inward along the edge, or shorten it
+  with an ellipsis and show the full name on hover? Default: shift it
+  inward.
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.8 Give rogue planets a planet class, with a rogue flag in the class constants**
@@ -777,26 +795,86 @@ MAP.48 and MAP.37, all fixed.
     Boss
     (2026-10-01): "ratelimiting calls to the sql database and seeing if
     we can investigate some way to make our DB calls more efficient, do
-    more with less calls without impacting performance." Today every
-    database call goes through `stellarObjects/_db.py`'s `PooledDB`
-    (one pool per config, `maxconnections=10`, `blocking=True`), with no
-    limit on how often calls are made, and the Database thread measured
-    about 60% of generation time going to per-row planet and moon saves.
-    Done: an investigation first, written up before any code changes,
-    that lists the hottest call sites (per-row inserts during sector
-    fill, per-row reads on the web pages) and for each one whether it can
-    be batched (`executemany`, multi-row `INSERT`, one save per system
-    instead of per body, fewer round trips per page); then the batching
-    changes that measure faster, and a rate limit on calls to the
-    database. Open questions: what the rate limit protects against (the
-    MySQL server being swamped by PERF.8's parallel workers, or web
-    users hammering the API), and so whether it is a calls-per-second cap,
-    a cap on concurrent connections, or both; whether it is one limit
-    shared by generation and the web site or separate ones; how it
-    interacts with the pool size once PERF.8 runs several workers at
-    once (each process gets its own pool today); and what benchmark
-    decides "without impacting performance" (a fixed test sector timed
-    before and after?).
+    more with less calls without impacting performance." The
+    investigation is done (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13). Measured on
+    a 40-system sector: 1.0 s generating, 1.9 s saving, through about
+    98 single-row INSERTs and 17 SELECTs per system; one `executemany`
+    wrote the same moon rows 2.8x faster than one INSERT each. The
+    batching work is the subitems below. Decided defaults for the open
+    questions:
+    - Two separate limits. Generation: a cap on how many sector writers
+      run at once (PERF.8's parents), at low priority, not a
+      calls-per-second cap (batching already cuts its calls 30 to 50
+      times). Web: Flask-Limiter's per-IP limits as today, plus a
+      statement time limit (PERF.17).
+    - Pools: each generation worker process keeps a pool of 1 or 2
+      connections, so the total is the worker count plus the web's 10.
+    - Benchmark: `generate.py sector --num-systems 40` five times before
+      and after on the same machine; compare the median save time and
+      the server's `Com_insert`/`Com_select` counts.
+
+    - [ ] **PERF.12 Check the schema once per process during generation**
+      `_db.get_connection(ensure_schema=True)` replays all of
+      `schema.sql` (about 122 statements) on every checkout, and galaxy
+      fill checks out twice per sector (`generate.py` `_fill_context`,
+      `_db.save_sector`). Done: generation checks the schema once per
+      process (`open_write`, or a per-process flag), and a filled sector
+      sends no schema statements.
+
+    - [ ] **PERF.13 Write each sector in batches**
+      `insert_sector` and `insert_star_system` in `_db.py` write every
+      system, star, planet, moon, belt, comet, composition row, life
+      paragraph and spectrum value with its own INSERT. Done: a sector's
+      rows are built in memory and each table is written with one
+      `executemany` (multi-row INSERT) in the sector's transaction; row
+      ids come from a small id-block table (one
+      `UPDATE ... LAST_INSERT_ID(next + n)` per table per sector) so
+      children know their parents' ids without relying on
+      auto-increment order; `refresh_containment` writes its changes in
+      one statement; and PERF.6's benchmark shows the save faster with
+      the same rows written.
+
+    - [ ] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
+      Four `generate.py sector` runs started together (2026-10-01) hit 3
+      deadlocks on `system_name_registry`: `reserve_system_name`'s
+      `SELECT ... FOR UPDATE` of a name not yet there takes a gap lock,
+      and two writers then insert into each other's gap. 3 of the 4 runs
+      failed (with error 1452 after the rollback), and nothing retries
+      error 1213. Today only `web/jobs.py`'s one-job lock prevents this.
+      Done: a sector reserves all its names in one
+      `SELECT ... WHERE base_name IN (...)`, resolves collisions in
+      Python and writes one multi-row upsert, locking names in sorted
+      order; the sector's transaction is retried on 1213 and 1205; and
+      the 4-process test runs clean. PERF.8's parallel writers depend on
+      this.
+
+    - [ ] **PERF.15 Fewer queries per web page**
+      Done, in `queryDb.py`: search facets (12 queries per request,
+      including `COUNT(*)` of every star, planet and moon) are cached
+      until `galaxy_content_state` changes; `system_detail` loads moons
+      once per system, not once per planet; `sector_detail` loads its
+      stars in one query, not one per system; `list_systems` and
+      `_search_result_systems` join `stars` once instead of three
+      correlated subqueries per row, with an index on
+      `stars (star_system_id, role)`; and `galaxy_placed_sectors` reads a
+      stored system count (with PERF.11) instead of counting per sector.
+
+    - [ ] **PERF.16 Search names without scanning every row**
+      Search builds `LIKE '%term%'` (`_search_like_pattern`) and counts
+      every match exactly (`_search_page`), a full scan of each body
+      table that won't survive a large galaxy. Done: names are searched
+      with a FULLTEXT index on whole words, and counts stop at the
+      300-row result cap ("300+"). Boss (2026-10-01): "full text index,
+      to match whole words", so a search no longer finds text in the
+      middle of a word ("ara" doesn't find "Kemaral").
+
+    - [ ] **PERF.17 A time limit on web database statements**
+      Web connections have no statement timeout, so one runaway query
+      holds one of mod_wsgi's 5 threads until Apache's 60 s request
+      timeout. Done: the read-only pool's init command sets
+      `max_statement_time` (MariaDB) or `MAX_EXECUTION_TIME` (MySQL),
+      default 10 s, configurable in `config.json`; a timed-out query
+      returns a clear error page.
 
   - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
     Boss (2026-10-01): "add a TODO item to parallelize
@@ -814,12 +892,21 @@ MAP.48 and MAP.37, all fixed.
     ETA until done; and the ETA comes from a custom column that uses a
     decaying (exponentially weighted) average of tasks finished per
     second rather than rich's built-in estimate. PERF.3's measured stars
-    per second and PERF.4's slow-layer bar use the same rate. Open
-    questions: the decay constant (how fast the average forgets older
-    runs); whether the rate is counted in systems, stars or sectors
-    (sectors differ a lot in size, so systems per second may be steadier);
-    and whether `progress.json` for the web jobs reports the same decayed
-    rate so the Generate page and UX.3's banner show the same ETA.
+    per second and PERF.4's slow-layer bar use the same rate. How
+    (report of 2026-10-01): each system's child task only builds the
+    system (no database); its sector's parent places each system as it
+    comes back (placement uses the built system's size, so it can't
+    happen first) and writes the whole sector in one batched
+    transaction (PERF.13, PERF.14); the bright-star scatter's tasks are
+    one layer (or one ring batch of a dense layer) each, not one per
+    star, since 63 million tasks would cost more than the work. Needs
+    PERF.13 and PERF.14 first. Open questions: the decay constant (how
+    fast the average forgets older runs); whether the rate is counted in
+    systems, stars or sectors (sectors differ a lot in size, so systems
+    per second may be steadier; the default is systems); and whether
+    `progress.json` for the web jobs reports the same decayed rate so
+    the Generate page and UX.3's banner show the same ETA (default:
+    yes).
 
   - [ ] **PERF.8 A parallel background work queue in the API**
     Boss
@@ -835,13 +922,19 @@ MAP.48 and MAP.37, all fixed.
     information to calculate how long it iwll take to complete a given
     series of tasks that got handed out. We'll also need limits so the
     system never uses more than 80% of the total CPU power and defers to
-    other running processes in process scheduling." Today background work
+    other running processes in process scheduling." Boss (2026-10-01) on
+    the scheduler: "we should see if we want the task scheduler to be a
+    daemon or if it'll only spin up a loop when there are tasks, since
+    99.99% of the time there won't be." Today background work
     is `web/jobs.py`'s one-job-at-a-time runner (an `active` lock,
     `state.json`, `progress.json`) launching `generate.py`, which does
     everything serially. Done:
-    - A work queue the API owns, with a pool of workers.
-    - Plan phase: each bright star generated for the selected level
-      (PERF.5's band) is one task.
+    - A work queue with a pool of workers, run by an on-demand
+      supervisor, not a daemon: queuing work starts the supervisor when
+      none is alive, it runs while there are tasks, and it exits after
+      about 60 s idle, so an idle server runs nothing.
+    - Plan phase: the bright-star scatter for the selected level
+      (PERF.5's band) runs as parallel tasks.
     - Sector fill: each sector is one parent task that stays running
       until its sector is full; each star system in it is its own child
       task that the queue runs in parallel.
@@ -853,18 +946,39 @@ MAP.48 and MAP.37, all fixed.
       macOS, below-normal priority on Windows) so other processes on the
       machine come first.
 
-    Open questions: processes or threads (Python's GIL means CPU-bound
-    generation needs processes, which then each need their own database
-    connections, so the pool size and PERF.6's rate limit have to fit
-    the worker count); how 80% is enforced (a worker count of 80% of the
-    cores, or measuring load and throttling); whether the queue lives
-    inside the API process or in a separate worker service the API talks
-    to, and how command-line `generate.py` runs use it; how random seeds
-    are handed to tasks so a galaxy comes out the same however many
-    workers ran it and in whatever order they finished; how two systems
-    in one sector avoid clashing on names and positions when they are
-    built at the same time; and what happens to queued and half-done
-    tasks when the server restarts or a job is cancelled.
+    Decided defaults (report of 2026-10-01: https://claude.ai/code/artifact/4111c1a8-0d63-4b6c-b109-1b8389538a13):
+    - Processes, not threads (the GIL), through a `ProcessPoolExecutor`
+      with the spawn start method so Linux, macOS and Windows behave the
+      same.
+    - 80%: `max(1, floor(0.8 x cores))` workers, one fewer when MySQL
+      runs on the same machine, each at `os.nice(10)` or
+      `BELOW_NORMAL_PRIORITY_CLASS`; optionally hold back new tasks
+      while the load average is above 80% of the cores.
+    - Not in the API process: mod_wsgi runs one process with 5 threads
+      that serve every page and is recycled by Apache. The supervisor is
+      its own detached process (`src/workQueue.py`), spawned the way
+      `web/jobs.py` spawns `jobRunner.py` today; no systemd unit,
+      launchd plist or Windows service to install. Command-line
+      `generate.py` becomes the supervisor itself, in the foreground with
+      its bars.
+    - Queue storage: a `tasks` table in the control database (job,
+      parent, kind, payload, state, attempts, timings, result) plus a
+      supervisor lease row refreshed every 5 s; a lease older than 30 s
+      counts as dead and the next enqueue or Generate page load starts a
+      new supervisor. Claims are `UPDATE ... LIMIT n` (no `SKIP LOCKED`,
+      which MariaDB 10.4 lacks). Only sector-level and scatter tasks go
+      in the table, added a ring batch at a time; per-system child tasks
+      live in the supervisor's memory.
+    - Seeds: each child task seeds `random` from the job seed, its sector
+      address and its request number, so results don't depend on worker
+      count or finish order (positions stay OS-random, as today).
+    - Names and positions: children don't touch the database; the
+      parent places systems and reserves names in bulk (PERF.14).
+    - Restart or cancel: a sector is one transaction, so a half-done
+      sector rolls back and its task returns to the queue; cancelling a
+      job stops new dispatches and ends its workers.
+    - Reset, the skeleton build and schema work keep `web/jobs.py`'s
+      one-at-a-time lock.
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss

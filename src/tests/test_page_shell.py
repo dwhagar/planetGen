@@ -115,3 +115,29 @@ def test_markdown_tables_scroll_inside_their_own_box():
     html = markdown_to_html("| a | b |\n|---|---|\n| 1 | 2 |\n")
     assert '<div class="table-scroll" tabindex="0"><table>' in html
     assert "</table></div>" in html
+
+
+def _stylesheet():
+    return open(os.path.join(_HTML_DIR, "static", "style.css"), encoding="utf-8").read()
+
+
+def test_one_shared_rule_spaces_every_button_group():
+    """UX.16: one gap token, larger on touch screens, used by a rule that
+    matches any box holding two or more buttons."""
+    css = _stylesheet()
+    assert re.search(r":root \{[^}]*--btn-gap: 0\.5rem;", css)
+    assert re.search(r"@media \(pointer: coarse\) \{\s*:root \{\s*--btn-gap: 0\.75rem;", css)
+    rule = re.search(r":is\(div, p, span, form[^{]*\{([^}]*)\}", css)
+    assert rule, "the shared button-gap rule is missing"
+    assert "~ :is(button, .btn, .starmap-btn)" in rule.group(0)
+    assert "gap: var(--btn-gap);" in rule.group(1) and "flex-wrap: wrap;" in rule.group(1)
+
+
+def test_data_sits_beside_the_render_when_there_is_room():
+    """UX.15: container queries (not viewport ones) put the System Map's
+    info panel and a phenomenon's data beside the render."""
+    css = _stylesheet()
+    assert "container: sysmap-layout / inline-size;" in css
+    assert "@container sysmap-layout (min-width: 46rem)" in css
+    assert "container: object-view / inline-size;" in css
+    assert "@container object-view (min-width: 50rem)" in css
