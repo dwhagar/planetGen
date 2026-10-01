@@ -53,6 +53,7 @@ function render(job, log) {
   }
   setText("[data-job-progress-text]", progressText);
   setText("[data-job-elapsed]", job.elapsed_text || "");
+  setText("[data-job-remaining]", job.remaining_text ? `about ${job.remaining_text} left` : "");
 
   const error = panel.querySelector("[data-job-error]");
   if (error) {

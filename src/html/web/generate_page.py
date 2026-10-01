@@ -364,6 +364,14 @@ def _job_view(job):
         if job.get("created_at") else ""
     view["created_html"] = trusted_html(utc_time_html(job.get("created_at")))
     view["elapsed_text"] = format_elapsed(job.get("elapsed_s"))
+    # The run's own decaying-average ETA (PERF.7), counted down from when
+    # it was written, so the page and the terminal agree.
+    eta_s = progress.get("eta_s")
+    remaining = None
+    if eta_s is not None and not job.get("finished"):
+        updated_at = progress.get("updated_at") or time.time()
+        remaining = max(0.0, float(eta_s) - max(0.0, time.time() - float(updated_at)))
+    view["remaining_text"] = format_elapsed(remaining)
     return view
 
 
