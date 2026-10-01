@@ -27,6 +27,9 @@ jobs:
   test:
     name: test (${{ matrix.python-version }}, ${{ matrix.db-image }})
     runs-on: ${{ fromJSON((github.event.pull_request.head.repo.fork && '"ubuntu-latest"') || vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
+    # The whole suite takes about 4 minutes on 4 cores; a run past an hour
+    # is stuck, and would otherwise hold a self-hosted runner for 6 hours.
+    timeout-minutes: 60
     strategy:
       # Without this, the default fail-fast:true cancels every other
       # still-running matrix leg the moment any one of them fails -- e.g.
@@ -103,7 +106,10 @@ jobs:
           PLANETGEN_TEST_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
         # One worker per core (docs/testing.md, "Running in parallel");
         # worksteal rebalances the few minute-long tests across workers.
-        run: pytest -n auto --dist worksteal
+        # A test still running after 10 minutes is stuck: --timeout fails
+        # it with every thread's stack, so the log shows where.
+        # --durations lists the slowest tests, to compare runners.
+        run: pytest -n auto --dist worksteal --timeout=600 --durations=25
 
   browser-a11y:
     # tests/test_web_a11y.py: every Flask page in headless Chromium at
