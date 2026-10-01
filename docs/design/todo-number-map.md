@@ -532,7 +532,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.76 | Leader-line layout | none | open |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | open |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
-| MAP.79 | Rogue planets clog the Sector Map: a show/hide button per kind of object (bug) | none | open |
+| MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
