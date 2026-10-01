@@ -2315,6 +2315,24 @@ few pixels across at every zoom, so a zoomed-out view of 27 tiles shows
 about ten thousand, tracing the spiral arms; zooming in switches to
 smaller tiles that hold the dimmer ones."""
 
+GALAXY_TILE_BRIGHTEST_SAMPLE = 100000
+"""int: How many of the galaxy's most luminous bright stars `galaxy_tiles`
+reads in one go (once per request, only when a tile needs it) to answer
+tiles too big to query on their own -- see
+`GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET`. A tile of a few kiloparsecs holds a
+few hundred of them, so zoomed out every tile still fills its
+`GALAXY_TILE_MAX_BRIGHT_STARS`."""
+
+GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = 50000
+"""int: Most `bright_stars` rows one tile's own query may expect to read
+(the cheaper of `galaxy_bright_stars_in_box`'s two ways). A tile that
+would read more -- a big tile with millions of stars, or one mostly past
+the galaxy's edge, where the luminosity walk finds few stars inside --
+takes its stars from the galaxy-wide sample instead: the brightest
+stars inside it, thinned by luminosity when the sample holds fewer than
+the tile's cap there. Before this a zoomed-out request could run past
+the web app's 30 s API timeout and the stars vanished (MAP.47)."""
+
 BRIGHT_STAR_MAX_EXACT_RANGES = 2000
 """int: Most `(ring, layer)` index ranges one tile's bright-star query
 lists before it reads each ring's layers in one range instead."""
@@ -2459,7 +2477,30 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     return [_bright_star_entry(row) for row in rows]
 
 
-def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False):
+def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
+    """
+    The galaxy's `count` most luminous bright stars, most luminous first
+    (ties by descending id) -- `galaxy_tiles`' sample for tiles too big to
+    query on their own. One walk down `idx_bright_stars_luminosity`.
+
+    Returns:
+        list[dict]: As `galaxy_bright_stars_in_box`.
+    """
+    rows = conn.execute(
+        """
+        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+        FROM bright_stars FORCE INDEX (idx_bright_stars_luminosity)
+        ORDER BY luminosity_w DESC, id DESC
+        LIMIT ?
+        """,
+        (int(count),),
+    ).fetchall()
+    return [_bright_star_entry(row) for row in rows]
+
+
+def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False,
+                               brightest=None):
     """
     The most luminous pre-placed bright stars (`bright_stars`) in the box
     `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
@@ -2482,9 +2523,15 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
         unfilled_only (bool): Only the stars whose sector hasn't been
             filled yet (`system_id` is `None`) -- what a page listing the
             stars still waiting in a box shows.
+        brightest (callable or None): Returns the galaxy-wide sample
+            (`galaxy_brightest_stars`). When given and the box would read
+            more than `GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET` rows either way,
+            the answer is the sample's stars inside the box instead: the
+            same stars whenever the sample holds `limit` of them there,
+            else only those (thinned by luminosity).
 
     Returns:
-        list[dict]: Most luminous first: `id`, `x`/`y`/`z` (parsecs),
+        list[dict]: Most luminous first (ties by descending id): `id`, `x`/`y`/`z` (parsecs),
             `luminosity_sol`, `temperature_k`, `star_type`,
             `yerkes_class`, `ring_index`, `layer_index`,
             `ring_slot_index` and `system_id` (the star's system once its
@@ -2510,13 +2557,34 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
     outer_ring = int(conn.execute("SELECT COALESCE(MAX(ring_index), 0) AS r FROM galaxy_column").fetchone()["r"])
     outer_ring = outer_ring or bands[-1][0]
     disk = math.pi * ((outer_ring + 1) * edge_pc) ** 2
+    intervals = _box_angle_intervals(lo, hi)
     ring_share = sum(2 * ring + 1 for ring, _b, _t in bands) / float((outer_ring + 1) ** 2)
+    angle_share = min(1.0, sum(end - start for start, end in intervals) / (2 * math.pi))
     box_share = min(1.0, (hi[0] - lo[0]) * (hi[1] - lo[1]) / disk)
-    by_address = ring_share * total
+    # The address index is (ring, layer, slot), so only the box's own
+    # longitudes of each ring are read.
+    by_address = ring_share * angle_share * total
     by_luminosity = limit / max(box_share, 1e-12)
 
-    intervals = _box_angle_intervals(lo, hi)
+    if brightest is not None and min(by_address, by_luminosity) > GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET:
+        found = []
+        for star in brightest():
+            if unfilled_only and star["system_id"] is not None:
+                continue
+            # The stored positions are whole micro-parsecs; test them as
+            # the query does.
+            if all(math.ceil(lo[a] * MPC_PER_PC) <= round(star[k] * MPC_PER_PC) < math.ceil(hi[a] * MPC_PER_PC)
+                   for a, k in enumerate(("x", "y", "z"))):
+                found.append(star)
+                if len(found) >= limit:
+                    break
+        return found
+
     clauses, params = [], []
+    # Both keys descending, so the luminosity path walks its index
+    # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
+    # sort every star in the box first, millions in a zoomed-out tile.
+    order = "luminosity_w DESC, id DESC"
     if by_luminosity < by_address:
         where, index = box, "idx_bright_stars_luminosity"
     else:
@@ -2536,7 +2604,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
                star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
         FROM bright_stars FORCE INDEX ({index})
         WHERE {where}
-        ORDER BY luminosity_w DESC, id
+        ORDER BY {order}
         LIMIT ?
         """,
         params + box_params + [int(limit)],
@@ -2584,6 +2652,13 @@ def galaxy_tiles(conn, tile_keys):
         expected_system_count = None
 
     cloud_margins = _cloud_margins_pc(conn) if parsed else {}
+    sample = []
+
+    def brightest():
+        if not sample:
+            sample.append(galaxy_brightest_stars(conn))
+        return sample[0]
+
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
@@ -2596,7 +2671,7 @@ def galaxy_tiles(conn, tile_keys):
         )
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
         clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
-        stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc)
+        stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest)
         tiles[key] = {"placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars}
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
