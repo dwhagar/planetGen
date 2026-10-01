@@ -9,9 +9,12 @@ that job's directory. While it is set, `report` writes the run's current
 progress there as a small JSON object, which the page reads to draw its
 progress bar:
 
-    {"description": "Sectors", "completed": 12, "total": 40, "updated_at": 1759236000.0}
+    {"description": "Sectors", "completed": 12, "total": 40, "rate": 0.8,
+     "eta_s": 35.0, "updated_at": 1759236000.0}
 
-`total` is `null` when the amount of work isn't known up front. Writes are
+`total` is `null` when the amount of work isn't known up front; `rate`
+(units per second) and `eta_s` (seconds left, as of `updated_at`) are
+`null` until the first unit is done. Writes are
 atomic (a temp file renamed over the old one) and throttled to a few per
 second, so a fast loop costs nothing. Without the variable (every
 terminal run) `report` does nothing.
@@ -31,7 +34,7 @@ MIN_INTERVAL_SECONDS = 0.5
 _last_write = 0.0
 
 
-def report(completed, total=None, description=None, force=False):
+def report(completed, total=None, description=None, force=False, rate=None, eta_s=None):
     """
     Writes the current progress to `$PLANETGEN_PROGRESS_FILE`, if set.
     Never raises: progress is a nicety, never a reason to fail a run.
@@ -42,6 +45,10 @@ def report(completed, total=None, description=None, force=False):
         description (str, optional): What is being counted ("Sectors").
         force (bool): Write even if the last write was very recent (use
             for the final count).
+        rate (float, optional): Units finished per second, the decaying
+            average the terminal's ETA uses (`progressRate`).
+        eta_s (float, optional): Seconds left at that rate, as of
+            `updated_at`.
     """
     global _last_write
     path = os.environ.get(ENV_VAR)
@@ -55,6 +62,8 @@ def report(completed, total=None, description=None, force=False):
         "description": description,
         "completed": completed,
         "total": total,
+        "rate": rate,
+        "eta_s": eta_s,
         "updated_at": now,
     }
     try:
