@@ -21,7 +21,7 @@ every link is a plain GET link (`page_url`).
 from flask import abort, redirect, request
 import apiclient
 from fmt import (
-    format_number, runaway_text,
+    format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
     nearest_systems_html,
 )
@@ -409,8 +409,8 @@ def _optional(fmt):
     return lambda v: fmt(v) if v is not None else None
 
 
-_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", lambda v: f"{format_number(v, ',.1f')} km/s")
-_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: f"{format_number(v, ',.2f')} Gy")
+_SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", format_speed_kms)
+_PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: format_period_years(v * 1e9))
 
 FIELD_SPECS = {
     "nebula": [
@@ -445,7 +445,7 @@ FIELD_SPECS = {
     "neutron_star": [
         ("mass_solar", "Mass", lambda v: f"{format_number(v, ',.2f')} solar masses"),
         ("radius_km", "Radius", _km),
-        ("spin_period_ms", "Spin Period", lambda v: f"{format_number(v, ',.2f')} ms"),
+        ("spin_period_ms", "Spin Period", lambda v: format_duration_seconds(v / 1000)),
         ("magnetic_field_gauss", "Magnetic Field", lambda v: f"{v:.2e} G"),
         ("pulsar_type", "Pulsar Type", _title_case),
         ("surface_temperature_k", "Surface Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
@@ -476,7 +476,7 @@ FIELD_SPECS = {
     ],
     "interstellar_comet": [
         ("nucleus_diameter_km", "Nucleus Diameter", _km),
-        ("velocity_kms", "Velocity", lambda v: f"{format_number(v, ',.1f')} km/s"),
+        ("velocity_kms", "Velocity", format_speed_kms),
         ("is_active", "Active", _bool_text),
         ("composition_summary", "Composition", str),
         _SPEED, _PERIOD,

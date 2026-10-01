@@ -29,7 +29,7 @@ from . import physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
-                    years_to_time_string)
+                    format_period_years, format_speed_kms)
 
 
 class Planet:
@@ -426,8 +426,8 @@ class Planet:
         properties = {
             "class": self.planet_class,
             "distance": distance_text,
-            "period": years_to_time_string(self.period),
-            "speed": f"{self.orbital_speed_kms:.2f} km/s",
+            "period": format_period_years(self.period),
+            "speed": format_speed_kms(self.orbital_speed_kms),
             "radius": radius_string,
             "gravity": f"{round(self.gravity, 3)} g",
         }

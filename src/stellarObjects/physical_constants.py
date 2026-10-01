@@ -36,6 +36,7 @@ GIGAPARSEC_M = PARSEC_M * 1e9
 AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 2.998e8  # Speed of light in a vacuum, m/s -- used for Schwarzschild radius (compactRemnant.BlackHole)
+SPEED_OF_LIGHT_KMS = 299_792.458  # Exact (the SI definition), km/s -- the speed ladder's c (utils.format_speed_kms, static/speed.js)
 R = 8.314  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
 STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴

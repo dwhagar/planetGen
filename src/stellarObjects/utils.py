@@ -330,6 +330,108 @@ def format_distance_pc(pc):
     return format_distance_m(None if pc is None else pc * physical_constants.PARSEC_M)
 
 
+# The speed ladder (UX.13), slowest first: (label, km/s per unit, shown
+# from this many km/s up). Boss, 2026-10-01: "km/h on the low speed end to
+# Mm/s on the high speed end", then multiples of c from a tenth of light
+# speed. `static/speed.js` mirrors it.
+SPEED_LADDER = (
+    ("km/h", 1 / 3600, 0.0),
+    ("km/s", 1.0, 1.0),
+    ("Mm/s", 1e3, 1e3),
+    ("c", physical_constants.SPEED_OF_LIGHT_KMS, 0.1 * physical_constants.SPEED_OF_LIGHT_KMS),
+)
+
+
+def format_speed_kms(kms):
+    """
+    Formats a speed in the most meaningful unit on the ladder km/h < km/s <
+    Mm/s < c: km/h below 1 km/s, km/s up to 1,000 km/s, Mm/s up to a tenth
+    of light speed, then multiples of c. One unit, three significant
+    figures, in `format_distance_m`'s number style.
+
+    Every page and text output passes its plain speeds through this rather
+    than formatting them itself; `static/speed.js` mirrors it. Warp and
+    fold factors (`navigation.py`) keep their own "x c" columns.
+
+    Args:
+        kms (float): The speed, in km/s.
+
+    Returns:
+        str: e.g. "36 km/h", "29.8 km/s", "4.5 Mm/s", "0.25 c". `None`
+             gives an en dash.
+    """
+    if kms is None:
+        return "–"
+    kms = float(kms)
+    if not math.isfinite(kms):
+        return f"{kms:g} km/s"
+    size = abs(kms)
+    label, unit_kms, _ = SPEED_LADDER[0]
+    for candidate_label, candidate_kms, threshold_kms in SPEED_LADDER:
+        if size >= threshold_kms * (1 - 1e-12):
+            label, unit_kms = candidate_label, candidate_kms
+    return f"{_three_figures(kms / unit_kms)} {label}"
+
+
+def format_speed_ms(ms):
+    """`format_speed_kms` for a value in m/s."""
+    return format_speed_kms(None if ms is None else ms / physical_constants.KM_M)
+
+
+# The time-period ladder (UX.14), shortest first: (plural label, singular
+# label, seconds). A Julian year of 365.25 days, as SECONDS_PER_YEAR.
+# `static/period.js` mirrors it.
+PERIOD_LADDER = (
+    ("µs", "µs", 1e-6),
+    ("ms", "ms", 1e-3),
+    ("s", "s", 1.0),
+    ("minutes", "minute", 60.0),
+    ("hours", "hour", 3600.0),
+    ("days", "day", 86400.0),
+    ("years", "year", physical_constants.SECONDS_PER_YEAR),
+    ("ky", "ky", physical_constants.SECONDS_PER_YEAR * 1e3),
+    ("My", "My", physical_constants.SECONDS_PER_YEAR * 1e6),
+    ("Gy", "Gy", physical_constants.SECONDS_PER_YEAR * 1e9),
+)
+
+
+def format_duration_seconds(seconds):
+    """
+    Formats a time period or duration in the most meaningful unit on the
+    ladder µs < ms < s < minutes < hours < days < years < ky < My < Gy: the
+    largest unit the value is at least 1 of, as `format_distance_m` does.
+    One unit, three significant figures, singular when the shown value is
+    exactly 1 ("1 year", "1 day"). `static/period.js` mirrors it.
+
+    Args:
+        seconds (float): The duration, in seconds.
+
+    Returns:
+        str: e.g. "12.5 ms", "45 minutes", "27.3 days", "1.88 years",
+             "236 My". Zero is "0 s"; `None` gives an en dash.
+    """
+    if seconds is None:
+        return "–"
+    seconds = float(seconds)
+    if not math.isfinite(seconds):
+        return f"{seconds:g} years"
+    if seconds == 0:
+        return "0 s"
+    size = abs(seconds)
+    plural, singular, unit_s = PERIOD_LADDER[0]
+    for candidate in PERIOD_LADDER:
+        if size >= candidate[2] * (1 - 1e-12):
+            plural, singular, unit_s = candidate
+    number = _three_figures(seconds / unit_s)
+    return f"{number} {singular if number == '1' else plural}"
+
+
+def format_period_years(years):
+    """`format_duration_seconds` for a value in (Julian) years -- every
+    orbital period the generator stores is in years or Gy."""
+    return format_duration_seconds(None if years is None else years * physical_constants.SECONDS_PER_YEAR)
+
+
 def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None):
     """
     A planet, moon or star radius: always km in scientific notation (Boss,
@@ -587,51 +689,6 @@ def format_age_string(age_gy, precision=2):
         return f"{age_gy:.{precision}f} Billion Years"
     else:
         return f"{age_gy * 1000:.{precision}f} Million Years"
-
-def years_to_time_string(years):
-    """
-    Converts a decimal number of years into a human-readable string.
-
-    The output format is "x years y days z hours m minutes", with any zero-value
-    components omitted for brevity. This provides a more intuitive representation
-    of orbital periods.
-
-    Args:
-        years (float): The number of years to convert.
-
-    Returns:
-        str: A human-readable string representing the time duration.
-    """
-    # A year is 365.25 days everywhere in this function -- extracting whole
-    # years back out with a plain 365-day divisor (an earlier bug) leaked
-    # that quarter-day/year discrepancy into "days" instead, e.g.
-    # years_to_time_string(1.0) wrongly returned "1 year and 6 hours".
-    if years >= 10 ** (SCIENTIFIC_MIN_INTEGER_DIGITS - 1):
-        # 5+ digits of years: scientific notation, and days are noise.
-        return f"{scientific_text(years)} years"
-    minutes_per_year = 365.25 * 24 * 60
-    total_minutes = round(years * minutes_per_year)
-    years = int(total_minutes // minutes_per_year)
-    remaining_minutes = total_minutes - round(years * minutes_per_year)
-    days = remaining_minutes // (24 * 60)
-    remaining_minutes %= 24 * 60
-    hours = remaining_minutes // 60
-    minutes = remaining_minutes % 60
-
-    time_parts = []
-    if years > 0:
-        time_parts.append(f"{years} year{'s' if years > 1 else ''}")
-    if days > 0:
-        time_parts.append(f"{days} day{'s' if days > 1 else ''}")
-    if hours > 0:
-        time_parts.append(f"{hours} hour{'s' if hours > 1 else ''}")
-    if minutes > 0:
-        time_parts.append(f"{minutes} minute{'s' if minutes > 1 else ''}")
-
-    if len(time_parts) > 1:
-        time_parts[-1] = f"and {time_parts[-1]}"
-    return " ".join(time_parts)
-
 
 def calculate_object_mass(object_class, object_radius, planet_classes, planet_density, object_density=None):
     """
@@ -1167,9 +1224,10 @@ def format_galactic_orbit(speed_kms, period_gy):
         period_gy (float): Orbital period, billions of years.
 
     Returns:
-        str: e.g. `"205.7 km/s (236.26 Million Years per orbit)"`.
+        str: e.g. `"206 km/s (236 My per orbit)"`, both on the shared
+             ladders (`format_speed_kms`, `format_period_years`).
     """
-    return f"{format_number(speed_kms, ',.1f')} km/s ({format_age_string(period_gy)} per orbit)"
+    return f"{format_speed_kms(speed_kms)} ({format_period_years(period_gy * 1e9)} per orbit)"
 
 
 @finite_domain()
