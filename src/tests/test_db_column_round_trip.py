@@ -38,7 +38,8 @@ NULL_IN_THIS_GALAXY = {
     # Only something sitting inside a nebula or supernova remnant.
     **{(table, column): CHANCE for table in _db.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar only exists placed at a galaxy's own center; the CLI's is standalone.
-    **{("quasars", column): "standalone quasar" for column in SECTOR_PLACEMENT + ("jet_length_ly",)},
+    **{("quasars", column): "standalone quasar" for column in SECTOR_PLACEMENT},
+    ("quasars", "jet_length_ly"): CHANCE,
     # The CLI can't place a supernova remnant, and whether it has a core is chance.
     **{("supernova_remnants", column): "standalone remnant" for column in SECTOR_PLACEMENT},
     **{("supernova_remnants", column): CHANCE for column in
