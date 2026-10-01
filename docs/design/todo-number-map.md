@@ -335,8 +335,8 @@ Sorted by old number, then date.
 | 68 | 2026-10-01 02:13Z to 05:29Z | USR.6 | Owner transfer | open |
 | 68 | 2026-10-01 02:24Z to 02:26Z | MAP.21 | Sector Map pick mode and Nav links | done in 7.58.0, PR #178 |
 | 69 | 2026-10-01 02:13Z to 05:29Z | USR.7 | User-level interface with bookmarks | open |
-| 69 | 2026-10-01 02:24Z to 02:26Z | MAP.22 | NAV page picks on the map | open |
-| 70 | 2026-10-01 02:24Z to 02:26Z | MAP.23 | Bookmarks | open |
+| 69 | 2026-10-01 02:24Z to 02:26Z | MAP.22 | NAV page picks on the map | done, Bookmarks select on NAV, PR #234 |
+| 70 | 2026-10-01 02:24Z to 02:26Z | MAP.23 | Bookmarks | done, per-browser bookmarks (static/bookmarks.js), PR #234 |
 | 70 | 2026-10-01 02:27Z to 03:54Z | MAP.28 | Nested ladder geometry (drill-down section 3) | done in 7.41.2, PR #160 |
 | 71 | 2026-10-01 02:24Z to 02:26Z | MAP.24 | Address bar | done in 7.50.0, PR #172 |
 | 71 | 2026-10-01 02:27Z to 03:54Z | MAP.29 | Stage contents API (drill-down section 7) | done in 7.41.3, PR #160 |
@@ -345,8 +345,8 @@ Sorted by old number, then date.
 | 73 | 2026-10-01 02:24Z to 02:26Z | MAP.27 | NAV course on the Galaxy Map | done in 7.52.0, PR #176 |
 | 73 | 2026-10-01 02:27Z to 05:29Z | MAP.20 | Generate from the sector level | done: map buttons and radius dialog in 7.53.0 (PR #177), block and layer generate after 7.58.2 (PR #182, #183) |
 | 74 | 2026-10-01 02:27Z to 05:05Z | MAP.21 | Sector Map pick mode and Nav links | done in 7.58.0, PR #178 |
-| 75 | 2026-10-01 02:27Z to 05:29Z | MAP.22 | NAV page picks on the map | open |
-| 76 | 2026-10-01 02:27Z to 05:29Z | MAP.23 | Bookmarks | open |
+| 75 | 2026-10-01 02:27Z to 05:29Z | MAP.22 | NAV page picks on the map | done, Bookmarks select on NAV, PR #234 |
+| 76 | 2026-10-01 02:27Z to 05:29Z | MAP.23 | Bookmarks | done, per-browser bookmarks (static/bookmarks.js), PR #234 |
 | 77 | 2026-10-01 02:27Z to 04:41Z | MAP.24 | Address bar | done in 7.50.0, PR #172 |
 | 78 | 2026-10-01 02:27Z to 05:29Z | MAP.25 | "Show on Galaxy Map" links | done after 7.58.2, PR #188 (bug MAP.26 fixed, PR #208) |
 | 79 | 2026-10-01 02:27Z to 04:51Z | MAP.27 | NAV course on the Galaxy Map | done in 7.52.0, PR #176 |
@@ -372,14 +372,14 @@ Sorted by old number, then date.
 | 99 | 2026-10-01 05:15Z to 05:29Z | MAP.37 | Generated systems are hard to find on the map (bug) | done, PR #201 |
 | 100 | 2026-10-01 05:22Z to 05:29Z | MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | done, PR #208 |
 | 101 | 2026-10-01 05:24Z to 05:29Z | MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | done, PR #208 |
-| 102 | 2026-10-01 05:27Z to 05:29Z | UX.13 | One meaningful-unit ladder for speeds | open |
-| 103 | 2026-10-01 05:27Z to 05:29Z | UX.14 | One meaningful-unit ladder for time periods | open |
+| 102 | 2026-10-01 05:27Z to 05:29Z | UX.13 | One meaningful-unit ladder for speeds | done, PR #234 |
+| 103 | 2026-10-01 05:27Z to 05:29Z | UX.14 | One meaningful-unit ladder for time periods | done, PR #234 |
 | 104 | 2026-10-01 05:40Z to 05:54Z | MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | done, PR #200 |
 | 105 | 2026-10-01 05:43Z to 05:54Z | UX.15 | Put an object's data beside its 3D render when there's room (bug) | done, PR #195 |
 | 106 | 2026-10-01 05:43Z to 05:54Z | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | open |
 | 107 | 2026-10-01 05:44Z to 05:54Z | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | done, PR #200 |
-| 108 | 2026-10-01 05:44Z to 05:54Z | MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | open |
-| 109 | 2026-10-01 05:50Z to 05:56Z | MAP.30 | Slab list to the left of the map, and a 3:4 map | open |
+| 108 | 2026-10-01 05:44Z to 05:54Z | MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | done, PR #234 |
+| 109 | 2026-10-01 05:50Z to 05:56Z | MAP.30 | Slab list to the left of the map, and a 3:4 map | done (slab slider to the right of a 4:3 map), PR #234 |
 | 110 | 2026-10-01 05:50Z to 05:56Z | MAP.44 | Wedge lines and ring circles run far past a zoomed-in block (bug) | done, PR #208 |
 | 111 | 2026-10-01 05:50Z to 05:56Z | MAP.18 | The block under the pointer is too hard to see from above (bug) | done, PR #208 |
 
@@ -434,7 +434,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
-| MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
+| MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
 | MAP.4 | System Map names never overlap | 62 (2026-09-30 20:01Z to 20:27Z); 49 (2026-09-30 20:08Z to 2026-10-01 04:37Z) | done in 7.21.1, PR #135 (see note 3) |
 | MAP.5 | Rework the Galaxy Map | 9 (2026-09-24 01:32Z to 02:18Z); 6 (2026-09-24 01:57Z to 02:02Z); 4 (2026-09-24 02:25Z to 05:38Z); 3 (2026-09-24 02:53Z to 2026-09-30 17:58Z) | replaced on 2026-09-30 by MAP.31 to MAP.42 and MAP.1; bugs MAP.37 and MAP.43 fixed, PR #201 |
@@ -447,22 +447,22 @@ Parents marked "new parent" had no old number of their own.
 | MAP.12 | Arc-segment wireframe on the Sector Map | 60 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:08Z to 2026-10-01 00:34Z) | done in 7.29.1, PR #143 |
 | MAP.13 | Sector Map star dots sized to giants and white dwarfs | 55 (2026-10-01 00:07Z to 00:34Z) | done in 7.29.2, PR #143 |
 | MAP.14 | Bright stars on the Galaxy Map (new done item; never had a number) | none | done in 7.42.0, PR #160; bugs MAP.47, MAP.48 (PR #201) and MAP.51 (PR #214, #218) fixed |
-| MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | 108 (2026-10-01 05:44Z to 05:54Z) | open |
+| MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | 108 (2026-10-01 05:44Z to 05:54Z) | done, PR #234 |
 | MAP.16 | Drill-down stages | 66 (2026-10-01 02:24Z to 02:26Z); 72 (2026-10-01 02:27Z to 04:33Z) | done in 7.44.0, PR #171 (bug MAP.17 fixed, PR #208) |
 | MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | 100 (2026-10-01 05:22Z to 05:29Z) | done, PR #208 |
 | MAP.18 | The block under the pointer is too hard to see from above (bug) | 111 (2026-10-01 05:50Z to 05:56Z) | done, PR #208 |
 | MAP.19 | Big wedge picks in the drill-down (bug) | none | done, PR #208 |
 | MAP.20 | Generate from the sector level | 67 (2026-10-01 02:24Z to 02:26Z); 73 (2026-10-01 02:27Z to 05:29Z) | done: map buttons and radius dialog in 7.53.0 (PR #177), block and layer generate after 7.58.2 (PR #182, #183) |
 | MAP.21 | Sector Map pick mode and Nav links | 68 (2026-10-01 02:24Z to 02:26Z); 74 (2026-10-01 02:27Z to 05:05Z) | done in 7.58.0, PR #178 |
-| MAP.22 | NAV page picks on the map | 69 (2026-10-01 02:24Z to 02:26Z); 75 (2026-10-01 02:27Z to 05:29Z) | open |
-| MAP.23 | Bookmarks | 70 (2026-10-01 02:24Z to 02:26Z); 76 (2026-10-01 02:27Z to 05:29Z) | open |
+| MAP.22 | NAV page picks on the map | 69 (2026-10-01 02:24Z to 02:26Z); 75 (2026-10-01 02:27Z to 05:29Z) | done, Bookmarks select on NAV, PR #234 |
+| MAP.23 | Bookmarks | 70 (2026-10-01 02:24Z to 02:26Z); 76 (2026-10-01 02:27Z to 05:29Z) | done, per-browser bookmarks (static/bookmarks.js), PR #234 |
 | MAP.24 | Address bar | 71 (2026-10-01 02:24Z to 02:26Z); 77 (2026-10-01 02:27Z to 04:41Z) | done in 7.50.0, PR #172 |
 | MAP.25 | "Show on Galaxy Map" links | 72 (2026-10-01 02:24Z to 02:26Z); 78 (2026-10-01 02:27Z to 05:29Z) | done after 7.58.2, PR #188 (bug MAP.26 fixed, PR #208) |
 | MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | 101 (2026-10-01 05:24Z to 05:29Z) | done, PR #208 |
 | MAP.27 | NAV course on the Galaxy Map | 73 (2026-10-01 02:24Z to 02:26Z); 79 (2026-10-01 02:27Z to 04:51Z) | done in 7.52.0, PR #176 |
 | MAP.28 | Nested ladder geometry (drill-down section 3) | 64 (2026-10-01 02:24Z to 02:26Z); 70 (2026-10-01 02:27Z to 03:54Z) | done in 7.41.2, PR #160 |
 | MAP.29 | Stage contents API (drill-down section 7) | 65 (2026-10-01 02:24Z to 02:26Z); 71 (2026-10-01 02:27Z to 03:54Z) | done in 7.41.3, PR #160 |
-| MAP.30 | Slab list to the left of the map, and a 3:4 map | 109 (2026-10-01 05:50Z to 05:56Z) | open |
+| MAP.30 | Slab list to the left of the map, and a 3:4 map | 109 (2026-10-01 05:50Z to 05:56Z) | done (slab slider to the right of a 4:3 map), PR #234 |
 | MAP.31 | Spiral arms stand out in the density shading | 3 (2026-09-30 16:44Z to 18:09Z); 10 (2026-09-30 18:14Z to 22:03Z) | done in 7.9.0, PR #120 |
 | MAP.32 | Scale readout in sectors, pc and ly | 4 (2026-09-30 16:44Z to 18:09Z); 11 (2026-09-30 18:14Z to 22:03Z) | done in 7.9.0, PR #120 |
 | MAP.33 | Hybrid master-wedge slot rule (schema v35) | 5 (2026-09-30 16:44Z to 18:09Z); 12 (2026-09-30 18:14Z to 22:42Z) | done in 7.13.0, PR #129 |
@@ -561,8 +561,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.10 | Timestamps in the viewer's own time zone | 14 (2026-09-30 16:51Z to 18:09Z); 22 (2026-09-30 18:14Z to 23:48Z) | done in 7.21.0, PR #135 |
 | UX.11 | Paginated list of every system | 59 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:08Z to 23:48Z) | done in 7.20.0, PR #135 |
 | UX.12 | System page: one ordered list of everything in orbit | 61 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:08Z to 22:36Z) | done in 7.12.0, PR #126 |
-| UX.13 | One meaningful-unit ladder for speeds | 102 (2026-10-01 05:27Z to 05:29Z) | open |
-| UX.14 | One meaningful-unit ladder for time periods | 103 (2026-10-01 05:27Z to 05:29Z) | open |
+| UX.13 | One meaningful-unit ladder for speeds | 102 (2026-10-01 05:27Z to 05:29Z) | done, PR #234 |
+| UX.14 | One meaningful-unit ladder for time periods | 103 (2026-10-01 05:27Z to 05:29Z) | done, PR #234 |
 | UX.15 | Put an object's data beside its 3D render when there's room (bug) | 105 (2026-10-01 05:43Z to 05:54Z) | done, PR #195 |
 | UX.16 | Always leave space between buttons (bug) | none | done, PR #195 |
 | UX.17 | A view that suits each phenomenon | 25 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.57.0, PR #178 |
