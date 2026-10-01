@@ -1431,7 +1431,7 @@ DB.1 shipped in 7.35.0 (PR #152).
 
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
-  change the worker count including a \"Ludicrous Speed\" that will
+  change the worker count including a "Ludicrous Speed" that will
   basically change the system to run max CPU power on the system up to
   95% of available CPU power but periodized so that the web interface
   still works (even though they will be slow) and DB calls still work
