@@ -143,7 +143,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `44`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `45`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v44" notes) rather than duplicated here, since that
+comment ("v2" through "v45" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v43_to_v44`. `migrate_database`
+version, through `_migrate_v44_to_v45`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v44), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v45), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -522,6 +522,20 @@ supermassive black hole there instead, so every galaxy has one.
 `black_holes.mass_class` records whether a row is stellar-mass,
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
+
+**Id blocks (v45, PERF.13).** `id_blocks` holds one row per table in
+`_db.ID_BLOCK_TABLES` (sectors, star systems, their configs, stars,
+planets, moons, belts, comets and every phenomenon table): `table_name`
+and the `next_id` no writer has reserved yet. A new row in one of those
+tables gets its `id` from this process's current block
+(`_db._allocate_id`), not from AUTO_INCREMENT, so a sector's rows can be
+written many at a time (`Connection.batched`) with each child already
+knowing its parent's id. A block is reserved on its own autocommitted
+connection with `UPDATE ... SET next_id = LAST_INSERT_ID(GREATEST(next_id,
+MAX(id) + 1) + n)`, 64 ids at first and doubling up to 4,096, so writers
+never wait on each other's transactions; unused ids and rolled-back
+sectors only leave gaps. `_migrate_v44_to_v45` creates it empty, and a
+database without it yet simply falls back to AUTO_INCREMENT.
 
 **Population and politics (v44).** Filled by `generate.py population`
 (or `--population` on a `sector`/`galaxy` run, or the optional question

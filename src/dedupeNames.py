@@ -86,11 +86,10 @@ def _dedupe_sectors(conn):
     for base, group in _group_by_base(rows).items():
         already_done = _already_resolved_count(conn, "sector_name_registry", base)
         for row in group[already_done:]:
-            new_name, name_base = _db.reserve_sector_name(conn, base)
+            new_name, _name_base = _db.reserve_sector_name(conn, base, row["id"])
             if new_name != row["name"]:
                 conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (new_name, row["id"]))
                 renamed += 1
-            _db.confirm_sector_name(conn, name_base, row["id"])
     return renamed
 
 

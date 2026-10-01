@@ -861,6 +861,11 @@
 --   `generate.py population` (stellarObjects/population.py).
 --   `_migrate_v43_to_v44` creates them empty.
 --
+-- v45: id blocks for batched writes (PERF.13) -- the `id_blocks` table
+--   below hands each writer a block of ids per table, so a sector's
+--   rows can be written many at a time with their parents' ids already
+--   known. `_migrate_v44_to_v45` creates it; the rows fill on first use.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2389,6 +2394,18 @@ CREATE TABLE IF NOT EXISTS bright_stars (
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- ---------------------------------------------------------------------
+-- id_blocks (v45, PERF.13): the next unreserved id for each table in
+-- `_db.ID_BLOCK_TABLES`. `_db._allocate_id` moves `next_id` up by a
+-- block at a time (never below the table's own MAX(id) + 1) and the
+-- writer then names those ids in its INSERTs. Reserved on a separate
+-- autocommitted connection, so writers don't queue behind each other.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS id_blocks (
+    table_name  VARCHAR(64) NOT NULL PRIMARY KEY,
+    next_id     BIGINT UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- Population and politics (v44, POP.1 to POP.4): see

@@ -50,7 +50,7 @@ Usage:
 import argparse
 import sys
 
-from stellarObjects._db import add_mysql_connection_args, get_connection, mysql_config_from_args
+from stellarObjects._db import add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args
 
 _EXCLUDED_TABLES = {"schema_migrations"}
 """set: Real tables that exist in every fresh database but hold DDL
@@ -168,6 +168,9 @@ def reset_database(config, dry_run=False, assume_yes=False):
         finally:
             conn.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
+        # id_blocks was emptied too; this process's cached blocks would
+        # carry on past the old ids.
+        forget_id_blocks(config._key())
 
         print(f"Wiped {len(tables)} table(s) ({total_rows:,} row(s)) from '{config.database}'.")
         print("Ready for a new galaxy -- e.g.:")
