@@ -189,14 +189,21 @@ connectivity to that specific schema rather than the default one.
   65,536 pc on a side centered on the galactic origin, each level halves
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...]}}, "edge_pc": ...,
-  "has_shape": ...}`:
+  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...}}},
+  "edge_pc": ..., "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
   `designation` and `edge_ly`, this sector's real edge length, `null` if it
   predates per-sector edge tracking), lowest id first,
   at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise). Predicted density isn't
+  slots, only for 16 pc tiles (empty otherwise); `filled` counts every
+  placed sector in the tile, nothing sampled (`queryDb.galaxy_filled_in_box`):
+  `{"g": 1, "cells": [[ring, layer, slot, id, system_count, name], ...]}`
+  one per sector, or, for large tiles or more than 5,000 sectors, `{"g": g,
+  "cells": [[ring, layer, wedge, count], ...]}` per cell `g` sectors a side
+  (`g` a power of 3; cell ring `I` has `max(3, round(2π(I + ½)))` wedges
+  from +x, and a sector counts in the wedge holding its center angle).
+  The Galaxy Map sums these into its blocks. Predicted density isn't
   served: the page evaluates the galaxy's shape itself
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the

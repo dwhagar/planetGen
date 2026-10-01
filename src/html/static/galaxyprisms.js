@@ -377,6 +377,49 @@ export function blocksForView(center, viewRadius, edgePc, galaxyRadius, shape, d
   }
 }
 
+// Block (ring, seg, slab) m sectors a side holding galaxy-frame point
+// (x, y, z): the same cell every sector whose center is there belongs to.
+export function blockAddressAt(x, y, z, m, edgePc) {
+  var size = m * edgePc;
+  var ring = Math.floor(Math.hypot(x, y) / size);
+  var wedges = blockWedgeCount(ring, m);
+  var theta = ((Math.atan2(y, x) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  return {
+    ring: ring,
+    seg: Math.min(wedges - 1, Math.floor((theta * wedges) / (2 * Math.PI))),
+    slab: Math.round(z / size),
+  };
+}
+
+// One block as blocksInView lists it (bounds, density, meanDensity), for
+// a block the listing skipped -- an interior one holding filled sectors.
+// Without a shape, density and meanDensity are null.
+export function blockAt(ring, seg, slab, m, edgePc, shape, densityCache) {
+  var size = m * edgePc;
+  var dTheta = (2 * Math.PI) / blockWedgeCount(ring, m);
+  var b = {
+    ring: ring, seg: seg, slab: slab,
+    r0: ring * size, r1: (ring + 1) * size, t0: seg * dTheta, t1: (seg + 1) * dTheta,
+    z0: (slab - 0.5) * size, z1: (slab + 0.5) * size,
+  };
+  if (!shape) {
+    b.density = null;
+    b.meanDensity = null;
+    return b;
+  }
+  var key = ring + "/" + seg + "/" + slab;
+  var sampled = densityCache ? densityCache.get(key) : undefined;
+  if (sampled === undefined) {
+    sampled = meanDensity(b.r0, b.r1, b.t0, b.t1, b.z0, b.z1, shape);
+    if (densityCache) {
+      densityCache.set(key, sampled);
+    }
+  }
+  b.density = sampled.density;
+  b.meanDensity = sampled.mean;
+  return b;
+}
+
 // Blocks m sectors a side overlapping the view ball. Returns [{ring, seg,
 // slab, r0, r1, t0, t1, z0, z1, density, meanDensity}]: the block's
 // address on the block grid and its bounds (see blockSectorRanges for the
@@ -393,16 +436,10 @@ export function blocksForView(center, viewRadius, edgePc, galaxyRadius, shape, d
 //   (and the same for tops), so blocks exposed only that way are dropped.
 // densityCache (a Map, optional) keeps per-block densities between calls
 // at the same size.
-// TODO(galaxy-map #15): the interior skip is only valid for opaque blocks.
-// A translucent (unfilled) block lets its neighbours show through. So:
-// - cull interior blocks only when every neighbour is filled;
-// - list unfilled interior blocks while they are within the view and the
-//   budget;
-// - otherwise, at large m, draw the unfilled volume as a thinner shell
-//   (the outline, plus the slice face).
-// Each listed block gets `filled` (the count of its generated sectors,
-// from the tiles' placed lists) and `total` (blockSectorCount) alongside
-// `density`, so the page can set its opacity from filled / total.
+// Unfilled blocks are translucent on the page, but the listing still
+// skips the interior: unfilled space is drawn as a shell (its outline and
+// the slice face), and the page adds the interior blocks that hold filled
+// sectors itself (blockAt), which show through that shell.
 export function blocksInView(center, viewRadius, m, edgePc, shape, galaxyRadius, densityCache, options) {
   if (!isPowerOfThree(m)) throw new Error("blocks are a power of 3 sectors a side");
   options = options || {};

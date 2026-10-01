@@ -1,7 +1,7 @@
 // html/static/galaxymap3d.js
 // TODO(galaxy-map #18): the renderer stays three.js (vendored r186).
 // Babylon.js and deck.gl need a bundler or ship several MB; regl or raw
-// WebGPU would mean rewriting picking, sprites and lighting. The slow part
+// WebGPU would mean rewriting picking, labels and lighting. The slow part
 // is the JavaScript block listing, not drawing. When the map outgrows
 // WebGL, try three's own WebGPURenderer first.
 //
@@ -26,27 +26,17 @@
 // way this map's own former flat SVG projection (a legacy "+y is down on
 // screen" convention) needed one.
 //
-// TODO(galaxy-map #15): after #15 there is one tier, the block solid. The
-// placed and planned sprite tiers below are replaced by filled and unfilled
-// blocks, and this header should be rewritten to match.
-//
-// Three content tiers (each tile's placed/planned lists, plus density
-// shading computed in the browser):
-//   - placed:  real, already-generated sectors -- bright sprites, sized
-//              by system_count, click selects + navigates.
-//   - planned: real, not-yet-generated qualifying addresses -- small dim
-//              sprites, click selects (shows the copyable designation/
-//              CLI snippet) but never navigates.
-//   - density: the galaxy's sector grid, drawn as solid, lit
-//              cylindrical segment prisms -- single sectors up close,
-//              groups of m x m x ~m whole sectors (m a power of three)
-//              further out, sized so a group stays visible on screen (see
-//              ./galaxyprisms.js). Density is computed right here from
-//              the galaxy's own analytic shape, not fetched. Each prism
-//              is colored and shrunk inside its cell by its mean density;
-//              clicking one (or empty space, which is the sector there)
-//              shows its address, coordinates and 8 corners. The sector
-//              markers draw on top of them.
+// One content tier: the galaxy's sector grid drawn as a solid of lit
+// cylindrical segment blocks -- single sectors up close, blocks of m x m x
+// ~m whole sectors (m a power of three) further out, sized so a block
+// stays a few pixels across (see ./galaxyprisms.js). Density is computed
+// right here from the galaxy's own analytic shape, not fetched, and colors
+// each block. Unfilled space is translucent; each tile's `filled` summary
+// says how many generated sectors every block holds, and a block grows
+// more solid with that share, fully solid once every sector in it is
+// generated. Clicking a block (or empty space, which is the sector there)
+// shows its address or ranges, counts, coordinates and 8 corners; at one
+// sector per block, a generated sector's panel links to its page.
 //
 // Click-to-zoom is LOGARITHMIC, not a flat factor: clickZoomFactor()
 // below interpolates between lib/galaxymap3d.py's own
@@ -67,8 +57,8 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  blockSectorCount, blockSectorRanges, blocksForView, buildPrismGeometry, cellCoordinates, cellVertices,
-  sectorAddressAt, sectorCellBounds, wedgeLines,
+  blockAddressAt, blockAt, blockSectorCount, blockSectorRanges, blockSizeForScale, blockSlotRange, blocksForView,
+  buildPrismGeometry, cellCoordinates, cellVertices, sectorAddressAt, sectorCellBounds, wedgeLines,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
 
@@ -193,30 +183,12 @@ function makeCopyButton(text) {
   return button;
 }
 
-function showPlannedInfo(entry) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
+// A share as a percentage, never rounding a nonzero one down to 0%.
+function formatShare(share) {
+  if (share > 0 && share < 0.001) {
+    return "< 0.1%";
   }
-  panel.textContent = "";
-
-  var heading = document.createElement("h3");
-  heading.textContent = "Not yet generated";
-  panel.appendChild(heading);
-
-  var dl = document.createElement("dl");
-  addField(dl, "Designation", entry.designation);
-  addField(dl, "Address", formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index));
-  if (entry.predicted_star_count != null) {
-    addField(dl, "Predicted systems", Math.max(1, Math.round(entry.predicted_star_count)));
-  }
-  panel.appendChild(dl);
-
-  var code = document.createElement("code");
-  code.className = "galaxymap3d-cli-snippet";
-  code.textContent = cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index);
-  panel.appendChild(code);
-  panel.appendChild(makeCopyButton(cliSnippet(entry.ring_index, entry.layer_index, entry.ring_slot_index)));
+  return (100 * share).toFixed(share < 0.1 ? 1 : 0) + "%";
 }
 
 function formatDeg(rad) {
@@ -230,13 +202,11 @@ function sectorDesignation(ring, layer, slot) {
   return packed.toString(16).toUpperCase();
 }
 
-// One prism's info: a single sector (m == 1) or a group of sectors.
-// `cell` is {m, bounds, address} for a sector or {m, bounds, ring, slab,
-// density} for a group.
-// TODO(galaxy-map #16): for a block (m > 1), show its sector ring, layer
-// and slot ranges (exact once #12's aligned wedges land) and its exact
-// sector count. Later, when tiles carry per-block totals, also show how
-// many of them are generated (#19). At m = 1 keep today's sector panel.
+// One block's info: a single sector (m == 1) or a block of sectors.
+// `cell` is {m, bounds, address} for a sector or {m, bounds, ring, seg,
+// slab, density, edgePc, shape} for a block, plus `filled` (generated
+// sectors in it) when it came from the drawn blocks. A generated sector's
+// own panel is showPlacedInfo.
 function showCellInfo(cell) {
   var panel = document.getElementById("galaxymap3d-info");
   if (!panel) {
@@ -255,12 +225,23 @@ function showCellInfo(cell) {
     var a = cell.address;
     addField(dl, "Address", formatAddress(a.ring, a.layer, a.slot));
     addField(dl, "Designation", sectorDesignation(a.ring, a.layer, a.slot));
+    if (cell.filled != null) {
+      addField(dl, "Generated", cell.filled > 0 ? "Yes" : "Not yet");
+    }
   } else {
     var ranges = blockSectorRanges(cell.ring, cell.slab, cell.m);
     addField(dl, "Rings", ranges.ringFirst + "–" + ranges.ringLast);
     addField(dl, "Layers", ranges.layerFirst + "–" + ranges.layerLast);
-    if (cell.shape) {
-      addField(dl, "Sectors", blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape).toLocaleString());
+    // Slot numbers restart in every ring, so give the innermost and
+    // outermost member rings' ranges.
+    [ranges.ringFirst, ranges.ringLast].forEach(function (ring) {
+      var slots = blockSlotRange(cell.ring, cell.seg, cell.m, ring);
+      addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
+    });
+    var total = blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape);
+    addField(dl, "Sectors", total.toLocaleString());
+    if (cell.filled != null) {
+      addField(dl, "Generated", cell.filled.toLocaleString() + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : ""));
     }
   }
   if (cell.density != null) {
@@ -302,26 +283,6 @@ function showCellInfo(cell) {
 
 // --- Sprite textures -------------------------------------------------------
 
-function makeDotTexture(fillColor, strokeColor) {
-  var size = 64;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var r = size / 2;
-  ctx.beginPath();
-  ctx.arc(r, r, r - 3, 0, Math.PI * 2);
-  ctx.fillStyle = fillColor;
-  ctx.fill();
-  if (strokeColor) {
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = strokeColor;
-    ctx.stroke();
-  }
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 // A text label for a sprite, with its width / height in userData.aspect.
 function makeLabelTexture(text, color) {
   var height = 64;
@@ -358,7 +319,7 @@ function makeRingTexture(color) {
   return texture;
 }
 
-// --- Per-tier visual formulas -----------------------------------------
+// --- Filled-sector colors ---------------------------------------------
 //
 // Unlike lib/starmap.py (size/color baked server-side, once), these run
 // client-side for EVERY fetch (initial payload and every live re-fetch
@@ -366,32 +327,6 @@ function makeRingTexture(color) {
 // everything drawn here arrives through a live fetch that never passes
 // through that Python module again, so a server-computed style would
 // only ever apply to the first frame.
-
-// Every marker below is sized in constant SCREEN pixels, not world
-// parsecs -- recomputed every frame from each object's own live distance
-// to the camera (updateMarkerScales, in the render loop below), the
-// standard "billboard with constant screen size" technique. A world-unit
-// sprite radius (three.js's own Sprite default) would perspective-shrink
-// with distance like any other object: correct for something meant to
-// represent real physical size, but wrong for a point-of-interest marker
-// that needs to stay visible/clickable from a full-galaxy overview
-// thousands of parsecs out, the same way a system marker on a game's own
-// galaxy map stays a legible dot regardless of camera distance.
-var PLACED_MIN_PX = 3.0;
-var PLACED_MAX_PX = 7.0;
-// Near-white/gray, not a fixed hue -- placedColor() below tints each
-// marker's own sprite material to its own real-density color via plain
-// multiplication (THREE.SpriteMaterial's own `color` * texture), which
-// only stays clean (scales brightness/saturation) against a white/gray
-// base; a colored base texture would shift hue unpredictably instead.
-var PLACED_CORE_BASE_FILL = "#ffffff";
-var PLACED_CORE_BASE_STROKE = "#c4c4c4";
-var PLACED_HALO_BASE_FILL = "#ffffff";
-
-function placedScreenRadiusPx(systemCount) {
-  var count = systemCount || 0;
-  return Math.max(PLACED_MIN_PX, Math.min(PLACED_MAX_PX, PLACED_MIN_PX + 0.6 * Math.sqrt(count)));
-}
 
 // A placed sector's own REAL stellar density (system_count / edge_ly^3),
 // relative to physical_constants.LOCAL_STELLAR_DENSITY_LY3 (the real
@@ -412,17 +347,12 @@ function placedRelativeDensity(entry, referenceDensityPerLy3) {
   return densityPerLy3 / referenceDensityPerLy3;
 }
 
-// Same "log2(x+1)/3" shape densityIntensity (below, for the illustrative
-// cloud) uses, for a consistent dim-to-bright response curve -- fed real
-// per-sector density here instead of the server's own illustrative
-// model, and mapped through a warm bronze-to-gold range (rather than the
-// cloud's cooler dim-to-accent one) so a real, already-generated
-// sector's own marker stays visually distinct from illustrative shading
-// at a glance, exactly like it already was before density coloring.
-// TODO(galaxy-map #15): the sprites go away. This colour scale lives on as a
-// filled sector's block colour at m = 1 (its real system density). Coarser
-// blocks take the space's density colour (prismShade), and their filled share only
-// sets their opacity.
+// Colors a filled sector's own block at one sector per block: its real
+// density on a "log2(x+1)/3" dim-to-bright curve, through a warm
+// bronze-to-gold range (rather than the density shading's cooler
+// dim-to-accent one) so a generated sector stands out from predicted
+// space at a glance. Coarser blocks take the space's density color
+// (prismShade), and their filled share only sets their opacity.
 function placedDensityColor(entry, referenceDensityPerLy3) {
   var relative = placedRelativeDensity(entry, referenceDensityPerLy3);
   var t = relative == null ? 0.5 : Math.max(0, Math.min(1, Math.log2(relative + 1) / 3));
@@ -431,20 +361,13 @@ function placedDensityColor(entry, referenceDensityPerLy3) {
   return low.clone().lerp(high, t);
 }
 
-var PLANNED_PX = 3.0;
-var PLANNED_FILL = "#7fa8d9";
-var PLANNED_STROKE = "#3f5f80";
+// The selection ring, drawn this many screen pixels across.
+var HIGHLIGHT_PX = 9;
 
-var placedCoreTexture = null;
-var placedHaloTexture = null;
-var plannedTexture = null;
 var highlightTexture = null;
 
 function ensureTextures(accentColor) {
-  if (!placedCoreTexture) {
-    placedCoreTexture = makeDotTexture(PLACED_CORE_BASE_FILL, PLACED_CORE_BASE_STROKE);
-    placedHaloTexture = makeDotTexture(PLACED_HALO_BASE_FILL, null);
-    plannedTexture = makeDotTexture(PLANNED_FILL, PLANNED_STROKE);
+  if (!highlightTexture) {
     highlightTexture = makeRingTexture(accentColor);
   }
 }
@@ -584,7 +507,7 @@ function initGalaxyMap3d(canvasEl, data) {
       color: wedgeColor, transparent: true, opacity: 0.85, depthTest: false, depthWrite: false,
     });
     byMasters.forEach(function (lines, masters) {
-      var level = { masters: masters, r0: lines[0].r0, objects: [] };
+      var level = { masters: masters, r0: lines[0].r0, lines: lines, objects: [], segments: null };
       var points = new Float32Array(lines.length * 6);
       lines.forEach(function (line, n) {
         var cos = Math.cos(line.angleRad);
@@ -606,22 +529,59 @@ function initGalaxyMap3d(canvasEl, data) {
       geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
       var segments = new THREE.LineSegments(geometry, material);
       segments.renderOrder = 2;
+      segments.frustumCulled = false;
       level.objects.push(segments);
+      level.segments = segments;
       level.objects.forEach(function (object) { wedgeGroup.add(object); });
       wedgeLevels.push(level);
     });
   })();
 
   // Shows each zone's lines while neighbours in that zone are at least
-  // WEDGE_MIN_GAP_PX apart where the view reaches farthest out: the
-  // focus's radius plus half the screen's height, or the zone's start.
+  // WEDGE_MIN_GAP_PX apart on screen.
+  // - Labelled zones run out to the galaxy's edge. The gap is measured
+  //   where the view reaches farthest out (the focus's radius plus half
+  //   the screen's height), or at the zone's start.
+  // - Finer zones are measured at the focus (or the zone's start) and are
+  //   clipped to the view ball (fadeRadius around the target, in the
+  //   plane): drawn out to the edge, their far ends would converge into a
+  //   hatch toward the horizon.
   function updateWedgeLevels(pcPerPixel) {
-    var reachR = Math.min(GALAXY_RADIUS, Math.hypot(target.x, target.y) + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
+    var focusR = Math.hypot(target.x, target.y);
+    var reachR = Math.min(GALAXY_RADIUS, focusR + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
     wedgeLevels.forEach(function (level) {
-      var gapPx = (2 * Math.PI * Math.max(level.r0, reachR)) / level.masters / pcPerPixel;
+      var labelled = level.masters <= WEDGE_LABEL_MAX_MASTERS;
+      var gapPx = (2 * Math.PI * Math.max(level.r0, labelled ? reachR : focusR)) / level.masters / pcPerPixel;
       var show = level.masters === wedgeLevels[0].masters || gapPx >= WEDGE_MIN_GAP_PX;
       level.objects.forEach(function (object) { object.visible = show; });
+      if (show && !labelled) {
+        clipWedgeLevel(level);
+      }
     });
+  }
+
+  // Each of a zone's lines as the part inside the circle where the view
+  // ball meets the plane, from where the line starts.
+  function clipWedgeLevel(level) {
+    var radius = Math.sqrt(Math.max(0, fadeRadius * fadeRadius - target.z * target.z));
+    var cx = target.x;
+    var cy = target.y;
+    var attribute = level.segments.geometry.getAttribute("position");
+    var points = attribute.array;
+    level.lines.forEach(function (line, n) {
+      var cos = Math.cos(line.angleRad);
+      var sin = Math.sin(line.angleRad);
+      var along = cos * cx + sin * cy;
+      var disc = along * along - (cx * cx + cy * cy) + radius * radius;
+      var near = 0;
+      var far = 0;
+      if (disc > 0) {
+        near = Math.max(line.r0, along - Math.sqrt(disc));
+        far = Math.max(near, along + Math.sqrt(disc));
+      }
+      points.set([near * cos, near * sin, 0, far * cos, far * sin, 0], 6 * n);
+    });
+    attribute.needsUpdate = true;
   }
 
   // Keeps the labels WEDGE_LABEL_PX tall on screen: a sprite without size
@@ -634,119 +594,128 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // --- Content groups
-  // ------------------------------------------------------
+  // --- The block solid -------------------------------------------------------
+  //
+  // Everything is drawn as one solid of blocks (galaxyprisms.js), rebuilt
+  // whenever the view's block set changes (updatePrisms, below). Blocks
+  // fill their whole cell, so the galaxy reads as one solid; a thin
+  // brighter outline along each face's own edges (found from the face's
+  // 0..1 uv, about a screen pixel wide) keeps neighboring blocks apart.
+  //
+  // Two meshes share one shader:
+  // - solidMesh: blocks whose every sector is generated, opaque;
+  // - glassMesh: everything else, translucent (no depth writes), its
+  //   blocks sorted back to front from the camera on every rebuild. Unfilled
+  //   space is BLOCK_OPACITY_SPARSE (sparsest) to BLOCK_OPACITY_DENSE
+  //   (densest) opaque, and a block grows more solid with its filled share
+  //   (blockOpacity).
+  // Blocks holding filled sectors also get a warm tint on their faces and
+  // warm, stronger face edges, in step with their filled share
+  // (blockFillStep), so they can be picked out even where the opacity
+  // step alone is small.
+  // Whole blocks close to the camera are dropped (nearCut, tested on each
+  // block's own center), so flying through the disk shows what's ahead
+  // instead of a wall of the nearest blocks. The logdepthbuf chunks match
+  // the renderer's logarithmic depth buffer.
+  var FILLED_TINT = new THREE.Color(PLACED_HIGH_DENSITY_COLOR);
 
-  var interactiveGroup = new THREE.Group();
-  scene.add(interactiveGroup);
-  var entryByObject = new Map();
-  var placedSpritesByKey = new Map();
-  var plannedSpritesByKey = new Map();
-
-  // The density prisms: one opaque, lit mesh, rebuilt whenever the view's
-  // prism set changes (updatePrisms, below). Each prism is shrunk inside
-  // its own cell by its density, so dense regions read as big, bright,
-  // near-touching blocks and thin ones as small dim ones with space
-  // between -- structure shows even where color alone barely changes.
-  // A thin brighter outline along each face's own edges (found from the
-  // face's 0..1 uv, about a screen pixel wide) keeps neighboring faces
-  // apart. Whole prisms close to the camera are dropped (nearCut, tested
-  // on each prism's own center), so flying through the disk shows what's
-  // ahead instead of a wall of the nearest prisms. The logdepthbuf chunks match the renderer's
-  // logarithmic depth buffer.
-  // TODO(galaxy-map #15): split this into two materials:
-  //   - an opaque one for fully filled blocks;
-  //   - a translucent one for everything else (transparent: true,
-  //     depthWrite: false), with a per-vertex opacity:
-  //       base = 0.5 (sparsest) .. 0.8 (densest)  -- 50% to 20% transparent
-  //       opacity = base + (1 - base) * fill
-  //       fill = the filled share, with a minimum visible step for any filled
-  //              content (see TODO.md #15)
-  // Draw the opaque mesh first, then the translucent one sorted back to
-  // front on every rebuild. The face-edge lines stay on both.
-  var prismMaterial = new THREE.ShaderMaterial({
-    uniforms: { nearCut: { value: 0 } },
-    vertexShader: [
-      "#include <common>",
-      "#include <logdepthbuf_pars_vertex>",
-      "uniform float nearCut;",
-      "attribute vec3 prismColor;",
-      "attribute vec3 prismCenter;",
-      "attribute vec2 faceUv;",
-      "varying vec3 vColor;",
-      "varying vec2 vUv;",
-      "varying float vKeep;",
-      "void main() {",
-      "  vColor = prismColor;",
-      "  vUv = faceUv;",
-      "  vKeep = step(nearCut, distance(cameraPosition, prismCenter));",
-      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
-      "  gl_Position = projectionMatrix * mvPosition;",
-      "  #include <logdepthbuf_vertex>",
-      "}",
-    ].join("\n"),
-    fragmentShader: [
-      "#include <common>",
-      "#include <logdepthbuf_pars_fragment>",
-      "varying vec3 vColor;",
-      "varying vec2 vUv;",
-      "varying float vKeep;",
-      "void main() {",
-      "  if (vKeep < 0.5) discard;",
-      "  #include <logdepthbuf_fragment>",
-      "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
-      "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
-      "  gl_FragColor = vec4(mix(vColor, vec3(1.0), 0.18 * edge), 1.0);",
-      "  #include <colorspace_fragment>",
-      "}",
-    ].join("\n"),
+  function makeBlockMaterial(translucent) {
+    return new THREE.ShaderMaterial({
+      uniforms: { nearCut: { value: 0 }, filledTint: { value: FILLED_TINT } },
+      transparent: translucent,
+      depthWrite: !translucent,
+      vertexShader: [
+        "#include <common>",
+        "#include <logdepthbuf_pars_vertex>",
+        "uniform float nearCut;",
+        "attribute vec3 prismColor;",
+        "attribute vec3 prismCenter;",
+        "attribute float prismAlpha;",
+        "attribute float prismFill;",
+        "attribute vec2 faceUv;",
+        "varying vec3 vColor;",
+        "varying float vAlpha;",
+        "varying float vFill;",
+        "varying vec2 vUv;",
+        "varying float vKeep;",
+        "void main() {",
+        "  vColor = prismColor;",
+        "  vAlpha = prismAlpha;",
+        "  vFill = prismFill;",
+        "  vUv = faceUv;",
+        "  vKeep = step(nearCut, distance(cameraPosition, prismCenter));",
+        "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+        "  gl_Position = projectionMatrix * mvPosition;",
+        "  #include <logdepthbuf_vertex>",
+        "}",
+      ].join("\n"),
+      fragmentShader: [
+        "#include <common>",
+        "#include <logdepthbuf_pars_fragment>",
+        "varying vec3 vColor;",
+        "uniform vec3 filledTint;",
+        "varying float vAlpha;",
+        "varying float vFill;",
+        "varying vec2 vUv;",
+        "varying float vKeep;",
+        "void main() {",
+        "  if (vKeep < 0.5) discard;",
+        "  #include <logdepthbuf_fragment>",
+        "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
+        "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
+        "  vec3 face = mix(vColor, filledTint, 0.35 * vFill);",
+        "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (0.18 + 0.7 * vFill) * edge), vAlpha);",
+        "  #include <colorspace_fragment>",
+        "}",
+      ].join("\n"),
+    });
+  }
+  var solidMaterial = makeBlockMaterial(false);
+  var glassMaterial = makeBlockMaterial(true);
+  var solidMesh = new THREE.Mesh(new THREE.BufferGeometry(), solidMaterial);
+  var glassMesh = new THREE.Mesh(new THREE.BufferGeometry(), glassMaterial);
+  [solidMesh, glassMesh].forEach(function (mesh) {
+    mesh.frustumCulled = false;
+    mesh.visible = false;
+    mesh.userData.cells = [];
+    mesh.userData.owners = null;
   });
-  var prismMesh = new THREE.Mesh(new THREE.BufferGeometry(), prismMaterial);
-  prismMesh.frustumCulled = false;
-  scene.add(prismMesh);
+  // Opaque first, then the translucent shell over it.
+  solidMesh.renderOrder = 0;
+  glassMesh.renderOrder = 1;
+  scene.add(solidMesh);
+  scene.add(glassMesh);
 
   var highlightSprite = new THREE.Sprite(
     new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false, depthTest: false })
   );
   highlightSprite.visible = false;
-  highlightSprite.userData.screenRadiusPx = PLACED_MAX_PX;
+  highlightSprite.renderOrder = 3;
   scene.add(highlightSprite);
 
-  function highlightPosition(x, y, z, screenRadiusPx) {
+  function highlightPosition(x, y, z) {
     highlightSprite.position.set(x, y, z);
-    highlightSprite.userData.screenRadiusPx = (screenRadiusPx || PLACED_MIN_PX) * 1.3;
     highlightSprite.visible = true;
   }
 
-  // TODO(galaxy-map #15): remove the placed and planned sprite tiers (this
-  // factory, makePlannedSprite, their textures, updateMarkerScales,
-  // syncTier and withPinned). Filled sectors are found through the block
-  // solid instead: a mixed block is more solid in proportion to its filled
-  // share, and single filled sectors appear as their own blocks only at
-  // m = 1. Picking then goes by blocks alone (cellAtClientPoint), and
-  // entryAtClientPoint and the pinned-entry logic go too. Keep the tiles'
-  // placed lists, since they feed the per-block filled counts.
-  function makePlacedSprite(entry) {
-    var group = new THREE.Group();
-    var color = placedDensityColor(entry, data.referenceDensityPerLy3);
-    var halo = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: placedHaloTexture, color: color, transparent: true, depthWrite: false, depthTest: false, opacity: 0.45,
-    }));
-    var core = new THREE.Sprite(new THREE.SpriteMaterial({
-      map: placedCoreTexture, color: color, transparent: true, depthWrite: false, depthTest: false,
-    }));
-    group.add(halo);
-    group.add(core);
-    group.position.set(entry.x, entry.y, entry.z);
-    group.userData.screenRadiusPx = placedScreenRadiusPx(entry.system_count);
-    return group;
+  // Keeps the selection ring HIGHLIGHT_PX across on screen whatever its
+  // distance: a sprite spans its scale in world units, so the scale is the
+  // world size of that many pixels at the sprite's own distance.
+  function updateHighlightScale() {
+    if (!highlightSprite.visible) {
+      return;
+    }
+    var heightPx = canvasEl.clientHeight || 1;
+    var worldPerPixel = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.distanceTo(highlightSprite.position)) / heightPx;
+    var size = HIGHLIGHT_PX * 2 * worldPerPixel;
+    highlightSprite.scale.set(size, size, 1);
   }
 
-  // Planned dots stop at the view radius around the target (the density
-  // cloud a little past it), so both fade out toward that edge instead of
-  // stopping at a hard spherical rim the eye reads as a ball.
-  // fadeRadius is the current view radius (set by renderFromCache).
-  var PLANNED_OPACITY = 0.75;
+  // Blocks darken toward the edge of the view ball around the target, so
+  // the solid fades out instead of stopping at a hard spherical rim the eye
+  // reads as a ball. fadeRadius is the current view radius (set by
+  // renderFromCache).
   var EDGE_FADE_START = 0.6;
   var EDGE_FADE_END = 1.0;
   var fadeRadius = 0;
@@ -763,122 +732,87 @@ function initGalaxyMap3d(canvasEl, data) {
     return 1 - u * u * (3 - 2 * u);
   }
 
-  function makePlannedSprite(entry) {
-    var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: plannedTexture, transparent: true, depthWrite: false, depthTest: false, opacity: PLANNED_OPACITY }));
-    sprite.position.set(entry.x, entry.y, entry.z);
-    sprite.userData.screenRadiusPx = PLANNED_PX;
-    return sprite;
-  }
-
-  // --- Constant-screen-size billboard scaling -----------------------------
+  // --- Filled sectors --------------------------------------------------------
   //
-  // Recomputed every frame (cheap: a handful of thousand simple vector
-  // ops) from each marker's own live distance to the camera, so a
-  // marker's ON-SCREEN size stays whatever its own userData.screenRadiusPx
-  // says regardless of how far the camera currently is -- see the
-  // PLACED_MIN_PX/MAX_PX comment above for why. worldPerScreenPixel here
-  // is the same "world units per screen pixel at distance 1" factor
-  // updateScaleBar's own worldUnitsPerScreenPixel divides out at the
-  // camera's CURRENT orbit radius; this multiplies it back in per-object
-  // by that object's own real distance instead.
-  function updateMarkerScales() {
-    var heightPx = canvasEl.clientHeight || 1;
-    var fovRad = THREE.MathUtils.degToRad(camera.fov);
-    var worldPerScreenPixelPerUnitDistance = (2 * Math.tan(fovRad / 2)) / heightPx;
+  // Every tile carries a `filled` summary (queryDb.galaxy_filled_in_box):
+  // at g = 1 each generated sector's address, id, name and system count;
+  // coarser, counts per cell g sectors a side. renderFromCache turns them
+  // into points (a sector's center, or a cell's middle) with counts, and
+  // updatePrisms sums those into the blocks it draws. A cell never spans
+  // more than one block ring or layer (g divides m), so only a cell's
+  // wedge can straddle two blocks, and its count goes to the one holding
+  // its middle.
+  var filledPoints = [];
+  var filledVersion = 0;
 
-    // `anchor` is the world position to measure distance from -- a placed
-    // sector's halo/core sprites sit at (0, 0, 0) INSIDE their group, so
-    // their own `.position` is not where they are; measuring from it gave
-    // the camera's distance to the galactic origin instead, which blew a
-    // sector far from the core up into a sphere big enough to fill the
-    // whole view once zoomed in on it.
-    function screenSizedScale(object3d, screenRadiusPx, sizeMultiplier, anchor) {
-      var distance = camera.position.distanceTo(anchor || object3d.position);
-      var worldDiameter = screenRadiusPx * 2 * worldPerScreenPixelPerUnitDistance * distance;
-      var scaled = worldDiameter * (sizeMultiplier || 1);
-      object3d.scale.set(scaled, scaled, 1);
+  function filledPointsOf(filled) {
+    var out = [];
+    if (!filled || !filled.cells) {
+      return out;
     }
-
-    placedSpritesByKey.forEach(function (group) {
-      var px = group.userData.screenRadiusPx;
-      screenSizedScale(group.children[0], px, 1.2, group.position); // halo
-      screenSizedScale(group.children[1], px, 1.0, group.position); // core
-    });
-    var pinnedPlannedKey = pinnedEntry && pinnedEntry.kind === "planned" ? PLANNED_KEY_OF(pinnedEntry) : null;
-    plannedSpritesByKey.forEach(function (sprite, key) {
-      screenSizedScale(sprite, sprite.userData.screenRadiusPx, 1.0);
-      // The selected dot never fades away, even out past the view's edge.
-      var p = sprite.position;
-      sprite.material.opacity = key === pinnedPlannedKey ? PLANNED_OPACITY : PLANNED_OPACITY * edgeFade(p.x, p.y, p.z);
-    });
-    if (highlightSprite.visible) {
-      screenSizedScale(highlightSprite, highlightSprite.userData.screenRadiusPx, 1.0);
-    }
-  }
-
-  // Diffs the live tier against what's already on screen -- keyed so a
-  // sector already visible doesn't get torn down and rebuilt (which
-  // would flicker/lose its raycast-hit continuity) just because a
-  // debounced re-fetch landed while the camera barely moved.
-  function syncTier(entries, byKey, keyOf, factory, kind) {
-    var seen = new Set();
-    entries.forEach(function (entry) {
-      var key = keyOf(entry);
-      seen.add(key);
-      if (byKey.has(key)) {
+    var g = filled.g || 1;
+    filled.cells.forEach(function (cell) {
+      if (g === 1) {
+        var bounds = sectorCellBounds(cell[0], cell[1], cell[2], edgePc);
+        var c = cellCoordinates(bounds).cartesian;
+        out.push({
+          x: c[0], y: c[1], z: c[2], count: 1,
+          sector: {
+            id: cell[3], system_count: cell[4], name: cell[5],
+            ring_index: cell[0], layer_index: cell[1], ring_slot_index: cell[2],
+            designation: sectorDesignation(cell[0], cell[1], cell[2]),
+            galactic_radius_pc: Math.hypot(c[0], c[1], c[2]), edge_ly: data.edgeLy,
+          },
+        });
         return;
       }
-      var object3d = factory(entry);
-      interactiveGroup.add(object3d);
-      byKey.set(key, object3d);
-      entryByObject.set(object3d, Object.assign({ kind: kind }, entry));
-      object3d.traverse(function (child) {
-        if (child !== object3d) {
-          entryByObject.set(child, Object.assign({ kind: kind }, entry));
-        }
-      });
+      var wedges = Math.max(3, Math.round(2 * Math.PI * (cell[0] + 0.5)));
+      var r = (cell[0] + 0.5) * g * edgePc;
+      var t = ((cell[2] + 0.5) * 2 * Math.PI) / wedges;
+      out.push({ x: r * Math.cos(t), y: r * Math.sin(t), z: cell[1] * g * edgePc, count: cell[3] });
     });
-    byKey.forEach(function (object3d, key) {
-      if (!seen.has(key)) {
-        interactiveGroup.remove(object3d);
-        entryByObject.delete(object3d);
-        object3d.traverse(function (child) {
-          entryByObject.delete(child);
-        });
-        byKey.delete(key);
-      }
-    });
+    return out;
   }
 
-  // Shared by densityColor (below) and applyDensity's own per-instance
-  // scale -- both want the same "how dense is this, on a 0..1 scale"
-  // number, just mapped to a color and a size respectively.
-  function densityIntensity(relativeDensity) {
-    return Math.max(0, Math.min(1, Math.log2((relativeDensity || 0) + 1) / 3));
+  // Unfilled space: this opaque at the sparsest drawn density, rising to
+  // BLOCK_OPACITY_DENSE at the densest (50% to 20% see-through).
+  var BLOCK_OPACITY_SPARSE = 0.5;
+  var BLOCK_OPACITY_DENSE = 0.8;
+  // Any filled sector lifts a block at least this far from its unfilled
+  // opacity toward solid, however tiny its share: at large m one filled
+  // sector among 531,441 must still show. The rest of the way follows the
+  // log of the filled count against the log of the block's total, so a
+  // block turns solid only when every sector in it is filled.
+  var FILLED_MIN_STEP = 0.3;
+
+  // 0 for a block with nothing filled, FILLED_MIN_STEP for one filled
+  // sector among many, 1 once every sector in it is filled.
+  function blockFillStep(cell) {
+    if (!(cell.filled > 0)) {
+      return 0;
+    }
+    if (cell.filled >= cell.total) {
+      return 1;
+    }
+    var share = Math.log(1 + cell.filled) / Math.log(1 + cell.total);
+    return FILLED_MIN_STEP + (1 - FILLED_MIN_STEP) * share;
   }
 
-  function densityColor(relativeDensity) {
-    // Dim, cool color at low density warming toward the accent color at
-    // high density -- purely illustrative (see lib/galaxyViewport.py's
-    // own docstring), so this is a display choice, not derived physics.
-    var base = new THREE.Color(accentColor);
-    var dim = new THREE.Color(0x3a3f55);
-    return dim.clone().lerp(base, densityIntensity(relativeDensity));
+  function blockOpacity(cell) {
+    var base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
+    return base + (1 - base) * blockFillStep(cell);
   }
 
-  // The light the prisms' faces are shaded by: from galactic north, a
+  // The light the blocks' faces are shaded by: from galactic north, a
   // little off to one side, so tops, walls and sides all read apart.
   var PRISM_LIGHT = new THREE.Vector3(0.35, -0.3, 0.9).normalize();
   var PRISM_AMBIENT = 0.35;
-  // Prisms fill their whole cell, so the galaxy reads as one solid built
-  // of blocks; the shader's thin face edges keep block boundaries visible.
   // With the slice on (the default), blocks above the focus's own layer
   // are left out, so the view looks down on the solid's cut face -- the
   // arms and whatever layer the focus is in -- instead of its outside.
   var sliceAtFocus = true;
   var lastPrismViewRadius = null;
-  // Prism shading runs over a much wider density range than the markers'
-  // densityIntensity (which tops out at 7x): the drawing floor
+  // Block shading runs over a wide density range: the drawing floor
   // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
   // through a dim-to-accent-to-white ramp.
   var PRISM_DENSITY_LOW = 0.02;
@@ -889,7 +823,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // Density alone puts the arms (1 +/- arm_amplitude around the ring's
   // mean) on a sliver of that 0.02-100 ramp, so the spiral barely shows.
-  // Each prism's shade mixes its density with its arm factor (density /
+  // Each block's shade mixes its density with its arm factor (density /
   // its azimuthal mean, from galaxyprisms.js), stretched over the arm
   // model's own range: inter-arm troughs dim, arm crests bright.
   var PRISM_DENSITY_SHARE = 0.45;
@@ -902,7 +836,7 @@ function initGalaxyMap3d(canvasEl, data) {
     return Math.min(1, Math.abs(shape.arm_amplitude || 0));
   }
 
-  // 0..1 shade for a prism: density alone when the galaxy has no arms.
+  // 0..1 shade for a block: density alone when the galaxy has no arms.
   function prismShade(cell) {
     var t = prismIntensity(cell.density);
     if (!(ARM_AMPLITUDE > 0) || !(cell.meanDensity > 0)) {
@@ -920,19 +854,16 @@ function initGalaxyMap3d(canvasEl, data) {
   function prismColor(t) {
     return t < 0.6 ? PRISM_DIM.clone().lerp(PRISM_ACCENT, t / 0.6) : PRISM_ACCENT.clone().lerp(PRISM_HOT, (t - 0.6) / 0.4);
   }
-  // Prisms centered nearer the camera than this x the orbit radius (the
+  // Blocks centered nearer the camera than this x the orbit radius (the
   // camera's distance to the target) aren't drawn.
   var NEAR_CUT = 0.4;
   var galaxyShape = data.densityShape || null;
   var edgePc = data.edgePc || 1;
-  // Densities already worked out, per prism size (shells per prism).
+  // Densities already worked out, per block size.
   var prismDensityCaches = new Map();
   var PRISM_CACHE_SIZES = 4;
   var prismSetKey = "";
-  // What's drawn now, for picking: the cells, each vertex's cell index,
-  // and how many sectors a side each cell is.
-  var drawnCells = [];
-  var drawnOwners = null;
+  // How many sectors a side the drawn blocks are.
   var drawnSectorsPerPrism = 1;
 
   function prismDensityCache(m) {
@@ -953,6 +884,124 @@ function initGalaxyMap3d(canvasEl, data) {
     return (orbit.radius * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
   }
 
+  // blockSectorCount per filled block (m/ring/seg/slab): at large m it
+  // walks every member ring and layer, so it's kept between rebuilds.
+  var blockTotals = new Map();
+  var BLOCK_TOTALS_MAX = 20000;
+
+  // The blocks to draw: the solid's surface (galaxyprisms.blocksForView),
+  // plus every block in view holding filled sectors, interior ones
+  // included (they show through the translucent shell). Each gets `filled`,
+  // and filled blocks also `total` (blockSectorCount), `centroid` (the
+  // mean position of their filled sectors, what a click centers on) and,
+  // at one sector per block, `sector`. Without a galaxy shape only filled
+  // blocks are drawn.
+  function viewBlocks(center, viewRadius, pcPerPixel) {
+    var options = {
+      pcPerPixel: pcPerPixel, sliceZ: sliceAtFocus ? target.z : null, viewerZ: camera.position.z,
+      minPx: data.blockMinPx, budget: data.blockBudget,
+    };
+    var view = galaxyShape
+      ? blocksForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, options)
+      : { m: blockSizeForScale(pcPerPixel, edgePc, data.blockMinPx, GALAXY_RADIUS), slice: null, blocks: [] };
+    var m = view.m;
+    var byKey = new Map();
+    view.blocks.forEach(function (block) {
+      byKey.set(block.ring + "/" + block.seg + "/" + block.slab, block);
+    });
+    var sums = new Map();
+    filledPoints.forEach(function (point) {
+      var a = blockAddressAt(point.x, point.y, point.z, m, edgePc);
+      if (view.slice !== null && a.slab > view.slice) {
+        return;
+      }
+      var key = a.ring + "/" + a.seg + "/" + a.slab;
+      var sum = sums.get(key);
+      if (!sum) {
+        sum = { address: a, count: 0, x: 0, y: 0, z: 0, sector: null };
+        sums.set(key, sum);
+      }
+      sum.count += point.count;
+      sum.x += point.x * point.count;
+      sum.y += point.y * point.count;
+      sum.z += point.z * point.count;
+      if (point.sector) {
+        sum.sector = point.sector;
+      }
+    });
+    var reach = viewRadius + m * edgePc;
+    sums.forEach(function (sum, key) {
+      var block = byKey.get(key);
+      if (!block) {
+        var a = sum.address;
+        block = blockAt(a.ring, a.seg, a.slab, m, edgePc, galaxyShape, galaxyShape ? prismDensityCache(m) : null);
+        var mid = cellCoordinates(block).cartesian;
+        if (Math.hypot(mid[0] - center[0], mid[1] - center[1], mid[2] - center[2]) > reach) {
+          return;
+        }
+        view.blocks.push(block);
+      }
+      block.filled = sum.count;
+      var totalKey = m + "/" + key;
+      var total = blockTotals.get(totalKey);
+      if (total === undefined) {
+        if (blockTotals.size > BLOCK_TOTALS_MAX) {
+          blockTotals.clear();
+        }
+        total = blockSectorCount(block.ring, block.seg, block.slab, m, edgePc, galaxyShape);
+        blockTotals.set(totalKey, total);
+      }
+      block.total = Math.max(sum.count, total);
+      block.centroid = [sum.x / sum.count, sum.y / sum.count, sum.z / sum.count];
+      if (m === 1) {
+        block.sector = sum.sector;
+      }
+    });
+    return view;
+  }
+
+  // One mesh's geometry from its blocks, colors and opacities (and each
+  // block's fill step, for its tint).
+  function setBlockGeometry(mesh, cells, colorsOf, alphasOf) {
+    var fillsOf = cells.map(blockFillStep);
+    var built = buildPrismGeometry(cells);
+    var count = built.owners.length;
+    var colors = new Float32Array(count * 3);
+    var centers = new Float32Array(count * 3);
+    var alphas = new Float32Array(count);
+    var fills = new Float32Array(count);
+    var normals = built.normals;
+    var middles = cells.map(function (cell) { return cellCoordinates(cell).cartesian; });
+    for (var v = 0; v < count; v++) {
+      var owner = built.owners[v];
+      var c = colorsOf[owner];
+      var lit = normals[3 * v] * PRISM_LIGHT.x + normals[3 * v + 1] * PRISM_LIGHT.y + normals[3 * v + 2] * PRISM_LIGHT.z;
+      var shade = PRISM_AMBIENT + (1 - PRISM_AMBIENT) * Math.max(0, lit);
+      colors[3 * v] = c.r * shade;
+      colors[3 * v + 1] = c.g * shade;
+      colors[3 * v + 2] = c.b * shade;
+      var mid = middles[owner];
+      centers[3 * v] = mid[0];
+      centers[3 * v + 1] = mid[1];
+      centers[3 * v + 2] = mid[2];
+      alphas[v] = alphasOf[owner];
+      fills[v] = fillsOf[owner];
+    }
+    var geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
+    geometry.setAttribute("prismColor", new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute("prismCenter", new THREE.BufferAttribute(centers, 3));
+    geometry.setAttribute("prismAlpha", new THREE.BufferAttribute(alphas, 1));
+    geometry.setAttribute("prismFill", new THREE.BufferAttribute(fills, 1));
+    geometry.setAttribute("faceUv", new THREE.BufferAttribute(built.uvs, 2));
+    geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
+    mesh.geometry.dispose();
+    mesh.geometry = geometry;
+    mesh.userData.cells = cells;
+    mesh.userData.owners = built.owners;
+    mesh.visible = cells.length > 0;
+  }
+
   // TODO(galaxy-map #17): smooth zooming.
   //   - Hand the block listing and geometry to a worker, and keep a small
   //     cache of built meshes keyed by (m, slice, focus cell) for the
@@ -967,97 +1016,52 @@ function initGalaxyMap3d(canvasEl, data) {
   // - The first frame must not wait on the worker: draw today's
   //   synchronous result once.
   function updatePrisms(viewRadius) {
-    if (!galaxyShape) {
-      prismMesh.visible = false;
-      return;
-    }
     var center = [target.x, target.y, target.z];
     var pcPerPixel = pcPerPixelAtTarget();
     lastPrismViewRadius = viewRadius;
     // The camera's height only decides which top and bottom faces face it,
     // so it is keyed coarsely: a rebuild every 16 pixels' worth.
     var viewerBand = Math.round(camera.position.z / (16 * pcPerPixel));
-    var key = center.join(",") + ":" + viewRadius + ":" + pcPerPixel.toPrecision(3) + ":" + sliceAtFocus + ":" + viewerBand;
+    var key = [center.join(","), viewRadius, pcPerPixel.toPrecision(3), sliceAtFocus, viewerBand, filledVersion].join(":");
     if (key === prismSetKey) {
       return;
     }
     prismSetKey = key;
     updateWedgeLevels(pcPerPixel);
-    // Only the solid's surface is listed, so the slice goes in here (its
-    // cut face is surface), not as a filter afterwards.
-    var view = blocksForView(center, viewRadius, edgePc, GALAXY_RADIUS, galaxyShape, prismDensityCache, {
-      pcPerPixel: pcPerPixel, sliceZ: sliceAtFocus ? target.z : null, viewerZ: camera.position.z,
-      minPx: data.blockMinPx, budget: data.blockBudget,
-    });
-    var cells = view.blocks;
-    var colorsOf = [];
-    var centersOf = [];
-    var prisms = cells.map(function (cell) {
-      var t = prismShade(cell);
-      var midR = (cell.r0 + cell.r1) / 2;
-      var midT = (cell.t0 + cell.t1) / 2;
-      var midZ = (cell.z0 + cell.z1) / 2;
-      var fade = edgeFade(midR * Math.cos(midT), midR * Math.sin(midT), midZ);
-      colorsOf.push(prismColor(t).multiplyScalar(0.25 + 0.75 * fade));
-      centersOf.push([midR * Math.cos(midT), midR * Math.sin(midT), midZ]);
-      return { r0: cell.r0, r1: cell.r1, t0: cell.t0, t1: cell.t1, z0: cell.z0, z1: cell.z1 };
-    });
-    var built = buildPrismGeometry(prisms);
-    drawnCells = cells;
-    drawnOwners = built.owners;
+    var view = viewBlocks(center, viewRadius, pcPerPixel);
     drawnSectorsPerPrism = view.m;
 
-    var colors = new Float32Array(built.owners.length * 3);
-    var centers = new Float32Array(built.owners.length * 3);
-    var normals = built.normals;
-    for (var v = 0; v < built.owners.length; v++) {
-      var c = colorsOf[built.owners[v]];
-      var lit = normals[3 * v] * PRISM_LIGHT.x + normals[3 * v + 1] * PRISM_LIGHT.y + normals[3 * v + 2] * PRISM_LIGHT.z;
-      var shade = PRISM_AMBIENT + (1 - PRISM_AMBIENT) * Math.max(0, lit);
-      colors[3 * v] = c.r * shade;
-      colors[3 * v + 1] = c.g * shade;
-      colors[3 * v + 2] = c.b * shade;
-      var mid = centersOf[built.owners[v]];
-      centers[3 * v] = mid[0];
-      centers[3 * v + 1] = mid[1];
-      centers[3 * v + 2] = mid[2];
-    }
+    var solid = [];
+    var glass = [];
+    view.blocks.forEach(function (cell) {
+      cell.opacity = blockOpacity(cell);
+      (cell.opacity >= 1 ? solid : glass).push(cell);
+    });
+    // Back to front, so each translucent block blends over what's behind.
+    var eye = camera.position;
+    glass.forEach(function (cell) {
+      var mid = cellCoordinates(cell).cartesian;
+      cell.eyeDistance = Math.hypot(mid[0] - eye.x, mid[1] - eye.y, mid[2] - eye.z);
+    });
+    glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
 
-    var geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(built.positions, 3));
-    geometry.setAttribute("prismColor", new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute("prismCenter", new THREE.BufferAttribute(centers, 3));
-    geometry.setAttribute("faceUv", new THREE.BufferAttribute(built.uvs, 2));
-    geometry.setIndex(new THREE.BufferAttribute(built.indices, 1));
-    prismMesh.geometry.dispose();
-    prismMesh.geometry = geometry;
-    prismMesh.visible = prisms.length > 0;
+    function colorOf(cell) {
+      var color = cell.sector
+        ? placedDensityColor(cell.sector, data.referenceDensityPerLy3)
+        : prismColor(galaxyShape ? prismShade(cell) : 0.5);
+      var mid = cellCoordinates(cell).cartesian;
+      return color.multiplyScalar(0.25 + 0.75 * edgeFade(mid[0], mid[1], mid[2]));
+    }
+    setBlockGeometry(solidMesh, solid, solid.map(colorOf), solid.map(function () { return 1; }));
+    setBlockGeometry(glassMesh, glass, glass.map(colorOf), glass.map(function (cell) { return cell.opacity; }));
     updateScaleBar();
   }
 
   // Inside the solid, the slice is the main answer; this near cut stays
   // for views where the camera is below the cut (or the slice is off).
   function updateNearCut() {
-    prismMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
-  }
-
-  var PLACED_KEY_OF = function (e) { return "p" + e.id; };
-  var PLANNED_KEY_OF = function (e) { return e.ring_index + ":" + e.layer_index + ":" + e.ring_slot_index; };
-
-  // See pinnedEntry's own comment above selectEntry -- re-inserts the
-  // pinned entry into a freshly-fetched tier list if the live query
-  // itself didn't happen to include it, so syncTier never drops it.
-  function withPinned(list, keyOf, kind) {
-    if (!pinnedEntry || pinnedEntry.kind !== kind) {
-      return list;
-    }
-    var pinnedKey = keyOf(pinnedEntry);
-    for (var i = 0; i < list.length; i++) {
-      if (keyOf(list[i]) === pinnedKey) {
-        return list;
-      }
-    }
-    return list.concat([pinnedEntry]);
+    solidMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
+    glassMaterial.uniforms.nearCut.value = orbit.radius * NEAR_CUT;
   }
 
 
@@ -1086,8 +1090,6 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var TILE_ROOT = data.tileRootEdgePc || 65536;
   var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 12;
-  var PLANNED_TILE_EDGE = data.plannedTileMaxEdgePc || 16;
-  var PLANNED_MAX_VIEW_RADIUS = data.plannedMaxViewRadiusPc || 32;
   var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
   var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
 
@@ -1144,21 +1146,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var viewRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, orbit.radius * FETCH_RADIUS_FACTOR));
     var level = tileLevelForRadius(viewRadius);
     var keys = tilesIntersectingSphere(level, target, viewRadius);
-    var plannedKeys = [];
-    var plannedRadius = 0;
-    if (viewRadius <= PLANNED_MAX_VIEW_RADIUS) {
-      // Out to the whole view, not a smaller ball around the target: a
-      // clipped ball of dots floating in empty space is exactly what the
-      // galaxy doesn't look like up close.
-      plannedRadius = viewRadius;
-      plannedKeys = tilesIntersectingSphere(tileLevelForRadius(PLANNED_TILE_EDGE), target, plannedRadius);
-      plannedKeys.forEach(function (key) {
-        if (keys.indexOf(key) < 0) {
-          keys.push(key);
-        }
-      });
-    }
-    return { keys: keys, plannedKeys: plannedKeys, plannedRadius: plannedRadius, viewRadius: viewRadius };
+    return { keys: keys, viewRadius: viewRadius };
   }
 
   // --- Tile caches ---------------------------------------------------------
@@ -1389,42 +1377,39 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Drawing from tiles --------------------------------------------------
 
-  function withinSphere(entry, radius) {
-    var dx = entry.x - target.x;
-    var dy = entry.y - target.y;
-    var dz = entry.z - target.z;
-    return dx * dx + dy * dy + dz * dz <= radius * radius;
-  }
+  // Filled points per tile object (a refetched tile is a new object).
+  var filledPointsByTile = new WeakMap();
+  var filledSignature = "";
 
   // Draws whatever of the needed tiles is already cached; returns what's
   // still missing.
   function renderFromCache(need) {
     fadeRadius = need.viewRadius;
-    var placed = [];
-    var planned = [];
+    var points = [];
+    var present = [];
     var missing = [];
-    var plannedSet = new Set(need.plannedKeys);
     need.keys.forEach(function (key) {
       var tile = getTile(key);
       if (tile === undefined) {
         missing.push(key);
         return;
       }
-      Array.prototype.push.apply(placed, tile.placed || []);
-      if (plannedSet.has(key)) {
-        (tile.planned || []).forEach(function (entry) {
-          if (withinSphere(entry, need.plannedRadius)) {
-            planned.push(entry);
-          }
-        });
+      var tilePoints = filledPointsByTile.get(tile);
+      if (!tilePoints) {
+        tilePoints = filledPointsOf(tile.filled);
+        filledPointsByTile.set(tile, tilePoints);
       }
+      present.push(key + "=" + tilePoints.length);
+      Array.prototype.push.apply(points, tilePoints);
     });
-    syncTier(withPinned(placed, PLACED_KEY_OF, "placed"), placedSpritesByKey, PLACED_KEY_OF, makePlacedSprite, "placed");
-    syncTier(withPinned(planned, PLANNED_KEY_OF, "planned"), plannedSpritesByKey, PLANNED_KEY_OF, makePlannedSprite, "planned");
-
+    var signature = currentStamp + "|" + present.join(",");
+    if (signature !== filledSignature) {
+      filledSignature = signature;
+      filledPoints = points;
+      filledVersion++;
+    }
     updatePrisms(need.viewRadius);
     return missing;
-
   }
 
   // --- Live tile fetching --------------------------------------------------
@@ -1550,9 +1535,7 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   canvasEl.addEventListener("pointermove", function (event) {
-    hideTooltip();
     if (!dragging) {
-      scheduleTooltipCheck(event.clientX, event.clientY);
       return;
     }
     var deltaX = event.clientX - lastClientX;
@@ -1642,31 +1625,14 @@ function initGalaxyMap3d(canvasEl, data) {
     );
   }
 
-  function entryAtClientPoint(clientX, clientY) {
-    var ndc = ndcFromClientPoint(clientX, clientY);
-    if (!ndc) {
-      return null;
-    }
-    raycaster.setFromCamera(ndc, camera);
-    var hits = raycaster.intersectObjects(interactiveGroup.children, true);
-    for (var i = 0; i < hits.length; i++) {
-      var entry = entryByObject.get(hits[i].object);
-      if (entry) {
-        // The sector's own position, not where the ray grazed its marker:
-        // a marker is a fixed number of screen pixels, which from far out
-        // spans hundreds of parsecs, so centering on the grazed spot left
-        // the sector drifting off-center (and out of view) while zooming in.
-        return { entry: entry, point: new THREE.Vector3(entry.x, entry.y, entry.z) };
-      }
-    }
-    return null;
-  }
-
-  // The prism under a screen point, as showCellInfo's cell, plus the
-  // prism's center to recenter on -- or null. Prisms hidden by the near
-  // cut (updateNearCut) are skipped.
+  // The block under a screen point, as showCellInfo's cell, plus the point
+  // to recenter on (the mean of its filled sectors, or its middle) -- or
+  // null. Along the ray, the nearest block holding filled sectors wins over
+  // the translucent space in front of it, so clicking finds what's
+  // generated. Blocks hidden by the near cut (updateNearCut) are skipped.
   function cellAtClientPoint(clientX, clientY) {
-    if (!prismMesh.visible || !drawnOwners) {
+    var meshes = [solidMesh, glassMesh].filter(function (mesh) { return mesh.visible && mesh.userData.owners; });
+    if (!meshes.length) {
       return null;
     }
     var ndc = ndcFromClientPoint(clientX, clientY);
@@ -1674,33 +1640,44 @@ function initGalaxyMap3d(canvasEl, data) {
       return null;
     }
     raycaster.setFromCamera(ndc, camera);
-    var hits = raycaster.intersectObject(prismMesh, false);
-    var nearCut = prismMaterial.uniforms.nearCut.value;
+    var hits = raycaster.intersectObjects(meshes, false);
+    var nearCut = solidMaterial.uniforms.nearCut.value;
+    var first = null;
     for (var i = 0; i < hits.length; i++) {
       var face = hits[i].face;
       if (!face) {
         continue;
       }
-      var cellData = drawnCells[drawnOwners[face.a]];
+      var mesh = hits[i].object;
+      var cellData = mesh.userData.cells[mesh.userData.owners[face.a]];
       if (!cellData) {
         continue;
       }
       var coords = cellCoordinates(cellData).cartesian;
-      var point = new THREE.Vector3(coords[0], coords[1], coords[2]);
-      if (point.distanceTo(camera.position) < nearCut) {
+      if (new THREE.Vector3(coords[0], coords[1], coords[2]).distanceTo(camera.position) < nearCut) {
         continue;
       }
-      var m = drawnSectorsPerPrism;
-      var cell = {
-        m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, seg: cellData.seg, slab: cellData.slab,
-        edgePc: edgePc, shape: galaxyShape,
-      };
-      if (m === 1) {
-        cell.address = { ring: cellData.ring, layer: cellData.slab, slot: cellData.seg };
+      if (cellData.filled > 0) {
+        return blockHit(cellData);
       }
-      return { point: point, cell: cell };
+      if (!first) {
+        first = cellData;
+      }
     }
-    return null;
+    return first ? blockHit(first) : null;
+  }
+
+  function blockHit(cellData) {
+    var m = drawnSectorsPerPrism;
+    var at = cellData.centroid || cellCoordinates(cellData).cartesian;
+    var cell = {
+      m: m, bounds: cellData, density: cellData.density, ring: cellData.ring, seg: cellData.seg, slab: cellData.slab,
+      edgePc: edgePc, shape: galaxyShape, filled: cellData.filled || 0, sector: cellData.sector || null,
+    };
+    if (m === 1) {
+      cell.address = { ring: cellData.ring, layer: cellData.slab, slot: cellData.seg };
+    }
+    return { point: new THREE.Vector3(at[0], at[1], at[2]), cell: cell };
   }
 
   // The sector cell holding a galaxy-frame point -- every point in space
@@ -1757,57 +1734,33 @@ function initGalaxyMap3d(canvasEl, data) {
     return hitPoint;
   }
 
-  // selectEntry alone (no target/radius change) just updates the
-  // highlight/info panel -- shared by the click/double-click handlers so a
-  // click/double-click on empty space (entry === null) leaves whatever
-  // was last selected showing, the same "recentering doesn't clear your
-  // selection" behavior the old single zoomToward function had.
-  //
-  // Also PINS the selected entry (see pinnedEntry/renderFromCache above): the
-  // live view's own tile set shrinks as orbit.radius shrinks
-  // (neededTiles' own FETCH_RADIUS_FACTOR), so once you're centering/
-  // zooming in toward one specific sector, a click/double-click that
-  // landed even slightly off that sector's own exact stored position
-  // (easy to do from far out, where its marker is only a handful of
-  // screen pixels wide) could otherwise cause a later, smaller-radius
-  // re-fetch to legitimately no longer include it -- and syncTier
-  // removes anything not present in a fresh fetch, making the very
-  // sector you just selected and are flying toward vanish outright.
-  // Pinning keeps it in the scene regardless of what the live viewport
-  // query returns, for as long as it stays selected.
-  var pinnedEntry = null;
-
-  function selectEntry(point, entry, cell) {
-    if (!entry) {
-      if (cell) {
-        var coords = cellCoordinates(cell.bounds).cartesian;
-        highlightPosition(coords[0], coords[1], coords[2], PLANNED_PX * 2);
-        showCellInfo(cell);
-      }
+  // Shows a block's info and rings it: a generated sector's own panel (with
+  // its link) at one sector per block, otherwise the block's.
+  function selectCell(point, cell) {
+    if (!cell) {
       return;
     }
-    pinnedEntry = entry;
-    highlightPosition(point.x, point.y, point.z, entry.kind === "placed" ? placedScreenRadiusPx(entry.system_count) : PLANNED_PX);
-    if (entry.kind === "placed") {
-      showPlacedInfo(entry);
+    highlightPosition(point.x, point.y, point.z);
+    if (cell.sector) {
+      showPlacedInfo(cell.sector);
     } else {
-      showPlannedInfo(entry);
+      showCellInfo(cell);
     }
   }
 
-  // Single click: re-centers the view on the clicked point (or selects/
-  // navigates-info for a clicked dot) WITHOUT zooming -- deliberately not
+  // Single click: re-centers the view on the clicked block (and shows its
+  // info) WITHOUT zooming -- deliberately not
   // "click to zoom" any more (see this file's own module docstring's
   // former "Click-to-zoom is LOGARITHMIC" note, now double-click's own
   // job below). Centering alone, with no zoom commitment, is what makes
   // it possible to walk the camera across the galaxy toward a small/
-  // distant dot over several clicks without a bad click also zooming
+  // distant block over several clicks without a bad click also zooming
   // into empty space you didn't mean to approach.
-  function centerOn(point, entry, cell) {
+  function centerOn(point, cell) {
     target.copy(point);
     applyCamera();
     updateScaleBar();
-    selectEntry(point, entry, cell);
+    selectCell(point, cell);
     scheduleFetch(true);
   }
 
@@ -1821,20 +1774,17 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // Resolves a click/double-click's target point the same way for both:
-  // a hit dot's own position, or (empty space) depthPointAtClientPoint
-  // -- shared so the click handlers below never have to duplicate the
-  // raycast-then-fall-back logic.
+  // a hit block (its filled sectors' mean position when it has any, so a
+  // double-click zooms in toward them), or (empty space)
+  // depthPointAtClientPoint -- shared so the click handlers below never
+  // have to duplicate the raycast-then-fall-back logic.
   function resolveClickTarget(clientX, clientY) {
-    var hit = entryAtClientPoint(clientX, clientY);
+    var hit = cellAtClientPoint(clientX, clientY);
     if (hit) {
       return hit;
     }
-    var prismHit = cellAtClientPoint(clientX, clientY);
-    if (prismHit) {
-      return { point: prismHit.point, entry: null, cell: prismHit.cell };
-    }
     var depthPoint = depthPointAtClientPoint(clientX, clientY);
-    return depthPoint ? { point: depthPoint, entry: null, cell: galaxyShape ? sectorCellAt(depthPoint) : null } : null;
+    return depthPoint ? { point: depthPoint, cell: galaxyShape ? sectorCellAt(depthPoint) : null } : null;
   }
 
   // Only a double-click's FIRST click recenters (event.detail counts the
@@ -1853,7 +1803,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     var resolved = resolveClickTarget(event.clientX, event.clientY);
     if (resolved) {
-      centerOn(resolved.point, resolved.entry, resolved.cell);
+      centerOn(resolved.point, resolved.cell);
       lastCenterClickAt = Date.now();
     }
   });
@@ -1868,7 +1818,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (Date.now() - lastCenterClickAt > 1000) {
       var resolved = resolveClickTarget(event.clientX, event.clientY);
       if (resolved) {
-        centerOn(resolved.point, resolved.entry);
+        centerOn(resolved.point, resolved.cell);
       }
     }
     zoomInOnTarget();
@@ -1906,53 +1856,6 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     });
   }
-
-  // --- Hover tooltip ---------------------------------------------------
-
-  var tooltipEl = null;
-  function ensureTooltipEl() {
-    if (!tooltipEl && viewport) {
-      tooltipEl = document.createElement("div");
-      tooltipEl.className = "galaxymap3d-tooltip";
-      tooltipEl.hidden = true;
-      viewport.appendChild(tooltipEl);
-    }
-    return tooltipEl;
-  }
-
-  function hideTooltip() {
-    if (tooltipEl) {
-      tooltipEl.hidden = true;
-    }
-  }
-
-  var tooltipPending = false;
-  function scheduleTooltipCheck(clientX, clientY) {
-    if (tooltipPending) {
-      return;
-    }
-    tooltipPending = true;
-    requestAnimationFrame(function () {
-      tooltipPending = false;
-      var hit = entryAtClientPoint(clientX, clientY);
-      var el = ensureTooltipEl();
-      if (!hit || !el || !viewport) {
-        hideTooltip();
-        return;
-      }
-      var entry = hit.entry;
-      el.textContent =
-        entry.kind === "placed"
-          ? (entry.name || "Unnamed sector") + " — " + (entry.system_count != null ? entry.system_count : 0) + " system" + (entry.system_count === 1 ? "" : "s")
-          : (entry.designation || "Not yet generated") + " — not yet generated";
-      var rect = viewport.getBoundingClientRect();
-      el.style.left = (clientX - rect.left + 14) + "px";
-      el.style.top = (clientY - rect.top + 14) + "px";
-      el.hidden = false;
-    });
-  }
-
-  canvasEl.addEventListener("pointerleave", hideTooltip);
 
   // --- Scale bar -----------------------------------------------------------
 
@@ -2053,7 +1956,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   (function animate() {
     requestAnimationFrame(animate);
-    updateMarkerScales();
+    updateHighlightScale();
     updateWedgeLabels();
     updateNearCut();
     renderer.render(scene, camera);

@@ -22,30 +22,24 @@ JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live
 tile fetches as the camera moves) never passes through this module at
 all.
 
-Three content tiers: each tile's `placed`/`planned` lists (see
-`stellarObjects.galaxyViewport`'s module docstring), plus density
-shading the browser computes itself:
-
-- **Placed**: real, already-generated sectors -- bright, clickable, sized
-  by `system_count`, colored by real stellar density (`system_count /
-  edge_ly ** 3`, relative to `physical_constants.LOCAL_STELLAR_DENSITY_LY3`
-  -- see `render_galaxy_map3d_panel`'s own `referenceDensityPerLy3`),
-  links to its sector page.
-- **Planned**: real, not-yet-generated sector addresses this galaxy's own
-  density model (when built) predicts would qualify -- small, dim,
-  clickable, shows its designation/address (copyable straight into
-  `generate.py galaxy --ring I --layer J --slot K`) rather than navigating
-  anywhere (there's nothing to navigate to yet).
-- **Density**: the galaxy's predicted density as shaded cylindrical
-  segment prisms (`static/galaxyprisms.js`), sized to the view and
-  computed in the browser from the galaxy's shape parameters, which the
-  panel embeds as `densityShape` -- not clickable, carries no info of its
-  own.
+One solid of blocks shows everything (`static/galaxyprisms.js`): each
+block is a power-of-3 cube of whole sectors, sized to the view and shaded
+by the galaxy's predicted density, which the browser computes itself from
+the shape parameters the panel embeds as `densityShape`. Unfilled space is
+translucent; a block grows more solid with its share of generated
+("filled") sectors, counted from each tile's `filled` summary
+(`queryDb.galaxy_filled_in_box`), and is fully solid once every sector in
+it is generated. At one sector per block a filled sector takes its real
+stellar density's color (`system_count / edge_ly ** 3`, relative to
+`physical_constants.LOCAL_STELLAR_DENSITY_LY3`, see
+`render_galaxy_map3d_panel`'s `referenceDensityPerLy3`) and links to its
+sector page; an unfilled one shows its designation and address (copyable
+straight into `generate.py galaxy --ring I --layer J --slot K`).
 
 Unlike `lib/starmap.py` (every dot's size/color/position is computed
 once, server-side, and the client only ever draws exactly what it's
-handed), per-dot *styling* (radius/opacity/color
-formulas) for these three tiers lives entirely in `static/galaxymap3d.js`
+handed), per-block *styling* (opacity/color
+formulas) lives entirely in `static/galaxymap3d.js`
 instead: the overwhelming majority of what gets drawn arrives through
 this page's own live `fetch()` re-queries as the camera moves, which
 never pass through this Python module again after the first paint, so a
@@ -89,7 +83,6 @@ import math
 
 try:
     from stellarObjects.galaxyViewport import (
-        PLANNED_TILE_MAX_EDGE_PC,
         TILE_MAX_LEVEL,
         TILE_ROOT_EDGE_PC,
     )
@@ -99,7 +92,6 @@ try:
 except ImportError:
     TILE_ROOT_EDGE_PC = 65536.0
     TILE_MAX_LEVEL = 12
-    PLANNED_TILE_MAX_EDGE_PC = 16.0
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching every other lib/ module's identical
     # pattern (see e.g. galaxymap.py's own top-of-file try/except).
@@ -208,16 +200,6 @@ FETCH_RADIUS_FACTOR = 1.6
 orbit radius, so what's just off-screen is already there when the camera
 turns."""
 
-PLANNED_MAX_VIEW_RADIUS_PC = 32.0
-"""float: Planned (not-yet-generated) slots are shown while the view
-radius is at most this, and then out to the whole view radius, so they
-fill the screen. They used to be clipped to a 20 pc ball around the
-target while the view reached out to 200 pc, which drew a lone ball of
-dots in empty space (near the galactic plane every slot qualifies, so
-the ball was solid). A 32 pc view holds about 3,000 slots at the default
-sector size, from up to ~125 of the smallest (`PLANNED_TILE_MAX_EDGE_PC`)
-tiles. Wider views show only the density prisms."""
-
 MAX_TILES_PER_REQUEST = 128
 """int: Mirrors `queryDb.MAX_TILES_PER_REQUEST`."""
 
@@ -276,11 +258,7 @@ def initial_tile_request(orbit_radius_pc, center_pc=(0.0, 0.0, 0.0)):
     """
     view_radius = orbit_radius_pc * FETCH_RADIUS_FACTOR
     level = _tile_level_for_view_radius(view_radius)
-    keys = _tiles_intersecting_sphere(level, center_pc, view_radius)
-    if view_radius <= PLANNED_MAX_VIEW_RADIUS_PC:
-        planned_level = _tile_level_for_view_radius(PLANNED_TILE_MAX_EDGE_PC)
-        keys += [key for key in _tiles_intersecting_sphere(planned_level, center_pc, view_radius) if key not in keys]
-    return keys
+    return _tiles_intersecting_sphere(level, center_pc, view_radius)
 
 
 DENSITY_SHAPE_FIELDS = (
@@ -344,8 +322,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                        back to the server.
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
             return shape, or `None` if `generate.py plan` has never been
-            run -- when `None`, the panel shows a hint that planned-sector
-            qualification/density shading isn't real yet (see
+            run -- when `None`, the panel shows a hint that density
+            shading isn't real yet (see
             `queryDb.galaxy_tiles`'s own `has_shape` field, which
             `initial_view` already carries through).
         edge_pc (float): The sector edge length, parsecs
@@ -374,8 +352,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "sectorUrl": sector_url,
         "tileRootEdgePc": TILE_ROOT_EDGE_PC,
         "tileMaxLevel": TILE_MAX_LEVEL,
-        "plannedTileMaxEdgePc": PLANNED_TILE_MAX_EDGE_PC,
-        "plannedMaxViewRadiusPc": PLANNED_MAX_VIEW_RADIUS_PC,
         "fetchRadiusFactor": FETCH_RADIUS_FACTOR,
         "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
         "hasShape": bool(initial_view.get("has_shape")),
@@ -412,8 +388,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         if galaxy_shape
         else (
             '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
-            "(<code>generate.py plan</code>) -- every enumerable sector address is shown as "
-            "\"planned\" regardless of predicted density, and no density shading is shown.</p>"
+            "(<code>generate.py plan</code>) -- only generated sectors are shown, as blocks, "
+            "and no density shading is shown.</p>"
         )
     )
 
@@ -421,21 +397,21 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a dot or
-  empty space to center the view there and select it &middot; double-click to do the same AND zoom in (bigger
-  steps while zoomed out, finer near a single sector) &middot; generated-sector dots colored by their own real
-  stellar density (dim &rarr; bright, relative to the real local average) &middot; small dim dots &asymp; real,
-  not-yet-generated sector addresses &middot; a solid of blocks shaded by predicted density (brighter = denser; Slice cuts it at the
-  focus's layer; each block is the fewest whole sectors still a few pixels across) &middot; wedge lines follow
-  the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing (degrees
-  counterclockwise from +X, ring slot 0)</span>
+  <span class="hint">Drag to rotate &middot; scroll or the +/&minus; buttons to zoom &middot; click a block to
+  center the view there and see what it holds &middot; double-click to do the same AND zoom in (bigger steps while
+  zoomed out, finer near a single sector) &middot; one solid of blocks, each the fewest whole sectors still a few
+  pixels across, colored by predicted density (brighter = denser): unfilled space is see-through, and a block
+  grows more solid the more of its sectors are generated (fully solid when all are); a single generated sector
+  takes its real stellar density's color &middot; Slice cuts the solid at the focus's layer &middot; wedge lines
+  follow the sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing
+  (degrees counterclockwise from +X, ring slot 0)</span>
 </div>
 {shape_hint}
 <div class="starmap-layout">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive 3D Galaxy Map. Drag or use arrow keys to rotate, scroll or the zoom buttons to
-     zoom, click a dot or empty space to center the view there and select it, double-click to do the same and
+     zoom, click a block to center the view there and select it, double-click to do the same and
      zoom in."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 </div>
@@ -449,7 +425,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
           title="Cut the solid at the focus layer (off: the whole solid)">Slice</button>
 </div>
 <aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click a sector dot for details, or double-click a dot or empty space to zoom in there.</p>
+<p class="hint">Click a block for details, or double-click it to zoom in there.</p>
 </aside>
 </div>
 </div>

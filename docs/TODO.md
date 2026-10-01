@@ -40,7 +40,7 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 15-18 in order (13, pixel-sized blocks, and 14, the solid and its slice, have shipped). 12 (the
+   slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
@@ -93,52 +93,6 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
-
-15. [ ] **One solid of blocks for filled and unfilled sectors; no more
-   marker dots.** Boss asked for this on 2026-09-30. The goal is to zoom in
-   and out and find generated ("filled") sectors from the blocks alone.
-   - **Remove the dots.** Drop the placed-sector sprites (the halo and
-     core dots) and the planned-sector dots from `galaxymap3d.js`: the
-     textures, `syncTier`, `withPinned`, marker scaling, and marker picking.
-     Filled and unfilled sectors are both shown only through the
-     continuous solid of blocks (#13, #14).
-   - **Color by density.** Every block is colored by the density of the
-     space it covers (`prismShade`). At m = 1, a filled sector is colored by its
-     real system density (`placedDensityColor`'s scale).
-   - **Opacity by how full a block is.**
-     - Unfilled space is 20% (densest) to 50% (sparsest) transparent,
-       scaled by density.
-     - A block holding filled sectors grows more solid in proportion to
-       its filled share (filled ÷ total sectors), reaching fully opaque when
-       every sector is filled.
-     - At large m the share is tiny (a handful of filled sectors among
-       531,441), so give any filled content a minimum visible step, then
-       scale it. A log of the count is one option.
-     - Boss confirmed on 2026-09-30: the more filled sectors a block
-       holds, the more solid it is, and fully solid once every sector is
-       generated.
-   - **Individual filled sectors appear only at sector zoom (m = 1).**
-     Coarser, they show only through their block's opacity.
-   - **Picking moves to blocks.**
-     - Clicking a block shows its info (#16).
-     - At m = 1, a filled block links to its sector page, and an unfilled
-       one shows today's designation and CLI snippet.
-     - Double-clicking a block with filled sectors zooms in toward them.
-   - **What it needs:**
-     - Per-block filled counts, counted in the browser from the tiles'
-       placed lists, or totalled by the server for coarse views.
-     - Translucent blocks drawn after opaque ones, sorted back to front.
-     - Interior culling (#13) only where all neighbours are opaque.
-     - A block's total sector count (`blockSectorCount`).
-
-   Done means filled sectors can be found by zooming alone at every zoom,
-   there are no marker sprites left, colors follow density, and the frame
-   rate holds at the #13 block budget.
-
-16. [ ] **Block info on click.** Clicking a block shows its sector ring,
-   layer and slot ranges and its exact sector count (and how many are
-   generated once tiles carry that). A click at m = 1 keeps today's sector
-   panel (designation, CLI snippet, 8 corners).
 
 17. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
    rebuilds the whole prism set on the main thread, then waits on tiles.
