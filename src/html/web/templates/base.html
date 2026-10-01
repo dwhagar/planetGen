@@ -113,6 +113,9 @@ subhead (badges or actions under the <h1>). -#}
   <h1 class="page-title">{{ title }}</h1>
   {%- endblock %}
   {%- block subhead %}{% endblock %}
+  {%- set math_failed = math_check_failures() %}{% if math_failed and current_admin() %}
+  <p class="error math-check-warning" role="alert">The math check failed when the site started: {{ math_failed | join(", ") }}. Generated data may be wrong until it's fixed; run <code>python -m stellarObjects.mathCheck -v</code> on the server for details.</p>
+  {%- endif %}
   {%- for is_error, text in edit_flashes() %}
   <p class="{{ 'error' if is_error else 'hint' }} edit-message" role="{{ 'alert' if is_error else 'status' }}">{{ text }}</p>
   {%- endfor %}
