@@ -449,7 +449,8 @@ GET_RULES = _rules(_URL_MAP_APP, "GET")
 PAGE_AND_API_GET_RULES = [rule for rule in GET_RULES if rule.endpoint != "static"]
 DYNAMIC_GET_RULES = [rule for rule in GET_RULES if rule.arguments]
 INT_ID_GET_RULES = [rule for rule in DYNAMIC_GET_RULES
-                    if "IntegerConverter" in {type(c).__name__ for c in rule._converters.values()}]
+                    if "IntegerConverter" in {type(c).__name__ for c in rule._converters.values()}
+                    and rule.endpoint != "edits.system_class_options"]  # admin-only: a 401 first
 UNSAFE_RULES = sorted((rule for rule in _URL_MAP_APP.url_map.iter_rules() if rule.methods & csrf.UNSAFE_METHODS),
                       key=lambda rule: rule.rule)
 PAGE_UNSAFE_RULES = [rule for rule in UNSAFE_RULES if not _is_api(rule.rule)]
@@ -457,7 +458,8 @@ API_UNSAFE_RULES = [rule for rule in UNSAFE_RULES if _is_api(rule.rule)]
 ADMIN_PAGE_RULES = [rule for rule in GET_RULES
                     if rule.rule in ("/account", "/admin") or rule.rule.startswith("/admin/")]
 ADMIN_API_GET_RULES = [rule for rule in GET_RULES
-                       if rule.endpoint.startswith("admin.") or rule.endpoint in ("auth.me", "auth.list_api_keys")]
+                       if rule.endpoint.startswith("admin.")
+                       or rule.endpoint in ("auth.me", "auth.list_api_keys", "edits.system_class_options")]
 
 
 def test_route_tables_are_complete():
@@ -1141,7 +1143,7 @@ def test_admin_pages_bounce_anonymous_visitors(app, fuzz_db, rule, pairs):
 def test_admin_api_gets_refuse_anonymous_callers(app, rule, params):
     """401 before anything else is looked at: no query parameter makes
     an anonymous caller see a validation error (or a 500) instead."""
-    path = build_path(rule, {})
+    path = build_path(rule, {name: 1 for name in rule.arguments})
     response = app.test_client().get(path, query_string=params)
     check_response(response, path)
     assert response.status_code == 401
