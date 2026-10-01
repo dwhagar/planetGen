@@ -2742,6 +2742,11 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             if sector_id is not None:
                 refresh_containment(conn, [sector_id])
                 refresh_nearest_systems(conn, [sector_id])
+                # The galaxy's content stamp (`queryDb.galaxy_content_state`)
+                # only sees sectors and systems; without this, a phenomenon
+                # added from the command line never reaches a cached tile
+                # or page (TEST.42).
+                touch_sector(conn, sector_id)
             return row_id
     finally:
         conn.close()

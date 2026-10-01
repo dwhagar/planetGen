@@ -496,6 +496,32 @@ forced credential change. They back the admin stats page
   "max_density"}], "sizes": {database: {"bytes_per_system", "systems",
   "total_bytes"}}, "available"}` (`available` is false until `update.sh`
   has added control schema v6). Shown on the Stats page.
+- `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10):
+  `{"available", "status": {"workers_active", "runs_active", "paused",
+  "paused_by", "paused_at", "holder", "job_id", "heartbeat_age_s",
+  "stale", "load": {"values", "kind", "text"}}, "items": [job tree
+  roots, newest first, each with "totals"], "total", "limit",
+  "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
+  average) or, on Windows, `cpu` (CPU percent over the same windows).
+  `available` is false until `update.sh` has added control schema v7.
+- `GET /api/admin/work/<id>` — the whole job tree holding node `<id>`
+  (ADM.12): every node's `kind`, `title`, `state`, `status` (`interrupted`
+  for a run that stopped answering), Unix-time `created_at`,
+  `started_at`, `finished_at`, `seconds`, `control`, `children`, a queue
+  node's `tasks` (up to 200, failed first) and `totals` (`tasks`,
+  `queued`, `running`, `done`, `failed`, `cancelled`, `work_seconds`,
+  `eta_seconds`) added up from the children.
+- `POST /api/admin/work/<id>/control` `{"action": "pause"|"resume"|"cancel"}`
+  — asks a live node and everything under it to pause (running tasks
+  finish, then it stands by without the lease, so other jobs run),
+  resume, or cancel. `POST /api/admin/work/<id>/delete` deletes a
+  finished tree by its root. `POST /api/admin/work/queue`
+  `{"action": "pause"|"resume"}` pauses the whole queue (no run takes the
+  lease or a task) or resumes it. `POST /api/admin/work/lease/clear`
+  frees a lease whose holder stopped refreshing it. Each answers
+  `{"ok": bool}` (`{"cleared": holder}` for the lease) and writes the
+  change to the audit and activity logs (`work.pause`, `work.queue.pause`,
+  ...).
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site
@@ -557,7 +583,8 @@ forced credential change. They back the admin stats page
   from the app matches; returns `{"recovery_codes": [...]}`, shown only
   this once (10 codes, each good for one sign-in).
 - `POST /api/auth/totp/disable` `{"current_password", "code"}` — turns
-  it off. Lost the phone and the recovery codes? From a shell:
+  it off, and forgets every trusted device of that admin (the browser
+  that turned it off gets a new device cookie). Lost the phone and the recovery codes? From a shell:
   `python3 src/loginLockouts.py --reset-two-factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
@@ -583,6 +610,13 @@ forced credential change. They back the admin stats page
 Authenticate either with the session cookie (set by `/api/auth/login`,
 used by the `../src/html/` admin pages) or an API key, sent as
 `Authorization: Bearer <key>`, for programmatic callers.
+An API key can do anything a signed-in admin can except manage the
+account: making API keys, changing credentials, setting up, confirming
+or turning off two-factor sign-in and logging out answer `403` to a key
+and need the session cookie, so a leaked key can't make itself a
+replacement before it's revoked. A key can still revoke a key
+(including itself) and read `/api/auth/me`, its keys and the two-factor
+status. When a request carries both, the key is what counts.
 
 ### Pagination
 
@@ -613,10 +647,13 @@ it: a missing sector/system id is a `404`, a missing/invalid query parameter
 or request body (including an out-of-range `limit`/`offset`, a
 non-numeric/non-positive `radius`, or a write endpoint's body failing
 validation — see below) is a `400`, an unmatched URL is a `404`, an
-unsupported HTTP method is a `405`, exceeding a rate limit is a `429`
+unsupported HTTP method is a `405`, a request body over 2 MB
+(`MAX_CONTENT_LENGTH`) is a `413` (`{"error": "request body too large"}`;
+a page answers its own HTML error page), exceeding a rate limit is a `429`
 (`{"error": "rate limit exceeded", "detail": "..."}`, see "Rate limiting"),
-a database that can't be opened is a `503` whose message is just
-`"database unavailable"`, and an unexpected server-side failure is a
+a database that can't be opened (the content database, or the control
+database an admin route checks credentials against) is a `503` whose
+message is just `"database unavailable"`, and an unexpected server-side failure is a
 `500` — the API never falls through to Flask's default HTML error page or
 leaks a stack trace, a connection error or the database's user/host to
 the client (the real detail still reaches Flask's own logger).

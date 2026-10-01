@@ -30,6 +30,7 @@ _TITLES = {
     403: "Forbidden",
     404: "Not found",
     405: "Method not allowed",
+    413: "Too large",
     429: "Too many requests",
     500: "Something went wrong",
     502: "Data unavailable",

@@ -220,7 +220,7 @@ def login():
     """The login form. A successful login goes to `next` (or `/admin`),
     by way of `/account` while the default credentials are in use."""
     next_url = safe_next(request.values.get("next"))
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):  # HEAD is a GET without the body, never the POST branch
         admin = current_admin()
         if admin is not None and not admin.get("must_change_credentials"):
             return _no_store(redirect(next_url, code=302))
@@ -283,7 +283,7 @@ def login_code():
 def logout():
     """`GET` asks to confirm (it changes nothing); `POST` ends the
     session, clearing the cookie, and goes home."""
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):  # HEAD is a GET without the body, never the POST branch
         return _render(
             "logout.html", title="Log out", breadcrumbs=[crumb("Log out")], admin=current_admin(),
         )
@@ -340,9 +340,10 @@ def account_two_factor():
             return _account_page(admin, next_url, totp={"recovery_codes": codes,
                                                         "message": "Two-factor sign-in is on."})
         if action == "disable":
-            apiclient.auth_totp_disable(cookies, request.form.get("current_password", ""),
-                                        request.form.get("code", ""))
-            return _account_page(admin, next_url, totp={"message": "Two-factor sign-in is off."})
+            set_cookie_headers = apiclient.auth_totp_disable(cookies, request.form.get("current_password", ""),
+                                                             request.form.get("code", ""))
+            return _relay(_account_page(admin, next_url, totp={"message": "Two-factor sign-in is off."}),
+                          set_cookie_headers)
     except apiclient.ApiError as exc:
         if exc.status_code == 429:
             return _account_page(admin, next_url, totp={"error": _too_many_message(exc)}, status=429)
@@ -370,7 +371,7 @@ def account():
     if bounce is not None:
         return bounce
     next_url = safe_next(request.values.get("next"))
-    if request.method == "GET":
+    if request.method in ("GET", "HEAD"):  # HEAD is a GET without the body, never the POST branch
         return _account_page(admin, next_url)
 
     new_username = request.form.get("new_username", "")
