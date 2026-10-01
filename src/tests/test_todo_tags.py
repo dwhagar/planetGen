@@ -12,22 +12,25 @@ docs/TODO.md is read when the test runs, so the check follows the file as
 it changes. With no tags in the code, there is nothing to check.
 """
 
+import importlib.util
 import os
 import re
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-CATEGORIES = (
-    "UX", "MAP", "NAV", "GEN", "PERF", "DB", "API",
-    "ADM", "SEC", "USR", "OPS", "DOC", "VIEW", "POP",
-)
+# The categories scripts/bump_version.py counts for the build number, so a
+# new category (TEST was added after this list was first written) only has
+# to be added in one place.
+_spec = importlib.util.spec_from_file_location("bump_version", os.path.join(ROOT, "scripts", "bump_version.py"))
+_bump_version = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_bump_version)
+CATEGORIES = _bump_version.TODO_CATEGORIES
 
 # Where tags are checked: these directories (recursively) and top-level files.
 SCAN_DIRS = ("src", "scripts", "examples")
 SCAN_FILES = ("generate.py", "install.sh", "update.sh", "install.ps1", "update.ps1")
 
-# This file and the installer test name tags on purpose (the latter checks
-# that the old "TODO(installers #50)" tag stays gone).
+# This file names tags on purpose.
 SKIP_FILES = {"test_todo_tags.py"}
 SKIP_DIRS = {"__pycache__", "vendor", "node_modules", ".git"}
 

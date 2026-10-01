@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   test:
+    name: test (${{ matrix.python-version }}, ${{ matrix.db-image }})
     runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
     strategy:
       # Without this, the default fail-fast:true cancels every other
@@ -26,24 +27,39 @@ jobs:
       # than letting it finish and report its own (possibly different)
       # result, hiding whether the bug is version-specific.
       fail-fast: false
+      # One database engine per leg. Local test runs use MariaDB 10.11
+      # (what Debian/Ubuntu ship), so CI covers the others:
+      # MySQL 8.0 and 8.4 are stricter about reserved words and GROUP BY
+      # (the /species 404 fixed in #231 was MySQL-8-only), and MariaDB 11
+      # is the next MariaDB a server upgrade would bring.
       matrix:
-        python-version: ["3.9", "3.12"]
+        include:
+          - python-version: "3.9"
+            db-image: mysql:8.0
+            db-health: mysqladmin ping -h 127.0.0.1
+          - python-version: "3.12"
+            db-image: mysql:8.4
+            db-health: mysqladmin ping -h 127.0.0.1
+          - python-version: "3.12"
+            db-image: mariadb:11.4
+            db-health: healthcheck.sh --connect --innodb_initialized
 
     services:
       # conftest.py's own docstring says database-backed tests expect CI to
       # provision a real MySQL server (there's no SQLite fallback since the
       # MySQL port); everything else just skips gracefully without one.
       mysql:
-        image: mysql:8.0
+        image: ${{ matrix.db-image }}
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+          MARIADB_ALLOW_EMPTY_ROOT_PASSWORD: "yes"
           MYSQL_DATABASE: planetgen
         ports:
           # Any free host port: a self-hosted machine may run several jobs
           # (or its own MySQL) at once, so 3306 itself may be taken.
           - 3306
         options: >-
-          --health-cmd="mysqladmin ping -h 127.0.0.1"
+          --health-cmd="${{ matrix.db-health }}"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10

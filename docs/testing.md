@@ -50,6 +50,30 @@ The user needs to create and drop databases: each test gets its own
 uniquely named, throwaway database, so the database tests are safe under
 `pytest -n auto` (see "Running in parallel" above).
 
+## Picking a slice of the suite
+
+`conftest.py` marks every test (markers registered in `pytest.ini`):
+
+- `db`: uses a real database (the `mysql_config` fixture, directly or
+  through another fixture);
+- `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
+  `test_bughunt_*`);
+- `browser`: the headless-browser checks (`test_web_a11y.py`).
+
+```sh
+pytest -n auto -m "not db and not slow"   # quick loop: about a minute on 4 cores
+pytest -n auto -m db                      # just the database tests
+```
+
+A pull request still needs the whole suite green.
+
+## Database engines
+
+Local runs here use MariaDB 10.11. CI's `test` job runs the whole suite
+three times: Python 3.9 on MySQL 8.0, and Python 3.12 on MySQL 8.4 and on
+MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
+than MariaDB, so a query that works locally can still fail there.
+
 ## Kinds of test
 
 - **Unit and behaviour tests** (`test_<area>.py`): one module or page each,
