@@ -28,7 +28,7 @@ import re
 from flask import flash, get_flashed_messages, redirect, request, url_for
 
 import apiclient
-from fmt import format_distance_ly, linkify_location, runaway_text
+from fmt import format_distance_ly, inside_text, linkify_location, runaway_text
 from galaxymap import sector_quadrant
 from pagination import page_slice, parse_page
 from starmap import render_map_panel
@@ -150,7 +150,9 @@ def _contents(sector):
             "name": row["name"],
             "url": system_url(row["id"]),
             "type": "Binary Star System" if row["is_binary"] else "Star System",
-            "details": ", ".join(bit for bit in (_system_star_type(row), runaway_text(row)) if bit),
+            "details": ", ".join(
+                bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
+            ),
             "octant": row["quadrant"],
             "location": trusted_html(linkify_location(row["location"], name_to_id, system_url)),
         })
@@ -167,6 +169,8 @@ def _contents(sector):
 
     for row in phenomena:
         details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
+        if row.get("class"):
+            details.insert(0, f"Class {row['class']}")
         if row["radius_ly"]:
             details.append(f"{format_distance_ly(row['radius_ly'])} radius")
         rows.append({

@@ -34,6 +34,7 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (8)**.
+- **Class reference pages (56)**: Web, after its class display work.
 - **Galaxy navigation (70-79):** Boss's drill-down design of
    2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
    70-72 first, in order; it replaces the map's click-to-center and
@@ -181,6 +182,22 @@ can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
     endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
+
+56. [ ] **Class reference pages.** Boss: "it should have pages generated
+    and cached (i.e. generated and cached when the program runs so they
+    are always in sync with the values the program uses) that list the
+    classes of everything. A user should be able to click on a class of
+    something and get information about that class given to them and be
+    able to view a page that lists classes of a type (Nebula, Asteroid
+    Field, Stars, PLanets, etc) for informational purposes." One page
+    per type (stars' spectral and luminosity classes, planets, nebulae
+    A-Q, supernova remnants R-W, asteroid fields letter+digit, black
+    holes, rogue planets, and any other type with classes) and one page
+    per class, built from the code's own class tables
+    (`program_constants`, the class definitions from PRs #138 and #141),
+    never hand-copied text, and cached when the site starts. Every class
+    label on the system, phenomenon, sector and search pages links to
+    its class page. Web does this after its class display work.
 
 Web workstream. Boss's UX reference for both items below is
 "Responsive Web Design Standards" (Boss's notes of 2026-10-01; a copy is
@@ -478,18 +495,6 @@ for a mouse; spacing and type sized with `clamp()`.
     `queryDb.nearest_systems(conn, table, ids)` serves any page.
     - Left: show them on the sector page (`sector_page._contents`'s
       `octant`/`location`), system page and phenomenon page.
-
-27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
-    shipped (2026-09-30): sectors now generate molecular clouds,
-    planetary nebulae around their own hot white dwarf, H II regions
-    around O and early-B stars and reflection nebulae around later B and
-    A stars (`generate.add_star_hosted_nebulae`,
-    `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
-    off-center by its birth kick. `queryDb.phenomena_near_sector` already
-    lists every cloud that reaches a sector.
-    - The Galaxy Map draws them (2026-10-01): each tile lists the clouds
-      reaching into it (`queryDb.galaxy_clouds_in_box`).
-    - Left: the Sector Map draws each cloud's extent (`sectormap.js`).
 
 ### Facilities (new)
 
