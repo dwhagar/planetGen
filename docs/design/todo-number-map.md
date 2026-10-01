@@ -1,5 +1,33 @@
 # TODO number map: old numbers and tree IDs to category IDs
 
+## Next free IDs
+
+A new item, subitem or bug takes its category's next free ID, and the
+same PR moves that row up by one. The release scripts read this table:
+each category's counter is its next free number minus one (the highest
+ID ever issued in it, which is also its item count), and the version's
+third number is the sum of the counters (see `changes/README.md`).
+`scripts/bump_version.py --check` fails if `docs/TODO.md` uses an ID at
+or past a category's next free one, so a stale row is caught before a
+release is stamped.
+
+| Category | Next free ID |
+|---|---|
+| UX | UX.19 |
+| MAP | MAP.49 |
+| NAV | NAV.3 |
+| GEN | GEN.23 |
+| PERF | PERF.12 |
+| DB | DB.2 |
+| API | API.3 |
+| ADM | ADM.9 |
+| SEC | SEC.20 |
+| USR | USR.8 |
+| OPS | OPS.5 |
+| DOC | DOC.4 |
+| VIEW | VIEW.5 |
+| POP | POP.7 |
+
 ## Why this exists
 
 Until 2026-10-01, `docs/TODO.md` numbered its items with running numbers
@@ -443,7 +471,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
-| OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | open |
+| OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
 | OPS.4 | Generate page jobs on native Windows | 54 (2026-09-30 20:48Z); 55 (2026-09-30 20:48Z to 22:12Z) | done in 7.9.2, PR #124 |
@@ -875,9 +903,7 @@ never appear in TODO.md, since finished items are deleted):
   next number in its category (see "Tree IDs to flat IDs"). A bug with no
   open item it breaks is now a top-level "(bug)" item (UX.15, UX.16)
   instead of a child of a `.0` item.
-- So the next free IDs are: UX.19, MAP.49, NAV.3, GEN.23, PERF.12, DB.2, API.3, ADM.9, SEC.20, USR.8, OPS.5, DOC.4, VIEW.5, POP.7.
-  A new item, subitem or bug in a category takes that category's next
-  number, and this list moves up by one.
+- The next free IDs are in "Next free IDs" at the top of this document.
 - Finished bugs got their own IDs (for example GEN.15 to GEN.20, MAP.6
   to MAP.9) so they can be cited.
 - Notes 3 and 10 are settled: MAP.4 and MAP.1 are done. TODO.md's
