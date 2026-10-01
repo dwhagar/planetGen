@@ -105,7 +105,7 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 4. **Admin editing:** ADM.1 and its subitems, on the validate module
    (ADM.5, done in PR #235).
 
-Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.8, GEN.9,
+Waiting behind those: PERF.11, UX.2, UX.3, ADM.4, GEN.9,
 user accounts (USR.1,
 starting with roles, USR.2). View from a planet (VIEW.1) waits on a
 research session with Boss, except the constellation names (VIEW.4).
@@ -212,30 +212,6 @@ No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
 MAP.30) shipped in PR #234.
 
 ## GEN: Generation and physics
-
-- [ ] **GEN.8 Give rogue planets a planet class, with a rogue flag in the class constants**
-  Boss (2026-10-01): "Rogue plants should get a
-  planet class, add TODO item to TODO.md that we should add to the
-  zone data for planet class constants a flag for if a planet is
-  acceptable to be rogue or not (zone r for the purposes of the
-  constants)." Today each class in `program_constants.PLANET_CLASSES`
-  carries zone flags `"h"`, `"e"` and `"c"` (hot, ecosphere and cold
-  zones), and a rogue planet (`stellarObjects/roguePlanetData.py`,
-  `RoguePlanet`) has no class: just a `planet_type` of `'t'` or `'g'`
-  picked by mass from the rogue mass bins. Done: every class in
-  `PLANET_CLASSES` gets an `"r"` flag saying whether it can be a rogue
-  planet; a rogue planet is given a class drawn only from the classes
-  with `"r": True` that fit its mass and type; the class is stored and
-  shown on the rogue planet's page and the Sector Map like any other
-  planet's; and the class override and validation items (ADM.5 to
-  ADM.7) treat `"r"` as the rogue planet's zone. Open questions: which
-  classes are allowed to be rogue (frozen, gas giant and barren classes
-  are the obvious ones; does a class with life ever qualify)? Are the
-  probabilities `PLANET_CLASS_PROBABILITIES` reweighted for rogues, or
-  a separate rogue table? What happens to rogue planets already
-  generated: a migration that assigns classes from their stored mass
-  and type, or a regenerate? Does a rogue class change its rendering
-  (it has no star to light it)?
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
   Boss (2026-10-01): "Lay the groundwork for different galaxies within
