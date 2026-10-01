@@ -533,6 +533,64 @@ with `clamp()`.
   giants. Its design document (`docs/design/rogue-planet-surface.md`)
   arrives with its PR.
 
+- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
+  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
+  appears in the habitable zone and adjust so that it fits there." P is
+  already ecosphere-only (`h` False, `e` True, `c` False in
+  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
+  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
+  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
+  put P outside the ecosphere, and its placement, albedo, greenhouse
+  and atmosphere are tuned so a glaciated world with life is
+  consistent at the outer edge of the habitable zone. Evidence: the
+  planet class gap report
+  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
+
+- [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
+  Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
+  letter class gaps sequentially. For the subsurface ocean moon, split
+  this so that we have the one the size of a class D (moon / pseudo
+  planet) and one similar to a terrestrial world (a modification of
+  Class C), for lifeless temperate world, don't we have a class for
+  that already? If not, I approve adding one." There is none: every
+  ecosphere rocky class with air carries life, and C (the only lifeless
+  rocky one) is airless. Proposed mapping, in letter order (the build
+  can adjust):
+  - R Sub-Neptune: rock and ice core under a hydrogen-helium envelope,
+    1.8-4 Earth radii, 3-20 Earth masses, hot, ecosphere and cold. The
+    most common real planet type, missing today; consider whether T
+    (gas dwarf, 0.05% of planets) merges into it.
+  - S Rocky super-Earth: barren, 1.2-1.8 Earth radii, 2-10 Earth
+    masses, hot, ecosphere and cold (a hot one can be a lava world). V
+    stays the life-bearing super-Earth.
+  - U Icy world (ice dwarf or large icy moon): water ice over rock,
+    500-3,000 km, cold (Ganymede, Callisto, Triton, Pluto, Eris).
+  - W Small subsurface ocean body, Class D sized (moon or pseudo-planet,
+    about 50-500 km): Enceladus analog.
+  - X Subsurface ocean world, terrestrial sized (a modified Class C,
+    about 500-10,000 km): Europa analog and larger.
+  - Y Titan-like world: thick nitrogen atmosphere, methane rain,
+    hydrocarbon lakes, 1,500-4,000 km, cold.
+  - Z Lifeless temperate world: rocky, with an atmosphere, ecosphere,
+    no life.
+  Done: each class has zone flags, weights, radius and mass ranges,
+  atmosphere, moon eligibility and a GEN.8 rogue `"r"` flag decision,
+  and shows on the class reference pages. R, W, X and Y belonged to
+  classes removed in early September, so no old rows or tests may
+  still expect those letters. Evidence: the planet class gap report
+  (link in GEN.27).
+
+- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
+  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
+  sure they all make sense logically once the new classes are in
+  place." After GEN.28. Done: every class's description, composition,
+  zones, sizes, weights, temperatures and atmosphere agree with each
+  other. Known oddities to settle: D allowed in the hot zone (icy
+  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
+  generated (weight 0.0001, and orbits are circular); V's composition
+  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
+  at 376-414 K, above water's boiling point at 0.6 bar.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
