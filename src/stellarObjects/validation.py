@@ -379,9 +379,9 @@ def space_orbits(planets, pinned=()):
 
         if planet.body_type == 'a':
             if last_planet.body_type == 'a':
-                if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
+                if _below(distance_to_last, program_constants.MIN_ASTEROID_BELT_SEPARATION):
                     _shift_belt(planet, program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
-            elif distance_to_last < last_planet.min_orbit_distance:
+            elif _below(distance_to_last, last_planet.min_orbit_distance):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
         else:
             keep_class = id(planet) in pinned_ids
@@ -391,7 +391,7 @@ def space_orbits(planets, pinned=()):
                 # depends on.
                 for _ in range(3):
                     min_distance = min_distance_past_belt_au(planet, last_planet)
-                    if planet.distance >= min_distance:
+                    if not _below(planet.distance, min_distance):
                         break
                     planet.distance = min_distance
                     if not reconcile_moved_planet(planet, keep_class):
@@ -407,7 +407,7 @@ def space_orbits(planets, pinned=()):
                 # guard against a pathological cycle).
                 for _ in range(3):
                     min_distance = mutual_min_distance_au(planet, last_planet)
-                    if planet.distance >= min_distance:
+                    if not _below(planet.distance, min_distance):
                         break
                     planet.distance = min_distance
                     if not reconcile_moved_planet(planet, keep_class):
@@ -713,7 +713,7 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
     """
     Brings an edited star system back to a stable layout, from the inside
     out: every lunar system first (`stabilize_lunar_system`), then each
-    star's planets and belts, sorted by orbit and re-spaced outward
+    star's planets and belts, in their stored order, re-spaced outward
     (`space_orbits`; a moved planet whose class no longer fits its new
     zone is reclassified unless it is `pinned`), then the orbit ceiling
     and, for a wide binary, the clearance between the two stars.
@@ -746,7 +746,6 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
         for body in planets:
             if body.body_type != 'a':
                 stabilize_lunar_system(body)
-        planets.sort(key=inner_edge_au)
         space_orbits(planets, pinned=pinned)
         if allow_removal:
             removed.extend(trim_to_orbit_ceiling(planets, orbit_ceiling_au(star)))

@@ -17,6 +17,9 @@ Admin actions are POST forms to the same URL, each carrying
   optional `path`.
 - `generate_neighborhood` (an admin whose credentials are current, on a
   galaxy-placed sector): `POST /api/sectors/<id>/generate-neighborhood`.
+- The Delete and Regenerate buttons (ADM.8) post an `edit_action`
+  instead, handled by `web/edit_actions.py`: delete the sector with
+  everything in it, or delete it and generate its slot again.
 
 A successful action flashes its message and redirects (303) back to the
 GET page, so reloading never repeats it. A failed one re-renders the page
@@ -43,7 +46,7 @@ from api.common import is_http_url
 from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 
-from . import bp
+from . import bp, edit_actions
 from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
@@ -256,6 +259,9 @@ def _handle_post(sector_id, admin):
     the page to show next to that form.
     """
     page_again = redirect(url_for("web.sector", sector_id=sector_id), code=303)
+    if "edit_action" in request.form:
+        return edit_actions.handle_post({("sector", sector_id)}, page_url("sector", sector_id=sector_id),
+                                        after_delete={"sector": page_url("sectors")})
     if admin is None:
         return page_again
     action = request.form.get("action", "")
@@ -498,6 +504,7 @@ def sector(sector_id):
                     label="Contents pages"),
         admin=admin,
         can_generate=admin is not None and not admin["must_change_credentials"],
+        can_edit=edit_actions.can_edit(admin),
         wiki_backends=wiki_backends,
         errors=errors,
         estimate=estimate,

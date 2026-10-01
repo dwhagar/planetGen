@@ -2,6 +2,7 @@
     the stars table and the map are HTML from lib/systempage.py and
     lib/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
+{% from "partials/edit_controls.html" import edit_buttons with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
@@ -86,6 +87,36 @@
   {%- endif %}
   {{ system_list_html }}
 </section>
+{%- if can_edit %}
+{%- set here = page_url('system', system_id=system.id) %}
+<section class="panel" id="edit-system" aria-labelledby="edit-system-heading">
+  <h2 id="edit-system-heading">Edit</h2>
+  <p class="hint">Regenerating rolls something again in the same place and keeps its name; the rest
+  of the system is then checked and re-spaced until it is stable.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Body</th><th scope="col">What it is</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
+    <tbody>
+      <tr>
+        <td>{{ system.name }}</td>
+        <td>The whole system</td>
+        <td>{{ edit_buttons(here, 'system:' ~ system.id, system.name,
+               'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place.',
+               'Deletes the system and everything in it.', regenerate_facilities=True) }}</td>
+      </tr>
+      {%- for row in edit_rows %}
+      <tr>
+        <td{% if row.indent %} class="edit-indent"{% endif %}>{{ row.label if row.kind != 'belt' else 'Asteroid belt' }}</td>
+        <td>{{ row.detail }}</td>
+        <td>{{ edit_buttons(here, row.target, row.label,
+               'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
+               'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
+               regenerate_facilities=(row.kind == 'planet')) }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if facilities or admin %}
 {%- set form = facility_form %}
 <section class="panel" id="facilities" aria-labelledby="facilities-heading">
