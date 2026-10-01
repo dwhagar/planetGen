@@ -44,7 +44,9 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .planetPhysics import calculate_orbital_period_years
 from .roguePlanetData import format_comet_composition_summary
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import generate_phoneme_salad_name, minimum_update_interval_years, reseed_rng, years_to_time_string
+from .utils import (
+    format_distance_au, generate_phoneme_salad_name, minimum_update_interval_years, reseed_rng, years_to_time_string,
+)
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -361,21 +363,21 @@ class Comet:
             period_label = PERIOD_CLASS_LABELS.get(self.period_class, "periodic")
             orbit_sentence = (
                 f"It follows a {period_label} elliptical orbit around the star, with a perihelion of "
-                f"{self.perihelion_distance_au:.3f} AU, an eccentricity of {self.eccentricity:.3f}, and a "
+                f"{format_distance_au(self.perihelion_distance_au)}, an eccentricity of {self.eccentricity:.3f}, and a "
                 f"period of {years_to_time_string(self.orbital_period_years)}, returning to the inner system "
                 f"every orbit."
             )
         else:
             orbit_sentence = (
                 f"It is on a marginally unbound, near-parabolic orbit with a perihelion of "
-                f"{self.perihelion_distance_au:.3f} AU and an eccentricity of {self.eccentricity:.4f} -- having "
+                f"{format_distance_au(self.perihelion_distance_au)} and an eccentricity of {self.eccentricity:.4f} -- having "
                 f"originated in this system's own outer reaches, it will not return after this passage."
             )
 
         description = (
             f"{self.name} is a comet bound to this system, with a nucleus roughly "
             f"{self.nucleus_diameter_km:.2f} km across, composed of {self.get_composition_summary()}. "
-            f"{orbit_sentence} It is currently {self.distance_au:.3f} AU from the star, moving at "
+            f"{orbit_sentence} It is currently {format_distance_au(self.distance_au)} from the star, moving at "
             f"{self.orbital_speed_kms:.1f} km/s. {activity}"
         )
 

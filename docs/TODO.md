@@ -34,16 +34,21 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (8)**.
+- **Galaxy navigation (70-79):** Boss's drill-down design of
+   2026-10-01, specified in `docs/design/galaxy-drilldown-navigation.md`.
+   70-72 first, in order; it replaces the map's click-to-center and
+   double-click zoom.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
+   slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (25-36)** from the same notes: phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
    and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
-   26 (nearest systems) in v41 and 35 (facilities) in v42.
+   26 (nearest systems) in v41 and 35 (facilities) in v42; 32 (the
+   correlative update moves everything) shipped with them.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -73,18 +78,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-18. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
-   - Babylon.js is several MB, and deck.gl needs a bundler.
-   - regl and raw WebGPU would mean rewriting picking, sprites and
-     lighting by hand.
-   - The CSP (`default-src 'self'`) and the no-build-step vendoring rule
-     favor one vendored file.
-   - The bottleneck is JavaScript listing work, not the renderer.
-
-   three r186 already has InstancedMesh, BatchedMesh and a
-   WebGPURenderer to move to later. Done means the rendering choice is
-   written into `docs/html-interface.md`.
-
 19. [ ] **Follow-ups (edge cases).**
    - Distance-based detail (bigger blocks farther from the camera), which
      the aligned wedges from 5 make seamless.
@@ -95,6 +88,96 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      vertex count; past that, one InstancedMesh per wedge-arc count.
    - DPR: `pcPerPixel` is per CSS pixel.
 
+
+### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
+
+Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
+pick a slab; it is pulled out and shown from above; pick a block; its
+contents fill the view as blocks 1/9 the size; repeat until single
+sectors, where a click opens the sector. The ladder is 243 -> 27 -> 3 ->
+1 sectors a side ("the bigger targets"), eight clicks from the galaxy to
+a sector. Admins can generate a sector, a layer or a neighborhood (radius
+asked in light-years) at the sector level, and the NAV page can pick its
+start and destination on the map or in a sector. Everything below is
+specified, with the math, in the design doc named in the heading; each
+item names its section. Items 70-72 go in order (Galaxy Map thread); Web
+can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
+
+70. [ ] **Nested ladder geometry (design doc section 3).** Today's
+    `blockWedgeCount` picks each level's wedges on its own, so a child
+    block sits inside one parent only sometimes (109 of 143 rings at
+    243 -> 27, 1,162 of 1,286 at 27 -> 3). Done: the nested wedge rule
+    (each level's wedge count a whole multiple of its parent's),
+    sectors joining the level-3 block that holds their center, and
+    `drillWedgeCount`, `drillParent`, `drillChildren`, `drillSlabs`,
+    `drillBlockSectors`, `drillChainOf` in `static/galaxyprisms.js` with
+    the same functions in `stellarObjects/galaxyGeometry.py`; a node
+    parity test shows both agree and that a parent's sectors are exactly
+    its children's.
+
+71. [ ] **Stage contents API (section 7).** Done: `GET
+    /api/galaxy/stage?at=m.I.s.S` returns one container's children with
+    generated counts (generated sectors listed at m = 3), and the whole
+    galaxy's level-243 blocks with no `at`; cached by `lib/tilecache.py`
+    under the stamp, a change invalidating only its ancestor chain. No
+    schema change.
+
+72. [ ] **The drill-down stages (sections 4, 5, 8.1, 10).** Done: the
+    eight stages on the Galaxy Map, with slab hover highlight, pull-out
+    to a top-down view, the van Wijk-Nuij flight into a block, the slab
+    strip, the breadcrumb with sibling menus, stage URLs
+    (`/galaxy?slab=`, `?at=`, `?sector=`) with Back/Forward, keys,
+    touch taps and the "Generated only" toggle; reduced motion cuts
+    instead of animating. Click-to-center and double-click zoom go away
+    (decision 2 in section 11 decides whether free look stays). Needs
+    63's bigger map for room.
+
+73. [ ] **Generate from the sector level (section 6).** Boss: "once
+    we're down to a sector level we can tell a slice to generate all the
+    sectors in that slice or click on a sector and generate it from the
+    UI if you're admin", and "add a 'generate neighborhood' when at a
+    sector selection level that will ask the radius in ly." Done, for an
+    admin at stages 7-8: Generate this sector (today's `slot` mode),
+    Generate this layer or slab (a new `generate.py galaxy --block
+    m.I.s.S [--block-layer j]` mode plus a Generate page form), and
+    Generate neighborhood with a light-year radius dialog (default 100
+    ly, 13-652 ly, converted with `ly_to_pc`, an "up to about N sectors"
+    estimate, a confirmation above 5,000), started without leaving the
+    map and refreshed when the job ends. Web owns `generate.py` and the
+    Generate page; Galaxy Map owns the buttons.
+
+74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
+    Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
+    start/destination" button on a system or phenomenon, which lands on
+    `/nav?from=...&to=...`; system and phenomenon pages and the Sector
+    Map panel get "Nav from here" and "Nav to here".
+
+75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
+    menu select start and destination using either the text dropdowns as
+    we have now or the galactic map interface to select. If it's within
+    sector then it'll just use the sector interface." Done: beside each
+    dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
+    forced on, ending in 74's Sector Map pick mode), "Pick in this
+    sector" once the other end is known, and a Bookmarks select.
+
+76. [ ] **Bookmarks (section 8.2).** Done: a ☆ on the breadcrumb and
+    info panels saves a stage, sector, system or phenomenon in
+    `static/bookmarks.js` (per browser, up to 100, storage failures
+    tolerated), with a map menu, Ctrl+1-9, rename and delete, and the
+    entries offered by the NAV pickers. Shared bookmarks need Boss's
+    decision 4 and a migration.
+
+77. [ ] **Address bar (section 9.3).** Done: a field over the breadcrumb
+    takes a designation, `ring/layer/slot`, `x, y, z` pc or a name and
+    flies to that sector's stage 8, in pick mode too.
+
+78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
+    link goes to the Quadrant table today. Done: sector, system and
+    search pages link to `/galaxy?sector=<designation>`.
+
+79. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
+    result's "Show on Galaxy Map" opens the smallest stage holding both
+    endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
@@ -170,45 +253,46 @@ for a mouse; spacing and type sized with `clamp()`.
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
 
-27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
-    shipped (2026-09-30): sectors now generate molecular clouds,
-    planetary nebulae around their own hot white dwarf, H II regions
-    around O and early-B stars and reflection nebulae around later B and
-    A stars (`generate.add_star_hosted_nebulae`,
-    `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
-    off-center by its birth kick. `queryDb.phenomena_near_sector` already
-    lists every cloud that reaches a sector.
-    - The Sector Map draws each cloud that reaches the sector as a
-      see-through volume (`sectormap.js makeCloudVolume`), even with its
-      center in another sector. Left: the Galaxy Map shows them
-      (`galaxymap3d.js`).
+### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
 
-### Correlative update (`src/updateOrbits.py`, `stellarObjects/_db.py`)
-
-32. [ ] **Check and finish the correlative update.** Boss: "We need to
-    double check our 'correlative update' to move everything (planets,
-    moons, stars, phenomena, etc) in their orbital path, we had a script
-    for it but let's make sure it's working for the current version.
-    Each time this is run it should recalculate the nearest systems and
-    store it in the database after it calculates the new galactic
-    location."
-    - `updateOrbits.py` advances phases through
-      `_db.advance_orbital_phases`/`advance_comet_orbits`: planets,
-      moons, stars, binaries, standalone phenomena's galactic phase and
-      comets. No stale columns were found against schema v34, but it
-      needs a real run against a v34 database.
-    - It never moves anything's galactic position:
-      `sectors.center_*_pc`, `star_systems.position_*_mpc`, phenomena
-      `center_*_pc` and sector membership stay where they were. Move
-      them along their galactic orbits, then recompute the nearest
-      systems (#26).
-    - Quasars aren't in the phenomena loop.
-    - When an object's orbit carries it out of its sector it moves to
-      the new sector. Boss (2026-09-30): "when a sector changes then we
-      make sure the DB and all text is changed to point at the new
-      sector location": `sector_id`, sector-relative positions, octant
-      (`quadrant`), `star_systems.location`, containing nebula (`_db.refresh_containment`),
-      and any stored or rendered text naming the old sector.
+33. [ ] **Courses in "bearing mark mark" format on nested reference
+    frames.** Boss: "Course projections should be in the format of:
+    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
+    Boss's design (summarized; the full text and pseudocode are in
+    `docs/design/navigation-frames.md`):
+    - North points toward the local dominant center of mass. Every
+      local frame is a rigid transform of the absolute galactic
+      Cartesian frame.
+    - Galactic Standard Frame: origin the galactic core, +Z galactic
+      north, +X a fixed zero meridian. Between sectors, bearing 000
+      points at the core.
+    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
+      North from the ship toward it, +Z the galactic +Z.
+    - System Local Frame: origin the central star/barycenter, North
+      from the ship toward it, +Z the star's net angular momentum
+      (the ecliptic normal).
+    - Math: D = target - ship; U = the plane's normal; N = (center -
+      ship) with its U part removed, normalized; E = N x U. Bearing =
+      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
+      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
+      fall back to a fixed reference vector. Boss's `compute_course`
+      pseudocode in the design doc is the reference.
+    - Hand-offs: star to sector barycenter past the heliopause (~120
+      AU); galactic frame when crossing a sector boundary (> 4 pc).
+    - Today `navigation.course_between` returns azimuth/altitude on the
+      galactic plane and `nav.html` shows them as separate rows.
+    - **Questions for Boss:**
+      - Marks from 0-359: the math gives -90 to +90. Default taken, from
+        your own note: write mark as elevation mod 360, so 000-090 is up
+        and 270-359 is down (270 = straight down), and nothing between
+        091 and 269 appears. OK?
+      - "0 mark 0 toward the galactic core" holds in the galactic frame;
+        inside a system or sector, 0 points at the star or sector
+        barycenter. Default taken: 0 mark 0 is toward the current
+        frame's center.
+      - The zero meridian "toward a reference quasar": here the quasar
+        sits at the galactic center, so it can't set +X. Default taken:
+        keep the galaxy's existing +X axis (ring slot 0).
 
 ### Facilities (new)
 
@@ -231,7 +315,6 @@ for a mouse; spacing and type sized with `clamp()`.
       orbit to show before saving). See `docs/api.md`.
     - A colony makes its world inhabited: OR
       `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
-    - Facilities move with the correlative update (#32).
 
 ### Web API (`src/html/api/routes.py`)
 
@@ -258,16 +341,56 @@ bright/dim sampling API (`stellarObjects/stellarPopulation.py`),
 population densities (`galaxyDensity.population_densities`) and
 `SpaceSector.add_preplaced_system` have shipped (bugs S1-S8 of the
 project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
-`bright-star-preplacement-plan.md`). What's left:
+`bright-star-preplacement-plan.md`), and so has the fill in
+`generate.py` that uses them (population ages and pre-placed bright stars).
 
-55. [ ] **Use population ages at sector fill (S7 call site).** In
-    `generate.py`'s `generate_sector`, set each system's
-    `SystemConfig.POPULATION` to
-    `stellarPopulation.pick_population(galaxyDensity.population_densities(position_pc, shape))`
-    for a galaxy-placed sector, so O/B stars and supergiants sit in the
-    arms near the plane and the bulge has none (Database/Web own that
-    file; the bright-star fill sets `MAX_STAR_LUMINOSITY_SOL` the same
-    way).
+49. [ ] **System Map names never overlap.** Boss: "we need to make sure
+    names on the system map clickable interface do not overlap."
+    - Today `systemmap._label_sides_2d` places each label (4 directions,
+      then a pushed "below"/"above" with a leader line, else dropped)
+      against the others (plus seeded star-label rects) using an
+      estimated width (`_label_half_width_px`: character count times a
+      fixed width). Real text can run wider than the estimate, so
+      labels can still collide.
+    - Fix: make sure every star label and marker is in the collision
+      set; measure the real text in the browser
+      (`getBBox()` in `systemmap.js` after load and after each zoom
+      step in `mapzoom.js`) and nudge or hide labels that still
+      overlap, keeping the server placement as the no-script fallback.
+    - Check every scene: single star, close and wide binaries, and the
+      moon-centered scenes, at 390 px and 1280 px.
+
+### Installers and platforms (Boss's notes, 2026-09-30)
+
+50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
+    also run on macOS.** Boss: "we need to write a powershell install and
+    upgrade scripts as well as make sure our bash shell scripts will also
+    work on macos as well as linux."
+    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
+      `install.sh` and `update.sh`: the same steps and the same prompts
+      (check-only upgrades, the migrate-or-delete database prompt with
+      its 30-second default, the migration progress bar), using a venv
+      or the Windows Python launcher instead of apt, Windows services or
+      Task Scheduler instead of systemd timers, and Apache on Windows
+      (or IIS) paths and permissions (`icacls`) instead of `www-data`
+      and `chown`.
+    - **macOS:** every bash script (`install.sh`, `update.sh`,
+      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
+      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
+      macOS too. Known gaps: macOS ships bash 3.2, so
+      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
+      (require Homebrew bash, or rewrite them); apt is assumed (use
+      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
+      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
+      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
+      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
+      `stat`, `readlink`, `date` and `timeout` wherever they appear.
+    - Keep the steps in step across the three platforms, so a change to
+      one installer lands in all of them.
+    - The Windows and macOS hosting guides (being written in `docs/` by
+      the docs thread) describe the server setup; this item is only the
+      scripts, and the guides should point at them once they exist.
+    - Each script carries a `TODO(installers #50)` comment at its top.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
@@ -358,6 +481,106 @@ designed yet; the open questions are listed in each item.
     per username), or does this replace the in-memory one? Should
     localhost or a configured allowlist be exempt so an admin can't lock
     themselves out, and should there be an admin "unlock" command?
+
+### User accounts (Boss's notes of 2026-10-01)
+
+Boss (2026-10-01): "a full user level interface to allow users to
+bookmark this will, of course, require an email loop for password setting
+/ resetting, invite only, so only an admin can invite a user which is done
+by unique link". Today there are only admin accounts: `admin_users`,
+`admin_sessions`, `admin_api_keys` and `admin_audit_log` in
+`stellarObjects/control_schema.sql`, managed by `stellarObjects/adminAuth.py`.
+Install seeds one admin with a random first password and
+`must_change_credentials` (`bootstrap_control_schema`), and nothing in the
+web interface or the CLI adds another account. There is no email support
+and no saved-bookmark feature (pages only have bookmarkable URLs). Order:
+64, then 65 and 66, then 67, 68 and 69. Login protection already exists
+per username (`src/html/api/loginbackoff.py`, PR #131) and is planned per
+IP address (item 61); both must cover user logins, password resets and
+invite links too.
+
+64. [ ] **Accounts with roles: user, admin and Owner.** Boss: "Admin can
+    then make a user admin or take away admin rights on everything but the
+    primary 1st admin account generated at install, that'll have a
+    designation of 'Owner' and no other account can override that." Done:
+    one accounts table in the control database (with an email address)
+    holding a role per account (user, admin, Owner); exactly one Owner,
+    which is the account install creates; an admin page where admins
+    promote a user to admin or demote an admin to user, refused for the
+    Owner; sessions and API keys that work for every role while the
+    admin-only pages and API routes stay admin-only; each role change
+    written to the audit log. Open questions: does `admin_users` become
+    this table (renamed, with a role column) or do users get their own
+    table? Which existing account becomes Owner on a server that already
+    has several admins (the lowest id?)? Can an admin demote themselves,
+    or another admin? Can an admin delete or disable a user account? Do
+    users get API keys?
+
+65. [ ] **SMTP settings in the admin config.** Boss: "We'll use SMTP for
+    email which means admin config needs SMTP settings." Done: SMTP host,
+    port, security (STARTTLS or TLS), username, password and From address,
+    set from an admin page (and the config file/installer), with a "send
+    test email" button; one small mail module that every flow in 66-68
+    uses, which logs failures and never shows the SMTP password. Open
+    questions: is the SMTP password kept in the config file (like the
+    database password) or in the control database, and is it encrypted
+    there? Who can change SMTP settings: any admin, or only the Owner?
+    What do invites and resets do when SMTP isn't configured (show the
+    link to the admin to pass on by hand?)?
+
+66. [ ] **Invite-only sign-up by unique link.** Boss: "only an admin can
+    invite a user which is done by unique link, admin can select how many
+    uses the link has or if it expires in 1 hour, 4, 6, 12, 24, 3 days, 7
+    days, 1 month, 1 year, or never. Likewise invite # of uses the link
+    gets can be infinite but infinite and never expire in combo ask for
+    confirmation as this is not recommended." Done: an admin page that
+    creates invite links (a random token stored hashed, like session
+    tokens) with a use count (a number, or infinite) and one of the
+    expiry choices above; infinite uses together with never expires asks
+    the admin to confirm and says it isn't recommended; a list of invites
+    with uses left, expiry and who made them, and a way to revoke one;
+    opening a valid link lets someone register (username, email), then
+    item 67's email loop sets their password; the account is a user, not
+    an admin. Open questions: does an admin optionally type the invitee's
+    email so the link is sent for them, or only copy the link? Is the
+    invite page rate-limited, and is there a cap on open invites? Does
+    a multi-use link record who used it?
+
+67. [ ] **Email loop for setting and resetting passwords.** Boss: "an
+    email loop for password setting / resetting". Done: a new account
+    sets its first password from an emailed link; "forgot password" on
+    the login page emails a reset link; links are single-use, short-lived
+    (stored hashed) and end the account's other sessions once used; the
+    page never says whether an email address has an account; resets are
+    rate-limited per address and per IP alongside the existing login
+    backoff and item 61. Open questions: how long a reset link lasts
+    (30 minutes? 1 hour?); does changing the email address also need an
+    email confirmation to the old and new addresses; does the Owner's
+    reset need anything extra?
+
+68. [ ] **Owner transfer.** Boss: "The owner CAN (with specific approval
+    and double password confirmation and email loop confirmation) assign
+    owner to someone else who then has to accept via email loop." Done:
+    only the Owner can start a transfer, from a page that asks them to
+    confirm the choice explicitly, enter their password twice, and then
+    confirm from an email link; the chosen account then gets an email and
+    must accept from its own link; only when both are done does Owner
+    move; every step goes to the audit log. Open questions: what the old
+    Owner becomes (admin?); does the new Owner have to be an admin
+    already; how long the pending transfer lasts and whether the Owner
+    can cancel it; what happens if the Owner loses their email or
+    password (recovery from the server's command line?).
+
+69. [ ] **A user-level interface with bookmarks.** Boss: "a full user
+    level interface to allow users to bookmark". Done: signed-in users
+    (any role) get an account page and can bookmark sectors, systems,
+    planets, phenomena and NAV courses, see them in a list, name them and
+    remove them; bookmarks are stored per account in the control
+    database. Open questions: which objects can be bookmarked, and can
+    users also add notes? What else a user can do that an anonymous
+    visitor can't (is the site still public to read, or sign-in only?)?
+    Do bookmarks survive a galaxy regenerate (object ids change), and if
+    not, what does a broken bookmark show?
 
 ## Population and Politics
 

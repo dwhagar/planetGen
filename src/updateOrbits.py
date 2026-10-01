@@ -86,6 +86,20 @@ like, with no independent update-guard interval of their own. See
 `stellarObjects.utils.calculate_reflex_offset`'s docstring for the
 formula.
 
+Galactic motion (TODO item 32): after the phases above,
+`stellarObjects._db.advance_galactic_positions` turns every placed star
+system, standalone phenomenon and stand-alone facility about the galactic
+axis by the same angle its galactic phase advanced (the galaxy's nucleus,
+the quasar, stays put). Sectors are fixed cells, so an object that drifts
+into another generated sector is refiled there: `sector_id`, its
+sector-relative position and octant. `refresh_after_motion` then
+recomputes containment (`refresh_containment`), octants and the stored
+nearest systems (`refresh_nearest_systems`) for every placed sector, and
+rewrites the `location` text of every system whose sector or nearest
+systems changed. Orbital facilities advance their orbit phase like moons
+(`advance_facility_orbits`). Page text is rendered from these rows
+(schema v29), so nothing else names the old sector.
+
 This file lives alongside `stellarObjects/` under `src/`, so Python's own
 sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
@@ -108,10 +122,13 @@ import sys
 from stellarObjects._db import (
     add_mysql_connection_args,
     advance_comet_orbits,
+    advance_facility_orbits,
+    advance_galactic_positions,
     advance_orbital_phases,
     get_connection,
     get_orbit_update_elapsed_years,
     mysql_config_from_args,
+    refresh_after_motion,
 )
 from stellarObjects._version import VersionAction, version_banner
 
@@ -133,6 +150,7 @@ TABLE_LABELS = {
     "interstellar_comets": "interstellar comet(s)",
     "asteroid_fields": "asteroid field(s)",
     "comets": "star-bound comet(s)",
+    "facilities": "orbital facilit(ies)",
 }
 """dict: `advance_orbital_phases`' result dict key (plus `"comets"`,
 merged in separately from `advance_comet_orbits`' own return value below --
@@ -141,16 +159,6 @@ call rather than sharing `advance_orbital_phases`' set-based `UPDATE`s) ->
 human-readable label for this script's own summary line."""
 
 
-# TODO(orbits #32): check this "correlative update" still works on schema
-# v34 end to end. It advances phases (planets, moons, stars, binaries,
-# phenomena galactic phase, comets) but never moves anything's galactic
-# position: sectors.center_*_pc, star_systems.position_*_mpc, phenomena
-# center_*_pc and sector membership stay put. Move every system and
-# phenomenon along its galactic orbit, update its galactic location (and
-# its sector when it crosses a boundary: sector_id, octant, location text
-# and every stored or rendered text naming the old sector all follow), then
-# recalculate the nearest systems (#26) and containing nebula (_db.refresh_containment) and
-# store them.
 def main():
     parser = argparse.ArgumentParser(
         description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "
@@ -183,8 +191,19 @@ def main():
         # docstring for why a comet's position can't be advanced by the
         # same set-based SQL advance_orbital_phases uses for everything else.
         counts["comets"] = advance_comet_orbits(conn, elapsed_years)
+        counts["facilities"] = advance_facility_orbits(conn, elapsed_years)
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary}.")
+
+        # Galactic motion: move everything along its galactic orbit,
+        # refile what drifted into another sector, then recompute what
+        # depends on position (containment, octants, nearest systems,
+        # location text).
+        motion = advance_galactic_positions(conn, elapsed_years)
+        locations = refresh_after_motion(conn, motion["sectors"])
+        conn.commit()
+        print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
+              f"sector. Refreshed nearest systems and containment; rewrote {locations} location(s).")
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

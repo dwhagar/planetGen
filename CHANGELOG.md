@@ -1,5 +1,42 @@
 # Changelog
 
+## [7.38.0] - 2026-10-01
+
+### Added
+
+- **Every bright star is placed before its sector is filled (schema
+  v43).** `generate.py plan` now ends by drawing every star of 500 solar
+  luminosities or more across the whole galaxy and storing each at a
+  fixed point in its sector, in a new `bright_stars` table, while the
+  sectors themselves stay unfilled. Filling a sector builds a full system
+  around each of its bright stars first and draws the rest from dimmer
+  stars, so a sector's expected count is unchanged. New plan options:
+  `--bright-star-min-luminosity`, `--no-bright-stars`,
+  `--bright-stars-only` and `--force`.
+- **Star ages follow where a sector sits.** Each system in a galaxy
+  sector draws its star from the young, intermediate, old or bulge
+  population in proportion to their density there, so O and B stars and
+  supergiants gather in the spiral arms near the plane.
+
+## [7.37.0] - 2026-10-01
+
+### Changed
+
+- **The correlative update moves everything.** `updateOrbits.py` now
+  turns every star system, phenomenon and stand-alone facility along its
+  galactic orbit, moves anything that drifts into another generated
+  sector over to it (sector, position, octant and location text), and
+  then recomputes containment and the stored nearest systems. Orbital
+  facilities advance around their hosts like moons.
+
+## [7.36.0] - 2026-10-01
+
+### Added
+- **Nebulae and supernova remnants on the Galaxy Map.** They are drawn as
+  soft translucent clouds their real size, in the Sector Map's colors,
+  and fade out as the camera gets close. Clicking one shows its type,
+  class and radius, with a link to its page.
+
 ## [7.35.0] - 2026-10-01
 
 ### Added
