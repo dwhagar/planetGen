@@ -19,7 +19,7 @@ on:
 
 jobs:
   fuzz:
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJSON(vars.RUNNER_LINUX || '["self-hosted", "Linux"]') }}
     timeout-minutes: 300
 
     services:
@@ -29,7 +29,7 @@ jobs:
           MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
           MYSQL_DATABASE: planetgen
         ports:
-          - 3306:3306
+          - 3306
         options: >-
           --health-cmd="mysqladmin ping -h 127.0.0.1"
           --health-interval=10s
@@ -38,7 +38,6 @@ jobs:
 
     env:
       PLANETGEN_TEST_MYSQL_HOST: 127.0.0.1
-      PLANETGEN_TEST_MYSQL_PORT: 3306
       PLANETGEN_TEST_MYSQL_USER: root
       PLANETGEN_TEST_MYSQL_PASSWORD: ""
       PLANETGEN_FUZZ_PROFILE: deep
@@ -51,6 +50,12 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Private virtualenv for this job
+        # Self-hosted runners keep their Python between jobs; installing
+        # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
+        # one job's packages out of the next.
+        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
+
       - name: Install package with test/api extras
         run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
 
@@ -58,4 +63,6 @@ jobs:
         run: python -m nltk.downloader words
 
       - name: Run the brute-force tests with the deep profile
+        env:
+          PLANETGEN_TEST_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
         run: pytest src/tests/test_fuzz_*.py -p no:cacheprovider -n auto --dist worksteal
