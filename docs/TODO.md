@@ -108,7 +108,9 @@ of the SEC section.
    4. Done: the drill-down rework (MAP.17, MAP.19, MAP.18, MAP.44,
       MAP.26), built as Boss's "Layer + arc".
 2. **Security, in this order** (login blocking first):
-   1. SEC.20: log every failed and locked login with its address.
+   1. SEC.28: an always-on log in the standard log location (logins,
+      logouts, database changes, authorization failures), with SEC.20
+      (failed and locked logins with their address) as its first part.
    2. SEC.1: the per-IP lockout in the control database, with SEC.21
       (the per-username backoff moved into the same table).
    3. SEC.23 (bug): a wrong current password on `/account` isn't
@@ -118,9 +120,10 @@ of the SEC section.
    5. SEC.24 (common and breached password blocklist), then SEC.25
       (check the hashing cost, re-hash on login).
    6. SEC.26: two-factor sign-in for admins.
-   7. SEC.27: the fail2ban recipe in the deployment docs.
+   7. SEC.27: the fail2ban filter and jail (examples written out under
+      the item) in the deployment docs.
 
-   SEC.20 and SEC.23 are small and touch different files from the bugs,
+   SEC.23 is small and touch different files from the bugs,
    so they can run alongside step 1 if Boss wants.
 3. **Database calls, the next update after bugs and security** (Boss,
    2026-10-01), in this order:
@@ -1002,30 +1005,87 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
 
 The login protection research of 2026-10-01 (what's built today, the
 gaps found, standard methods compared, and the recommended design) is in
-the design doc above; its section numbers are cited below. Order: SEC.20,
-SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25, SEC.26, SEC.27.
+the design doc above; its section numbers are cited below. Order: SEC.28
+(with SEC.20), SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25,
+SEC.26, SEC.27.
 
-- [ ] **SEC.20 Log every failed and locked login with its address**
+- [ ] **SEC.28 An always-on log in the standard log location**
+  Boss (2026-10-01): "Implement a full logging suite that will log to
+  the standard log location. If it's on Windows then it should just do
+  its root folder and a subdirectory for logs but on other platforms it
+  should do the standard log directory. We already have two output
+  levels but I want to make sure that login, logout, database reads and
+  writes can be viewed. Not so much reads, but database changes should
+  be written to the log file and authorization errors, like missed
+  authorizations, should be logged to that file." Today the only file
+  log is the debug log (`stellarObjects/log.py`): written only when
+  `config.json`'s `"debug"` is on, at DEBUG severity, to
+  `/var/log/planetgen.log` (`appconfig.log_file_path`), with every SQL
+  statement and random roll. With debug off nothing is written to a
+  file. Done:
+  - A second, always-on log file, separate from the debug log, at INFO
+    severity, in the platform's standard place: Linux
+    `/var/log/planetgen/planetgen.log`; macOS
+    `/Library/Logs/planetgen/planetgen.log`; Windows `logs\planetgen.log`
+    under the install's root folder. `config.json`'s `"log_dir"` (and an
+    environment variable) can move it. The installers (`install.sh`,
+    `install.ps1`, the macOS path) create the directory with the web
+    server's user able to write and others unable to read (0750 / 0640),
+    and rotate it (logrotate on Linux, the existing hourly cron;
+    a size-based rotating handler on Windows and macOS).
+  - What it records, one line per event, each with the time (UTC), the
+    process, the client address, the user (or API key label) and the
+    outcome; never a password, token or key:
+    - logins (success, failure, lock), logouts, session expiry and
+      credential changes (SEC.20 is the login part);
+    - authorization failures: a request with no or an expired session,
+      a bad or revoked API key, a failed CSRF check, an admin-only page
+      or route refused;
+    - database changes: every write the web interface or API makes
+      (create, update, delete, regenerate, rename, facility placement,
+      with the target and who did it, alongside the existing
+      `admin_audit_log` row), every migration, and each generation run
+      or job as one start and one finish line with its counts, not one
+      line per row (sector fill writes millions of rows);
+    - database reads only as a count per request at DEBUG, which stays in
+      the debug log.
+  - One fixed line format, documented in `docs/config.md`, so tools can
+    match it, for example
+    `2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"`
+    (the address always comes before any user-supplied text, which is
+    quoted and escaped so it can't fake a field). SEC.27's fail2ban
+    filter matches this format.
+  - The debug log keeps working as it does; with debug on it also gets
+    every always-on line.
 
-  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
+  Open questions: is the Linux location `/var/log/planetgen/` (a
+  directory, so the web user can own it) acceptable, or should it stay
+  the single file `/var/log/planetgen.log` the debug log uses? Default:
+  the directory. Does it also go to syslog or the Windows Event Log?
+  Default: no, file only. How long rotated logs are kept? Default: 30
+  days.
 
-  Today nothing records a failed or locked login: `admin_audit_log` only
-  gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
-  wrong password on the web `/login` form answers 200 with an error
-  message (`web/admin_pages.py`, `login`), so Apache's access log can't
-  tell it from a page view. Done: every failed login, every lock (per
-  username today, per address with SEC.1) and every wrong current
-  password (SEC.23) writes one log line with the time, client address
-  (`request.remote_addr`) and username, and a row in `admin_audit_log`
-  (`login.failed`, `login.locked`; the username as typed, capped in
-  length; never the password); the `/login` form answers 401 for a wrong
-  password and 429 for a lock; the admin stats page shows recent
-  failures. The log line's format is fixed and documented, so SEC.27's
-  fail2ban filter can match it. Open questions: the debug log (only
-  written when `debug` is on) or a separate always-on auth log file, and
-  where it lives (next to the debug log, mode 0640)? How long audit rows
-  for failures are kept (a flood of failures shouldn't grow the table
-  without bound: prune after 90 days, or cap the count)?
+  - [ ] **SEC.20 Log every failed and locked login with its address**
+
+    Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
+
+    Today nothing records a failed or locked login: `admin_audit_log` only
+    gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
+    wrong password on the web `/login` form answers 200 with an error
+    message (`web/admin_pages.py`, `login`), so Apache's access log can't
+    tell it from a page view. Done: every failed login, every lock (per
+    username today, per address with SEC.1) and every wrong current
+    password (SEC.23) writes one log line with the time, client address
+    (`request.remote_addr`) and username, and a row in `admin_audit_log`
+    (`login.failed`, `login.locked`; the username as typed, capped in
+    length; never the password); the `/login` form answers 401 for a wrong
+    password and 429 for a lock; the admin stats page shows recent
+    failures. The log line's format is fixed and documented, so SEC.27's
+    fail2ban filter can match it. The log line goes to SEC.28's always-on
+    log (settled by Boss's request of 2026-10-01), not the debug log.
+    Open question: how long audit rows for failures are kept (a flood of
+    failures shouldn't grow the table without bound)? Default: prune
+    after 90 days.
 
 - [ ] **SEC.1 Lock out an IP address after failed logins**
 
@@ -1149,17 +1209,69 @@ SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25, SEC.26, SEC.27.
   command line? Is "remember this device for 30 days" (tied to SEC.22's
   cookie) allowed?
 
-- [ ] **SEC.27 A fail2ban recipe in the deployment docs**
+- [ ] **SEC.27 A fail2ban filter and jail for login brute force**
 
   Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 9)
 
-  Done: `docs/deployment/` gets an optional Linux section with a
-  fail2ban filter matching SEC.20's log line and a jail that bans an
-  address at the firewall after repeated failures (ignoring the server's
-  own addresses and SEC.1's allowlist), and how to check and lift a ban;
-  a short note on Apache-level options (mod_evasive, mod_security) and
-  why they're optional. Nothing is installed by `install.sh`. Waits on
-  SEC.20.
+  Boss (2026-10-01): "generate a fail-to-ban filter example and jail
+  example to help prevent logins or brute-force attack logins." Done:
+  `docs/deployment/` gets an optional Linux section with the filter and
+  jail below (adjusted to SEC.28's final line format), how to install
+  them (`/etc/fail2ban/filter.d/planetgen.conf`,
+  `/etc/fail2ban/jail.d/planetgen.local`), test the filter
+  (`fail2ban-regex /var/log/planetgen/planetgen.log planetgen`), and
+  check or lift a ban (`fail2ban-client status planetgen-login`,
+  `fail2ban-client set planetgen-login unbanip <address>`); and a short
+  note on Apache-level options (mod_evasive, mod_security) and why
+  they're optional. Nothing is installed by `install.sh`. Waits on
+  SEC.28 and SEC.20 (the lines it matches). The proxy caveat from SEC.1
+  applies: behind a reverse proxy, the log must carry the real client
+  address (`proxy_fix`), or fail2ban would ban the proxy.
+
+  Example filter, `/etc/fail2ban/filter.d/planetgen.conf`:
+
+  ```ini
+  # Matches SEC.28's always-on log lines, for example:
+  # 2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"
+  [Definition]
+  # Failed passwords, locked usernames and wrong current passwords on
+  # /account. The address comes before any user-supplied text, so a
+  # crafted username can't steer the match.
+  failregex = ^\s*planetgen\[\d+\]: AUTH (?:login\.failed|login\.locked|password\.failed) ip=<HOST>(?:\s|$)
+  ignoreregex =
+
+  [Init]
+  # ISO 8601 UTC at the start of each line; fail2ban cuts the date off
+  # before applying failregex, hence the ^\s* above.
+  datepattern = {^LN-BEG}%%Y-%%m-%%dT%%H:%%M:%%SZ
+  ```
+
+  Example jail, `/etc/fail2ban/jail.d/planetgen.local`:
+
+  ```ini
+  [planetgen-login]
+  enabled  = true
+  filter   = planetgen
+  logpath  = /var/log/planetgen/planetgen.log
+  port     = http,https
+  backend  = auto
+  # 5 failures within 10 minutes bans the address for 1 hour; repeat
+  # offenders get longer bans, up to 1 week.
+  maxretry = 5
+  findtime = 10m
+  bantime  = 1h
+  bantime.increment = true
+  bantime.factor    = 2
+  bantime.maxtime   = 1w
+  # Never ban the server itself or the admin's own addresses (match
+  # SEC.1's allowlist).
+  ignoreip = 127.0.0.1/8 ::1
+  ```
+
+  An optional second jail can watch authorization failures (SEC.28's
+  `AUTHZ` lines: bad API keys, refused admin routes) with a higher
+  `maxretry` (for example 20 in 10 minutes), since browsers hit those by
+  accident more often than a login form.
 
 ## USR: User accounts
 
