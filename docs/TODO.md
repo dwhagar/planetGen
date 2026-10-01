@@ -418,9 +418,10 @@ MAP.30) shipped in PR #234.
   Separately, "Pause the queue" holds the lease so no job starts or
   takes tasks until the queue is resumed. Open questions: does the
   page also show CLI runs started by hand in a terminal, and may the
-  web pause or cancel those? On Windows, where there is no load
-  average, what does the load line show (CPU percent over the same
-  windows)?
+  web pause or cancel those? On Windows, which has no load average,
+  the load line shows CPU percent averaged over the same 1, 5 and 15
+  minute windows, in the same "x / x / x" form (Boss, 2026-10-01
+  19:08Z).
 
 - [ ] **ADM.11 Jobs keep running after the browser closes**
   Boss (2026-10-01 19:03Z): "we need to make sure that generate or
