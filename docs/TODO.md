@@ -956,49 +956,15 @@ clears each one.
   the reference-value gate in front of them, and TEST.34's Kepler
   reference values move here.
 
+  TEST.64 to TEST.67 (reference values, identities, distributions, and
+  running first in the suite and in CI) shipped in PR #281; TEST.68,
+  the gate before bulk generation, is what remains.
+
   Default taken: no skip switch for the bulk gate, since it costs under
   5 seconds. Open questions for Boss: should there be an emergency skip
   flag anyway? Should the web app also run it at startup and show admins
   a warning if it fails? Should the one-off system generator run it too,
   or only bulk paths?
-
-  - [ ] **TEST.64 Reference values**
-    Known answers from real astronomy, each within a stated tolerance.
-    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
-    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
-    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
-    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
-    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
-    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
-    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
-    230 My); Holman-Wiegert critical radii from the paper's table; the
-    Kepler and Barker equations against known solutions.
-
-  - [ ] **TEST.65 Identities and invariants**
-    Things that must be exactly or nearly true for any input. Every unit
-    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
-    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
-    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
-    mismatch); luminosity rises and lifetime falls with mass; orbital
-    energy is conserved around a Kepler orbit; the sector grid's cell
-    volumes add up to each ring's annulus,
-    `sector_address_at(sector_position_pc(...))` returns the same
-    address, and ring sector counts match `ring_sector_count`; density
-    is normalised to 1 where the code says it is; no NaN or infinity
-    over a fixed sweep of inputs.
-
-  - [ ] **TEST.66 Distributions match their targets**
-    With fixed seeds, a few thousand draws of the IMF, star ages, the
-    Poisson sector counts, the bounded bell and the planet class table
-    land on their intended shares within a statistical tolerance (for
-    example a chi-square test), so a broken sampler fails even when
-    every single value looks fine.
-
-  - [ ] **TEST.67 Runs first in the suite and in CI**
-    A `mathcheck` marker (next to the `db`, `slow` and `browser` markers TEST.1 added); `conftest.py` moves
-    those tests to the front and stops the run if any fails, saying the
-    math is broken and the rest would be noise; CI runs it as its own
-    quick first job that the other jobs wait on.
 
   - [ ] **TEST.68 Gate before bulk generation**
     `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
