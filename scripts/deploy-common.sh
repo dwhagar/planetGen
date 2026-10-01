@@ -230,3 +230,27 @@ migrate_or_reset_db() {
     fi
     "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
 }
+
+# Optionally runs the population pass (`generate.py population`: species,
+# civilizations and territories, docs/design/population-and-politics.md)
+# over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
+# when POPULATION=1 (or yes) is set, or when someone answers y to the
+# prompt (y/N, 30 seconds, default N). With no terminal it is skipped.
+# `generate.py population` can always be run by hand later.
+offer_population_pass() {
+    local answer=""
+    case "${POPULATION:-}" in
+        1|[Yy]|[Yy][Ee][Ss]) answer="y" ;;
+        *)
+            if [[ -t 0 ]]; then
+                read -r -t 30 -p "Run the population pass now (species, civilizations, territories)? [y/N] (default N in 30s): " answer \
+                    || { echo; answer=""; }
+            fi ;;
+    esac
+    if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
+        echo "Running the population pass."
+        "$PYTHON" "$SCRIPT_DIR/generate.py" population
+    else
+        echo "Skipping the population pass (run '$PYTHON generate.py population' any time, or set POPULATION=1)."
+    fi
+}
