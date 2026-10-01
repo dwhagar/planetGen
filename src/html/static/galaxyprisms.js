@@ -690,21 +690,65 @@ function meanDensity(r0, r1, t0, t1, z0, z1, shape) {
 // wound counter-clockwise seen from outside, so front-face culling shows
 // each prism's outside only.
 
-// TODO(galaxy-map #19): full-size blocks share faces with their
-// neighbours, so skip any face whose neighbour exists: the surface
-// listing only removes whole blocks, not hidden faces. If the vertex
-// count still hurts on phones, move to one InstancedMesh per wedge-arc
-// count.
-export function buildPrismGeometry(prisms) {
+// With options.skipShared, blocks that carry their address (ring, seg,
+// slab, as blocksInView lists them) and come from one listing, so one
+// block size, leave out every face they share with a neighbour in the
+// same list: in an opaque mesh nothing behind such a face ever shows.
+// Tops and bottoms always match their neighbour's exactly, and so do the
+// radial sides along a ring; inner and outer walls only when the
+// neighbouring ring has the same wedge count. Only for opaque blocks: in
+// translucent ones the inner faces are what draws the block grid through
+// the glass, and dropping them turned the shell into smeared bands.
+var FACE_OUTER = 1;
+var FACE_INNER = 2;
+var FACE_TOP = 4;
+var FACE_BOTTOM = 8;
+var FACE_START = 16;
+var FACE_END = 32;
+
+function sharedFaces(prisms) {
+  var skip = new Uint8Array(prisms.length);
+  if (!prisms.length || prisms[0].ring == null) {
+    return skip;
+  }
+  var keys = new Set();
+  var wedgesOf = new Map();
+  prisms.forEach(function (p) {
+    keys.add(p.ring + "/" + p.seg + "/" + p.slab);
+    wedgesOf.set(p.ring, Math.round((2 * Math.PI) / (p.t1 - p.t0)));
+  });
+  function has(ring, seg, slab) {
+    return keys.has(ring + "/" + seg + "/" + slab);
+  }
+  prisms.forEach(function (p, n) {
+    var wedges = wedgesOf.get(p.ring);
+    var mask = 0;
+    if (has(p.ring, p.seg, p.slab + 1)) mask |= FACE_TOP;
+    if (has(p.ring, p.seg, p.slab - 1)) mask |= FACE_BOTTOM;
+    if (wedges > 1 && has(p.ring, (p.seg + wedges - 1) % wedges, p.slab)) mask |= FACE_START;
+    if (wedges > 1 && has(p.ring, (p.seg + 1) % wedges, p.slab)) mask |= FACE_END;
+    if (wedgesOf.get(p.ring + 1) === wedges && has(p.ring + 1, p.seg, p.slab)) mask |= FACE_OUTER;
+    if (p.r0 > 0 && wedgesOf.get(p.ring - 1) === wedges && has(p.ring - 1, p.seg, p.slab)) mask |= FACE_INNER;
+    skip[n] = mask;
+  });
+  return skip;
+}
+
+export function buildPrismGeometry(prisms, options) {
   var vertexCount = 0;
   var indexCount = 0;
   var arcsOf = new Uint16Array(prisms.length);
+  var skipOf = options && options.skipShared ? sharedFaces(prisms) : new Uint8Array(prisms.length);
   prisms.forEach(function (p, n) {
     var arcs = Math.max(1, Math.min(MAX_ARC_SEGMENTS, Math.ceil((p.t1 - p.t0) / ARC_SEGMENT_RAD)));
     arcsOf[n] = arcs;
-    var curved = p.r0 > 0 ? 4 : 3; // outer, [inner,] top, bottom
-    vertexCount += curved * 2 * (arcs + 1) + 8;
-    indexCount += curved * 6 * arcs + 12;
+    var skip = skipOf[n];
+    var curved = [FACE_OUTER, FACE_INNER, FACE_TOP, FACE_BOTTOM].filter(function (face) {
+      return !(skip & face) && (face !== FACE_INNER || p.r0 > 0);
+    }).length;
+    var sides = (skip & FACE_START ? 0 : 1) + (skip & FACE_END ? 0 : 1);
+    vertexCount += curved * 2 * (arcs + 1) + 4 * sides;
+    indexCount += curved * 6 * arcs + 6 * sides;
   });
   var positions = new Float32Array(vertexCount * 3);
   var normals = new Float32Array(vertexCount * 3);
@@ -770,6 +814,7 @@ export function buildPrismGeometry(prisms) {
   for (var n = 0; n < prisms.length; n++) {
     var p = prisms[n];
     var arcs = arcsOf[n];
+    var skip = skipOf[n];
     for (var k = 0; k <= arcs; k++) {
       var t = p.t0 + (k / arcs) * (p.t1 - p.t0);
       cosT[k] = Math.cos(t);
@@ -778,14 +823,16 @@ export function buildPrismGeometry(prisms) {
     var base;
     var row;
     // Outer wall, then inner wall (none for the ring at the very center).
-    base = nv;
-    for (row = 0; row < 2; row++) {
-      for (k = 0; k <= arcs; k++) {
-        vertex(p.r1 * cosT[k], p.r1 * sinT[k], row ? p.z1 : p.z0, cosT[k], sinT[k], 0, n, k / arcs, row);
+    if (!(skip & FACE_OUTER)) {
+      base = nv;
+      for (row = 0; row < 2; row++) {
+        for (k = 0; k <= arcs; k++) {
+          vertex(p.r1 * cosT[k], p.r1 * sinT[k], row ? p.z1 : p.z0, cosT[k], sinT[k], 0, n, k / arcs, row);
+        }
       }
+      stitch(base, arcs);
     }
-    stitch(base, arcs);
-    if (p.r0 > 0) {
+    if (p.r0 > 0 && !(skip & FACE_INNER)) {
       base = nv;
       for (row = 0; row < 2; row++) {
         for (k = 0; k <= arcs; k++) {
@@ -796,6 +843,9 @@ export function buildPrismGeometry(prisms) {
     }
     // Top and bottom.
     for (var cap = 0; cap < 2; cap++) {
+      if (skip & (cap ? FACE_TOP : FACE_BOTTOM)) {
+        continue;
+      }
       var z = cap ? p.z1 : p.z0;
       var nz = cap ? 1 : -1;
       base = nv;
@@ -809,6 +859,9 @@ export function buildPrismGeometry(prisms) {
     }
     // The two radial sides.
     for (var side = 0; side < 2; side++) {
+      if (skip & (side ? FACE_END : FACE_START)) {
+        continue;
+      }
       var c = side ? cosT[arcs] : cosT[0];
       var s = side ? sinT[arcs] : sinT[0];
       var sign = side ? 1 : -1;
