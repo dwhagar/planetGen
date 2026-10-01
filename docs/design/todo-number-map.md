@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.34 |
 | GEN | GEN.34 |
 | PERF | PERF.18 |
-| DB | DB.2 |
+| DB | DB.5 |
 | API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
@@ -418,6 +418,9 @@ Parents marked "new parent" had no old number of their own.
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
+| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
+| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
+| DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
