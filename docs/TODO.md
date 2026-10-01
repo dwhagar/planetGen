@@ -533,6 +533,64 @@ with `clamp()`.
   giants. Its design document (`docs/design/rogue-planet-surface.md`)
   arrives with its PR.
 
+- [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
+  Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
+  appears in the habitable zone and adjust so that it fits there." P is
+  already ecosphere-only (`h` False, `e` True, `c` False in
+  `program_constants.PLANET_CLASSES`) and placed at `zone_position_mode`
+  0.90; sampled P worlds run 198-211 K. Done: no path (generation,
+  `reconcile_zone_and_class`, moon regeneration, admin overrides) can
+  put P outside the ecosphere, and its placement, albedo, greenhouse
+  and atmosphere are tuned so a glaciated world with life is
+  consistent at the outer edge of the habitable zone. Evidence: the
+  planet class gap report
+  (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
+
+- [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
+  Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
+  letter class gaps sequentially. For the subsurface ocean moon, split
+  this so that we have the one the size of a class D (moon / pseudo
+  planet) and one similar to a terrestrial world (a modification of
+  Class C), for lifeless temperate world, don't we have a class for
+  that already? If not, I approve adding one." There is none: every
+  ecosphere rocky class with air carries life, and C (the only lifeless
+  rocky one) is airless. Proposed mapping, in letter order (the build
+  can adjust):
+  - R Sub-Neptune: rock and ice core under a hydrogen-helium envelope,
+    1.8-4 Earth radii, 3-20 Earth masses, hot, ecosphere and cold. The
+    most common real planet type, missing today; consider whether T
+    (gas dwarf, 0.05% of planets) merges into it.
+  - S Rocky super-Earth: barren, 1.2-1.8 Earth radii, 2-10 Earth
+    masses, hot, ecosphere and cold (a hot one can be a lava world). V
+    stays the life-bearing super-Earth.
+  - U Icy world (ice dwarf or large icy moon): water ice over rock,
+    500-3,000 km, cold (Ganymede, Callisto, Triton, Pluto, Eris).
+  - W Small subsurface ocean body, Class D sized (moon or pseudo-planet,
+    about 50-500 km): Enceladus analog.
+  - X Subsurface ocean world, terrestrial sized (a modified Class C,
+    about 500-10,000 km): Europa analog and larger.
+  - Y Titan-like world: thick nitrogen atmosphere, methane rain,
+    hydrocarbon lakes, 1,500-4,000 km, cold.
+  - Z Lifeless temperate world: rocky, with an atmosphere, ecosphere,
+    no life.
+  Done: each class has zone flags, weights, radius and mass ranges,
+  atmosphere, moon eligibility and a GEN.8 rogue `"r"` flag decision,
+  and shows on the class reference pages. R, W, X and Y belonged to
+  classes removed in early September, so no old rows or tests may
+  still expect those letters. Evidence: the planet class gap report
+  (link in GEN.27).
+
+- [ ] **GEN.29 Sweep every planet class for sense once the new ones are in**
+  Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
+  sure they all make sense logically once the new classes are in
+  place." After GEN.28. Done: every class's description, composition,
+  zones, sizes, weights, temperatures and atmosphere agree with each
+  other. Known oddities to settle: D allowed in the hot zone (icy
+  bodies at 265-490 K); C a catch-all for 63% of cold planets; Q never
+  generated (weight 0.0001, and orbits are circular); V's composition
+  "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
+  at 376-414 K, above water's boiling point at 0.6 bar.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -1157,6 +1215,75 @@ clears each one.
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
+
+- [ ] **TEST.63 Math check that runs first**
+  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
+  before other tests that basically validates the math works, before
+  batch generation, we need to verify the actual math works." One
+  module, `src/stellarObjects/mathCheck.py`: pure functions, no
+  database, network or files, fixed seeds, under 5 seconds. Each check
+  has a name, the function it calls, the expected value, a tolerance and
+  the source of the expected value (a textbook figure, a paper's table,
+  or an exact identity). The same module is used three ways: pytest runs
+  it first, `generate.py` and the Generate page run it before bulk
+  generation, and `update.sh` runs it after an update. The coverage
+  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
+  the reference-value gate in front of them, and TEST.34's Kepler
+  reference values move here.
+
+  Default taken: no skip switch for the bulk gate, since it costs under
+  5 seconds. Open questions for Boss: should there be an emergency skip
+  flag anyway? Should the web app also run it at startup and show admins
+  a warning if it fails? Should the one-off system generator run it too,
+  or only bulk paths?
+
+  - [ ] **TEST.64 Reference values**
+    Known answers from real astronomy, each within a stated tolerance.
+    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
+    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
+    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
+    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
+    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
+    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
+    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
+    230 My); Holman-Wiegert critical radii from the paper's table; the
+    Kepler and Barker equations against known solutions.
+
+  - [ ] **TEST.65 Identities and invariants**
+    Things that must be exactly or nearly true for any input. Every unit
+    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
+    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
+    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
+    mismatch); luminosity rises and lifetime falls with mass; orbital
+    energy is conserved around a Kepler orbit; the sector grid's cell
+    volumes add up to each ring's annulus,
+    `sector_address_at(sector_position_pc(...))` returns the same
+    address, and ring sector counts match `ring_sector_count`; density
+    is normalised to 1 where the code says it is; no NaN or infinity
+    over a fixed sweep of inputs.
+
+  - [ ] **TEST.66 Distributions match their targets**
+    With fixed seeds, a few thousand draws of the IMF, star ages, the
+    Poisson sector counts, the bounded bell and the planet class table
+    land on their intended shares within a statistical tolerance (for
+    example a chi-square test), so a broken sampler fails even when
+    every single value looks fine.
+
+  - [ ] **TEST.67 Runs first in the suite and in CI**
+    A `mathcheck` marker (TEST.1 adds the markers); `conftest.py` moves
+    those tests to the front and stops the run if any fails, saying the
+    math is broken and the rest would be noise; CI runs it as its own
+    quick first job that the other jobs wait on.
+
+  - [ ] **TEST.68 Gate before bulk generation**
+    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
+    `sector` over many sectors, `plan`, `population`, the Generate
+    page's jobs and the map's block and neighbourhood generation) runs
+    it first and refuses to start if a check fails, naming the failed
+    check and writing nothing; the Generate page shows the result as the
+    job's first step; `update.sh` runs it after updating and warns on
+    failure.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
