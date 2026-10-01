@@ -1000,7 +1000,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None):
 def add_star_hosted_nebulae(sector, args):
     """
     Grows emission and reflection nebulae around `sector`'s own hot
-    stars (GEN.4.1): each system whose primary is a main-sequence
+    stars (GEN.10): each system whose primary is a main-sequence
     star matching a `NEBULA_HOST_RULES` row rolls that row's chance, and
     on a hit gets a nebula of one of the row's classes centered on it.
 

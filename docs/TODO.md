@@ -16,28 +16,34 @@ that default.
 
 ### IDs
 
-- Every item has an ID made of its category and a number: `MAP.2` for an
-  item, `MAP.2.1` for a subitem, and deeper levels where needed
-  (`MAP.2.1.1`). The categories are in the table below.
+- Every item has an ID made of its category and a number, `CAT.N`, for
+  example `MAP.16`. The number is a plain count within the category,
+  like the database schema version: the first item in a category is
+  `.1`, and each new item, subitem or bug takes the next number. There
+  are no deeper levels (no `MAP.2.1`); an item's place in the tree is
+  shown by indenting it under its parent, not by its ID. The categories
+  are in the table below.
 - IDs are permanent. Nothing is renumbered, and an ID is never reused.
   When an item ships, delete it here (the changelog is the record) and
   describe the change in the PR's `changes/` note; its ID stays taken. A
   finished item that still has open subitems stays as a checked line so
   its subitems keep their place.
-- A new ID continues from the highest one ever issued in its category, or
-  under its parent item, finished items included.
+- A new ID is one more than the highest ever issued in its category,
+  finished items included.
   [design/todo-number-map.md](design/todo-number-map.md) lists every ID
-  issued so far, and maps the old running numbers (used until
-  2026-10-01 in the changelog, commits, PR titles and older docs) to
-  these IDs.
+  issued so far and the next free number in each category. It also maps
+  the old running numbers (1 to 111, used until 2026-10-01 in the
+  changelog, commits, PR titles and older docs) and the dotted tree IDs
+  used briefly on 2026-10-01 (such as `MAP.2.1.1`, in PRs #189 and
+  #190) to these IDs.
 
 ### Where new work goes
 
-- A new feature is a new item, or a subitem of the item it extends.
+- A new feature is a new item, or a subitem (indented under the item it
+  extends, with its own next number).
 - A bug is a subitem of the item whose feature it breaks, marked
-  "(bug)". A bug in something with no item here goes under the
-  category's standing `.0` item, "Bugs and small fixes" (for example
-  `UX.0.1`). A category lists its `.0` item only while it holds bugs.
+  "(bug)". A bug in something with no item here is a top-level item in
+  its category, marked "(bug)" (for example UX.15).
 
 ### Links
 
@@ -45,11 +51,10 @@ that default.
   on its own line under the item:
   `Design: [docs/design/x.md](design/x.md), section N`. Design documents
   don't list item IDs.
-- Code tags cite the ID: `TODO(MAP.2.1): what to do here`. Grep
-  `"TODO(MAP"` for an area, or `"TODO(MAP.2"` for an item and its
-  subitems.
+- Code tags cite the ID: `TODO(MAP.16): what to do here`. Grep
+  `"TODO(MAP."` for an area, or `"TODO(MAP.16)"` for one item.
 - `changes/` notes, PR titles and commit messages cite the ID, for
-  example "Galaxy Map: stages (MAP.2.1)".
+  example "Galaxy Map: stages (MAP.16)".
 
 ### Categories
 
@@ -86,21 +91,21 @@ maps, search, NAV, admin auth and wiki publishing.
 ## Plan: what to do first
 
 - **Galaxy navigation (MAP.2):** the wedge, slice and block drill-down
-  with no free camera (MAP.2.1.1), then the map's own Back and Forward
-  (MAP.2.7.1). The Galaxy Map bugs (MAP.2.1.2, MAP.5.6.1, MAP.5.11.1,
-  MAP.5.11.2, MAP.14.1, MAP.14.2) and the slab list beside a 3:4 map
-  (MAP.3.1) go with it. Bookmarks (MAP.2.5) finish the NAV page's map
-  picks (MAP.2.4).
+  with no free camera (MAP.17), then the map's own Back and Forward
+  (MAP.26). The Galaxy Map bugs (MAP.18, MAP.37, MAP.43,
+  MAP.44, MAP.47, MAP.48) and the slab list beside a 3:4 map
+  (MAP.30) go with it. Bookmarks (MAP.23) finish the NAV page's map
+  picks (MAP.22).
 - **Sector Map (MAP.11, MAP.15):** objects drawn outside the wireframe
   and findable rogue planets, then stars as points of light.
 - **Generation at scale (PERF.1):** the per-sector density stats
-  (PERF.1.9) and speed records (PERF.1.8) feed the estimates (PERF.1.1,
-  PERF.1.7); the work queue (PERF.1.6) comes before parallel generation
-  (PERF.1.5).
-- **Admin editing (ADM.1)** starts with the validate module (ADM.1.1);
-  **user accounts (USR.1)** start with roles (USR.1.1).
+  (PERF.11) and speed records (PERF.10) feed the estimates (PERF.3,
+  PERF.9); the work queue (PERF.8) comes before parallel generation
+  (PERF.7).
+- **Admin editing (ADM.1)** starts with the validate module (ADM.5);
+  **user accounts (USR.1)** start with roles (USR.2).
 - **View from a planet (VIEW.1)** waits on a research session with Boss,
-  except the constellation names (VIEW.1.3).
+  except the constellation names (VIEW.4).
 
 ## UX: Web pages
 
@@ -116,39 +121,38 @@ use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
 
-- [ ] **UX.0 Bugs and small fixes**
-  - [ ] **UX.0.1 (bug) Put an object's data beside its 3D render when there's room**
-    Boss (2026-10-01): "if there is enough room next to the 3D
-    render of an object, put the data segment next to the object." The
-    3D renders (`static/bodyRendering.js`, used by the System Map,
-    `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
-    show an object's details in an info panel, which today can sit below
-    the render even when the screen has space beside it. Done: when the
-    space next to the render is wide enough, the data panel sits beside
-    the object; when it isn't (phones, narrow windows), it stays below;
-    the switch follows the Responsive Web Design Standards' size classes
-    and container queries (see the notes at the top of this section),
-    with no layout jump while the render loads. Open questions: which
-    panels this covers (the System Map and Sector Map info panels, the
-    object pages for planets, moons, stars and phenomena, or all of
-    them)? What "enough room" means (a minimum width for the render plus
-    a readable 45-75 character text column)? Which side the panel goes
-    on?
+- [ ] **UX.15 (bug) Put an object's data beside its 3D render when there's room**
+  Boss (2026-10-01): "if there is enough room next to the 3D
+  render of an object, put the data segment next to the object." The
+  3D renders (`static/bodyRendering.js`, used by the System Map,
+  `static/systemmap.js`, and the Sector Map, `static/sectormap.js`)
+  show an object's details in an info panel, which today can sit below
+  the render even when the screen has space beside it. Done: when the
+  space next to the render is wide enough, the data panel sits beside
+  the object; when it isn't (phones, narrow windows), it stays below;
+  the switch follows the Responsive Web Design Standards' size classes
+  and container queries (see the notes at the top of this section),
+  with no layout jump while the render loads. Open questions: which
+  panels this covers (the System Map and Sector Map info panels, the
+  object pages for planets, moons, stars and phenomena, or all of
+  them)? What "enough room" means (a minimum width for the render plus
+  a readable 45-75 character text column)? Which side the panel goes
+  on?
 
-  - [ ] **UX.0.2 (bug) Always leave space between buttons**
-    Boss (2026-10-01): "button spacing should always have space between
-    buttons." Some button groups have a gap (`.starmap-controls` uses
-    a flex row with `gap: 0.5rem`), but there is no shared rule, so
-    buttons laid out another way can sit flush against each other.
-    Done: every group of buttons on every
-    page (`.btn`, `.btn-small`, `.starmap-btn` and plain `<button>`s)
-    has visible space between neighbors, across and between wrapped
-    lines, at every size class, from one shared rule in
-    `static/style.css` rather than per-page fixes. Open questions: one
-    spacing value everywhere (for example `0.5rem`) or a `clamp()` that
-    grows with the screen? Do touch screens (`pointer: coarse`) get more,
-    so 44-48 px targets don't sit edge to edge? Which pages show the
-    problem today (to be listed when the fix starts)?
+- [ ] **UX.16 (bug) Always leave space between buttons**
+  Boss (2026-10-01): "button spacing should always have space between
+  buttons." Some button groups have a gap (`.starmap-controls` uses
+  a flex row with `gap: 0.5rem`), but there is no shared rule, so
+  buttons laid out another way can sit flush against each other.
+  Done: every group of buttons on every
+  page (`.btn`, `.btn-small`, `.starmap-btn` and plain `<button>`s)
+  has visible space between neighbors, across and between wrapped
+  lines, at every size class, from one shared rule in
+  `static/style.css` rather than per-page fixes. Open questions: one
+  spacing value everywhere (for example `0.5rem`) or a `clamp()` that
+  grows with the screen? Do touch screens (`pointer: coarse`) get more,
+  so 44-48 px targets don't sit edge to edge? Which pages show the
+  problem today (to be listed when the fix starts)?
 
 - [ ] **UX.2 Menus sized to what they hold**
   Boss (2026-10-01): "I want the
@@ -174,11 +178,11 @@ with `clamp()`.
   `state.json`, and `progress.json` written by `generate.py` through
   `stellarObjects.progressFile`). Done: while a job that writes to the
   galaxy is running (plan, bright-star scatter, sector fill, block and
-  neighborhood generation from the map (MAP.2.2), reset, new galaxy,
-  and later ADM.1.4's regenerate), every page shows a banner to every
+  neighborhood generation from the map (MAP.20), reset, new galaxy,
+  and later ADM.8's regenerate), every page shows a banner to every
   visitor, signed in or not, saying the galaxy is being changed and
   when it should finish, as an ETA rounded up to the next whole hour
-  (from `progress.json`, and from PERF.1.1's measured stars-per-second
+  (from `progress.json`, and from PERF.3's measured stars-per-second
   rate). Open questions: a banner at the top of every page, or only on
   the map and list pages? Does it also cover `generate.py` runs started
   from the command line, which don't take the web jobs lock today
@@ -230,8 +234,8 @@ with `clamp()`.
   one unit with decimals ("1.88 years") or a mixed form ("1 year 321
   days") for everyday periods; rounding and significant figures; which
   year length it uses (Julian 365.25 days, as `years_to_time_string`
-  does); and whether elapsed-time and ETA displays for jobs (PERF.1.1,
-  UX.3 and PERF.1.2) and the admin pages use the same function.
+  does); and whether elapsed-time and ETA displays for jobs (PERF.3,
+  UX.3 and PERF.4) and the admin pages use the same function.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -241,8 +245,8 @@ do not display past 500 seconds scale (1 block = 81 sectors across). bug
 fix zooming reveals stars are being drawn but it takes a while to load,
 another bugfix, it's really hard to find the generated star system on
 the map, so everything not yet filled should be more transparent by a
-lot with a much higher contrast." They are MAP.5.11.1, MAP.14.1,
-MAP.14.2 and MAP.5.6.1 below.
+lot with a much higher contrast." They are MAP.43, MAP.47,
+MAP.48 and MAP.37 below.
 
 - [ ] **MAP.2 Drill-down navigation**
 
@@ -257,21 +261,21 @@ MAP.14.2 and MAP.5.6.1 below.
   neighborhood (radius asked in light-years) at the sector level, and
   the NAV page can pick its start and destination on the map or in a
   sector. Everything below is specified, with the math, in the design
-  doc; each subitem names its section. The nested ladder (MAP.2.9,
-  `stellarObjects/galaxyDrill.py`), the stage contents API (MAP.2.10,
-  `GET /api/galaxy/stage`), the stages (MAP.2.1,
+  doc; each subitem names its section. The nested ladder (MAP.28,
+  `stellarObjects/galaxyDrill.py`), the stage contents API (MAP.29,
+  `GET /api/galaxy/stage`), the stages (MAP.16,
   `static/galaxystages.js` and `static/galaxystageview.js`, with stage
   URLs `/galaxy?slab=`, `?at=`, `?sector=<designation>`), the Sector Map
-  pick mode (MAP.2.3), the address bar (MAP.2.6, `/galaxy/locate`), the
-  course overlay (MAP.2.8, `/galaxy?course=<from>,<to>`), generating from
-  the map (MAP.2.2) and the "Show on Galaxy Map" links (MAP.2.7) have
+  pick mode (MAP.21), the address bar (MAP.24, `/galaxy/locate`), the
+  course overlay (MAP.27, `/galaxy?course=<from>,<to>`), generating from
+  the map (MAP.20) and the "Show on Galaxy Map" links (MAP.25) have
   shipped. The old free camera stays behind the map's Free look button
-  until MAP.2.1.1 removes it; Boss settled decision 2 (section 11) that
+  until MAP.17 removes it; Boss settled decision 2 (section 11) that
   way.
 
-  - [x] **MAP.2.1 Drill-down stages**
+  - [x] **MAP.16 Drill-down stages**
     Done in 7.44.0 (PR #171); kept as the parent of its bug.
-    - [ ] **MAP.2.1.1 (bug) No free camera; drill down from a top-down view by wedge, slice and block**
+    - [ ] **MAP.17 (bug) No free camera; drill down from a top-down view by wedge, slice and block**
 
       Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 5, 10 and 11
 
@@ -293,7 +297,7 @@ MAP.14.2 and MAP.5.6.1 below.
       doc (section 11, "Free camera"): no free look and no free rotation,
       not even the default's drag-rotate inside the 3D stages. Today the
       old free camera (click any point to center on it, drag to rotate)
-      stays behind the map's Free look button (added with MAP.2.1, PR
+      stays behind the map's Free look button (added with MAP.16, PR
       #171), and the 3D stages (1, 3, 5, 7, section 5.1) can be
       drag-rotated. Done:
       - The Free look button, free-camera picking and every drag-rotate
@@ -313,12 +317,12 @@ MAP.14.2 and MAP.5.6.1 below.
         targets, under the UX section).
       - The design doc's sections 5 and 10-11 are updated to match, and
         breadcrumb, Back, stage URLs (`/galaxy?slab=`, `?at=`), bookmarks
-        (MAP.2.5), the address bar (MAP.2.6) and the NAV course (MAP.2.8)
+        (MAP.23), the address bar (MAP.24) and the NAV course (MAP.27)
         keep working with the new steps.
 
-      Ties in with the map bugs MAP.5.11.1, MAP.14.1, MAP.14.2 and
-      MAP.5.6.1 (wedge lines stopping at the galaxy's edge matter more
-      once wedges are what the user picks, and MAP.5.6.1's contrast
+      Ties in with the map bugs MAP.43, MAP.47, MAP.48 and
+      MAP.37 (wedge lines stopping at the galaxy's edge matter more
+      once wedges are what the user picks, and MAP.37's contrast
       applies to the slices and blocks). Open questions: how the "wedge
       (quarter)" maps onto the design's nested ladder (243 -> 27 -> 3 ->
       1, section 3): is the first pick always one of four quarters, or
@@ -327,10 +331,10 @@ MAP.14.2 and MAP.5.6.1 below.
       row of blocks along the wedge? With no 3D view, how does the user
       pick a layer above or below the galactic plane (a side view, a
       layer list, or slices that run through the disk's thickness)? What
-      replaces the free camera for MAP.2.2's neighborhood generate and
-      MAP.2.4's NAV picking, which may want an arbitrary point?
+      replaces the free camera for MAP.20's neighborhood generate and
+      MAP.22's NAV picking, which may want an arbitrary point?
 
-    - [ ] **MAP.2.1.2 (bug) The block under the pointer is too hard to see from above**
+    - [ ] **MAP.18 (bug) The block under the pointer is too hard to see from above**
       Boss (2026-10-01): "selection of blocks from top-down doesn't show
       highlight well enough, needs to be more obvious, when selecting
       everything but what your mouse is over should be dimmed". Today, in
@@ -342,41 +346,41 @@ MAP.14.2 and MAP.5.6.1 below.
       is dimmed, and the hovered one stands out clearly, in both themes,
       with the same look for a first tap on touch screens and for
       keyboard focus; the dimming clears when the pointer leaves the map.
-      Goes with MAP.2.1.1 (the wedge, slice and block picks all need this
-      highlight) and MAP.5.6.1 (unfilled blocks drawn much more
+      Goes with MAP.17 (the wedge, slice and block picks all need this
+      highlight) and MAP.37 (unfilled blocks drawn much more
       transparent, which the dimming must still read against). Open
       questions: how dim the rest goes (say 25-40% opacity)? Does the
       hovered block also brighten or get a thicker outline? Does it
       animate (a short fade) or switch instantly, and does
       `prefers-reduced-motion` turn the fade off?
 
-    - [ ] **MAP.2.1.3 (bug) Pick big wedges, not single blocks, between zooms**
+    - [ ] **MAP.19 (bug) Pick big wedges, not single blocks, between zooms**
       Boss (2026-10-01): "When selecting regions in the galactic map,
       selecting bigger arcs between zooms. Even if we can select a
       single block, that might be too small. So, have the user select
       large wedges and zoom into that wedge. Same plan: quadrant, layer,
       region, layer, region, ... , layer, sector. This might be a
-      duplicate or need to enhance a bugfix." It refines MAP.2.1.1 (the
+      duplicate or need to enhance a bugfix." It refines MAP.17 (the
       wedge, slice and block drill-down) rather than duplicating it, and
-      the two should be built together: MAP.2.1.1 says what to remove
+      the two should be built together: MAP.17 says what to remove
       (free camera and rotation) and that picks go wedge, slice, block;
       this item sets the size of each pick. Today each top-down stage
-      picks one block of the 243 -> 27 -> 3 -> 1 ladder (MAP.2.9), which
+      picks one block of the 243 -> 27 -> 3 -> 1 ladder (MAP.28), which
       can be a small target. Done: every pick is a large wedge (an arc
       of the ring band in view) that the map then zooms into, following
       the ladder quadrant, layer, region, layer, region, and so on, down
       to layer and sector; each pick stays large on screen at every
-      stage (and finger-sized on touch, as MAP.2.1.1 asks); the
-      highlight follows MAP.2.1.2. Open questions: how a "region" maps
+      stage (and finger-sized on touch, as MAP.17 asks); the
+      highlight follows MAP.18. Open questions: how a "region" maps
       onto the nested ladder (one of the 3x3 = 9 children of a block, a
       wider arc across several blocks, or a new level between); whether
       the layer pick alternates with every region pick, as the ladder
       reads, or only where the disk is thick enough to have several
-      layers; and whether MAP.2.1.1's "slice" is the same as this
-      item's "layer" (if so, MAP.2.1.1's open question on what a slice
+      layers; and whether MAP.17's "slice" is the same as this
+      item's "layer" (if so, MAP.17's open question on what a slice
       is is settled).
 
-  - [ ] **MAP.2.4 NAV page picks on the map**
+  - [ ] **MAP.22 NAV page picks on the map**
 
     Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 9
 
@@ -385,15 +389,15 @@ MAP.14.2 and MAP.5.6.1 below.
     we have now or the galactic map interface to select. If it's within
     sector then it'll just use the sector interface." Done: beside each
     dropdown, "Pick on Galaxy Map" (`/galaxy?pick=...`, generated-only
-    forced on, ending in MAP.2.3's Sector Map pick mode), "Pick in this
+    forced on, ending in MAP.21's Sector Map pick mode), "Pick in this
     sector" once the other end is known, and a Bookmarks select. The
     Galaxy Map's side is in: `?pick=` shows the banner with Cancel back
     to NAV, keeps "Generated only" on, and a sector click opens that
     sector in pick mode. The NAV page's side is in too: "Pick on Galaxy
     Map" and "Pick in this sector" at each step. Only the Bookmarks
-    select is left, and it waits on MAP.2.5.
+    select is left, and it waits on MAP.23.
 
-  - [ ] **MAP.2.5 Bookmarks**
+  - [ ] **MAP.23 Bookmarks**
 
     Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 8.2
 
@@ -404,9 +408,9 @@ MAP.14.2 and MAP.5.6.1 below.
     entries offered by the NAV pickers. Shared bookmarks need Boss's
     decision 4 and a migration.
 
-  - [x] **MAP.2.7 "Show on Galaxy Map" links**
+  - [x] **MAP.25 "Show on Galaxy Map" links**
     Done (PR #188); kept as the parent of its bug.
-    - [ ] **MAP.2.7.1 (bug) "Show on Galaxy Map" should open at the sector, and the map needs its own Back and Forward**
+    - [ ] **MAP.26 (bug) "Show on Galaxy Map" should open at the sector, and the map needs its own Back and Forward**
 
       Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 8
 
@@ -416,8 +420,8 @@ MAP.14.2 and MAP.5.6.1 below.
       buttons to travel ones own history on the map display". Today
       `/galaxy?sector=<designation>` opens the sector's stage 8
       (`galaxystages.parseStageQuery`), and the sector and system pages
-      and search results link to it (MAP.2.7), but the NAV result's link
-      opens the course overlay (`/galaxy?course=<from>,<to>`, MAP.2.8)
+      and search results link to it (MAP.25), but the NAV result's link
+      opens the course overlay (`/galaxy?course=<from>,<to>`, MAP.27)
       over the galaxy. The map has no Back or Forward of its own; moving
       between stages relies on the breadcrumb and the browser's Back
       button. Done:
@@ -430,11 +434,11 @@ MAP.14.2 and MAP.5.6.1 below.
         visited), separate from but consistent with the browser's
         history and the stage URLs.
 
-      This follows the wedge, slice and block drill-down of MAP.2.1.1
-      (the "slice" here is MAP.2.1.1's slice), and builds on MAP.2.7's
+      This follows the wedge, slice and block drill-down of MAP.17
+      (the "slice" here is MAP.17's slice), and builds on MAP.25's
       links. Open questions: for the NAV result, which sector is shown
       (the start, the destination, or a view that fits both, as
-      MAP.2.8's course does today)? Is the map's history its own list or
+      MAP.27's course does today)? Is the map's history its own list or
       the browser's history (`history.pushState` per stage) with the
       buttons calling `history.back()`/`forward()`? Does it survive a
       page reload or a visit to a sector page and back? How far back
@@ -442,7 +446,7 @@ MAP.14.2 and MAP.5.6.1 below.
 
 - [x] **MAP.3 A bigger Galaxy Map with controls underneath**
   Done in 7.55.0 (PR #178); kept as the parent of its subitem.
-  - [ ] **MAP.3.1 Slab list to the left of the map, and a 3:4 map**
+  - [ ] **MAP.30 Slab list to the left of the map, and a 3:4 map**
     Boss (2026-10-01): "slab selection goes to the left of the galactic
     map if there is room, given the galactic map shoul dhave a 3:4 aspect
     ratio to its window or 1:1 if necessary, like in mobile view
@@ -455,7 +459,7 @@ MAP.14.2 and MAP.5.6.1 below.
     window can't fit 3:4 (as on phones); when there's room beside the
     map, the slab list moves to its left; when there isn't, it stays
     under the map with the other controls; no layout jump as stages
-    change. Goes with MAP.2.1.1 (once the drill-down picks wedges and
+    change. Goes with MAP.17 (once the drill-down picks wedges and
     slices, the left-hand list holds whatever the current stage offers)
     and follows the Responsive Web Design Standards notes in the UX
     section (size classes, container queries). Open questions: is 3:4
@@ -470,9 +474,9 @@ MAP.14.2 and MAP.5.6.1 below.
   `galaxy-megablocks/report.md`); kept as the parent of its bugs. The
   map's code is `static/galaxyprisms.js`, `static/galaxymap3d.js`,
   `lib/galaxymap3d.py` and `stellarObjects/galaxyGeometry.py`.
-  - [x] **MAP.5.6 One solid of blocks for filled and unfilled sectors**
+  - [x] **MAP.36 One solid of blocks for filled and unfilled sectors**
     Done in 7.25.0 (PR #142).
-    - [ ] **MAP.5.6.1 (bug) Generated systems are hard to find on the map**
+    - [ ] **MAP.37 (bug) Generated systems are hard to find on the map**
       Boss:
       "it's really hard to find the generated star system on the map, so
       everything not yet filled should be more transparent by a lot with
@@ -485,9 +489,9 @@ MAP.14.2 and MAP.5.6.1 below.
       glow like the bright stars); whether a block holding only a few
       filled sectors gets the filled look; and whether it follows the
       light and dark themes and keeps enough contrast in both.
-  - [x] **MAP.5.11 Wedge lines from the center**
+  - [x] **MAP.42 Wedge lines from the center**
     Done in 7.9.0 (PR #120).
-    - [ ] **MAP.5.11.1 (bug) Wedge lines run past the galaxy's edge**
+    - [ ] **MAP.43 (bug) Wedge lines run past the galaxy's edge**
       Boss: "wedge
       lines should not extend past the boundary of the galaxy." Today
       `galaxymap3d.js` (`buildWedgeLines`) draws every master line of
@@ -502,7 +506,7 @@ MAP.14.2 and MAP.5.6.1 below.
       extent from `galaxySkeleton.build_layer_extents`); and whether the
       bearing labels move in to the new line ends.
 
-    - [ ] **MAP.5.11.2 (bug) Wedge lines and ring circles run far past a zoomed-in block**
+    - [ ] **MAP.44 (bug) Wedge lines and ring circles run far past a zoomed-in block**
       Boss (2026-10-01): "when zoomed in to a sector block it the radial
       lines should only be contained within the block and just a little
       beyond, and that should also be cylindar boundaries about the
@@ -513,17 +517,17 @@ MAP.14.2 and MAP.5.6.1 below.
       (ring) boundaries do the same. Done: zoomed in to a block, the
       wedge lines and the ring boundaries are drawn only across that
       block and a small margin past its edges, at every drill-down stage;
-      zoomed out, MAP.5.11.1's rule (stop at the galaxy's edge) applies.
+      zoomed out, MAP.43's rule (stop at the galaxy's edge) applies.
       Open questions: how big "a little beyond" is (a fixed fraction of
       the block, such as 10-20%, or a few pixels on screen)? Do the lines
       fade out across the margin or stop sharply? Does the same apply to
-      the 3D stages while MAP.2.1.1 still has them, or only to the
+      the 3D stages while MAP.17 still has them, or only to the
       top-down ones?
 
 - [x] **MAP.11 Every kind of phenomenon on the Sector Map, clickable**
   Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
   is `html/lib/starmap.py` and `static/sectormap.js`.
-  - [ ] **MAP.11.1 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
+  - [ ] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
     Boss (2026-10-01): "rogue planets (and
     probably other objects) are shown outside the wireframe of the
     sector, so one of them is wrong. when you tackle this one, do a test
@@ -554,7 +558,7 @@ MAP.14.2 and MAP.5.6.1 below.
     from the sector's own (dimmer, outside-only, or a toggle)? If the
     stored positions turn out wrong, do existing galaxies need a
     migration or a regenerate?
-  - [ ] **MAP.11.2 (bug) Rogue planets are hard to find on the Sector Map**
+  - [ ] **MAP.46 (bug) Rogue planets are hard to find on the Sector Map**
     Boss (2026-10-01): "in sector view make sure rogue planets can be
     easily located." Today `static/sectormap.js` draws a rogue planet as
     a dim, dark-purple textured sphere (`roguePlanet`: core `#6b5a8a`
@@ -563,7 +567,7 @@ MAP.14.2 and MAP.5.6.1 below.
     vanishes against the dark scene. Done: every rogue planet in a
     sector is easy to spot at the default zoom and when zoomed out, in
     both themes, without looking like a star; the sector page's list of
-    its contents can point at each one on the map. Goes with MAP.11.1
+    its contents can point at each one on the map. Goes with MAP.45
     (rogue planets drawn outside the wireframe), whose bright-color test
     makes the same objects visible, and MAP.15's point-of-light style.
     Open questions: what makes them findable (a marker or ring around
@@ -575,7 +579,7 @@ MAP.14.2 and MAP.5.6.1 below.
 - [x] **MAP.14 Bright stars on the Galaxy Map**
   Done in 7.42.0 (PR #160; it never had a number); kept as the parent of
   its bugs.
-  - [ ] **MAP.14.1 (bug) Bright stars vanish when zoomed out**
+  - [ ] **MAP.47 (bug) Bright stars vanish when zoomed out**
     Boss: "bright
     stars do not display past 500 seconds scale (1 block = 81 sectors
     across)." Past that zoom the pre-placed bright stars (v43,
@@ -590,7 +594,7 @@ MAP.14.2 and MAP.5.6.1 below.
     Boss to confirm which readout he meant. How many stars should the
     whole-galaxy view draw (the brightest N overall, or the brightest
     per tile)?
-  - [ ] **MAP.14.2 (bug) Stars take a while to appear after a zoom**
+  - [ ] **MAP.48 (bug) Stars take a while to appear after a zoom**
     Boss:
     "zooming reveals stars are being drawn but it takes a while to
     load." After a zoom the bright stars (and the tiles they come in,
@@ -601,7 +605,7 @@ MAP.14.2 and MAP.5.6.1 below.
     goes (the tile request, `galaxy_bright_stars_in_box`'s query, or
     rebuilding the points); whether to prefetch the next zoom level's
     tiles; and whether a separate, lighter star endpoint would help
-    (ties in with PERF.1.4's fewer, bigger database calls).
+    (ties in with PERF.6's fewer, bigger database calls).
 
 - [ ] **MAP.15 Stars and glowing phenomena as points of light on the Sector Map**
   Boss (2026-10-01): "make the stars in a sector more realistic
@@ -625,7 +629,7 @@ MAP.14.2 and MAP.5.6.1 below.
   close-up (the System Map still shows bodies as spheres)? How is a
   binary's pair kept distinguishable? Which phenomena count as
   emitting light (quasars, neutron stars and accreting black holes
-  yes; quiescent black holes and rogue planets, which MAP.11.2 must
+  yes; quiescent black holes and rogue planets, which MAP.46 must
   keep findable, probably not)?
 
 ## GEN: Generation and physics
@@ -644,8 +648,8 @@ MAP.14.2 and MAP.5.6.1 below.
   planet; a rogue planet is given a class drawn only from the classes
   with `"r": True` that fit its mass and type; the class is stored and
   shown on the rogue planet's page and the Sector Map like any other
-  planet's; and the class override and validation items (ADM.1.1 to
-  ADM.1.3) treat `"r"` as the rogue planet's zone. Open questions: which
+  planet's; and the class override and validation items (ADM.5 to
+  ADM.7) treat `"r"` as the rogue planet's zone. Open questions: which
   classes are allowed to be rogue (frozen, gas giant and barren classes
   are the obvious ones; does a class with life ever qualify)? Are the
   probabilities `PLANET_CLASS_PROBABILITIES` reweighted for rogues, or
@@ -685,7 +689,7 @@ MAP.14.2 and MAP.5.6.1 below.
   code is mostly `generate.py`, `web/generate_page.py`, `web/jobs.py` and
   `stellarObjects/brightStars.py`.
 
-  - [ ] **PERF.1.1 Estimate size and time before bulk generation, and refuse what won't fit**
+  - [ ] **PERF.3 Estimate size and time before bulk generation, and refuse what won't fit**
     Boss (2026-10-01): "any directive to generate
     sectors in bulk should have a size estimate calculated +10% and make
     sure that it warns the user approximate size of the generated content
@@ -704,7 +708,7 @@ MAP.14.2 and MAP.5.6.1 below.
     caps input sizes (radius, ring counts, orbits), not output size.
     Done, for every bulk path (`generate.py galaxy`/`sector` over many
     sectors, the admin Generate page's jobs, the Galaxy Map's block,
-    layer and neighborhood generation (MAP.2.2), and ADM.1.4's sector
+    layer and neighborhood generation (MAP.20), and ADM.8's sector
     regenerate):
     - Before starting, compute the expected star count from the expected
       stellar density of the requested sectors, then an estimated size
@@ -728,7 +732,7 @@ MAP.14.2 and MAP.5.6.1 below.
     server or per kind of sector (bright-star and bulge sectors cost
     more per star); and whether an admin can override the refusal.
 
-  - [ ] **PERF.1.2 A second progress bar for slow layers in the plan**
+  - [ ] **PERF.4 A second progress bar for slow layers in the plan**
     Boss
     (2026-10-01): "For building the layers, when the rate drops below 1
     layer per 30 seconds, which is calculated on every star system
@@ -755,10 +759,10 @@ MAP.14.2 and MAP.5.6.1 below.
     fraction, then updated as it goes?); hysteresis so the second bar
     doesn't flash on and off near the 30-second line (the old per-sector
     bar was removed for exactly that); and whether the same rule applies
-    to sector fill (`Sectors (ring … layer …)`), where PERF.1.1's rate is
+    to sector fill (`Sectors (ring … layer …)`), where PERF.3's rate is
     measured.
 
-  - [ ] **PERF.1.3 Scatter bright stars in stages, one luminosity band at a time**
+  - [ ] **PERF.5 Scatter bright stars in stages, one luminosity band at a time**
     Boss (2026-10-01): "let's do a default of 100 solar
     luminosities for the star map, but then add to the TODO.md to allow
     us to add another layer down (i.e. so when I generate I do say 500
@@ -780,17 +784,17 @@ MAP.14.2 and MAP.5.6.1 below.
     only stars from the new threshold up to (not including) the stored
     level, then lowers the stored level; asking for a level at or above
     the stored one does nothing (or says so); the Generate page and the
-    CLI show the current level and offer "go down to N"; and PERF.1.1's
+    CLI show the current level and offer "go down to N"; and PERF.3's
     size and time estimates cover just the new band. Open questions:
     where the level is stored (the control database, a `galaxy` row next
     to the skeleton, or derived from `MIN(luminosity_w)` in
     `bright_stars`)? What happens to sectors already filled when new,
     dimmer bright stars land in them: add the stars and build their
-    systems in place, skip those sectors, or mark them for ADM.1.4's
+    systems in place, skip those sectors, or mark them for ADM.8's
     regenerate? Must the new band draw from the same random stream, so a
     500-then-100 galaxy matches a straight-to-100 one?
 
-  - [ ] **PERF.1.4 Rate-limit SQL calls and make each call do more**
+  - [ ] **PERF.6 Rate-limit SQL calls and make each call do more**
     Boss
     (2026-10-01): "ratelimiting calls to the sql database and seeing if
     we can investigate some way to make our DB calls more efficient, do
@@ -806,39 +810,39 @@ MAP.14.2 and MAP.5.6.1 below.
     instead of per body, fewer round trips per page); then the batching
     changes that measure faster, and a rate limit on calls to the
     database. Open questions: what the rate limit protects against (the
-    MySQL server being swamped by PERF.1.6's parallel workers, or web
+    MySQL server being swamped by PERF.8's parallel workers, or web
     users hammering the API), and so whether it is a calls-per-second cap,
     a cap on concurrent connections, or both; whether it is one limit
     shared by generation and the web site or separate ones; how it
-    interacts with the pool size once PERF.1.6 runs several workers at
+    interacts with the pool size once PERF.8 runs several workers at
     once (each process gets its own pool today); and what benchmark
     decides "without impacting performance" (a fixed test sector timed
     before and after?).
 
-  - [ ] **PERF.1.5 Parallelize sector and system generation, with stable progress bars**
+  - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
     Boss (2026-10-01): "add a TODO item to parallelize
     sector and system generation and update the progress bars so that
     they stay stable, I want to keep the ETA until done and elapsed time
     and I know that'll require some customization of the status bar code
     as time estimates are to be calculated from a decaying average based
-    on number of runs per second." This is the first user of PERF.1.6's
+    on number of runs per second." This is the first user of PERF.8's
     work queue. Today `generate.py` fills sectors one after another in a
     single process, and `_generation_progress()` (rich `Progress`) shows
     elapsed time and rich's own ETA. Done: sector fill and the plan's
-    bright-star scatter run through PERF.1.6's queue; the bars stay
-    pinned at the bottom without flicker (as PERF.1.2 requires) even with
+    bright-star scatter run through PERF.8's queue; the bars stay
+    pinned at the bottom without flicker (as PERF.4 requires) even with
     many workers reporting at once; every bar keeps elapsed time and an
     ETA until done; and the ETA comes from a custom column that uses a
     decaying (exponentially weighted) average of tasks finished per
-    second rather than rich's built-in estimate. PERF.1.1's measured stars
-    per second and PERF.1.2's slow-layer bar use the same rate. Open
+    second rather than rich's built-in estimate. PERF.3's measured stars
+    per second and PERF.4's slow-layer bar use the same rate. Open
     questions: the decay constant (how fast the average forgets older
     runs); whether the rate is counted in systems, stars or sectors
     (sectors differ a lot in size, so systems per second may be steadier);
     and whether `progress.json` for the web jobs reports the same decayed
     rate so the Generate page and UX.3's banner show the same ETA.
 
-  - [ ] **PERF.1.6 A parallel background work queue in the API**
+  - [ ] **PERF.8 A parallel background work queue in the API**
     Boss
     (2026-10-01): "I also want to do it in a specific way, ideally how it
     would work is we'd have a work queue... In fact new TODO item,
@@ -858,13 +862,13 @@ MAP.14.2 and MAP.5.6.1 below.
     everything serially. Done:
     - A work queue the API owns, with a pool of workers.
     - Plan phase: each bright star generated for the selected level
-      (PERF.1.3's band) is one task.
+      (PERF.5's band) is one task.
     - Sector fill: each sector is one parent task that stays running
       until its sector is full; each star system in it is its own child
       task that the queue runs in parallel.
     - When a child task finishes, its parent gets a signal, and the
       parent uses those signals to work out how long its handed-out
-      tasks will take to finish (feeding PERF.1.5's ETA).
+      tasks will take to finish (feeding PERF.7's ETA).
     - Limits: the workers never use more than 80% of total CPU, and they
       run at a lower scheduling priority (for example `nice` on Linux and
       macOS, below-normal priority on Windows) so other processes on the
@@ -872,7 +876,7 @@ MAP.14.2 and MAP.5.6.1 below.
 
     Open questions: processes or threads (Python's GIL means CPU-bound
     generation needs processes, which then each need their own database
-    connections, so the pool size and PERF.1.4's rate limit have to fit
+    connections, so the pool size and PERF.6's rate limit have to fit
     the worker count); how 80% is enforced (a worker count of 80% of the
     cores, or measuring load and throttling); whether the queue lives
     inside the API process or in a separate worker service the API talks
@@ -883,7 +887,7 @@ MAP.14.2 and MAP.5.6.1 below.
     built at the same time; and what happens to queued and half-done
     tasks when the server restarts or a job is cancelled.
 
-  - [ ] **PERF.1.7 Weight the bright-star ETA by the shape of the galaxy**
+  - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
     (2026-10-01): "so that the bright stars ETA takes into account the
     shape of what's being generated (ie that at layer 0 and 635 take very
@@ -899,38 +903,38 @@ MAP.14.2 and MAP.5.6.1 below.
     chosen threshold), and progress and the ETA are measured in expected
     stars done out of the expected total, so a run through the sparse
     edge layers no longer makes the rest look quick or slow. Ties in with
-    PERF.1.1 (the up-front time estimate uses the same per-layer
-    weights), UX.3 and PERF.1.2 (the banner's ETA, and PERF.1.2's
-    stars-remaining estimate for the current layer), PERF.1.3 (a staged
-    scatter weights only the new luminosity band), and PERF.1.5 and
-    PERF.1.6 (the decaying-average rate and the parallel tasks). Open
+    PERF.3 (the up-front time estimate uses the same per-layer
+    weights), UX.3 and PERF.4 (the banner's ETA, and PERF.4's
+    stars-remaining estimate for the current layer), PERF.5 (a staged
+    scatter weights only the new luminosity band), and PERF.7 and
+    PERF.8 (the decaying-average rate and the parallel tasks). Open
     questions: is the weight the expected star count alone, or does it
     also count rings and slots walked (an empty edge layer still costs
-    some loop time)? How does the weighting combine with PERF.1.5's
+    some loop time)? How does the weighting combine with PERF.7's
     decaying average: the average measured in expected stars per second,
     or in layers per second and then scaled? Is the per-layer expected
     count worked out in a quick pre-pass at the start of every plan, or
-    stored with the galaxy skeleton? Once PERF.1.6 runs layers in
+    stored with the galaxy skeleton? Once PERF.8 runs layers in
     parallel and out of order, does the ETA add up the expected work
     still queued rather than following the layer order?
 
-  - [ ] **PERF.1.8 Record generation speed across a log scale of densities**
+  - [ ] **PERF.10 Record generation speed across a log scale of densities**
     Boss (2026-10-01): "record generation stats such as time per star,
     time per sector for a log scale of densities from 0.01 to the max
     expected density / actual density found. ... Both of these will be
     continued to be refined and calculated as long as the galaxy is in
     existence but as a decaying average." Today nothing records how long
-    generation takes per star or per sector, and PERF.1.1's planned
+    generation takes per star or per sector, and PERF.3's planned
     stars-per-second figure is a single number for the whole server.
     Done: density is split into log-scale buckets from 0.01 up to the
     highest density expected or found; every sector fill adds its time
     per star and time per sector to its density's bucket as a decaying
     average; the buckets keep updating for as long as the galaxy exists;
     and they can be read back by the tools below. These stats feed
-    PERF.1.1 (time estimates before bulk generation, per bucket instead
-    of one rate), UX.3 (the banner's ETA), PERF.1.2 (the slow-layer
-    bar's stars-remaining ETA), PERF.1.3 (the time for a new luminosity
-    band), PERF.1.5 (the decaying-average rate) and PERF.1.7 (weighting
+    PERF.3 (time estimates before bulk generation, per bucket instead
+    of one rate), UX.3 (the banner's ETA), PERF.4 (the slow-layer
+    bar's stars-remaining ETA), PERF.5 (the time for a new luminosity
+    band), PERF.7 (the decaying-average rate) and PERF.9 (weighting
     the bright-star ETA by expected work per layer). Open questions: how
     many buckets and where their edges sit (per decade, half-decade?);
     whether the top edge is fixed from the density model's expected
@@ -938,12 +942,12 @@ MAP.14.2 and MAP.5.6.1 below.
     constant (how fast old runs fade); whether the plan's bright-star
     scatter gets its own buckets (its cost per star differs from sector
     fill); whether it lives in the control database (survives a new
-    galaxy, as PERF.1.1 suggests for stars per second) or the galaxy
+    galaxy, as PERF.3 suggests for stars per second) or the galaxy
     database (resets with it), and so what a regenerate or reset does to
-    it; and whether PERF.1.6's parallel workers count wall time or CPU
+    it; and whether PERF.8's parallel workers count wall time or CPU
     time per task.
 
-  - [ ] **PERF.1.9 Store each sector's expected and actual density**
+  - [ ] **PERF.11 Store each sector's expected and actual density**
     Boss
     (2026-10-01): "add stats for each sector's density expected and
     actual in the database in a way that can be easily accessed. Both of
@@ -958,16 +962,16 @@ MAP.14.2 and MAP.5.6.1 below.
     columns on `sectors` or a sector-stats table, readable by
     `queryDb`, `adminStats` and the API; the galaxy-wide comparison of
     expected against actual is kept as a decaying average and updated
-    after every fill. PERF.1.8 places each sector in its density bucket
-    with these numbers, and PERF.1.1, PERF.1.3 and PERF.1.7 use the
+    after every fill. PERF.10 places each sector in its density bucket
+    with these numbers, and PERF.3, PERF.5 and PERF.9 use the
     expected-versus-actual ratio to correct their estimates. Open
     questions: columns on `sectors` (a migration in the Database
     workstream) or a separate table; whether "actual" counts systems,
     stars, or both; what the decaying average is taken over (the ratio
-    per density bucket, so it ties in with PERF.1.8, or one galaxy-wide
+    per density bucket, so it ties in with PERF.10, or one galaxy-wide
     figure); whether existing sectors are backfilled by a migration;
     and what happens to the stats when a sector is regenerated
-    (ADM.1.4) or the galaxy is reset.
+    (ADM.8) or the galaxy is reset.
 
 ## ADM: Admin tools
 
@@ -975,7 +979,7 @@ MAP.14.2 and MAP.5.6.1 below.
   Boss asked for these on 2026-10-01 (quoted where it matters). None is
   designed yet; the open questions are listed in each subitem.
 
-  - [ ] **ADM.1.1 Central validate module in `stellarObjects`**
+  - [ ] **ADM.5 Central validate module in `stellarObjects`**
     Boss: "we should
     get a whole set of validate functions in their own file within the
     stellarObjects class (if we don't already) so that we can have a
@@ -988,11 +992,11 @@ MAP.14.2 and MAP.5.6.1 below.
     `moon_orbit_bounds_km`/`drop_unstable_moons` (`planetPhysics.py`)
     for moons. Done: one module (for example
     `stellarObjects/validation.py`) that validates a planet, a lunar
-    system and a star system, which generation and ADM.1.2 and ADM.1.3
+    system and a star system, which generation and ADM.6 and ADM.7
     both call, with existing behavior unchanged. Prerequisite for
-    ADM.1.2 and ADM.1.3.
+    ADM.6 and ADM.7.
 
-  - [ ] **ADM.1.2 Admin override of a planet's or moon's class**
+  - [ ] **ADM.6 Admin override of a planet's or moon's class**
     Boss: "it should
     have the option to do 'recommended' which are other classes that fit
     within the given space or I can 'force' which means it sets it to what
@@ -1006,13 +1010,13 @@ MAP.14.2 and MAP.5.6.1 below.
     moon offering a "recommended" list (classes that fit its current
     space) and a "force" choice; after a change, revalidate outward
     (moon, its lunar system, then every planet of the star system) with
-    ADM.1.1's functions, re-spacing orbits until it validates, and warn
+    ADM.5's functions, re-spacing orbits until it validates, and warn
     the admin when no stable layout exists. Open questions: does a forced
     change that can't be made stable still save (with the warning), or is
     it rolled back? May revalidation remove other bodies, or only move
     them?
 
-  - [ ] **ADM.1.3 Admin override of a star**
+  - [ ] **ADM.7 Admin override of a star**
     Boss: "that will change the entire
     system but it will change the system to have as many objects as the
     original system had just their orbital positions will change, caveat
@@ -1020,14 +1024,14 @@ MAP.14.2 and MAP.5.6.1 below.
     with a lot of objects changes to a small star that does not have
     orbital space, then it'll be truncated." Done: an admin control to
     change a system's star; the system keeps its planets, moons and belts
-    (same count), orbits are re-spaced for the new star with ADM.1.1's
+    (same count), orbits are re-spaced for the new star with ADM.5's
     validation, and outer objects are dropped when the new star lacks the
     room, telling the admin what was removed. Open questions: do the
     planets keep their classes, or are classes re-checked against the new
-    star's zones (which could chain into ADM.1.2's revalidation)? Does
+    star's zones (which could chain into ADM.6's revalidation)? Does
     this cover companion stars in multiple systems too?
 
-  - [ ] **ADM.1.4 Delete and regenerate buttons on everything, sector down**
+  - [ ] **ADM.8 Delete and regenerate buttons on everything, sector down**
     Boss: "I also want a delete function across the board, so I can
     manually remove a system. With that a regen button ... regenerate a
     system, phenomena, planet, asteroid belt, sector, basically anything
@@ -1038,9 +1042,9 @@ MAP.14.2 and MAP.5.6.1 below.
     regenerate for any of them. Done: admin-only Delete and Regenerate
     buttons on the sector, system, phenomenon, planet and asteroid belt
     pages (Boss's list; moons are an open question), with a confirm step,
-    an audit-log entry, and ADM.1.1's validation after a single body is
+    an audit-log entry, and ADM.5's validation after a single body is
     removed or regenerated. Open questions: does regenerating a sector
-    keep manual overrides (ADM.1.2 and ADM.1.3), renamed objects and
+    keep manual overrides (ADM.6 and ADM.7), renamed objects and
     placed facilities (DB.1), or replace everything? Does regenerating
     keep the object's name? Does deleting a sector leave its slot
     unfilled (so it can be filled again) or mark it empty?
@@ -1062,7 +1066,7 @@ MAP.14.2 and MAP.5.6.1 below.
   sections start open (only Current job, or the last one used,
   remembered per browser)? Which coordinates: a sector address, a
   position in pc or ly, or both? Does "locate" reuse the Sector Map pick
-  mode (MAP.2.3) or the address bar's `/galaxy/locate` (MAP.2.6)?
+  mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
 
 ## SEC: Security
 
@@ -1100,13 +1104,13 @@ MAP.14.2 and MAP.5.6.1 below.
   (`bootstrap_control_schema`), and nothing in the web interface or the
   CLI adds another account. There is no email support and no
   saved-bookmark feature (pages only have bookmarkable URLs). Order:
-  USR.1.1, then USR.1.2 and USR.1.3, then USR.1.4, USR.1.5 and USR.1.6.
+  USR.2, then USR.3 and USR.4, then USR.5, USR.6 and USR.7.
   Login protection already exists per username
   (`src/html/api/loginbackoff.py`, PR #131) and is planned per IP
   address (SEC.1); both must cover user logins, password resets and
   invite links too.
 
-  - [ ] **USR.1.1 Accounts with roles: user, admin and Owner**
+  - [ ] **USR.2 Accounts with roles: user, admin and Owner**
     Boss: "Admin can
     then make a user admin or take away admin rights on everything but the
     primary 1st admin account generated at install, that'll have a
@@ -1124,20 +1128,20 @@ MAP.14.2 and MAP.5.6.1 below.
     or another admin? Can an admin delete or disable a user account? Do
     users get API keys?
 
-  - [ ] **USR.1.2 SMTP settings in the admin config**
+  - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
     email which means admin config needs SMTP settings." Done: SMTP host,
     port, security (STARTTLS or TLS), username, password and From address,
     set from an admin page (and the config file/installer), with a "send
-    test email" button; one small mail module that every flow in USR.1.3
-    to USR.1.5 uses, which logs failures and never shows the SMTP
+    test email" button; one small mail module that every flow in USR.4
+    to USR.6 uses, which logs failures and never shows the SMTP
     password. Open questions: is the SMTP password kept in the config
     file (like the database password) or in the control database, and is
     it encrypted there? Who can change SMTP settings: any admin, or only
     the Owner? What do invites and resets do when SMTP isn't configured
     (show the link to the admin to pass on by hand?)?
 
-  - [ ] **USR.1.3 Invite-only sign-up by unique link**
+  - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
     invite a user which is done by unique link, admin can select how many
     uses the link has or if it expires in 1 hour, 4, 6, 12, 24, 3 days, 7
@@ -1150,13 +1154,13 @@ MAP.14.2 and MAP.5.6.1 below.
     the admin to confirm and says it isn't recommended; a list of invites
     with uses left, expiry and who made them, and a way to revoke one;
     opening a valid link lets someone register (username, email), then
-    USR.1.4's email loop sets their password; the account is a user, not
+    USR.5's email loop sets their password; the account is a user, not
     an admin. Open questions: does an admin optionally type the invitee's
     email so the link is sent for them, or only copy the link? Is the
     invite page rate-limited, and is there a cap on open invites? Does
     a multi-use link record who used it?
 
-  - [ ] **USR.1.4 Email loop for setting and resetting passwords**
+  - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
     email loop for password setting / resetting". Done: a new account
     sets its first password from an emailed link; "forgot password" on
@@ -1169,7 +1173,7 @@ MAP.14.2 and MAP.5.6.1 below.
     email confirmation to the old and new addresses; does the Owner's
     reset need anything extra?
 
-  - [ ] **USR.1.5 Owner transfer**
+  - [ ] **USR.6 Owner transfer**
     Boss: "The owner CAN (with specific approval
     and double password confirmation and email loop confirmation) assign
     owner to someone else who then has to accept via email loop." Done:
@@ -1183,7 +1187,7 @@ MAP.14.2 and MAP.5.6.1 below.
     can cancel it; what happens if the Owner loses their email or
     password (recovery from the server's command line?).
 
-  - [ ] **USR.1.6 A user-level interface with bookmarks**
+  - [ ] **USR.7 A user-level interface with bookmarks**
     Boss: "a full user
     level interface to allow users to bookmark". Done: signed-in users
     (any role) get an account page and can bookmark sectors, systems,
@@ -1210,7 +1214,13 @@ MAP.14.2 and MAP.5.6.1 below.
   Done, if Boss wants it: the version's third number is the sum of each
   category's counter, worked out by the release scripts. Open questions:
   - Is a category's counter the number of changes shipped in it, or the
-    highest item ID issued (IDs are now permanent and never reused)?
+    highest item ID issued? Since Boss's follow-up (2026-10-01:
+    "CATEGORY.NUMBER (sequential, like the DB version, no points on the
+    category items, just as item coutn on each, simple)"), every ID is a
+    flat running
+    count, so the highest ID issued in a category (for example 48 for
+    MAP) is that category's item count and can serve as the counter
+    directly.
   - How the post-merge Action counts: does each `changes/` note name its
     category and item ID (for example `ux-2.patch.md` or a front-matter
     line), and what happens to a PR that touches two categories or none
@@ -1226,12 +1236,12 @@ MAP.14.2 and MAP.5.6.1 below.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
-  that, it will need a full research pass." Before any code for VIEW.1.1
-  and VIEW.1.2, Boss wants a research session with him "into exactly how
-  one would do that". VIEW.1.1 and VIEW.1.2 are blocked on it; VIEW.1.3
+  that, it will need a full research pass." Before any code for VIEW.2
+  and VIEW.3, Boss wants a research session with him "into exactly how
+  one would do that". VIEW.2 and VIEW.3 are blocked on it; VIEW.4
   is not.
 
-  - [ ] **VIEW.1.1 A starmap seen from a planet. RESEARCH WITH BOSS FIRST**
+  - [ ] **VIEW.2 A starmap seen from a planet. RESEARCH WITH BOSS FIRST**
     Boss:
     "Build a function to select a planet and generate an effective starmap
     from that planet based on all visible stars, this will have to include
@@ -1257,20 +1267,20 @@ MAP.14.2 and MAP.5.6.1 below.
     - nebulae, the galactic band, the companion stars of the planet's own
       system, and performance (millions of stars per view).
 
-  - [ ] **VIEW.1.2 Render the view as a PNG, with constellations**
+  - [ ] **VIEW.3 Render the view as a PNG, with constellations**
     Boss: "when
     it does that it will generate a PNG and it will generate
-    constellations." Done: VIEW.1.1's view is drawn to a PNG (a sky
+    constellations." Done: VIEW.2's view is drawn to a PNG (a sky
     projection, star size and colour by apparent brightness), and the
     brighter stars are grouped into constellations with lines and names
-    from VIEW.1.3, stored so a planet keeps the same constellations each
-    time. Blocked on VIEW.1.1's research pass. Open questions: whole-sky
+    from VIEW.4, stored so a planet keeps the same constellations each
+    time. Blocked on VIEW.2's research pass. Open questions: whole-sky
     or a horizon view from a point on the surface? How are constellations
     chosen (bright-star patterns, by clustering, a set number per sky)?
     Are the PNGs cached on disk and served by the web interface, or made
     on request?
 
-  - [ ] **VIEW.1.3 Constellation names in the name generator**
+  - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
     name generator constellation name support based on constellation
     names throughout all known languages and then slice it up like we do
@@ -1281,6 +1291,6 @@ MAP.14.2 and MAP.5.6.1 below.
     recombines them into new names the same way stars, planets and
     sectors are named (`split_into_syllables` in `utils.py`, the
     prefix/suffix lists, the `offensive_words.txt` filter). Used by
-    VIEW.1.2. Open questions: what counts as a source list (licensing of
+    VIEW.3. Open questions: what counts as a source list (licensing of
     sky culture data such as Stellarium's), transliteration of non-Latin
     scripts, and whether names are unique per planet or galaxy-wide.

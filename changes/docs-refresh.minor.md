@@ -7,13 +7,14 @@
   The old `pip install .` setup step is gone: the install scripts set up
   the libraries and everything runs the checkout's code. The full
   command-line reference moved to `docs/cli.md`.
-- **TODO items have permanent category IDs** (`UX.1`, `MAP.2.1`, ...)
-  in a tree of items and subitems, replacing the running numbers. Bugs
-  and features go under the item they belong to, `docs/TODO.md` is the
-  one place that links an item to its design document, and code tags read
-  `TODO(MAP.2.1)` (a test checks each names an open item).
-  `docs/design/todo-number-map.md` maps every old number, by date, to its
-  new ID, for the changelog, commits and PRs that cite old numbers.
+- **TODO items have permanent category IDs** (`UX.1`, `MAP.16`, ...),
+  a plain running count in each category like the schema version,
+  replacing the running numbers. Bugs and features are listed under the
+  item they belong to, `docs/TODO.md` is the one place that links an
+  item to its design document, and code tags read `TODO(MAP.16)` (a test
+  checks each names an open item). `docs/design/todo-number-map.md` maps
+  every old number, by date, and the short-lived dotted IDs (`MAP.2.1`)
+  to the new IDs, for the changelog, commits and PRs that cite them.
 - **Every reference doc checked against the code.** `database-schema.md`
   now describes schema v44 and its tables; `api.md`,
   `html-interface.md`, `config.md`, `system-file-format.md`, the

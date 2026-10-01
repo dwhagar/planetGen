@@ -12,7 +12,7 @@ Boss's chosen reference. The ones that don't add up are flagged under
 from 7.46.0 (`/classes/rogue-planet`), and rogue planets, interstellar
 comets, black holes and neutron stars get rendered views from 7.57.0.
 
-Nebulae (GEN.4.1) followed in 7.30.0: molecular clouds are drawn per star at
+Nebulae (GEN.10) followed in 7.30.0: molecular clouds are drawn per star at
 the `molecular-cloud` rate below and generated as dark-family classes M-Q;
 H II regions and reflection nebulae grow around O, B and A stars
 (`NEBULA_HOST_RULES`); every planetary nebula gets its own hot white dwarf

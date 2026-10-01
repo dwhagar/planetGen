@@ -194,7 +194,7 @@ never placed in the galaxy were kept each time.
   radius. 2 pc was rejected because a local-density sector would average
   under one star, so ordinary solar-neighborhood space would not qualify.
   11.5 ly was the older, arbitrary default.
-- **Master wedges (7.13.0, MAP.5.3).** Plain rounding gave slot boundaries
+- **Master wedges (7.13.0, MAP.33).** Plain rounding gave slot boundaries
   that did not line up from ring to ring, so the Galaxy Map's large blocks
   could not be cut on shared lines. Multiples of a doubling master count make
   every master line a slot boundary out to the edge, while arcs stay

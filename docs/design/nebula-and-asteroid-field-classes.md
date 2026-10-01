@@ -1,6 +1,6 @@
 # Nebula, remnant and asteroid field classes
 
-The design for `docs/TODO.md` items GEN.4.1 to GEN.4.5, recorded 2026-09-30 from Boss's
+The design for `docs/TODO.md` items GEN.10 to GEN.14, recorded 2026-09-30 from Boss's
 notes and the reference document Boss shared ("Astrophysical
 Architectures and Speculative Mechanics of Nebulae, Stellar Remnants, and
 Interstellar Collisions"). The physical ranges come from that document and
@@ -59,7 +59,7 @@ planetary nebula, sees an ordinary dark starry sky.
 | Molecular (GMC, dark cloud, Bok globule) | H2, He, CO, PAHs, silicates, organics | 10^2-10^6 | 10-30 | opaque (A_V ~10-100 mag) |
 | Supernova remnant (blast zone) | ionized ejecta, Fe, Si, S, ambient gas | 0.1-10^2 | 10^5-10^7 | transparent; synchrotron and soft X-ray |
 
-## What sits at the center (research for GEN.4.1)
+## What sits at the center (research for GEN.10)
 
 | Family | Central object the generator must place |
 |---|---|
@@ -71,7 +71,7 @@ planetary nebula, sees an ordinary dark starry sky.
 | Supernova remnant, core collapse | A neutron star (most) or black hole, as `SupernovaRemnant.compact_remnant` already does, offset from the center by its birth kick (a few hundred km/s times the remnant's age). |
 | Supernova remnant, thermonuclear (Type Ia) | No compact object; sometimes a runaway surviving companion star. |
 
-## Nebula and remnant classes (GEN.4.2, built in v38, version 7.19.0)
+## Nebula and remnant classes (GEN.11, built in v38, version 7.19.0)
 
 One letter per class, like `PLANET_CLASSES`. I and O are left unused so
 they aren't mistaken for 1 and 0; X-Z are reserved. Nebulae use A-Q
@@ -113,7 +113,7 @@ object rule, and a relative frequency.
 Boss (2026-09-30): "stellar remnants" means supernova remnants only; the
 compact objects keep their own tables and need no letters.
 
-## Objects inside a nebula (GEN.4.3)
+## Objects inside a nebula (GEN.12)
 
 - As built (schema v39), star systems, rogue planets, interstellar
   comets, black holes, neutron stars, asteroid fields and nebulae each have
@@ -144,7 +144,7 @@ compact objects keep their own tables and need no letters.
   cm^-3 that puts this program's Sun (~85 AU in open space) at ~0.6 AU.
   Habitability doesn't use it yet.
 
-## Naming (GEN.4.4, built in v40, version 7.31.0)
+## Naming (GEN.13, built in v40, version 7.31.0)
 
 - Nebulae, supernova remnants, neutron stars, black holes, quasars and
   rogue planets are named the way star systems are: through the
@@ -160,10 +160,10 @@ compact objects keep their own tables and need no letters.
   - Interstellar comet: `I/<sector designation>-<n>`. Example:
     `I/4F2A1-3`. A sector outside the grid is named instead.
   - Asteroid field: `AF <class><size>-<sector designation>-<n>`, where
-    class is the letter from GEN.4.5 and size is floor(log10(radius in
+    class is the letter from GEN.14 and size is floor(log10(radius in
     AU)) (a 0.001-1 ly field is 1-4). Example: `AF E3-4F2A1-02`.
 
-## Asteroid field classes (GEN.4.5, built in v38, version 7.19.0)
+## Asteroid field classes (GEN.14, built in v38, version 7.19.0)
 
 Letter from composition and density (today's `sparse`/`typical`/`dense`);
 size goes in the designation digit above. Composition families follow

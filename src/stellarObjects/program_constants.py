@@ -1688,7 +1688,7 @@ NEBULA_FAMILIES = {
 }
 
 # Nebula and supernova remnant classes, one letter each like
-# PLANET_CLASSES (GEN.4.2; reasoning, sources and the family tables in
+# PLANET_CLASSES (GEN.11; reasoning, sources and the family tables in
 # docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
 # they aren't read as 1 and 0; X-Z are reserved. A-Q are nebulae, R-W are
 # supernova remnants ("stellar remnants" means supernova remnants only,
@@ -1698,7 +1698,7 @@ NEBULA_FAMILIES = {
 # "supernova-remnant"), `species` (dominant contents), `density_range_cm3`
 # (particle density nH, log-uniform), `temperature_range_k` (log-uniform),
 # `extinction_range_av` (optical extinction in magnitudes, log-uniform
-# unless the low end is 0), `center` (the central-object rule of GEN.4.1
+# unless the low end is 0), `center` (the central-object rule of GEN.10
 # builds on), and `frequency` (relative weight within its family group).
 # Nebulae also carry `radius_range_ly`; a remnant's radius comes from its
 # age (Sedov-Taylor, below), so remnants carry `morphology` (the Vink 2012
@@ -1877,7 +1877,7 @@ NEBULA_HOST_RULES = (
     ("B", 3, 9, ("F", "G"), 0.05),
     ("A", 0, 9, ("F",), 0.01),
 )
-"""tuple: Nebulae a sector grows around its own stars (GEN.4.1), as
+"""tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
 for a main-sequence primary. Only O and early-B stars put out enough
 ultraviolet below 91.2 nm to ionize hydrogen, so every O star sits in an
@@ -1888,7 +1888,7 @@ nebula (F, or G for the hotter ones) when a dusty cloud happens to be near
 is drawn among `classes` by NEBULA_CLASSES frequency."""
 
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
-"""tuple: The central star a planetary nebula is generated around (GEN.4.1):
+"""tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and
 up, already a white dwarf in the Yerkes scheme (class VII)."""
 
@@ -2117,7 +2117,7 @@ SYSTEM_COMET_COUNT_RANGE = (1, 3)
 # ly) so the two remain visually/narratively distinct phenomena.
 ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 
-# Asteroid field classes (GEN.4.5, Boss 2026-09-30: "a digit and part
+# Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
 # V basaltic; Bus & Binzel 2002, Icarus 158:146; DeMeo et al. 2009, Icarus
@@ -2378,11 +2378,11 @@ rate on 2026-09-30)."""
 
 GMC_ARM_FILLING_FACTOR = 0.015
 """float: Share of spiral-arm volume inside a giant molecular cloud
-(0.01-0.02), for GEN.4.1's cloud placement."""
+(0.01-0.02), for GEN.10's cloud placement."""
 
 GMC_GAS_DENSITY_EXPONENT = 1.4
 """float: Molecular clouds scale with gas density to this power
-(Schmidt-Kennicutt), for GEN.4.1."""
+(Schmidt-Kennicutt), for GEN.10."""
 
 HVS_REFERENCE_RADIUS_PC = 8000.0
 """float: Galactic radius the "hypervelocity-star" density is quoted at."""

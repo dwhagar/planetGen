@@ -366,7 +366,7 @@ def _nav_for(pick):
 
 def galaxy_map_url(sector):
     """
-    "Show on Galaxy Map" for a sector (MAP.2.7): `/galaxy?sector=
+    "Show on Galaxy Map" for a sector (MAP.25): `/galaxy?sector=
     <designation>`, which opens the map's stage 8 holding that sector with
     it selected (design doc section 8.1). `None` for a sector with no
     galaxy address.

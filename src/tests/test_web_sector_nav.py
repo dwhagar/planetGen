@@ -783,7 +783,7 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
     assert "Traceback" not in html
 
 
-# --- NAV links and pick mode (MAP.2.3, design doc sections 9.1-9.2) ----------------
+# --- NAV links and pick mode (MAP.21, design doc sections 9.1-9.2) ----------------
 
 def test_sector_map_entries_carry_nav_links(app, client, fake):
     scene = _scene(client.get("/sector/5").get_data(as_text=True))
@@ -867,7 +867,7 @@ def test_bright_stars_fail_open(client, fake, monkeypatch):
     assert "brightStars" not in _scene(resp.get_data(as_text=True))["neighbors"][1]
 
 
-# --- Map picks on the NAV page (MAP.2.4) and "Show on Galaxy Map" (MAP.2.7) ---------------
+# --- Map picks on the NAV page (MAP.22) and "Show on Galaxy Map" (MAP.25) ---------------
 
 def _map_picks(html):
     match = re.search(r'<section class="panel" aria-labelledby="map-picks-heading">.*?</section>', html, re.S)

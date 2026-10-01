@@ -1,6 +1,6 @@
 # tests/test_login_backoff.py
 
-"""Per-username login backoff (`api/loginbackoff.py`, SEC.2.14.1): the counter itself with a fake clock, then the login route and the
+"""Per-username login backoff (`api/loginbackoff.py`, SEC.17): the counter itself with a fake clock, then the login route and the
 login page against a fake `adminAuth.authenticate` (no database)."""
 
 import pytest
