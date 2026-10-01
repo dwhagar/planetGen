@@ -497,22 +497,6 @@ for a mouse; spacing and type sized with `clamp()`.
     - A colony makes its world inhabited: OR
       `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
 
-### Web API (`src/html/api/routes.py`)
-
-Low priority; nobody is waiting on these.
-
-37. [ ] **The API can't create a system inside an existing sector.**
-    `POST /api/systems` only creates standalone systems (`sector_id =
-    NULL`, see `docs/api.md`). Attaching one to a sector needs the sector's
-    placement and Hill-sphere separation logic (`SpaceSector.add_system`),
-    which was left out of the write API to keep the admin-auth change
-    small.
-
-38. [ ] **The API can't edit a system's generated content.** `PATCH
-    /api/systems/<id>` only renames. Changing stars/planets/moons/belts
-    means `DELETE` then `POST` (regenerate). It may never need solving;
-    kept here in case it does.
-
 ### Star population (from the galaxy studies of 2026-09-30)
 
 The random star model (mass from the Kroupa IMF, an age, then evolution:

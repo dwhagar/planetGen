@@ -333,9 +333,11 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/sectors/<id>` — remove a sector.
 - `POST /api/sectors/<id>/wiki` — publish a sector-summary page to a
   wiki (see "Wiki publishing" below).
-- `POST /api/systems` — generate and create a standalone system.
+- `POST /api/systems` — generate and create a system, standalone or in
+  an existing sector.
 - `PATCH /api/systems/<id>` — rename a system (its stars, planets and
-  moons follow; see "Renaming" below).
+  moons follow; see "Renaming" below), and/or regenerate its contents
+  in place (see "Regenerating a system" below).
 - `PATCH /api/stars/<id>` — rename a star.
 - `PATCH /api/planets/<id>` — rename a planet.
 - `PATCH /api/moons/<id>` — rename a moon.
@@ -644,24 +646,48 @@ tri-state booleans `habitable_world`/`asteroid_belt`/`large_star`/`moons`/
 `max_planets`/`planets`/`intelligent_life`/`binary_system`/`wide_binary`
 (`true`, `false`, or `null`) — `wide_binary` selects an S-type (wide) vs.
 P-type (close) binary and is only meaningful together with
-`binary_system: true`. An unrecognized field (including `slots`, `sector_id`,
-or a fully-specified object graph shaped like `StarSystem.to_dict()`) is a
+`binary_system: true`. An unrecognized field (including `slots`, or a
+fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 `400` — not silently ignored.
 
-**Standalone only, for now.** The created system always has `sector_id =
-NULL` (same as `generate.py system`'s own output) — attaching a newly generated
-system to an existing sector needs that sector's own placement/Hill-sphere
-separation logic (`SpaceSector.add_system`), which this endpoint doesn't
-call. Tracked as follow-up work in `docs/TODO.md`.
+**Placing it in a sector.** Two more optional fields: `sector_id` (a
+sector's id) and `position` (`[x, y, z]` light-years from that sector's
+center; needs `sector_id`). Without `sector_id` the system is standalone
+(`sector_id = NULL`, like `generate.py system`). With it, the system is
+placed clear of every system already in the sector's Hill sphere
+(`SpaceSector.add_system`, via `_db.add_system_to_sector`), or exactly at
+`position`, which must lie inside the sector. A sector in the galaxy also
+gives the system its stellar population (and, once bright stars have been
+scattered, keeps it below the bright-star threshold), and its
+containment and nearest-systems rows are filled in like any generated
+sector's. The response then also carries `sector_id` and `position`. An
+unknown sector is a `404`, a position outside it a `400`, and a sector
+too full to place one more a `409`.
 
 A generation failure (an internally-inconsistent recipe, e.g. an
 impossible `num_orbits`/class combination) is reported as a `400`, not a
 `500` — the request body was the problem, not the server.
 
+### Regenerating a system
+
+`PATCH /api/systems/<id>` with `{"regenerate": recipe}` (the recipe
+fields above except `name`; `{}` rolls a fresh system with defaults)
+replaces the system's stars, planets, moons, asteroid belts and comets
+with a newly generated set. The system keeps its id, name, sector,
+position, location and wiki links, and the new bodies are named from the
+system's name. A system in a galaxy sector keeps that sector's stellar
+population. It is a `409` when the system was built around a pre-placed
+bright star (its star is fixed by the galaxy scatter), or when facilities
+are hosted on it, unless `"drop_facilities": true` is sent too (they are
+deleted with the bodies). `name` may be sent in the same request (it is
+applied first). Success returns `{"status": "ok", "id", "name",
+"regenerated"}`.
+
 ### Renaming
 
-`PATCH /api/systems/<id>`, `/api/stars/<id>`, `/api/planets/<id>` and
-`/api/moons/<id>` each accept only `{"name": str}`. Runs of whitespace
+`PATCH /api/stars/<id>`, `/api/planets/<id>` and `/api/moons/<id>` each
+accept only `{"name": str}` (`PATCH /api/systems/<id>` also takes
+`regenerate`, above). Runs of whitespace
 collapse to one space; a blank name, one over 255 characters, or any other
 field is a `400`, and an unknown id is a `404`. A name any other sector,
 system or star already has is a `409`
