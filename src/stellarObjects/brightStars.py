@@ -111,7 +111,8 @@ def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_
 def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
             skip_addresses=None, on_layer=None):
     """
-    Draws and places every bright star in the galaxy's outline.
+    Draws and places every bright star in the galaxy's outline, one
+    layer after another (`scatter_layer`).
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -130,40 +131,56 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    rng = random.Random(seed)
-    skip_addresses = skip_addresses or set()
-    fractions = {population: bright_star_fraction(min_luminosity_sol, population) for population in POPULATIONS}
     for done, (layer_index, outer_ring) in enumerate(extents, start=1):
-        placed = {population: [] for population in POPULATIONS}
-        for ring_index in range(outer_ring + 1):
-            slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
-            slots_per_bin = slots / len(bins)
-            for population in POPULATIONS:
-                weights = [densities[population] if densities else 0.0 for densities in bins]
-                mean = expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population]
-                if mean <= 0.0:
-                    continue
-                for _ in range(_sample_poisson_count(mean, rng=rng)):
-                    spot = _place_one(rng, weights, ring_index, layer_index, slots, shape,
-                                      expected_at_density_1, edge_pc)
-                    if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
-                        continue
-                    placed[population].append((ring_index, spot[0], spot[1]))
-        for population, spots in placed.items():
-            if not spots:
-                continue
-            stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng)
-            for (ring_index, slot, (x, y, z)), params in zip(spots, stars):
-                yield (
-                    ring_index, layer_index, slot,
-                    x, y, z,
-                    population, params["type"], params["yerkes_class"], params["mass_kg"],
-                    params["radius_km"], params["temperature_k"], params["luminosity_w"],
-                    params["age_gy"], params["lifespan_gy"], params["initial_mass_sol"],
-                    params["phase_end_age_gy"], rng.getrandbits(63),
-                )
+        yield from scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
+                                 min_luminosity_sol, seed, skip_addresses)
         if on_layer is not None:
             on_layer(done, len(extents))
+
+
+def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
+                  skip_addresses=None):
+    """
+    One layer of `scatter`: every bright star from ring 0 out to
+    `outer_ring` at `layer_index`. Each layer draws from its own random
+    stream (the scatter's seed and the layer index), so layers can be
+    drawn in any order, or side by side in worker processes (PERF.7),
+    and still give the same stars.
+
+    Yields:
+        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    rng = random.Random(f"{seed}:{layer_index}")
+    skip_addresses = skip_addresses or set()
+    fractions = {population: bright_star_fraction(min_luminosity_sol, population) for population in POPULATIONS}
+    placed = {population: [] for population in POPULATIONS}
+    for ring_index in range(outer_ring + 1):
+        slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
+        slots_per_bin = slots / len(bins)
+        for population in POPULATIONS:
+            weights = [densities[population] if densities else 0.0 for densities in bins]
+            mean = expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population]
+            if mean <= 0.0:
+                continue
+            for _ in range(_sample_poisson_count(mean, rng=rng)):
+                spot = _place_one(rng, weights, ring_index, layer_index, slots, shape,
+                                  expected_at_density_1, edge_pc)
+                if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
+                    continue
+                placed[population].append((ring_index, spot[0], spot[1]))
+    for population, spots in placed.items():
+        if not spots:
+            continue
+        stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng)
+        for (ring_index, slot, (x, y, z)), params in zip(spots, stars):
+            yield (
+                ring_index, layer_index, slot,
+                x, y, z,
+                population, params["type"], params["yerkes_class"], params["mass_kg"],
+                params["radius_km"], params["temperature_k"], params["luminosity_w"],
+                params["age_gy"], params["lifespan_gy"], params["initial_mass_sol"],
+                params["phase_end_age_gy"], rng.getrandbits(63),
+            )
 
 
 def star_params(row):

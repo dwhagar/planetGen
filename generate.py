@@ -77,8 +77,9 @@ from collections import Counter
 
 import pymysql
 from rich.progress import (
-    BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn, TimeRemainingColumn,
+    BarColumn, MofNCompleteColumn, Progress, ProgressColumn, TextColumn, TimeElapsedColumn,
 )
+from rich.text import Text
 
 # stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .` first.
@@ -86,7 +87,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 
 from stellarObjects import (
     _db, activitylog, brightStars, generationLimits, log, physical_constants, population, program_constants, progressFile,
-    workQueue,
+    progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -119,32 +120,81 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 
 class _ReportingProgress(Progress):
-    """`rich.progress.Progress` that also mirrors its most recently
-    changed task to `stellarObjects.progressFile` (a no-op unless the web
-    interface started this run)."""
-
-    def _report(self, task_id, force=False):
-        task = self._tasks.get(task_id)
-        if task is not None:
-            progressFile.report(task.completed, task.total, task.description, force=force)
+    """
+    `rich.progress.Progress` that keeps a `progressRate.DecayingRate` per
+    task (the rate behind `_DecayingRemainingColumn`'s ETA, PERF.7) and
+    mirrors its most recently changed task, with that rate and ETA, to
+    `stellarObjects.progressFile` (a no-op unless the web interface
+    started this run).
+    """
 
     def add_task(self, description, *args, **kwargs):
-        task_id = super().add_task(description, *args, **kwargs)
+        task_id = super().add_task(description, *args, rate=progressRate.DecayingRate(), **kwargs)
         self._report(task_id, force=True)
         return task_id
 
+    def _rate(self, task_id):
+        task = self._tasks.get(task_id)
+        return task.fields.get("rate") if task is not None else None
+
+    def _report(self, task_id, force=False):
+        task = self._tasks.get(task_id)
+        if task is None:
+            return
+        rate = task.fields.get("rate")
+        remaining = None if task.total is None else task.total - task.completed
+        progressFile.report(task.completed, task.total, task.description, force=force,
+                            rate=rate.rate if rate is not None else None,
+                            eta_s=rate.eta(remaining) if rate is not None else None)
+
     def update(self, task_id, **kwargs):
+        before = self._completed(task_id)
         super().update(task_id, **kwargs)
+        self._record(task_id, before)
         self._report(task_id, force=kwargs.get("total") is not None)
 
     def advance(self, task_id, advance=1):
+        before = self._completed(task_id)
         super().advance(task_id, advance)
+        self._record(task_id, before)
         self._report(task_id)
+
+    def _completed(self, task_id):
+        task = self._tasks.get(task_id)
+        return task.completed if task is not None else 0
+
+    def _record(self, task_id, before):
+        rate = self._rate(task_id)
+        if rate is not None:
+            rate.add(self._completed(task_id) - before)
 
     def stop(self):
         for task_id in list(self._tasks):
             self._report(task_id, force=True)
         super().stop()
+
+
+class _DecayingRemainingColumn(ProgressColumn):
+    """
+    Time left for a task at its decaying-average rate (PERF.7,
+    `progressRate.DecayingRate`), rather than rich's own estimate from
+    its last few updates, which jumps about when many workers finish
+    together. Blank until the first unit is done; 0:00:00 once finished.
+    """
+
+    max_refresh = 0.5
+
+    def render(self, task):
+        rate = task.fields.get("rate")
+        remaining = None if task.total is None else task.total - task.completed
+        seconds = rate.eta(remaining) if rate is not None else None
+        if task.finished:
+            seconds = 0
+        if seconds is None:
+            return Text("-:--:--", style="progress.remaining")
+        hours, rest = divmod(int(round(seconds)), 3600)
+        minutes, secs = divmod(rest, 60)
+        return Text(f"{hours}:{minutes:02d}:{secs:02d}", style="progress.remaining")
 
 
 def _generation_progress():
@@ -164,10 +214,12 @@ def _generation_progress():
     again within a single frame for nearly every sector was pure noise,
     not something worth reviving alongside this one.
 
-    Every task shows both elapsed time and an estimated time remaining
-    (`TimeElapsedColumn`/`TimeRemainingColumn`) -- the remaining estimate
-    only becomes accurate once a task has advanced enough for rich's own
-    rate estimate to settle, same as any ETA.
+    Every task shows both elapsed time and an estimated time remaining,
+    for as long as it runs (`TimeElapsedColumn`/`_DecayingRemainingColumn`)
+    -- the estimate comes from a decaying average of units finished per
+    second (`progressRate.DecayingRate`, a 60 s time constant), counted
+    in the bar's own unit (sectors, or layers of bright stars), so it
+    stays steady while several workers report at once.
 
     Callers use this as a context manager (`with _generation_progress() as
     progress:`); `rich.progress.Progress` is a `Live` display under the
@@ -204,7 +256,7 @@ def _generation_progress():
         TextColumn("[dim]elapsed"),
         TimeElapsedColumn(),
         TextColumn("[dim]remaining"),
-        TimeRemainingColumn(),
+        _DecayingRemainingColumn(),
     )
 
 
@@ -1939,6 +1991,14 @@ def _work_queue(args, title):
     )
 
 
+def _settle_total(progress, task_id):
+    """Ends a bar whose `--limit` stopped the run early at what was done,
+    so it shows finished rather than stuck part way."""
+    task = next((t for t in progress.tasks if t.id == task_id), None)
+    if task is not None and task.total is not None and task.completed < task.total:
+        progress.update(task_id, total=task.completed)
+
+
 def _fill_sector_task(payload):
     """
     One galaxy sector, start to finish -- a work queue task (PERF.8): runs
@@ -2056,6 +2116,7 @@ def run_ring_batch(args, edge_pc, progress):
             _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, outer_task)
             generated += 1
 
+    _settle_total(progress, outer_task)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in ring {ring_index} layer {layer_index} "
@@ -2426,6 +2487,7 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
             _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task)
             generated += 1
 
+    _settle_total(progress, task)
     skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
@@ -2656,6 +2718,10 @@ def add_plan_arguments(parser):
                               help="Re-scatter the bright stars on the stored plan without rebuilding it.")
     bright_group.add_argument('--force', action='store_true',
                               help="Scatter even when sectors are already filled, leaving those sectors out.")
+    bright_group.add_argument('--workers', type=int, default=None,
+                              help="How many layers of bright stars to draw at once, each in its own "
+                                   "low-priority worker process. Default: 80%% of this machine's cores "
+                                   "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
     _db.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -2671,6 +2737,8 @@ def validate_plan_args(args, parser):
     """
     if args.arm_amplitude < 0 or args.arm_amplitude >= 1:
         parser.error("--arm-amplitude must be in [0, 1).")
+    if args.workers is not None and args.workers < 0:
+        parser.error("--workers must be 0 (automatic) or more.")
     if args.max_ring < 1:
         parser.error("--max-ring must be a positive integer.")
     for option in ("disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc"):
@@ -2816,24 +2884,30 @@ def scatter_bright_stars(args):
 
         counts = {population: 0 for population in brightStars.POPULATIONS}
         t0 = time.perf_counter()
+        # Densest layers (nearest the plane) first, so no worker is left
+        # with a big one at the end while the others sit idle.
+        layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
         with _generation_progress() as progress:
             log.set_console(progress.console)
             try:
                 task = progress.add_task("Bright stars (layers)", total=len(extents))
-                batch = []
-                for row in brightStars.scatter(
-                    skeleton.shape, extents, skeleton.edge_pc, skeleton.expected_system_count_at_density_1,
-                    min_luminosity_sol, seed, skip_addresses=filled,
-                    on_layer=lambda done, _total: progress.update(task, completed=done),
-                ):
-                    counts[row[6]] += 1
-                    batch.append(row)
-                    if len(batch) >= 10000:
-                        _db.insert_bright_stars(conn, batch)
-                        conn.commit()
-                        batch = []
-                if batch:
-                    _db.insert_bright_stars(conn, batch)
+
+                def layer_done(layer_counts, _seconds, _weight):
+                    for population, count in layer_counts.items():
+                        counts[population] += count
+                    progress.update(task, advance=1)
+
+                with _work_queue(args, "Bright stars (layers)") as queue:
+                    for layer_index, outer_ring in layers:
+                        payload = {
+                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                            "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
+                            "expected": skeleton.expected_system_count_at_density_1,
+                            "min_luminosity_sol": min_luminosity_sol, "seed": seed,
+                            "skip": {address for address in filled if address[1] == layer_index},
+                        }
+                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
+                                     on_done=layer_done)
                 _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
                 conn.commit()
             finally:
@@ -2848,6 +2922,37 @@ def scatter_bright_stars(args):
     )
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _scatter_layer_task(payload):
+    """
+    One layer of the bright-star scatter -- a work queue task (PERF.7):
+    draws the layer (`brightStars.scatter_layer`, its own random stream)
+    and writes its stars, committing every 10,000.
+
+    Returns:
+        dict: Stars written per population.
+    """
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    conn = _db.get_connection(payload["mysql_config"])
+    try:
+        batch = []
+        for row in brightStars.scatter_layer(
+            payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
+            payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+        ):
+            counts[row[6]] += 1
+            batch.append(row)
+            if len(batch) >= 10000:
+                _db.insert_bright_stars(conn, batch)
+                conn.commit()
+                batch = []
+        if batch:
+            _db.insert_bright_stars(conn, batch)
+        conn.commit()
+    finally:
+        conn.close()
+    return counts
 
 
 def run_plan(args):

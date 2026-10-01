@@ -739,7 +739,7 @@ MAP.48 and MAP.37, all fixed.
       page, or `QUERY_TIMEOUT` from the API. Generation and admin writes
       have no limit.
 
-  - [ ] **PERF.7 Parallelize sector and system generation, with stable progress bars**
+  - [x] **PERF.7 Parallelize sector and system generation, with stable progress bars**
     Boss (2026-10-01): "add a TODO item to parallelize
     sector and system generation and update the progress bars so that
     they stay stable, I want to keep the ETA until done and elapsed time
@@ -770,8 +770,21 @@ MAP.48 and MAP.37, all fixed.
     `progress.json` for the web jobs reports the same decayed rate so
     the Generate page and UX.3's banner show the same ETA (default:
     yes).
+    Done (PR #225, PR #227): sector fill (PR #225) and the bright-star
+    scatter run through PERF.8's queue; the scatter is one task per
+    layer, densest layers first, each drawn from its own random stream
+    (the scatter's seed and the layer), so any number of workers places
+    the same stars (3 workers: 313 s down to 105 s at 20,000 L_sun on a
+    4-core machine). Every bar's ETA comes from
+    `progressRate.DecayingRate`, a time-weighted exponential average of
+    units finished per second, shown by `_DecayingRemainingColumn` until
+    the bar is done. Answers to the open questions: a 60 s time
+    constant; the rate is counted in the bar's own unit (sectors, or
+    layers), since a sector is one task; and `progress.json` carries the
+    same `rate` and `eta_s`, so the Generate page shows the same
+    "about N left".
 
-  - [ ] **PERF.8 A parallel background work queue in the API**
+  - [x] **PERF.8 A parallel background work queue in the API**
     Boss
     (2026-10-01): "I also want to do it in a specific way, ideally how it
     would work is we'd have a work queue... In fact new TODO item,
@@ -843,7 +856,7 @@ MAP.48 and MAP.37, all fixed.
     - Reset, the skeleton build and schema work keep `web/jobs.py`'s
       one-at-a-time lock.
 
-    Progress (PR #225): the queue and pool are built
+    Done (PR #225, PR #227): the queue and pool are built
     (`stellarObjects/workQueue.py`, control schema v5) and `generate.py
     sector` and every `galaxy` mode fill sectors through it. Two choices
     differ from the defaults above. The run that queues the work is the
@@ -854,9 +867,8 @@ MAP.48 and MAP.37, all fixed.
     sector is one task that builds its own systems: a system takes about
     8 ms to build, so sending each one to another process costs about
     as much as the work, and the sector's save (half its time) would
-    then run one sector at a time in the parent. Still to do (with
-    PERF.7): the bright-star scatter's tasks and the decaying-average
-    ETA.
+    then run one sector at a time in the parent. The bright-star
+    scatter's tasks and the ETA came with PERF.7.
 
   - [ ] **PERF.9 Weight the bright-star ETA by the shape of the galaxy**
     Boss
