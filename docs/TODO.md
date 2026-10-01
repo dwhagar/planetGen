@@ -388,27 +388,34 @@ MAP.30) shipped in PR #234.
 
 - [ ] **ADM.10 An admin page to view and manage the work queue**
   Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
-  manage the work queue". Today the parallel runs of PERF.8 (PR #225)
-  record themselves in the control database (`work_jobs`, `work_tasks`
-  and the one-row `work_lease`, control schema v5, written by
-  `stellarObjects/workQueue.py`), but nothing on the web shows them;
-  the Generate page's "Current job" section shows only the web job
-  runner's own job (`web/jobs.py`: a job directory with `state.json`,
-  the log, `runner.pid` and the `cancel` file). Done: an admin-only
-  page lists runs (newest first, paged like every list) with their
-  state, title, holder, workers, task counts queued, running, done and
-  failed, start, last heartbeat and elapsed time; a run opens to its
-  tasks (kind, key, weight, state, seconds, error) and the web job and
-  log that started it, if any; the lease shows who holds it and how
-  stale its heartbeat is. Manage actions, each confirmed and written to
-  the admin activity log: cancel a run (through the web job's `cancel`
-  file when a web job owns it, otherwise a cancel flag the run checks),
-  clear a stale lease whose holder is gone, retry failed tasks, and
-  delete finished runs. Open questions: pause and resume (a run would
-  stop taking tasks but keep its lease), or cancel and retry only? Does
-  the page also list CLI runs started by hand in a terminal, and may
-  the web cancel those? Should the page refresh itself while a run is
-  live, like the Generate page's progress?
+  manage the work queue", and (19:05Z): "For the job management page I
+  want it to tell me how many worker are currently active, load in the
+  standard x / x / x format. I want cancel / retry as well as pause /
+  resume depending on what I'm doing." Today the parallel runs of
+  PERF.8 (PR #225) record themselves in the control database
+  (`work_jobs`, `work_tasks` and the one-row `work_lease`, control
+  schema v5, written by `stellarObjects/workQueue.py`), but nothing on
+  the web shows them; the Generate page's "Current job" section shows
+  only the web job runner's own job (`web/jobs.py`: a job directory
+  with `state.json`, the log, `runner.pid` and the `cancel` file).
+  Built on ADM.12's job tree. Done: an admin-only page shows, at the
+  top, how many workers are active right now and the server's load
+  average as "x / x / x" (1, 5 and 15 minutes); below it the job trees
+  (newest first, paged like every list), each node with its state,
+  title, start, end, duration, progress, tasks queued, running, done
+  and failed, and ETA, expandable from the master job down to single
+  tasks, plus the web job and log that started it and who holds the
+  lease and how stale its heartbeat is. Controls, chosen for the
+  selected node (a whole job, a subtree, or one task) and each
+  confirmed and written to the admin activity log: cancel, retry
+  (failed or cancelled nodes), pause (stop handing out that subtree's
+  tasks, finish the ones running, keep the lease) and resume; plus
+  clearing a stale lease whose holder is gone and deleting finished
+  jobs. Open questions: does the page also show CLI runs started by
+  hand in a terminal, and may the web pause or cancel those? Does a
+  paused job keep the lease, so nothing else can start, or give it up?
+  On Windows, where there is no load average, what does the load line
+  show (CPU percent over the same windows)?
 
 - [ ] **ADM.11 Jobs keep running after the browser closes**
   Boss (2026-10-01 19:03Z): "we need to make sure that generate or
@@ -429,6 +436,31 @@ MAP.30) shipped in PR #234.
   is checked too. A test starts a job, drops the client, and sees it
   finish. Open question: should anything else that runs inside a
   request for more than a few seconds move to a job?
+
+- [ ] **ADM.12 Jobs as a tree, with timing for every node**
+  Boss (2026-10-01 19:05Z): "we'll have to add a job management system,
+  main job, subjobs, etc (main job, generate bright stars, subjobs the
+  individual layers, sub-subjobs, the individual segments of the ring,
+  etc) as a tree. Same for sectors and systems. Everything has a tree
+  from the master large task at the top and the smaller tasks at the
+  bottom, timing information stored for each, so we can get accurate
+  time measurements." Today PERF.8's `work_jobs` holds one row per run
+  and `work_tasks` a flat list of that run's tasks. Done: every job is
+  a tree, from the master job (for example a plan) through subjobs
+  (generate bright stars, fill sectors) and their subjobs (one per
+  layer) down to the smallest unit (a ring segment, a sector, a star
+  system); the same shape for sector and system generation. Every node
+  stores its state, start, end and duration, and its parent's totals
+  roll up from its children, so time measurements and ETAs (PERF.3,
+  PERF.7, PERF.9) come from measured times per kind of node. Likely an
+  extension of `work_jobs`/`work_tasks` (a parent id and per-node
+  timing columns, a control schema migration) rather than new tables.
+  Cancel, retry, pause and resume (ADM.10) work on any node and its
+  subtree. Open questions: how deep the tree goes for a single system
+  (stars, planets, moons as nodes, or the system as the leaf); how
+  long finished trees are kept (today `KEEP_DAYS`), and whether their
+  timings are summarized into speed records before they are pruned;
+  whether a web job (`web/jobs.py`) becomes the root node of its tree.
 
 ## SEC: Security
 
