@@ -44,13 +44,12 @@ const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
 const DRAG_CLICK_PX = 6;
-// A small cube of sectors (a level-3 block, 27 at most) is shown from a
-// fixed slant with its layers pulled apart, so each sector can be picked
-// on the map (Boss, 2026-10-01). Nothing rotates. The tilt from straight
-// down, and the gap between layers in sector heights.
+// A small cube of sectors (a level-3 block, 27 at most) opens from a
+// fixed slant, so each sector can be picked on the map (Boss,
+// 2026-10-01). Its layers touch, as blocks do everywhere else (no space
+// between blocks or layers, Boss, 2026-10-01). The tilt from straight down.
 const CUBE_MAX_SECTORS = 27;
 const CUBE_TILT = (55 * Math.PI) / 180;
-const CUBE_LAYER_GAP = 2;
 // Below the galaxy and its quarters the view can be turned, moved and
 // zoomed freely (Boss, 2026-10-01): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
@@ -224,19 +223,6 @@ export function createStageView(host) {
     return !!(r && r.kind === "layer" && isSectorView(r) && r.view.blocks.length <= CUBE_MAX_SECTORS);
   }
 
-  // How far a block is lifted in the cube (0 elsewhere): its layer's
-  // distance from the cube's middle layer, spread by CUBE_LAYER_GAP.
-  function liftOf(r, block) {
-    if (!isCube(r)) return 0;
-    let lo = Infinity;
-    let hi = -Infinity;
-    r.view.blocks.forEach(function (b) {
-      lo = Math.min(lo, b.slab);
-      hi = Math.max(hi, b.slab);
-    });
-    return (block.slab - (lo + hi) / 2) * CUBE_LAYER_GAP * edgePc;
-  }
-
   // Whether the view can be turned and moved: everywhere below the whole
   // galaxy and its quarters (no arc picked yet at the galaxy).
   function isFree(r) {
@@ -297,7 +283,6 @@ export function createStageView(host) {
         group.add(mesh);
         meshes.push(mesh);
       });
-      group.position.z = liftOf(r, option.blocks[0]);
       root.add(group);
       groups.push({ option: option, meshes: meshes, fade: 1 });
     });
@@ -363,10 +348,6 @@ export function createStageView(host) {
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
     if (isCube(r)) {
-      blocks.forEach(function (block) {
-        z0 = Math.min(z0, block.bounds.z0 + liftOf(r, block));
-        z1 = Math.max(z1, block.bounds.z1 + liftOf(r, block));
-      });
       return {
         target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
         dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),
@@ -655,7 +636,6 @@ export function createStageView(host) {
         span.t0 = b.t0;
         span.t1 = b.t1;
       }
-      span.z1 += liftOf(resolved, option.blocks[0]);
       outlineSpan(span);
     } else {
       clearOutline();
@@ -684,7 +664,7 @@ export function createStageView(host) {
   function tooltipAtOption(index) {
     const option = display.options[index];
     const fp = S.footprint(option.blocks);
-    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1 + liftOf(resolved, option.blocks[0])).project(camera);
+    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1).project(camera);
     const rect = canvasEl.getBoundingClientRect();
     showTooltip(optionText(index), rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
   }
