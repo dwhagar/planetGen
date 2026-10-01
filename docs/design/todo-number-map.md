@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.23 |
-| MAP | MAP.56 |
+| MAP | MAP.57 |
 | NAV | NAV.3 |
 | GEN | GEN.30 |
 | PERF | PERF.18 |
@@ -498,6 +498,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | open |
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
+| MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
