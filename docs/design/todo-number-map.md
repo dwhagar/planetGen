@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.24 |
-| MAP | MAP.77 |
+| MAP | MAP.79 |
 | NAV | NAV.29 |
 | GEN | GEN.34 |
 | PERF | PERF.18 |
@@ -530,6 +530,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.74 | The 3D view on the system page, the flat diagram kept | none | open |
 | MAP.75 | The mini map as a second engine view | none | open |
 | MAP.76 | Leader-line layout | none | open |
+| MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | open |
+| MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
