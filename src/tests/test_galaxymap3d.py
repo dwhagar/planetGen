@@ -94,7 +94,7 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'id="galaxymap3d-canvas"' in html
     # Seen from above only (MAP.17): Back, Forward, Up and Whole galaxy,
     # no zoom buttons and no free camera.
-    for action in ("back", "forward", "up", "reset"):
+    for action in ("back", "forward", "up", "reset", "reset-view"):
         assert f'data-action="{action}"' in html
     for gone in ("zoom-in", "zoom-out", "free-look", "slice"):
         assert f'data-action="{gone}"' not in html
