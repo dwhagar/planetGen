@@ -662,9 +662,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | SEC.2.14.1 | SEC.17 |
 | SEC.2.14.2 | SEC.18 |
 | SEC.2.14.3 | SEC.19 |
-| TEST.1 | Test category and suite markers | none | open |
+| TEST.1 | Test category and suite markers | none | done, PR #251 (db/slow/browser markers; test_todo_tags reads bump_version.TODO_CATEGORIES) |
 | TEST.2 | Parallel test runs | none | done, PRs #246 and #248 (pytest-xdist, per-worker control DB; the template schema was dropped, about 0.35 s per DB test) |
-| TEST.3 | MariaDB in CI | none | open |
+| TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
 | TEST.4 | Revive and widen the known-bug tests | none | open |
 | TEST.5 | Real 4 pc in boundary tests | none | open |
 | TEST.6 | SQL portability lint | none | open |
