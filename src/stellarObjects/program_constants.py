@@ -2579,3 +2579,45 @@ scatter used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
 filling reads that, not this, so retuning it can't make a fill
 double-count or skip stars. See
 /mnt/project-files/galaxy-studies/bright-star-preplacement-plan.md."""
+
+# --- Population and politics (schema v44, TODO 51-54) ---
+# See docs/design/population-and-politics.md.
+
+LIFE_WORLD_STAGES = ("multicellularity", "technological_civilization")
+"""tuple: The evolutionary milestones (`evolution.MILESTONE_KEYS`) that
+make a planet a life world with a named dominant species. Simpler
+biospheres keep their life chemistry but get no `species` row."""
+
+CIVILIZATION_MIN_AGE_YEARS = 100.0
+"""float: The youngest a technological civilization can be. Its age is a
+log-uniform draw between this and the time since its homeworld's
+`technological_civilization` milestone (`population.civilization_age`)."""
+
+CIVILIZATION_ERAS = (
+    ("Industrial", 0.0, False),
+    ("Interplanetary", 300.0, False),
+    ("Interstellar", 2_000.0, True),
+    ("Established", 50_000.0, True),
+    ("Ancient", 1_000_000.0, True),
+    ("Elder", 100_000_000.0, True),
+)
+"""tuple: `(era, starts at age in years, spacefaring)` in ascending order.
+A civilization is in the last era whose start its age has reached. Tuning
+these needs no migration: every population pass recomputes `species.era`
+and `species.spacefaring` from the stored age."""
+
+TERRITORY_BASE_REACH_LY = 5.0
+"""float: A polity's territory reach (light years) the moment its species
+goes interstellar. Reach grows with the square root of age from there:
+`TERRITORY_BASE_REACH_LY * sqrt(age / interstellar start)`."""
+
+TERRITORY_REACH_CAP_LY = 100.0
+"""float: The farthest any polity's territory reaches (light years),
+reached at about 800,000 years."""
+
+GOVERNMENT_FORMS = (
+    "Hegemony", "Concord", "Republic", "Union", "Directorate", "Dominion", "Assembly",
+    "Commonwealth", "Collective", "Compact", "Federation", "Sovereignty", "Ascendancy", "League",
+)
+"""tuple: The form of government a polity's name ends with ("the Voranthi
+Concord")."""

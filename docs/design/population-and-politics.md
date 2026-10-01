@@ -52,9 +52,10 @@ Only `technological_civilization` species have a civilization. The
 timeline says when the window for a civilization opened (the milestone's
 age on that pace); the civilization itself is younger than that window.
 Its age is a log-uniform draw between 100 years and the window
-(`star age - milestone age`), so most civilizations are young and a few
-are very old, and none is older than its star allows. A window shorter
-than 100 years makes the civilization exactly as old as the window.
+(`star age - milestone age`, both read back from the stored paragraph),
+so ages spread evenly across orders of magnitude and none is older than
+its star allows. A window shorter than 100 years (the stored ages are
+rounded to 10 million years, so this is rounding) gives 100 years.
 
 Age maps to an **era**, which is what the pages show and what drives
 everything else:
@@ -86,13 +87,14 @@ generated name (the species name plus a form of government, such as
 "Hegemony", "Concord", "Republic", "Union", "Directorate"), a capital (the
 homeworld system) and a map color.
 
-A polity's **reach** grows with the time since it went interstellar:
+A polity's **reach** grows with the square root of its age, like a
+diffusing frontier:
 
-    reach_ly = min(REACH_CAP_LY, 5 + 0.002 * (age_years - 2000))
+    reach_ly = min(TERRITORY_REACH_CAP_LY, 5 * sqrt(age_years / 2000))
 
 so a new interstellar civilization holds its neighbors within 5 ly, one
-50,000 years old about 100 ly, and anything older sits at the cap
-(`TERRITORY_REACH_CAP_LY`, default 100 ly).
+50,000 years old 25 ly, one 200,000 years old 50 ly, and anything older
+than about 800,000 years sits at the cap (default 100 ly).
 
 Every generated system within some polity's reach is **owned** by the
 polity with the strongest claim, `reach / distance` (a weighted Voronoi
@@ -110,8 +112,8 @@ so it works on the galaxy Boss is generating now with no regenerate:
 
 1. Scan planets not yet scanned (a watermark on `planets.id` kept in
    `population_state`), recover each one's milestone, and add `species`
-   rows for new life worlds; each draw is seeded from the planet id, so
-   re-running gives the same names, ages and eras.
+   rows for new life worlds. Traits and ages are drawn from a generator
+   seeded by the planet id; names come from the shared name generator.
 2. Recompute every species' era from its stored age (cheap; picks up any
    retuned thresholds) and create polities for newly spacefaring species.
 3. Recompute ownership from scratch: for each polity, the sectors its
@@ -120,9 +122,12 @@ so it works on the galaxy Boss is generating now with no regenerate:
 Flags: `--rescan` (drop the watermark and rebuild species from scratch,
 keeping nothing), `--territories-only` (skip steps 1-2).
 
-The fill and sector generators run step 3 for any polity whose reach
-touches the sectors they just wrote, so territories stay current as the
-galaxy fills in. Nothing in system generation itself changes.
+`generate.py galaxy` and `generate.py sector` run the whole pass after
+they save (`--no-population` skips it), so species and territories stay
+current as the galaxy fills in; that includes the admin Generate page's
+jobs, which run those commands. The API's "generate neighborhood" button
+does not; the next pass picks its systems up. Nothing in system
+generation itself changes.
 
 ## Storage (schema v44)
 
@@ -145,7 +150,10 @@ polity, and the polity to its ownership rows.
   planet card and "Territory of ..." on an owned system's page.
 - Galaxy Map: a territory overlay coloring owned systems by polity.
 - API: `GET /api/species`, `GET /api/species/<id>`,
-  `GET /api/polities`, `GET /api/polities/<id>` (systems included).
+  `GET /api/planets/<id>/species`, `GET /api/polities`,
+  `GET /api/polities/<id>` (systems included),
+  `GET /api/systems/<id>/owner`, `GET /api/territories` (documented in
+  `docs/api.md`).
 
 The API and the query helpers ship with v44; the pages and the overlay
 are requested from the Web and Galaxy Map threads.

@@ -492,6 +492,21 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Population and politics (v44).** Filled by `generate.py population`
+(and after every `sector`/`galaxy` run) from what is already stored; see
+docs/design/population-and-politics.md. `species` holds one dominant
+species per life world (a planet whose evolutionary milestone is
+multicellularity or a technological civilization): a galaxy-unique
+`name`, its homeworld (`homeworld_planet_id`, `star_system_id`, both
+cascading), `life_chemical`, `life_stage`, `build`/`climate`/`size`, and
+for a civilization its `civilization_age_years`, `era` and `spacefaring`.
+`polities` holds one government per spacefaring species (`species_id`
+and `capital_system_id` cascade) with its `government`, map `color` and
+territory `reach_ly`. `system_owners` maps each owned system to its
+polity and `distance_ly` from the capital, rebuilt from scratch by every
+pass. `population_state` keeps the highest planet id scanned.
+`_migrate_v43_to_v44` creates all four, empty.
+
 **Bright-star pre-placement (v43).** `bright_stars` holds every star at
 least `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
 placed galaxy-wide by `generate.py plan` before any sector is filled: its
