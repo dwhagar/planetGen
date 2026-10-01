@@ -144,3 +144,16 @@ def test_stabilize_reports_rather_than_removes_by_default():
 def test_system_methods_still_delegate():
     system = make_system("G2V")
     assert system._orbit_ceiling_au(system.star) == validation.orbit_ceiling_au(system.star)
+
+
+def test_stabilizing_an_untouched_system_moves_nothing():
+    # A body generation put exactly on its spacing limit must not be
+    # pushed out again by a float rounding error: an edit elsewhere in
+    # the system would otherwise move it (and a belt by a whole Hill
+    # sphere).
+    for _ in range(40):
+        system = make_system("G2V", PLANETS=True, ASTEROID_BELT=True)
+        if validation.check_star_system(system):
+            continue
+        report = validation.stabilize_star_system(system)
+        assert report.moved == [] and report.reclassified == []

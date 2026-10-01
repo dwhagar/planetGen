@@ -379,9 +379,9 @@ def space_orbits(planets, pinned=()):
 
         if planet.body_type == 'a':
             if last_planet.body_type == 'a':
-                if distance_to_last < program_constants.MIN_ASTEROID_BELT_SEPARATION:
+                if _below(distance_to_last, program_constants.MIN_ASTEROID_BELT_SEPARATION):
                     _shift_belt(planet, program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
-            elif distance_to_last < last_planet.min_orbit_distance:
+            elif _below(distance_to_last, last_planet.min_orbit_distance):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
         else:
             keep_class = id(planet) in pinned_ids
@@ -391,7 +391,7 @@ def space_orbits(planets, pinned=()):
                 # depends on.
                 for _ in range(3):
                     min_distance = min_distance_past_belt_au(planet, last_planet)
-                    if planet.distance >= min_distance:
+                    if not _below(planet.distance, min_distance):
                         break
                     planet.distance = min_distance
                     if not reconcile_moved_planet(planet, keep_class):
@@ -407,7 +407,7 @@ def space_orbits(planets, pinned=()):
                 # guard against a pathological cycle).
                 for _ in range(3):
                     min_distance = mutual_min_distance_au(planet, last_planet)
-                    if planet.distance >= min_distance:
+                    if not _below(planet.distance, min_distance):
                         break
                     planet.distance = min_distance
                     if not reconcile_moved_planet(planet, keep_class):
