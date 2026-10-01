@@ -1,7 +1,9 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
+{% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('sectormap.js') }}"></script>
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges">
@@ -23,6 +25,7 @@
   <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a></span>
   {%- endif %}
 </p>
+<p class="page-actions">{{ bookmark_button(bookmark) }}</p>
 {% endblock %}
 {% block content %}
 {%- if pick %}

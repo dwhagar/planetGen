@@ -256,8 +256,8 @@ def test_preview_shows_the_orbit_without_saving(app, client, fake):
     assert not [call for call in fake.calls if call[0] == "create"]
     panel = _panel(html)
     assert "Allowed by the placement rules." in panel
-    assert "42.12 km/s" in panel or "42.13 km/s" in panel
-    assert "3 months" in panel or "91 days" in panel
+    assert "42.1 km/s" in panel
+    assert "91.3 days" in panel or "91.2 days" in panel
     # The form keeps what was typed.
     assert 'value="Far Point"' in panel
     assert re.search(r'<option value="star:1"[^>]* selected>', panel)

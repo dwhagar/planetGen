@@ -32,6 +32,8 @@ from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 
+from tests.fuzz_support import deterministic_entropy
+
 TRIALS = 8
 
 STANDALONE_PHENOMENON_CLASSES = [Nebula, SupernovaRemnant, RoguePlanet, InterstellarComet, AsteroidField]
@@ -401,11 +403,13 @@ def test_star_system_anchored_by_black_hole_defaults_to_no_planets():
     # zero-luminosity remnant -- the real-world rarity of confirmed
     # planets around black holes falls out of the existing physics model
     # rather than needing a special case.
+    # Seeded so it always draws a disk-less black hole (about 1 in 10 has
+    # an accretion disk; this used to skip on those draws).
     cfg = make_config()
-    bh = BlackHole(cfg)
-    if bh.has_accretion_disk:
-        pytest.skip("this trial's black hole has a nonzero-luminosity accretion disk")
-    system = StarSystem(system_config=cfg, compact_remnant=bh)
+    with deterministic_entropy(0):
+        bh = BlackHole(cfg)
+        assert not bh.has_accretion_disk
+        system = StarSystem(system_config=cfg, compact_remnant=bh)
     assert system.planet_count == 0
     assert system.belt_count == 0
 

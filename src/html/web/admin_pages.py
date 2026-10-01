@@ -45,7 +45,7 @@ from flask import current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 import apiclient
-from fmt import format_number, utc_time_html
+from fmt import format_duration_seconds, format_number, utc_time_html
 import tilecache
 from pagination import fetch_page, page_slice, parse_page
 
@@ -499,17 +499,12 @@ def format_bytes(value):
 
 
 def format_duration(seconds):
+    """An uptime or wait on the shared period ladder
+    (`format_duration_seconds`, UX.14): "45 s", "12 minutes", "3.5 days";
+    "unknown" for `None`."""
     if seconds is None:
         return "unknown"
-    seconds = int(seconds)
-    days, seconds = divmod(seconds, 86400)
-    hours, seconds = divmod(seconds, 3600)
-    minutes = seconds // 60
-    if days:
-        return f"{days}d {hours}h"
-    if hours:
-        return f"{hours}h {minutes}m"
-    return f"{minutes}m"
+    return format_duration_seconds(seconds)
 
 
 def format_count(value):

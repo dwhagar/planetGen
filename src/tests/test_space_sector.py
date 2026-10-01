@@ -653,20 +653,20 @@ def test_grow_from_seed_calls_factory_at_least_once_when_growing():
     assert call_count > 0
 
 
-def test_space_sector_module_does_not_import_system_gen():
+def test_space_sector_module_does_not_import_the_generate_script():
     """
     Architectural regression guard: stellarObjects/spaceSector.py must not
-    depend on systemGen.py -- root scripts depend on the stellarObjects
-    package, never the reverse. (The module docstring's prose references
-    `systemGen.main` in passing, so this checks for an actual import
-    statement rather than any mention of the name.)
+    depend on the root `generate.py` script (once `systemGen.py`) -- root
+    scripts depend on the stellarObjects package, never the reverse. Checks
+    for an actual import statement, not a mention of the name in prose.
     """
+    root_scripts = {"generate", "systemGen", "sectorGen"}
     tree = ast.parse(inspect.getsource(spaceSector_module))
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
-            assert not any(alias.name.split(".")[0] == "systemGen" for alias in node.names)
+            assert not any(alias.name.split(".")[0] in root_scripts for alias in node.names)
         elif isinstance(node, ast.ImportFrom):
-            assert node.module is None or node.module.split(".")[0] != "systemGen"
+            assert node.module is None or node.module.split(".")[0] not in root_scripts
 
 
 # ---------------------------------------------------------------------------
