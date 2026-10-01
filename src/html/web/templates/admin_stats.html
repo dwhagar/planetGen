@@ -71,6 +71,31 @@
   </table></div>
   {%- endif %}
 </section>
+<section class="panel" id="generation-speed" aria-labelledby="generation-heading">
+  <h2 id="generation-heading">Generation speed</h2>
+  <p class="hint">How long this server takes to fill a sector, by star density
+  (1 is the Sun's neighborhood), as a running average that favors recent runs.
+  Bulk generation uses these for its size and time estimate.</p>
+  {%- if generation.error %}
+  <p class="error">{{ generation.error }}</p>
+  {%- elif not generation.available %}
+  <p class="hint">Not recorded yet: run <code>update.sh</code> to add the tables.</p>
+  {%- else %}
+  {%- if generation.size %}<p>This galaxy: {{ generation.size }}.</p>{% endif %}
+  {%- if not generation.rows %}
+  <p class="hint">Nothing measured yet; the first bulk run records it.</p>
+  {%- else %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Task</th><th scope="col">Density</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Per sector</th><th scope="col" class="num">Per system</th><th scope="col" class="num">Systems per sector</th></tr></thead>
+    <tbody>
+      {%- for row in generation.rows %}
+      <tr><td>{{ row.what }}</td><td>{{ row.density }}</td><td class="num">{{ row.samples }}</td><td class="num">{{ row.per_task }}</td><td class="num">{{ row.per_system }}</td><td class="num">{{ row.systems }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+  {%- endif %}
+</section>
 {%- if database.reachable %}
 <section class="panel" aria-labelledby="database-heading">
   <h2 id="database-heading">Database <code>{{ database.name }}</code></h2>

@@ -213,6 +213,18 @@ def test_generate_neighborhood_invalid_radius_is_400(seeded_sector, admin_client
         assert response.status_code == 400, f"radius_ly={bad_radius!r} should be rejected"
 
 
+def test_generate_neighborhood_invalid_estimate_only_is_400(seeded_sector, admin_client):
+    _config, sector_id, _system_ids = seeded_sector
+    for bad in ["yes", 1, None]:
+        response = admin_client.post(f"/api/sectors/{sector_id}/generate-neighborhood", json={"estimate_only": bad})
+        assert response.status_code == 400, f"estimate_only={bad!r} should be rejected"
+
+
+def test_generation_stats_answers_for_an_admin(admin_client):
+    body = admin_client.get("/api/admin/generation-stats").get_json()
+    assert set(body) == {"buckets", "sizes", "available"}
+
+
 # --- Auth-boundary sweep across every write/admin route ----------------------
 
 _WRITE_ROUTES = [

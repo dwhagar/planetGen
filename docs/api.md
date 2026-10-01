@@ -418,7 +418,11 @@ connectivity to that specific schema rather than the default one.
   not-yet-generated sector within `radius_ly` (optional JSON body field,
   default 100 ly, at most the generator's own radius cap) of this
   galaxy-placed sector, synchronously. Returns counts: `generated`,
-  `already_existed`, `skipped`, `candidates` and `outside_galaxy`. `404`
+  `already_existed`, `skipped`, `candidates` and `outside_galaxy`, plus
+  the size and time `estimate` (see [`cli.md`](cli.md#size-and-time-estimates)).
+  `"estimate_only": true` returns the counts and `estimate` without
+  generating anything; a run the database disk can't hold is refused
+  with `507` and nothing written. `404`
   for an unknown or unplaced sector, `409`
   when the galaxy has never been planned (`generate.py plan`). The default
   radius covers thousands of candidate slots, so this can run for a long
@@ -472,6 +476,13 @@ forced credential change. They back the admin stats page
   the rows live in the control schema's `admin_audit_log`, kept 90 days.
   Each one is also an `AUTH` line in the activity log
   ([`config.md`](config.md#the-activity-log)).
+- `GET /api/admin/generation-stats` — this server's measured generation
+  speed and each galaxy's size: `{"buckets": [{"kind", "bucket",
+  "density_low", "density_high", "samples", "seconds_per_task",
+  "seconds_per_system", "systems_per_task", "stars_per_system",
+  "max_density"}], "sizes": {database: {"bytes_per_system", "systems",
+  "total_bytes"}}, "available"}` (`available` is false until `update.sh`
+  has added control schema v6). Shown on the Stats page.
 - `GET /api/admin/lockouts` — every address and username locked right
   now: `{"items": [{"scope", "subject", "retry_after", "locked_until",
   "level"}], "proxy_warning"}`. `proxy_warning` is true when the site

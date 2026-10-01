@@ -217,6 +217,50 @@ other. A run stopped with Ctrl-C, or Cancel on the Generate page, lets
 the sectors already being saved finish and queues nothing more; a run
 that was killed outright frees the lease after 30 seconds.
 
+### Size and time estimates
+
+Before a bulk run writes anything (`generate.py galaxy` in every mode,
+`generate.py sector --num-sectors`), it works out how big and how long
+it will be and prints it:
+
+```
+Estimate for ring 12 layer 0: About 1.6 GB and 10 m 59 s for 4,289 sectors (~23,926 star
+systems, ~31,198 stars, 2 workers). 30 GB free of 271 GB.
+```
+
+- **Systems** come from each sector's expected density (the galaxy's
+  skeleton, or `--density`/`--num-systems`).
+- **Size** is those systems times this galaxy's own bytes per system,
+  measured from its tables after every run (about 62 KB on a test
+  galaxy, over half of it moons), plus 10%.
+- **Time** adds up each sector's expected systems times this server's
+  measured seconds per system at that density, divided by the workers.
+  The speed is kept per density bucket (two per decade from 0.01) as a
+  decaying average of every sector ever filled, in the control
+  database (`generation_stats`), so dense sectors aren't priced like
+  sparse ones. Until a bucket has been measured the nearest measured
+  one is used, and before anything has been measured a default of
+  0.2 s per system (the estimate says so).
+
+On a terminal, a run of more than one sector then asks `Generate these
+N sectors? [y/N]` (`--yes` skips the question). Off a terminal (the
+Generate page's jobs, scripts and cron) it prints the estimate and
+carries on; the Generate page shows the estimate and asks first.
+
+A run is **refused**, with nothing written, when it would take more than
+a quarter of the database disk or leave less than 5 GB free; the
+message says how much it needs. The disk is the one holding MySQL's
+data directory (`@@datadir`), checked only when MySQL runs on this
+machine: a database on another server can't be measured from here, so
+nothing is refused for space then. `--yes` never overrides a refusal;
+generate fewer sectors (`--limit`, a smaller radius) instead.
+
+`--estimate-only` prints the estimate (and any refusal) and stops
+without writing anything, ending with one `ESTIMATE {json}` line. In
+random-start mode it is the estimate for one random start, so the real
+run's start (drawn again) differs.
+
+
 Most of the galaxy is never actually visited or generated; `generate.py plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
 row plus one row per layer, from the top of the galaxy to the bottom, naming
@@ -247,6 +291,23 @@ old). `--bright-star-min-luminosity` changes the threshold (100 or more),
 on the stored outline. The scatter refuses a galaxy whose sectors are
 already filled (they would never get their bright stars) unless `--force`
 is given, which leaves those sectors out.
+
+The scatter can go down in stages. `--bright-stars-down-to N` keeps every
+bright star already placed and adds only those from `N` up to (not
+including) the galaxy's star-fill level, the threshold already scattered
+(500 by default), then lowers that level to `N`. So a quick test galaxy
+scattered at 500 can later go down to 100 without redrawing anything
+brighter:
+
+```bash
+generate.py plan --bright-stars-down-to 100
+```
+
+Sectors already filled get none of the new stars: their own systems were
+drawn below the old level, so they already hold stars that bright. Asking
+for a level at or above the current one does nothing and says so. The
+Generate page shows the current level and offers the same step as "Add a
+dimmer layer of bright stars".
 
 ## Exotic Phenomena Generation
 

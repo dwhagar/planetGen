@@ -19,7 +19,7 @@ import pymysql
 from flask import Blueprint, current_app, jsonify, request
 
 import adminStats
-from stellarObjects import _db, adminAuth, loginThrottle
+from stellarObjects import _db, adminAuth, generationStats, loginThrottle
 from stellarObjects._version import __version__
 
 from .authz import audit, require_admin
@@ -169,6 +169,28 @@ def _proxy_warning(locked, failures):
     top = max(set(addresses), key=addresses.count)
     shared = loginThrottle.is_private_address(top) or top in ("127.0.0.1", "::1")
     return shared and addresses.count(top) >= 0.9 * len(addresses)
+
+
+@bp.route("/generation-stats")
+@require_admin(fresh=True)
+def generation_stats():
+    """
+    `GET /api/admin/generation-stats` -- how fast this server generates
+    and how big a galaxy gets (PERF.10, `stellarObjects/generationStats.py`):
+    `{"buckets": [{"kind", "bucket", "density_low", "density_high",
+    "samples", "seconds_per_task", "seconds_per_system",
+    "systems_per_task", "stars_per_system", "max_density"}], "sizes":
+    {database: {"bytes_per_system", "systems", "total_bytes"}},
+    "available": bool}`. `available` is false (and both empty) when the
+    control schema is older than v6.
+    """
+    stats = generationStats.GenerationStats()
+    try:
+        stats.read(get_control_db())
+        available = True
+    except Exception:  # noqa: BLE001 -- update.sh not run yet
+        available = False
+    return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available})
 
 
 @bp.route("/lockouts")

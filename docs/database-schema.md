@@ -681,10 +681,11 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Eleven tables, versioned independently via `control_schema_migrations`
-(currently version 5, mirroring `schema_migrations`'s own shape; v2 added
+Thirteen tables, versioned independently via `control_schema_migrations`
+(currently version 6, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
-`admin_recovery_codes`, v5 the work queue's three tables, and every control-schema change so far is a new table,
+`admin_recovery_codes`, v5 the work queue's three tables, v6
+`generation_stats` and `generation_size`, and every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
 `migrateDb.py` run):
 
@@ -739,9 +740,24 @@ which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
   the machine, refreshed every 5 s. A lease or job not refreshed for
   30 s belongs to a run that died: the next run takes the lease and
   marks that run's unfinished tasks cancelled. Jobs older than a week
-  are deleted with their tasks. These are the only control tables the
-  generator writes; it reaches them with its own MySQL account and runs
-  without them when it can't.
+  are deleted with their tasks.
+- **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
+  how fast this server generates and how big a galaxy gets
+  (`stellarObjects/generationStats.py`, see
+  [`cli.md`](cli.md#size-and-time-estimates)). `generation_stats` has
+  one row per `kind` (`sector` fill, or a `scatter` layer of bright
+  stars) and density `bucket` (`floor(2 * log10(density / 0.01))`: two
+  per decade from 0.01, with no top edge, `density_low`/`density_high`
+  its edges), each column a decaying average over every task that ever
+  finished in it (each new task weighs 5%): `seconds_per_task` (a
+  worker's wall time), `seconds_per_system`, `systems_per_task`,
+  `stars_per_system`, plus `samples` and the densest task seen
+  (`max_density`). `generation_size` has one row per galaxy database:
+  `bytes_per_system` (its tables' data and index bytes over its star
+  systems, measured after each run), `systems`, `total_bytes`. A galaxy
+  reset keeps both. These and the work queue's tables are the only
+  control tables the generator writes; it reaches them with its own
+  MySQL account and runs without them when it can't.
 
 `stellarObjects/adminAuth.py` is the only code that reads/writes the
 admin tables directly — `bootstrap_control_schema` creates the schema and,
