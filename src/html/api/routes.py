@@ -1214,8 +1214,8 @@ def _validate_system_config_body(body):
     for field in ("star_type", "name"):
         if field in body and body[field] is not None and not isinstance(body[field], str):
             raise ApiError(f"'{field}' must be a string or null")
-    if isinstance(body.get("name"), str) and len(body["name"]) > MAX_NAME_LENGTH:
-        raise ApiError(f"'name' must be at most {MAX_NAME_LENGTH} characters")
+    if isinstance(body.get("name"), str) and len(body["name"]) > _db.SYSTEM_NAME_MAX_LENGTH:
+        raise ApiError(f"'name' must be at most {_db.SYSTEM_NAME_MAX_LENGTH} characters")
     if "age" in body and body["age"] not in (None, "young", "old"):
         raise ApiError("'age' must be 'young', 'old', or null")
     if "num_orbits" in body:
@@ -1335,10 +1335,10 @@ _NAME_CLASH_LABELS = {
 }
 
 
-def _rename_body():
+def _rename_body(max_length=NAME_MAX_LENGTH):
     """
     Validates a rename request's body -- exactly `{"name": str}`, not
-    blank once trimmed, at most `NAME_MAX_LENGTH` characters -- and
+    blank once trimmed, at most `max_length` characters -- and
     returns the trimmed name.
 
     Raises:
@@ -1348,16 +1348,18 @@ def _rename_body():
     unknown = set(body) - {"name"}
     if unknown:
         raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-    return _check_name(body.get("name"))
+    return _check_name(body.get("name"), max_length)
 
 
-def _check_name(name):
-    """A new name, trimmed and checked as `_rename_body` describes."""
+def _check_name(name, max_length=NAME_MAX_LENGTH):
+    """A new name, trimmed and checked as `_rename_body` describes. A
+    system or star passes `_db.SYSTEM_NAME_MAX_LENGTH`: its planets and
+    moons are named after it, so it needs room to grow."""
     if not isinstance(name, str) or not name.strip():
         raise ApiError("'name' must be a non-empty string")
     name = " ".join(name.split())
-    if len(name) > NAME_MAX_LENGTH:
-        raise ApiError(f"'name' must be at most {NAME_MAX_LENGTH} characters")
+    if len(name) > max_length:
+        raise ApiError(f"'name' must be at most {max_length} characters")
     return name
 
 
@@ -1412,7 +1414,7 @@ def update_system(system_id):
         raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
     if "name" not in body and "regenerate" not in body:
         raise ApiError("send 'name', 'regenerate', or both")
-    name = _check_name(body["name"]) if "name" in body else None
+    name = _check_name(body["name"], _db.SYSTEM_NAME_MAX_LENGTH) if "name" in body else None
     recipe = body.get("regenerate")
     drop_facilities = body.get("drop_facilities", False)
     if not isinstance(drop_facilities, bool):
@@ -1466,7 +1468,7 @@ def rename_star(star_id):
     binary's star is renamed on its own, with the planets and moons named
     after it (`_db.rename_star`). 409 if a sector, system or star already has the
     name."""
-    name = _rename_body()
+    name = _rename_body(_db.SYSTEM_NAME_MAX_LENGTH)
 
     conn = _write_conn()
     try:

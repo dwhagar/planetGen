@@ -1342,15 +1342,16 @@ def insert_system_config(conn, config: SystemConfig) -> int:
     cur = conn.execute(
         """
         INSERT INTO system_configs (
-            markdown, habitable_world, asteroid_belt, large_star, moons,
+            markdown, habitable_world, asteroid_belt, comets, large_star, moons,
             max_planets, planets, star_type, name, age, intelligent_life,
-            binary_system, num_orbits
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            binary_system, wide_binary, num_orbits
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             int(bool(config.MARKDOWN)),
             _tristate(config.HABITABLE_WORLD),
             _tristate(config.ASTEROID_BELT),
+            _tristate(config.COMETS),
             _tristate(config.LARGE_STAR),
             _tristate(config.MOONS),
             _tristate(config.MAX_PLANETS),
@@ -1360,6 +1361,7 @@ def insert_system_config(conn, config: SystemConfig) -> int:
             config.AGE,
             _tristate(config.INTELLIGENT_LIFE),
             _tristate(config.BINARY_SYSTEM),
+            _tristate(config.WIDE_BINARY),
             config.NUM_ORBITS,
         ),
     )
@@ -1414,6 +1416,23 @@ def _rename_comets(conn, where, params, old_host, new_host):
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
             conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
+
+
+SYSTEM_NAME_MAX_LENGTH = 200
+"""int: The longest name a star system or star may be given (TEST.12).
+Every name column is VARCHAR(255), but these names grow after they're
+chosen -- a collision prefixes them ("Omicron ", "Malutki "), and planets,
+moons and comets are named after them (`<name> XII ab`) -- so a 255-character
+system name failed to save, or to rename, with MySQL error 1406."""
+
+
+def check_system_name_length(name):
+    """Raises ValueError when `name` is longer than `SYSTEM_NAME_MAX_LENGTH`.
+    Checked where a name is chosen (`insert_star_system`, the API, the
+    CLI), not in the renames, which also add collision prefixes."""
+    if name is not None and len(name) > SYSTEM_NAME_MAX_LENGTH:
+        raise ValueError(f"a star system or star name may be at most {SYSTEM_NAME_MAX_LENGTH} characters "
+                         f"(this one has {len(name)})")
 
 
 def rename_star_system(conn, star_system_id, new_name):
@@ -3169,6 +3188,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # Name-uniqueness (v24, nameUniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
     # object matches what's stored.
+    check_system_name_length(star_system.name)
     name_base, diminutive_index = _take_name(conn, star_system)
     star_system.assign_names(star_system.name)
     _designate_comets(star_system)
@@ -5298,6 +5318,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "markdown": bool(row["markdown"]),
         "habitable_world": _tristate_from_db(row["habitable_world"]),
         "asteroid_belt": _tristate_from_db(row["asteroid_belt"]),
+        "comets": _tristate_from_db(row["comets"]),
         "large_star": _tristate_from_db(row["large_star"]),
         "moons": _tristate_from_db(row["moons"]),
         "max_planets": _tristate_from_db(row["max_planets"]),
@@ -5307,6 +5328,7 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "age": row["age"],
         "intelligent_life": _tristate_from_db(row["intelligent_life"]),
         "binary_system": _tristate_from_db(row["binary_system"]),
+        "wide_binary": _tristate_from_db(row["wide_binary"]),
         "num_orbits": row["num_orbits"],
         "slots": slots,
     })
@@ -8125,7 +8147,9 @@ def _migrate_v49_to_v50(conn):
     the two `_V50_SET_NULL_FOREIGN_KEYS` as `ON DELETE SET NULL`, so
     deleting a sector keeps its nebulae and asteroid fields (unplaced)
     there too. Checks each first; a database that never had them is
-    untouched.
+    untouched. Also adds `system_configs.comets` and `.wide_binary`, so a
+    stored recipe keeps `--comets`/`--wide-binary` (TEST.12 found both
+    dropped on save: regenerating from the stored config lost them).
 
     Args:
         conn (Connection): An open connection, mid-migration.
@@ -8149,6 +8173,9 @@ def _migrate_v49_to_v50(conn):
             conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY {constraint}")
             conn.execute(f"ALTER TABLE {table} ADD CONSTRAINT {constraint} "
                          "FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL")
+    conn.execute("ALTER TABLE system_configs"
+                 " ADD COLUMN comets TINYINT(1) CHECK (comets IN (0, 1)) AFTER asteroid_belt,"
+                 " ADD COLUMN wide_binary TINYINT(1) CHECK (wide_binary IN (0, 1)) AFTER binary_system")
     conn.execute("INSERT INTO schema_migrations (version) VALUES (50)")
 
 

@@ -366,6 +366,15 @@ def _validate_star_type(args, parser):
                      f"III, IV, V, VI, VII or D), e.g. G2V.")
 
 
+def _validate_name(args, parser):
+    """--name must fit the database (with room for the planets and moons
+    named after it), checked here rather than failing at the save."""
+    name = getattr(args, "name", None)
+    if name is not None and len(name) > _db.SYSTEM_NAME_MAX_LENGTH:
+        parser.error(f"--name is {len(name)} characters; a system name can be at most "
+                     f"{_db.SYSTEM_NAME_MAX_LENGTH}.")
+
+
 def add_logging_arguments(parser):
     """
     Adds the logging options every subcommand shares to `parser`:
@@ -493,6 +502,7 @@ def validate_system_args(args, parser):
         parser.error("--star-type cannot be combined with +large_star.")
 
     _validate_star_type(args, parser)
+    _validate_name(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
@@ -876,6 +886,7 @@ def validate_shared_generation_args(args, parser):
         parser.error("--star-type cannot be combined with +large_star.")
 
     _validate_star_type(args, parser)
+    _validate_name(args, parser)
 
     if args.intelligent_life is not None and args.habitable_world is False:
         parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")

@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v48_to_v49`. `migrate_database`
+version, through `_migrate_v49_to_v50`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v49), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v50), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -608,6 +608,16 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
 truncates it with `bright_stars`. `_migrate_v48_to_v49` creates it empty.
+
+**Matching a new database (v50).** `_migrate_v49_to_v50` adds
+`system_configs.comets` and `.wide_binary`, and brings a database
+migrated from an old version to exactly the shape `schema.sql` gives a
+new one: it drops the placeholder DEFAULTs older steps left on NOT NULL
+columns and makes `nebulae`/`asteroid_fields`' `sector_id` keys ON
+DELETE SET NULL. Every migration step can be re-run after a crash
+(`_MigrationConnection` skips the clauses already applied).
+`tests/test_db_old_schemas.py` migrates every released schema and
+compares it with a new database.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,
@@ -993,6 +1003,7 @@ One row per `SystemConfig` "recipe" — the generation parameters a
 | `markdown` | INTEGER (0/1) | NOT NULL, default 0 | Whether this recipe renders Markdown (1) or wikitext (0). Not tri-state — always a concrete choice. |
 | `habitable_world` | INTEGER (0/1) | tri-state | Force/forbid/random a habitable world. |
 | `asteroid_belt` | INTEGER (0/1) | tri-state | Force/forbid/random an asteroid belt. |
+| `comets` | INTEGER (0/1) | tri-state | Force/forbid/random a star-bound comet (v50). |
 | `large_star` | INTEGER (0/1) | tri-state | Force/forbid/random a larger star. |
 | `moons` | INTEGER (0/1) | tri-state | Force/forbid/random moon generation. |
 | `max_planets` | INTEGER (0/1) | tri-state | Force max vs. min planet count. |
@@ -1002,6 +1013,7 @@ One row per `SystemConfig` "recipe" — the generation parameters a
 | `age` | TEXT | nullable, CHECK IN ('young','old') | |
 | `intelligent_life` | INTEGER (0/1) | tri-state | |
 | `binary_system` | INTEGER (0/1) | tri-state | |
+| `wide_binary` | INTEGER (0/1) | tri-state | Force a wide (S-type) or close binary (v50). |
 | `num_orbits` | INTEGER | nullable | Explicit orbital slot count override. |
 
 ### `system_config_slots`
