@@ -29,6 +29,10 @@
 </div>
 {% endblock %}
 {% block content %}
+{#- A 3D view sits beside the data panel when there's room (UX.15). -#}
+{%- if view_kind == "render" %}
+<div class="object-view"><div class="object-view-row">
+{%- endif %}
 {%- if map_html %}{{ map_html }}{% endif %}
 <section class="panel" aria-labelledby="phenomenon-data-heading">
   <h2 id="phenomenon-data-heading">{{ type_label }} Data</h2>
@@ -40,4 +44,7 @@
     </tbody>
   </table></div>
 </section>
+{%- if view_kind == "render" %}
+</div></div>
+{%- endif %}
 {% endblock %}

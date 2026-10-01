@@ -18,6 +18,17 @@
   --radius: 10px;
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "Consolas", "SFMono-Regular", monospace;
+  /* The space between neighboring buttons (UX.16; the rule that uses it
+     is under .btn-small). */
+  --btn-gap: 0.5rem;
+}
+
+/* Touch screens: more room between buttons, so 44-48 px targets never
+   sit edge to edge. */
+@media (pointer: coarse) {
+  :root {
+    --btn-gap: 0.75rem;
+  }
 }
 
 /* Dark tokens, twice: once following the OS (unless the visitor picked
@@ -919,6 +930,30 @@ a:focus-visible .galaxymap-star-core {
   display: none;
 }
 
+/* UX.15: a phenomenon's 3D view with its data panel beside it when the
+   page has room for both (web/templates/phenomenon.html), else stacked.
+   The render column shrinks to fit (its 4:3 box keeps its shape, so
+   nothing moves while it loads); the data column keeps at least 24rem,
+   so its values don't wrap word by word. */
+.object-view {
+  container: object-view / inline-size;
+}
+
+@container object-view (min-width: 50rem) {
+  .object-view-row {
+    display: grid;
+    grid-template-columns: minmax(24rem, 39rem) minmax(24rem, 1fr);
+    align-items: start;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .object-view-row > .panel {
+    margin-bottom: 0;
+    min-width: 0;
+  }
+}
+
 .phenomrender-caption {
   margin-top: 0.5rem;
   max-width: 36rem;
@@ -1324,6 +1359,25 @@ a.btn.btn-active:visited {
   font-size: 0.85rem;
 }
 
+/* UX.16: one rule for the space between buttons, on every page. Any box
+   whose children include two or more buttons (`.btn`, `.btn-small`,
+   `.starmap-btn`, a plain `<button>`, or forms that each hold one) gets
+   `--btn-gap` across and between wrapped lines, and wraps rather than
+   squeezing. It outranks a group's own `gap`, so every button group
+   matches; the lists below hold their buttons one per item. Menus (the
+   gear and crumb drop-downs) and the Galaxy Map's slab rows are lists
+   of entries, not button groups, and keep their own spacing. Nothing
+   needs this rule on purpose: a new button group gets it for free. */
+:is(div, p, span, form, nav, aside, section, footer, li, td, dd):has(
+    > :is(button, .btn, .starmap-btn) ~ :is(button, .btn, .starmap-btn),
+    > :is(button, .btn, .starmap-btn) ~ form > :is(button, .btn),
+    > form ~ :is(button, .btn, .starmap-btn),
+    > form ~ form > :is(button, .btn)),
+.galaxy-address-matches ul {
+  flex-wrap: wrap;
+  gap: var(--btn-gap);
+}
+
 .page-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1418,6 +1472,27 @@ code {
      the nearest stacking context's background -- here, the viewport's
      own opaque `--bg-subtle` fill -- and every orbit line disappears. */
   isolation: isolate;
+}
+
+/* UX.15: the info panel sits beside the map when the panel has room for
+   both a usable map (about 26rem) and a readable text column (18-26rem,
+   roughly 45-65 characters); otherwise it stays below. A container query
+   on the layout, not the window, decides; the viewport keeps its square
+   aspect ratio either way, so nothing moves while the render loads. */
+.sysmap-layout {
+  container: sysmap-layout / inline-size;
+}
+
+@container sysmap-layout (min-width: 46rem) {
+  .sysmap-layout > .sysmap-viewport {
+    flex: 1 1 0;
+    width: auto;
+    min-width: 0;
+  }
+
+  .sysmap-layout > .starmap-side {
+    flex: 0 0 clamp(18rem, 36%, 26rem);
+  }
 }
 
 .sysmap-svg {
@@ -2526,8 +2601,7 @@ body.app {
   margin: 0 0 0.5rem;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem;
+  /* Wrapping and the gap come from the UX.16 rule (under .btn-small). */
 }
 
 .galaxy-address-matches button {
