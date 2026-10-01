@@ -42,7 +42,10 @@ renumber when items are added or finished.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). 13-18 have shipped (pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, smooth zooming, and the three.js decision in `html-interface.md`). 12 (the
-   hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
+   hybrid master-wedge slot rule) shipped in schema v35, and so have 19's
+   follow-ups (opaque blocks drop the faces they share; translucent
+   sorting showed no artifacts; block size stays per CSS pixel).
+   Distance-based detail was left to the drill-down: see 72.
 - **Features (25-36)** from the same notes: phenomena views (25), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
@@ -81,16 +84,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-19. [ ] **Follow-ups (edge cases).**
-   - Distance-based detail (bigger blocks farther from the camera), which
-     the aligned wedges from 5 make seamless.
-   - Order-independent transparency (weighted blended) if #15's sorting
-     shows artifacts where translucent blocks intersect.
-   - Phone performance at 390 px. Neighbouring full-size blocks share
-     faces, so skipping a face whose neighbour exists would cut the
-     vertex count; past that, one InstancedMesh per wedge-arc count.
-   - DPR: `pcPerPixel` is per CSS pixel.
-
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
 Boss's design of 2026-10-01: the Galaxy Map becomes a drill-down. In 3D,
@@ -115,7 +108,10 @@ can do 63 and 74 alongside, then 75 and 78 once 72 fixes the URLs.
     touch taps and the "Generated only" toggle; reduced motion cuts
     instead of animating. Click-to-center and double-click zoom go away
     (decision 2 in section 11 decides whether free look stays). Needs
-    63's bigger map for room.
+    63's bigger map for room. If free look stays, its blocks could also
+    grow with distance from the camera (bigger blocks on the far side of
+    the view ball, where the nested ladder keeps the borders seamless);
+    each stage draws one level, so the stages themselves don't need it.
 
 73. [ ] **Generate from the sector level (section 6).** Boss: "once
     we're down to a sector level we can tell a slice to generate all the

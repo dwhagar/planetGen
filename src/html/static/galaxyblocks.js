@@ -253,9 +253,10 @@ export function createBlockScene(config) {
   // colors (Uint16, normalized: dark linear colors need more than 8 bits),
   // uvs, alphas and fills (Uint8, normalized), indices, each vertex's
   // block (owners, for picking), and per-block records (CELL_STRIDE).
-  // Normals only light the colors here, so they aren't kept.
-  function pack(cells) {
-    const built = buildPrismGeometry(cells);
+  // Normals only light the colors here, so they aren't kept. Opaque blocks
+  // leave out the faces they share (galaxyprisms.buildPrismGeometry).
+  function pack(cells, opaque) {
+    const built = buildPrismGeometry(cells, { skipShared: opaque });
     const count = built.owners.length;
     const colors = new Uint16Array(count * 3);
     const centers = new Float32Array(count * 3);
@@ -332,7 +333,7 @@ export function createBlockScene(config) {
       cell.eyeDistance = Math.hypot(mid[0] - eye[0], mid[1] - eye[1], mid[2] - eye[2]);
     });
     glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
-    return { m: listed.m, solid: pack(solid), glass: pack(glass) };
+    return { m: listed.m, solid: pack(solid, true), glass: pack(glass, false) };
   }
 
   return { setFilled: setFilled, build: build };
