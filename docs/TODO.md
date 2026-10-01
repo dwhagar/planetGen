@@ -229,12 +229,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the cursor as it moves; clicking zooms to that wedge (the wedge zoom
   of PR #243) with no gaps between blocks (PR #224); the URL and the
   breadcrumb label name the wedge by its angles rather than "Quarter
-  n". Open questions: how snapping works where meridians stop short of
-  the core (the inner rings have fewer slots), and whether a snapped
-  wedge may come out wider or narrower than 40 degrees (round to the
-  nearest meridian, or always the next one out so it is never
-  narrower)? Do the later picks (regions inside the wedge) follow the
-  same cursor-centered rule?
+  n". Boss (19:37Z): "Doesn't have to be +/- 20 so long as it fits
+  into the wedge from center (ring 1) to edge." So 40 degrees is the
+  target, not an exact width: the wedge snaps to lines that run all the
+  way from ring 1 to the edge, and may come out a little wider or
+  narrower. Open questions: how snapping works where meridians stop
+  short of ring 1 (the inner rings have fewer slots); do the later
+  picks (regions inside the wedge) follow the same cursor-centered
+  rule?
 
 ## GEN: Generation and physics
 
