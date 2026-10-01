@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.23 |
-| MAP | MAP.63 |
-| NAV | NAV.7 |
-| GEN | GEN.33 |
+| UX | UX.24 |
+| MAP | MAP.77 |
+| NAV | NAV.29 |
+| GEN | GEN.34 |
 | PERF | PERF.18 |
 | DB | DB.2 |
-| API | API.9 |
+| API | API.15 |
 | ADM | ADM.15 |
 | SEC | SEC.29 |
-| TEST | TEST.70 |
+| TEST | TEST.71 |
 | USR | USR.8 |
 | OPS | OPS.6 |
 | DOC | DOC.4 |
@@ -411,6 +411,12 @@ Parents marked "new parent" had no old number of their own.
 | API.6 | Admin-created user-level API keys that can read but not upload | none | open |
 | API.7 | Investigate and plan upload limits | none | open |
 | API.8 | Verify uploaded data before it is finalized | none | open |
+| API.9 | Key scopes | none | open |
+| API.10 | Reservations: claimed sectors and id blocks per run | none | open |
+| API.11 | Staging tables | none | open |
+| API.12 | The download: seed, skeleton and name state | none | open |
+| API.13 | Generation without a database | none | open |
+| API.14 | Upload routes, compressed, in batches | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -447,6 +453,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
+| GEN.33 | One class per PR, each with its tests | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -509,12 +516,48 @@ Parents marked "new parent" had no old number of their own.
 | MAP.60 | Galaxy Map scale readout: one scale line | none | open |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
+| MAP.63 | Shared map helpers in one module | none | open |
+| MAP.64 | One camera and input controller | none | open |
+| MAP.65 | One picking, hover and info-panel layer | none | open |
+| MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
+| MAP.67 | One URL and history scheme for every level | none | open |
+| MAP.68 | Remove the old Sector Map code | none | open |
+| MAP.69 | A system scene endpoint with 3D orbits | none | open |
+| MAP.70 | Positions at any time | none | open |
+| MAP.71 | Scale modes that keep everything visible | none | open |
+| MAP.72 | Rendering at system scale | none | open |
+| MAP.73 | Free camera on the shared engine | none | open |
+| MAP.74 | The 3D view on the system page, the flat diagram kept | none | open |
+| MAP.75 | The mini map as a second engine view | none | open |
+| MAP.76 | Leader-line layout | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
 | NAV.4 | Save a course | none | open |
 | NAV.5 | Show a course on the Galaxy Map | none | open |
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
+| NAV.7 | One reference for every object, with its parents | none | open |
+| NAV.8 | Pages and anchors for stars, planets, moons and belts | none | open |
+| NAV.9 | Search and locate return references for every kind | none | open |
+| NAV.10 | Routing that scales past a few thousand systems | none | open |
+| NAV.11 | Travel times for the system-to-system route too | none | open |
+| NAV.12 | A maximum hop length (open question) | none | open |
+| NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
+| NAV.14 | One breadcrumb for every level | none | open |
+| NAV.15 | Pick mode everywhere | none | open |
+| NAV.16 | NAV endpoints can be any object | none | open |
+| NAV.17 | A saved course record with both forms | none | open |
+| NAV.18 | Save, list, open, rename and delete, per browser | none | open |
+| NAV.19 | Saved courses in the account (after USR.7) | none | open |
+| NAV.20 | Draw the direct line and the route apart | none | open |
+| NAV.21 | Fit the view to the whole course | none | open |
+| NAV.22 | Courses inside a sector and a system | none | open |
+| NAV.23 | Open a saved course on the map | none | open |
+| NAV.24 | A keep-out radius for every kind of object | none | open |
+| NAV.25 | Find the obstacles along a path | none | open |
+| NAV.26 | Bend the path around keep-out spheres | none | open |
+| NAV.27 | Moving bodies inside a system | none | open |
+| NAV.28 | Show and save the adjusted course | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -601,6 +644,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls | none | open |
 | UX.22 | Meaningful units for every measurement | none | open |
+| UX.23 | A shared unit-ladder module | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -761,6 +805,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test | none | open |
+| TEST.70 | Tests for the map JavaScript | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
