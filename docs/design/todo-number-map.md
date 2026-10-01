@@ -328,7 +328,7 @@ Sorted by old number, then date.
 | 65 | 2026-10-01 02:24Z to 02:26Z | MAP.29 | Stage contents API (drill-down section 7) | done in 7.41.3, PR #160 |
 | 66 | 2026-09-30 20:01Z to 20:27Z | POP.4 | Younger and older civilizations | done in 7.49.0, PR #169 |
 | 66 | 2026-10-01 02:13Z to 05:29Z | USR.4 | Invite-only sign-up | open |
-| 66 | 2026-10-01 02:24Z to 02:26Z | MAP.16 | Drill-down stages | done in 7.44.0, PR #171 (bug MAP.17 open) |
+| 66 | 2026-10-01 02:24Z to 02:26Z | MAP.16 | Drill-down stages | done in 7.44.0, PR #171 (bug MAP.17 fixed, PR #208) |
 | 67 | 2026-10-01 02:13Z to 05:29Z | USR.5 | Email loop for passwords | open |
 | 67 | 2026-10-01 02:24Z to 02:26Z | MAP.20 | Generate from the sector level | open (map buttons and radius dialog done in 7.53.0, PR #177) |
 | 68 | 2026-10-01 02:13Z to 05:29Z | USR.6 | Owner transfer | open |
@@ -340,14 +340,14 @@ Sorted by old number, then date.
 | 71 | 2026-10-01 02:24Z to 02:26Z | MAP.24 | Address bar | done in 7.50.0, PR #172 |
 | 71 | 2026-10-01 02:27Z to 03:54Z | MAP.29 | Stage contents API (drill-down section 7) | done in 7.41.3, PR #160 |
 | 72 | 2026-10-01 02:24Z to 02:26Z | MAP.25 | "Show on Galaxy Map" links | open |
-| 72 | 2026-10-01 02:27Z to 04:33Z | MAP.16 | Drill-down stages | done in 7.44.0, PR #171 (bug MAP.17 open) |
+| 72 | 2026-10-01 02:27Z to 04:33Z | MAP.16 | Drill-down stages | done in 7.44.0, PR #171 (bug MAP.17 fixed, PR #208) |
 | 73 | 2026-10-01 02:24Z to 02:26Z | MAP.27 | NAV course on the Galaxy Map | done in 7.52.0, PR #176 |
 | 73 | 2026-10-01 02:27Z to 05:29Z | MAP.20 | Generate from the sector level | done: map buttons and radius dialog in 7.53.0 (PR #177), block and layer generate after 7.58.2 (PR #182, #183) |
 | 74 | 2026-10-01 02:27Z to 05:05Z | MAP.21 | Sector Map pick mode and Nav links | done in 7.58.0, PR #178 |
 | 75 | 2026-10-01 02:27Z to 05:29Z | MAP.22 | NAV page picks on the map | open |
 | 76 | 2026-10-01 02:27Z to 05:29Z | MAP.23 | Bookmarks | open |
 | 77 | 2026-10-01 02:27Z to 04:41Z | MAP.24 | Address bar | done in 7.50.0, PR #172 |
-| 78 | 2026-10-01 02:27Z to 05:29Z | MAP.25 | "Show on Galaxy Map" links | done after 7.58.2, PR #188 (bug MAP.26 open) |
+| 78 | 2026-10-01 02:27Z to 05:29Z | MAP.25 | "Show on Galaxy Map" links | done after 7.58.2, PR #188 (bug MAP.26 fixed, PR #208) |
 | 79 | 2026-10-01 02:27Z to 04:51Z | MAP.27 | NAV course on the Galaxy Map | done in 7.52.0, PR #176 |
 | 80 | 2026-10-01 02:41Z to 05:29Z | DOC.1 | Number TODO items by category (this renumbering) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | 81 | 2026-10-01 02:51Z to 05:29Z | DOC.2 | Architecture document | done in the docs-refresh PR |
@@ -359,28 +359,28 @@ Sorted by old number, then date.
 | 87 | 2026-10-01 03:26Z to 05:29Z | UX.3 | Warn visitors while a background job changes the galaxy | open |
 | 88 | 2026-10-01 03:26Z to 05:29Z | PERF.4 | Second progress bar for slow plan layers | open |
 | 89 | 2026-10-01 03:36Z to 05:29Z | PERF.5 | Scatter bright stars in stages | open |
-| 90 | 2026-10-01 03:46Z to 05:29Z | PERF.6 | Rate-limit SQL calls, do more per call | open |
+| 90 | 2026-10-01 03:46Z to 05:29Z | PERF.6 | Rate-limit SQL calls, do more per call | done: investigation, then PR #222, #223 and #225 (PERF.8 caps the writers) |
 | 91 | 2026-10-01 03:46Z to 05:29Z | PERF.7 | Parallelize sector and system generation | open |
-| 92 | 2026-10-01 03:46Z to 05:29Z | PERF.8 | Parallel background work queue in the API | open |
+| 92 | 2026-10-01 03:46Z to 05:29Z | PERF.8 | Parallel background work queue in the API | done, PR #225 (its bright-star scatter tasks and decaying ETA went to PERF.7) |
 | 93 | 2026-10-01 04:50Z to 05:29Z | PERF.9 | Weight the bright-star ETA by the shape of the galaxy | open |
 | 94 | 2026-10-01 04:58Z to 05:29Z | PERF.10 | Record generation speed across a log scale of densities | open |
 | 95 | 2026-10-01 04:58Z to 05:29Z | PERF.11 | Store each sector's expected and actual density | open |
-| 96 | 2026-10-01 05:15Z to 05:29Z | MAP.43 | Wedge lines run past the galaxy's edge (bug) | open |
-| 97 | 2026-10-01 05:15Z to 05:29Z | MAP.47 | Bright stars vanish when zoomed out (bug) | open |
-| 98 | 2026-10-01 05:15Z to 05:29Z | MAP.48 | Stars take a while to appear after a zoom (bug) | open |
-| 99 | 2026-10-01 05:15Z to 05:29Z | MAP.37 | Generated systems are hard to find on the map (bug) | open |
-| 100 | 2026-10-01 05:22Z to 05:29Z | MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | open |
-| 101 | 2026-10-01 05:24Z to 05:29Z | MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | open |
+| 96 | 2026-10-01 05:15Z to 05:29Z | MAP.43 | Wedge lines run past the galaxy's edge (bug) | done, PR #201 |
+| 97 | 2026-10-01 05:15Z to 05:29Z | MAP.47 | Bright stars vanish when zoomed out (bug) | done, PR #201 |
+| 98 | 2026-10-01 05:15Z to 05:29Z | MAP.48 | Stars take a while to appear after a zoom (bug) | done, PR #201 |
+| 99 | 2026-10-01 05:15Z to 05:29Z | MAP.37 | Generated systems are hard to find on the map (bug) | done, PR #201 |
+| 100 | 2026-10-01 05:22Z to 05:29Z | MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | done, PR #208 |
+| 101 | 2026-10-01 05:24Z to 05:29Z | MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | done, PR #208 |
 | 102 | 2026-10-01 05:27Z to 05:29Z | UX.13 | One meaningful-unit ladder for speeds | open |
 | 103 | 2026-10-01 05:27Z to 05:29Z | UX.14 | One meaningful-unit ladder for time periods | open |
-| 104 | 2026-10-01 05:40Z to 05:54Z | MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | open |
+| 104 | 2026-10-01 05:40Z to 05:54Z | MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | done, PR #200 |
 | 105 | 2026-10-01 05:43Z to 05:54Z | UX.15 | Put an object's data beside its 3D render when there's room (bug) | done, PR #195 |
 | 106 | 2026-10-01 05:43Z to 05:54Z | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | open |
-| 107 | 2026-10-01 05:44Z to 05:54Z | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | open |
+| 107 | 2026-10-01 05:44Z to 05:54Z | MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | done, PR #200 |
 | 108 | 2026-10-01 05:44Z to 05:54Z | MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | open |
 | 109 | 2026-10-01 05:50Z to 05:56Z | MAP.30 | Slab list to the left of the map, and a 3:4 map | open |
-| 110 | 2026-10-01 05:50Z to 05:56Z | MAP.44 | Wedge lines and ring circles run far past a zoomed-in block (bug) | open |
-| 111 | 2026-10-01 05:50Z to 05:56Z | MAP.18 | The block under the pointer is too hard to see from above (bug) | open |
+| 110 | 2026-10-01 05:50Z to 05:56Z | MAP.44 | Wedge lines and ring circles run far past a zoomed-in block (bug) | done, PR #208 |
+| 111 | 2026-10-01 05:50Z to 05:56Z | MAP.18 | The block under the pointer is too hard to see from above (bug) | done, PR #208 |
 
 ## Reverse lookup: new ID to old numbers
 
@@ -391,6 +391,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.1 | Admin editing: overrides, delete, regenerate (new parent) | none | open |
 | ADM.2 | Generate a column and a shell | 23 (2026-09-30 18:14Z to 2026-10-01 00:34Z) | done in 7.27.0, PR #143 |
 | ADM.3 | Generate buttons on unfilled sectors (Sector Map, Galaxy Map) | 24 (2026-09-30 18:14Z to 2026-10-01 01:58Z) | done in 7.27.0 (PR #143) and 7.34.0 (PR #151) |
+| ADM.4 | Collapsible Generate page sections; pick the center sector | none | open |
 | ADM.5 | Central validate module | 57 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.6 | Override a planet's or moon's class | 58 (2026-10-01 01:15Z to 05:29Z) | open |
 | ADM.7 | Override a star | 59 (2026-10-01 01:15Z to 05:29Z) | open |
@@ -410,6 +411,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.6 | Finish the correlative update (galactic motion) | 27 (2026-09-30 18:14Z); 32 (2026-09-30 18:39Z to 2026-10-01 02:35Z) | done in 7.37.0, PR #157 |
 | GEN.7 | Star population and bright stars (new parent) | none | done |
 | GEN.8 | Give rogue planets a planet class, with a rogue flag in the class constants | 106 (2026-10-01 05:43Z to 05:54Z) | open |
+| GEN.9 | Plan for more than one galaxy in the database | none | open |
 | GEN.10 | Generate nebulae and remnants with their stars, and map them | 27 (2026-09-30 18:39Z to 2026-10-01 03:53Z) | done in 7.30.0 (PR #144), 7.36.0 (PR #153) and 7.41.1 (PR #148) |
 | GEN.11 | Class nebulae and remnants A-W | 28 (2026-09-30 18:39Z to 23:32Z) | done in 7.19.0, PR #138 |
 | GEN.12 | Record what sits inside a nebula | 29 (2026-09-30 18:39Z to 2026-10-01 00:35Z) | done in 7.24.0, PR #140 |
@@ -428,27 +430,28 @@ Parents marked "new parent" had no old number of their own.
 | MAP.2 | Drill-down navigation (new parent) | none | open (MAP.16, MAP.21, MAP.24, MAP.27 to MAP.29 done) |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
 | MAP.4 | System Map names never overlap | 62 (2026-09-30 20:01Z to 20:27Z); 49 (2026-09-30 20:08Z to 2026-10-01 04:37Z) | done in 7.21.1, PR #135 (see note 3) |
-| MAP.5 | Rework the Galaxy Map | 9 (2026-09-24 01:32Z to 02:18Z); 6 (2026-09-24 01:57Z to 02:02Z); 4 (2026-09-24 02:25Z to 05:38Z); 3 (2026-09-24 02:53Z to 2026-09-30 17:58Z) | replaced on 2026-09-30 by MAP.31 to MAP.42 and MAP.1; bugs MAP.37 and MAP.43 open |
+| MAP.5 | Rework the Galaxy Map | 9 (2026-09-24 01:32Z to 02:18Z); 6 (2026-09-24 01:57Z to 02:02Z); 4 (2026-09-24 02:25Z to 05:38Z); 3 (2026-09-24 02:53Z to 2026-09-30 17:58Z) | replaced on 2026-09-30 by MAP.31 to MAP.42 and MAP.1; bugs MAP.37 and MAP.43 fixed, PR #201 |
 | MAP.6 | Unfilled-sector skeleton draws as a sphere | 5 (2026-09-24 01:32Z to 02:18Z); 2 (2026-09-24 01:57Z to 02:02Z) | done in 5.47.0, PR #72 (test added in 5.47.1, PR #73) |
 | MAP.7 | Remove the large sphere marker for a star in a sector | 2 (2026-09-24 01:32Z to 02:18Z) | done in 5.47.1, PR #73 |
 | MAP.8 | System Map orbital paths back, not over bodies | 3 (2026-09-24 01:32Z to 02:18Z) | done in 5.47.1, PR #73 |
 | MAP.9 | Star glow renders as an opaque shell | 4 (2026-09-24 01:32Z to 02:18Z) | done in 5.47.1, PR #73 |
 | MAP.10 | Draw the Measure distance path around obstacles | 7 (2026-09-24 01:32Z to 02:18Z); 4 (2026-09-24 01:57Z to 02:02Z); 2 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 9 (2026-09-30 18:14Z to 23:48Z) | done in 7.22.0, PR #135 |
-| MAP.11 | Every kind of phenomenon on the Sector Map, clickable | 8 (2026-09-24 01:32Z to 02:18Z); 5 (2026-09-24 01:57Z to 02:02Z); 3 (2026-09-24 02:25Z to 05:38Z) | done in 5.51.0, PR #81; bugs MAP.45 and MAP.46 open |
+| MAP.11 | Every kind of phenomenon on the Sector Map, clickable | 8 (2026-09-24 01:32Z to 02:18Z); 5 (2026-09-24 01:57Z to 02:02Z); 3 (2026-09-24 02:25Z to 05:38Z) | done in 5.51.0, PR #81; bugs MAP.45 and MAP.46 fixed, PR #200 |
 | MAP.12 | Arc-segment wireframe on the Sector Map | 60 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:08Z to 2026-10-01 00:34Z) | done in 7.29.1, PR #143 |
 | MAP.13 | Sector Map star dots sized to giants and white dwarfs | 55 (2026-10-01 00:07Z to 00:34Z) | done in 7.29.2, PR #143 |
-| MAP.14 | Bright stars on the Galaxy Map (new done item; never had a number) | none | done in 7.42.0, PR #160; bugs MAP.47 and MAP.48 open |
+| MAP.14 | Bright stars on the Galaxy Map (new done item; never had a number) | none | done in 7.42.0, PR #160; bugs MAP.47, MAP.48 (PR #201) and MAP.51 (PR #214, #218) fixed |
 | MAP.15 | Stars and glowing phenomena as points of light on the Sector Map | 108 (2026-10-01 05:44Z to 05:54Z) | open |
-| MAP.16 | Drill-down stages | 66 (2026-10-01 02:24Z to 02:26Z); 72 (2026-10-01 02:27Z to 04:33Z) | done in 7.44.0, PR #171 (bug MAP.17 open) |
-| MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | 100 (2026-10-01 05:22Z to 05:29Z) | open |
-| MAP.18 | The block under the pointer is too hard to see from above (bug) | 111 (2026-10-01 05:50Z to 05:56Z) | open |
+| MAP.16 | Drill-down stages | 66 (2026-10-01 02:24Z to 02:26Z); 72 (2026-10-01 02:27Z to 04:33Z) | done in 7.44.0, PR #171 (bug MAP.17 fixed, PR #208) |
+| MAP.17 | No free camera: drill down from a top-down view by wedge, slice and block (bug) | 100 (2026-10-01 05:22Z to 05:29Z) | done, PR #208 |
+| MAP.18 | The block under the pointer is too hard to see from above (bug) | 111 (2026-10-01 05:50Z to 05:56Z) | done, PR #208 |
+| MAP.19 | Big wedge picks in the drill-down (bug) | none | done, PR #208 |
 | MAP.20 | Generate from the sector level | 67 (2026-10-01 02:24Z to 02:26Z); 73 (2026-10-01 02:27Z to 05:29Z) | done: map buttons and radius dialog in 7.53.0 (PR #177), block and layer generate after 7.58.2 (PR #182, #183) |
 | MAP.21 | Sector Map pick mode and Nav links | 68 (2026-10-01 02:24Z to 02:26Z); 74 (2026-10-01 02:27Z to 05:05Z) | done in 7.58.0, PR #178 |
 | MAP.22 | NAV page picks on the map | 69 (2026-10-01 02:24Z to 02:26Z); 75 (2026-10-01 02:27Z to 05:29Z) | open |
 | MAP.23 | Bookmarks | 70 (2026-10-01 02:24Z to 02:26Z); 76 (2026-10-01 02:27Z to 05:29Z) | open |
 | MAP.24 | Address bar | 71 (2026-10-01 02:24Z to 02:26Z); 77 (2026-10-01 02:27Z to 04:41Z) | done in 7.50.0, PR #172 |
-| MAP.25 | "Show on Galaxy Map" links | 72 (2026-10-01 02:24Z to 02:26Z); 78 (2026-10-01 02:27Z to 05:29Z) | done after 7.58.2, PR #188 (bug MAP.26 open) |
-| MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | 101 (2026-10-01 05:24Z to 05:29Z) | open |
+| MAP.25 | "Show on Galaxy Map" links | 72 (2026-10-01 02:24Z to 02:26Z); 78 (2026-10-01 02:27Z to 05:29Z) | done after 7.58.2, PR #188 (bug MAP.26 fixed, PR #208) |
+| MAP.26 | "Show on Galaxy Map" opens at the sector; map Back and Forward (bug) | 101 (2026-10-01 05:24Z to 05:29Z) | done, PR #208 |
 | MAP.27 | NAV course on the Galaxy Map | 73 (2026-10-01 02:24Z to 02:26Z); 79 (2026-10-01 02:27Z to 04:51Z) | done in 7.52.0, PR #176 |
 | MAP.28 | Nested ladder geometry (drill-down section 3) | 64 (2026-10-01 02:24Z to 02:26Z); 70 (2026-10-01 02:27Z to 03:54Z) | done in 7.41.2, PR #160 |
 | MAP.29 | Stage contents API (drill-down section 7) | 65 (2026-10-01 02:24Z to 02:26Z); 71 (2026-10-01 02:27Z to 03:54Z) | done in 7.41.3, PR #160 |
@@ -459,20 +462,21 @@ Parents marked "new parent" had no old number of their own.
 | MAP.34 | Mega-blocks sized from the pixel scale | 6 (2026-09-30 16:44Z to 18:09Z); 13 (2026-09-30 18:14Z to 23:14Z) | done in 7.17.0, PR #134 |
 | MAP.35 | Continuous blocks and a Slice control | 7 (2026-09-30 16:44Z to 18:09Z); 14 (2026-09-30 18:14Z to 22:03Z) | done in 7.9.0, PR #120 |
 | MAP.36 | One solid of blocks for filled and unfilled sectors | 8 (2026-09-30 16:49Z to 18:09Z); 15 (2026-09-30 18:14Z to 2026-10-01 00:35Z) | done in 7.25.0, PR #142 |
-| MAP.37 | Generated systems are hard to find on the map (bug) | 99 (2026-10-01 05:15Z to 05:29Z) | open |
+| MAP.37 | Generated systems are hard to find on the map (bug) | 99 (2026-10-01 05:15Z to 05:29Z) | done, PR #201 |
 | MAP.38 | Block info on click | 8 (2026-09-30 16:44Z); 9 (2026-09-30 16:49Z to 18:09Z); 16 (2026-09-30 18:14Z to 2026-10-01 00:35Z) | done in 7.25.0, PR #142 |
 | MAP.39 | Smooth zooming | 9 (2026-09-30 16:44Z); 10 (2026-09-30 16:49Z to 18:09Z); 17 (2026-09-30 18:14Z to 2026-10-01 01:44Z) | done in 7.32.0, PR #147 |
 | MAP.40 | Keep three.js; record why | 10 (2026-09-30 16:44Z); 11 (2026-09-30 16:49Z to 18:09Z); 18 (2026-09-30 18:14Z to 2026-10-01 02:31Z) | done, PR #153 (docs only, shipped with 7.36.0) |
 | MAP.41 | Remove the server's leftover density sampling | 12 (2026-09-30 16:44Z); 13 (2026-09-30 16:49Z to 18:09Z); 20 (2026-09-30 18:14Z to 22:03Z) | done in 7.9.0, PR #120 |
 | MAP.42 | Wedge lines from the center | 21 (2026-09-30 18:14Z to 22:03Z) | done in 7.9.0, PR #120 |
-| MAP.43 | Wedge lines run past the galaxy's edge (bug) | 96 (2026-10-01 05:15Z to 05:29Z) | open |
-| MAP.44 | Wedge lines and ring circles run far past a zoomed-in block (bug) | 110 (2026-10-01 05:50Z to 05:56Z) | open |
-| MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | 104 (2026-10-01 05:40Z to 05:54Z) | open |
-| MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | 107 (2026-10-01 05:44Z to 05:54Z) | open |
-| MAP.47 | Bright stars vanish when zoomed out (bug) | 97 (2026-10-01 05:15Z to 05:29Z) | open |
-| MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | open |
+| MAP.43 | Wedge lines run past the galaxy's edge (bug) | 96 (2026-10-01 05:15Z to 05:29Z) | done, PR #201 |
+| MAP.44 | Wedge lines and ring circles run far past a zoomed-in block (bug) | 110 (2026-10-01 05:50Z to 05:56Z) | done, PR #208 |
+| MAP.45 | Rogue planets (and maybe other objects) drawn outside the sector's wireframe (bug) | 104 (2026-10-01 05:40Z to 05:54Z) | done, PR #200 |
+| MAP.46 | Rogue planets are hard to find on the Sector Map (bug) | 107 (2026-10-01 05:44Z to 05:54Z) | done, PR #200 |
+| MAP.47 | Bright stars vanish when zoomed out (bug) | 97 (2026-10-01 05:15Z to 05:29Z) | done, PR #201 |
+| MAP.48 | Stars take a while to appear after a zoom (bug) | 98 (2026-10-01 05:15Z to 05:29Z) | done, PR #201 |
 | MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
+| MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
@@ -484,18 +488,18 @@ Parents marked "new parent" had no old number of their own.
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | open |
 | PERF.4 | Second progress bar for slow plan layers | 88 (2026-10-01 03:26Z to 05:29Z) | open |
 | PERF.5 | Scatter bright stars in stages | 89 (2026-10-01 03:36Z to 05:29Z) | open |
-| PERF.6 | Rate-limit SQL calls, do more per call | 90 (2026-10-01 03:46Z to 05:29Z) | open |
+| PERF.6 | Rate-limit SQL calls, do more per call | 90 (2026-10-01 03:46Z to 05:29Z) | done: investigation, then PR #222, #223 and #225 (PERF.8 caps the writers) |
 | PERF.7 | Parallelize sector and system generation | 91 (2026-10-01 03:46Z to 05:29Z) | open |
-| PERF.8 | Parallel background work queue in the API | 92 (2026-10-01 03:46Z to 05:29Z) | open |
+| PERF.8 | Parallel background work queue in the API | 92 (2026-10-01 03:46Z to 05:29Z) | done, PR #225 (its bright-star scatter tasks and decaying ETA went to PERF.7) |
 | PERF.9 | Weight the bright-star ETA by the shape of the galaxy | 93 (2026-10-01 04:50Z to 05:29Z) | open |
 | PERF.10 | Record generation speed across a log scale of densities | 94 (2026-10-01 04:58Z to 05:29Z) | open |
 | PERF.11 | Store each sector's expected and actual density | 95 (2026-10-01 04:58Z to 05:29Z) | open |
-| PERF.12 | Check the schema once per process during generation | none | open |
-| PERF.13 | Write each sector in batches | none | open |
-| PERF.14 | Reserve a sector's names in bulk, safe with several writers at once | none | open |
-| PERF.15 | Fewer queries per web page | none | open |
-| PERF.16 | Search names without scanning every row | none | open |
-| PERF.17 | A time limit on web database statements | none | open |
+| PERF.12 | Check the schema once per process during generation | none | done, PR #222 |
+| PERF.13 | Write each sector in batches | none | done, PR #222 |
+| PERF.14 | Reserve a sector's names in bulk, safe with several writers at once | none | done, PR #222 |
+| PERF.15 | Fewer queries per web page | none | done, PR #223 |
+| PERF.16 | Search names without scanning every row | none | done, PR #223 |
+| PERF.17 | A time limit on web database statements | none | done, PR #223 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -556,8 +560,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.16 | Always leave space between buttons (bug) | none | done, PR #195 |
 | UX.17 | A view that suits each phenomenon | 25 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.57.0, PR #178 |
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
-| UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | open |
-| UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | open |
+| UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
+| UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
