@@ -232,6 +232,7 @@ jobs:
           PY
 
   linux-update:
+    needs: mathcheck
     # TEST.62: install.sh and then update.sh, run for real as root on
     # Linux against a live database, the way a server runs them: a fresh
     # install, an update with nothing new, a database that needs
