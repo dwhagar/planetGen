@@ -124,15 +124,24 @@ of the SEC section.
 
    SEC.20 and SEC.23 are small and touch different files from the bugs,
    so they can run alongside step 1 if Boss wants.
-3. **After that**, as before:
+3. **Database calls, the next update after bugs and security** (Boss,
+   2026-10-01), in this order:
+   1. PERF.12: check the schema once per process during generation.
+   2. PERF.13: write each sector in batches.
+   3. PERF.14: reserve a sector's names in bulk, safe with several
+      writers at once (needed before any parallel generation).
+   4. PERF.15 (fewer queries per web page), PERF.16 (full-text name
+      search on whole words) and PERF.17 (a time limit on web
+      statements). These touch the web read path, not generation, so
+      they can run alongside 1 to 3.
+4. **After that**, as before:
    - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
      finishes the NAV page's map picks, MAP.22).
    - Sector Map stars as points of light (MAP.15).
-   - Generation at scale (PERF.1): batched sector writes and safe name
-     reservation (PERF.12, PERF.13, PERF.14) come first; the per-sector
-     density stats (PERF.11) and speed records (PERF.10) feed the
-     estimates (PERF.3, PERF.9); the work queue (PERF.8) comes before
-     parallel generation (PERF.7).
+   - The rest of generation at scale (PERF.1): the per-sector density
+     stats (PERF.11) and speed records (PERF.10) feed the estimates
+     (PERF.3, PERF.9); the work queue (PERF.8) comes before parallel
+     generation (PERF.7).
    - Admin editing (ADM.1) starts with the validate module (ADM.5);
      user accounts (USR.1) start with roles (USR.2).
    - View from a planet (VIEW.1) waits on a research session with Boss,
@@ -867,10 +876,10 @@ MAP.48 and MAP.37 below.
       Search builds `LIKE '%term%'` (`_search_like_pattern`) and counts
       every match exactly (`_search_page`), a full scan of each body
       table that won't survive a large galaxy. Done: names are searched
-      by prefix plus a FULLTEXT index, and counts stop at the 300-row
-      result cap ("300+"). Open question: does Boss need matches in the
-      middle of a name ("ara" finding "Kemaral")? FULLTEXT matches whole
-      words, not arbitrary substrings.
+      with a FULLTEXT index on whole words, and counts stop at the
+      300-row result cap ("300+"). Boss (2026-10-01): "full text index,
+      to match whole words", so a search no longer finds text in the
+      middle of a word ("ara" doesn't find "Kemaral").
 
     - [ ] **PERF.17 A time limit on web database statements**
       Web connections have no statement timeout, so one runaway query
