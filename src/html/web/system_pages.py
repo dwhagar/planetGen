@@ -277,14 +277,19 @@ def system(system_id):
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
         facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
         can_edit=edit_actions.can_edit(admin),
-        edit_rows=_edit_rows(detail) if edit_actions.can_edit(admin) else [],
+        edit_rows=_edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else [],
+        star_editable=not detail.get("is_binary") and len(detail["stars"]) == 1,
+        star_type=detail["stars"][0]["star_type"] if detail["stars"] else "",
     )
 
 
-def _edit_rows(system):
+def _edit_rows(system, class_options=None):
     """The admin "Edit" panel's rows (ADM.8): every planet with its moons
     right after it, then every asteroid belt, as `{"target", "label",
-    "kind", "indent"}`."""
+    "kind", "indent"}`; planets and moons also carry `recommended` (the
+    classes it can take without moving any other planet) and `forced` (every other
+    class) for the Change class menu (ADM.6), from `class_options`
+    (`edit_actions.class_options`)."""
     rows = []
     for planet in system["planets"]:
         rows.append({"target": f"planet:{planet['id']}", "label": planet["name"], "kind": "planet",
@@ -298,6 +303,13 @@ def _edit_rows(system):
                      "detail": f"Asteroid belt from {format_distance_km(belt['lower_limit_km'])} to "
                                f"{format_distance_km(belt['upper_limit_km'])}",
                      "indent": False})
+    if class_options:
+        every = class_options.get("all") or []
+        for row in rows:
+            if row["kind"] != "belt":
+                recommended = class_options.get("recommended", {}).get(row["target"], [])
+                row["recommended"] = recommended
+                row["forced"] = [c for c in every if c not in recommended]
     return rows
 
 

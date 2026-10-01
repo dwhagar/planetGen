@@ -92,7 +92,9 @@
 <section class="panel" id="edit-system" aria-labelledby="edit-system-heading">
   <h2 id="edit-system-heading">Edit</h2>
   <p class="hint">Regenerating rolls something again in the same place and keeps its name; the rest
-  of the system is then checked and re-spaced until it is stable.</p>
+  of the system is then checked and re-spaced until it is stable. Changing a class re-rolls a planet
+  or moon as that class where it is: a recommended class fits without moving any other planet, a forced one
+  is kept even where it couldn't form.</p>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Body</th><th scope="col">What it is</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
     <tbody>
@@ -101,7 +103,24 @@
         <td>The whole system</td>
         <td>{{ edit_buttons(here, 'system:' ~ system.id, system.name,
                'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place.',
-               'Deletes the system and everything in it.', regenerate_facilities=True) }}</td>
+               'Deletes the system and everything in it.', regenerate_facilities=True) }}
+          {%- if star_editable %}
+          <details class="edit-confirm"><summary class="btn btn-small">Change star</summary>
+            <form method="post" action="{{ here }}" class="table-form">
+              {{ csrf_field() }}
+              <input type="hidden" name="edit_action" value="star">
+              <input type="hidden" name="edit_target" value="system:{{ system.id }}">
+              <p class="hint">Replaces the {{ star_type }} star with a new one. Planets, moons and belts keep their
+              classes; their orbits scale with the new star's light, and any left past its farthest stable orbit
+              are removed.</p>
+              <label>Spectral type <input type="text" name="star_type" required maxlength="8" size="6"
+                pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])"
+                placeholder="e.g. K2V" value="{{ star_type }}"></label>
+              <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> Also delete facilities on removed bodies</label>
+              <button type="submit" class="btn">Change the star</button>
+            </form>
+          </details>
+          {%- endif %}</td>
       </tr>
       {%- for row in edit_rows %}
       <tr>
@@ -110,7 +129,27 @@
         <td>{{ edit_buttons(here, row.target, row.label,
                'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
                'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
-               regenerate_facilities=(row.kind == 'planet')) }}</td>
+               regenerate_facilities=(row.kind == 'planet')) }}
+          {%- if row.recommended is defined %}
+          <details class="edit-confirm"><summary class="btn btn-small">Change class</summary>
+            <form method="post" action="{{ here }}" class="table-form">
+              {{ csrf_field() }}
+              <input type="hidden" name="edit_action" value="class">
+              <input type="hidden" name="edit_target" value="{{ row.target }}">
+              <label>New class <select name="planet_class" required>
+                {%- if row.recommended %}
+                <optgroup label="Recommended (fits where it is)">
+                  {%- for code in row.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
+                </optgroup>
+                {%- endif %}
+                <optgroup label="Force (may leave it unstable)">
+                  {%- for code in row.forced %}<option value="force:{{ code }}">{{ code }}</option>{% endfor %}
+                </optgroup>
+              </select></label>
+              <button type="submit" class="btn">Change {{ row.label }}'s class</button>
+            </form>
+          </details>
+          {%- endif %}</td>
       </tr>
       {%- endfor %}
     </tbody>

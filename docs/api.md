@@ -450,6 +450,10 @@ connectivity to that specific schema rather than the default one.
 - `DELETE /api/sectors/<id>/contents` — remove a sector with everything
   in it; `POST /api/sectors/<id>/regenerate` — remove it and generate its
   galaxy slot again.
+- `GET /api/systems/<id>/class-options`, `POST /api/planets/<id>/class`,
+  `/api/moons/<id>/class` — change a planet's or moon's class; `POST
+  /api/systems/<id>/star` — change a single-star system's star (see
+  "Changing a class or a star" below).
 
 ### Admin stats (admin auth required)
 
@@ -888,6 +892,42 @@ credentials are current and writes an audit-log row.
   plan; the new sector has a new id and name (`sector_id`,
   `sector_name`; `null` when the slot no longer qualifies). It is a `409`
   for a sector off the galaxy grid or before `generate.py plan`.
+
+### Changing a class or a star
+
+Also `src/html/api/edits.py`, with the same admin, audit and answer
+shape as above.
+
+- **Class (ADM.6).** `GET /api/systems/<id>/class-options` answers
+  `{"recommended": {"planet:<id>" or "moon:<id>": [classes]}, "all":
+  [classes]}`: for each planet and moon, the classes it could take where
+  it is without moving any other planet (valid in its zone, at a typical mass
+  for the class still clear of its neighbors and able to hold its moons;
+  for a moon, a class its planet can hold), most common first, its own
+  class left out (a planet's own moons may still be re-spaced for its new
+  size). `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
+  `{"class": "M", "force": false}` re-rolls the body as that class at
+  the same orbit, keeping its name, row and moons. Without `force` only a
+  recommended class is accepted (`409` otherwise); with `"force": true`
+  any class is, even one that can't form where the body is. The body
+  keeps the class it was given; the rest of the system is re-spaced
+  around it, nothing is removed, and what still doesn't validate comes
+  back in `warnings`.
+- **Star (ADM.7).** `POST /api/systems/<id>/star` `{"star_type": "K2V"}`
+  replaces a single star with a new one of that spectral type (class
+  letter, subclass digit, Yerkes class; case doesn't matter), keeping
+  its name, row and place in the galaxy. Planets, moons and belts keep
+  their classes; their orbits scale with the square root of the change
+  in luminosity (so each keeps its place against the habitable zone),
+  the innermost is moved clear of a larger star's surface, and then
+  everything is re-spaced for the new mass. Bodies left past the new
+  star's farthest stable orbit, and moons a planet that moved inward can
+  no longer hold, are removed and listed in `removed`; comets' orbits
+  scale the same way. The answer adds `star_type`. It is a `400` for a
+  malformed type and a `409` for a binary system, a black hole or
+  neutron star, a system built around a pre-placed bright star, or when
+  removed bodies host facilities and `"drop_facilities": true` isn't
+  sent.
 
 ### Renaming
 
