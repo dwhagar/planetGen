@@ -196,8 +196,18 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
+        id: setup-python
+        # On a self-hosted Windows runner whose service account isn't an
+        # administrator, setup-python can't install Python into its tool
+        # cache. Carry on with the machine's own Python 3.12 instead (the
+        # next step); docs/ci-runners.md, "Windows runner".
+        continue-on-error: ${{ runner.environment == 'self-hosted' }}
         with:
           python-version: "3.12"
+
+      - name: Use the machine's Python 3.12
+        if: steps.setup-python.outcome == 'failure'
+        run: py -3.12 -c "import os, sys; open(os.environ['GITHUB_PATH'], 'a').write(os.path.dirname(sys.executable) + '\n')"
 
       - name: Private virtualenv for this job
         # Self-hosted runners keep their Python between jobs; installing

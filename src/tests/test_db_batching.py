@@ -130,7 +130,7 @@ def test_migration_to_v45_adds_id_blocks(mysql_config):
     try:
         with conn:
             conn.execute("DROP TABLE id_blocks")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (45, 46, 47, 48)")
+            conn.execute("DELETE FROM schema_migrations WHERE version IN (45, 46, 47, 48, 49)")
             conn.execute("INSERT INTO schema_migrations (version) VALUES (44)")
     finally:
         conn.close()

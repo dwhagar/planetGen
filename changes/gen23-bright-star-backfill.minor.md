@@ -4,7 +4,7 @@
   line, the Generate page, the Sector page, or a Galaxy Map visit), every
   sector block (3x3x3 sectors) within 100 ly of it gets every star from
   100 L_sun up to what was already placed there. Each block remembers how
-  dim it has gone (new `bright_star_blocks` table, schema v48), so a
+  dim it has gone (new `bright_star_blocks` table, schema v49), so a
   block is only drawn once, and sectors that are already filled are
   never touched. The new stars show on the Galaxy Map like the plan's
   bright stars, and later sectors in those blocks build their systems
@@ -19,5 +19,5 @@
   give is still used as is.
 
 Run `update.sh` (or `update.ps1`) after updating: it migrates the
-database to schema v48, adding one empty table. No regeneration is
+database to schema v49, adding one empty table. No regeneration is
 needed; the backfill starts with the next sector generated.

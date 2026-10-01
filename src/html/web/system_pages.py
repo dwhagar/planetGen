@@ -35,6 +35,7 @@ from tabledisplay import format_star_radius, to_plain_text
 from classref import ROGUE_MASS_CLASS_NAMES
 from stellarObjects import activitylog
 from stellarObjects.program_constants import NEBULA_CLASSES
+from stellarObjects.rogueSurface import SURFACE_REGIME_LABELS
 
 from . import bp
 from . import edit_actions, system_facilities
@@ -277,14 +278,19 @@ def system(system_id):
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
         facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
         can_edit=edit_actions.can_edit(admin),
-        edit_rows=_edit_rows(detail) if edit_actions.can_edit(admin) else [],
+        edit_rows=_edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else [],
+        star_editable=not detail.get("is_binary") and len(detail["stars"]) == 1,
+        star_type=detail["stars"][0]["star_type"] if detail["stars"] else "",
     )
 
 
-def _edit_rows(system):
+def _edit_rows(system, class_options=None):
     """The admin "Edit" panel's rows (ADM.8): every planet with its moons
     right after it, then every asteroid belt, as `{"target", "label",
-    "kind", "indent"}`."""
+    "kind", "indent"}`; planets and moons also carry `recommended` (the
+    classes it can take without moving any other planet) and `forced` (every other
+    class) for the Change class menu (ADM.6), from `class_options`
+    (`edit_actions.class_options`)."""
     rows = []
     for planet in system["planets"]:
         rows.append({"target": f"planet:{planet['id']}", "label": planet["name"], "kind": "planet",
@@ -298,6 +304,13 @@ def _edit_rows(system):
                      "detail": f"Asteroid belt from {format_distance_km(belt['lower_limit_km'])} to "
                                f"{format_distance_km(belt['upper_limit_km'])}",
                      "indent": False})
+    if class_options:
+        every = class_options.get("all") or []
+        for row in rows:
+            if row["kind"] != "belt":
+                recommended = class_options.get("recommended", {}).get(row["target"], [])
+                row["recommended"] = recommended
+                row["forced"] = [c for c in every if c not in recommended]
     return rows
 
 
@@ -419,6 +432,20 @@ def _progenitor_text(value):
     return value if value == "Type Ia" else _title_case(value)
 
 
+def _temperature_text(value):
+    """Kelvin, with Celsius after it."""
+    return f"{format_number(value, ',.0f')} K ({format_number(value - 273.15, ',.0f')} \u00b0C)"
+
+
+def _pressure_text(value):
+    """Bar, or "None" for no air at all; a trace in pascals."""
+    if not value:
+        return "None"
+    if value < 100:
+        return f"{format_number(value, ',.3g')} Pa (a trace)"
+    return f"{format_number(value / 1e5, ',.3g')} bar"
+
+
 def _rogue_planet_type_text(value):
     return {"t": "Terrestrial", "g": "Gas Giant"}.get(value, value)
 
@@ -511,8 +538,18 @@ FIELD_SPECS = {
         ("mass_kg", "Mass", lambda v: f"{v:.2e} kg"),
         ("radius_km", "Radius", _body_radius),
         ("composition", "Composition", str),
-        ("has_internal_heat", "Internal Heat", _bool_text),
+        ("has_internal_heat", "Geologically Active", _bool_text),
         ("has_moons", "Has Moons", _bool_text),
+        # Surface conditions (schema v48, rogueSurface): no star, so only
+        # its own heat. A giant's temperature and pressure are at 1 bar.
+        ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
+        ("internal_heat_flux_w_m2", "Internal Heat Flow", lambda v: f"{format_number(v, ',.3g')} W/m\u00b2"),
+        ("effective_temperature_k", "Effective Temperature", lambda v: f"{format_number(v, ',.0f')} K"),
+        ("surface_regime", "Surface", lambda v: SURFACE_REGIME_LABELS.get(v, v)),
+        ("surface_temperature_k", "Surface Temperature", _temperature_text),
+        ("surface_pressure_pa", "Surface Pressure", _pressure_text),
+        ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
+        ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [

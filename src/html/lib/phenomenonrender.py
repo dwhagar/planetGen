@@ -90,6 +90,8 @@ def _params(phenomenon_type, detail):
         heat = bool(detail.get("has_internal_heat"))
         caption = ("A planet with no star, lit only by distant starlight"
                    + (", glowing faintly with its own internal heat." if heat else "."))
+        if detail.get("effective_temperature_k"):
+            caption += f" It radiates at about {format_number(detail['effective_temperature_k'], ',.0f')} K."
         return {"gas": gas, "heat": heat}, caption
     active = bool(detail.get("is_active"))
     caption = ("The nucleus is shedding gas and dust into a coma and tail." if active else
