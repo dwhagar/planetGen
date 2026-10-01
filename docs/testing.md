@@ -192,8 +192,11 @@ they install planetGen as a system service (launchd daemons, scheduled
 tasks, a server on port 8000) with sudo or admin rights, which would stay
 behind on a machine of your own.
 
-A self-hosted Linux runner needs Docker (the MySQL 8 service container) and
-passwordless `sudo` for `playwright install --with-deps`. The MySQL
+A self-hosted Linux runner needs Docker, with the runner's user in the
+`docker` group (the MySQL and MariaDB service containers). The browser
+job installs Chromium's system libraries itself when `sudo` works without
+a password; otherwise install them once by hand
+(`sudo npx playwright install-deps chromium`). The MySQL
 container gets a free host port, so several jobs (or a MySQL of your own
 on 3306) can share a machine. Each job installs into its own virtualenv
 under `RUNNER_TEMP`, so packages don't carry over between jobs.
