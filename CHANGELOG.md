@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.41.1] - 2026-10-01
+
+### Changed
+- The Sector Map draws nebulae and supernova remnants as see-through volumes: densest through the middle and fading at the edge, with a remnant showing as a bright shell. A cloud far larger than the sector, or one centered in another sector, still tints the view from inside it, and stars inside a cloud stay visible and clickable.
+
 ## [7.41.0] - 2026-10-01
 
 ### Added
