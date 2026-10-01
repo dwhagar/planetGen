@@ -770,7 +770,7 @@ MAP.48 and MAP.37, all fixed.
     `progress.json` for the web jobs reports the same decayed rate so
     the Generate page and UX.3's banner show the same ETA (default:
     yes).
-    Done (PR #225, PR #PR4): sector fill (PR #225) and the bright-star
+    Done (PR #225, PR #227): sector fill (PR #225) and the bright-star
     scatter run through PERF.8's queue; the scatter is one task per
     layer, densest layers first, each drawn from its own random stream
     (the scatter's seed and the layer), so any number of workers places
@@ -856,7 +856,7 @@ MAP.48 and MAP.37, all fixed.
     - Reset, the skeleton build and schema work keep `web/jobs.py`'s
       one-at-a-time lock.
 
-    Done (PR #225, PR #PR4): the queue and pool are built
+    Done (PR #225, PR #227): the queue and pool are built
     (`stellarObjects/workQueue.py`, control schema v5) and `generate.py
     sector` and every `galaxy` mode fill sectors through it. Two choices
     differ from the defaults above. The run that queues the work is the
