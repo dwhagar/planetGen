@@ -207,14 +207,16 @@ from tests import fuzz_support  # noqa: E402,F401
 
 @pytest.fixture(autouse=True)
 def _reset_login_backoff():
-    """The per-username login backoff (`api/loginbackoff.py`) is one
-    process-wide instance, so one test's failed logins would otherwise
-    lock the same username in every later test."""
+    """The login lockouts' in-memory fallback (`api/loginguard.py`) is one
+    process-wide store, so one test's failed logins (against an app with
+    no real control database) would otherwise lock the same username or
+    address in every later test. The database-backed counts live in each
+    test's own throwaway database."""
     try:
-        from api.loginbackoff import backoff
+        from api.loginguard import memory_store
     except ImportError:  # the API's dependencies aren't installed
         yield
         return
-    backoff.clear()
+    memory_store.clear()
     yield
-    backoff.clear()
+    memory_store.clear()

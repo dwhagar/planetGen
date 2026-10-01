@@ -625,7 +625,7 @@ dwarfs share the table), and `star_systems.runaway_class`/
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
-`control_schema_migrations`, currently version 1) — see "The control
+`control_schema_migrations`, currently version 2) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
 about.
@@ -641,8 +641,11 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Four tables, versioned independently via `control_schema_migrations`
-(currently version 1, mirroring `schema_migrations`'s own shape):
+Five tables, versioned independently via `control_schema_migrations`
+(currently version 2, mirroring `schema_migrations`'s own shape; v2 added
+`login_throttle`, and every control-schema change so far is a new table,
+which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
+`migrateDb.py` run):
 
 - **`admin_users`** — one row per admin (`username`, `password_hash`,
   `must_change_credentials`). No roles/permissions column — every admin
@@ -657,7 +660,17 @@ Four tables, versioned independently via `control_schema_migrations`
 - **`admin_audit_log`** — one row per write/admin action (`admin_user_id`
   + a denormalized `admin_username` snapshot, `action`, `target`,
   `detail`, `created_at`) — written by `html/api/routes.py`'s write
-  routes (`html/api/authz.audit`) after each one actually succeeds.
+  routes (`html/api/authz.audit`) after each one actually succeeds,
+  plus one per refused sign-in (`login.failed`, `login.locked`,
+  `password.failed`, with `target` `ip:<address>`; those are deleted
+  after 90 days).
+- **`login_throttle`** (v2, SEC.1/SEC.21) — failed-login counts and
+  lockouts: `scope` (`ip`, or `user`) and `subject` (the address, an IPv6
+  one by its /64, or the case-folded username) as the key, then
+  `failures`, `level` (lockouts so far, which double the next), and
+  `locked_until`/`last_failure_at`/`last_lockout_at` in Unix seconds.
+  Read and written by `stellarObjects/loginThrottle.py`; idle rows are
+  deleted after a week.
 
 `stellarObjects/adminAuth.py` is the only code that reads/writes these
 tables directly — `bootstrap_control_schema` creates the schema and,

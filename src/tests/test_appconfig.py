@@ -72,6 +72,7 @@ def test_default_config_matches_example_shape():
         "mysql",
         "control_database",
         "ratelimit",
+        "login_allowlist",
         "admin_cookie_insecure",
         "secret_key",
         "proxy_fix",

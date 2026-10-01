@@ -784,6 +784,22 @@ def admin_login_failures(cookie_header, limit=None):
     return body["items"]
 
 
+def admin_lockouts(cookie_header):
+    """`GET /api/admin/lockouts` -- `{"items": [{"scope", "subject",
+    "retry_after", "locked_until", "level"}], "proxy_warning"}`."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/lockouts", cookie_header=cookie_header)
+    return body
+
+
+def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):
+    """`POST /api/admin/lockouts/lift` -- one lockout, or every one with
+    `lift_all`. Returns how many were lifted."""
+    payload = {"all": True} if lift_all else {"scope": scope, "subject": subject}
+    body, _set_cookie_headers = _auth_request("POST", "/admin/lockouts/lift", cookie_header=cookie_header,
+                                              json_body=payload)
+    return body["lifted"]
+
+
 def admin_duplicate_names(cookie_header, db, limit=None, offset=None):
     """`GET /api/admin/duplicate-names?db=&limit=&offset=` -- one page of the
     names the uniqueness rules had to decorate, each with the rows that
