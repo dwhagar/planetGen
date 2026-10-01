@@ -1137,6 +1137,9 @@ def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
 # Admin routes refuse anonymous visitors
 # ---------------------------------------------------------------------
 
+ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors"})
+"""The admin pages' own JSON routes: a 403 instead of a redirect."""
+
 @pytest.mark.parametrize("rule", ADMIN_PAGE_RULES, ids=_rule_ids(ADMIN_PAGE_RULES))
 @settings(max_examples=scaled(8))
 @given(pairs=query_pairs)
@@ -1144,7 +1147,7 @@ def test_admin_pages_bounce_anonymous_visitors(app, fuzz_db, rule, pairs):
     path = build_path(rule, real_values(rule, fuzz_db))
     response = app.test_client().get(path, query_string=urlencode(pairs))
     check_response(response, path, sent=[v for pair in pairs for v in pair])
-    if rule.endpoint == "web.generate_status":
+    if rule.endpoint in ADMIN_JSON_ENDPOINTS:
         assert response.status_code == 403
         return
     assert response.status_code == 302, f"{path} -> {response.status_code}"
@@ -1187,7 +1190,7 @@ def test_default_credentials_admin_is_sent_to_account(fuzz_db, _mysql_server_ava
             path = build_path(rule, real_values(rule, fuzz_db))
             response = client.get(path)
             check_response(response, path)
-            if rule.endpoint == "web.generate_status":
+            if rule.endpoint in ADMIN_JSON_ENDPOINTS:
                 assert response.status_code == 403
             else:
                 assert response.status_code == 302 and urlsplit(response.headers["Location"]).path == "/account", path
