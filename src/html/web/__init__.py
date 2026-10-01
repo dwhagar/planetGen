@@ -34,7 +34,7 @@ Pieces:
 import os
 import sys
 
-from flask import Blueprint, request
+from flask import Blueprint, current_app, has_app_context, request
 from markupsafe import Markup
 
 _HTML_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,7 +45,9 @@ _STATIC_DIR = os.path.join(_HTML_DIR, "static")
 if _LIB_DIR not in sys.path:
     sys.path.insert(0, _LIB_DIR)
 
+import apiclient  # noqa: E402
 import classref  # noqa: E402
+import pagecache  # noqa: E402
 from fmt import STATIC_VERSION, utc_time_html  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
@@ -130,6 +132,43 @@ from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /clas
 from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 
 
+PAGE_CACHE_EXTENSION = "planetgen_page_cache"
+"""str: Where `_install_page_cache` keeps the app's
+`pagecache.ResponseCache` (`app.extensions`)."""
+
+_WRITE_METHODS = frozenset(("POST", "PUT", "PATCH", "DELETE"))
+
+
+def _app_page_cache():
+    """`apiclient.set_response_cache`'s provider: the current app's
+    cache, or `None` outside an app (a CLI, a test calling `apiclient`
+    directly)."""
+    if not has_app_context():
+        return None
+    return current_app.extensions.get(PAGE_CACHE_EXTENSION)
+
+
+def _install_page_cache(app):
+    """
+    Gives `app` its own `pagecache.ResponseCache` (TODO 8) unless
+    `page_cache.enabled` is off, and clears it after every successful
+    write under `/api` -- a page's admin form or an API client alike.
+    """
+    settings = pagecache.settings_from(load_config())
+    if not settings["enabled"]:
+        return
+    cache = pagecache.ResponseCache(lambda db: apiclient.get_galaxy_changes(db)["stamp"], settings)
+    app.extensions[PAGE_CACHE_EXTENSION] = cache
+    apiclient.set_response_cache(_app_page_cache)
+
+    @app.after_request
+    def _clear_page_cache_after_writes(response):
+        if (request.method in _WRITE_METHODS and request.path.startswith("/api/")
+                and response.status_code < 400):
+            cache.clear()
+        return response
+
+
 def init_app(app, limiter=None):
     """
     Registers the pages on `app`. Called by `api.app.create_app`.
@@ -150,6 +189,7 @@ def init_app(app, limiter=None):
     app.before_request(csrf.protect)
     app.after_request(csrf.set_cookie)
     transport.install()
+    _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
             "No secret_key in config.json (or PLANETGEN_SECRET_KEY): using a random key for this "

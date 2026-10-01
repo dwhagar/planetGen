@@ -71,7 +71,7 @@ const {
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { CELL_STRIDE, POINT_STRIDE, createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
-const { formatDistancePc } = await import(`./distance.js${VERSION_QUERY}`);
+const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -2124,6 +2124,166 @@ function initGalaxyMap3d(canvasEl, data) {
   renderFromCache(neededTiles());
   scheduleFetch(false);
 
+  // --- Territories -----------------------------------------------------------
+  //
+  // The Territories button draws who holds what (docs/design/population-
+  // and-politics.md): each polity's reach as a translucent ball around
+  // its capital, and the systems it owns as small dots in its own color
+  // (/galaxy/territories, at most 20,000 nearest their capitals). Both
+  // are cheap at galaxy scale -- a handful of balls, one points object --
+  // and the dots keep a fixed size on screen, so zooming out never turns
+  // them into a smear. Fetched once, the first time the button is
+  // pressed, and listed under the map with each polity's system count.
+  var TERRITORY_DOT_PX = 3.5;
+  var TERRITORY_BALL_OPACITY = 0.1;
+  var territoryGroup = null;
+  var territoryLoading = false;
+  var territoryWanted = false;
+  var territoryDots = null;
+
+  function lyToPc(ly) {
+    return (ly * LIGHTYEAR_M) / PARSEC_M;
+  }
+
+  function territoryColor(hex) {
+    return new THREE.Color(hex || accentColor);
+  }
+
+  // The polities' balls and the owned systems' dots, from the payload.
+  function buildTerritories(payload) {
+    var group = new THREE.Group();
+    group.renderOrder = 3;
+    (payload.polities || []).forEach(function (polity) {
+      if (!polity.capital_pc || !(polity.reach_ly > 0)) {
+        return;
+      }
+      var ball = new THREE.Mesh(
+        new THREE.SphereGeometry(lyToPc(polity.reach_ly), 32, 16),
+        new THREE.MeshBasicMaterial({
+          color: territoryColor(polity.color), transparent: true, opacity: TERRITORY_BALL_OPACITY,
+          depthWrite: false, side: THREE.BackSide,
+        })
+      );
+      ball.position.set(polity.capital_pc[0], polity.capital_pc[1], polity.capital_pc[2]);
+      ball.frustumCulled = false;
+      group.add(ball);
+    });
+    var points = payload.points || [];
+    if (points.length) {
+      var positions = new Float32Array(points.length * 3);
+      var colors = new Float32Array(points.length * 3);
+      points.forEach(function (point, n) {
+        positions[3 * n] = point.x;
+        positions[3 * n + 1] = point.y;
+        positions[3 * n + 2] = point.z;
+        var color = territoryColor(point.color);
+        colors[3 * n] = color.r;
+        colors[3 * n + 1] = color.g;
+        colors[3 * n + 2] = color.b;
+      });
+      var geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+      territoryDots = new THREE.Points(geometry, new THREE.PointsMaterial({
+        size: TERRITORY_DOT_PX * renderer.getPixelRatio(), sizeAttenuation: false, vertexColors: true,
+        transparent: true, depthWrite: false,
+      }));
+      territoryDots.frustumCulled = false;
+      group.add(territoryDots);
+    }
+    return group;
+  }
+
+  // The legend under the map: one row per polity, with its color, its
+  // government and how many systems it holds.
+  function showTerritoryLegend(payload) {
+    var box = document.getElementById("galaxymap3d-territories");
+    if (!box) {
+      return;
+    }
+    box.textContent = "";
+    var named = (payload.polities || []).filter(function (polity) { return polity.name; });
+    var heading = document.createElement("h3");
+    heading.textContent = "Territories";
+    box.appendChild(heading);
+    if (!named.length) {
+      var empty = document.createElement("p");
+      empty.className = "hint";
+      empty.textContent = (payload.polities || []).length
+        ? "No polity has a name yet."
+        : "No polity holds any system yet.";
+      box.appendChild(empty);
+      return;
+    }
+    var list = document.createElement("ul");
+    named.sort(function (p, q) { return (q.system_count || 0) - (p.system_count || 0); });
+    named.forEach(function (polity) {
+      var item = document.createElement("li");
+      var swatch = document.createElement("span");
+      swatch.className = "galaxy-territory-swatch";
+      swatch.style.background = polity.color || accentColor;
+      var name = document.createElement("span");
+      name.textContent = polity.name + (polity.government ? " · " + polity.government : "");
+      var count = document.createElement("span");
+      count.className = "galaxy-territory-count";
+      count.textContent = (polity.system_count || 0).toLocaleString()
+        + (polity.system_count === 1 ? " system" : " systems");
+      item.appendChild(swatch);
+      item.appendChild(name);
+      item.appendChild(count);
+      list.appendChild(item);
+    });
+    box.appendChild(list);
+  }
+
+  function setTerritories(on, button) {
+    territoryWanted = on;
+    var box = document.getElementById("galaxymap3d-territories");
+    if (box) {
+      box.hidden = !on;
+    }
+    if (territoryGroup) {
+      territoryGroup.visible = on;
+      return;
+    }
+    if (!on || territoryLoading) {
+      return;
+    }
+    territoryLoading = true;
+    if (button) {
+      button.disabled = true;
+    }
+    fetch(data.territoryPath || "/galaxy/territories", { headers: { Accept: "application/json" } })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("HTTP " + response.status);
+        }
+        return response.json();
+      })
+      .then(function (payload) {
+        territoryGroup = buildTerritories(payload);
+        territoryGroup.visible = territoryWanted;
+        scene.add(territoryGroup);
+        showTerritoryLegend(payload);
+      })
+      .catch(function () {
+        showHint("The territories could not be loaded. Please try again shortly.", true);
+        if (button) {
+          button.setAttribute("aria-pressed", "false");
+        }
+        territoryWanted = false;
+        if (box) {
+          box.hidden = true;
+        }
+      })
+      .then(function () {
+        territoryLoading = false;
+        if (button) {
+          button.disabled = false;
+        }
+      });
+  }
+
   // --- NAV course ---------------------------------------------------------------
   //
   // With ?course=<from>,<to> (the NAV result's "Show on Galaxy Map", see
@@ -2733,6 +2893,11 @@ function initGalaxyMap3d(canvasEl, data) {
         var action = button.dataset.action;
         if (action === "free-look") {
           setStageMode(!stageMode);
+          return;
+        }
+        if (action === "territories") {
+          setTerritories(button.getAttribute("aria-pressed") !== "true", button);
+          button.setAttribute("aria-pressed", String(territoryWanted));
           return;
         }
         if (action === "generated-only") {

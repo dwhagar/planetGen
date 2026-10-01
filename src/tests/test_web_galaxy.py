@@ -59,6 +59,11 @@ class FakeData:
         self.tile_calls = []
         self.fail_tiles = None
         self.stage_calls = []
+        self.polity_total = 2
+
+    def get_polities(self, db, limit=None, offset=None):
+        self.dbs.add(db)
+        return {"items": [], "total": self.polity_total, "limit": limit, "offset": offset}
 
     def get_galaxy_sectors(self, db):
         self.dbs.add(db)
@@ -95,7 +100,7 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch, tmp_path):
     data = FakeData()
-    for name in ("get_galaxy_sectors", "get_galaxy_shape", "auth_me"):
+    for name in ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
@@ -304,6 +309,60 @@ def test_stage_endpoint_rejects_bad_keys(client, fake):
         assert resp.status_code == 400
         assert "error" in resp.get_json()
     assert fake.stage_calls == []
+
+
+def test_galaxy_page_offers_territories_once_polities_exist(client, fake):
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert 'data-action="territories"' in html
+    assert _scene(html)["territoryPath"] == "/galaxy/territories"
+
+
+@pytest.mark.parametrize("failure", [None, apiclient.ApiError("down")])
+def test_galaxy_page_hides_territories_without_population(client, fake, monkeypatch, failure):
+    """No polities generated (or the count can't be read): no button."""
+    if failure is None:
+        fake.polity_total = 0
+    else:
+        def fail(db, limit=None, offset=None):
+            raise failure
+        monkeypatch.setattr(apiclient, "get_polities", fail)
+    html = client.get("/galaxy").get_data(as_text=True)
+    assert 'data-action="territories"' not in html
+    assert 'id="galaxymap3d-territories"' not in html
+    assert _scene(html)["territoryPath"] is None
+
+
+# --- /galaxy/territories -----------------------------------------------------------------
+
+def test_territories_endpoint_names_each_polity(client, fake, monkeypatch):
+    """The overlay's endpoint folds each polity's name, color and system
+    count (from `/api/polities`) into `/api/territories`' ids."""
+    monkeypatch.setattr(apiclient, "get_territories", lambda db: {
+        "points": [{"id": 1, "polity_id": 7, "color": "#d94f4f", "x": 1.0, "y": 2.0, "z": 0.0}],
+        "polities": [{"id": 7, "capital_pc": [1.0, 2.0, 0.0], "reach_ly": 40.0},
+                     {"id": 8, "capital_pc": None, "reach_ly": 20.0}],
+    })
+    monkeypatch.setattr(apiclient, "get_polities", lambda db, limit=None, offset=None: {
+        "items": [{"id": 7, "name": "The Union", "color": "#d94f4f", "government": "federation",
+                   "system_count": 12}],
+        "total": 1, "limit": limit, "offset": 0,
+    })
+    body = client.get("/galaxy/territories").get_json()
+    assert body["points"][0]["id"] == 1
+    union, unnamed = body["polities"]
+    assert (union["name"], union["system_count"], union["reach_ly"]) == ("The Union", 12, 40.0)
+    # A polity the names page didn't reach is still drawn, just unnamed.
+    assert unnamed["id"] == 8 and unnamed["name"] is None
+
+
+def test_territories_endpoint_reports_an_api_failure(client, fake, monkeypatch):
+    def fail(db, **kwargs):
+        raise apiclient.ApiError("down")
+
+    monkeypatch.setattr(apiclient, "get_territories", fail)
+    resp = client.get("/galaxy/territories")
+    assert resp.status_code == 502
+    assert "error" in resp.get_json()
 
 
 # --- The NAV course overlay --------------------------------------------------------------

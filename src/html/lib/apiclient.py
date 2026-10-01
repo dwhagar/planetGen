@@ -42,6 +42,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspa
 from stellarObjects import log  # noqa: E402
 from stellarObjects.appconfig import load_config  # noqa: E402
 
+import pagecache  # noqa: E402 -- a sibling in lib/
+
 API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
 the same host (see `examples/apache/planetgen.conf.example`) -- only used
@@ -137,6 +139,35 @@ def set_transport(transport):
     """
     global _transport
     _transport = transport
+
+
+_response_cache = None
+"""callable or None: Returns the `pagecache.ResponseCache` to use for the
+current call (or `None` for none); see `set_response_cache`."""
+
+
+def set_response_cache(provider):
+    """
+    Lets `_request` serve public GETs from a cache (`lib/pagecache.py`).
+
+    Args:
+        provider (callable or None): `provider()` -> a
+            `pagecache.ResponseCache`, or `None` when no cache applies to
+            this call (the Flask pages pass their app's own). `None`
+            removes the hook.
+    """
+    global _response_cache
+    _response_cache = provider
+
+
+def _cache_db(params):
+    """The `db` a GET's params name, or `None`."""
+    if isinstance(params, dict):
+        return params.get("db") or None
+    for key, value in params or ():
+        if key == "db":
+            return value or None
+    return None
 
 
 def _http_transport(method, target, data, headers, timeout):
@@ -237,7 +268,16 @@ def _request(path, params=None):
     """
     query = _build_query(params)
     target = f"{path}?{query}" if query else path
-    return _parse_json(_send("GET", target).body)
+    cache = _response_cache() if _response_cache is not None and pagecache.is_cacheable(path) else None
+    if cache is None:
+        return _parse_json(_send("GET", target).body)
+    db = _cache_db(params)
+    body = cache.get(db, target)
+    if body is None:
+        generation = cache.generation
+        body = _send("GET", target).body
+        cache.put(db, target, body, generation)
+    return _parse_json(body)
 
 
 def _auth_request(method, path, json_body=None, cookie_header=None, timeout=_TIMEOUT_SECONDS):
@@ -449,6 +489,21 @@ def get_galaxy_stage(db, at=None):
     through `lib/tilecache.py`, which caches each stage on disk."""
     _require_db(db)
     return _request("/galaxy/stage", {"db": db, "at": at})
+
+
+def get_territories(db):
+    """Returns `GET /api/territories`' payload (`points`: owned systems
+    with galaxy-frame parsec positions and their polity's color;
+    `polities`: each one's `id`, `capital_pc` and `reach_ly`)."""
+    _require_db(db)
+    return _request("/territories", {"db": db})
+
+
+def get_polities(db, limit=None, offset=None):
+    """Returns `GET /api/polities`' paginated envelope (`items`/`total`/
+    `limit`/`offset`), polities by name."""
+    _require_db(db)
+    return _request("/polities", {"db": db, "limit": limit, "offset": offset})
 
 
 def get_galaxy_locate(db, q):

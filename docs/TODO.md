@@ -64,19 +64,6 @@ renumber when items are added or finished.
 - Items with a **Question for Boss** state the default taken; the work
    can start on that default.
 
-### Performance
-
-8. [ ] **Add a cache so pages don't hit the database on every request.**
-   Every page calls the Flask API through `html/lib/apiclient.py`,
-   and every API route queries MySQL fresh, including results that rarely
-   change (`/api/galaxy/sectors`, `/api/galaxy/shape`, sector and system
-   detail). The 3D Galaxy Map already has one: its cube tiles are cached
-   on disk by the web layer (`html/lib/tilecache.py`) and in the browser,
-   and an edit refreshes only the tiles it touched (`GET /api/galaxy/
-   changes`, from the v27 `modified_at` columns). Extend that pattern to
-   the other pages, invalidating each page from its own rows'
-   `modified_at`.
-
 ### Galaxy Map and the sector standard (`static/galaxyprisms.js`, `static/galaxymap3d.js`, `lib/galaxymap3d.py`, `stellarObjects/galaxyGeometry.py`)
 
 Today the map draws the analytic density as shrunk prisms, m sectors a
@@ -84,6 +71,69 @@ side (m a power of 3), sized by a volume budget that badly overestimates
 the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
+
+Bugs Boss found on the map (2026-10-01): "bug fix, wedge lines should
+not extend past the boundary of the galaxy. bug fix, bright stars do not
+display past 500 seconds scale (1 block = 81 sectors across). bug fix
+zooming reveals stars are being drawn but it takes a while to load,
+another bugfix, it's really hard to find the generated star system on
+the map, so everything not yet filled should be more transparent by a
+lot with a much higher contrast."
+
+96. [ ] **Bug: wedge lines run past the galaxy's edge.** Boss: "wedge
+    lines should not extend past the boundary of the galaxy." Today
+    `galaxymap3d.js` (`buildWedgeLines`) draws every master line of
+    `galaxyprisms.wedgeLines` as a straight radial line out to
+    `GALAXY_RADIUS * 1.02`, a fixed circle, so the lines carry on past
+    the galaxy's real outline (which is not a circle at every bearing)
+    and slightly past the radius itself. Done: each wedge line stops at
+    the galaxy's boundary along its bearing, in the 3D view and the
+    drill-down stages (items 70-72) alike. Open questions: which
+    boundary counts (the outermost generated ring at that bearing, the
+    density model's cutoff from `densityShape`, or the outermost layer
+    extent from `galaxySkeleton.build_layer_extents`); and whether the
+    bearing labels move in to the new line ends.
+
+97. [ ] **Bug: bright stars vanish when zoomed out.** Boss: "bright
+    stars do not display past 500 seconds scale (1 block = 81 sectors
+    across)." Past that zoom the pre-placed bright stars (v43,
+    `bright_stars`, drawn as points with a glow) stop showing; they
+    should show at every zoom. Leads to check, not yet confirmed: each
+    tile carries at most `queryDb.GALAXY_TILE_MAX_BRIGHT_STARS` (400)
+    stars, and zoomed out the view may switch to tiles or a view
+    radius that leaves stars out. Done: bright stars draw at every zoom
+    out to the whole galaxy, thinned by luminosity if there are too many
+    rather than disappearing. Open questions: "500 seconds" is taken as
+    the scale readout at the zoom where blocks are 81 sectors a side;
+    Boss to confirm which readout he meant. How many stars should the
+    whole-galaxy view draw (the brightest N overall, or the brightest
+    per tile)?
+
+98. [ ] **Bug: stars take a while to appear after a zoom.** Boss:
+    "zooming reveals stars are being drawn but it takes a while to
+    load." After a zoom the bright stars (and the tiles they come in,
+    `renderFromCache` in `galaxymap3d.js`) arrive late, so the view
+    shows them popping in. Done: stars already loaded stay on screen
+    through a zoom, the tiles for the new view load faster or ahead of
+    time, and nothing visibly pops in. Open questions: where the time
+    goes (the tile request, `galaxy_bright_stars_in_box`'s query, or
+    rebuilding the points); whether to prefetch the next zoom level's
+    tiles; and whether a separate, lighter star endpoint would help
+    (ties in with item 90's fewer, bigger database calls).
+
+99. [ ] **Bug: generated systems are hard to find on the map.** Boss:
+    "it's really hard to find the generated star system on the map, so
+    everything not yet filled should be more transparent by a lot with
+    a much higher contrast." Done: blocks and sectors not yet filled
+    draw much more transparent, and filled sectors stand out with much
+    higher contrast against them, on the 3D map and on the drill-down
+    stages (items 70-72). Open questions: how transparent the unfilled
+    blocks go (and whether the density shape still reads at the galaxy
+    scale); what "higher contrast" uses (a bright color, an outline, a
+    glow like the bright stars); whether a block holding only a few
+    filled sectors gets the filled look; and whether it follows the
+    light and dark themes and the Accessibility Standards' contrast
+    rules.
 
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
@@ -121,12 +171,6 @@ stages themselves don't need it.
     needs a new `generate.py galaxy --block m.I.s.S [--block-layer j]`
     mode and a Generate page form for it. Once that exists, the Galaxy
     Map adds the button at stages 7-8.
-
-74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
-    Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
-    start/destination" button on a system or phenomenon, which lands on
-    `/nav?from=...&to=...`; system and phenomenon pages and the Sector
-    Map panel get "Nav from here" and "Nav to here".
 
 75. [ ] **NAV page picks on the map (section 9).** Boss: "from the nav
     menu select start and destination using either the text dropdowns as
@@ -174,23 +218,6 @@ for a mouse; spacing and type sized with `clamp()`.
     checked at 390, 600, 768, 820, 1024 and 1280 px in both themes and
     both orientations, with touch targets still at least 44 px on touch
     screens.
-
-63. [ ] **A bigger Galaxy Map with its controls underneath.** Boss
-    (2026-10-01): "I also want the galaxy map box to be bigger, place the
-    controls under it horizontally if possible, stacked if not, but use as
-    much of the browser area as is reasonable to display the galaxy map."
-    Today the map is a square capped at 36rem
-    (`.galaxymap3d-panel .starmap-viewport` in `static/style.css`) inside
-    the 72rem main column (`.app .app-main`), with the controls and info
-    panel in a side column (`.starmap-side`, built in
-    `lib/galaxymap3d.py`). Done: the Galaxy Map page lets the map use most
-    of the browser window (wider than the 72rem column, and as tall as
-    the window allows after the header, not forced square), the controls
-    sit in a row under the map and wrap to a stack when the row doesn't
-    fit, and the canvas resizes with the window (`static/galaxymap3d.js`
-    must follow the new size; the Galaxy Map thread owns that file).
-    Open question: does the block info panel go under the controls, or
-    stay beside the map on wide screens?
 
 87. [ ] **Warn every visitor while a background job changes the
     galaxy.** Boss (2026-10-01): "a warning to all users on the UI when a
@@ -490,33 +517,6 @@ for a mouse; spacing and type sized with `clamp()`.
     figure); whether existing sectors are backfilled by a migration;
     and what happens to the stats when a sector is regenerated
     (item 60) or the galaxy is reset.
-
-### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
-
-25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
-    stars should be not a 3D map but rather a rendered representation of
-    the neutron star pulsing in rough time with its properties and show
-    some way to show it's spinning from the render. Same for comets,
-    rogue planets, etc, asteroid fields don't get a 3D render at all,
-    black holes should get a 3D render representing their accretion
-    disk around it. Similar for Quasars we should see a 3D rendering
-    similar to what it might look like."
-    - Today `render_phenomenon_map_panel` draws a flat SVG: a circle of
-      `radius_ly` for nebulae, asteroid fields and remnants, a dot for
-      everything else.
-    - Neutron star: pulse in rough time with `spin_period_ms` (slowed to
-      a visible rate, stated on screen), beams or a surface feature so
-      the spin reads; non-pulsing ones just rotate.
-    - Comet, rogue planet: a rendered body (the tail for a comet).
-    - Asteroid field: no render.
-    - Black hole: a three.js accretion disk (tilt, glow; intermediate
-      and stellar sizes differ). Quasar: the disk plus jets when
-      radio-loud.
-    - `prefers-reduced-motion` gets a still frame; pages still read
-      without JavaScript.
-    - Nebulae and supernova remnants: Boss (2026-09-30) wants them
-      generated and placed on the maps (#27); their own view keeps a
-      map until a render is designed for them.
 
 
 ### Star population (from the galaxy studies of 2026-09-30)

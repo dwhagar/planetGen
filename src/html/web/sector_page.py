@@ -292,6 +292,57 @@ def _handle_post(sector_id, admin):
     return page_again
 
 
+_PICK_LABELS = {"from": ("Choosing a start", "Use as start"),
+                "to": ("Choosing a destination", "Use as destination")}
+
+
+def _pick_mode(args):
+    """
+    The NAV pick mode from `?pick=from|to&from=...|to=...` (design doc
+    section 9.1), or `None`.
+
+    Returns:
+        dict or None: `{"pick", "other", "banner", "label", "cancel"}`:
+            which endpoint is being chosen, the other endpoint already
+            chosen (an `endpoint()` string, or `None`), the banner text,
+            the button label, and the Cancel URL (`/nav` with the other
+            endpoint kept). A bad `pick` or other endpoint drops pick
+            mode rather than failing the page.
+    """
+    from .nav_page import endpoint, nav_url, parse_endpoint  # nav_page imports this module
+
+    pick = args.get("pick")
+    if pick not in _PICK_LABELS:
+        return None
+    other_field = "to" if pick == "from" else "from"
+    other = args.get(other_field) or None
+    if other:
+        try:
+            other = endpoint(*parse_endpoint(other))
+        except apiclient.NotFoundError:
+            return None
+    banner, label = _PICK_LABELS[pick]
+    cancel = nav_url(destination=other) if pick == "from" else nav_url(origin=other)
+    return {"pick": pick, "other": other, "banner": banner, "label": label, "cancel": cancel}
+
+
+def _nav_for(pick):
+    """The Sector Map's `nav(kind, id)` hook (`starmap.render_map_panel`)."""
+    from .nav_page import endpoint, nav_url  # nav_page imports this module
+
+    def nav(kind, entity_id):
+        here = endpoint(kind, entity_id)
+        links = {"from": nav_url(origin=here), "to": nav_url(destination=here), "pick": None, "pickLabel": None}
+        if pick is not None:
+            if pick["pick"] == "from":
+                links["pick"] = nav_url(origin=here, destination=pick["other"])
+            else:
+                links["pick"] = nav_url(origin=pick["other"], destination=here)
+            links["pickLabel"] = pick["label"]
+        return links
+    return nav
+
+
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`?contents_page=N`), and
@@ -306,6 +357,7 @@ def sector(sector_id):
         errors[form] = message
 
     detail = apiclient.get_sector(db_name(), sector_id)
+    pick = _pick_mode(request.args)
     if detail.get("wiki_url") and not is_http_url(detail["wiki_url"]):
         # Saved before the API checked it: never link to a javascript:/
         # data: URL.
@@ -321,6 +373,7 @@ def sector(sector_id):
         (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
         center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
         generate=generate_target(admin),
+        nav=_nav_for(pick),
     )
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
@@ -357,4 +410,5 @@ def sector(sector_id):
         wiki_backends=wiki_backends,
         errors=errors,
         messages=get_flashed_messages(category_filter=[_FLASH_CATEGORY]),
+        pick=pick,
     )
