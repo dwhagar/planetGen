@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.87.177] - 2026-10-01
+
+### Changed
+
+- Galaxy Map: the layers of a small cube of sectors now touch instead of being pulled apart, so no space shows between blocks or layers anywhere in the drill-down.
+
 ## [7.86.177] - 2026-10-01
 
 ### Changed
