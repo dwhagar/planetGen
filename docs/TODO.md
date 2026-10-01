@@ -745,13 +745,6 @@ clears each one.
   markers in `pytest.ini` so fast/no-DB, DB and browser runs can be
   picked separately. [infra]
 
-- [ ] **TEST.2 Parallel test runs**
-  Add pytest-xdist, give each worker its own control database name
-  (today `configured_control_database()` defaults to one fixed name),
-  and a session-scoped template schema so each test doesn't rebuild
-  `schema.sql` from scratch; goal: the 17-22 minute suite well under 10.
-  [infra]
-
 - [ ] **TEST.3 MariaDB in CI**
   Add MariaDB 10.11 and 11.x legs (and MySQL 8.4) to `ci.yml`; today CI
   is MySQL 8.0 only, so the engine-specific paths in `_db.py` (statement
