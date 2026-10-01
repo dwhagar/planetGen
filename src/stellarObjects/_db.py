@@ -66,7 +66,7 @@ from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
-from .galaxyGeometry import SectorCell, local_to_galaxy_pc, provisional_sector_designation
+from .galaxyGeometry import SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation
 from .bodyNames import rename_prefix
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
@@ -84,7 +84,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 40
+SCHEMA_VERSION = 41
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -2142,6 +2142,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             row_id = inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
             if sector_id is not None:
                 refresh_containment(conn, [sector_id])
+                refresh_nearest_systems(conn, [sector_id])
             return row_id
     finally:
         conn.close()
@@ -2293,12 +2294,6 @@ def _format_location_string(sector_name, neighbors):
     return f"{sector_name} -- nearest: " + ", ".join(parts)
 
 
-# TODO(phenomena #26): today only a text summary of the 3 nearest systems
-# is stored (star_systems.location), found within the sector only.
-# Precalculate and store the 3 nearest star systems for every system and
-# every phenomenon in a table (id, kind, rank, neighbor_system_id,
-# distance), searching across sector boundaries; recompute on generate and
-# on each correlative update (#32).
 def _location_for_entry(sector: SpaceSector, entry: SectorSystemEntry) -> str:
     """
     Computes `entry`'s `star_systems.location` string from the live
@@ -2674,6 +2669,282 @@ def _refresh_containment_batch(conn, sector_ids):
                 apply(table, row, point)
 
 
+PLACED_PHENOMENON_TABLES = (
+    "black_holes", "neutron_stars", "nebulae", "supernova_remnants", "rogue_planets",
+    "interstellar_comets", "asteroid_fields", "quasars",
+)
+"""tuple: The phenomenon tables with a galaxy-frame center, each with a
+`quadrant` column since v41."""
+
+NEAREST_SYSTEMS_COUNT = 3
+"""int: How many nearest star systems `nearest_systems` keeps per object."""
+
+NEAREST_SYSTEMS_SEARCH_PC = 4.0
+"""float: How far (parsecs, one sector edge) `refresh_nearest_systems`
+looks for an object's nearest systems. An object with fewer systems than
+`NEAREST_SYSTEMS_COUNT` inside that distance keeps fewer rows."""
+
+_NEAREST_GRID_CELL_PC = 1.0
+
+
+class _SystemGrid:
+    """Star systems bucketed into `_NEAREST_GRID_CELL_PC` cubes, for
+    nearest-neighbor searches without numpy."""
+
+    def __init__(self, systems):
+        self.cells = {}
+        for system_id, point in systems:
+            self.cells.setdefault(self._key(point), []).append((system_id, point))
+
+    @staticmethod
+    def _key(point):
+        return tuple(math.floor(c / _NEAREST_GRID_CELL_PC) for c in point)
+
+    def nearest(self, point, count=NEAREST_SYSTEMS_COUNT, limit_pc=NEAREST_SYSTEMS_SEARCH_PC, exclude=None):
+        """The `count` nearest `(distance_pc, system_id)` within
+        `limit_pc` of `point`, nearest first, leaving out `exclude`."""
+        cx, cy, cz = self._key(point)
+        best = []
+        max_shell = int(math.ceil(limit_pc / _NEAREST_GRID_CELL_PC)) + 1
+        for shell in range(max_shell + 1):
+            if len(best) >= count and best[count - 1][0] <= (shell - 1) * _NEAREST_GRID_CELL_PC:
+                break
+            for dx in range(-shell, shell + 1):
+                for dy in range(-shell, shell + 1):
+                    for dz in range(-shell, shell + 1):
+                        if max(abs(dx), abs(dy), abs(dz)) != shell:
+                            continue
+                        for system_id, other in self.cells.get((cx + dx, cy + dy, cz + dz), ()):
+                            if system_id == exclude:
+                                continue
+                            distance = math.dist(point, other)
+                            if distance <= limit_pc:
+                                best.append((distance, system_id))
+            best.sort()
+            del best[count:]
+        return best
+
+
+def _sector_centers(conn, sector_ids):
+    """`{sector_id: (x, y, z)}` for the placed sectors among `sector_ids`."""
+    centers = {}
+    sector_ids = sorted(set(sector_ids))
+    for start in range(0, len(sector_ids), 500):
+        batch = sector_ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        for row in conn.execute(
+            f"SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors"
+            f" WHERE id IN ({marks}) AND center_x_pc IS NOT NULL",
+            tuple(batch),
+        ).fetchall():
+            centers[row["id"]] = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    return centers
+
+
+def _placed_systems(conn, centers):
+    """`(system_id, sector_id, galaxy_point)` for every positioned system
+    in the sectors `centers` maps."""
+    systems = []
+    ids = sorted(centers)
+    for start in range(0, len(ids), 500):
+        batch = ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        for row in conn.execute(
+            f"SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems"
+            f" WHERE sector_id IN ({marks}) AND position_x_mpc IS NOT NULL",
+            tuple(batch),
+        ).fetchall():
+            offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+            systems.append((row["id"], row["sector_id"], local_to_galaxy_pc(centers[row["sector_id"]], offset)))
+    return systems
+
+
+def _placed_objects(conn, centers):
+    """`(table, object_id, sector_id, galaxy_point)` for every placed star
+    system and phenomenon in the sectors `centers` maps."""
+    objects = [("star_systems", system_id, sector_id, point)
+               for system_id, sector_id, point in _placed_systems(conn, centers)]
+    ids = sorted(centers)
+    for start in range(0, len(ids), 500):
+        batch = ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        for table in PLACED_PHENOMENON_TABLES:
+            for row in conn.execute(
+                f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc FROM {table}"
+                f" WHERE sector_id IN ({marks}) AND center_x_pc IS NOT NULL",
+                tuple(batch),
+            ).fetchall():
+                objects.append((table, row["id"], row["sector_id"],
+                                (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])))
+    return objects
+
+
+def _stored_nearest(conn, sector_ids):
+    """`{(table, object_id): [(distance_pc, system_id), ...]}`, nearest
+    first, from `nearest_systems` for objects in `sector_ids`."""
+    stored = {}
+    sector_ids = sorted(set(sector_ids))
+    for start in range(0, len(sector_ids), 500):
+        batch = sector_ids[start:start + 500]
+        marks = ", ".join("?" * len(batch))
+        for row in conn.execute(
+            f"SELECT object_table, object_id, neighbor_system_id, distance_pc FROM nearest_systems"
+            f" WHERE sector_id IN ({marks}) ORDER BY object_table, object_id, neighbor_rank",
+            tuple(batch),
+        ).fetchall():
+            stored.setdefault((row["object_table"], row["object_id"]), []).append(
+                (row["distance_pc"], row["neighbor_system_id"]))
+    return stored
+
+
+def _same_neighbors(old, new):
+    return [s for _d, s in old] == [s for _d, s in new] and all(
+        abs(a - b) < 1e-9 for (a, _s), (b, _t) in zip(old, new))
+
+
+def _write_nearest(conn, rows_by_object, sector_by_object):
+    """Replaces the stored neighbor list of each object in
+    `rows_by_object` (`{(table, id): [(distance_pc, system_id), ...]}`)."""
+    if not rows_by_object:
+        return
+    keys = list(rows_by_object)
+    for table in {table for table, _id in keys}:
+        ids = [object_id for t, object_id in keys if t == table]
+        for start in range(0, len(ids), 500):
+            batch = ids[start:start + 500]
+            marks = ", ".join("?" * len(batch))
+            conn.execute(f"DELETE FROM nearest_systems WHERE object_table = ? AND object_id IN ({marks})",
+                         (table, *batch))
+    values = [
+        (sector_by_object[key], key[0], key[1], key[1] if key[0] == "star_systems" else None,
+         rank, system_id, distance)
+        for key, neighbors in rows_by_object.items()
+        for rank, (distance, system_id) in enumerate(neighbors, start=1)
+    ]
+    if values:
+        conn.executemany(
+            "INSERT INTO nearest_systems (sector_id, object_table, object_id, star_system_id,"
+            " neighbor_rank, neighbor_system_id, distance_pc) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            values,
+        )
+
+
+def _octant_updates(conn, objects, centers):
+    """Sets each phenomenon's `quadrant` (v41) from where its center sits
+    in its sector, writing only rows that change."""
+    by_table = {}
+    for table, object_id, sector_id, point in objects:
+        if table == "star_systems":
+            continue
+        label, _magnitudes = classify_octant(galaxy_to_local_pc(centers[sector_id], point))
+        by_table.setdefault(table, []).append((label, object_id))
+    for table, pairs in by_table.items():
+        ids = [object_id for _label, object_id in pairs]
+        current = {}
+        for start in range(0, len(ids), 500):
+            batch = ids[start:start + 500]
+            marks = ", ".join("?" * len(batch))
+            for row in conn.execute(f"SELECT id, quadrant FROM {table} WHERE id IN ({marks})", tuple(batch)).fetchall():
+                current[row["id"]] = row["quadrant"]
+        changed = [(label, object_id) for label, object_id in pairs if current.get(object_id) != label]
+        if changed:
+            conn.executemany(f"UPDATE {table} SET quadrant = ?, modified_at = modified_at WHERE id = ?", changed)
+
+
+def _sectors_near(conn, centers, reach_pc):
+    """The placed sectors whose centers lie within `reach_pc` of any of
+    `centers`' values, as `{sector_id: center}` (bounding box, then exact)."""
+    if not centers:
+        return {}
+    low = tuple(min(c[i] for c in centers.values()) - reach_pc for i in range(3))
+    high = tuple(max(c[i] for c in centers.values()) + reach_pc for i in range(3))
+    rows = conn.execute(
+        "SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors"
+        " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
+        (low[0], high[0], low[1], high[1], low[2], high[2]),
+    ).fetchall()
+    near = {}
+    points = list(centers.values())
+    for row in rows:
+        center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        if any(math.dist(center, p) <= reach_pc for p in points):
+            near[row["id"]] = center
+    return near
+
+
+def _edge_pc(conn):
+    row = conn.execute("SELECT MAX(edge_mpc) AS edge FROM sectors").fetchone()
+    return (row["edge"] or 0) / 1000.0
+
+
+def refresh_nearest_systems(conn, sector_ids):
+    """
+    Recomputes the stored nearest star systems (`nearest_systems`, v41)
+    and each phenomenon's `quadrant` for every placed system and
+    phenomenon filed under `sector_ids`, searching every sector within
+    `NEAREST_SYSTEMS_SEARCH_PC`. Rows that didn't change aren't written.
+    Called by the v41 migration and the correlative update, which move
+    things; `insert_sector` uses the cheaper `_add_sector_to_nearest`.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
+    """
+    sector_ids = sorted(set(sector_ids))
+    half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
+    for start in range(0, len(sector_ids), 200):
+        centers = _sector_centers(conn, sector_ids[start:start + 200])
+        if not centers:
+            continue
+        near = _sectors_near(conn, centers, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
+        grid = _SystemGrid((system_id, point) for system_id, _sector, point in _placed_systems(conn, near))
+        objects = _placed_objects(conn, centers)
+        _octant_updates(conn, objects, centers)
+        stored = _stored_nearest(conn, centers)
+        changed, sectors = {}, {}
+        for table, object_id, sector_id, point in objects:
+            exclude = object_id if table == "star_systems" else None
+            neighbors = grid.nearest(point, exclude=exclude)
+            key = (table, object_id)
+            if not _same_neighbors(stored.get(key, []), neighbors):
+                changed[key] = neighbors
+                sectors[key] = sector_id
+        _write_nearest(conn, changed, sectors)
+
+
+def _add_sector_to_nearest(conn, sector_id):
+    """
+    Fills `nearest_systems` and `quadrant` for a newly generated sector
+    (`refresh_nearest_systems`), then merges its systems into the lists of
+    objects in neighboring sectors that already had theirs -- adding
+    systems can only bring neighbors nearer, so the stored lists plus the
+    new sector's systems are enough.
+    """
+    refresh_nearest_systems(conn, [sector_id])
+    own = _sector_centers(conn, [sector_id])
+    if not own:
+        return
+    half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
+    near = _sectors_near(conn, own, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
+    near.pop(sector_id, None)
+    if not near:
+        return
+    new_systems = [(system_id, point) for system_id, _sector, point in _placed_systems(conn, own)]
+    if not new_systems:
+        return
+    grid = _SystemGrid(new_systems)
+    stored = _stored_nearest(conn, near)
+    changed, sectors = {}, {}
+    for table, object_id, other_sector, point in _placed_objects(conn, near):
+        key = (table, object_id)
+        old = stored.get(key, [])
+        merged = sorted(old + grid.nearest(point))[:NEAREST_SYSTEMS_COUNT]
+        if not _same_neighbors(old, merged):
+            changed[key] = merged
+            sectors[key] = other_sector
+    _write_nearest(conn, changed, sectors)
+
+
 def sectors_reached_by(conn, center_pc, radius_pc):
     """The ids of every placed sector a sphere of `radius_pc` around
     `center_pc` (galaxy-frame parsecs) overlaps."""
@@ -2780,6 +3051,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
 
     if galaxy_position is not None:
         refresh_containment(conn, [sector_id])
+        _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
 
@@ -5709,6 +5981,51 @@ def _migrate_v39_to_v40(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (40)")
 
 
+def _migrate_v40_to_v41(conn):
+    """
+    Adds each placeable phenomenon's `quadrant` and the `nearest_systems`
+    table -- see `schema.sql`'s "v41" header note -- then fills both for
+    every placed sector (`refresh_nearest_systems`). Guarded per step.
+
+    Args:
+        conn (Connection): An open connection, mid-migration (not yet
+                           committed -- the caller commits once every step
+                           up to `SCHEMA_VERSION` has run).
+    """
+    for table in PLACED_PHENOMENON_TABLES:
+        if not _has_column(conn, table, "quadrant"):
+            conn.execute(
+                f"ALTER TABLE {table} ADD COLUMN quadrant VARCHAR(4) "
+                "CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'))"
+            )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS nearest_systems (
+            id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            sector_id            BIGINT UNSIGNED NOT NULL,
+            object_table         VARCHAR(32) NOT NULL,
+            object_id            BIGINT UNSIGNED NOT NULL,
+            star_system_id       BIGINT UNSIGNED,
+            neighbor_rank        TINYINT NOT NULL,
+            neighbor_system_id   BIGINT UNSIGNED NOT NULL,
+            distance_pc          DOUBLE NOT NULL,
+
+            UNIQUE KEY uq_nearest_systems_object_rank (object_table, object_id, neighbor_rank),
+            KEY idx_nearest_systems_neighbor (neighbor_system_id),
+            CONSTRAINT fk_nearest_systems_sector
+                FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+            CONSTRAINT fk_nearest_systems_system
+                FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+            CONSTRAINT fk_nearest_systems_neighbor
+                FOREIGN KEY (neighbor_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+        """
+    )
+    placed = [row["id"] for row in conn.execute("SELECT id FROM sectors WHERE center_x_pc IS NOT NULL").fetchall()]
+    refresh_nearest_systems(conn, placed)
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (41)")
+
+
 def _designate_existing_comets(conn):
     """Gives every stored star-bound comet its designation
     (`cometData.comet_designation`) -- `_designate_comets`' counterpart
@@ -5799,6 +6116,7 @@ def _migration_steps():
         (38, _migrate_v37_to_v38),
         (39, _migrate_v38_to_v39),
         (40, _migrate_v39_to_v40),
+        (41, _migrate_v40_to_v41),
     ]
 
 

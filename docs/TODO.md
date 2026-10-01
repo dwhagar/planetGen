@@ -42,9 +42,9 @@ renumber when items are added or finished.
    phenomena views and stored nearest systems (25-26), nebulae and
    remnants: placement, classes, containment and naming, plus asteroid
    field classes (27-31), the correlative update (32), navigation frames
-   and speeds (33-34), and facilities (35-36). 26, 27 and 35
-   are schema changes; 28 and 31 (classes) shipped in schema v38, 29
-   (containment) in v39, 30 (naming) in v40.
+   and speeds (33-34), and facilities (35-36). 35 is
+   a schema change; 28 and 31 (classes) shipped in schema v38, 29
+   (containment) in v39, 30 (naming) in v40, 26's storage in v41.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -142,24 +142,17 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
 
-26. [ ] **Octant and nearest systems for phenomena, stored.** Boss:
-    "Phenomena in the sector list should also list the octant they are
-    in. Also I'd like what stars are nearest to the phenomena at that
-    moment and that should be pre-calculated and stored in the database,
-    and in fact if we aren't already precalculate and store in the
-    database the nearest 3 star systems to each, even if it crosses
-    sector boundaries."
-    - `sector_page._contents` sets phenomena's octant to None; use
-      `spaceSector.classify_octant` (store it like
-      `star_systems.quadrant`).
-    - Only a text summary of a system's nearest 3 is stored today
-      (`star_systems.location`, from `SpaceSector.nearest_neighbors`,
-      within the sector only). Add a `nearest_systems` table (object
-      kind and id, rank 1-3, neighbor system, distance) for every system
-      and phenomenon, searched across sector boundaries, filled at
-      generation and by #32. Schema change with a migration.
-    - Show them on the sector page, system page and phenomenon page;
-      `queryDb.phenomena_near_sector` returns them.
+26. [ ] **Show phenomena's octant and everyone's nearest systems.**
+    Storage shipped in schema v41 (2026-09-30): every placed phenomenon
+    has `quadrant`, and `nearest_systems` holds the 3 nearest star
+    systems to every placed system and phenomenon, searched across
+    sector boundaries (`_db.refresh_nearest_systems`, filled at
+    generation; the correlative update refreshes it with #32).
+    `queryDb.phenomena_near_sector` returns `octant` and `nearest`,
+    `sector_detail` returns `nearest` per system, and
+    `queryDb.nearest_systems(conn, table, ids)` serves any page.
+    - Left: show them on the sector page (`sector_page._contents`'s
+      `octant`/`location`), system page and phenomenon page.
 
 27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
     shipped (2026-09-30): sectors now generate molecular clouds,
