@@ -1,5 +1,50 @@
 # Changelog
 
+## [7.42.0] - 2026-10-01
+
+### Added
+
+The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more, placed by `generate.py plan` before any sector is filled), so the spiral arms show before anything is generated. Each star is a tiny point with a big soft glow in its own color, the same few pixels across at every zoom. Clicking one shows its type, luminosity and sector, and links to its system once that sector is filled. `/api/galaxy/tiles` lists each tile's most luminous 400 as `stars`.
+
+## [7.41.3] - 2026-10-01
+
+### Added
+- **The drill-down's stage API.** `GET /api/galaxy/stage?at=m.ring.wedge.slab`
+  (and the site's cached `/galaxy/stage`) returns how many generated
+  sectors each block inside a drill-down block holds, and the sectors
+  themselves at the smallest level. It feeds the Galaxy Map's coming
+  drill-down navigation; nothing on the map changes yet.
+
+## [7.41.2] - 2026-10-01
+
+### Added
+- **The drill-down's block ladder.** The Galaxy Map's coming drill-down
+  navigation has its geometry: blocks 243, 27 and 3 sectors a side, each
+  sitting wholly inside one block of the next size up, with the same
+  rules on the page (`galaxyprisms.js`) and the server
+  (`stellarObjects/galaxyDrill.py`). Nothing on the map changes yet.
+
+## [7.41.1] - 2026-10-01
+
+### Changed
+- The Sector Map draws nebulae and supernova remnants as see-through volumes: densest through the middle and fading at the edge, with a remnant showing as a bright shell. A cloud far larger than the sector, or one centered in another sector, still tints the view from inside it, and stars inside a cloud stay visible and clickable.
+
+## [7.41.0] - 2026-10-01
+
+### Added
+- System and phenomenon pages show an "Inside" badge linking the nebula or supernova remnant they sit in, and the sector Contents list says "Inside <name>" for those systems. `GET /api/systems/<id>` gains `inside`.
+- Sector Contents rows show a nebula's, remnant's or asteroid field's class.
+
+## [7.40.1] - 2026-10-01
+
+### Changed
+
+- **Bright stars can go down to 100 solar luminosities.** The default
+  stays at 500 (about 60 million stars in a Milky Way, about 10 GB);
+  `generate.py plan --bright-star-min-luminosity 100` now works too
+  (about 220 million stars, about 35 GB). White dwarfs, which are never
+  pre-placed, always stay in a sector's own draw.
+
 ## [7.40.0] - 2026-10-01
 
 ### Changed
