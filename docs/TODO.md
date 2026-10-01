@@ -190,26 +190,16 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
     - Show them on the sector page, system page and phenomenon page;
       `queryDb.phenomena_near_sector` returns them.
 
-27. [ ] **Generate nebulae and supernova remnants, with the stars they
-    need, and put them on the maps.** Boss (2026-09-30): "Nebulae and
-    Remnants should be generated and placed on the map. Research if we
-    need stars at the center of these or what kind of star, etc, so we
-    can make them."
-    - Rates come from `PHENOMENON_DENSITY_PC3` (v37; a per-volume rate suits objects this big).
-    - Each class brings its central object (`NEBULA_CLASSES[...]["center"]`,
-      table in `docs/design/nebula-and-asteroid-field-classes.md`): O/B stars for
-      emission nebulae, a B or A star for reflection, one hot central
-      star becoming a white dwarf for planetary, none for molecular
-      clouds (protostars at most), a neutron star or black hole for
-      core-collapse remnants and none for thermonuclear ones. The
-      generator creates that star system inside the nebula, or places
-      the nebula around a qualifying existing star.
-    - Nebulae are up to 200 ly in radius, so one spans many 13 ly
-      sectors: every sector it reaches lists it, the Sector Map draws
-      its extent, and the Galaxy Map shows it.
-    - Sites: `generate.generate_sector_phenomena`,
-      `nebulaData.Nebula`, `supernovaRemnantData.SupernovaRemnant`,
-      `queryDb.phenomena_near_sector`, `sectormap.js`, `galaxymap3d.js`.
+27. [ ] **Put nebulae and supernova remnants on the maps.** Generation
+    shipped (2026-09-30): sectors now generate molecular clouds,
+    planetary nebulae around their own hot white dwarf, H II regions
+    around O and early-B stars and reflection nebulae around later B and
+    A stars (`generate.add_star_hosted_nebulae`,
+    `program_constants.NEBULA_HOST_RULES`), and a remnant's core drifts
+    off-center by its birth kick. `queryDb.phenomena_near_sector` already
+    lists every cloud that reaches a sector.
+    - Left: the Sector Map draws each cloud's extent (`sectormap.js`) and
+      the Galaxy Map shows them (`galaxymap3d.js`).
 
 30. [ ] **Names that follow one standard.** Boss: "Asteroid fields and
     comets should be named using a method that tells something about

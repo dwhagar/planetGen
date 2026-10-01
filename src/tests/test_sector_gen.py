@@ -119,6 +119,38 @@ def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     assert all(e.phenomenon_type == "nebula" for e in entries)
     assert all(e.phenomenon.nebula_type == "planetary" for e in entries)
     assert entries == sector.phenomena
+    # Each planetary nebula sits on its own new hot white dwarf system.
+    assert len(sector.entries) == 4 + 3
+    for entry in entries:
+        host = next(e for e in sector.entries if e.position == entry.position)
+        assert sectorGen._spectral_code(host.star_system.stars[0]) in program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+
+
+def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):
+    sector = _seeded_sector(2)
+    fake = _only("molecular-cloud", 2)
+    fake.stars = sectorGen.sector_star_count(sector)
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+
+    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    assert [e.phenomenon.nebula_type for e in entries] == ["dark", "dark"]
+    assert all(e.phenomenon.nebula_class in "MNPQ" for e in entries)
+
+
+def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
+    monkeypatch.setattr(sectorGen, "_sample_poisson_count", lambda mean: 0)
+    sector = SpaceSector("Hosted Nebula Sector")
+    for star_type in ("O5V", "G2V", "M3V"):
+        system, cfg = _make_cheap_system(star_type)
+        cfg.BINARY_SYSTEM = False
+        sector.add_system(system, system_config=cfg)
+    hot = sector.entries[0]
+    assert sectorGen._spectral_code(hot.star_system.stars[0]) == "O5V"
+
+    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    assert len(entries) == 1
+    assert entries[0].position == hot.position
+    assert entries[0].phenomenon.nebula_class in ("C", "D", "E")
 
 
 def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):

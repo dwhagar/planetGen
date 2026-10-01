@@ -1111,6 +1111,15 @@ _RADIUS_PHENOMENON_TABLES = tuple(
 `_widest_placed_phenomenon_radius_ly` checks just these."""
 
 
+_PHENOMENON_CLASS_COLUMNS = {
+    "nebulae": "nebula_class",
+    "supernova_remnants": "remnant_class",
+    "asteroid_fields": "field_class",
+}
+"""dict: The letter-class column (v38) of each `_PHENOMENON_TABLES` table
+that has one; every other type's rows carry `class` as `None`."""
+
+
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     """
     Reads every galaxy-placed row (non-NULL `center_x_pc`) from all four
@@ -1143,7 +1152,8 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     Returns:
         list[dict]: `id`, `type` (one of `_PHENOMENON_TABLES`' type
             labels), `name`, `descriptor`, `radius_ly` (0 for the
-            point-like types), `x`/`y`/`z` (`center_x/y/z_pc`),
+            point-like types), `class` (see `_PHENOMENON_CLASS_COLUMNS`),
+            `x`/`y`/`z` (`center_x/y/z_pc`),
             `galactic_radius_pc`.
     """
     where_bbox = ""
@@ -1169,6 +1179,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
         query_rows = conn.execute(
             f"""
             SELECT id, name, {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
+                   {_PHENOMENON_CLASS_COLUMNS.get(table, "NULL")} AS class_code,
                    center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
             FROM {table}
             WHERE center_x_pc IS NOT NULL
@@ -1180,6 +1191,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
             rows.append({
                 "id": row["id"], "type": type_label, "name": row["name"],
                 "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
+                "class": row["class_code"],
                 "x": row["center_x_pc"], "y": row["center_y_pc"], "z": row["center_z_pc"],
                 "galactic_radius_pc": row["galactic_radius_pc"],
             })
@@ -1423,7 +1435,8 @@ def phenomena_near_sector(conn, sector_id):
     Returns:
         list[dict]: One entry per candidate phenomenon, nearest first:
             `id`, `type` (one of `_PHENOMENON_TABLES`' type labels),
-            `name`, `descriptor`, `radius_ly`, `distance_ly` (sector center to phenomenon
+            `name`, `descriptor`, `class` (letter class or `None`),
+            `radius_ly`, `distance_ly` (sector center to phenomenon
             center), and `offset_x_ly`/`offset_y_ly`/`offset_z_ly` (the
             phenomenon's center relative to the sector's own center, in
             light-years -- the same frame `starmap.py` already places
@@ -1466,6 +1479,7 @@ def phenomena_near_sector(conn, sector_id):
         matches.append({
             "id": phenomenon["id"], "type": phenomenon["type"], "name": phenomenon["name"],
             "descriptor": phenomenon["descriptor"], "radius_ly": phenomenon["radius_ly"],
+            "class": phenomenon["class"],
             "distance_ly": pc_to_ly(distance_pc),
             "offset_x_ly": pc_to_ly(dx), "offset_y_ly": pc_to_ly(dy), "offset_z_ly": pc_to_ly(dz),
         })
