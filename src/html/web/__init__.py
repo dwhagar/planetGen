@@ -105,6 +105,13 @@ def static_url(filename):
     return f"{request.script_root}/{fmt_static_url(filename)}"
 
 
+def math_check_failures():
+    """The names of the math checks that failed when this process started
+    (`init_app`), shown to admins on every page; empty when all passed."""
+    from stellarObjects import mathCheck
+    return [result.name for result in mathCheck.startup_failures()]
+
+
 def edit_flashes():
     """What the last admin Delete or Regenerate flashed (`edit_actions`)."""
     from .edit_actions import messages
@@ -122,6 +129,7 @@ def _template_globals():
         "current_admin": current_admin,
         "csrf_field": csrf.csrf_field,
         "edit_flashes": edit_flashes,
+        "math_check_failures": math_check_failures,
         "utc_time": lambda value: Markup(utc_time_html(value)),
         # UX.20: every count or measurement a template shows, `num(x)` or
         # `num(x, ",.2f")` -- scientific past 4 whole digits.
@@ -194,6 +202,10 @@ def init_app(app, limiter=None):
             `api.limiter.is_in_process_call`.
     """
     app.register_blueprint(bp)
+    # The math check (TEST.63) runs once per process, now: a failure is
+    # logged and shown to admins on every page (`math_check_failures`),
+    # but the site still serves.
+    math_check_failures()
     # The class reference catalog is built from the generator's tables
     # now, once, so the /classes pages never build it on a request.
     classref.catalog()
