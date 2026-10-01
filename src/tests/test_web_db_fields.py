@@ -23,7 +23,9 @@ class _Config(Config):
 
 
 def _fields(kind, detail):
-    return dict(system_pages.phenomenon_fields(kind, detail))
+    """label -> text (the class links are checked in test_class_pages.py)."""
+    with create_app(_Config).test_request_context("/"):
+        return {label: text for label, text, _url in system_pages.phenomenon_fields(kind, detail)}
 
 
 def test_black_hole_class_and_rogue_mass_class_rows():

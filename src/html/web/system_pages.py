@@ -29,9 +29,11 @@ from systemmap import render_system_map_panel
 from systempage import stars_html, system_list_html
 from tabledisplay import format_star_radius, to_plain_text
 
+from classref import ROGUE_MASS_CLASS_NAMES
 from stellarObjects.program_constants import NEBULA_CLASSES
 
 from . import bp
+from .class_pages import class_url
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 from .nav_page import endpoint, nav_url
 
@@ -209,8 +211,8 @@ def system(system_id):
         code_content=code_content,
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
-        system_list_html=trusted_html(system_list_html(detail, sections)),
-        stars_html=trusted_html(stars_html(detail["stars"])),
+        system_list_html=trusted_html(system_list_html(detail, sections, class_url)),
+        stars_html=trusted_html(stars_html(detail["stars"], class_url)),
         wiki_options=wiki_options,
         wiki_status=wiki_status,
     )
@@ -340,14 +342,8 @@ _CLOUD_CONTENTS = [
 ]
 
 
-_ROGUE_MASS_BIN_TEXT = {
-    "terrestrial": "Terrestrial", "sub-neptune": "Sub-Neptune", "saturn": "Saturn-mass",
-    "jupiter": "Jupiter-mass", "brown-dwarf": "Brown dwarf",
-}
-
-
 def _rogue_mass_bin_text(value):
-    return _ROGUE_MASS_BIN_TEXT.get(value, value)
+    return ROGUE_MASS_CLASS_NAMES.get(value, value)
 
 
 def _optional(fmt):
@@ -443,10 +439,21 @@ FIELD_SPECS = {
 """dict: (column, label, formatter) per type. A formatter returns plain
 text (the template escapes it) or `None` to leave the row out."""
 
+CLASS_COLUMNS = {
+    "nebula_class": "nebula",
+    "remnant_class": "supernova-remnant",
+    "field_class": "asteroid-field",
+    "mass_class": "black-hole",
+    "mass_bin": "rogue-planet",
+}
+"""dict: The columns whose value is a class, and the class type
+(`lib/classref.py`) whose page it links to. An asteroid field's "C3"
+links by its letter."""
 
-# TODO(web-pages #56): link each Class value to its class reference page.
+
 def phenomenon_fields(phenomenon_type, detail):
-    """`[(label, text)]` for the data table."""
+    """`[(label, text, url)]` for the data table; `url` is the value's
+    class page, or `None`. Needs a request context."""
     fields = []
     for column, label, formatter in FIELD_SPECS.get(phenomenon_type, []):
         raw = detail.get(column)
@@ -454,7 +461,8 @@ def phenomenon_fields(phenomenon_type, detail):
             continue
         text = formatter(raw)
         if text is not None:
-            fields.append((label, text))
+            url = class_url(CLASS_COLUMNS[column], raw) if column in CLASS_COLUMNS else None
+            fields.append((label, text, url))
     return fields
 
 

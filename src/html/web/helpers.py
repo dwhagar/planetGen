@@ -138,6 +138,7 @@ SECTIONS = (
     ("systems", "Systems"),
     ("phenomena", "Phenomena"),
     ("nav", "Nav"),
+    ("classes", "Classes"),
 )
 """tuple: The header's main sections, in order. A view marks one active
 with `render_page(section=...)`."""
