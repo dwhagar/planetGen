@@ -28,6 +28,15 @@ from tests.test_population import _civilized_system
 WRITERS = 4
 
 
+@pytest.fixture
+def mysql_config(mysql_config):
+    """The fresh database with its schema already applied, as a real run's
+    database has before its workers start: several first connections to
+    an empty database at once would all apply the schema together."""
+    _db.get_connection(mysql_config).close()
+    return mysql_config
+
+
 def _at_once(count, work):
     """Runs `work(index)` on `count` threads released together; returns
     their results in index order and re-raises the first error."""
