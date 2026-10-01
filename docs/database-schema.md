@@ -590,8 +590,8 @@ holds, in its sectors that aren't filled yet, as new `bright_stars` rows.
 star is drawn twice. A block with no row is at the galaxy scatter's
 threshold. A sector's fill caps its own dim stars at its block's level
 (`_db.bright_star_fill_level`). A backfill takes the block's row lock
-(`INSERT IGNORE`, then `SELECT ... FOR UPDATE`, level NULL until it
-commits), so two generators never draw the same block. A plan re-run
+(`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
+level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
 truncates it with `bright_stars`. `_migrate_v46_to_v47` creates it empty.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,

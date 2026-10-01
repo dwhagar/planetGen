@@ -4107,8 +4107,11 @@ def lock_bright_star_block(conn, block):
         float or None: The block's stored level, `None` for none yet.
     """
     key = (int(block[1]), int(block[2]), int(block[3]))
-    conn.execute("INSERT IGNORE INTO bright_star_blocks (block_ring, block_wedge, block_slab) VALUES (?, ?, ?)",
-                 key)
+    # ON DUPLICATE KEY UPDATE takes the row's exclusive lock at once; INSERT
+    # IGNORE would take a shared one, and two workers both upgrading it to
+    # exclusive for the SELECT below would deadlock.
+    conn.execute("INSERT INTO bright_star_blocks (block_ring, block_wedge, block_slab) VALUES (?, ?, ?)"
+                 " ON DUPLICATE KEY UPDATE block_ring = block_ring", key)
     row = conn.execute(
         "SELECT min_luminosity_sol FROM bright_star_blocks"
         " WHERE block_ring = ? AND block_wedge = ? AND block_slab = ? FOR UPDATE", key,

@@ -317,3 +317,30 @@ def test_backfill_does_nothing_when_the_scatter_already_went_that_deep(mysql_con
         conn.close()
     assert generate.backfill_bright_stars(mysql_config, sector_position_pc(3, 0, 4, EDGE_PC)) == {
         "blocks": 0, "stars": 0}
+
+
+def test_concurrent_backfills_draw_each_block_once(mysql_config):
+    import threading
+    _seed_galaxy(mysql_config)
+    center = sector_position_pc(4, 0, 5, EDGE_PC)
+    results, errors = [], []
+
+    def run():
+        try:
+            results.append(generate.backfill_bright_stars(mysql_config, center, radius_ly=20.0))
+        except Exception as exc:  # pragma: no cover - reported below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=run) for _ in range(3)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert not errors
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == sum(
+            result["stars"] for result in results)
+        assert sum(result["blocks"] for result in results) == len(_block_rows(conn))
+    finally:
+        conn.close()
