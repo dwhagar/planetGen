@@ -75,7 +75,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-NAV, DB, API, DOC and POP have no open items today.
+NAV, DB, API, OPS, DOC and POP have no open items today.
 
 ## Background
 
@@ -1201,35 +1201,7 @@ MAP.48 and MAP.37 below.
 
 ## OPS: Installers, hosting, CI, releases
 
-- [ ] **OPS.1 Build the version number from the category counters**
-  Boss (2026-10-01), with the category renumbering (DOC.1): "We'll then
-  build the build number (major feature set.revision.build) to be a
-  composite of the change numbers for each category added up. (i.e. if
-  we're on UX.4, API.8, and DB.12 we'd add those up to be 4+8+12)." The
-  category IDs are in place, but this part was left for Boss to decide
-  and is not adopted: the version (README badge,
-  `src/stellarObjects/_version.py`, `CHANGELOG.md`) is still bumped by
-  `.github/workflows/stamp-version.yml` and `scripts/bump_version.py`
-  from each merged PR's `changes/<name>.<patch|minor|major>.md` note.
-  Done, if Boss wants it: the version's third number is the sum of each
-  category's counter, worked out by the release scripts. Open questions:
-  - Is a category's counter the number of changes shipped in it, or the
-    highest item ID issued? Since Boss's follow-up (2026-10-01:
-    "CATEGORY.NUMBER (sequential, like the DB version, no points on the
-    category items, just as item coutn on each, simple)"), every ID is a
-    flat running
-    count, so the highest ID issued in a category (for example 48 for
-    MAP) is that category's item count and can serve as the counter
-    directly.
-  - How the post-merge Action counts: does each `changes/` note name its
-    category and item ID (for example `ux-2.patch.md` or a front-matter
-    line), and what happens to a PR that touches two categories or none
-    (a pure bug fix)?
-  - What "major feature set" and "revision" mean and who bumps them
-    (still the `patch`/`minor`/`major` level of the note?). Does the
-    build number reset when they go up? It can't, if it's a running sum
-    of counters, so the version would only ever grow in its third
-    place.
+No open items; OPS.1 shipped with the version scheme in `changes/README.md`.
 
 ## VIEW: The view from a planet
 

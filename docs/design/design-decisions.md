@@ -184,9 +184,12 @@ hand-edited version or a missing note (unless labelled `no-release`).
 hand-renumbering merges (5.41.0/5.41.1 and 5.46.15 are named in the release
 note). A uniquely named note per PR cannot collide.
 
-**Rejected:** bumping the version inside each PR (the old way). OPS.1
-proposes a further change (the version's third number built from the
-category counters); it is not decided.
+**Rejected:** bumping the version inside each PR (the old way).
+
+**Later (2026-10-01, OPS.1):** the version became MAJOR.REVISION.BUILD.
+A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD is the
+sum of the TODO category counters in `docs/design/todo-number-map.md`
+(Boss: "major feature set.revision.build"). See `changes/README.md`.
 
 ---
 

@@ -26,6 +26,24 @@ Usage
     python scripts/bump_version.py --check-pr origin/main
                                                 # CI's PR guard (see check_pr)
 
+Version numbers
+===============
+A version is MAJOR.REVISION.BUILD (Boss, 2026-10-01: "major feature
+set.revision.build", the build being "a composite of the change numbers
+for each category added up"):
+
+- MAJOR goes up for a `major` note, and REVISION resets to 0.
+- REVISION goes up by one for every other release (`minor` or `patch`
+  note), so each release still gets its own number.
+- BUILD is the sum of every TODO category's counter, read from the "Next
+  free IDs" table in `docs/design/todo-number-map.md` (a counter is the
+  next free number minus one: the highest ID issued in that category,
+  which is also its item count). It never resets, and it only moves when
+  new TODO items are issued.
+
+A checkout with no TODO map (such as the tests' stand-in repos) falls
+back to plain MAJOR.MINOR.PATCH.
+
 Deliberately standard-library only, so it runs anywhere without installing
 the package first.
 """
@@ -45,6 +63,8 @@ VERSION_FILE = os.path.join("src", "stellarObjects", "_version.py")
 README_FILE = "README.md"
 CHANGELOG_FILE = "CHANGELOG.md"
 CHANGES_DIR = "changes"
+TODO_FILE = os.path.join("docs", "TODO.md")
+TODO_MAP_FILE = os.path.join("docs", "design", "todo-number-map.md")
 
 BUMP_LEVELS = ("patch", "minor", "major")
 
@@ -55,6 +75,15 @@ FRAGMENT_RE = re.compile(r"^(?P<slug>[A-Za-z0-9][A-Za-z0-9_-]*)\.(?P<level>patch
 VERSION_RE = re.compile(r"^__version__\s*=\s*(['\"])(?P<version>[^'\"]+)\1", re.M)
 BADGE_RE = re.compile(r"(\*\*Version:\*\*\s*)(?P<version>\S+)")
 CHANGELOG_TOP_RE = re.compile(r"^## \[(?P<version>[^\]]+)\]", re.M)
+
+# The TODO categories (docs/TODO.md's table) and the ID forms they use.
+TODO_CATEGORIES = (
+    "UX", "MAP", "NAV", "GEN", "PERF", "DB", "API",
+    "ADM", "SEC", "USR", "OPS", "DOC", "VIEW", "POP",
+)
+NEXT_FREE_RE = re.compile(
+    r"^\|\s*(?P<cat>[A-Z]+)\s*\|\s*(?P=cat)\.(?P<next>\d+)\s*\|\s*$", re.M)
+TODO_HEADING_RE = re.compile(r"\*\*(?P<cat>%s)\.(?P<n>\d+) " % "|".join(TODO_CATEGORIES))
 
 
 class BumpError(Exception):
@@ -100,13 +129,69 @@ def parse_version(version):
     return tuple(int(p) for p in parts)
 
 
-def next_version(version, level):
+def next_version(version, level, build=None):
+    """
+    The version after `version` for a note of `level`.
+
+    With `build` (the TODO counter sum, see `todo_build_number`) it is
+    MAJOR.REVISION.BUILD: a `major` note bumps MAJOR and resets REVISION,
+    anything else bumps REVISION, and BUILD is `build`. Without it, plain
+    semver.
+    """
     major, minor, patch = parse_version(version)
+    if build is not None:
+        if level == "major":
+            return f"{major + 1}.0.{build}"
+        return f"{major}.{minor + 1}.{build}"
     if level == "major":
         return f"{major + 1}.0.0"
     if level == "minor":
         return f"{major}.{minor + 1}.0"
     return f"{major}.{minor}.{patch + 1}"
+
+
+# -- TODO counters -----------------------------------------------------------
+
+def todo_counters(root):
+    """
+    Each TODO category's counter (the highest ID issued in it), from the
+    "Next free IDs" table in `docs/design/todo-number-map.md`.
+
+    Returns:
+        dict or None: `{category: counter}`, or None when the checkout has
+                      no TODO map (plain semver is used then).
+
+    Raises:
+        BumpError: if the table is missing a category, or `docs/TODO.md`
+                   uses an ID at or past its category's next free one (the
+                   table wasn't moved up when the ID was issued).
+    """
+    if not os.path.isfile(os.path.join(root, TODO_MAP_FILE)):
+        return None
+    table = {m.group("cat"): int(m.group("next"))
+             for m in NEXT_FREE_RE.finditer(_read(root, TODO_MAP_FILE))
+             if m.group("cat") in TODO_CATEGORIES}
+    missing = [c for c in TODO_CATEGORIES if c not in table]
+    if missing:
+        raise BumpError(
+            f"{TODO_MAP_FILE}'s 'Next free IDs' table has no row for {', '.join(missing)}")
+    problems = []
+    if os.path.isfile(os.path.join(root, TODO_FILE)):
+        for m in TODO_HEADING_RE.finditer(_read(root, TODO_FILE)):
+            cat, n = m.group("cat"), int(m.group("n"))
+            if n >= table[cat]:
+                problems.append(
+                    f"{TODO_FILE} has {cat}.{n}, but {TODO_MAP_FILE} says the next free "
+                    f"{cat} ID is {cat}.{table[cat]}; move that row up")
+    if problems:
+        raise BumpError("\n".join(sorted(set(problems))))
+    return {cat: table[cat] - 1 for cat in TODO_CATEGORIES}
+
+
+def todo_build_number(root):
+    """The version's BUILD: the sum of the TODO counters (None without a map)."""
+    counters = todo_counters(root)
+    return None if counters is None else sum(counters.values())
 
 
 def version_in(text, pattern, what):
@@ -237,9 +322,10 @@ def stamp(root, date=None, dry_run=False, commit=False, out=sys.stdout):
         raise BumpError(f"the three version places disagree before stamping ({details}); fix that first")
 
     version = versions[VERSION_FILE]
+    build = todo_build_number(root)
     released = []
     for fragment in fragments:
-        version = next_version(version, fragment.level)
+        version = next_version(version, fragment.level, build)
         released.append(version)
         print(f"{CHANGES_DIR}/{fragment.filename} -> {version} ({fragment.level})", file=out)
         if dry_run:
@@ -288,6 +374,10 @@ def check_pr(root, base, allow_no_fragment=False):
         find_fragments(root)
     except BumpError as e:
         problems.extend(str(e).splitlines())
+    try:
+        todo_counters(root)
+    except BumpError as e:
+        problems.extend(str(e).splitlines())
 
     merge_base = _git(root, "merge-base", base, "HEAD").strip()
     added = _git(root, "diff", "--name-only", "--diff-filter=A", merge_base, "HEAD", "--", f"{CHANGES_DIR}/")
@@ -319,7 +409,10 @@ def main(argv=None):
     try:
         if args.check:
             fragments = find_fragments(args.root)
+            build = todo_build_number(args.root)
             print(f"{len(fragments)} pending release note(s), all valid.")
+            if build is not None:
+                print(f"TODO counters add up to {build} (the next release's build number).")
         elif args.check_pr:
             problems = check_pr(args.root, args.check_pr, args.allow_no_fragment)
             if problems:

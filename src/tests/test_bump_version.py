@@ -205,3 +205,74 @@ def test_check_pr_requires_a_note_unless_allowed(tmp_path):
 def test_real_pending_notes_are_valid():
     """Catches a malformed note in a PR during the normal test run, before merge."""
     bump_version.find_fragments(REPO_ROOT)
+
+
+# -- MAJOR.REVISION.BUILD from the TODO counters ------------------------------
+
+def _todo_map(root, next_free, todo_ids=()):
+    """A stand-in docs/design/todo-number-map.md (and docs/TODO.md)."""
+    os.makedirs(os.path.join(root, "docs", "design"), exist_ok=True)
+    rows = "".join(f"| {cat} | {cat}.{n} |\n" for cat, n in next_free.items())
+    with open(os.path.join(root, bump_version.TODO_MAP_FILE), "w") as f:
+        f.write("# Map\n\n## Next free IDs\n\n| Category | Next free ID |\n|---|---|\n" + rows)
+    with open(os.path.join(root, bump_version.TODO_FILE), "w") as f:
+        f.write("# TODO\n\n" + "".join(f"- [ ] **{i} Something**\n" for i in todo_ids))
+
+
+def _all_next_free(**overrides):
+    table = {cat: 1 for cat in bump_version.TODO_CATEGORIES}
+    table.update(overrides)
+    return table
+
+
+@pytest.mark.parametrize("level, expected", [
+    ("patch", "1.3.24"), ("minor", "1.3.24"), ("major", "2.0.24"),
+])
+def test_next_version_with_a_build_number(level, expected):
+    assert bump_version.next_version("1.2.3", level, build=24) == expected
+
+
+def test_build_number_is_the_sum_of_the_counters(tmp_path):
+    # Boss's example: UX.4, API.8 and DB.12 add up to 24.
+    root = _make_repo(str(tmp_path))
+    _todo_map(root, _all_next_free(UX=5, API=9, DB=13), ["UX.4", "API.8", "DB.12"])
+    assert bump_version.todo_counters(root)["DB"] == 12
+    assert bump_version.todo_build_number(root) == 24
+
+
+def test_stamp_uses_revision_and_build(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _todo_map(root, _all_next_free(UX=5, API=9, DB=13))
+    _note(root, "a-fix.patch.md", FIXED_NOTE)
+    _note(root, "b-feature.minor.md", ADDED_NOTE)
+    _note(root, "c-break.major.md", ADDED_NOTE)
+    assert bump_version.stamp(root, date="2026-02-02") == ["1.3.24", "1.4.24", "2.0.24"]
+    assert '__version__ = "2.0.24"' in _read(root, bump_version.VERSION_FILE)
+
+
+def test_no_todo_map_keeps_plain_semver(tmp_path):
+    root = _make_repo(str(tmp_path))
+    assert bump_version.todo_build_number(root) is None
+
+
+def test_a_stale_next_free_table_is_rejected(tmp_path):
+    root = _make_repo(str(tmp_path))
+    _todo_map(root, _all_next_free(MAP=5), ["MAP.5"])
+    _note(root, "thing.patch.md", FIXED_NOTE)
+    with pytest.raises(bump_version.BumpError, match="next free MAP ID is MAP.5"):
+        bump_version.stamp(root)
+    assert '__version__ = "1.2.3"' in _read(root, bump_version.VERSION_FILE)
+
+
+def test_a_missing_category_row_is_rejected(tmp_path):
+    root = _make_repo(str(tmp_path))
+    table = _all_next_free()
+    del table["POP"]
+    _todo_map(root, table)
+    with pytest.raises(bump_version.BumpError, match="no row for POP"):
+        bump_version.todo_build_number(root)
+
+
+def test_real_todo_counters_are_consistent():
+    """The real 'Next free IDs' table covers every category and is ahead of docs/TODO.md."""
+    assert bump_version.todo_build_number(REPO_ROOT) > 0

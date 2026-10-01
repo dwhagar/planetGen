@@ -15,9 +15,19 @@ becomes its own release, oldest merge first.
 
 Name it `<short-name>.<level>.md`, for example `galaxy-map-timeout.patch.md`:
 
-- `patch` for a bug fix or small change (5.46.17 -> 5.46.18)
-- `minor` for a new feature (5.46.17 -> 5.47.0)
-- `major` for a breaking change (5.46.17 -> 6.0.0)
+- `patch` for a bug fix or small change
+- `minor` for a new feature
+- `major` for a new major feature set or a breaking change
+
+The version is MAJOR.REVISION.BUILD. A `major` note bumps MAJOR and resets
+REVISION to 0; a `patch` or `minor` note bumps REVISION. BUILD is not
+counted per release: it is the sum of the TODO category counters (each
+category's next free ID minus one, from the "Next free IDs" table in
+`docs/design/todo-number-map.md`), so it grows as items are added to
+`docs/TODO.md`. With counters adding up to 155, 7.58.2 -> 7.59.155 for a
+`patch` or `minor` note and 7.58.2 -> 8.0.155 for a `major` one.
+`bump_version.py --check` prints the current sum and fails if
+`docs/TODO.md` uses an ID the table hasn't counted yet.
 
 Pick a short name nobody else is likely to use; the branch name works.
 
