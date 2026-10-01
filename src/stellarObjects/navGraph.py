@@ -181,10 +181,13 @@ def build_knn_adjacency(positions, k):
     Returns:
         dict: `{id: {neighbor_id: distance, ...}, ...}` -- every id in
              `positions` is present as a key, even if it ends up with no
-             edges (e.g. `positions` has only one entry).
+             edges (e.g. `positions` has only one entry, or its position
+             isn't a finite `(x, y, z)` -- a NaN coordinate would make
+             every distance to it NaN and break the tree's pruning, so
+             such a system is left out of the tree and gets no edges).
     """
-    ids = list(positions.keys())
-    graph = {system_id: {} for system_id in ids}
+    graph = {system_id: {} for system_id in positions}
+    ids = [system_id for system_id, point in positions.items() if all(map(math.isfinite, point))]
     if len(ids) < 2 or k < 1:
         return graph
 

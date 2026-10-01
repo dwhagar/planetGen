@@ -31,7 +31,7 @@ no grant on it) the queue still runs, just without the lease or the
 rows.
 
 One worker means no pool at all: every task runs in this process, in
-order, exactly as generation always did.
+order, seeded the same way a worker would seed it.
 
 Workers are separate processes (`multiprocessing`'s spawn start method,
 so Linux, macOS and Windows behave the same) because generation is pure
@@ -504,11 +504,18 @@ class WorkQueue:
         task = _Task(kind, key, fn, payload, weight, on_done)
         self.submitted += 1
         if not self.parallel:
-            started = time.monotonic()
-            result = fn(payload)
+            # Seeded exactly as a worker would be, so one worker generates
+            # the same galaxy as many (TEST.19); this process's own
+            # `random` stream carries on afterwards as if the task had run
+            # elsewhere, as it does with a pool.
+            outer = random.getstate()
+            try:
+                result, seconds = _run_task(fn, payload, task_seed(self.run_seed, key))
+            finally:
+                random.setstate(outer)
             self.finished += 1
             if on_done:
-                on_done(result, time.monotonic() - started, weight)
+                on_done(result, seconds, weight)
             return
         self._raise_failure()
         task.seed = task_seed(self.run_seed, key)

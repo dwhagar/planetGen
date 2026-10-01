@@ -21,10 +21,14 @@ take no database; `run_pass` and the functions after it do.
 """
 
 import colorsys
+import contextlib
+import hashlib
 import math
 import random
 import re
 from dataclasses import dataclass
+
+import pymysql
 
 from . import log, program_constants
 from .evolution import life_stage_from_paragraphs
@@ -42,6 +46,10 @@ SCAN_BATCH = 5000
 _NAME_ATTEMPTS = 50
 """int: Fresh draws before a species name collision gives up and takes a
 numbered suffix instead."""
+
+PASS_LOCK_WAIT_SECONDS = 10
+"""int: How long one wait for another population pass's lock lasts
+before `run_pass` says it is waiting (and waits again)."""
 
 
 # ---------------------------------------------------------------------------
@@ -258,6 +266,50 @@ def run_pass(conn, rescan=False, territories_only=False):
         dict: Counts -- `new_species`, `species`, `spacefaring`,
             `polities`, `owned_systems`.
     """
+    with _one_pass_at_a_time(conn):
+        return _run_pass(conn, rescan, territories_only)
+
+
+def _pass_lock_name(conn):
+    """The named lock for this database's population pass (named locks
+    are server-wide, so the database is part of the name)."""
+    database = conn.execute("SELECT DATABASE() AS db").fetchone()["db"] or ""
+    return "planetgen-population:" + hashlib.sha256(database.encode("utf-8")).hexdigest()[:32]
+
+
+@contextlib.contextmanager
+def _one_pass_at_a_time(conn):
+    """
+    Holds this database's population lock (`GET_LOCK`) for a whole pass,
+    so two passes at once -- a `--population` run finishing while
+    another, or `generate.py population`, is still going (TEST.37) --
+    take turns: the second waits, then sees the first's species and
+    watermark, rather than both naming the same worlds and one failing
+    on a duplicate homeworld or species name.
+    """
+    name = _pass_lock_name(conn)
+    waited = False
+    while True:
+        got = conn.execute("SELECT GET_LOCK(?, ?) AS ok", (name, PASS_LOCK_WAIT_SECONDS)).fetchone()["ok"]
+        if got == 1:
+            break
+        if got is None:
+            raise pymysql.err.OperationalError(1205, f"could not take the population lock {name!r}")
+        if not waited:
+            waited = True
+            log.normal("Population: waiting for another population pass to finish.")
+    # A fresh transaction, so the pass reads what the last holder committed.
+    conn.commit()
+    try:
+        yield
+    finally:
+        try:
+            conn.execute("SELECT RELEASE_LOCK(?)", (name,))
+        except pymysql.err.MySQLError:  # a lost session has already dropped it
+            pass
+
+
+def _run_pass(conn, rescan, territories_only):
     new_species = 0
     if not territories_only:
         if rescan:
