@@ -162,6 +162,12 @@ function showNeighborInfo(panel, entry) {
   var dl = document.createElement("dl");
   addField(dl, "Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
   addField(dl, "Designation", entry.designation);
+  if (entry.brightStarCount) {
+    // Bright stars the plan pre-placed here, waiting for the fill.
+    var more = entry.brightStarCount - entry.brightStars.length;
+    addField(dl, "Bright stars waiting",
+      entry.brightStars.join("; ") + (more > 0 ? "; and " + more + " more" : ""));
+  }
   panel.appendChild(dl);
 
   if (entry.exists) {

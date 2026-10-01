@@ -47,6 +47,7 @@ from queryDb import (
     facility_detail,
     NO_SECTOR,
     bright_star_scatter_status,
+    bright_stars_in_sector,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
@@ -1571,6 +1572,25 @@ def sector_facilities(sector_id):
     if db.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
     return jsonify({"items": facilities_in_sector(db, sector_id)})
+
+
+@bp.route("/galaxy/bright-stars")
+def galaxy_bright_stars_in_cell():
+    """`GET /api/galaxy/bright-stars?ring=&layer=&slot=[&all=1]` -- the
+    pre-placed bright stars in one sector cell, brightest first
+    (`queryDb.bright_stars_in_sector`): only those not yet built into a
+    system unless `all=1`. `{"items": []}` when no scatter has run (or
+    the database predates them)."""
+    try:
+        ring, layer, slot = (int(request.args[key]) for key in ("ring", "layer", "slot"))
+    except (KeyError, ValueError):
+        raise ApiError("'ring', 'layer' and 'slot' must be integers")
+    unfilled_only = request.args.get("all") not in ("1", "true")
+    try:
+        items = bright_stars_in_sector(get_db(), ring, layer, slot, unfilled_only=unfilled_only)
+    except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
+        items = []
+    return jsonify({"items": items})
 
 
 @bp.route("/facilities/orbit")

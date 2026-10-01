@@ -51,6 +51,11 @@ class FakeSite:
         self.admin = {"username": "boss", "must_change_credentials": False}
         self.shape = {"outer_ring_index": 4100, "edge_pc": 3.5}
         self.sector_total = 7
+        self.bright = {"scattered": True, "min_luminosity_sol": 500.0, "seed": 42,
+                       "default_min_luminosity_sol": 500.0}
+
+    def get_bright_star_status(self, db):
+        return self.bright
 
     def auth_me(self, cookie_header):
         return self.admin
@@ -65,7 +70,7 @@ class FakeSite:
 @pytest.fixture
 def site(monkeypatch, jobs_root):
     fake = FakeSite()
-    for name in ("auth_me", "get_galaxy_shape", "get_sectors"):
+    for name in ("auth_me", "get_galaxy_shape", "get_sectors", "get_bright_star_status"):
         monkeypatch.setattr(apiclient, name, getattr(fake, name))
     return fake
 
@@ -162,6 +167,17 @@ def test_page_renders_summary_and_forms(site, client):
     assert re.search(r'<script type="module" src="/static/generatejobs.js\?v=[^"]+"></script>', html)
     # The header links here for a logged-in admin, marked current.
     assert '<a href="/admin/generate" aria-current="page">Generate</a>' in html
+
+
+def test_page_shows_the_bright_star_scatter(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert "Bright stars scattered (500 L&#9737; and up, seed 42)" in html
+    assert "every star of 500\n  solar luminosities or more is placed (seed 42)" in html
+    site.bright = {"scattered": False, "min_luminosity_sol": None, "seed": None,
+                   "default_min_luminosity_sol": 500.0}
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert "Bright stars not scattered yet" in html
+    assert "No scatter has run on this plan yet." in html
 
 
 def test_page_survives_an_unreachable_database(site, client, monkeypatch):

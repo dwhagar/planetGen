@@ -97,6 +97,7 @@ class FakeData:
         self.nav_error = None
         self.nav_galaxy_scope = False
         self.action_error = None
+        self.bright_stars = {}
 
     def get_sector(self, db, sector_id):
         self.calls.append(("get_sector", db, sector_id))
@@ -104,6 +105,10 @@ class FakeData:
             return self.sectors[int(sector_id)]
         except (KeyError, ValueError):
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
+
+    def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
+        self.calls.append(("get_bright_stars_in_cell", ring_index, layer_index, ring_slot_index))
+        return self.bright_stars.get((ring_index, layer_index, ring_slot_index), [])
 
     def get_sector_facilities(self, db, sector_id):
         self.calls.append(("get_sector_facilities", db, sector_id))
@@ -165,7 +170,7 @@ class FakeData:
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
-_FAKED = ("get_sector", "get_sector_facilities", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
+_FAKED = ("get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
           "auth_me", "upload_sector_to_wiki", "generate_sector_neighborhood")
 
 
@@ -825,3 +830,38 @@ def test_bad_pick_mode_is_ignored(client, fake, query):
     html = resp.get_data(as_text=True)
     assert "pick-banner" not in html
     assert all(star["nav"]["pick"] is None for star in _scene(html)["stars"])
+
+
+# --- Bright stars waiting in an unfilled neighbor -----------------------------------
+
+def test_unfilled_neighbor_lists_its_waiting_bright_stars(client, fake):
+    fake.sectors[5]["neighbors"].append({
+        "direction_pc": (0.0, 1.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 22,
+        "designation": "ABD", "exists": False,
+    })
+    fake.bright_stars[(5, 1, 22)] = [
+        {"star_type": f"B{i}V", "luminosity_sol": 9000.0 - i} for i in range(7)
+    ]
+    scene = _scene(client.get("/sector/5").get_data(as_text=True))
+    existing, unfilled = scene["neighbors"]
+    assert "brightStars" not in existing
+    assert unfilled["brightStarCount"] == 7
+    assert unfilled["brightStars"][0] == "B0V, 9,000 L\u2609"
+    assert len(unfilled["brightStars"]) == 5
+    # Only the unfilled cell is asked about.
+    assert [c for c in fake.calls if c[0] == "get_bright_stars_in_cell"] == [
+        ("get_bright_stars_in_cell", 5, 1, 22)]
+
+
+def test_bright_stars_fail_open(client, fake, monkeypatch):
+    fake.sectors[5]["neighbors"].append({
+        "direction_pc": (0.0, 1.0, 0.0), "ring_index": 5, "layer_index": 1, "ring_slot_index": 22,
+        "designation": "ABD", "exists": False,
+    })
+
+    def broken(*args):
+        raise apiclient.ApiError("down")
+    monkeypatch.setattr(apiclient, "get_bright_stars_in_cell", broken)
+    resp = client.get("/sector/5")
+    assert resp.status_code == 200
+    assert "brightStars" not in _scene(resp.get_data(as_text=True))["neighbors"][1]

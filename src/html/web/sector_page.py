@@ -292,6 +292,26 @@ def _handle_post(sector_id, admin):
     return page_again
 
 
+def _with_bright_stars(neighbors):
+    """
+    The neighbors with each not-yet-generated one's waiting bright stars
+    (`apiclient.get_bright_stars_in_cell`, brightest first) added as
+    `bright_stars`, so its Sector Map panel can list them. Fails open: a
+    cell that can't be read just lists none.
+    """
+    result = []
+    for neighbor in neighbors or ():
+        if not neighbor.get("exists"):
+            neighbor = dict(neighbor)
+            try:
+                neighbor["bright_stars"] = apiclient.get_bright_stars_in_cell(
+                    db_name(), neighbor["ring_index"], neighbor["layer_index"], neighbor["ring_slot_index"])
+            except apiclient.ApiError:
+                neighbor["bright_stars"] = []
+        result.append(neighbor)
+    return result
+
+
 _PICK_LABELS = {"from": ("Choosing a start", "Use as start"),
                 "to": ("Choosing a destination", "Use as destination")}
 
@@ -368,10 +388,11 @@ def sector(sector_id):
     center_pc = (
         (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]) if detail["placed"] else None
     )
+    neighbors = _with_bright_stars(detail.get("neighbors"))
     map_html = render_map_panel(
         page_url, detail["edge_mpc"],
         (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
-        center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=detail.get("neighbors"),
+        center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=neighbors,
         generate=generate_target(admin),
         nav=_nav_for(pick),
     )

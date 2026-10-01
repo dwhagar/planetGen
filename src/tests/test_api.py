@@ -924,6 +924,26 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
                                     "default_min_luminosity_sol": 500.0}
 
 
+def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
+    """`GET /api/galaxy/bright-stars`: one cell's waiting bright stars,
+    brightest first; `all=1` adds the filled ones; bad addresses are 400."""
+    assert client.get("/api/galaxy/bright-stars?ring=3&layer=0&slot=1").get_json() == {"items": []}
+    row = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            _db.insert_bright_stars(conn, [row + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42),
+                                           row + (600 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)])
+    finally:
+        conn.close()
+    items = client.get("/api/galaxy/bright-stars?ring=3&layer=0&slot=1").get_json()["items"]
+    assert [item["luminosity_sol"] for item in items] == pytest.approx([800, 600], rel=1e-2)
+    assert client.get("/api/galaxy/bright-stars?ring=3&layer=0&slot=2").get_json() == {"items": []}
+    assert len(client.get("/api/galaxy/bright-stars?ring=3&layer=0&slot=1&all=1").get_json()["items"]) == 2
+    assert client.get("/api/galaxy/bright-stars?ring=x&layer=0&slot=1").status_code == 400
+    assert client.get("/api/galaxy/bright-stars?ring=3").status_code == 400
+
+
 def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_config):
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;

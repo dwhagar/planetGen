@@ -519,7 +519,18 @@ def _neighbor_indicator_data(link_url, neighbor):
     if neighbor["exists"]:
         data["name"] = neighbor["sector_name"]
         data["href"] = link_url("sector", sector_id=neighbor["sector_id"])
+    bright = neighbor.get("bright_stars")
+    if bright:
+        data["brightStarCount"] = len(bright)
+        data["brightStars"] = [
+            f'{star["star_type"]}, {star["luminosity_sol"]:,.0f} L\u2609' for star in bright[:_NEIGHBOR_BRIGHT_STARS_SHOWN]
+        ]
     return data
+
+
+_NEIGHBOR_BRIGHT_STARS_SHOWN = 5
+"""int: How many of an unfilled neighbor's waiting bright stars its info
+panel lists (brightest first); the rest are counted."""
 
 
 def _ly_per_px_at_zoom_1(half_edge):

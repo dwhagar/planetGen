@@ -468,6 +468,24 @@ def get_galaxy_shape(db):
     return _request("/galaxy/shape", {"db": db})["shape"]
 
 
+def get_bright_star_status(db):
+    """`GET /api/galaxy/shape`'s `bright_stars`: whether the bright-star
+    scatter has run (`scattered`), its `min_luminosity_sol` and `seed`,
+    and `default_min_luminosity_sol`."""
+    _require_db(db)
+    return _request("/galaxy/shape", {"db": db}).get("bright_stars")
+
+
+def get_bright_stars_in_cell(db, ring_index, layer_index, ring_slot_index):
+    """`GET /api/galaxy/bright-stars`'s `items`: the pre-placed bright
+    stars in one sector cell not yet built into a system, brightest
+    first."""
+    _require_db(db)
+    return _request("/galaxy/bright-stars", {
+        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+    })["items"]
+
+
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/

@@ -494,15 +494,21 @@ def _health(stats, api_ms, cache):
     }
 
 
-def bright_star_text(tables):
+def bright_star_text(database):
     """
     The Stats page's bright-star row: how many stars the plan's scatter
-    pre-placed (`bright_stars`, schema v43; a row stays after its sector
-    is filled). Only the table's estimated row count reaches this page
-    (`adminStats.table_stats`), so it says "about", and it can't yet split
-    them into already in a filled sector and still waiting.
+    pre-placed and how many of them a sector fill has built into a system
+    (`database["bright_stars"]`, `adminStats.bright_star_counts`). Falls
+    back to the `bright_stars` table's estimated row count when the API
+    doesn't send the counts.
     """
-    row = next((table for table in tables if table["name"] == "bright_stars"), None)
+    counts = database.get("bright_stars")
+    if counts:
+        if not counts["placed"]:
+            return "none pre-placed"
+        return (f"{format_count(counts['placed'])} placed: {format_count(counts['filled'])} built into "
+                f"systems, {format_count(counts['unfilled'])} waiting for their sectors")
+    row = next((table for table in database["tables"] if table["name"] == "bright_stars"), None)
     if row is None:
         return "not tracked by this schema"
     if not row["approx_rows"]:
@@ -590,7 +596,7 @@ def admin_stats():
                 ("Last system change", _time_or(systems_stamp.get("last_modified_at"), "never")),
                 ("Newest system", _time_or(systems_stamp.get("newest_created_at"), "none")),
                 ("Last sector change", _time_or(stamps.get("sectors", {}).get("last_modified_at"), "never")),
-                ("Bright stars", bright_star_text(database["tables"])),
+                ("Bright stars", bright_star_text(database)),
             ],
             name_tiles=[
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),
