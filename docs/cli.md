@@ -236,9 +236,13 @@ it's waiting and starts when the other finishes. The control database
 keeps the lease and one row per run and per sector (`work_jobs`,
 `work_tasks`, see [`database-schema.md`](database-schema.md)); without
 it (before `update.sh` has created the tables) runs don't wait for each
-other. A run stopped with Ctrl-C, or Cancel on the Generate page, lets
-the sectors already being saved finish and queues nothing more; a run
-that was killed outright frees the lease after 30 seconds.
+other. A run stopped with Ctrl-C, or Cancel on the Generate page, stops
+its workers mid-sector (each sector is saved in one transaction, so an
+unfinished one is rolled back, never half written), queues nothing more
+and is recorded as cancelled, with the lease freed at once; a run that
+was killed outright frees the lease after 30 seconds. A worker that
+dies fails the run; losing the control database mid-run doesn't stop
+it (only its rows stop being updated).
 
 Every run is also recorded as a job tree (control schema v7): the run
 at the top, its phases (the skeleton, the bright stars, the population

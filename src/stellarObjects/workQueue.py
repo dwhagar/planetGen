@@ -192,8 +192,22 @@ class Cancelled(SystemExit):
         return f"{self.title} was cancelled from the admin queue page."
 
 
+def _worker_sigterm(signum, _frame):
+    raise SystemExit(128 + signum)
+
+
 def _worker_init(log_level, debug_file):
     lower_priority()
+    # SIGTERM (Cancel on the Generate page stops the whole process group,
+    # or a server shutting down) ends the worker's task with SystemExit,
+    # rolling back its unfinished sector like Ctrl+C does, instead of
+    # killing the worker outright: the pool stays whole and the run ends
+    # as cancelled, not failed with a broken pool (TEST.21).
+    if hasattr(signal, "SIGTERM") and os.name != "nt":
+        try:
+            signal.signal(signal.SIGTERM, _worker_sigterm)
+        except (ValueError, OSError):
+            pass
     os.environ.pop("PLANETGEN_PROGRESS_FILE", None)
     log.set_component("worker")
     try:
@@ -1257,15 +1271,15 @@ class WorkQueue:
     def _standby(self):
         while self._running:
             self._collect(block=True)
-        self._store.set_state(self.job_id, "paused")
+        self._book("set_state", self.job_id, "paused")
         if self.parallel:
-            self._store.release_lease(self.holder)
+            self._book("release_lease", self.holder)
         log.normal(f"{self.title}: paused from the admin queue page; waiting until it is resumed.")
         while True:
             time.sleep(WAIT_POLL_SECONDS)
             controls = self._read_controls(force=True)
             if controls.get("cancel"):
-                self._store.set_state(self.job_id, "running")
+                self._book("set_state", self.job_id, "running")
                 self._cancel(controls["cancel"])
                 return
             if not controls.get("pause"):
@@ -1273,8 +1287,19 @@ class WorkQueue:
         if self.parallel:
             self._take_lease()
         else:
-            self._store.set_state(self.job_id, "running")
+            self._book("set_state", self.job_id, "running")
         log.normal(f"{self.title}: resumed.")
+
+    def _book(self, method, *args, **kwargs):
+        """Calls a bookkeeping method of the store (task rows, state,
+        lease release). The rows are only a record: when the control
+        database drops mid-run, the run goes on and the lease goes stale
+        on its own (TEST.20)."""
+        try:
+            return getattr(self._store, method)(*args, **kwargs)
+        except Exception as exc:  # noqa: BLE001 -- bookkeeping only
+            log.debug(f"Work queue: could not {method.replace('_', ' ')} for job {self.job_id}: {exc}")
+            return None
 
     def expect(self, count):
         """Says `count` more tasks are coming, so the job tree can show
@@ -1357,20 +1382,20 @@ class WorkQueue:
         when there's a control database."""
         recorded = self._store.available and self.node is not None
         if recorded:
-            self._store.add_tasks(self.job_id, [task])
-            self._store.start_tasks([task])
+            self._book("add_tasks", self.job_id, [task])
+            self._book("start_tasks", [task])
         started = time.monotonic()
         try:
             result = task.fn(task.payload)
         except BaseException as exc:
             if recorded:
                 state = "failed" if isinstance(exc, Exception) else "cancelled"
-                self._store.finish_task(self.job_id, task, state, error=f"{type(exc).__name__}: {exc}")
+                self._book("finish_task", self.job_id, task, state, error=f"{type(exc).__name__}: {exc}")
             raise
         seconds = time.monotonic() - started
         self.finished += 1
         if recorded:
-            self._store.finish_task(self.job_id, task, "done", seconds=round(seconds, 3), result=result)
+            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3), result=result)
         if task.on_done:
             task.on_done(result, seconds, task.weight)
 
@@ -1379,10 +1404,22 @@ class WorkQueue:
         batch, self._waiting = self._waiting[:max(room, 0)], self._waiting[max(room, 0):]
         if not batch:
             return
-        self._store.add_tasks(self.job_id, batch)
-        self._store.start_tasks(batch)
-        for task in batch:
-            task.future = self._executor.submit(_run_task, task.fn, task.payload, task.seed)
+        self._book("add_tasks", self.job_id, batch)
+        self._book("start_tasks", batch)
+        for index, task in enumerate(batch):
+            try:
+                task.future = self._executor.submit(_run_task, task.fn, task.payload, task.seed)
+            except concurrent.futures.BrokenExecutor as exc:
+                # A worker died (killed, out of memory): the pool takes
+                # nothing more. The tasks it was running fail with the
+                # same error when collected; these never started.
+                for unsent in batch[index:]:
+                    self._book("finish_task", self.job_id, unsent, "cancelled",
+                               error=f"{type(exc).__name__}: {exc}")
+                if self._failure is None:
+                    self._failure = exc
+                self._waiting.clear()
+                return
             self._running.add(task)
 
     def _collect(self, block):
@@ -1399,12 +1436,12 @@ class WorkQueue:
             try:
                 result, seconds = future.result()
             except BaseException as exc:  # noqa: BLE001 -- re-raised by _raise_failure
-                self._store.finish_task(self.job_id, task, "failed", error=f"{type(exc).__name__}: {exc}")
+                self._book("finish_task", self.job_id, task, "failed", error=f"{type(exc).__name__}: {exc}")
                 if self._failure is None:
                     self._failure = exc
                     self._waiting.clear()
                 continue
-            self._store.finish_task(self.job_id, task, "done", seconds=round(seconds, 3), result=result)
+            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3), result=result)
             if task.on_done:
                 task.on_done(result, seconds, task.weight)
 
