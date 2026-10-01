@@ -792,7 +792,7 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
                            "--name=Output Test", "+habitable_world"],
                           capture_output=True, text=True, timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
-    assert out.read_text().startswith("# Output Test\n")
+    assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
     wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
                           capture_output=True, text=True, timeout=120, env=env)
