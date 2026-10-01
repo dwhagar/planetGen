@@ -416,6 +416,133 @@ BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
     'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
 }
 
+# --- Star population model (stellarEvolution.py) ---
+# A random star is drawn as physics, not from a letter table: a mass from
+# the initial mass function, an age from the star-formation history, and
+# the star's present state (main sequence, subgiant, giant, supergiant or
+# white dwarf) from how far that age is into its own lifetime. Its letter,
+# subclass and Yerkes class follow from the resulting temperature and
+# luminosity. SPECTRAL_PROBABILITIES_NORMAL above is kept as the census the
+# model is tested against, not as a draw.
+
+# Kroupa (2001), MNRAS 322:231 -- the initial mass function as a broken
+# power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
+# above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
+# the segment edges and IMF_SLOPES each segment's alpha.
+IMF_BREAKS_SOL = (0.08, 0.5, 150.0)
+IMF_SLOPES = (1.3, 2.3)
+
+# The default star-formation history: ages uniform over the thin disk's
+# 0-10 Gy. Population-dependent ages by position come on top of this (the
+# sector fill passes an age instead of letting the star draw one).
+STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
+
+# Post-main-sequence phases, as multiples of the main-sequence lifetime
+# (SOLAR_MS_LIFESPAN_GY * M^MS_LIFESPAN_MASS_EXPONENT above): subgiant up
+# to 1.1, giant or supergiant up to 1.2, then a remnant. Real post-MS
+# phases take roughly 10-20% of the main-sequence time.
+SUBGIANT_PHASE_END_MS_FRACTION = 1.1
+GIANT_PHASE_END_MS_FRACTION = 1.2
+
+# Stars at or above this initial mass end as supergiants and then neutron
+# stars or black holes (core collapse); below it, as giants and white dwarfs.
+SUPERGIANT_MIN_MASS_SOL = 8.0
+# Giants at or above this initial mass are bright giants (II), not III.
+BRIGHT_GIANT_MIN_MASS_SOL = 4.0
+# Giant-branch luminosity (log-uniform, Lsun) and temperature (K) ranges.
+GIANT_LUMINOSITY_RANGE_SOL = (50.0, 1000.0)
+BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)
+GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
+# A subgiant brightens to about twice its main-sequence luminosity and
+# cools toward the base of the giant branch while crossing.
+SUBGIANT_MAX_BRIGHTENING = 2.0
+SUBGIANT_END_TEMPERATURE_K = 5000.0
+# Massive stars evolve at nearly constant luminosity; about a third of
+# observed supergiants are red (K/M), the rest blue or white (O/B/A).
+SUPERGIANT_LUMINOSITY_GROWTH_RANGE = (1.0, 1.5)
+RED_SUPERGIANT_FRACTION = 1 / 3
+RED_SUPERGIANT_TEMPERATURE_RANGE_K = (3500.0, 4500.0)
+BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
+# Supergiant Yerkes class by luminosity (Lsun, lowest first): below the
+# first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
+SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
+
+# Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
+# (Lsun, Msun), each piece for M below its max_mass_sol and the last one
+# open-ended (Duric 2004; Salaris & Cassisi 2005).
+MS_MASS_LUMINOSITY_PIECES = (
+    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
+    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
+    {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
+    {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
+)
+# Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
+# exponent changing at 1 Msun (Demircan & Kahraman 1991).
+MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
+MS_RADIUS_EXPONENT_ABOVE_1_SOL = 0.57
+# The Sun's effective temperature (IAU 2015 nominal), anchoring
+# Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
+SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
+
+# White dwarfs: final mass from the initial-final mass relation of
+# Kalirai et al. (2008), ApJ 676:594 (M_f = 0.109 M_i + 0.394), clamped to
+# the observed range; luminosity from Mestel cooling,
+# L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
+WD_IFMR_SLOPE = 0.109
+WD_IFMR_INTERCEPT_SOL = 0.394
+WD_MASS_RANGE_SOL = (0.5, 1.35)
+WD_COOLING_L0_SOL = 1.0e-3
+WD_COOLING_EXPONENT = -1.4
+WD_LUMINOSITY_RANGE_SOL = (1.0e-5, 100.0)
+WD_MIN_COOLING_AGE_GY = 1.0e-4
+
+# `+large_star` draws from the same model with the IMF truncated below
+# this mass, and an age inside the star's own lifetime so it's still alive.
+LARGE_STAR_MIN_MASS_SOL = 1.4
+
+# A random primary that has already collapsed (a neutron star or black
+# hole) is redrawn: isolated remnants are generated as phenomena, so their
+# rates stay in one place. Caps the redraws.
+STAR_MODEL_MAX_REDRAWS = 1000
+
+# Planets by the star's age and history. A star younger than
+# PLANET_MIN_STAR_AGE_GY still has only a debris disk (planet formation
+# takes ~10 Myr), so it keeps belts at most; no habitable-class world is
+# drawn around a star younger than LIFE_MIN_STAR_AGE_GY (a crust and
+# oceans take ~0.1 Gy). A giant engulfs planets inside
+# GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
+# reaches a few stellar radii), and a population-model white dwarf's
+# progenitor, on its asymptotic giant branch, engulfed or drove off
+# everything inside WD_PROGENITOR_ENGULFMENT_AU.
+PLANET_MIN_STAR_AGE_GY = 0.01
+LIFE_MIN_STAR_AGE_GY = 0.1
+GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
+WD_PROGENITOR_ENGULFMENT_AU = 1.5
+
+# Stellar populations by age (galaxyDensity.population_densities,
+# stellarPopulation). Each has its own age range (uniform within it); the
+# three disk populations share the disk's star formation evenly in time,
+# so each one's share of disk stars is its age range's length over
+# STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
+# crowd the spiral arms; old stars are puffed up by billions of years of
+# scattering and spread evenly in azimuth. Scale heights are relative to
+# the galaxy's own disk scale height (the old disk's, ~350 pc in the Milky
+# Way: young ~80 pc, intermediate ~200 pc). The bulge is old (8-12 Gy).
+STELLAR_POPULATION_AGE_RANGES_GY = {
+    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
+}
+STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 80 / 350, "intermediate": 200 / 350, "old": 1.0}
+STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# Pre-placed bright stars (stellarPopulation.sample_bright_stars): the
+# mass grid, in log-spaced cells over the IMF's range, on which the chance
+# of a star being at least the threshold's brightness is tabulated.
+BRIGHT_STAR_MASS_GRID_CELLS = 4000
+
+# Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
+# find it close to flat); the secondary shares the primary's age.
+BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+
 # --- Planet Classification Data ---
 
 # A dictionary defining the properties of different planet classes.

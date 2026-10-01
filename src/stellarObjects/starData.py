@@ -25,6 +25,8 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, physical_constants, program_constants
 from .serialization import fields_from_dict, fields_to_dict
+from .stellarEvolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
+                               star_params)
 from .utils import (format_age_string, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
@@ -161,6 +163,20 @@ class Star:
     it depends on the companion star's mass/separation/eccentricity, none
     of which a lone `Star` instance knows about.
     """
+
+    initial_mass_sol = None
+    """float or None: The initial (zero-age) mass in Msun of a star drawn
+    from the population model (`_generate_from_population_model`); None for
+    a specified-type or reloaded star. A binary secondary's mass is a
+    fraction of the primary's initial mass, since the primary may have lost
+    mass since (a white dwarf)."""
+
+    phase_end_age_gy = None
+    """float or None: The age (Gy) at which a population-model star leaves
+    its present evolutionary phase; `adjust_age_for_planets` keeps its age
+    below it so the star's class stays true. None otherwise."""
+
+    _model_age_lifespan = None
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
@@ -453,6 +469,11 @@ class Star:
         supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
 
         min_required_age_for_system = 0.0
+        original_age = self.age
+        if self.phase_end_age_gy == float('inf'):
+            # A population-model white dwarf's age sets its cooling
+            # luminosity and temperature; it stays as drawn.
+            return
 
         for planet in planets:
             # Assuming planet has a 'planet_class' attribute
@@ -467,7 +488,14 @@ class Star:
 
         # Ensure the star's age is at least the minimum required by its planets
         if self.age < min_required_age_for_system:
-            if self.lifespan != float('inf'):
+            if self.phase_end_age_gy is not None and self.phase_end_age_gy != float('inf'):
+                # A population-model star can't age past its present phase
+                # without its class, luminosity and radius becoming wrong.
+                max_reachable_age = min(
+                    self.phase_end_age_gy * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                    program_constants.UNIVERSE_AGE_GY,
+                )
+            elif self.lifespan != float('inf'):
                 # Capped at the age of the universe for the same reason as
                 # the initial age roll in _calculate_initial_star_age_and_lifespan
                 # -- a long-lived class's lifespan-derived ceiling can be far
@@ -493,6 +521,10 @@ class Star:
                     min(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
                     max_reachable_age,
                 )
+                if self.phase_end_age_gy is not None:
+                    # Never younger than it was: that could move a
+                    # population-model star back into an earlier phase.
+                    self.age = max(self.age, original_age)
             else:
                 # The requirement is reachable within the lifespan: bias where in the
                 # achievable [min_required_age_for_system, max_reachable_age] window the
@@ -776,14 +808,26 @@ class Star:
             self.galactic_orbital_phase_deg = None
             self.galactic_min_update_interval_years = None
             # Added mass_override for secondary star generation in binary systems
-            self.generate_star(mass_override=kwargs.get('mass_override'))
+            self.generate_star(mass_override=kwargs.get('mass_override'),
+                               initial_mass_sol=kwargs.get('initial_mass_sol'),
+                               age_gy=kwargs.get('age_gy'))
+            self._finish_init(kwargs)
+
+    def _finish_init(self, kwargs):
+        """The derived properties every generated star gets once its core
+        ones exist: age and lifespan (unless the population model already
+        fixed them), habitable zone, Hill sphere, heliosphere and galactic
+        orbit."""
+        if self._model_age_lifespan is not None:
+            self.age, self.lifespan = self._model_age_lifespan
+        else:
             self.age, self.lifespan = self._calculate_initial_star_age_and_lifespan()
-            self.habitable_zone = calculate_habitable_zone(self.luminosity)
-            self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
-            self.heliosphere_radius = self.calculate_heliosphere()
-            (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
-             self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
-                generate_galactic_orbit_fields(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
+        self.habitable_zone = calculate_habitable_zone(self.luminosity)
+        self.system_perimeter = self.calculate_system_perimeter(self.galactic_center_dist_ly)
+        self.heliosphere_radius = self.calculate_heliosphere()
+        (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
+         self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
+            generate_galactic_orbit_fields(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
 
     def get_table_properties(self):
         """
@@ -904,10 +948,85 @@ class Star:
         """
         return '\n\n'.join(self.to_paragraph_list())
 
-    def generate_star(self, mass_override=None):
+    def _generate_from_population_model(self, initial_mass_sol=None, age_gy=None):
+        """
+        Sets this star's properties from the population model
+        (`stellarEvolution`): a Kroupa-IMF mass and a star-formation-history
+        age (or the given ones), evolved to its present state. The letter,
+        subclass and Yerkes class follow from the resulting temperature and
+        luminosity; the radius from Stefan-Boltzmann (a white dwarf's from
+        its mass-radius relation). Also fixes `age`/`lifespan` (read by
+        `__init__` instead of `_calculate_initial_star_age_and_lifespan`),
+        `initial_mass_sol` (a binary secondary's mass is a fraction of it)
+        and `phase_end_age_gy` (`adjust_age_for_planets` keeps the age
+        inside the present phase).
+
+        `+large_star` truncates the IMF at `LARGE_STAR_MIN_MASS_SOL`, and a
+        primary that has already collapsed to a neutron star or black hole
+        is redrawn (see `stellarEvolution.sample_living_star`). The config's
+        `POPULATION` sets the age range and `MAX_STAR_LUMINOSITY_SOL` redraws
+        any star at least that bright.
+        """
+        age_bias = self.system_config.AGE
+        state = None
+        if initial_mass_sol is not None:
+            initial_mass_sol = max(initial_mass_sol, program_constants.IMF_BREAKS_SOL[0])
+            age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
+            state = evolve_star(initial_mass_sol, age)
+        if state is None:
+            # No companion given, or (defensively) a given one has already
+            # collapsed; a lighter companion of a living star never has.
+            habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
+            initial_mass_sol, age, state = sample_living_star(
+                age_bias, bool(self.system_config.LARGE_STAR), habitable_host=habitable_host,
+                population=getattr(self.system_config, "POPULATION", None),
+                max_luminosity_sol=getattr(self.system_config, "MAX_STAR_LUMINOSITY_SOL", None))
+
+        self._apply_params(star_params(initial_mass_sol, age, state))
+        log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
+                                      f"age {age:.3g} Gy")
+
+    def _apply_params(self, params):
+        """Sets this star's generated properties from a `star_params` dict
+        (see `stellarEvolution.star_params`), rolling nothing."""
+        self.type = params["type"]
+        self.yerkes_class = params["yerkes_class"]
+        self.radius = params["radius_km"]
+        self.mass = params["mass_kg"]
+        self.temperature = params["temperature_k"]
+        self.luminosity = params["luminosity_w"]
+        self.initial_mass_sol = params["initial_mass_sol"]
+        self.phase_end_age_gy = params["phase_end_age_gy"]
+        self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
+
+    @classmethod
+    def from_params(cls, params, system_config, name=None, **kwargs):
+        """
+        Builds a real `Star` from a `stellarEvolution.star_params` dict (a
+        pre-placed bright star read back from storage, or a draw from
+        `stellarPopulation`) without re-rolling any of its generated
+        properties: only the derived ones (habitable zone, Hill sphere,
+        heliosphere, galactic orbit) are computed, exactly as `__init__`
+        computes them. Accepts `__init__`'s `galactic_center_dist_ly` and
+        `galactic_orbital_phase_deg` keywords.
+        """
+        star = cls(system_config, name=name, _skip_property_init=True, **kwargs)
+        star._apply_params(params)
+        star._finish_init(kwargs)
+        return star
+
+    def generate_star(self, mass_override=None, initial_mass_sol=None, age_gy=None):
         """
         Generates the physical properties of the star based on a hierarchical,
         physically-constrained procedural model.
+
+        A random star (no `config.STAR_TYPE`) comes from the population
+        model in `stellarEvolution.py`: see `_generate_from_population_model`.
+        `initial_mass_sol`/`age_gy` pin that model's mass and age (a binary
+        secondary: a fraction of the primary's initial mass, at the
+        primary's age). The rest of this docstring describes the path for a
+        specified `config.STAR_TYPE`; `mass_override` (kg) still forces a
+        specified-type secondary's mass.
 
         The generation process is fundamentally different for user-specified stars
         (via `config.STAR_TYPE`) versus randomly generated ones.
@@ -960,12 +1079,10 @@ class Star:
         plausible stellar objects.
         """
         reseed_rng()
-        yerkes_lookup = {
-            "0": "Hypergiant", "IA+": "Luminous Supergiant", "IA": "Supergiant",
-            "IAB": "Intermediate-size Luminous Supergiant", "IB": "Less Luminous Supergiant",
-            "II": "Bright Giant", "III": "Giant", "IV": "Subgiant", "V": "Main Sequence",
-            "VI": "Subdwarf", "VII": "White Dwarf", "D": "White Dwarf" # D is an alias for VII
-        }
+        yerkes_lookup = YERKES_CLASS_NAMES
+        if not self.system_config.STAR_TYPE and (mass_override is None or initial_mass_sol is not None):
+            self._generate_from_population_model(initial_mass_sol, age_gy)
+            return
 
         if self.system_config.STAR_TYPE:
             # --- GENERATE STAR FROM SPECIFIED TYPE ---
@@ -1003,7 +1120,9 @@ class Star:
                 # driver of luminosity for evolved stars.
                 valid_min_lum, valid_max_lum = yerkes_min_lum, yerkes_max_lum
 
-            luminosity = random.uniform(valid_min_lum, valid_max_lum)
+            # Log-uniform: a range spanning decades drawn linearly lands near
+            # its top almost every time.
+            luminosity = math.exp(random.uniform(math.log(valid_min_lum), math.log(valid_max_lum)))
 
         else:
             # --- GENERATE STAR RANDOMLY ---
