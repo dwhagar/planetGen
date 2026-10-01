@@ -18,8 +18,9 @@
 // - makeBlockMesh(part, translucent): a mesh with the map's block shader;
 // - setCamera({target: [x, y, z], dist, theta, phi}): moves the camera
 //   (and the tiles, scale bar and wedge lines with it);
-// - setWedgeClip(clip): the wedge lines kept to {r0, r1, a0, a1} (null:
-//   the whole galaxy, with its bearing labels);
+// - setWedgeClip(clip): only the wedge in view shown, {r0, r1, a0, a1,
+//   z0, z1, cells (its blocks' bounds)} (null: the whole galaxy, with its
+//   bearing labels);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
 //   container ("?at=m.ring.wedge.slab", or "" for the galaxy);
 // - setBlockSize(m): the scale readout's "1 block = m sectors";
@@ -45,16 +46,14 @@ const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
 const DRAG_CLICK_PX = 6;
-// A small cube of sectors (a level-3 block, 27 at most) opens from a
-// fixed slant, so each sector can be picked on the map (Boss,
-// 2026-10-01). Its layers touch, as blocks do everywhere else (no space
-// between blocks or layers, Boss, 2026-10-01). The tilt from straight down.
+// Every view below the whole galaxy opens at an isometric slant (the
+// tilt from straight down, Boss 2026-10-01), so the layers show side by
+// side and can be picked on the map as well as with the slab slider; the small
+// cube of sectors (a level-3 block, 27 at most) has each sector
+// pickable. Layers and blocks touch: no space between them (Boss,
+// 2026-10-01).
 const CUBE_MAX_SECTORS = 27;
-// The isometric slant, arctan(sqrt 2) (about 54.7 degrees) from straight
-// down: used for the cube and whenever a block is in view and a slab is
-// to be picked, so its layers can be told apart (Boss, 2026-10-01).
 export const ISO_TILT = Math.atan(Math.SQRT2);
-const CUBE_TILT = ISO_TILT;
 // Below the galaxy and its quarters the view can be turned, moved and
 // zoomed freely (Boss, 2026-10-01): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
@@ -255,9 +254,9 @@ export function createStageView(host) {
   // The bounds a set of blocks covers in the plane, bearings counted
   // either way from `mid` (the middle of the view's bearings, so a block
   // reaching a little before the view's first bearing doesn't wrap all the
-  // way round): {r0, r1, t0, t1, z1}.
+  // way round): {r0, r1, t0, t1, z0, z1}.
   function spanOf(blocks, mid) {
-    const span = { r0: Infinity, r1: 0, t0: Infinity, t1: -Infinity, z1: -Infinity };
+    const span = { r0: Infinity, r1: 0, t0: Infinity, t1: -Infinity, z0: Infinity, z1: -Infinity };
     blocks.forEach(function (block) {
       const b = block.bounds;
       const t0 = mid + wrapAngle(b.t0 - mid);
@@ -265,6 +264,7 @@ export function createStageView(host) {
       span.r1 = Math.max(span.r1, b.r1);
       span.t0 = Math.min(span.t0, t0);
       span.t1 = Math.max(span.t1, t0 + (b.t1 - b.t0));
+      span.z0 = Math.min(span.z0, b.z0);
       span.z1 = Math.max(span.z1, b.z1);
     });
     return span;
@@ -350,9 +350,10 @@ export function createStageView(host) {
     return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
   }
 
-  // The camera for a stage, from straight above with the view's middle
-  // bearing pointing up the screen (galactic north up for the whole
-  // galaxy): {target, dist, theta, phi}.
+  // The camera for a stage, with the view's middle bearing pointing up
+  // the screen: the whole galaxy from straight above (galactic north up),
+  // everything below it from the isometric slant, fitted round the
+  // blocks: {target, dist, theta, phi}.
   function cameraFor(r) {
     const blocks = r.view.blocks;
     if (!blocks.length) {
@@ -366,11 +367,11 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
-    if (isCube(r) || (isFree(r) && r.kind === "layer")) {
+    if (!isWholeGalaxy(r)) {
       return {
         target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
         dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),
-        theta: theta, phi: CUBE_TILT,
+        theta: theta, phi: ISO_TILT,
       };
     }
     return {
@@ -423,7 +424,10 @@ export function createStageView(host) {
       return;
     }
     const span = spanOf(r.view.blocks, (r.view.a0 + r.view.a1) / 2);
-    host.setWedgeClip({ r0: span.r0, r1: span.r1, a0: span.t0, a1: span.t1 });
+    host.setWedgeClip({
+      r0: span.r0, r1: span.r1, a0: span.t0, a1: span.t1, z0: span.z0, z1: span.z1,
+      cells: r.view.blocks.map(function (block) { return block.bounds; }),
+    });
   }
 
   // Goes to stage `next` (carried on through any choice of one). push:
@@ -576,10 +580,9 @@ export function createStageView(host) {
   // -1. Layers are picked from the strip, not the map: from above, one
   // covers the others.
   function optionAt(clientX, clientY) {
-    // From straight above one layer hides the others, so at the two
-    // locked levels layers are picked from the strip only; once the view
-    // can be turned, the block under the pointer picks its layer too.
-    if (!display || !resolved || (resolved.kind === "layer" && !isCube(display.resolved) && !isFree(display.resolved))) return -1;
+    // Below the whole galaxy the view is slanted, so the block under the
+    // pointer picks its layer too.
+    if (!display || !resolved) return -1;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return -1;
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
@@ -659,9 +662,10 @@ export function createStageView(host) {
     } else {
       clearOutline();
     }
-    markStripRow(layer ? layer
-      : option && option.pick && option.pick.kind === "layer" ? option.pick
-        : option && isCube(resolved) ? { lo: option.blocks[0].slab, hi: option.blocks[0].slab } : null);
+    let row = layer;
+    if (!row && option && isCube(resolved)) row = { lo: option.blocks[0].slab, hi: option.blocks[0].slab };
+    else if (!row && option && resolved.kind === "layer" && option.pick) row = { lo: option.pick.lo, hi: option.pick.hi };
+    markStripRow(row);
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -799,13 +803,10 @@ export function createStageView(host) {
     if (!r || !r.kind) return "";
     if (isCube(r)) {
       return "Click a sector to open it (a sector that isn't generated yet shows where it is"
-        + (host.canGenerate ? " and how to generate it" : "") + "), or pick a layer from the list to see just that one.";
-    }
-    if (r.kind === "layer" && isFree(r)) {
-      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " on the map, or pick one with the slider beside it.";
+        + (host.canGenerate ? " and how to generate it" : "") + "), or pick a layer with the slider to see just that one.";
     }
     if (r.kind === "layer") {
-      return "Pick a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) with the slider beside the map.";
+      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the slider beside the map.";
     }
     if (r.kind === "quadrant") return "Click a quarter of the galaxy to look at it more closely.";
     if (isSectorView(r)) {
@@ -1059,10 +1060,10 @@ export function createStageView(host) {
       const forward = key === "ArrowRight" || key === "ArrowUp";
       next = (current + (forward ? 1 : -1) + options.length) % options.length;
     } else {
-      const a0 = options[current].a0;
+      const arc = options[current].arc;
       const order = key === "ArrowUp" ? 1 : -1;
       for (let n = current + order; n >= 0 && n < options.length; n += order) {
-        if (Math.abs(options[n].a0 - a0) < 1e-9) {
+        if (options[n].arc === arc) {
           next = n;
           break;
         }
