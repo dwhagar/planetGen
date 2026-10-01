@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.70.174] - 2026-10-01
+
+### Fixed
+- **Asteroid belts on the System Map no longer cover planet orbits (MAP.49).** A belt's ring now runs from its inner edge to its outer edge on the same scale as the orbits, instead of being centered on its inner edge with a width that ignored that scale. A very thin belt is still widened so it can be seen, but never over a neighboring orbit. A planet's orbit is drawn at its real distance from its star, so a planet on a tilted orbit just past a belt no longer looks like it sits inside it. Generated systems were checked too: no planet actually orbits inside a belt.
+
 ## [7.69.174] - 2026-10-01
 
 ### Fixed
