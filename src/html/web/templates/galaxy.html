@@ -2,6 +2,8 @@
     (Markup from lib/galaxymap3d.py), placed_count, quadrant, and either
     summary_rows (no quadrant) or sector_rows + pager. -#}
 {% extends "base.html" %}
+{#- The map uses most of a wide window, past the usual 72rem column. -#}
+{% block main_class %} app-main-wide{% endblock %}
 {% block head %}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
 {% endblock %}

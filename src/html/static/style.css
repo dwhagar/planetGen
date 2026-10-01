@@ -1682,11 +1682,65 @@ code {
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
    the identical "copy a generate.py CLI command" concept one level in. */
-/* The Galaxy Map is the page's whole point, so its viewport gets more of
-   a wide screen than the sector map's 22rem (still a square, still full
-   width on a phone). */
+/* The Galaxy Map is the page's whole point (TODO 63): the map takes the
+   full width of a wider main column (.app-main-wide, galaxy.html) and as
+   much of the window's height as is left under the header, with the
+   controls in a row underneath that wraps to a stack when it doesn't fit,
+   and the block info beside them. On a phone it stays about square, so
+   the page can still be scrolled past it. galaxymap3d.js follows the
+   canvas's size with a ResizeObserver. */
+/* The long how-to hint in the panel header moves under the map and its
+   controls (the header's box is dropped so its two children become the
+   panel's own flex items), so the map itself starts near the top. */
+.galaxymap3d-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.galaxymap3d-panel > .panel-header {
+  display: contents;
+}
+
+.galaxymap3d-panel > .panel-header > h2 {
+  margin: 0;
+}
+
+.galaxymap3d-panel > .panel-header > .hint {
+  order: 1;
+  margin: 0;
+}
+
+.galaxymap3d-panel .starmap-layout {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 1rem;
+}
+
 .galaxymap3d-panel .starmap-viewport {
-  width: min(100%, 36rem);
+  width: 100%;
+  aspect-ratio: auto;
+  height: min(calc(100vh - 9rem), max(20rem, 75vw));
+  height: min(calc(100svh - 9rem), max(20rem, 75vw));
+}
+
+.galaxymap3d-panel .starmap-side {
+  flex: none;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 1.5rem;
+  min-width: 0;
+}
+
+.galaxymap3d-panel .starmap-controls {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+}
+
+.galaxymap3d-panel .starmap-info {
+  flex: 1 1 20rem;
+  min-width: 0;
 }
 
 .galaxymap3d-tooltip {
@@ -2076,6 +2130,11 @@ body.app {
   max-width: 72rem;
   margin: 0 auto;
   padding: 1.5rem 1.5rem 3rem;
+}
+
+/* A page whose map should use most of a wide window (the Galaxy Map). */
+.app .app-main-wide {
+  max-width: 120rem;
 }
 
 .app .app-main:focus {

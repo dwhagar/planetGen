@@ -192,23 +192,6 @@ for a mouse; spacing and type sized with `clamp()`.
     both orientations, with touch targets still at least 44 px on touch
     screens.
 
-63. [ ] **A bigger Galaxy Map with its controls underneath.** Boss
-    (2026-10-01): "I also want the galaxy map box to be bigger, place the
-    controls under it horizontally if possible, stacked if not, but use as
-    much of the browser area as is reasonable to display the galaxy map."
-    Today the map is a square capped at 36rem
-    (`.galaxymap3d-panel .starmap-viewport` in `static/style.css`) inside
-    the 72rem main column (`.app .app-main`), with the controls and info
-    panel in a side column (`.starmap-side`, built in
-    `lib/galaxymap3d.py`). Done: the Galaxy Map page lets the map use most
-    of the browser window (wider than the 72rem column, and as tall as
-    the window allows after the header, not forced square), the controls
-    sit in a row under the map and wrap to a stack when the row doesn't
-    fit, and the canvas resizes with the window (`static/galaxymap3d.js`
-    must follow the new size; the Galaxy Map thread owns that file).
-    Open question: does the block info panel go under the controls, or
-    stay beside the map on wide screens?
-
 87. [ ] **Warn every visitor while a background job changes the
     galaxy.** Boss (2026-10-01): "a warning to all users on the UI when a
     task is running in the background which is modifying the starmap is
