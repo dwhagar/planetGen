@@ -126,7 +126,11 @@ connectivity to that specific schema rather than the default one.
   (`{id, name, distance_ly}` for the up-to-3 closest systems in the same
   sector, nearest first, computed from current positions and names; the
   names inside `location` are frozen at generation time and can be
-  stale) (`queryDb.system_detail`) — same "flat display
+  stale), `inside` (the nebula or supernova remnant around the system,
+  `{type, id, name, class, density_cm3, temperature_k}`, or `null`), and
+  `heliopause_au` (the heliopause squeezed by that cloud, the edge of the
+  system's navigation frame) with `heliopause_open_space_au`
+  (`queryDb.system_detail`) — same "flat display
   shape, not the generation object graph" relationship to
   `stellarObjects._db.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.

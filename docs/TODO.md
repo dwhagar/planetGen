@@ -49,7 +49,8 @@ renumber when items are added or finished.
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
    26 (nearest systems) in v41 and 35 (facilities) in v42; 32 (the
    correlative update moves everything) and 36 (placing facilities
-   from the web) shipped with them.
+   from the web) shipped with them, and so did 33-34 (navigation
+   frames and speeds).
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -88,7 +89,6 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      faces, so skipping a face whose neighbour exists would cut the
      vertex count; past that, one InstancedMesh per wedge-arc count.
    - DPR: `pcPerPixel` is per CSS pixel.
-
 
 ### Galaxy navigation: the drill-down (`docs/design/galaxy-drilldown-navigation.md`)
 
@@ -227,6 +227,48 @@ for a mouse; spacing and type sized with `clamp()`.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
+86. [ ] **Estimate size and time before bulk generation, and refuse
+    what won't fit.** Boss (2026-10-01): "any directive to generate
+    sectors in bulk should have a size estimate calculated +10% and make
+    sure that it warns the user approximate size of the generated content
+    before it generates it. Same for time, which means we'll have to
+    store in the control database somewhere how fast stars are generated
+    in exact terms as we can, which we'll get from the generate phase,
+    not from the plan, but from when we start generating sectors, have
+    the program keep track of it's average stars per second and then
+    we'll use the expected stellar density of all the sectors being asked
+    to generate to determine the amount of time it is estimated to take.
+    Also it should refuse to generate anything that would take more than
+    1/4 of the total disk space OR would leave less than 5 GB of space
+    estimated to be left." Today nothing estimates size or time up front:
+    `generate.py` only shows elapsed time and a running ETA once
+    generation has started, and `stellarObjects/generationLimits.py`
+    caps input sizes (radius, ring counts, orbits), not output size.
+    Done, for every bulk path (`generate.py galaxy`/`sector` over many
+    sectors, the admin Generate page's jobs, item 73's slice and
+    neighborhood generation, item 60's sector regenerate, and the Galaxy
+    Map's Generate buttons):
+    - Before starting, compute the expected star count from the expected
+      stellar density of the requested sectors, then an estimated size
+      (bytes per star from measured data, plus 10%) and an estimated
+      time (stars / measured stars per second), and show both to the
+      user, who confirms before anything is written.
+    - Measure speed during sector fill, not during the plan: the program
+      tracks its average stars per second while generating sectors and
+      stores it in the control database (a new table or row next to
+      `admin_users` in `control_schema.sql`), updated after each run.
+    - Refuse when the estimate would use more than 1/4 of the total disk
+      or leave less than 5 GB free, saying why and how much space it
+      needs.
+    Open questions: which disk counts (the MySQL data directory's volume,
+    which may be another machine, or the planetGen host); how bytes per
+    star are calibrated (measured from the database's own table sizes
+    after each run, or fixed from the 2026-09-30 galaxy-size study in the
+    project's `galaxy-studies/`); what rate to use before any run has
+    been measured (a conservative default?); whether the rate is kept per
+    server or per kind of sector (bright-star and bulge sectors cost
+    more per star); and whether an admin can override the refusal.
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
@@ -253,47 +295,6 @@ for a mouse; spacing and type sized with `clamp()`.
     - Nebulae and supernova remnants: Boss (2026-09-30) wants them
       generated and placed on the maps (#27); their own view keeps a
       map until a render is designed for them.
-
-### Navigation and travel (`stellarObjects/navigation.py`, `queryDb.nav_between`, `web/nav_page.py`, `templates/nav.html`)
-
-33. [ ] **Courses in "bearing mark mark" format on nested reference
-    frames.** Boss: "Course projections should be in the format of:
-    0-359 mark 0-359 with 0 mark 0 pointing toward the galactic core."
-    Boss's design (summarized; the full text and pseudocode are in
-    `docs/design/navigation-frames.md`):
-    - North points toward the local dominant center of mass. Every
-      local frame is a rigid transform of the absolute galactic
-      Cartesian frame.
-    - Galactic Standard Frame: origin the galactic core, +Z galactic
-      north, +X a fixed zero meridian. Between sectors, bearing 000
-      points at the core.
-    - Sector Local Frame: origin the sector's barycenter (4 pc cell),
-      North from the ship toward it, +Z the galactic +Z.
-    - System Local Frame: origin the central star/barycenter, North
-      from the ship toward it, +Z the star's net angular momentum
-      (the ecliptic normal).
-    - Math: D = target - ship; U = the plane's normal; N = (center -
-      ship) with its U part removed, normalized; E = N x U. Bearing =
-      atan2(D·E, D·N) in [0, 360), 000 = North, 090 = East. Mark =
-      atan2(D·U, sqrt((D·N)² + (D·E)²)). Directly over the center pole,
-      fall back to a fixed reference vector. Boss's `compute_course`
-      pseudocode in the design doc is the reference.
-    - Hand-offs: star to sector barycenter past the heliopause (~120
-      AU); galactic frame when crossing a sector boundary (> 4 pc).
-    - Today `navigation.course_between` returns azimuth/altitude on the
-      galactic plane and `nav.html` shows them as separate rows.
-    - **Questions for Boss:**
-      - Marks from 0-359: the math gives -90 to +90. Default taken, from
-        your own note: write mark as elevation mod 360, so 000-090 is up
-        and 270-359 is down (270 = straight down), and nothing between
-        091 and 269 appears. OK?
-      - "0 mark 0 toward the galactic core" holds in the galactic frame;
-        inside a system or sector, 0 points at the star or sector
-        barycenter. Default taken: 0 mark 0 is toward the current
-        frame's center.
-      - The zero meridian "toward a reference quasar": here the quasar
-        sits at the galactic center, so it can't set +X. Default taken:
-        keep the galaxy's existing +X axis (ring slot 0).
 
 ### Web API (`src/html/api/routes.py`)
 
@@ -338,38 +339,6 @@ project's `galaxy-studies/star-fix-spec.md`, and the Physics part of
       overlap, keeping the server placement as the no-script fallback.
     - Check every scene: single star, close and wide binaries, and the
       moon-centered scenes, at 390 px and 1280 px.
-
-### Installers and platforms (Boss's notes, 2026-09-30)
-
-50. [ ] **PowerShell install and upgrade scripts, and bash scripts that
-    also run on macOS.** Boss: "we need to write a powershell install and
-    upgrade scripts as well as make sure our bash shell scripts will also
-    work on macos as well as linux."
-    - **Windows:** `install.ps1` and `update.ps1`, the counterparts of
-      `install.sh` and `update.sh`: the same steps and the same prompts
-      (check-only upgrades, the migrate-or-delete database prompt with
-      its 30-second default, the migration progress bar), using a venv
-      or the Windows Python launcher instead of apt, Windows services or
-      Task Scheduler instead of systemd timers, and Apache on Windows
-      (or IIS) paths and permissions (`icacls`) instead of `www-data`
-      and `chown`.
-    - **macOS:** every bash script (`install.sh`, `update.sh`,
-      `scripts/deploy-common.sh`, `scripts/install-python-deps.sh`, and
-      `examples/apache/*.sh`, `examples/maintenance/*.sh`) must run on
-      macOS too. Known gaps: macOS ships bash 3.2, so
-      `install-python-deps.sh`'s `declare -A` and `mapfile` fail there
-      (require Homebrew bash, or rewrite them); apt is assumed (use
-      Homebrew, or pip in a venv); systemd timers and `systemctl` (use a
-      launchd plist); Debian Apache layout (`/etc/apache2`, `a2enmod`,
-      `www-data`) versus Homebrew's (`/opt/homebrew/etc/httpd`, `_www`);
-      logrotate (use newsyslog); and BSD versus GNU flags in `sed`,
-      `stat`, `readlink`, `date` and `timeout` wherever they appear.
-    - Keep the steps in step across the three platforms, so a change to
-      one installer lands in all of them.
-    - The Windows and macOS hosting guides (being written in `docs/` by
-      the docs thread) describe the server setup; this item is only the
-      scripts, and the guides should point at them once they exist.
-    - Each script carries a `TODO(installers #50)` comment at its top.
 
 ### Admin editing: overrides, delete and regenerate (Boss's notes of 2026-10-01)
 
@@ -560,6 +529,138 @@ invite links too.
     visitor can't (is the site still public to read, or sign-in only?)?
     Do bookmarks survive a galaxy regenerate (object ids change), and if
     not, what does a broken bookmark show?
+
+### Project process (Boss's notes of 2026-10-01)
+
+80. [ ] **Number TODO items by category, and build the version from
+    them.** Boss (2026-10-01): "I want to renumber the TODO items in
+    groups so like UI changes get 'UX.1' and API Changes at 'API.1' kind
+    of thing, so that we can better track changes. We'll revamp
+    everything so that tags are consistent through the documentation.
+    We'll then build the build number (major feature set.revision.build)
+    to be a composite of the change numbers for each category added up.
+    (i.e. if we're on UX.4, API.8, and DB.12 we'd add those up to be
+    4+8+12)." Nothing is renumbered yet. Today items carry one running
+    number across groups (this file's "How to use this document" says to
+    renumber when items are added or finished), code sites carry
+    `TODO(<area> #N)` tags (`grep TODO(`), and the version (README badge,
+    `src/stellarObjects/_version.py`, `CHANGELOG.md`; 7.37.0 as of this
+    item) is bumped by `.github/workflows/stamp-version.yml` and
+    `scripts/bump_version.py` from each merged PR's
+    `changes/<name>.<patch|minor|major>.md` note. Done: every open item
+    gets a category ID (`UX.1`, `API.1`, `DB.1`, ...); the same IDs are
+    used in `TODO(...)` code tags, `changes/` notes, the changelog, PR
+    titles and the design docs; and the version's third number is the
+    sum of each category's counter. Open questions:
+    - The category list and what each covers (for example UX, API, DB,
+      MAP for the Galaxy/Sector/System maps, GEN for generation and
+      physics, NAV, SEC for security, OPS for installers and hosting,
+      DOC).
+    - Is a category's counter the number of changes shipped in it, or the
+      highest item ID? Does a finished item keep its ID (no more
+      renumbering), so IDs are never reused?
+    - How the post-merge Action counts: does each `changes/` note name its
+      category and item ID (for example `ux-62.patch.md` or a front-matter
+      line), and what happens to a PR that touches two categories or none
+      (a pure bug fix)?
+    - What "major feature set" and "revision" mean and who bumps them
+      (still the `patch`/`minor`/`major` level of the note?). Does the
+      build number reset when they go up? It can't, if it's a running sum
+      of counters, so the version would only ever grow in its third
+      place.
+    - Do the 1-79 numbers already in commits, PRs and the changelog get a
+      mapping table to the new IDs?
+
+81. [ ] **A structural design document: the program's "circuitry".**
+    Boss (2026-10-01): "build a structural design document of how the
+    program works overall, bridging file names to what they contain and
+    basically lays out the 'circuitry' of the program." Nothing like it
+    exists today: `docs/` has reference docs per area (`api.md`,
+    `database-schema.md`, `html-interface.md`, `config.md`,
+    `testing.md`, ...) and `docs/design/` has topic designs, but nothing
+    shows the whole. Done: one document (for example
+    `docs/design/architecture.md`) that maps every top-level script,
+    package and important module (`generate.py`, `src/stellarObjects/`,
+    `src/html/api/`, `src/html/web/`, `src/html/lib/`, `src/html/static/`,
+    installers, workflows) to what it holds, and traces the main flows
+    through them: generating a galaxy, sector and system; storing and
+    migrating the database; serving a page and a map; admin login and
+    jobs; releases. Open questions: diagrams (Mermaid, which GitHub
+    renders) or text only? How is it kept current (a CI check that every
+    module is listed, or a rule that PRs update it)?
+
+82. [ ] **Bring the design documents up to date, with the reasons.** Boss
+    (2026-10-01): "clean up the design documents make sure they are all
+    current, document how the program works the way it does and why and
+    what choices were made that influenced each." Done: every file in
+    `docs/design/` and `docs/analysis/` (and the reference docs in
+    `docs/`) checked against the code, fixed or marked as historical; each
+    says how that part works, why, and which choices and alternatives
+    shaped it (for example the cylindrical sector grid, rendering systems
+    from the database, three.js for the Galaxy Map, Flask-only site),
+    drawing on the PRs and `CHANGELOG.md`. Open questions: do superseded
+    designs get deleted or kept in an archive folder? Does this wait for
+    item 80's category IDs so the docs are tagged once? Best done after
+    item 81, which gives the map to hang them on.
+
+### View from a planet (Boss's notes of 2026-10-01)
+
+**Research first.** Boss: "view-from-planet will have to do calculations
+on colors and A LOT Of stuff, so make special note of that, it will need
+a full research pass." Before any code for items 83-84, Boss wants a
+research session with him "into exactly how one would do that". Items 83
+and 84 are blocked on it; item 85 is not.
+
+83. [ ] **A starmap seen from a planet. RESEARCH WITH BOSS FIRST.** Boss:
+    "Build a function to select a planet and generate an effective starmap
+    from that planet based on all visible stars, this will have to include
+    a lot, A LOT, of math so remind me to do research when we get there
+    into exactly how one would do that, but it would have to account for
+    where each star would have been at that light years back in time?"
+    Done: pick a planet (or moon), and get every star visible from it
+    with its direction and brightness as seen there, placed where it was
+    when the light now arriving left it (light-travel time back along
+    its galactic orbit; the correlative update now moves everything along
+    galactic orbits, TODO 32, PR #157). The research pass covers at least:
+    - which stars are visible (apparent magnitude from luminosity and
+      distance, a magnitude cut, interstellar extinction and reddening by
+      dust, and whether stars beyond the generated sectors are included,
+      for example from the density skeleton or the `bright_stars` table
+      from PR #159);
+    - star colors as seen from the planet (colour from temperature,
+      reddening, the planet's atmosphere and its own star's glare; Boss
+      singled out colors as needing real work);
+    - light-time positions (the star's position at "now minus distance /
+      c" along its galactic orbit), and where the planet is in its own
+      orbit and its sky orientation (axial tilt, rotation, latitude);
+    - nebulae, the galactic band, the companion stars of the planet's own
+      system, and performance (millions of stars per view).
+
+84. [ ] **Render the view as a PNG, with constellations.** Boss: "when
+    it does that it will generate a PNG and it will generate
+    constellations." Done: item 83's view is drawn to a PNG (a sky
+    projection, star size and colour by apparent brightness), and the
+    brighter stars are grouped into constellations with lines and names
+    from item 85, stored so a planet keeps the same constellations each
+    time. Blocked on item 83's research pass. Open questions: whole-sky
+    or a horizon view from a point on the surface? How are constellations
+    chosen (bright-star patterns, by clustering, a set number per sky)?
+    Are the PNGs cached on disk and served by the web interface, or made
+    on request?
+
+85. [ ] **Constellation names in the name generator.** Boss: "add to our
+    name generator constellation name support based on constellation
+    names throughout all known languages and then slice it up like we do
+    for all our naming". Done: a constellation name list in
+    `stellarObjects/names.py` gathered from constellation and star-group
+    names across the world's languages and sky cultures (not just the 88
+    IAU ones), and a constellation name generator that slices and
+    recombines them into new names the same way stars, planets and
+    sectors are named (`split_into_syllables` in `utils.py`, the
+    prefix/suffix lists, the `offensive_words.txt` filter). Used by item
+    84. Open questions: what counts as a source list (licensing of sky
+    culture data such as Stellarium's), transliteration of non-Latin
+    scripts, and whether names are unique per planet or galaxy-wide.
 
 ## Population and Politics
 

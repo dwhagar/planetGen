@@ -2546,6 +2546,36 @@ CONTAINER_TABLES = (("nebulae", "inside_nebula_id"), ("supernova_remnants", "ins
 """tuple: `(container table, the column that points at it)`."""
 
 
+def surrounding_cloud(conn, row):
+    """
+    The nebula or supernova remnant a row sits inside (schema v39), from
+    its `inside_nebula_id`/`inside_remnant_id`.
+
+    Args:
+        conn (Connection): An open connection.
+        row (Mapping): Any row carrying those two columns.
+
+    Returns:
+        dict or None: `{"type": "nebula" | "supernova_remnant", "id",
+            "name", "class", "density_cm3", "temperature_k"}`, or `None` in
+            open space.
+    """
+    if row["inside_nebula_id"] is not None:
+        found = conn.execute("SELECT id, name, nebula_class AS class, density_cm3, temperature_k"
+                             " FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
+        kind = "nebula"
+    elif row["inside_remnant_id"] is not None:
+        found = conn.execute("SELECT id, name, remnant_class AS class, density_cm3, temperature_k"
+                             " FROM supernova_remnants WHERE id = ?", (row["inside_remnant_id"],)).fetchone()
+        kind = "supernova_remnant"
+    else:
+        return None
+    if found is None:
+        return None
+    return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"],
+            "density_cm3": found["density_cm3"], "temperature_k": found["temperature_k"]}
+
+
 def _sector_half_diagonal_pc(edge_mpc):
     """Half a sector cube's space diagonal, parsecs -- how far any point in
     the sector can be from its center."""
@@ -4533,6 +4563,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         star.name = row["name"]
 
     system = object.__new__(StarSystem)
+    system.surrounding_cloud = surrounding_cloud(conn, row)
     system._name = row["name"]
     system.star_words = None
     system.system_config = system_config

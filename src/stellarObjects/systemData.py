@@ -28,7 +28,7 @@ from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from . import log, physical_constants, planetLife, planetPhysics, program_constants
 from .planetData import Planet
-from .starData import Star
+from .starData import Star, compressed_heliosphere_radius
 from .utils import (
     calculate_reflex_offset,
     format_distance_au,
@@ -41,6 +41,10 @@ from .utils import (
     to_paragraph,
 )
 from .wideBinary import WideBinaryPair
+
+HELIOSPHERE_COMPRESSION_NOTED = 0.95
+"""float: The system text mentions the surrounding cloud's squeeze only when
+it leaves the heliosphere below this share of its open-space size."""
 
 # Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
 # object-graph -- see TODO.md's Phase 1), independent of
@@ -232,6 +236,9 @@ class StarSystem:
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
+        # The nebula or supernova remnant around the system, set only by
+        # `_db.load_star_system` (containment is worked out after saving).
+        self.surrounding_cloud = None
         self.stars = [self.primary_star] # Keep track of individual stars
 
         if compact_remnant is None and self._should_generate_binary():
@@ -2051,9 +2058,18 @@ class StarSystem:
             system_summary_sentences.append("There are no potentially habitable worlds in this system.")
 
         heliosphere_text = format_distance_au(self.star.heliosphere_radius)
+        cloud = getattr(self, "surrounding_cloud", None)
+        compressed = (compressed_heliosphere_radius(self.star.heliosphere_radius, cloud["density_cm3"],
+                                                    cloud["temperature_k"]) if cloud else None)
 
-        system_summary_sentences.append(
-            f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
+        if compressed is not None and compressed < self.star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
+            system_summary_sentences.append(
+                f"The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to "
+                f"approximately {heliosphere_text} in open space, but the gas of {cloud['name']} around the system "
+                f"presses it in to approximately {format_distance_au(compressed)}.")
+        else:
+            system_summary_sentences.append(
+                f"The star's stellar wind creates a bubble, known as the heliosphere, which extends out to approximately {heliosphere_text}.")
         system_summary_sentences.append(
             f"Beyond this, the star's gravitational influence extends out to a distance of {format_distance_au(self.star.system_perimeter)}, marking the ultimate edge of the system.")
 

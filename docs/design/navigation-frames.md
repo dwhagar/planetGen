@@ -24,6 +24,12 @@ endpoints are whole systems and phenomena, so a course always leaves the
 heliopause and the System Local Frame is never chosen yet; `course_between`
 takes a center and up vector for when in-system navigation exists.
 
+The heliopause that bounds the System Local Frame is each system's own,
+not a fixed 120 AU: `queryDb.system_detail` returns it as `heliopause_au`,
+pressed in by the nebula or supernova remnant the system sits inside
+(`starData.compressed_heliosphere_radius`; well under 1 AU in a dense
+cloud), with `heliopause_open_space_au` alongside.
+
 The design below is Boss's text as given.
 
 Course projections are written as `0-359 mark 0-359`, with 0 mark 0
