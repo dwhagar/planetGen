@@ -5,9 +5,13 @@ login against password guessing. Written 2026-10-01 for Boss's request
 to plan the login blocking work before any code changes. Which pieces
 are built, and in what order, is tracked in `docs/TODO.md`.
 
-Status: steps 1 to 3 are built (SEC.20, SEC.1 and SEC.21; the activity
-log of SEC.28 carries the log lines). Section 1 describes the site as it
-was before them.
+Status: every step is built (SEC.20, SEC.1, SEC.21, SEC.23, SEC.22, SEC.24,
+SEC.25, SEC.26 and SEC.27; the activity log of SEC.28 carries the log
+lines). Two-factor sign-in is optional per admin; a trusted device does
+not skip the code; only the command line resets another admin's.
+Passwords are now hashed with PBKDF2-SHA256 at 600,000 rounds (about
+175 ms on the build machine, next to no memory), re-hashed on login.
+Section 1 describes the site as it was before them.
 
 ## 1. What the site had before (2026-10-01)
 

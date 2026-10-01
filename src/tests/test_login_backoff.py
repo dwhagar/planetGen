@@ -301,9 +301,9 @@ def test_db_store_applies_the_same_rules(control):
     assert loginThrottle.check(store, SCOPE_IP, "203.0.113.5", now) == 0
 
 
-def test_control_schema_is_at_version_2(control):
+def test_control_schema_has_login_throttle(control):
     row = control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
-    assert row["v"] == adminAuth._db.CONTROL_SCHEMA_VERSION == 2
+    assert row["v"] == adminAuth._db.CONTROL_SCHEMA_VERSION >= 2
 
 
 def test_older_control_schema_gets_the_table(mysql_config):
@@ -321,7 +321,7 @@ def test_older_control_schema_gets_the_table(mysql_config):
     try:
         assert loginThrottle.DbStore(conn).get(SCOPE_IP, "203.0.113.5") is None
         versions = [r["version"] for r in conn.execute("SELECT version FROM control_schema_migrations").fetchall()]
-        assert sorted(versions) == [1, 2]
+        assert sorted(versions) == [1, adminAuth._db.CONTROL_SCHEMA_VERSION]
     finally:
         conn.close()
 

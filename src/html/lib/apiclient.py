@@ -669,9 +669,10 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
 # browser.
 # ---------------------------------------------------------------------
 
-def auth_login(username, password):
+def auth_login(username, password, cookie_header=None):
     """
-    `POST /api/auth/login`.
+    `POST /api/auth/login`. `cookie_header` (the browser's own) carries
+    the trusted-device cookie (SEC.22), if any.
 
     Returns:
         tuple[dict, list[str]]: `({"username", "must_change_credentials"},
@@ -683,7 +684,43 @@ def auth_login(username, password):
             "invalid username or password" message rather than a generic
             error page.
     """
-    return _auth_request("POST", "/auth/login", json_body={"username": username, "password": password})
+    return _auth_request("POST", "/auth/login", json_body={"username": username, "password": password},
+                         cookie_header=cookie_header)
+
+
+def auth_login_totp(pending, code, cookie_header=None):
+    """
+    `POST /api/auth/login/totp`, the second step of a two-factor login
+    (SEC.26). Returns `(identity, set_cookie_headers)` like `auth_login`.
+
+    Raises:
+        ApiError: `status_code == 401` for a wrong code or a stale
+            `pending` (the message says which), 429 while locked.
+    """
+    return _auth_request("POST", "/auth/login/totp", json_body={"pending": pending, "code": code},
+                         cookie_header=cookie_header)
+
+
+def auth_totp_status(cookie_header):
+    """`GET /api/auth/totp`: `{"enabled", "recovery_codes_left"}`."""
+    return _auth_request("GET", "/auth/totp", cookie_header=cookie_header)[0]
+
+
+def auth_totp_setup(cookie_header, current_password):
+    """`POST /api/auth/totp/setup`: `{"secret", "uri", "qr_svg"}`."""
+    return _auth_request("POST", "/auth/totp/setup", cookie_header=cookie_header,
+                         json_body={"current_password": current_password})[0]
+
+
+def auth_totp_confirm(cookie_header, code):
+    """`POST /api/auth/totp/confirm`: `{"recovery_codes": [...]}`."""
+    return _auth_request("POST", "/auth/totp/confirm", cookie_header=cookie_header, json_body={"code": code})[0]
+
+
+def auth_totp_disable(cookie_header, current_password, code):
+    """`POST /api/auth/totp/disable`."""
+    return _auth_request("POST", "/auth/totp/disable", cookie_header=cookie_header,
+                         json_body={"current_password": current_password, "code": code})[0]
 
 
 def auth_logout(cookie_header):

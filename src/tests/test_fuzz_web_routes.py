@@ -76,7 +76,7 @@ from tests.conftest import _test_server_kwargs
 from tests.fuzz_support import any_float, hostile_text, scaled
 
 ADMIN_USERNAME = "fuzz-admin"
-ADMIN_PASSWORD = "fuzz-admin-password-123"
+ADMIN_PASSWORD = "fuzz-admin-orbit-quasar-123"
 SECRET_KEY = "fuzz-secret-key"
 
 PHENOMENON_TYPES = [
@@ -947,6 +947,8 @@ def test_anonymous_page_posts_with_garbage_bodies(app, fuzz_db, rule, body):
                        for h in response.headers.getlist("Set-Cookie")), "an anonymous POST started a session"
         if rule.rule == "/login":
             assert response.status_code == 200
+        elif rule.rule == "/login/code":  # no pending sign-in: back to the password form
+            assert response.status_code in (200, 401)
         elif rule.rule == "/logout":
             assert response.status_code == 303
         elif rule.rule.startswith("/admin") or rule.rule == "/account":
@@ -1020,7 +1022,7 @@ def test_anonymous_api_writes_with_garbage_bodies(app, fuzz_db, rule, body, raw,
             response = client.open(path, method=method, data=json.dumps(body), content_type=content_type)
         check_response(response, path)
         assert _is_json(response)
-        if rule.endpoint == "auth.login":
+        if rule.endpoint in ("auth.login", "auth.login_totp"):
             assert response.status_code in (400, 401), f"{method} {path} -> {response.status_code}"
         else:
             assert response.status_code == 401, f"{method} {path} -> {response.status_code}"

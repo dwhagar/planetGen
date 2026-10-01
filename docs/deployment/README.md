@@ -20,6 +20,9 @@ full steps for its platform.
 | macOS | [macOS](macos.md) | Homebrew nginx | gunicorn under launchd | `install.sh` | Works | certbot or your own certificate | A Mac you already have. macOS Server is discontinued |
 | A rented server | [VPS and PaaS](paas.md) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Hosting you don't run at home |
 
+Whatever the platform, on Linux add [fail2ban](fail2ban.md) to ban
+addresses that keep guessing admin passwords.
+
 ## What every setup has in common
 
 - **One process, five threads.** Apache's `WSGIDaemonProcess

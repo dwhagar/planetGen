@@ -5,6 +5,24 @@
   {%- if error %}
   <p class="error" role="alert">{{ error }}</p>
   {%- endif %}
+  {%- if pending %}
+  <form method="post" action="{{ url_for('web.login_code') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <input type="hidden" name="pending" value="{{ pending }}">
+    <input type="hidden" name="username" value="{{ username }}">
+    <p>Enter the 6-digit code from your authenticator app for <strong>{{ username }}</strong>, or one of your recovery codes.</p>
+    <div class="search-fields">
+      <label class="search-field">Code
+        <input type="text" name="code" inputmode="numeric" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" required autofocus>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Continue</button>
+      <a href="{{ url_for('web.login', next=next_url) }}">Start over</a>
+    </div>
+  </form>
+  {%- else %}
   <form method="post" action="{{ url_for('web.login') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="next" value="{{ next_url }}">
@@ -20,5 +38,6 @@
       <button type="submit" class="btn">Log in</button>
     </div>
   </form>
+  {%- endif %}
 </section>
 {% endblock %}

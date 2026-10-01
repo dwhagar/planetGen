@@ -52,7 +52,7 @@ setup(
         # stellarObjects.names reads this at import time; setuptools does not
         # include non-.py files in a package by default, so without this the
         # installed package is missing the file and crashes on first import.
-        'stellarObjects': ['offensive_words.txt'],
+        'stellarObjects': ['offensive_words.txt', 'common_passwords.txt.gz', 'common_passwords.LICENSE'],
     },
     py_modules=['generate'],
     entry_points={

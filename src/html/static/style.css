@@ -2697,3 +2697,17 @@ body.app {
   border: 1px solid var(--border);
   vertical-align: -0.05rem;
 }
+
+/* Two-factor setup (account page, SEC.26): the QR code stays white with
+   a quiet zone in both themes so phone cameras can read it. */
+.qr-code svg {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    width: 15rem;
+}
+
+.recovery-codes {
+    columns: 2;
+    font-size: 1.05rem;
+}

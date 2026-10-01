@@ -625,7 +625,7 @@ dwarfs share the table), and `star_systems.runaway_class`/
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
-`control_schema_migrations`, currently version 2) — see "The control
+`control_schema_migrations`, currently version 4) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
 about.
@@ -641,9 +641,10 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Five tables, versioned independently via `control_schema_migrations`
-(currently version 2, mirroring `schema_migrations`'s own shape; v2 added
-`login_throttle`, and every control-schema change so far is a new table,
+Eight tables, versioned independently via `control_schema_migrations`
+(currently version 4, mirroring `schema_migrations`'s own shape; v2 added
+`login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
+`admin_recovery_codes`, and every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
 `migrateDb.py` run):
 
@@ -671,6 +672,21 @@ which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
   `locked_until`/`last_failure_at`/`last_lockout_at` in Unix seconds.
   Read and written by `stellarObjects/loginThrottle.py`; idle rows are
   deleted after a week.
+- **`admin_devices`** (v3, SEC.22) — trusted browsers: `admin_user_id`,
+  `token_hash` (SHA-256 of the `pg_admin_device` cookie, never the raw
+  value), `expires_at` (90 days after the login that made it),
+  `last_used_at`. A login from a browser holding a valid one for that
+  username skips the per-username lock. Deleted on a credentials change,
+  with `src/loginLockouts.py --forget-devices <user>`, and (expired ones)
+  when the admin's next device is made.
+- **`admin_totp`** (v4, SEC.26) — one row per admin who has set up an
+  authenticator app: `secret` (the base32 key itself, as sensitive as a
+  password, since a code can only be checked against the key),
+  `enabled_at` (NULL until the first code confirms the setup), and
+  `last_step` (the newest 30-second step a code was accepted for, so no
+  code works twice).
+- **`admin_recovery_codes`** (v4) — ten single-use codes per admin with
+  two-factor sign-in on: `code_hash` (SHA-256), `used_at`.
 
 `stellarObjects/adminAuth.py` is the only code that reads/writes these
 tables directly — `bootstrap_control_schema` creates the schema and,
