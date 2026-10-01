@@ -411,6 +411,36 @@ for a mouse; spacing and type sized with `clamp()`.
     built at the same time; and what happens to queued and half-done
     tasks when the server restarts or a job is cancelled.
 
+93. [ ] **Weight the bright-star ETA by the shape of the galaxy.** Boss
+    (2026-10-01): "so that the bright stars ETA takes into account the
+    shape of what's being generated (ie that at layer 0 and 635 take very
+    little time)". Today the plan's scatter (`brightStars.scatter`) walks
+    the layers in `extents` order and calls `on_layer(done, total)` once
+    per layer, so the "Bright stars (layers)" bar in `generate.py` counts
+    every layer the same. The thin layers at the edges finish almost at
+    once and the dense middle layers take most of the time, so the ETA
+    swings badly. Done: the bar and its ETA count expected work, not
+    layers. Before the scatter starts, each layer gets an expected star
+    count from the same density model the scatter uses
+    (`_ring_bins` × `expected_at_density_1` × the bright fraction for the
+    chosen threshold), and progress and the ETA are measured in expected
+    stars done out of the expected total, so a run through the sparse
+    edge layers no longer makes the rest look quick or slow. Ties in with
+    item 86 (the up-front time estimate uses the same per-layer
+    weights), items 87 and 88 (the banner's ETA, and item 88's
+    stars-remaining estimate for the current layer), item 89 (a staged
+    scatter weights only the new luminosity band), and items 91 and 92
+    (the decaying-average rate and the parallel tasks). Open questions:
+    is the weight the expected star count alone, or does it also count
+    rings and slots walked (an empty edge layer still costs some loop
+    time)? How does the weighting combine with item 91's decaying
+    average: the average measured in expected stars per second, or in
+    layers per second and then scaled? Is the per-layer expected count
+    worked out in a quick pre-pass at the start of every plan, or stored
+    with the galaxy skeleton? Once item 92 runs layers in parallel and
+    out of order, does the ETA add up the expected work still queued
+    rather than following the layer order?
+
 ### Phenomena (`lib/phenomenonmap.py`, `web/system_pages.py`, `web/sector_page.py`, `generate.py`)
 
 25. [ ] **A view that suits each phenomenon.** Boss: "view for neutron
