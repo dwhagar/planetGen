@@ -288,7 +288,7 @@ def close_pool(config):
     if pool is not None:
         pool.close()
     _schema_ensured.discard(key)
-    _forget_id_blocks(key)
+    forget_id_blocks(key)
 
 
 class _Cursor:
@@ -389,7 +389,11 @@ def _insert_shape(sql):
     return shape
 
 
-def _forget_id_blocks(key):
+def forget_id_blocks(key):
+    """Drops this process's cached id blocks for one database
+    (`MySQLConfig._key()`), so the next id is reserved afresh -- after
+    `resetDb.py` empties the tables and `id_blocks`, or a migration adds
+    `id_blocks`."""
     with _id_lock:
         for block_key in [k for k in _id_blocks if k[0] == key]:
             del _id_blocks[block_key]
@@ -421,7 +425,7 @@ def _allocate_id(config, table):
         if block is None or block[0] >= block[1]:
             size = _ID_BLOCK_MIN if block is None else min(_ID_BLOCK_MAX, block[2] * 2)
             try:
-                start = _reserve_id_block(config, table, size)
+                start = _reserve_id_block(config, table, size, 1 if block is None else block[1])
             except pymysql.err.ProgrammingError as exc:
                 if exc.args and exc.args[0] == 1146:  # no id_blocks table yet
                     _id_blocks_off.add(key)
@@ -432,12 +436,16 @@ def _allocate_id(config, table):
         return block[0] - 1
 
 
-def _reserve_id_block(config, table, size):
+def _reserve_id_block(config, table, size, at_least):
+    """Reserves `size` ids for `table` and returns the first. `at_least`
+    is past every id this process already handed out for it, which the
+    table's `MAX(id)` can't show while those rows are uncommitted (and
+    `id_blocks` can't, after `resetDb.py` empties it)."""
     raw = _get_pool(config).connection()
     try:
         cur = raw.cursor()
         cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
-        floor_id = cur.fetchone()["floor_id"]
+        floor_id = max(cur.fetchone()["floor_id"], at_least)
         cur.execute("INSERT IGNORE INTO id_blocks (table_name, next_id) VALUES (%s, 1)", (table,))
         cur.execute(
             "UPDATE id_blocks SET next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s) WHERE table_name = %s",
@@ -948,7 +956,7 @@ def _ensure_schema(conn):
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     if conn._config is not None:
-        _forget_id_blocks(conn._config._key())
+        forget_id_blocks(conn._config._key())
 
     row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
     if row["n"] == 0:
@@ -7405,7 +7413,7 @@ def _migrate_v44_to_v45(conn):
     conn.execute(_schema_statement("id_blocks"))
     conn.execute("INSERT INTO schema_migrations (version) VALUES (45)")
     if conn._config is not None:
-        _forget_id_blocks(conn._config._key())
+        forget_id_blocks(conn._config._key())
 
 
 def _schema_statement(table):
@@ -7597,8 +7605,12 @@ def migrate_database(config=None, on_step=None):
         int: The database's `schema_migrations` version (always
             `SCHEMA_VERSION` after this call).
     """
-    conn = get_connection(config)
+    conn = get_connection(config, ensure_schema=False)
     try:
+        # Always, not once per process (PERF.12): a migration is when a
+        # database's missing tables and its baseline version row appear.
+        _ensure_schema(conn)
+        _schema_ensured.add((config or DEFAULT_MYSQL_CONFIG)._key())
         version = _schema_version(conn)
         pending = [(target, step) for target, step in _migration_steps() if version < target]
         for number, (target, step) in enumerate(pending, start=1):

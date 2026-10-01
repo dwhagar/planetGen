@@ -101,7 +101,7 @@ def test_ids_come_from_id_blocks_above_existing_rows(mysql_config):
     try:
         with conn:
             conn.execute("INSERT INTO system_configs (id, markdown) VALUES (5000, 0)")
-        _db._forget_id_blocks(mysql_config._key())
+        _db.forget_id_blocks(mysql_config._key())
         with conn:
             first = _db.insert_system_config(conn, SystemConfig())
             second = _db.insert_system_config(conn, SystemConfig())
@@ -117,7 +117,7 @@ def test_inserts_fall_back_to_auto_increment_without_id_blocks(mysql_config):
     try:
         with conn:
             conn.execute("DROP TABLE id_blocks")
-        _db._forget_id_blocks(mysql_config._key())
+        _db.forget_id_blocks(mysql_config._key())
         with conn:
             config_id = _db.insert_system_config(conn, SystemConfig())
         assert conn.execute("SELECT id FROM system_configs").fetchone()["id"] == config_id
