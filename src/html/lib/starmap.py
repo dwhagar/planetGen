@@ -1110,6 +1110,9 @@ def render_map_panel(
         "clouds": clouds_data,
         "neighbors": neighbors_data,
         "generate": generate,
+        # The sector's own edge in light years, for the Generate buttons'
+        # "up to about N sectors" estimate (static/generatebuttons.js).
+        "edgeLy": milliparsecs_to_ly(edge_mpc) if edge_mpc and milliparsecs_to_ly else None,
     }
 
     if systems or clouds_data:

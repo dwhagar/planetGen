@@ -54,7 +54,7 @@
 <section class="panel" aria-labelledby="course-heading">
   <div class="panel-header">
     <h2 id="course-heading">Direct Course</h2>
-    <span class="hint"><a href="{{ reverse_url }}">Reverse course</a> &middot; <a href="{{ start_over }}">Another destination</a></span>
+    <span class="hint"><a href="{{ reverse_url }}">Reverse course</a> &middot; <a href="{{ start_over }}">Another destination</a>{% if galaxy_map_url %} &middot; <a href="{{ galaxy_map_url }}">Show on Galaxy Map</a>{% endif %}</span>
   </div>
   <p class="badges"><span class="badge">{{ scope_label }}</span></p>
   <div class="table-scroll"><table>

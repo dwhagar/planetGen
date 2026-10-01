@@ -1148,9 +1148,14 @@ export function createStageView(host) {
   }
 
   // Opens the stage the URL asks for (or the galaxy, with a notice).
+  // With a NAV course and no stage in the URL, the smallest stage
+  // showing the whole course (section 9.4).
   function openFromLocation(push) {
     const parsed = S.parseStageQuery(location.search);
     let next = parsed.stage;
+    if (!parsed.sector && !next.at && next.slab == null && host.courseSectors && host.courseSectors.length) {
+      next = S.courseStage(host.courseSectors);
+    }
     let problem = parsed.problem || S.validStage(next, getOutline(), edgePc);
     if (problem) next = { at: null, slab: null };
     selectedSector = parsed.sector && !problem ? parsed.sector : null;

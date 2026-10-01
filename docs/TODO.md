@@ -100,8 +100,9 @@ item names its section. 70 (the nested ladder,
 `stellarObjects/galaxyDrill.py`), 71 (`GET /api/galaxy/stage`) and 72
 (the stages, `static/galaxystages.js` and `static/galaxystageview.js`,
 with stage URLs `/galaxy?slab=`, `?at=`, `?sector=<designation>`) have
-shipped, and so has 77 (the address bar, `/galaxy/locate`); Web can do
-63, 74, 75 and 78 now. The old free camera stays
+shipped, and so have 77 (the address bar, `/galaxy/locate`) and 79 (the
+course overlay, `/galaxy?course=<from>,<to>`); Web can do 63, 74, 75 and
+78 now. The old free camera stays
 behind the map's Free look button until Boss settles decision 2 (section
 11). If it stays, its blocks could also grow with distance from the
 camera (bigger blocks on the far side of the view ball, where the nested
@@ -112,15 +113,14 @@ stages themselves don't need it.
     we're down to a sector level we can tell a slice to generate all the
     sectors in that slice or click on a sector and generate it from the
     UI if you're admin", and "add a 'generate neighborhood' when at a
-    sector selection level that will ask the radius in ly." Done, for an
-    admin at stages 7-8: Generate this sector (today's `slot` mode),
-    Generate this layer or slab (a new `generate.py galaxy --block
-    m.I.s.S [--block-layer j]` mode plus a Generate page form), and
-    Generate neighborhood with a light-year radius dialog (default 100
-    ly, 13-652 ly, converted with `ly_to_pc`, an "up to about N sectors"
-    estimate, a confirmation above 5,000), started without leaving the
-    map and refreshed when the job ends. Web owns `generate.py` and the
-    Generate page; Galaxy Map owns the buttons.
+    sector selection level that will ask the radius in ly." The map's
+    own buttons are in (an admin picking a sector at stage 8 gets
+    Generate this sector, Generate neighborhood with its light-year
+    radius and sector estimate, Generate column and Generate the entire
+    shell). What is left is Web's: Generate this layer or slab, which
+    needs a new `generate.py galaxy --block m.I.s.S [--block-layer j]`
+    mode and a Generate page form for it. Once that exists, the Galaxy
+    Map adds the button at stages 7-8.
 
 74. [ ] **Sector Map pick mode and Nav links (sections 9.1, 9.2).**
     Done: `/sectors/<id>?pick=from|to&...` shows a banner and a "Use as
@@ -146,10 +146,6 @@ stages themselves don't need it.
 78. [ ] **"Show on Galaxy Map" links (section 8.1).** The sector page's
     link goes to the Quadrant table today. Done: sector, system and
     search pages link to `/galaxy?sector=<designation>`.
-
-79. [ ] **NAV course on the Galaxy Map (section 9.4).** Done: the NAV
-    result's "Show on Galaxy Map" opens the smallest stage holding both
-    endpoints with the course drawn. After 72 and 75.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 

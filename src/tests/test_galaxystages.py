@@ -245,6 +245,40 @@ console.log(JSON.stringify({numbers: chain.map(S.stageNumber), top: S.parentStag
     assert out["top"] is None
 
 
+def test_the_course_stage_is_the_smallest_one_holding_every_stop():
+    """courseStage (section 9.4) climbs only as far as it must: the same
+    sector stays at stage 8, neighbours share their block, and stops
+    across the galaxy fall back to a galaxy slab or the galaxy."""
+    out = _run("""
+const home = {ring: 1705, layer: -20, slot: 3225};
+const near = {ring: 1706, layer: -20, slot: 3226};
+const core = {ring: 5, layer: 0, slot: 1};
+const high = {ring: 5, layer: 900, slot: 1};
+console.log(JSON.stringify({
+  same: S.courseStage([home, home]),
+  sameNumber: S.stageNumber(S.courseStage([home, home])),
+  near: S.courseStage([home, near]),
+  nearNumber: S.stageNumber(S.courseStage([home, near])),
+  far: S.courseStage([home, core]),
+  farNumber: S.stageNumber(S.courseStage([home, core])),
+  apart: S.courseStage([core, high]),
+  none: S.courseStage([]),
+  holds: S.stageChildren(S.courseStage([home, near]).at, outline, edge)
+    .filter(g => g.slab === S.courseStage([home, near]).slab)
+    .flatMap(g => g.blocks)
+    .filter(b => [home, near].some(s => S.sameBlock(b, P.drillChainOf(s.ring, s.layer, s.slot)[2])) ).length,
+}));
+""")
+    assert out["same"]["slab"] == -20 and out["sameNumber"] == 8
+    assert out["nearNumber"] == 6
+    assert out["holds"] == 2
+    # Opposite sides of the galaxy, but the same slab of it: stage 2.
+    assert out["far"] == {"at": None, "slab": 0} and out["farNumber"] == 2
+    # Different slabs too: the whole galaxy.
+    assert out["apart"] == {"at": None, "slab": None}
+    assert out["none"] == {"at": None, "slab": None}
+
+
 def test_flight_starts_and_ends_on_its_views():
     out = _run("""
 const path = S.flightPath([0, 0], 30000, [8000, -2000], 1200);
