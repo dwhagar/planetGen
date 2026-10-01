@@ -40,7 +40,7 @@ renumber when items are added or finished.
 - **Extend the cache (8)**.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
-   slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
+   slots, pixel-sized mega-blocks). Work item 18 next (13-17 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, block info, and smooth zooming). 12 (the
    hybrid master-wedge slot rule) shipped in schema v35. 19 is follow-ups.
 - **Features (23-36)** from the same notes: generate buttons (23-24),
    phenomena views and stored nearest systems (25-26), nebulae and
@@ -94,19 +94,6 @@ the thin disk. The result is 70-290 px cubes with gaps, and the spiral
 barely shows. The plan (report above, with renders) replaces that with a
 continuous solid of mega-blocks sized from the screen's pixel scale.
 
-17. [ ] **Smooth zooming: preload and prerender.** Today each zoom step
-   rebuilds the whole prism set on the main thread, then waits on tiles.
-   - Move block listing and geometry into a Web Worker. `galaxyprisms.js`
-     already has no three.js import. Hand back transferable typed arrays.
-   - Keep the geometry for the current m and the next finer and coarser
-     m ready ahead of time, keyed by (m, slice, center cell).
-   - Prefetch the tiles the next zoom step will need.
-   - Animate wheel and button zoom over a few frames, and crossfade between
-     block sizes instead of popping.
-
-   Done means no dropped frames while zooming on a mid-range laptop, and
-   no visible wait at any zoom step already visited.
-
 18. [ ] **Keep three.js; record why.** It was checked on 2026-09-30:
    - Babylon.js is several MB, and deck.gl needs a bundler.
    - regl and raw WebGPU would mean rewriting picking, sprites and
@@ -124,9 +111,10 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
      the aligned wedges from 5 make seamless.
    - Order-independent transparency (weighted blended) if #15's sorting
      shows artifacts where translucent blocks intersect.
-   - Phone performance at 390 px.
+   - Phone performance at 390 px. Neighbouring full-size blocks share
+     faces, so skipping a face whose neighbour exists would cut the
+     vertex count; past that, one InstancedMesh per wedge-arc count.
    - DPR: `pcPerPixel` is per CSS pixel.
-   - Reduced-motion users get instant zoom.
 
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
