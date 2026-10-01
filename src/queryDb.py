@@ -1510,7 +1510,9 @@ def system_detail(conn, system_id):
             `location`'s "nearest: ..." names without a second round
             trip), and `nearest_neighbors` (`{id, name, distance_ly}` for
             the closest same-sector systems, nearest first -- see
-            `_nearest_sector_siblings`).
+            `_nearest_sector_siblings`), and `inside` (the nebula or
+            supernova remnant the system sits in, or `None` -- see
+            `containing_cloud`).
 
     Raises:
         ValueError: If no such system exists.
@@ -1573,6 +1575,7 @@ def system_detail(conn, system_id):
         "binary_mutual_position_z_km": system["binary_mutual_position_z_km"],
         "wikijs_url": system["wikijs_url"], "mediawiki_url": system["mediawiki_url"],
         "runaway_class": system["runaway_class"], "runaway_speed_kms": system["runaway_speed_kms"],
+        "inside": containing_cloud(conn, system),
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": [dict(b) for b in belts],

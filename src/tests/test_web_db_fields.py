@@ -5,7 +5,8 @@ The Database thread's display fields (schemas v36 and v37) on the web
 pages: a black hole's Class and a rogue planet's Mass Class on the
 phenomenon page, a runaway or hypervelocity star on system rows and the
 system page, the sector's star and interstellar-debris figures, and many
-rogue planets folded into one Contents row.
+rogue planets folded into one Contents row, plus the nebula or remnant
+a system or phenomenon sits inside (schema v39).
 """
 
 from api.app import create_app
@@ -96,3 +97,55 @@ def test_diffuse_nebulae_have_a_sector_map_color():
     import starmap
 
     assert "diffuse" in starmap._NEBULA_TYPE_COLORS and "diffuse" in starmap._NEBULA_TYPE_ALPHA
+
+
+def test_inside_text_and_contents_details():
+    assert fmt.inside_text({"inside": None}) is None
+    assert fmt.inside_text({"inside": {"type": "nebula", "id": 4, "name": "Veil", "class": "E"}}) == "Inside Veil"
+    sector = {
+        "systems": [{
+            "id": 1, "name": "Sol", "quadrant": "+X+Y+Z", "location": "", "is_binary": 0, "binary_type": None,
+            "position_x_mpc": None, "position_y_mpc": None, "position_z_mpc": None, "center_distance_ly": 1.0,
+            "runaway_class": None, "runaway_speed_kms": None,
+            "inside": {"type": "nebula", "id": 4, "name": "Veil", "class": "E"},
+            "stars": [{"star_type": "G2V", "temperature_k": 5800, "radius_km": 7e5, "luminosity_w": 3.8e26}],
+        }],
+        "phenomena": [],
+    }
+    with create_app(_Config).test_request_context("/sector/1"):
+        rows, _map = sector_page._contents(sector)
+    assert rows[0]["details"] == "G2V, Inside Veil"
+
+
+def test_phenomenon_inside_links_its_cloud(monkeypatch):
+    calls = []
+
+    def fake_get(db, kind, cloud_id):
+        calls.append((kind, cloud_id))
+        return {"id": cloud_id, "name": "Crab"}
+
+    monkeypatch.setattr(system_pages.apiclient, "get_phenomenon", fake_get)
+    with create_app(_Config).test_request_context("/phenomenon/rogue_planet/1"):
+        assert system_pages._phenomenon_inside({"inside_nebula_id": None, "inside_remnant_id": None}) is None
+        inside = system_pages._phenomenon_inside({"inside_nebula_id": None, "inside_remnant_id": 7})
+    assert calls == [("supernova_remnant", 7)]
+    assert inside["name"] == "Crab" and inside["url"].endswith("/phenomenon/supernova_remnant/7")
+
+
+def test_system_detail_names_the_containing_nebula(mysql_config):
+    import queryDb
+    from stellarObjects import _db
+    from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
+
+    sector_id = _db.save_sector(_sector_with_one_system("Misty"), config=mysql_config, galaxy_position={
+        "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
+    })
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            nebula_id = _placed_nebula(conn, sector_id, (101.0, 0.0, 0.0), radius_ly=100.0, nebula_class="E")
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+        inside = queryDb.system_detail(conn, system_id)["inside"]
+        assert (inside["type"], inside["id"]) == ("nebula", nebula_id)
+    finally:
+        conn.close()

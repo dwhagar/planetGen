@@ -34,6 +34,7 @@ renumber when items are added or finished.
 ### Plan: what to do first
 
 - **Extend the cache (8)**.
+- **Class reference pages (56)**: Web, after its class display work.
 - **Galaxy Map (12-19):** Boss approved the plan in the
    project's `galaxy-megablocks/report.md` (hybrid master-wedge
    slots, pixel-sized mega-blocks). Work items 17-18 in order (13-16 have shipped: pixel-sized blocks, the solid and its slice, filled and unfilled blocks with no marker dots, and block info). 12 (the
@@ -110,6 +111,22 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
+
+56. [ ] **Class reference pages.** Boss: "it should have pages generated
+    and cached (i.e. generated and cached when the program runs so they
+    are always in sync with the values the program uses) that list the
+    classes of everything. A user should be able to click on a class of
+    something and get information about that class given to them and be
+    able to view a page that lists classes of a type (Nebula, Asteroid
+    Field, Stars, PLanets, etc) for informational purposes." One page
+    per type (stars' spectral and luminosity classes, planets, nebulae
+    A-Q, supernova remnants R-W, asteroid fields letter+digit, black
+    holes, rogue planets, and any other type with classes) and one page
+    per class, built from the code's own class tables
+    (`program_constants`, the class definitions from PRs #138 and #141),
+    never hand-copied text, and cached when the site starts. Every class
+    label on the system, phenomenon, sector and search pages links to
+    its class page. Web does this after its class display work.
 
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 

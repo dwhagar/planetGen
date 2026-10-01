@@ -11,6 +11,7 @@
     <span class="badge">{{ type_label }}</span>
     {%- if distance %}<span class="badge">{{ distance }} from Galactic Center</span>{% endif %}
     {%- if sector %}<span class="badge">Sector: <a href="{{ sector.url }}">{{ sector.name }}</a></span>{% endif -%}
+    {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
   <p class="page-actions">
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>

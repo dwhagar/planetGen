@@ -101,6 +101,25 @@ def _system_crumbs(system):
     ]
 
 
+def _inside_link(phenomenon_type, phenomenon_id, name):
+    """The "Inside: <cloud>" badge's `{name, url}`, linking the nebula or
+    supernova remnant something sits in (schema v39)."""
+    return {"name": name, "url": page_url("phenomenon", phenomenon_type=phenomenon_type,
+                                          phenomenon_id=phenomenon_id)}
+
+
+def _phenomenon_inside(detail):
+    """`_inside_link` for a phenomenon's own `inside_nebula_id`/
+    `inside_remnant_id`, or `None` in open space. The cloud's name costs
+    one more lookup."""
+    for column, kind in (("inside_nebula_id", "nebula"), ("inside_remnant_id", "supernova_remnant")):
+        cloud_id = detail.get(column)
+        if cloud_id is not None:
+            cloud = apiclient.get_phenomenon(db_name(), kind, cloud_id)
+            return _inside_link(kind, cloud_id, cloud["name"])
+    return None
+
+
 def _badges(system):
     badges = []
     if system["quadrant"]:
@@ -165,6 +184,7 @@ def system(system_id):
     wiki_status = WIKI_MESSAGES.get(request.args.get("wiki")) if admin else None
 
     section, breadcrumbs = _system_crumbs(detail)
+    inside = detail.get("inside")
     map_html = ""
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
@@ -180,6 +200,7 @@ def system(system_id):
         description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
         system=detail,
         badges=_badges(detail),
+        inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         nav_links=links,
         location_html=_location_html(detail),
         map_html=trusted_html(map_html),
@@ -423,6 +444,7 @@ FIELD_SPECS = {
 text (the template escapes it) or `None` to leave the row out."""
 
 
+# TODO(web-pages #56): link each Class value to its class reference page.
 def phenomenon_fields(phenomenon_type, detail):
     """`[(label, text)]` for the data table."""
     fields = []
@@ -469,6 +491,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         type_label=type_label,
         distance=distance,
         sector=sector,
+        inside=_phenomenon_inside(detail),
         nav_links=nav_links(phenomenon_type, detail["id"]),
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
