@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.29 |
 | TEST | TEST.71 |
 | USR | USR.8 |
-| OPS | OPS.6 |
+| OPS | OPS.7 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -571,7 +571,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
 | OPS.4 | Generate page jobs on native Windows | 54 (2026-09-30 20:48Z); 55 (2026-09-30 20:48Z to 22:12Z) | done in 7.9.2, PR #124 |
-| OPS.5 | Install and update check the log locations and say how to fix them | none | open |
+| OPS.5 | Install and update check the log locations and say how to fix them | none | done, PR #288 |
+| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -754,7 +755,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.7 | Strict sql_mode on both engines | none | open |
 | TEST.8 | Migrate from real old schemas | none | open |
 | TEST.9 | Migration crash and re-run | none | open |
-| TEST.10 | Database newer than the code | none | open |
+| TEST.10 | Database newer than the code | none | done, PR #288 |
 | TEST.11 | Every column round-trips | none | open |
 | TEST.12 | Boundary values round-trip | none | open |
 | TEST.13 | Collation collisions | none | open |
@@ -804,9 +805,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.57 | Galaxy Map JavaScript logic | none | done, PR #307 |
 | TEST.58 | Other map JavaScript | none | done, PR #307 |
 | TEST.59 | Galaxy Map drill-down in a browser | none | done, PR #307 |
-| TEST.60 | Admin script command lines | none | open |
-| TEST.61 | SQLite import script | none | open |
-| TEST.62 | update.sh against a real database | none | open |
+| TEST.60 | Admin script command lines | none | done, PR #288 |
+| TEST.61 | SQLite import script | none | done, PR #288 |
+| TEST.62 | update.sh against a real database | none | done, PR #288 |
 | TEST.63 | Math check that runs first (new parent) | none | done, PRs #281 and #290 |
 | TEST.64 | Reference values | none | done, PR #281 |
 | TEST.65 | Identities and invariants | none | done, PR #281 |
