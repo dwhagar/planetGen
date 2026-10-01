@@ -1,8 +1,8 @@
 # stellarObjects/population.py
 
 """
-Population and politics (TODO 51-54, schema v44)
-=================================================
+Population and politics (POP.1 to POP.4, schema v44)
+====================================================
 
 Names the dominant species of every life world, dates each technological
 civilization and places it in an era, founds a polity for every

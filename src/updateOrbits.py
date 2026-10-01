@@ -86,7 +86,7 @@ like, with no independent update-guard interval of their own. See
 `stellarObjects.utils.calculate_reflex_offset`'s docstring for the
 formula.
 
-Galactic motion (TODO item 32): after the phases above,
+Galactic motion (GEN.6): after the phases above,
 `stellarObjects._db.advance_galactic_positions` turns every placed star
 system, standalone phenomenon and stand-alone facility about the galactic
 axis by the same angle its galactic phase advanced (the galaxy's nucleus,

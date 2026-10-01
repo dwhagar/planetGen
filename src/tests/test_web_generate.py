@@ -745,7 +745,7 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
 
 
-# --- Upper bounds (docs/TODO.md item 39) ----------------------------------
+# --- Upper bounds (SEC.2.14.2) ----------------------------------
 
 from stellarObjects import generationLimits  # noqa: E402
 

@@ -1,8 +1,8 @@
 # tests/test_systempage.py
 
 """
-The system page's body list (`html/lib/systempage.py`, TODO items 2 and
-48): one type chip, the habitable-moon chip, moons in their own group,
+The system page's body list (`html/lib/systempage.py`, UX.7 and
+UX.12): one type chip, the habitable-moon chip, moons in their own group,
 belt distances, and comets ordered in among the planets by semi-major
 axis. Plain dicts in the `queryDb.system_detail` shape; no database.
 """

@@ -22,8 +22,8 @@ directly itself, though the search page (`/search`, see "Flask pages"
 below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
 browser today, on nothing more than a web server (Apache2 with mod_wsgi,
-or nginx, Caddy or IIS in front of gunicorn or waitress) and Python 3
-(see "Locating the database" and "Deploying" below).
+or nginx, Caddy or IIS in front of gunicorn or waitress), Python 3 and a
+MySQL server (see "Locating the database" and "Deploying" below).
 
 ## How it works
 
@@ -59,6 +59,9 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/lib/tabledisplay.py` | Computes the same "Star Data"/"Planet Data" display strings once baked into the database's now-removed `table_*`/`binary_table_*` columns, but on demand from the raw numeric columns the system page already has -- reuses `stellarObjects.utils`'s formatters directly. Not web-accessible. |
 | `../src/html/lib/starmap.py` | Builds the sector page's "Sector Map" panel (`render_map_panel(link_url, ...)`, where `link_url` is `web.helpers.page_url`; every entry carries a plain `href`): computes every position/size/color/label the map needs (a wedge or fallback-cube outline, one entry per star -- a small core (`_star_dot_radius`: log-scaled from `radius_km` but kept between 1.5 and 6 scene units, so even a supergiant is a point) inside a glow shell whose size, strength and fade come from `luminosity_w` (`_star_glow`: a supergiant gets a big soft halo, a white dwarf almost none, matching how the Galaxy Map draws bright stars; `sectormap.js` clicks a star through an unseen sphere at least 4 units across), color from `star_type`'s spectral letter (`SPECTRAL_CLASS_COLORS`) shaded by `luminosity_w` and nudged by where `temperature_k` falls in that spectral class's range, so "White Giant" reads white and "Blue Giant" reads blue regardless of temperature -- and one per nearby standalone phenomenon, sized by `radius_ly` (always 0 for the point-like types) and positioned directly in the galaxy frame, no rotation needed unlike a star system's sector-local position -- see `queryDb.phenomena_near_sector`) and serializes it as a `<script type="application/json">` block; `static/sectormap.js` is what actually renders it, this module builds no HTML scene of its own. Not web-accessible. |
 | `../src/html/lib/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so bearings aren't visually distorted, plus a compass arrow along the origin's bearing 000 (toward the frame's center) and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`lib/phenomenonmap.py`) -- the course's mark already covers that axis. Not web-accessible. |
+| `../src/html/lib/phenomenonmap.py` | Builds the phenomenon page's flat, zoomable SVG diagram of a nebula's or supernova remnant's real extent, drawn in astronomical units against an AU-scale yardstick (`static/phenomenonmap.js` adds the zoom and pan). Not web-accessible. |
+| `../src/html/lib/phenomenonrender.py` | Builds the phenomenon page's "View" panel for a neutron star, black hole, quasar, rogue planet or interstellar comet: the numbers `static/phenomenonrender.js` draws with three.js, plus a static SVG used when WebGL can't start. Not web-accessible. |
+| `../src/html/lib/privatedir.py` | The private fallback directory (mode 0700, in the system temp directory) the tile cache and the Generate jobs use when their configured directory can't be created. A directory found there that isn't a real directory owned by this user, or that others can write to, is refused rather than reused. Not web-accessible. |
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by the web server. |
 | `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
 | `../src/html/static/favicon.svg` | The site icon (a small ringed planet), linked from every page's `<head>`. |
@@ -68,6 +71,14 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/static/galaxymap3d.js` | Renders `lib/galaxymap3d.py`'s `#galaxymap3d-data` JSON as a real WebGL scene (three.js, vendored at `static/vendor/`) -- unlike `sectormap.js`'s camera (always orbiting a fixed origin, every star baked into one page load), this camera's own orbit target moves freely through the galaxy, so most of what it draws is fetched live from `/galaxy/tiles` (plain GET, no database in the URL) (debounced, on every camera move), one fixed cube of space at a time, rather than server-rendered once. Tiles are kept in memory and in the browser's `localStorage`, keyed by the database's content stamp (under `planetgen:tile:<db>:`, the same keys as before the page moved), so panning back over seen space or reloading the page doesn't refetch them. Drag to rotate, scroll or the buttons to zoom; a click centers on the block under the cursor (or the sector at that spot in empty space) and shows its info, and a double-click also zooms in -- by a logarithmic step (`clickZoomFactor`, interpolated between `lib/galaxymap3d.py`'s own `clickZoomFactorMin`/`Max` by the camera's current distance in log space) rather than a flat factor, so a handful of clicks still crosses the whole galaxy while a click near one sector stays fine enough not to overshoot it. Everything is drawn as one solid of blocks the page computes itself (`static/galaxyprisms.js`, built into GPU-ready arrays by `static/galaxyblocks.js` in a Web Worker so zooming never stalls the page; the first frame, and a browser where the worker can't start, build on the page): each block is a power-of-3 cube of whole sectors, the smallest at least `blockMinPx` (4) pixels across at the focus, colored by predicted density, and the Slice button cuts it at the focus layer. Unfilled space is translucent (only its surface is drawn); blocks holding generated sectors (counted from each tile's `filled` summary) are drawn wherever they are, grow more solid and warmer with their filled share, and are fully solid once every sector in them is generated. At one sector per block a generated sector takes its real density's color and its panel links to its sector page; clicking along a ray prefers the nearest block holding generated sectors, and centers on their mean position, so double-clicking zooms toward them. A block's panel gives its ring, layer and slot ranges, exact sector count and generated count; an unfilled sector's gives its address and designation, plus, for a logged-in admin, the Sector Map's Generate buttons (`static/generatebuttons.js`: this sector, its neighborhood, its column, or its whole shell after a confirm), which post to the Generate page. Nebulae and supernova remnants are drawn as soft translucent spheres their real size (each tile lists the ones reaching into it, `queryDb.galaxy_clouds_in_box`), hidden when only a pixel or two across and faded out as the camera nears them; clicking one while it is small enough to aim at shows its type, class and radius and links to its phenomenon page. Zoom steps glide over 160 ms instead of jumping (they jump with `prefers-reduced-motion`), a change of block size crossfades, built views are kept so zooming back is instant, and while idle the page prepares the views and fetches the tiles one zoom step either way. In-plane lines along the sector grid's master wedges (3 from the core, doubling outward, each zone shown once its lines are far enough apart on screen) are toggled by the Wedges button, and a scale readout gives sectors, pc and ly. Served directly, same as `style.css`. |
 | `../src/html/static/systemmap.js` | Toggles which System Map `<svg>` scene is visible (the whole-system view, or one per planet's own moon system) and fills the info side panel -- including "Atmosphere"/"Surface composition"/"Surface temperature"/"Life Chemistry" fields -- from a clicked marker's `data-*` attributes. Every visible scene's star/planet/moon markers also get their own live-rendered 3D sphere on `#sysmap-spheres-canvas` (the same vendored three.js build `sectormap.js` uses): one shared WebGL context, redrawn each frame via a scissored sub-viewport per marker (never one `<canvas>`/context per body -- browsers cap concurrent WebGL contexts), each sized and positioned to exactly cover that marker's own `<circle>` and colored by its `data-color`, banded with a tilted ring for a gas giant (`data-bodytype`), and wrapped in a fresnel-glow atmosphere shell (tinted by `data-surfacetemp`) when `data-hasatmosphere` is set -- the one genuinely 3D layer on this otherwise flat-SVG page, drawn behind the SVG so each marker's own stroke/label/life-badge still shows on top. An appearance layer only (no position data, and no cross-page link of its own to navigate) -- a marker whose sphere renders keeps its flat circle's fill transparent (`sysmap-sphere-active`) but never changes its actual plotted position. Served directly, same as `style.css`. |
 | `../src/html/static/copycode.js` | The system page's Copy button: copies the generated Wikitext/Markdown out of the code box named by the button's `data-copy-target` (clipboard API, falling back to a selection copy on a plain-HTTP deployment). A separate file because the Content-Security-Policy allows no inline script; the box stays selectable by hand without it. Served directly, same as `style.css`. |
+| `../src/html/static/bodyRendering.js` | Shared three.js building blocks (star granulation texture, fresnel glow shader, planet bands) used by `systemmap.js` and `sectormap.js` to draw a body as a lit sphere. Served directly, same as `style.css`. |
+| `../src/html/static/galaxyprisms.js`, `galaxyblocks.js` | The Galaxy Map's sector grid and density shading as cylindrical prisms (`galaxyprisms.js`), and the block scene for one view packed as GPU-ready arrays (`galaxyblocks.js`, run in a Web Worker). Neither imports three.js, so both run under plain node for the tests. Served directly, same as `style.css`. |
+| `../src/html/static/galaxystages.js`, `galaxystageview.js` | The Galaxy Map's drill-down from the galaxy to one sector (`design/galaxy-drilldown-navigation.md`): the stage rules (`galaxystages.js`) and the scene, camera moves, breadcrumb and stage URLs that draw them (`galaxystageview.js`), backed by `/galaxy/stage`. Served directly, same as `style.css`. |
+| `../src/html/static/phenomenonmap.js`, `mapzoom.js` | Zoom and pan for the phenomenon page's AU-scale SVG diagram (`mapzoom.js` is the shared viewBox zoom/pan it uses). Served directly, same as `style.css`. |
+| `../src/html/static/phenomenonrender.js` | Draws `lib/phenomenonrender.py`'s "View" panel with three.js. Served directly, same as `style.css`. |
+| `../src/html/static/generatejobs.js` | Keeps the Generate page's "Current job" panel live by polling `/admin/generate/status`. Served directly, same as `style.css`. |
+| `../src/html/static/distance.js` | The maps' distance formatter, the browser mirror of `stellarObjects.utils.format_distance_m` (km, AU, mpc, ly, pc and up). Served directly, same as `style.css`. |
+| `../src/html/static/localtime.js` | Rewrites every server-rendered UTC `<time data-local-time>` in the viewer's own time zone. Without script the times stay readable, labelled UTC. Served directly, same as `style.css`. |
 
 **Why the maps use three.js.** The Sector, System and Galaxy Maps all
 draw with three.js (r186), vendored as one minified file. That choice
@@ -170,6 +181,9 @@ URLs" below).
 | `/galaxy/locate?q=...` | `galaxy_views.py` | JSON for the map's address bar: sectors and star systems named like `q`, each with its sector address (see `/api/galaxy/locate`). A blank `q` asks the API nothing; 502 on an API failure, as `{"error": ...}`. Shares the `search` rate limit. |
 | `/galaxy/territories` | `galaxy_views.py` | JSON for the map's Territories overlay: `/api/territories`' owned systems and capitals, with each polity's name, color and system count folded in from `/api/polities`. 502 on an API failure, as `{"error": ...}`. Shares the `galaxy_tiles` rate limit. `Cache-Control: no-store`. The map shows its Territories button only once `/api/polities` counts at least one polity. |
 | `/galaxy/tiles?tiles=...` | `galaxy_tiles.py` | JSON for the map's script: the requested cube tiles (`tiles=level/ix/iy/iz,...`) and, given the browser cache's `stamp`, the changed tiles since. Through `lib/tilecache.py`'s disk cache; 400 on a malformed request, 502 on an API failure, both `{"error": ...}`. `Cache-Control: no-store`. |
+| `/admin/generate/status` | (new) | Admins only: JSON for the Generate page's live job panel (`static/generatejobs.js`). |
+| `/admin/generate/jobs/<id>` | (new) | Admins only: one past job with its full output. |
+| `/admin/generate/system/download` | (new) | Admins only, POST: returns the one-off system page's text as a `.md` or `.wiki` file. |
 | `/system/<id>` | `system.py` | One star system: badges, "Navigate from/to here" (systems in a sector), nearest-neighbour location links, the System Map, the expandable body list, `?code=wikitext\|markdown` code views with a Copy button, the Stars/Planets/Belts/Comets tables, the Facilities panel, and for an admin the "Upload to Wiki" form and the facility form (see below). |
 | `/phenomena` | `phenomena.py` | Every exotic phenomenon, paged with `?page=N`. |
 | `/phenomenon/<type>/<id>` | `phenomenon.py` | One phenomenon's data table and its view: a three.js render for a neutron star, black hole, quasar, rogue planet or comet (`lib/phenomenonrender.py`, `static/phenomenonrender.js`, an SVG still without JavaScript), the AU-scale diagram for a nebula or remnant, and none for an asteroid field, with "Navigate from/to here". `<type>` is one of `nebula`, `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`, `quasar`; anything else is a 404. |
@@ -397,21 +411,32 @@ without an admin session get a 403.
 
 ```
 src/html/web/
-  __init__.py     blueprint `web`, template globals, init_app()
-  views.py        the routes
-  helpers.py      db_name, page_url, crumb, render_page, trusted_html,
-                  pager, current_admin
-  transport.py    in-process transport for lib/apiclient.py
-  csrf.py         CSRF tokens for POST forms
-  errors.py       HTML 404/502/500 pages
-  old_urls.py     301s from the old /<name>.py URLs
-  templates/      base.html + one template per page (+ partials/)
+  __init__.py         blueprint `web`, template globals, init_app()
+  views.py            /, /sectors, /systems, /search
+  system_pages.py     /system/<id>, /phenomena, /phenomenon/<type>/<id>
+  system_facilities.py  the system page's facility form
+  sector_page.py      /sector/<id>
+  nav_page.py         /nav
+  galaxy_views.py     /galaxy and its JSON routes
+  class_pages.py      /classes and below
+  admin_pages.py      /login, /logout, /account, /admin, /admin/stats
+  generate_page.py    /admin/generate (jobs.py runs the jobs)
+  system_page.py      /admin/generate/system
+  searchpage.py       the search page's data shaping
+  helpers.py          db_name, page_url, crumb, render_page, trusted_html,
+                      pager, current_admin, generate_target
+  transport.py        in-process transport for lib/apiclient.py
+  csrf.py             CSRF tokens for POST forms
+  errors.py           HTML 404/502/500 pages
+  old_urls.py         301s from the old /<name>.py URLs
+  templates/          base.html + one template per page (+ partials/)
 ```
 
-A page is a route plus a template:
+A page is a route plus a template (each page module is imported at the
+end of `web/__init__.py`, which registers its routes on `bp`):
 
 ```python
-# web/views.py
+# web/system_pages.py (simplified)
 @bp.route("/phenomena")
 def phenomena():
     envelope, page = fetch_page(
@@ -442,7 +467,8 @@ The helpers (all in `web/helpers.py`):
 - `render_page(template, title=, section=None, breadcrumbs=(),
   description=None, status=200, **context)`: renders a template that
   extends `base.html`. `section` is one of `SECTIONS` (`galaxy`,
-  `sectors`, `systems`, `phenomena`, `nav`) and gets `aria-current`.
+  `sectors`, `systems`, `phenomena`, `nav`, `classes`) and gets
+  `aria-current`.
 - `crumb(label, name=None, **params)`: one breadcrumb. "Home" is added
   in front automatically; the last crumb (no `name`) is the current page.
 - `page_url(name, **params)`: the URL of any page by endpoint name
@@ -558,9 +584,9 @@ so the pages are rate-limited per client IP (`api/limiter.py`'s
 
 | Name | Covers | Default |
 |---|---|---|
-| `search` | `/search` | 30 per minute |
+| `search` | `/search` and `/galaxy/locate` | 30 per minute |
 | `galaxy` | `/galaxy` (the Galaxy Map page) | 60 per minute |
-| `galaxy_tiles` | `/galaxy/tiles` (fetched as the map's camera moves) | 600 per minute |
+| `galaxy_tiles` | `/galaxy/tiles`, `/galaxy/stage` and `/galaxy/territories` (fetched by the map's script) | 600 per minute |
 | `health` | `/api/health` | 60 per minute |
 | `other` | every other page, all counted together | 300 per minute |
 
@@ -568,8 +594,8 @@ An empty value turns that limit off. These replace the API's default
 limits (`ratelimit.default`) for the pages, and the API calls a page makes
 in-process are not counted against either. Over a limit, a page answers
 `429` with the site's HTML error page ("Too many requests"), while
-`/galaxy/tiles` (read by the map's script) and everything under `/api/`
-answer JSON; both carry `Retry-After`. With more than one WSGI process,
+the `/galaxy/...` JSON routes (read by the map's script) and everything
+under `/api/` answer JSON; both carry `Retry-After`. With more than one WSGI process,
 `ratelimit.storage_uri` needs a shared backend for the counts to add up
 (see [`api.md`](api.md#rate-limiting)).
 
@@ -585,8 +611,8 @@ server/account is the app's own configuration
 see [`api.md`](api.md#running-locally) for those.
 
 Separately from all of the above, a `config.json`
-file at the repo root (a sibling of `../src/html/`, not a file inside `../src/html/`
-itself) holds every deployment-level setting in one place -- MySQL
+file at the repo root (next to `src/`, not a file inside `../src/html/`)
+holds every deployment-level setting in one place -- MySQL
 connection details, the site's own `site_name`/`base_url`, and more --
 edited once per deployment rather than passed through the vhost config --
 see [`config.md`](config.md) for the full field list
@@ -594,58 +620,34 @@ and how it relates to the `PLANETGEN_*` environment variables.
 
 ## Deploying
 
+[`../INSTALL.md`](../INSTALL.md) walks through a first install, and
 [`deployment/README.md`](deployment/README.md) compares every supported
 platform (Apache, nginx or Caddy on Linux; IIS, Caddy or Apache on
-Windows; macOS; a VPS) and links a guide for each. The steps below are
-the reference setup, Apache2 with mod_wsgi on Debian or Ubuntu
-([`deployment/apache.md`](deployment/apache.md)).
-
-1. Copy the repo (or at least `../src/html/`, `src/`,
-   `install.sh`, `update.sh`, `setup.py`, and `examples/apache/`) to the
-   server, e.g. `/var/lib/planetGen/`. Cloning it there as a git checkout
-   (rather than copying a tarball) is what makes `update.sh` possible
-   later. A MySQL server (8.0.16+) reachable from this host, with a
-   database and account already created, is a separate prerequisite --
-   see [`database-schema.md`](database-schema.md).
-2. From that directory, run `sudo ./install.sh` -- installs the Python
-   package (with pip, or on an externally managed Python such as Ubuntu
-   24.04+'s, from apt packages, with system-wide pip only for anything apt
-   lacks or ships too old; see
-   [`deployment/apache.md`](deployment/apache.md#managed-python)), brings the configured MySQL database's schema up to date
-   (a no-op if it's already current -- see
-   [`database-schema.md`](database-schema.md)'s "Versioning"),
-   pre-fetches the NLTK `words` corpus into a shared world-readable
-   location (so it works under Apache's `www-data`, not just whatever
-   user happens to run the CLI tools), makes the shell scripts executable,
-   enables Apache's wsgi, headers and deflate modules, and makes `../src/html/`
-   `root:<apache group>` (readable, not writable, by Apache) and `config.json`
-   mode 640 via `examples/apache/set-permissions.sh`. See
-   [`deployment/apache.md`](deployment/apache.md) for what each step does
-   and how to re-run pieces of it individually.
-3. `install.sh` prints one remaining manual step: copy
-   `examples/apache/planetgen.conf.example` to
-   `/etc/apache2/sites-available/planetgen.conf`, edit it (at minimum,
-   `ServerName`), then `sudo a2ensite planetgen && sudo systemctl reload
-   apache2`. This is deliberately not automated -- the vhost's
-   ServerName/TLS/logging are your call, not something to silently create
-   or overwrite.
+Windows; macOS; a VPS) and links a guide for each. The reference setup is
+Apache2 with mod_wsgi on Debian or Ubuntu
+([`deployment/apache.md`](deployment/apache.md)), where `sudo
+./install.sh` does everything except the virtual host.
 
 ### Updating an existing deployment
 
-Run `sudo ./update.sh` instead of pulling manually. `git pull` on its own
-isn't enough -- pulling a changed file rewrites it with whatever mode is
-tracked in the repo, silently undoing any executable bit `install.sh`
-previously fixed. `update.sh` pulls (refusing to run over uncommitted
-local changes, and failing loudly rather than merging if history has
-diverged) and then checks everything the site needs without
-reinstalling anything that's already there: the executable bits and
-permissions, each Python library (installing only one that's missing,
-too old or broken, see
-[`deployment/apache.md`](deployment/apache.md#managed-python)), the NLTK
-corpus, the schema migration, Apache's modules, the cache/jobs
-directories and the debug log, and finally that the web app imports as
-Apache's user. `install.sh` remains safe to run directly any time you
-want a full reinstall without pulling first.
+Run `sudo ./update.sh` (`update.ps1` on Windows) instead of pulling
+manually. `git pull` on its own isn't enough: pulling a changed file
+rewrites it with whatever mode is tracked in the repo, silently undoing
+any executable bit `install.sh` previously fixed. `update.sh` fetches and
+does a `git reset --hard` to origin's branch tip, so the checkout always
+matches the branch. It warns about, then overwrites, uncommitted changes
+to tracked files, and it never fails on diverged history. It never runs
+`git clean`, so untracked files survive, `config.json` (gitignored)
+among them. It then checks everything the site needs without
+reinstalling anything that's already there: the executable bits, each
+Python library (installing only one that's missing, too old or broken,
+see [`deployment/apache.md`](deployment/apache.md#managed-python)), the
+NLTK corpus, the schema migration (with the optional population pass
+offered afterwards, a y/N question that defaults to no), Apache's
+modules, ownership and permissions, the cache/jobs directories and the
+debug log, and finally that the web app imports as Apache's user.
+`install.sh` remains safe to run directly any time you want a full
+reinstall without pulling first.
 
 ## Local testing without a web server
 

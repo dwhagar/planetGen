@@ -8,7 +8,8 @@ number, moves the note to the top of `CHANGELOG.md`, updates `__version__` in
 deletes the note, and commits `Release x.y.z` to `main`.
 
 Because every note has its own file name, two PRs open at the same time never
-fight over the same version number.
+fight over the same version number. If several notes are pending, each one
+becomes its own release, oldest merge first.
 
 ## Writing a note
 
@@ -31,7 +32,9 @@ The contents are exactly what goes under the release heading in
 ```
 
 Don't write the `## [x.y.z] - date` heading, and don't edit `_version.py`,
-the README badge or the top of `CHANGELOG.md`; CI fails a PR that does. A note
+the README badge or the top of `CHANGELOG.md`; CI fails a PR that does, and
+also fails a PR that adds no note (`.github/workflows/release-note.yml`,
+running `bump_version.py --check-pr`). A note
 can cite earlier releases by number (`see [5.46.16]`) but not its own, since
 that number isn't known until merge.
 
@@ -41,10 +44,12 @@ skip the note by getting the `no-release` label.
 ## Commands
 
 ```sh
-python scripts/bump_version.py --check      # validate the notes here
-python scripts/bump_version.py --dry-run    # preview the versions they'd get
+python scripts/bump_version.py --check                 # validate the notes here
+python scripts/bump_version.py --check-pr origin/main  # the PR check CI runs
+python scripts/bump_version.py --dry-run               # preview the versions they'd get
 ```
 
 If the stamp workflow can't run (for example it lacks permission to push to
-`main`), running `python scripts/bump_version.py` locally on an up-to-date
-`main` and pushing the result does the same thing.
+`main`), running `python scripts/bump_version.py --commit` locally on an
+up-to-date `main` and pushing the result does the same thing. Without
+`--commit` it stamps the files but leaves committing to you.

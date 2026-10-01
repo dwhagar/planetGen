@@ -1,5 +1,5 @@
 """
-Population and politics read endpoints (TODO 51-54, schema v44): species,
+Population and politics read endpoints (POP.1 to POP.4, schema v44): species,
 polities and territories. See docs/design/population-and-politics.md.
 
 Kept in its own blueprint so the population work doesn't touch

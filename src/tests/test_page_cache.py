@@ -1,7 +1,7 @@
 # tests/test_page_cache.py
 
 """
-The pages' in-memory API response cache (`lib/pagecache.py`, TODO 8):
+The pages' in-memory API response cache (`lib/pagecache.py`, PERF.2):
 the cache on its own with a fake clock, then the Flask pages serving a
 repeat visit without the API, and an API write clearing it.
 """

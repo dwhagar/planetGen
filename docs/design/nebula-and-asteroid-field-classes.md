@@ -1,15 +1,27 @@
-# Nebula, remnant and asteroid field classes (planned)
+# Nebula, remnant and asteroid field classes
 
-A draft for `docs/TODO.md` items 27-31, recorded 2026-09-30 from Boss's
+The design for `docs/TODO.md` items GEN.4.1 to GEN.4.5, recorded 2026-09-30 from Boss's
 notes and the reference document Boss shared ("Astrophysical
 Architectures and Speculative Mechanics of Nebulae, Stellar Remnants, and
-Interstellar Collisions"). The classes (items 28 and 31) are built in
-schema v38: `program_constants.NEBULA_CLASSES` (A-W, with contents and
-ranges) and `ASTEROID_FIELD_COMPOSITIONS` (letters plus a size digit).
-Generation with central objects (27, `generate.add_star_hosted_nebulae`,
-`_add_planetary_nebula`, remnant core kicks) and containment (29, schema
-v39) are built too; naming (30) and map drawing are not. The physical ranges come from that document and standard
-references.
+Interstellar Collisions"). The physical ranges come from that document and
+standard references.
+
+**Status: built.**
+
+| Item | What | Version | Code |
+|---|---|---|---|
+| 28, 31 | Letter classes for nebulae, remnants and asteroid fields | 7.19.0 (schema v38, PR #138) | `program_constants.NEBULA_CLASSES` (A-W), `ASTEROID_FIELD_COMPOSITIONS` |
+| 29 | What sits inside a nebula | 7.24.0 (schema v39) | `inside_nebula_id` / `inside_remnant_id` columns |
+| 27 | Nebulae generated with the stars they need | 7.30.0 (PR #144) | `generate.add_star_hosted_nebulae`, `_add_planetary_nebula`, `NEBULA_HOST_RULES`, `SUPERNOVA_KICK_SPEED_RANGE_KMS` |
+| 30 | Standard names and designations | 7.31.0 (schema v40, PR #145) | `_db.reserve_system_name`, `cometData.comet_designation`, `roguePlanetData.interstellar_comet_designation`, `asteroidFieldData.asteroid_field_designation` |
+| 29 | Heliopause squeezed inside a cloud | 7.39.0 (PR #161) | `starData.compressed_heliosphere_radius`, `queryDb.system_detail` |
+| | Class shown on pages, search by class | 7.28.0, 7.29.0 | |
+| | Nebulae and remnants drawn on the Galaxy Map | 7.36.0 | `queryDb.galaxy_clouds_in_box` |
+| | Inside badges on system and phenomenon pages, "Inside <name>" in sector Contents, `inside` in `GET /api/systems/<id>` | 7.41.0 (PR #148) | `queryDb.system_detail` |
+| | See-through cloud volumes on the Sector Map | 7.41.1 (PR #148) | `static/sectormap.js` |
+| | Class reference pages for nebula, remnant and asteroid field classes; class labels link to them | 7.46.0 (PR #167) | `html/lib/classref.py`, `web/class_pages.py` |
+
+Habitability does not use the squeezed heliopause yet.
 
 Boss's asks, in Boss's words:
 
@@ -47,7 +59,7 @@ planetary nebula, sees an ordinary dark starry sky.
 | Molecular (GMC, dark cloud, Bok globule) | H2, He, CO, PAHs, silicates, organics | 10^2-10^6 | 10-30 | opaque (A_V ~10-100 mag) |
 | Supernova remnant (blast zone) | ionized ejecta, Fe, Si, S, ambient gas | 0.1-10^2 | 10^5-10^7 | transparent; synchrotron and soft X-ray |
 
-## What sits at the center (research for item 27)
+## What sits at the center (research for GEN.4.1)
 
 | Family | Central object the generator must place |
 |---|---|
@@ -59,13 +71,15 @@ planetary nebula, sees an ordinary dark starry sky.
 | Supernova remnant, core collapse | A neutron star (most) or black hole, as `SupernovaRemnant.compact_remnant` already does, offset from the center by its birth kick (a few hundred km/s times the remnant's age). |
 | Supernova remnant, thermonuclear (Type Ia) | No compact object; sometimes a runaway surviving companion star. |
 
-## Nebula and remnant classes (item 28, built in v38)
+## Nebula and remnant classes (GEN.4.2, built in v38, version 7.19.0)
 
 One letter per class, like `PLANET_CLASSES`. I and O are left unused so
-they aren't mistaken for 1 and 0; X-Z are reserved. Today's
-`NEBULA_TYPES` (emission, reflection, planetary, dark) and
-`SUPERNOVA_REMNANT_MORPHOLOGIES` (shell, plerion, composite) map onto
-these.
+they aren't mistaken for 1 and 0; X-Z are reserved. Nebulae use A-Q
+(`nebulae.nebula_class`) and remnants R-W (`supernova_remnants.remnant_class`).
+`nebulae.nebula_type` is now the class's family (`diffuse`, `emission`,
+`reflection`, `planetary`, `dark`; `diffuse` was added in v38), and
+`SUPERNOVA_REMNANT_MORPHOLOGIES` (shell, plerion, composite) still sets a
+remnant's morphology. The old `NEBULA_TYPES` constant is gone.
 
 | Class | Name | Contents | nH (cm^-3) | Center |
 |---|---|---|---|---|
@@ -99,19 +113,23 @@ object rule, and a relative frequency.
 Boss (2026-09-30): "stellar remnants" means supernova remnants only; the
 compact objects keep their own tables and need no letters.
 
-## Objects inside a nebula (item 29)
+## Objects inside a nebula (GEN.4.3)
 
-- Each object table that can sit inside one (star systems, stars in
-  wide pairs, rogue planets, interstellar comets, black holes, neutron
-  stars, asteroid fields, stand-alone facilities, other nebulae) gets a
-  nullable `nebula_id` naming the innermost nebula or supernova remnant
-  containing it. Asteroid fields can be inside a nebula but never
-  contain anything.
+- As built (schema v39), star systems, rogue planets, interstellar
+  comets, black holes, neutron stars, asteroid fields and nebulae each have
+  two nullable columns, `inside_nebula_id` and `inside_remnant_id`, naming
+  the innermost nebula and the innermost supernova remnant containing them.
+  The plan's single `nebula_id`, and its entries for stars in wide pairs and
+  stand-alone facilities, were not built: a wide pair shares its system's
+  row, and facilities have no such column. Asteroid fields can be inside a
+  nebula but never contain anything.
 - Nebulae are light-years across (emission up to 200 ly radius), far
   larger than a 13 ly sector, so containment is a 3D distance test
   against every nebula whose sphere reaches the object's sector, not a
-  same-sector check. Computed at generation, when a later sector is
-  generated inside an existing nebula, and on each correlative update.
+  same-sector check. Computed at generation, when a nebula or remnant is
+  placed (so a later sector inside an existing cloud sees it), by the v39
+  migration for existing rows, and on each correlative update
+  (`updateOrbits.py`, since 7.37.0).
 - What being inside means, from the reference document: the stellar
   wind's heliopause shrinks as `R_HP ∝ (ρ_ISM v² + P_ISM)^-1/2`; in a
   dense cold cloud (nH ~3,000 cm^-3) the Sun's would sit at ~0.22 AU,
@@ -126,15 +144,15 @@ compact objects keep their own tables and need no letters.
   cm^-3 that puts this program's Sun (~85 AU in open space) at ~0.6 AU.
   Habitability doesn't use it yet.
 
-## Naming (item 30, built in v40)
+## Naming (GEN.4.4, built in v40, version 7.31.0)
 
 - Nebulae, supernova remnants, neutron stars, black holes, quasars and
   rogue planets are named the way star systems are: through the
   system-name registry (`_db.reserve_system_name`/confirm, uniqueness,
   diminutive decoration, offensive-word filter) instead of today's
   unregistered `generate_phoneme_salad_name`.
-- Comets and asteroid fields get standardized designations. Draft,
-  modeled on IAU prefixes:
+- Comets and asteroid fields get standardized designations, modeled on
+  IAU prefixes:
   - Star-bound comet: `P/<system>-<n>` for periodic (period under 200
     years), `C/<system>-<n>` otherwise, numbered in order around each
     star. A wide binary's comets carry their own star's name. Example:
@@ -142,10 +160,10 @@ compact objects keep their own tables and need no letters.
   - Interstellar comet: `I/<sector designation>-<n>`. Example:
     `I/4F2A1-3`. A sector outside the grid is named instead.
   - Asteroid field: `AF <class><size>-<sector designation>-<n>`, where
-    class is the letter from item 31 and size is floor(log10(radius in
+    class is the letter from GEN.4.5 and size is floor(log10(radius in
     AU)) (a 0.001-1 ly field is 1-4). Example: `AF E3-4F2A1-02`.
 
-## Asteroid field classes (item 31, built in v38)
+## Asteroid field classes (GEN.4.5, built in v38, version 7.19.0)
 
 Letter from composition and density (today's `sparse`/`typical`/`dense`);
 size goes in the designation digit above. Composition families follow
@@ -167,3 +185,37 @@ primitive, V basaltic).
 Boss (2026-09-30): size is "a digit and part of the class", so a full
 class reads `C3` (`asteroid_fields.field_class`). The icy family's
 components come from the cometary ices list.
+
+## Why it works this way
+
+- **Letter classes like planets.** Boss asked for nebulae and remnants to be
+  "classed like planets ... A to Z based on contents", and asteroid fields
+  "based on composition and density and size" (quoted above). The planet
+  scheme was the model, including skipping letters that read as digits.
+- **Classes carry contents, not just names.** Each class stores species,
+  density, temperature, extinction and a center rule, because Boss asked
+  what is *in* each nebula and because generation needs the center rule to
+  place the right star (section "What sits at the center").
+- **Supernova remnants only.** Boss said on 2026-09-30 that "stellar
+  remnants" means supernova remnants; black holes and neutron stars keep
+  their own tables.
+- **Size as a digit in the asteroid field class.** Boss said size is "a digit
+  and part of the class", so a class reads `C3`.
+- **Stars placed by physics.** Only O and early-B stars ionize hydrogen, so
+  H II regions are grown around them, and every planetary nebula needs a hot
+  white dwarf at its center (`NEBULA_HOST_RULES`, CHANGELOG 7.30.0).
+- **Containment by 3D distance.** Clouds are far larger than a 4 pc sector,
+  so a same-sector test would miss most members.
+- **Names through the system-name registry.** Boss asked that nebulae, neutron
+  stars, quasars and black holes be named "the same as star systems do";
+  sharing the registry also keeps every name in the galaxy unique.
+- **Heliopause squeeze.** The reference document gives the pressure balance
+  `R_HP ∝ (ρ v² + P)^-1/2`; the code applies it so navigation uses the real
+  edge of a system inside a cloud.
+
+### Alternatives not taken
+
+- A single `nebula_id` column (built as two columns, one for nebulae and one
+  for remnants; the reason is not recorded beyond the column comments).
+- Generating diffuse gas (classes A-B): treated as background.
+- Letters for black holes and neutron stars: not wanted (Boss, 2026-09-30).

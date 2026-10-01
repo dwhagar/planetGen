@@ -36,7 +36,9 @@ this page.
    log. Without Apache installed, its Apache step prints a warning and
    carries on, and it gives the runtime directories to `www-data`, the
    account gunicorn runs as. Ignore its closing Apache instructions.
-   Note the admin password it prints in step 2/8.
+   Note the admin password it prints in step 2/8. It also offers the
+   optional population pass (y/N, default N; see
+   [`apache.md`](apache.md#migrating-or-deleting-the-database)).
 
 3. **gunicorn** from apt, so it uses the same system Python and
    libraries `install.sh` set up:

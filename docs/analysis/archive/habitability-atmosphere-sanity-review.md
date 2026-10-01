@@ -1,3 +1,27 @@
+> **Historical: superseded by the climate and atmosphere fixes in versions
+> 5.3.4 to 5.9.1.** This review (2026-09-06) measured the code as it was
+> then, and every finding it raised has since been acted on: gravity no
+> longer cancels out of surface pressure (`_atmosphere_retention_factor`,
+> 5.3.5); the greenhouse factor is now composition times a per-class
+> potency multiplier, capped at 500 (5.3.7); every tuned class has its own
+> `albedo_range`, `atm_density_range`, `atm_molar_density_range` and
+> `greenhouse_multiplier_range`, which ended Class N's hard-coded special
+> case and made the ecosphere classes differ (5.3.7); Class P is cold again
+> (5.3.5, tuned further in 5.9.1 to about 219 K and 0.1 atm); the gas-giant
+> core and envelope densities are combined by a mass-weighted harmonic mean
+> with a real envelope bulk density (5.3.4, 5.3.9); and Class M's gravity
+> clamp was deleted (5.3.7). The M and P pressure and temperature clamps
+> stay commented out in `planetPhysics.calculate_atmospheric_conditions`,
+> with `src/tests/test_climate_tuning.py` and `climate_tuning_cli.py`
+> checking the results instead. The gas-giant molar-mass range quoted below
+> (0.00226-0.00416 kg/mol) is now 0.00207-0.00266. The numbers in this
+> file describe the old code and should not be read as current. The one
+> change it made (the `ATMOSPHERE_DENSITY["t"]` comment) still stands, and
+> that comment in `physical_constants.py` links here, so the link needs
+> updating when this file moves.
+
+---
+
 # Habitability / Atmosphere Sanity Review
 
 **Date:** 2026-09-06

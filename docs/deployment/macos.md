@@ -40,8 +40,11 @@ checkout to `/var/lib/planetGen`, write `config.json` (step 4), then:
 
 It makes the venv at `/usr/local/planetgen/venv` from Homebrew's
 `python3` (3.10 or later) with the libraries and gunicorn from
-`requirements-server.lock` (checked by hash), fetches the NLTK corpus,
-runs the migration, applies the permissions of step 6 for `_www`, sets
+`requirements-server.lock` (checked by hash), runs the migration (with
+the migrate-or-delete question of the
+[Apache guide](apache.md#migrating-or-deleting-the-database)), fetches
+the NLTK corpus, offers the optional population pass (y/N, default N;
+`POPULATION=1` runs it without asking), applies the permissions of step 6 for `_www`, sets
 up `newsyslog` for the debug log, and installs and starts the gunicorn
 daemon of step 7. nginx (step 8) stays yours. `sudo ./update.sh` later
 pulls and checks everything the same way, and

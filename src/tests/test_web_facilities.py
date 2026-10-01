@@ -1,7 +1,7 @@
 # tests/test_web_facilities.py
 
 """
-Facilities on the web pages (TODO 36, schema v42): the system page's
+Facilities on the web pages (UX.5, schema v42): the system page's
 Facilities panel and body-list rows, the admin form (preview, save,
 remove), the System Map's facility markers, a colony making its world
 "Inhabited", and the sector page's Contents rows for facilities outside a

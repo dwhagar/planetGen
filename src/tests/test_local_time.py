@@ -1,7 +1,7 @@
 # tests/test_local_time.py
 
 """
-Times on the pages (docs/TODO.md item 22): the server writes UTC as
+Times on the pages (UX.10): the server writes UTC as
 `<time datetime="...Z" data-local-time>` with a labelled UTC fallback,
 and `static/localtime.js` rewrites it in the viewer's zone.
 """

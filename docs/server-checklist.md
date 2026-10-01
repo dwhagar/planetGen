@@ -32,7 +32,8 @@ of `README.md` on `main`).
 ## 2. Has the database been migrated?
 
 Reloading or restarting the app does not apply schema migrations. Only
-`migrateDb.py` (or `update.sh`/`install.sh`, which call it) does.
+`migrateDb.py` (or `update.sh`/`install.sh`, and `update.ps1`/`install.ps1`
+on Windows, which call it) does.
 
     curl -s https://HOST/api/health
 

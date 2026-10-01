@@ -1,8 +1,8 @@
 """
 Bright/dim star sampling (`stellarObjects.stellarPopulation`), stellar
 populations by position (`galaxyDensity.population_densities`) and
-pre-placed systems (`SpaceSector.add_preplaced_system`): TODO items 55
-and 56, the Physics part of bright-star pre-placement.
+pre-placed systems (`SpaceSector.add_preplaced_system`): GEN.7.1
+and GEN.7.2, the Physics part of bright-star pre-placement.
 
 Run with: pytest src/tests/test_bright_star_sampling.py
 """

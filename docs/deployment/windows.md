@@ -66,7 +66,10 @@ sets `NLTK_DATA`, writes `config.json` from
 `secret_key`), creates the runtime folders, and sets the permissions of
 step 7. The database step runs once `config.json` has your `mysql.*`
 settings; until then it says so, and `update.ps1` does it later, with the
-same migrate-or-delete question as `update.sh`. `-VenvDir`, `-DataDir`
+same migrate-or-delete question as `update.sh`. After the migration it
+offers the optional population pass (`generate.py population`: species,
+civilizations, territories; y/N within 30 seconds, default N, skipped
+with no console); `-Population` runs it without asking. `-VenvDir`, `-DataDir`
 and `-ServiceAccount` change the defaults below (`-ServiceAccount "IIS
 AppPool\planetgen"` for option 1). The permissions step waits until the
 account exists (`NT SERVICE\planetgen` appears with the service), so run
@@ -326,7 +329,9 @@ It does what `update.sh` does on Linux: `git fetch` and `reset --hard` to
 the branch tip (`config.json` is untracked and survives), installs only
 libraries that are missing or too old, checks the corpus, runs the
 migration (asking first, y/N within 30 seconds, whether to delete the
-galaxy data instead), and re-applies the folders and permissions. Then
+galaxy data instead), offers the optional population pass (y/N, default
+N; `-Population` runs it without asking), and re-applies the folders and
+permissions. Then
 restart the app (per option above; the script's last line says how).
 `python src\migrateDb.py --status` shows whether a migration is pending.
 New files inherit the checkout's permissions, so the service account

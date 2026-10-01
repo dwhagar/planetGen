@@ -1,14 +1,46 @@
 # Interstellar object rates
 
-Reference numbers for TODO items 5 (rates) and 6 (rogue planet masses),
-from the research Boss supplied on 2026-09-30. Built in schema v37
-(`program_constants.PHENOMENON_DENSITY_PC3`, `phenomenon_rate_per_star`,
-`ROGUE_PLANET_MASS_BINS`; `generate.generate_sector_phenomena` and
-`flag_fast_stars`), at the full rates Boss chose, with the table's
-hypervelocity figure replaced by 1e-10 (see "Checks"). Molecular clouds
-(filling factor) and the other nebula kinds wait for TODO item 27; until
-then the only generated nebulae are planetary ones. The figures are Boss's
-chosen reference. The ones that don't add up are flagged under "Checks".
+Reference numbers for GEN.1 (rates) and GEN.2 (rogue planet masses),
+from the research Boss supplied on 2026-09-30. Built in version 7.18.0
+(schema v37, PR #136): `program_constants.PHENOMENON_DENSITY_PC3`,
+`PHENOMENON_RATE_SCALE`, `phenomenon_rate_per_star`,
+`ROGUE_PLANET_MASS_BINS`, `generate.generate_sector_phenomena` and
+`flag_fast_stars`. Boss chose the full rates, with the table's
+hypervelocity figure replaced by 1e-10 (see "Checks"). The figures are
+Boss's chosen reference. The ones that don't add up are flagged under
+"Checks". On the pages, rogue planet mass classes have reference pages
+from 7.46.0 (`/classes/rogue-planet`), and rogue planets, interstellar
+comets, black holes and neutron stars get rendered views from 7.57.0.
+
+Nebulae (GEN.4.1) followed in 7.30.0: molecular clouds are drawn per star at
+the `molecular-cloud` rate below and generated as dark-family classes M-Q;
+H II regions and reflection nebulae grow around O, B and A stars
+(`NEBULA_HOST_RULES`); every planetary nebula gets its own hot white dwarf
+system. Diffuse gas (classes A-B) is the background and is not generated.
+See `nebula-and-asteroid-field-classes.md`.
+
+## How the code uses these numbers
+
+- Every kind in `PHENOMENON_DENSITY_PC3` becomes a rate per star:
+  `density / 0.14 * PHENOMENON_RATE_SCALE[kind]`
+  (`phenomenon_rate_per_star`). All scales are 1.0.
+- `generate_sector_phenomena` counts the sector's stars (a binary counts
+  two, `sector_star_count`) and draws each kind's count from a Poisson
+  distribution with mean `rate * stars`. This is the "per star" form the
+  model below asks for.
+- Every kind is scaled by star count only. The gas-density scaling for
+  molecular clouds (`rho_gas^1.4`) and supernova remnants (`n_* * rho_gas`)
+  is not applied: `GMC_GAS_DENSITY_EXPONENT` and `GMC_ARM_FILLING_FACTOR`
+  are defined but nothing reads them.
+- Runaway and hypervelocity stars are flags on ordinary systems
+  (`star_systems.runaway_class`), not phenomenon rows. The hypervelocity
+  chance scales as `(8000 pc / r_GC)^2`.
+- Interstellar comets kept as rows use a design rate, `"comet": 0.007`
+  per pc³ (0.05 per star), not the research density. The real population
+  (1e12 per pc³, `INTERSTELLAR_DEBRIS_DENSITY_PC3`) is shown only as a
+  computed count on the sector page (`queryDb.interstellar_debris_count`).
+- Asteroid fields have rate 0; the type stays for hand-made fields and
+  facilities.
 
 ## The model
 
@@ -55,8 +87,9 @@ Three types don't scale with `n_*` alone:
 | Hypervelocity stars (> 500 km/s) | 5e-9 at 8 kpc (see Checks) | n/a | r_GC⁻² | ~3e-7 |
 | Isolated asteroid fields | ~0 (disperse in 1e6-1e7 yr) | 0 | n/a | 0 |
 
-\* A 4 pc sector is 64 pc³, about 9 stars at local density. The generator
-makes about 10 systems per default sector today.
+\* A 4 pc sector is 64 pc³, about 9 stars at local density. The density
+model expects 6.3 systems in a local-density sector (`galaxy_shape.
+expected_system_count_at_density_1`); with binaries that is about 8 stars.
 
 Galaxy totals behind these (for scale): 25-100 billion brown dwarfs,
 1e7-1e8 runaway stars, 1e3-1e4 hypervelocity stars, ~1e9 isolated neutron
@@ -65,7 +98,7 @@ detectable supernova remnants. Intracluster ("hostless") supernovae are
 5-20% of supernovae in rich galaxy clusters; they happen between
 galaxies, so they have no place in one galaxy's generator.
 
-## Rogue planet mass bins (item 6)
+## Rogue planet mass bins (GEN.2)
 
 Low-mass rogues dominate: disk scattering ejects small bodies while
 giants stay bound. Draw a bin by its per-star rate, then a mass
@@ -98,8 +131,8 @@ Hence the bins.
   Use 1e-10 unless Boss prefers the table's figure.
 - **Supernova remnants.** ~1,000 detectable remnants over a disk of about
   7e11 pc³ is about 1.5e-9 pc⁻³; the table's 1e-8 implies about 7,000.
-  Today's generator uses 2,000 galaxy-wide. Pick 1e-8 only if faint,
-  undetectable remnants count too.
+  The generator before 7.18.0 used 2,000 galaxy-wide. The code now uses
+  1e-8, which counts faint, undetectable remnants too.
 - Terrestrial (0.7 pc⁻³ = 5 per star), Jupiter-mass (0.035 = 0.25 per
   star), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
   stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
@@ -143,3 +176,33 @@ al. 2020 (ApJL 894:L22), interstellar comets and the absence of free
 asteroid fields; Draine 2011 and Kennicutt & Evans 2012 (ARA&A 50:531),
 nebulae and remnants; Graham et al. 2015, Sand et al. 2011 and McGee &
 Balogh 2010, intracluster supernovae.
+
+## Why it works this way
+
+- **Per star, not per system or per volume.** A sector's system count
+  already follows local stellar density, so a fixed rate per star gives the
+  density scaling for free and keeps the old per-sector Poisson draw. A
+  binary counts as two stars, which is why the rate is per star, not per
+  system (section "The model").
+- **Full rates.** Boss chose the research rates at full strength on
+  2026-09-30. `PHENOMENON_RATE_SCALE` exists so a kind can be dialed down
+  (for example 0.1 for rogue planets) without changing its research value.
+- **Mass bins for rogue planets.** One power law cannot match both the
+  terrestrial and the Jupiter-mass measurements (it overshoots the
+  terrestrial count a hundredfold), so the rates are binned
+  ("Rogue planet mass bins").
+- **Hypervelocity 1e-10.** The table's 5e-9 implies 30 to 40 times more
+  hypervelocity stars than its own galaxy total ("Checks").
+- **Neutron stars 0.5% and black holes 0.1% of stars.** These are the shares
+  the mass-and-age star model (7.23.0) leaves behind, so isolated remnants
+  and the star census agree.
+- **No free asteroid fields.** They disperse in 1e6 to 1e7 years.
+- **Comets as a figure, not rows.** About 6e13 per sector cannot be stored.
+
+### Alternatives not taken
+
+- Scaling clouds and remnants by gas density. The constants are in place
+  for it, but the reason it was not wired up is not recorded.
+- Supernova remnants at the detectable-only density (1.5e-9). The code
+  chose 1e-8; the comment says it "counts faint remnants too". No further
+  reason is recorded.

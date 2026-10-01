@@ -1697,7 +1697,7 @@ code {
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
    the identical "copy a generate.py CLI command" concept one level in. */
-/* The Galaxy Map is the page's whole point (TODO 63): the map takes the
+/* The Galaxy Map is the page's whole point (MAP.3): the map takes the
    full width of a wider main column (.app-main-wide, galaxy.html) and as
    much of the window's height as is left under the header, with the
    controls in a row underneath that wraps to a stack when it doesn't fit,

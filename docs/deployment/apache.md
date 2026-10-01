@@ -14,7 +14,9 @@ connection, so the app already sees the real address and scheme.
    `config.json` and fill in `mysql.*` and `secret_key`
    ([`config.md`](../config.md)).
 3. `sudo ./install.sh` from the checkout. Note the admin password it
-   prints in step 2/8.
+   prints in step 2/8. After the NLTK step it asks whether to run the
+   optional population pass (y/N, default N; see
+   [below](#migrating-or-deleting-the-database)).
 4. Copy [`planetgen.conf.example`](../../examples/apache/planetgen.conf.example)
    to `/etc/apache2/sites-available/planetgen.conf`, set `ServerName`,
    then `sudo a2ensite planetgen && sudo systemctl reload apache2`.
@@ -122,6 +124,17 @@ estimate of the time left. `python3 src/migrateDb.py --status` prints the
 current and target versions and how many steps are pending, without
 changing anything.
 
+After the database step, both scripts offer the population pass:
+
+    Run the population pass now (species, civilizations, territories)? [y/N] (default N in 30s):
+
+`y` runs `generate.py population`, which names species, dates
+civilizations and draws territories from what is already stored.
+Anything else, no answer within 30 seconds, or no terminal skips it.
+`sudo POPULATION=1 ./update.sh` (or `./install.sh`) runs it without
+asking, and `python3 generate.py population` runs it any time.
+`install.sh --skip-database` skips both questions.
+
 ### Which Python and libraries Apache uses
 
 Nothing in the vhost names a Python or a library path, and nothing needs
@@ -152,14 +165,15 @@ anything newly installed.
 
 See [`install.sh`](../../install.sh) for the full install script,
 [`update.sh`](../../update.sh) for pulling later updates, and
-[`html-interface.md`](../html-interface.md#deploying) for the deployment
-walkthrough.
+[`INSTALL.md`](../../INSTALL.md) for the install walkthrough.
 
 ## Static files, compression and security headers
 
 - **Modules.** The example vhost needs `a2enmod wsgi headers deflate`
-  (no CGI module any more). `install.sh` enables all three itself (`wsgi`
-  when `libapache2-mod-wsgi-py3` is installed; it warns otherwise).
+  (no CGI module any more). `install.sh` and `update.sh` enable all three
+  themselves, installing `libapache2-mod-wsgi-py3` with apt first when
+  mod_wsgi is missing, and say when Apache needs a restart to load a
+  newly enabled module.
 - **Caching `static/`.** Every page links its CSS/JS/favicon as
   `static/<file>?v=<release version>` (`src/html/lib/fmt.py`'s
   `static_url`), and the map modules pass that same `?v=` on to the

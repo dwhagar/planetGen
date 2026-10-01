@@ -2,7 +2,7 @@
 
 """
 The "View" panel on a phenomenon page: a rendered picture of the object
-itself, chosen per type (TODO 25), instead of the flat AU-scale diagram
+itself, chosen per type (UX.4.1), instead of the flat AU-scale diagram
 `phenomenonmap.py` draws.
 
 - Neutron star: the star spinning with its two radio beams (none for a

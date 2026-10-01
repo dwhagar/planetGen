@@ -1,6 +1,6 @@
 # tests/test_population.py
 
-"""Population and politics (schema v44, TODO 51-54): species, civilization
+"""Population and politics (schema v44, POP.1 to POP.4): species, civilization
 ages and eras, polities and territories, the `population` CLI and the API.
 See docs/design/population-and-politics.md."""
 
