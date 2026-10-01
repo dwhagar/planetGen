@@ -49,6 +49,7 @@ import math
 import os
 import random
 import re
+import threading
 import time
 from types import SimpleNamespace
 from collections import namedtuple
@@ -87,7 +88,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 44
+SCHEMA_VERSION = 45
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -253,8 +254,20 @@ def _get_pool(config):
             # same whatever the server's own zone is (the pages convert to
             # each viewer's zone in the browser).
             init_command="SET time_zone = '+00:00'",
+            # Never fail over to a fresh connection mid-use. DBUtils
+            # otherwise re-runs a statement that hit any OperationalError
+            # -- a deadlock included -- on a new cursor or connection, and
+            # the caller carries on in a transaction MySQL has already
+            # rolled back (the error 1452s of PERF.14's parallel test). A
+            # dead pooled connection is still replaced when it's checked
+            # out (`ping`); one lost mid-use raises.
+            isfatal=_never_fail_over,
         )
     return _pools[key]
+
+
+def _never_fail_over(_error):
+    return False
 
 
 def close_pool(config):
@@ -270,9 +283,12 @@ def close_pool(config):
     process's life, eventually exhausting the server's `max_connections`.
     Call this once such a database is being dropped for good.
     """
-    pool = _pools.pop(config._key(), None)
+    key = config._key()
+    pool = _pools.pop(key, None)
     if pool is not None:
         pool.close()
+    _schema_ensured.discard(key)
+    _forget_id_blocks(key)
 
 
 class _Cursor:
@@ -311,6 +327,206 @@ def _sql_for_log(sql, params):
     return line if len(line) <= _SQL_LOG_LIMIT else line[:_SQL_LOG_LIMIT] + f"... ({len(line)} chars)"
 
 
+ID_BLOCK_TABLES = frozenset((
+    "system_configs", "sectors", "star_systems", "stars", "planets", "moons",
+    "asteroid_belts", "comets", "black_holes", "neutron_stars", "nebulae",
+    "supernova_remnants", "rogue_planets", "interstellar_comets",
+    "asteroid_fields", "quasars",
+))
+"""frozenset: Tables whose new rows take their `id` from `id_blocks`
+(schema v45, PERF.13) rather than from AUTO_INCREMENT. Every plain
+`INSERT INTO <one of these> (...) VALUES (...)` that names no `id`
+column gets one added by `Connection.execute`, so a sector's children
+know their parents' ids before anything is written, and `cur.lastrowid`
+still answers as before."""
+
+BATCH_CHILD_TABLES = frozenset((
+    "system_config_slots", "planet_evolutionary_paragraphs", "moon_evolutionary_paragraphs",
+    "planet_reflection_spectrum", "moon_reflection_spectrum", "asteroid_belt_composition",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition",
+))
+"""frozenset: Child tables nothing refers to by id, so `Connection.batched`
+may hold their INSERTs back and write them many rows at a time with no
+`id_blocks` involvement (their own AUTO_INCREMENT ids are never read)."""
+
+_ID_BLOCK_MIN = 64
+_ID_BLOCK_MAX = 4096
+_BATCH_ROWS = 500
+"""int: Rows per multi-row INSERT when `Connection.flush` writes a batch,
+which keeps each statement well under `max_allowed_packet`."""
+
+_INSERT_RE = re.compile(
+    r"^\s*INSERT\s+INTO\s+`?(\w+)`?\s*\(([^()]*)\)\s*VALUES\s*(\(.*\))\s*;?\s*$",
+    re.IGNORECASE | re.DOTALL,
+)
+_InsertShape = namedtuple("_InsertShape", "table columns values has_id")
+_insert_shapes = {}
+
+_schema_ensured = set()
+"""set: `MySQLConfig._key()`s this process already ran `_ensure_schema`
+against (PERF.12): replaying `schema.sql` on every checkout cost about
+122 statements per connection, twice per filled sector."""
+
+_id_blocks = {}
+_id_blocks_off = set()
+_id_lock = threading.Lock()
+_fk_ranks = {}
+
+
+def _insert_shape(sql):
+    """The parsed shape of a plain single-row `INSERT ... VALUES (...)`,
+    or `None` for anything else (an upsert, `INSERT ... SELECT`, a
+    statement that isn't an INSERT). Cached per SQL string -- every
+    query in this module is a literal."""
+    shape = _insert_shapes.get(sql)
+    if shape is None and sql not in _insert_shapes:
+        match = _INSERT_RE.match(sql)
+        if match and not re.search(r"\bON\s+DUPLICATE\b|\bSELECT\b", sql, re.IGNORECASE):
+            columns = [c.strip().strip("`") for c in match.group(2).split(",")]
+            shape = _InsertShape(match.group(1).lower(), columns, match.group(3),
+                                 any(c.lower() == "id" for c in columns))
+        _insert_shapes[sql] = shape
+    return shape
+
+
+def _forget_id_blocks(key):
+    with _id_lock:
+        for block_key in [k for k in _id_blocks if k[0] == key]:
+            del _id_blocks[block_key]
+        _id_blocks_off.discard(key)
+
+
+def _allocate_id(config, table):
+    """
+    The next `id` for a new `table` row (PERF.13), from this process's
+    current block of ids, fetching a new block from `id_blocks` when it
+    runs out. A block is reserved on its own short autocommitted
+    connection (`UPDATE ... SET next_id = LAST_INSERT_ID(next_id + n)`),
+    so writers never wait on each other's sector transactions, and a
+    rolled-back sector only leaves a gap, as AUTO_INCREMENT would. Each
+    reservation starts no lower than the table's current `MAX(id) + 1`,
+    so rows written before v45 (or with an explicit id) are never
+    reused. Blocks start at 64 ids and double up to 4,096 per table.
+
+    Returns:
+        int or None: The id, or `None` when this database has no
+            `id_blocks` table yet (not migrated to v45); the INSERT then
+            falls back to AUTO_INCREMENT.
+    """
+    key = config._key()
+    with _id_lock:
+        if key in _id_blocks_off:
+            return None
+        block = _id_blocks.get((key, table))
+        if block is None or block[0] >= block[1]:
+            size = _ID_BLOCK_MIN if block is None else min(_ID_BLOCK_MAX, block[2] * 2)
+            try:
+                start = _reserve_id_block(config, table, size)
+            except pymysql.err.ProgrammingError as exc:
+                if exc.args and exc.args[0] == 1146:  # no id_blocks table yet
+                    _id_blocks_off.add(key)
+                    return None
+                raise
+            block = _id_blocks[(key, table)] = [start, start + size, size]
+        block[0] += 1
+        return block[0] - 1
+
+
+def _reserve_id_block(config, table, size):
+    raw = _get_pool(config).connection()
+    try:
+        cur = raw.cursor()
+        cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
+        floor_id = cur.fetchone()["floor_id"]
+        cur.execute("INSERT IGNORE INTO id_blocks (table_name, next_id) VALUES (%s, 1)", (table,))
+        cur.execute(
+            "UPDATE id_blocks SET next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s) WHERE table_name = %s",
+            (floor_id, size, table),
+        )
+        end = cur.lastrowid
+        raw.commit()
+    except Exception:
+        raw.rollback()
+        raise
+    finally:
+        raw.close()
+    return end - size
+
+
+def _table_ranks(conn, key):
+    """
+    `{table: rank}` with every table ranked after the tables its foreign
+    keys point at, so `Connection.flush` writes parents before children
+    (cached per database for the life of the process). Tables that point
+    at each other in a circle (star systems, stars, black holes and
+    supernova remnants, through the v39 containment columns) share a
+    rank, and `flush` keeps their first-written order -- the order the
+    insert functions already write parents before children in.
+    """
+    ranks = _fk_ranks.get(key)
+    if ranks is None:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT TABLE_NAME AS child, REFERENCED_TABLE_NAME AS parent FROM information_schema.KEY_COLUMN_USAGE"
+            " WHERE TABLE_SCHEMA = DATABASE() AND REFERENCED_TABLE_NAME IS NOT NULL"
+        )
+        parents = {}
+        for row in cur.fetchall():
+            child, parent = row["child"].lower(), row["parent"].lower()
+            parents.setdefault(child, set())
+            parents.setdefault(parent, set())
+            if child != parent:
+                parents[child].add(parent)
+        ranks = _condensed_ranks(parents)
+        _fk_ranks[key] = ranks
+    return ranks
+
+
+def _condensed_ranks(parents):
+    """Ranks for `_table_ranks`: Tarjan's strongly connected components of
+    the child -> parent graph, each ranked one past its highest parent
+    component."""
+    index, low, stack, on_stack, component = {}, {}, [], set(), {}
+    counter = [0]
+
+    def visit(node):
+        index[node] = low[node] = counter[0]
+        counter[0] += 1
+        stack.append(node)
+        on_stack.add(node)
+        for parent in parents[node]:
+            if parent not in index:
+                visit(parent)
+                low[node] = min(low[node], low[parent])
+            elif parent in on_stack:
+                low[node] = min(low[node], index[parent])
+        if low[node] == index[node]:
+            members = []
+            while True:
+                member = stack.pop()
+                on_stack.discard(member)
+                members.append(member)
+                if member == node:
+                    break
+            for member in members:
+                component[member] = node
+
+    for node in sorted(parents):
+        if node not in index:
+            visit(node)
+    component_ranks = {}
+
+    def rank(root):
+        if root not in component_ranks:
+            component_ranks[root] = 0
+            members = [table for table, owner in component.items() if owner == root]
+            above = {component[parent] for table in members for parent in parents[table]} - {root}
+            component_ranks[root] = 1 + max((rank(other) for other in above), default=-1)
+        return component_ranks[root]
+
+    return {table: rank(component[table]) for table in parents}
+
+
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
@@ -334,12 +550,22 @@ class Connection:
         exception, same as `sqlite3.Connection`'s context-manager
         behavior -- and, same as `sqlite3.Connection`, does NOT close the
         connection either way.
+      - An INSERT into one of `ID_BLOCK_TABLES` gets its id from
+        `_allocate_id` (PERF.13), and inside `with conn.batched():` such
+        INSERTs (and those into `BATCH_CHILD_TABLES`) are held back and
+        written as multi-row INSERTs, one per table and statement shape,
+        the next time anything else runs or the batch ends.
     """
 
-    def __init__(self, pooled_conn):
+    def __init__(self, pooled_conn, config=None):
         self._conn = pooled_conn
+        self._config = config
+        self._batch = None
+        self._batch_depth = 0
+        self.prereserved_names = None
+        self.deferred_name_confirmations = None
 
-    def execute(self, sql, params=()):
+    def _run(self, sql, params):
         cur = self._conn.cursor()
         if not log.debug_log_active():
             cur.execute(sql.replace("?", "%s"), params)
@@ -349,11 +575,65 @@ class Connection:
             cur.execute(sql.replace("?", "%s"), params)
         except Exception as exc:
             log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: {_sql_for_log(sql, params)} "
-                      f"-> {type(exc).__name__}: {exc}", stacklevel=3)
+                      f"-> {type(exc).__name__}: {exc}", stacklevel=4)
             raise
         log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
-                  f"{_sql_for_log(sql, params)}", stacklevel=3)
+                  f"{_sql_for_log(sql, params)}", stacklevel=4)
         return _Cursor(cur)
+
+    def execute(self, sql, params=()):
+        shape = _insert_shape(sql)
+        if shape is not None:
+            new_id = None
+            if shape.table in ID_BLOCK_TABLES and not shape.has_id and self._config is not None:
+                new_id = _allocate_id(self._config, shape.table)
+            if new_id is not None:
+                shape = shape._replace(columns=["id", *shape.columns], values="(?, " + shape.values[1:], has_id=True)
+                params = (new_id, *params)
+            if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
+                self._batch.setdefault((shape.table, tuple(shape.columns), shape.values), []).append(tuple(params))
+                return _InsertedCursor(new_id)
+            self.flush()
+            if new_id is not None:
+                cur = self._run(f"INSERT INTO {shape.table} ({', '.join(shape.columns)}) VALUES {shape.values}", params)
+                return _InsertedCursor(new_id, cur)
+            return self._run(sql, params)
+        self.flush()
+        return self._run(sql, params)
+
+    def batched(self):
+        """
+        `with conn.batched():` -- holds back plain INSERTs into
+        `ID_BLOCK_TABLES` and `BATCH_CHILD_TABLES` and writes them as
+        multi-row INSERTs (PERF.13). Any other statement, a commit, or the
+        end of the block writes what's held first, so reads inside the
+        block still see every row added before them. Errors from a held
+        row surface at that write, not at its `execute` call. Nests.
+        """
+        return _BatchScope(self)
+
+    def flush(self):
+        """Writes every held-back INSERT, parents before children."""
+        batch = self._batch
+        if not batch:
+            return
+        self._batch = {}
+        key = self._config._key() if self._config is not None else None
+        ranks = _table_ranks(self._conn, key)
+        order = sorted(enumerate(batch.items()), key=lambda item: (ranks.get(item[1][0][0], 0), item[0]))
+        cur = self._conn.cursor()
+        start = time.perf_counter()
+        statements = 0
+        for _position, ((table, columns, values), rows) in order:
+            head = f"INSERT INTO {table} ({', '.join(columns)}) VALUES "
+            values = values.replace("?", "%s")
+            for first in range(0, len(rows), _BATCH_ROWS):
+                chunk = rows[first:first + _BATCH_ROWS]
+                cur.execute(head + ", ".join([values] * len(chunk)), [v for row in chunk for v in row])
+                statements += 1
+        if log.debug_log_active():
+            log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
+                      f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
         """
@@ -365,6 +645,7 @@ class Connection:
         rows, in particular, are built as one) -- consumed exactly once,
         same as `sqlite3.Connection.executemany`.
         """
+        self.flush()
         cur = self._conn.cursor()
         rows = list(seq_of_params)
         start = time.perf_counter()
@@ -384,6 +665,7 @@ class Connection:
         project's own DDL, which never embeds a `;` inside a string
         literal.
         """
+        self.flush()
         statements = []
         for line in script.splitlines():
             stripped = line.strip()
@@ -397,12 +679,17 @@ class Connection:
         self._conn.commit()
 
     def commit(self):
+        self.flush()
         self._conn.commit()
 
     def rollback(self):
+        if self._batch:
+            self._batch = {}
         self._conn.rollback()
 
     def close(self):
+        self._batch = None
+        self._batch_depth = 0
         self._conn.close()
 
     def __enter__(self):
@@ -414,6 +701,51 @@ class Connection:
         else:
             self.rollback()
         return False
+
+
+class _BatchScope:
+    def __init__(self, conn):
+        self._conn = conn
+
+    def __enter__(self):
+        conn = self._conn
+        if conn._batch_depth == 0:
+            conn._batch = {}
+        conn._batch_depth += 1
+        return conn
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        conn = self._conn
+        conn._batch_depth -= 1
+        if conn._batch_depth == 0:
+            try:
+                if exc_type is None:
+                    conn.flush()
+            finally:
+                conn._batch = None
+        return False
+
+
+class _InsertedCursor:
+    """The cursor `Connection.execute` returns for an INSERT whose id came
+    from `_allocate_id` (or that `batched` held back): `.lastrowid` is
+    that id."""
+
+    def __init__(self, lastrowid, cursor=None):
+        self.lastrowid = lastrowid
+        self._cursor = cursor
+        self.rowcount = 1
+
+    def fetchone(self):
+        return None
+
+    def fetchall(self):
+        return []
+
+    def __getattr__(self, name):
+        if self._cursor is None:
+            raise AttributeError(name)
+        return getattr(self._cursor, name)
 
 
 def get_connection(config=None, ensure_schema=True):
@@ -457,9 +789,10 @@ def get_connection(config=None, ensure_schema=True):
                     truly closing a socket).
     """
     config = config or DEFAULT_MYSQL_CONFIG
-    conn = Connection(_get_pool(config).connection())
-    if ensure_schema:
+    conn = Connection(_get_pool(config).connection(), config)
+    if ensure_schema and config._key() not in _schema_ensured:
         _ensure_schema(conn)
+        _schema_ensured.add(config._key())
     return conn
 
 
@@ -614,11 +947,13 @@ def _ensure_schema(conn):
     """
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
+    if conn._config is not None:
+        _forget_id_blocks(conn._config._key())
 
     row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
     if row["n"] == 0:
         conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (SCHEMA_VERSION,))
-        conn.commit()
+    conn.commit()
 
 
 def open_write(config=None):
@@ -686,7 +1021,7 @@ def get_control_connection(config=None, ensure_schema=False):
         Connection: An open connection.
     """
     config = config or control_mysql_config()
-    conn = Connection(_get_pool(config).connection())
+    conn = Connection(_get_pool(config).connection(), config)
     if ensure_schema:
         _ensure_control_schema(conn)
     return conn
@@ -991,9 +1326,10 @@ def _rename_existing_system_for_diminutive(conn, base_name):
     return True
 
 
-def reserve_sector_name(conn, candidate_name):
+def reserve_sector_name(conn, candidate_name, sector_id):
     """
-    Phase 1 of sector name-uniqueness reservation -- resolves a
+    Sector name-uniqueness reservation, run just after the sector's own
+    INSERT (with its candidate name) in the same transaction -- resolves a
     sector-vs-sector collision (`nameUniqueness.resolve_greek_roman_collision`),
     then a cross-level collision against an existing system's base name
     (renaming *that* system instead of this sector's own name -- see
@@ -1001,23 +1337,38 @@ def reserve_sector_name(conn, candidate_name):
     candidate (`stellarObjects.utils.generate_sector_name`) and starts
     over whenever any of those mechanisms is exhausted.
 
+    The registry row is written first (`INSERT ... ON DUPLICATE KEY
+    UPDATE occurrence_count = occurrence_count + 1`) and read back
+    after (PERF.14): the upsert's row lock makes a second writer with the
+    same base name wait for this transaction, then count past it, where
+    the old `SELECT ... FOR UPDATE` of a missing name took a gap lock that
+    two writers could deadlock on. A drawn-again name leaves its base's
+    count one high, which only means the next holder gets a decoration
+    it could have skipped.
+
     Args:
         conn (Connection): Part of the same transaction as the caller's
             own sector INSERT.
         candidate_name (str): The freshly generated name to reserve.
+        sector_id (int): The new (or, for `dedupeNames.py`, existing)
+            `sectors.id` -- recorded as the base name's first holder when
+            it is one.
 
     Returns:
-        tuple: `(final_name, base_name)` -- `final_name` is what the new
-            `sectors` row's `name` column should hold; `base_name` is
-            what `confirm_sector_name` should key its registry write on.
+        tuple: `(final_name, base_name)` -- `final_name` is what the
+            `sectors` row's `name` column should hold.
     """
     while True:
         base = candidate_name
+        conn.execute(
+            "INSERT INTO sector_name_registry (base_name, occurrence_count, first_sector_id) VALUES (?, 1, ?) "
+            "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1",
+            (base, sector_id),
+        )
         row = conn.execute(
-            "SELECT occurrence_count FROM sector_name_registry WHERE base_name = ? FOR UPDATE",
-            (base,),
+            "SELECT occurrence_count FROM sector_name_registry WHERE base_name = ?", (base,),
         ).fetchone()
-        existing_count = row["occurrence_count"] if row else 0
+        existing_count = row["occurrence_count"] - 1
 
         new_name, rename = resolve_greek_roman_collision(base, existing_count)
         if new_name is None:
@@ -1025,7 +1376,7 @@ def reserve_sector_name(conn, candidate_name):
             continue
         if rename is not None:
             old_name, renamed_to = rename
-            conn.execute("UPDATE sectors SET name = ? WHERE name = ?", (renamed_to, old_name))
+            conn.execute("UPDATE sectors SET name = ? WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
 
         if not _rename_existing_system_for_diminutive(conn, base):
             candidate_name = generate_sector_name()
@@ -1034,23 +1385,8 @@ def reserve_sector_name(conn, candidate_name):
         return new_name, base
 
 
-def confirm_sector_name(conn, base_name, sector_id):
-    """Phase 2 of sector name-uniqueness reservation -- upserts
-    `sector_name_registry` now that the new sector's id is known. One
-    round trip (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on
-    `base_name`'s own `UNIQUE` constraint) instead of a SELECT to decide
-    between an INSERT and an UPDATE. `first_sector_id` is only ever set by the initial
-    INSERT, matching the original SELECT-then-branch's own UPDATE branch,
-    which never touched it either."""
-    conn.execute(
-        "INSERT INTO sector_name_registry (base_name, occurrence_count, first_sector_id) VALUES (?, 1, ?) "
-        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1",
-        (base_name, sector_id),
-    )
-
-
 def _regenerate_star_name():
-    """A fresh star-name candidate, for `reserve_system_name`'s
+    """A fresh star-name candidate, for `reserve_system_names`'
     exhaustion fallback -- same generator `starData.Star` itself uses."""
     return generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
@@ -1117,106 +1453,230 @@ def rename_phenomenon(conn, table, object_id, new_name):
     return True
 
 
+_NAME_BATCH = 500
+"""int: Base names per registry statement in `reserve_system_names`."""
+
+
+def _registry_rows(conn, bases):
+    """`system_name_registry` rows for `bases`, keyed by `str.casefold()`
+    of their stored base name (the column's collation ignores case)."""
+    rows = {}
+    for first in range(0, len(bases), _NAME_BATCH):
+        chunk = bases[first:first + _NAME_BATCH]
+        for row in conn.execute(
+            "SELECT id, base_name, occurrence_count, diminutive_index, first_star_system_id, first_object_table, "
+            f"first_object_id FROM system_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
+            tuple(chunk),
+        ).fetchall():
+            rows[row["base_name"].casefold()] = row
+    return rows
+
+
+def reserve_system_names(conn, candidate_names):
+    """
+    System name-uniqueness reservation for many systems and uniquely
+    named phenomena at once (PERF.14) -- a whole sector's worth in a few
+    statements instead of three per name. Each name resolves a
+    same-registry collision (`resolve_greek_roman_collision`, renaming
+    the first holder where that calls for it), then a cross-level
+    collision against an existing sector's base name (a diminutive prefix
+    on *this* name, per `resolve_diminutive` -- never the sector). Planet
+    and moon names are never searched: they're derived from the system
+    name (`bodyNames.py`), so they're unique whenever it is. A name whose
+    decorations are exhausted is drawn again (`_regenerate_star_name`)
+    and goes round once more.
+
+    Locking: the sector registry is read first (shared locks, the same
+    sector-then-system order `reserve_sector_name` takes), then one
+    multi-row `INSERT ... ON DUPLICATE KEY UPDATE occurrence_count =
+    occurrence_count + k` in sorted base-name order claims every base
+    name (row locks, always taken in the same order; no gap locks, which
+    is what deadlocked four parallel writers before), then the rows are
+    read back to learn how many holders came before. A sector and a
+    system given the same new base name by two writers in the same
+    instant can both miss the diminutive; anything else that still
+    deadlocks is retried by `save_sector`. The registry's first
+    holder and diminutive index are written by `confirm_system_names`
+    once the new rows' ids are known. A drawn-again name leaves its
+    base's count one high (harmless: the next holder just gets a
+    decoration it could have skipped).
+
+    Args:
+        conn (Connection): Part of the same transaction as the callers'
+            own INSERTs.
+        candidate_names (list): Freshly generated names, in insertion
+            order. Two equal names here are told apart as two holders.
+
+    Returns:
+        list: `(final_name, base_name, diminutive_index)` per candidate,
+            in order -- what the row's name should be, and what
+            `confirm_system_names` should write.
+    """
+    names = list(candidate_names)
+    results = [None] * len(names)
+    todo = list(range(len(names)))
+    while todo:
+        counts = {}
+        for i in todo:
+            counts[names[i].casefold()] = counts.get(names[i].casefold(), 0) + 1
+        spelled = {}
+        for i in todo:
+            spelled.setdefault(names[i].casefold(), names[i])
+        keys = sorted(counts)
+        sector_hits = set()
+        for first in range(0, len(keys), _NAME_BATCH):
+            chunk = [spelled[key] for key in keys[first:first + _NAME_BATCH]]
+            sector_hits.update(row["base_name"].casefold() for row in conn.execute(
+                f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})"
+                " LOCK IN SHARE MODE",
+                tuple(chunk),
+            ).fetchall())
+        for first in range(0, len(keys), _NAME_BATCH):
+            chunk = keys[first:first + _NAME_BATCH]
+            conn.execute(
+                "INSERT INTO system_name_registry (base_name, occurrence_count) VALUES "
+                + ", ".join(["(?, ?)"] * len(chunk))
+                + " ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + VALUES(occurrence_count)",
+                tuple(value for key in chunk for value in (spelled[key], counts[key])),
+            )
+        rows = _registry_rows(conn, [spelled[key] for key in keys])
+
+        retry = []
+        for key in keys:
+            row = rows.get(key)
+            if row is None:  # stored under a spelling casefold() doesn't match
+                row = conn.execute(
+                    "SELECT id, base_name, occurrence_count, diminutive_index, first_star_system_id, "
+                    "first_object_table, first_object_id FROM system_name_registry WHERE base_name = ?",
+                    (spelled[key],),
+                ).fetchone()
+            uses = [i for i in todo if names[i].casefold() == key]
+            existing_before = row["occurrence_count"] - len(uses)
+            diminutive_index = row["diminutive_index"]
+            holder = "db" if existing_before > 0 else None
+            for offset, i in enumerate(uses):
+                base = names[i]
+                new_name, rename = resolve_greek_roman_collision(base, existing_before + offset)
+                if new_name is None:
+                    names[i] = _regenerate_star_name()
+                    retry.append(i)
+                    continue
+                if rename is not None:
+                    # Matched by id, not by the rename tuple's assumed
+                    # old name: the holder may carry a diminutive (an
+                    # earlier system-vs-sector collision), which the
+                    # Greek/Roman decoration replaces; uniqueness holds
+                    # either way.
+                    if holder == "db":
+                        _rename_registry_holder(conn, row, rename[1])
+                    elif holder is not None:
+                        results[holder][0] = rename[1]
+                if key in sector_hits:
+                    prefix, diminutive_index = resolve_diminutive(diminutive_index)
+                    if prefix is None:
+                        names[i] = _regenerate_star_name()
+                        retry.append(i)
+                        continue
+                    new_name = f"{prefix} {new_name}"
+                results[i] = [new_name, base, diminutive_index]
+                if holder is None:
+                    holder = i
+        todo = sorted(retry)
+    return [tuple(result) for result in results]
+
+
 def reserve_system_name(conn, candidate_name):
     """
-    Phase 1 of system name-uniqueness reservation -- resolves a
-    system-vs-system collision (`resolve_greek_roman_collision`), then a
-    cross-level collision against an existing sector's base name (a
-    diminutive prefix on *this* system, per `resolve_diminutive` --
-    never the sector). Planet and moon names are never searched: they're
-    derived from the system name (`bodyNames.py`), so they're unique
-    whenever it is. Draws an entirely fresh candidate (`_regenerate_star_name`) and starts over whenever any of
-    those mechanisms is exhausted.
+    `reserve_system_names` for one name -- see there.
 
     Args:
         conn (Connection): Part of the same transaction as the caller's
             own system INSERT.
-        candidate_name (str): The freshly generated name to reserve
-            (`star_system.name` at the call site).
+        candidate_name (str): The freshly generated name to reserve.
 
     Returns:
-        tuple: `(final_name, base_name, diminutive_index)` -- `final_name`
-            is what `star_system.name` (and so `star_systems.name`)
-            should become; `base_name`/`diminutive_index` are what
-            `confirm_system_name` should write to the registry.
+        tuple: `(final_name, base_name, diminutive_index)`.
     """
-    while True:
-        base = candidate_name
-        row = conn.execute(
-            "SELECT occurrence_count, diminutive_index, first_star_system_id, first_object_table, first_object_id "
-            "FROM system_name_registry WHERE base_name = ? FOR UPDATE",
-            (base,),
-        ).fetchone()
-        existing_count = row["occurrence_count"] if row else 0
-        diminutive_index = row["diminutive_index"] if row else None
+    return reserve_system_names(conn, [candidate_name])[0]
 
-        new_name, rename = resolve_greek_roman_collision(base, existing_count)
-        if new_name is None:
-            candidate_name = _regenerate_star_name()
-            continue
-        if rename is not None:
-            # The first holder may be a phenomenon (v40); matched by id.
-            # Matched by id (row["first_star_system_id"]), not by the
-            # rename tuple's assumed old-name string -- that row may
-            # already carry its own diminutive decoration (an earlier
-            # system-vs-sector collision on this same base name), so its
-            # *actual* current name may not equal what resolve_greek_roman_collision
-            # assumed. The Greek/Roman decoration below fully replaces
-            # whatever's there; a stacked diminutive is lost, but
-            # uniqueness still holds either way (the Greek-decorated name
-            # is still distinct from the sector's own bare one).
-            _old_name, renamed_to = rename
-            _rename_registry_holder(conn, row, renamed_to)
 
-        sector_hit = conn.execute(
-            "SELECT 1 FROM sector_name_registry WHERE base_name = ?", (base,),
-        ).fetchone() is not None
-        if sector_hit:
-            prefix, diminutive_index = resolve_diminutive(diminutive_index)
-            if prefix is None:
-                candidate_name = _regenerate_star_name()
-                continue
-            new_name = f"{prefix} {new_name}"
+def confirm_system_names(conn, confirmations):
+    """
+    Second half of system name reservation (`reserve_system_names`):
+    records each base name's first holder, now that the new rows' ids
+    are known, and its diminutive index, in one multi-row upsert. A
+    holder is only written to a row that has none yet (the row this
+    transaction just made), so passing every new row's id is safe.
 
-        return new_name, base, diminutive_index
+    Args:
+        conn (Connection): The same transaction.
+        confirmations (list): `(base_name, star_system_id, object_table,
+            object_id, diminutive_index)` -- `star_system_id` for a
+            system, `object_table`/`object_id` for a phenomenon (v40),
+            the others `None`. The first entry per base name is its
+            holder; the last sets its diminutive index.
+    """
+    by_base = {}
+    for base, system_id, table, object_id, diminutive_index in confirmations:
+        key = base.casefold()
+        if key in by_base:
+            by_base[key][4] = diminutive_index
+        else:
+            by_base[key] = [base, system_id, table, object_id, diminutive_index]
+    rows = list(by_base.values())
+    vacant = "first_star_system_id IS NULL AND first_object_id IS NULL"
+    for first in range(0, len(rows), _NAME_BATCH):
+        chunk = rows[first:first + _NAME_BATCH]
+        conn.execute(
+            "INSERT INTO system_name_registry "
+            "(base_name, occurrence_count, first_star_system_id, first_object_table, first_object_id, diminutive_index) "
+            "VALUES " + ", ".join(["(?, 1, ?, ?, ?, ?)"] * len(chunk))
+            + f" ON DUPLICATE KEY UPDATE first_object_table = IF({vacant}, VALUES(first_object_table), first_object_table),"
+            f" first_star_system_id = IF({vacant}, VALUES(first_star_system_id), first_star_system_id),"
+            f" first_object_id = IF({vacant}, VALUES(first_object_id), first_object_id),"
+            " diminutive_index = VALUES(diminutive_index)",
+            tuple(value for row in chunk for value in row),
+        )
 
 
 def confirm_system_name(conn, base_name, star_system_id, diminutive_index):
-    """Phase 2 of system name-uniqueness reservation -- upserts
-    `system_name_registry` now that the new system's id is known. One
-    round trip (`INSERT ... ON DUPLICATE KEY UPDATE`, relying on
-    `base_name`'s own `UNIQUE` constraint) instead of a SELECT to decide
-    between an INSERT and an UPDATE. `first_star_system_id` is only ever set by the
-    initial INSERT, matching the original SELECT-then-branch's own UPDATE
-    branch, which never touched it either."""
-    conn.execute(
-        "INSERT INTO system_name_registry (base_name, occurrence_count, first_star_system_id, diminutive_index) "
-        "VALUES (?, 1, ?, ?) "
-        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, diminutive_index = VALUES(diminutive_index)",
-        (base_name, star_system_id, diminutive_index),
-    )
+    """`confirm_system_names` for one star system (or, when the caller
+    holds a deferral list -- `insert_sector` -- adds it to that)."""
+    _confirm_name(conn, (base_name, star_system_id, None, None, diminutive_index))
 
 
 def confirm_object_name(conn, base_name, table, object_id, diminutive_index):
     """`confirm_system_name`'s counterpart for a uniquely named phenomenon
     (`NAMED_PHENOMENON_TABLES`, v40): the registry row, when this is the
     base name's first holder, points at `table`/`object_id`."""
-    conn.execute(
-        "INSERT INTO system_name_registry "
-        "(base_name, occurrence_count, first_object_table, first_object_id, diminutive_index) "
-        "VALUES (?, 1, ?, ?, ?) "
-        "ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + 1, diminutive_index = VALUES(diminutive_index)",
-        (base_name, table, object_id, diminutive_index),
-    )
+    _confirm_name(conn, (base_name, None, table, object_id, diminutive_index))
 
 
-def _reserve_phenomenon_name(conn, obj):
-    """Reserves `obj.name` (`reserve_system_name`), sets it to the final
-    name, and returns `(base_name, diminutive_index)` for
-    `confirm_object_name`."""
+def _confirm_name(conn, confirmation):
+    deferred = getattr(conn, "deferred_name_confirmations", None)
+    if deferred is not None:
+        deferred.append(confirmation)
+    else:
+        confirm_system_names(conn, [confirmation])
+
+
+def _take_name(conn, obj):
+    """Reserves `obj.name` (`reserve_system_name`) and sets it to the
+    final name -- or, when `insert_sector` already reserved it with the
+    rest of its sector (`prereserved_names`), takes that. Returns
+    `(base_name, diminutive_index)` for the confirm call."""
+    prereserved = getattr(conn, "prereserved_names", None)
+    if prereserved is not None and id(obj) in prereserved:
+        return prereserved.pop(id(obj))
     final_name, base, diminutive_index = reserve_system_name(conn, obj.name)
     obj.name = final_name
     return base, diminutive_index
+
+
+def _reserve_phenomenon_name(conn, obj):
+    """Reserves `obj.name` (`_take_name`) and returns `(base_name,
+    diminutive_index)` for `confirm_object_name`."""
+    return _take_name(conn, obj)
 
 
 def insert_star(conn, star, star_system_id, role) -> int:
@@ -2446,8 +2906,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # Name-uniqueness (v24, nameUniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
     # object matches what's stored.
-    final_name, name_base, diminutive_index = reserve_system_name(conn, star_system.name)
-    star_system.assign_names(final_name)
+    name_base, diminutive_index = _take_name(conn, star_system)
+    star_system.assign_names(star_system.name)
     _designate_comets(star_system)
 
     cur = conn.execute(
@@ -2671,16 +3131,14 @@ def _refresh_containment_batch(conn, sector_ids):
     marks = ", ".join("?" * len(centers))
     placed_ids = tuple(centers)
 
+    changes = {}
+
     def apply(table, row, point, own_radius_pc=0.0, own=None):
         best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
         new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
                best["id"] if best and best["column"] == "inside_remnant_id" else None)
         if new != (row["inside_nebula_id"], row["inside_remnant_id"]):
-            conn.execute(
-                f"UPDATE {table} SET inside_nebula_id = ?, inside_remnant_id = ?, modified_at = modified_at"
-                " WHERE id = ?",
-                (*new, row["id"]),
-            )
+            changes.setdefault(table, []).append((row["id"], *new))
 
     for row in conn.execute(
         f"SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc, inside_nebula_id, inside_remnant_id"
@@ -2705,6 +3163,9 @@ def _refresh_containment_batch(conn, sector_ids):
                 apply(table, row, point, ly_to_pc(row["radius_ly"]), ("inside_nebula_id", row["id"]))
             else:
                 apply(table, row, point)
+
+    for table, rows in changes.items():
+        _update_by_id(conn, table, ("inside_nebula_id", "inside_remnant_id"), rows)
 
 
 PLACED_PHENOMENON_TABLES = (
@@ -2884,9 +3345,35 @@ def _octant_updates(conn, objects, centers):
             marks = ", ".join("?" * len(batch))
             for row in conn.execute(f"SELECT id, quadrant FROM {table} WHERE id IN ({marks})", tuple(batch)).fetchall():
                 current[row["id"]] = row["quadrant"]
-        changed = [(label, object_id) for label, object_id in pairs if current.get(object_id) != label]
-        if changed:
-            conn.executemany(f"UPDATE {table} SET quadrant = ?, modified_at = modified_at WHERE id = ?", changed)
+        changed = [(object_id, label) for label, object_id in pairs if current.get(object_id) != label]
+        _update_by_id(conn, table, ("quadrant",), changed)
+
+
+def _update_by_id(conn, table, columns, rows, touch=False):
+    """
+    Sets `columns` on many rows of `table` in as few statements as
+    possible (PERF.13): one `UPDATE ... SET col = CASE id WHEN ? THEN ?
+    ... END WHERE id IN (...)` per 500 rows, rather than one UPDATE per
+    row. `modified_at` is left alone unless `touch`.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        table (str): One of this module's own table names.
+        columns (tuple): Column names to set.
+        rows (list): `(id, value, ...)` with one value per column.
+        touch (bool): Let `modified_at` update as usual.
+    """
+    for first in range(0, len(rows), _BATCH_ROWS):
+        chunk = rows[first:first + _BATCH_ROWS]
+        cases = " ".join(["WHEN ? THEN ?"] * len(chunk))
+        sets = [f"{column} = CASE id {cases} END" for column in columns]
+        if not touch:
+            sets.append("modified_at = modified_at")
+        params = [value for index in range(len(columns)) for row in chunk for value in (row[0], row[index + 1])]
+        conn.execute(
+            f"UPDATE {table} SET {', '.join(sets)} WHERE id IN ({', '.join('?' * len(chunk))})",
+            (*params, *(row[0] for row in chunk)),
+        )
 
 
 def _sectors_near(conn, centers, reach_pc):
@@ -3590,17 +4077,18 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
             cell in the cylindrical grid (`None`/omitted leaves them NULL
             -- a hand-placed position with no grid address).
 
+    Rows are written in batches (PERF.13, `Connection.batched`): one
+    multi-row INSERT per table and statement shape, with ids from
+    `id_blocks`, instead of one INSERT per row.
+
     Returns:
         int: The new `sectors.id`.
     """
-    # Name-uniqueness (v24, nameUniqueness.py) -- reserved before either
-    # INSERT branch below, mutating sector.name in place, so every print/
-    # rendering call site that reads it afterward (including this same
-    # sector's own systems, added below) sees the final, collision-free
-    # name. See `reserve_sector_name`'s own docstring for the mechanism.
-    final_name, name_base = reserve_sector_name(conn, sector.name)
-    sector.name = final_name
+    with conn.batched():
+        return _insert_sector_rows(conn, sector, galaxy_position)
 
+
+def _insert_sector_rows(conn, sector, galaxy_position):
     if galaxy_position is not None:
         cur = conn.execute(
             """
@@ -3617,38 +4105,79 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
                 galaxy_position.get("ring_slot_index"),
             ),
         )
-        sector_id = cur.lastrowid
     else:
         cur = conn.execute(
             "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
             (sector.name, ly_to_milliparsecs(sector.edge_ly)),
         )
-        sector_id = cur.lastrowid
+    sector_id = cur.lastrowid
 
-    confirm_sector_name(conn, name_base, sector_id)
+    # Name-uniqueness (v24, nameUniqueness.py) -- reserved right after the
+    # INSERT (the registry row points at it), mutating sector.name in
+    # place, so every print/rendering call site that reads it afterward
+    # (including this same sector's own systems, added below) sees the
+    # final, collision-free name. See `reserve_sector_name`.
+    final_name, _name_base = reserve_sector_name(conn, sector.name, sector_id)
+    if final_name != sector.name:
+        conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (final_name, sector_id))
+    sector.name = final_name
 
-    for entry in sector.entries:
-        star_system_id = insert_star_system(
-            conn, entry.star_system, entry.system_config,
-            sector_id=sector_id, position=entry.position,
-            location=_location_for_entry(sector, entry),
-        )
-        bright_star_id = getattr(entry, "bright_star_id", None)
-        if bright_star_id is not None:
-            mark_bright_star_filled(conn, bright_star_id, star_system_id)
+    # Every system and uniquely named phenomenon in the sector reserves
+    # its name in one go (PERF.14); the insert functions below take their
+    # reservation from `prereserved_names` and leave their registry writes
+    # in `deferred_name_confirmations` for one upsert at the end.
+    named = [entry.star_system for entry in sector.entries]
+    named += [entry.phenomenon for entry in sector.phenomena if _phenomenon_registers_name(entry.phenomenon)]
+    reservations = reserve_system_names(conn, [obj.name for obj in named])
+    conn.prereserved_names = {}
+    conn.deferred_name_confirmations = []
+    try:
+        for obj, (final, base, diminutive_index) in zip(named, reservations):
+            core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
+            if core is not None and core.name == f"{obj.name} Core":
+                core.name = f"{final} Core"
+            obj.name = final
+            conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
-    for entry in sector.phenomena:
-        inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
-        if inserter is None:
-            raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
-        placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
-        inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+        bright_star_links = []
+        for entry in sector.entries:
+            star_system_id = insert_star_system(
+                conn, entry.star_system, entry.system_config,
+                sector_id=sector_id, position=entry.position,
+                location=_location_for_entry(sector, entry),
+            )
+            bright_star_id = getattr(entry, "bright_star_id", None)
+            if bright_star_id is not None:
+                bright_star_links.append((bright_star_id, star_system_id))
+
+        for entry in sector.phenomena:
+            inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
+            if inserter is None:
+                raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
+            placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+            inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+
+        confirm_system_names(conn, conn.deferred_name_confirmations)
+    finally:
+        conn.prereserved_names = None
+        conn.deferred_name_confirmations = None
+    if bright_star_links:
+        _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
 
     if galaxy_position is not None:
         refresh_containment(conn, [sector_id])
         _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
+
+
+def _phenomenon_registers_name(phenomenon):
+    """Whether a sector phenomenon's name goes through
+    `system_name_registry` (`NAMED_PHENOMENON_TABLES`) -- every
+    standalone black hole, neutron star, nebula, supernova remnant, rogue
+    planet and quasar; not interstellar comets or asteroid fields, which
+    get designations."""
+    return isinstance(phenomenon, (BlackHole, NeutronStar, Nebula, SupernovaRemnant, RoguePlanet, Quasar))
 
 
 def sector_for_placement(conn, sector_id):
@@ -4232,10 +4761,36 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
         conn.close()
 
 
+RETRYABLE_ERRORS = (1213, 1205)
+"""tuple: MySQL error codes a whole sector save is retried on (PERF.14):
+a deadlock, and a lock wait timeout."""
+
+SECTOR_SAVE_ATTEMPTS = 8
+
+
+def _sector_names(sector):
+    """Every name `insert_sector` may change, so a retried save can start
+    over from the generated names."""
+    objects = [sector] + [entry.star_system for entry in sector.entries]
+    for entry in sector.phenomena:
+        objects.append(entry.phenomenon)
+        core = getattr(entry.phenomenon, "compact_remnant", None)
+        if core is not None:
+            objects.append(core)
+    return [(obj, obj.name) for obj in objects]
+
+
 def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
+
+    The transaction runs at READ COMMITTED, so its reads take no gap
+    locks, and is retried from the start, with the sector's generated
+    names restored, when MySQL reports a deadlock or lock wait timeout
+    (`RETRYABLE_ERRORS`) -- the case several sector writers at once
+    (PERF.8) can still meet on shared rows such as a neighbor's nearest
+    systems (PERF.14).
 
     Args:
         sector (SpaceSector): The sector to persist.
@@ -4248,13 +4803,23 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
     Returns:
         int: The new `sectors.id`.
     """
-    conn = get_connection(config)
-    try:
-        with conn:
-            sector_id = insert_sector(conn, sector, galaxy_position=galaxy_position)
-        return sector_id
-    finally:
-        conn.close()
+    names = _sector_names(sector)
+    for attempt in range(1, SECTOR_SAVE_ATTEMPTS + 1):
+        conn = get_connection(config)
+        try:
+            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            with conn:
+                return insert_sector(conn, sector, galaxy_position=galaxy_position)
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in RETRYABLE_ERRORS or attempt == SECTOR_SAVE_ATTEMPTS:
+                raise
+            log.debug(f"Sector save hit MySQL error {exc.args[0]} ({exc.args[1] if len(exc.args) > 1 else ''}); "
+                        f"retrying ({attempt}/{SECTOR_SAVE_ATTEMPTS - 1}).")
+            for obj, name in names:
+                obj.name = name
+            time.sleep(random.uniform(0.05, 0.25) * attempt)
+        finally:
+            conn.close()
 
 
 # ---------------------------------------------------------------------------
@@ -6828,6 +7393,21 @@ def _migrate_v43_to_v44(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (44)")
 
 
+def _migrate_v44_to_v45(conn):
+    """
+    Adds `id_blocks` (PERF.13) -- see `schema.sql`'s "v45" header note.
+    Empty: each table's row is made on its first block, starting above
+    the table's current `MAX(id)`.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    conn.execute(_schema_statement("id_blocks"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (45)")
+    if conn._config is not None:
+        _forget_id_blocks(conn._config._key())
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -6931,6 +7511,7 @@ def _migration_steps():
         (42, _migrate_v41_to_v42),
         (43, _migrate_v42_to_v43),
         (44, _migrate_v43_to_v44),
+        (45, _migrate_v44_to_v45),
     ]
 
 

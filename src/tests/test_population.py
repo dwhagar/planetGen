@@ -285,13 +285,13 @@ def test_migration_from_v43_adds_the_tables(mysql_config):
         with conn:
             for table in ("system_owners", "polities", "species", "population_state"):
                 conn.execute(f"DROP TABLE {table}")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (44)")
+            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45)")
     finally:
         conn.close()
     _db.migrate_database(mysql_config)
     conn = _db.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == 44
+        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == _db.SCHEMA_VERSION
         assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] == 0
     finally:
         conn.close()

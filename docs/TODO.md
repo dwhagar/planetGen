@@ -684,40 +684,28 @@ MAP.48 and MAP.37, all fixed.
       and after on the same machine; compare the median save time and
       the server's `Com_insert`/`Com_select` counts.
 
-    - [ ] **PERF.12 Check the schema once per process during generation**
-      `_db.get_connection(ensure_schema=True)` replays all of
-      `schema.sql` (about 122 statements) on every checkout, and galaxy
-      fill checks out twice per sector (`generate.py` `_fill_context`,
-      `_db.save_sector`). Done: generation checks the schema once per
-      process (`open_write`, or a per-process flag), and a filled sector
-      sends no schema statements.
+    - [x] **PERF.12 Check the schema once per process during generation**
+      Done:
+      `get_connection` replays `schema.sql` once per process per
+      database, so a filled sector sends no schema statements.
 
-    - [ ] **PERF.13 Write each sector in batches**
-      `insert_sector` and `insert_star_system` in `_db.py` write every
-      system, star, planet, moon, belt, comet, composition row, life
-      paragraph and spectrum value with its own INSERT. Done: a sector's
-      rows are built in memory and each table is written with one
-      `executemany` (multi-row INSERT) in the sector's transaction; row
-      ids come from a small id-block table (one
-      `UPDATE ... LAST_INSERT_ID(next + n)` per table per sector) so
-      children know their parents' ids without relying on
-      auto-increment order; `refresh_containment` writes its changes in
-      one statement; and PERF.6's benchmark shows the save faster with
-      the same rows written.
+    - [x] **PERF.13 Write each sector in batches**
+      Done: `insert_sector` writes inside `Connection.batched()`, one
+      multi-row INSERT per table and statement shape, with ids from the
+      new `id_blocks` table (schema v45); containment, octant and
+      bright-star links are written as `CASE id` updates. Measured on a
+      40-system sector (median of 5): 1.35 s and about 5,650 statements
+      before, 0.54 s and about 186 statements after.
 
-    - [ ] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
-      Four `generate.py sector` runs started together (2026-10-01) hit 3
-      deadlocks on `system_name_registry`: `reserve_system_name`'s
-      `SELECT ... FOR UPDATE` of a name not yet there takes a gap lock,
-      and two writers then insert into each other's gap. 3 of the 4 runs
-      failed (with error 1452 after the rollback), and nothing retries
-      error 1213. Today only `web/jobs.py`'s one-job lock prevents this.
-      Done: a sector reserves all its names in one
-      `SELECT ... WHERE base_name IN (...)`, resolves collisions in
-      Python and writes one multi-row upsert, locking names in sorted
-      order; the sector's transaction is retried on 1213 and 1205; and
-      the 4-process test runs clean. PERF.8's parallel writers depend on
-      this.
+    - [x] **PERF.14 Reserve a sector's names in bulk, safe with several writers at once**
+      Done: a sector's systems and named phenomena reserve their names
+      in one sorted multi-row upsert of `system_name_registry` (row
+      locks only, no gap locks), the sector save runs at READ COMMITTED
+      and retries on 1213 and 1205, and DBUtils no longer silently
+      re-runs a statement after a deadlock (the cause of the 1452s).
+      Four parallel `generate.py sector` runs, and four workers saving
+      the same sectors at once, finish with no errors and no duplicate
+      names.
 
     - [ ] **PERF.15 Fewer queries per web page**
       Done, in `queryDb.py`: search facets (12 queries per request,
