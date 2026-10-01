@@ -273,6 +273,15 @@ def _handle_post(sector_id, admin):
         return page_again
 
     if action == "generate_neighborhood" and not admin["must_change_credentials"]:
+        if not request.form.get("estimate_ok"):
+            # PERF.3: the size and time first, confirmed on the page.
+            try:
+                result = apiclient.generate_sector_neighborhood(cookie_header, sector_id, estimate_only=True)
+            except apiclient.NotFoundError as exc:
+                return "neighborhood", str(exc)
+            except apiclient.ApiError as exc:
+                return "neighborhood", _api_message(exc)
+            return "neighborhood_estimate", result["estimate"]
         try:
             result = apiclient.generate_sector_neighborhood(cookie_header, sector_id)
         except apiclient.NotFoundError as exc:
@@ -404,12 +413,16 @@ def sector(sector_id):
     the admin forms for a logged-in admin."""
     admin = current_admin()
     errors = {}
+    estimate = None
     if request.method == "POST":
         outcome = _handle_post(sector_id, admin)
         if not isinstance(outcome, tuple):
             return outcome
         form, message = outcome
-        errors[form] = message
+        if form == "neighborhood_estimate":
+            estimate = message
+        else:
+            errors[form] = message
 
     detail = apiclient.get_sector(db_name(), sector_id)
     pick = _pick_mode(request.args)
@@ -466,6 +479,7 @@ def sector(sector_id):
         can_generate=admin is not None and not admin["must_change_credentials"],
         wiki_backends=wiki_backends,
         errors=errors,
+        estimate=estimate,
         messages=get_flashed_messages(category_filter=[_FLASH_CATEGORY]),
         pick=pick,
     )

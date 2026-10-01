@@ -828,6 +828,13 @@ def admin_lockouts(cookie_header):
     return body
 
 
+def admin_generation_stats(cookie_header):
+    """`GET /api/admin/generation-stats` -- the server's generation speed
+    per density bucket and each galaxy's size per star system (PERF.10)."""
+    body, _set_cookie_headers = _auth_request("GET", "/admin/generation-stats", cookie_header=cookie_header)
+    return body
+
+
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):
     """`POST /api/admin/lockouts/lift` -- one lockout, or every one with
     `lift_all`. Returns how many were lifted."""
@@ -990,7 +997,7 @@ against an unfamiliar/large radius should pass a smaller `radius_ly`
 first."""
 
 
-def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None):
+def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None, estimate_only=False):
     """
     `POST /api/sectors/<id>/generate-neighborhood` -- generates every
     not-yet-generated sector within `radius_ly` (`None` for the API's own
@@ -1003,13 +1010,20 @@ def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None):
         dict: `generated`/`already_existed`/`candidates` -- see
             `generate.generate_sector_neighborhood`'s own docstring.
 
+        With `estimate_only`, nothing is generated: the counts and the
+        size and time `estimate` (PERF.3) only.
+
     Raises:
         ApiError: `status_code == 404` if the sector doesn't exist or was
-            never placed in a galaxy.
+            never placed in a galaxy; 507 when the database disk can't
+            hold it.
     """
+    json_body = {"radius_ly": radius_ly} if radius_ly is not None else {}
+    if estimate_only:
+        json_body["estimate_only"] = True
     body, _set_cookie_headers = _auth_request(
         "POST", f"/sectors/{sector_id}/generate-neighborhood", cookie_header=cookie_header,
-        json_body={"radius_ly": radius_ly} if radius_ly is not None else {},
+        json_body=json_body,
         timeout=_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS,
     )
     return body

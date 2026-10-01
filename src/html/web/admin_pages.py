@@ -700,6 +700,32 @@ def _lockouts_panel(cookie_header):
     } for item in body["items"]]}
 
 
+def _generation_panel(cookie_header, db):
+    """PERF.10: this server's measured generation speed per density
+    bucket, and this galaxy's size per star system."""
+    try:
+        body = apiclient.admin_generation_stats(cookie_header)
+    except apiclient.ApiError as exc:
+        return {"error": _api_message(exc), "rows": [], "size": None, "available": False}
+    size = body["sizes"].get(db)
+    return {
+        "error": None,
+        "available": body["available"],
+        "size": None if size is None else (
+            f"{format_bytes(size['bytes_per_system'])} per star system "
+            f"({format_count(size['systems'])} systems, {format_bytes(size['total_bytes'])})"
+        ),
+        "rows": [{
+            "what": "Sector fill" if row["kind"] == "sector" else "Bright-star layer",
+            "density": f"{row['density_low']:.3g} to {row['density_high']:.3g}",
+            "samples": format_count(row["samples"]),
+            "per_task": f"{row['seconds_per_task']:.2f} s",
+            "per_system": f"{row['seconds_per_system'] * 1000:.1f} ms",
+            "systems": f"{row['systems_per_task']:.1f}",
+        } for row in body["buckets"]],
+    }
+
+
 @bp.route("/admin/stats/lockouts", methods=["POST"])
 def lift_lockout():
     """The Stats page's "Lift" buttons: one lockout, or all of them."""
@@ -732,7 +758,8 @@ def admin_stats():
     database = stats["database"]
 
     context = {"health": _health(stats, api_ms, tile_cache_info()), "database": database,
-               "failures": _failures_panel(cookie_header), "lockouts": _lockouts_panel(cookie_header)}
+               "failures": _failures_panel(cookie_header), "lockouts": _lockouts_panel(cookie_header),
+               "generation": _generation_panel(cookie_header, db)}
     if database["reachable"]:
         counts = database["counts"]
         collisions = database["name_collisions"]

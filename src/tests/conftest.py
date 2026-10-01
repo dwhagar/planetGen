@@ -48,6 +48,11 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 # already uses the cores.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# Test runs never read or add to the control database's generation speed
+# and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
+# them on where it checks them.
+os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+
 
 def _test_server_kwargs():
     """Connection kwargs (host/port/user/password -- no database) for the

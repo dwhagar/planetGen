@@ -764,6 +764,25 @@ tbody tr:last-child td {
   margin: 0;
 }
 
+/* Generate page: the size and time estimate shown before a job starts
+   (PERF.3, web/generate_page.py). */
+.estimate-facts {
+  margin: 0 0 0.85rem;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.2rem 0.6rem;
+}
+
+.estimate-facts dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.estimate-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
 /* Galaxy map: flat SVG plot of galaxy-placed sectors (html/lib/galaxymap.py,
    html/galaxy.py). Quadrant zoom is still a plain server-rendered link
    that starts the SVG's own viewBox cropped to one quadrant, but real

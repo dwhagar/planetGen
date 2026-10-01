@@ -163,10 +163,14 @@ class FakeData:
         self.sectors[sector_id]["wiki_url"] = "https://wiki.example/sectors/fake"
         return {"url": "https://wiki.example/sectors/fake"}
 
-    def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None):
-        self.calls.append(("generate", sector_id))
+    estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
+
+    def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None, estimate_only=False):
+        self.calls.append(("estimate" if estimate_only else "generate", sector_id))
         if self.action_error:
             raise self.action_error
+        if estimate_only:
+            return {"generated": 0, "already_existed": 2, "candidates": 6, "estimate": self.estimate}
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
@@ -330,11 +334,32 @@ def test_admin_post_without_csrf_token_is_rejected(client, fake):
     assert not [call for call in fake.calls if call[0] == "generate"]
 
 
+def test_generate_neighborhood_shows_the_estimate_first(app, client, fake):
+    """PERF.3: the first press only works out the size and time; the
+    page asks before anything is generated."""
+    _log_in(client, fake)
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200
+    assert ("estimate", 5) in fake.calls and ("generate", 5) not in fake.calls
+    assert "About 280 KB and 3 s for 4 sectors." in html
+    assert 'name="estimate_ok" value="1"' in html and "Generate these 4 sectors" in html
+
+
+def test_a_refused_neighborhood_has_no_generate_button(app, client, fake):
+    _log_in(client, fake)
+    fake.estimate = dict(fake.estimate, refused=True, refusal="Refused: not enough disk.")
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
+    html = resp.get_data(as_text=True)
+    assert "Refused: not enough disk." in html and 'name="estimate_ok"' not in html
+    assert ("generate", 5) not in fake.calls
+
+
 def test_generate_neighborhood_posts_then_redirects_to_get(app, client, fake):
     _log_in(client, fake)
     token = _csrf(app, client)
     resp = client.post("/sector/5?contents_page=2",
-                       data={"action": "generate_neighborhood", csrf.FIELD_NAME: token})
+                       data={"action": "generate_neighborhood", "estimate_ok": "1", csrf.FIELD_NAME: token})
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/sector/5"
     assert ("generate", 5) in fake.calls

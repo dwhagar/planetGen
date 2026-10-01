@@ -103,13 +103,14 @@ NAMED_LOCK_TIMEOUT_S = 50
 """int: How long `Connection.lock_until_commit` waits for a named lock,
 matching InnoDB's default `innodb_lock_wait_timeout`."""
 
-CONTROL_SCHEMA_VERSION = 5
+CONTROL_SCHEMA_VERSION = 6
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
 separate schema with its own versioning. v2 added `login_throttle`
 (SEC.1, SEC.21), v5 the work queue's `work_jobs`/`work_tasks`/
-`work_lease` (PERF.8); every control-schema change so far is a new table,
+`work_lease` (PERF.8), v6 `generation_stats`/`generation_size` (PERF.3,
+PERF.10); every control-schema change so far is a new table,
 which `CREATE TABLE IF NOT EXISTS` adds to an older schema by itself."""
 
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
