@@ -293,6 +293,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when there isn't. Ties in with UX.21 (overlapping buttons). Open
   question: what is in the menu and in what order?
 
+- [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
+  Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
+  of blocks should be selectable by the user, it isn't, so lets take
+  that back to the select-slab, zoom in, select segment of slab."
+  Today the drill-down (`galaxystages.js`) alternates layer and region
+  picks (MAP.19, PR #208: "quadrant, layer, region, layer, region, ...,
+  layer, sector"), and a region pick offers up to 3 x 3 options (a
+  third of the rings across, a third of the arc along, `PICK_SPLIT`).
+  Done: the region (3 x 3) pick is removed; the ladder becomes the
+  wedge pick (MAP.52), then select a slab (the slab buttons and lines
+  of MAP.54), then the view zooms to that slab (fitted to the window
+  and rotatable, MAP.53), then select a segment of the slab, repeating
+  slab and segment inside each smaller block down to a sector. Default
+  taken: a segment is one drill block of the next level inside the
+  slab (27 or 3 sectors a side), picked directly on the zoomed slab
+  with the same hover highlight as today's blocks; no existing item
+  defines it further. The URL and breadcrumb forms of a region pick
+  ("r4") go away; old links with one open at the nearest valid stage.
+  MAP.19's big targets still apply. Open question: should a segment be
+  one block, or a run of blocks along the arc when a block is too small
+  to click on a small screen?
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
