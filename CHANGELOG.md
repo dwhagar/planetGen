@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.56.0] - 2026-10-01
+
+### Added
+- **Faster pages.** The web pages now keep the answers they get from the API in memory, so a repeat visit to a sector, system or list page doesn't query the database again. Any edit made through the site or the API clears it at once, sectors and systems added by generation jobs are noticed within 15 seconds, and nothing is kept longer than 5 minutes. It can be tuned or turned off with `page_cache` in `config.json` (see `docs/config.md`).
+
 ## [7.55.0] - 2026-10-01
 
 ### Changed
