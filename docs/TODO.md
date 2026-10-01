@@ -99,6 +99,49 @@ continuous solid of mega-blocks sized from the screen's pixel scale.
 
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
+Web workstream. Boss's UX reference for both items below is
+"Responsive Web Design Standards" (Boss's notes of 2026-10-01; a copy is
+in the project's shared files at `ux-standards/`). The rules from it
+that apply here: size classes by width (compact under 600 px, medium
+600-839, expanded 840-1199, desktop 1200+), not by device; viewport media
+queries only for the top-level frame and container queries for
+everything inside it; on medium and wider screens a menu must not stretch
+across the screen like a phone's; text columns capped at 45-75
+characters, but a map or canvas may use the full width; touch targets at
+least 44-48 px on coarse pointers (`pointer: coarse`), smaller is fine
+for a mouse; spacing and type sized with `clamp()`.
+
+62. [ ] **Menus sized to what they hold.** Boss (2026-10-01): "I want the
+    menus to be proportional to the size needed, I noticed on tablet
+    screens that menu acts like a phone screen spanning absurdly across
+    the screen." The Menu and gear drop-downs (`.site-menu-panel`,
+    `.site-gear-panel` in `static/style.css`) have `min-width: 14rem` and
+    `max-width: calc(100vw - 1rem)`, and the header folds the section
+    buttons into the Menu below 43rem, so on a tablet the panel can grow
+    to nearly the full screen. Done: each panel is as wide as its longest
+    entry plus padding (capped, for example `width: max-content` with a
+    sensible `max-width`), full width only on compact (phone) screens;
+    checked at 390, 600, 768, 820, 1024 and 1280 px in both themes and
+    both orientations, with touch targets still at least 44 px on touch
+    screens.
+
+63. [ ] **A bigger Galaxy Map with its controls underneath.** Boss
+    (2026-10-01): "I also want the galaxy map box to be bigger, place the
+    controls under it horizontally if possible, stacked if not, but use as
+    much of the browser area as is reasonable to display the galaxy map."
+    Today the map is a square capped at 36rem
+    (`.galaxymap3d-panel .starmap-viewport` in `static/style.css`) inside
+    the 72rem main column (`.app .app-main`), with the controls and info
+    panel in a side column (`.starmap-side`, built in
+    `lib/galaxymap3d.py`). Done: the Galaxy Map page lets the map use most
+    of the browser window (wider than the 72rem column, and as tall as
+    the window allows after the header, not forced square), the controls
+    sit in a row under the map and wrap to a stack when the row doesn't
+    fit, and the canvas resizes with the window (`static/galaxymap3d.js`
+    must follow the new size; the Galaxy Map thread owns that file).
+    Open question: does the block info panel go under the controls, or
+    stay beside the map on wide screens?
+
 ### Sector Map and generation (`static/sectormap.js`, `web/generate_page.py`, `generate.py`)
 
 24. [ ] **Generate buttons on the Galaxy Map's unfilled sectors.** Boss:
