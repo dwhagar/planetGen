@@ -35,6 +35,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const S = await import(`./galaxystages.js${VERSION_QUERY}`);
+const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 
 // Not quite 0: the camera keeps galactic north as its up vector, which
 // needs the view direction off vertical by a hair.
@@ -1080,6 +1081,30 @@ export function createStageView(host) {
     els.notice.hidden = !text;
   }
 
+  // The breadcrumb's ☆ (MAP.23, design doc section 8.2): saves the
+  // selected sector, else the stage's own URL, in bookmarks.js.
+  let bookmarkButton = null;
+  let refreshBookmark = null;
+
+  function bookmarkEntry() {
+    if (!resolved) return null;
+    if (selectedSector) {
+      const designation = S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot);
+      const data = dataFor(stage.at);
+      const sector = data ? data.sectors.get(selectedSector.ring + "/" + selectedSector.slot + "/" + selectedSector.layer) : null;
+      // The sector page itself, without a pick mode's query.
+      const page = sector && host.sectorUrl(sector.id) ? host.sectorUrl(sector.id).split("?")[0] : null;
+      return {
+        kind: "sector", value: designation,
+        name: sector ? sector.name : "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }),
+        url: page || location.pathname + "?sector=" + encodeURIComponent(designation),
+        sectorId: sector ? sector.id : null,
+      };
+    }
+    const labels = S.crumbs(stage, getOutline(), edgePc).map(function (crumb) { return crumb.label; });
+    return { kind: "stage", value: location.pathname + S.stageQuery(stage), name: labels.join(" › ") };
+  }
+
   function renderCrumbs() {
     const nav = els.crumbs;
     if (!nav) return;
@@ -1108,6 +1133,14 @@ export function createStageView(host) {
       list.appendChild(item);
     });
     nav.appendChild(list);
+    if (!bookmarkButton) {
+      bookmarkButton = document.createElement("button");
+      bookmarkButton.type = "button";
+      bookmarkButton.className = "galaxy-bookmark";
+      refreshBookmark = B.toggleButton(bookmarkButton, bookmarkEntry, true);
+    }
+    nav.appendChild(bookmarkButton);
+    refreshBookmark();
   }
 
   // The slab slider (MAP.17, MAP.30): beside the map, top slab at the

@@ -588,3 +588,37 @@ def test_system_page_shows_it_on_the_galaxy_map(client, fake):
     assert 'href="/system/5/galaxy">Show on Galaxy Map</a>' in html
     fake.system = _system_detail(sector_id=None)
     assert "Show on Galaxy Map" not in client.get("/system/5").get_data(as_text=True)
+
+
+# --- Bookmarks (MAP.23) ------------------------------------------------------------------
+
+def _bookmark_button(html):
+    match = re.search(r'<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
+                      html, re.S)
+    return match.group(0) if match else ""
+
+
+def test_system_page_has_a_bookmark_button(client, fake):
+    html = client.get("/system/5").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    button = _bookmark_button(html)
+    for attribute in (f'data-bookmark-db="{DB}"', 'data-bookmark-kind="system"', 'data-bookmark-value="system:5"',
+                      'data-bookmark-name="Kepler &lt;b&gt;42&lt;/b&gt;"', 'data-bookmark-url="/system/5"',
+                      'aria-pressed="false"'):
+        assert attribute in button
+    assert "data-bookmark-sector-id" not in button
+    assert " hidden>" in button and "☆ Bookmark" in button
+
+
+def test_standalone_system_can_still_be_bookmarked(client, fake):
+    fake.system = _system_detail(sector_id=None)
+    assert 'data-bookmark-value="system:5"' in _bookmark_button(client.get("/system/5").get_data(as_text=True))
+
+
+def test_phenomenon_page_has_a_bookmark_button(client, fake):
+    html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    button = _bookmark_button(html)
+    for attribute in ('data-bookmark-kind="nebula"', 'data-bookmark-value="nebula:4"',
+                      'data-bookmark-name="Crab &lt;Nebula&gt;"', 'data-bookmark-url="/phenomenon/nebula/4"'):
+        assert attribute in button

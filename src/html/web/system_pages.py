@@ -40,7 +40,7 @@ from . import bp
 from . import system_facilities
 from .class_pages import class_url
 from .helpers import (
-    crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
+    bookmark, crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
 
@@ -250,6 +250,8 @@ def system(system_id):
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         nav_links=links,
+        bookmark=bookmark("system", endpoint("system", system_id), detail["name"],
+                          page_url("system", system_id=system_id)),
         location_html=_location_html(detail),
         map_html=trusted_html(map_html),
         code_fmt=code_fmt,
@@ -566,6 +568,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
         nav_links=nav_links(phenomenon_type, detail["id"]),
+        bookmark=bookmark(phenomenon_type, endpoint(phenomenon_type, detail["id"]), detail["name"],
+                          page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=detail["id"])),
         view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
