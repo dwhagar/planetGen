@@ -23,8 +23,15 @@ cancelled. SIGTERM does the same (a server shutting down, on POSIX).
 When it is done it removes the jobs directory's `active` lock, if the lock is still
 this job's, so the next job can start.
 
-Standard library only: this starts before anything else is imported, so a
-broken install still leaves a readable `state.json` behind.
+The job is also the root of a job tree (ADM.12, `workQueue.open_node`):
+a "web-job" node with one "step" node per step, each step's
+`generate.py` run hanging its own nodes under its step
+(`workQueue.PARENT_ENV_VAR`), so the admin queue page shows the whole
+job with timings. That part is best effort.
+
+Standard library only at the top: this starts before anything else is
+imported, so a broken install still leaves a readable `state.json`
+behind (`_JobTree` imports the rest only once that is written).
 """
 
 import json
@@ -41,6 +48,10 @@ LOCK_NAME = "active"
 CANCEL_NAME = "cancel"
 """str: The file in a job's directory that asks it to stop (must match
 `jobs.CANCEL_NAME`)."""
+
+CANCELLED_EXIT_CODE = 130
+"""int: A step's exit status when an admin cancelled it from the queue
+page (must match `workQueue.CANCELLED_EXIT_CODE`)."""
 
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
@@ -101,6 +112,52 @@ def _release_lock(jobs_dir, job_id):
         pass
 
 
+class _JobTree:
+    """The job's nodes in the control database's job tree, or nothing at
+    all when planetGen's modules or the control database aren't there."""
+
+    def __init__(self, job):
+        self.queue = None
+        self.root = None
+        try:
+            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+            from stellarObjects import _db, workQueue
+
+            env = job.get("env") or {}
+            base = _db.MySQLConfig(
+                host=env.get("PLANETGEN_MYSQL_HOST"), port=env.get("PLANETGEN_MYSQL_PORT"),
+                user=env.get("PLANETGEN_MYSQL_USER"), password=env.get("PLANETGEN_MYSQL_PASSWORD"),
+                database=env.get("PLANETGEN_MYSQL_DATABASE"),
+            )
+            self.queue = workQueue
+            self.root = workQueue.open_node(
+                "web-job", job.get("title") or job["id"], _db.control_mysql_config(base),
+                web_job_id=job["id"], database=job.get("database"),
+            )
+        except Exception:  # noqa: BLE001 -- the job runs without its tree
+            self.queue = self.root = None
+
+    def open_step(self, label):
+        if self.queue is None:
+            return None
+        try:
+            return self.queue.open_node("step", label)
+        except Exception:  # noqa: BLE001
+            return None
+
+    def close(self, node, state):
+        if self.queue is None or node is None:
+            return
+        try:
+            self.queue.close_node(node, state)
+        except Exception:  # noqa: BLE001
+            pass
+
+
+_TREE_STATES = {"succeeded": "done", "failed": "failed", "cancelled": "cancelled"}
+"""dict: `state.json` status -> job tree node state."""
+
+
 def run(job_dir):
     """
     Runs the job in `job_dir` to completion.
@@ -140,6 +197,8 @@ def run(job_dir):
     env["PLANETGEN_PROGRESS_FILE"] = progress_path
 
     steps = job["steps"]
+    tree = _JobTree(job)
+    step_node = None
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
             for index, step in enumerate(steps, start=1):
@@ -153,6 +212,9 @@ def run(job_dir):
                     pass
                 header = f"\n=== Step {index} of {len(steps)}: {step['label']} ===\n"
                 log.write(header.encode("utf-8"))
+                step_node = tree.open_step(step["label"])
+                if step_node is not None:
+                    env[tree.queue.PARENT_ENV_VAR] = step_node.id
                 started = time.time()
                 current["proc"] = subprocess.Popen(
                     step["argv"], stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
@@ -167,9 +229,16 @@ def run(job_dir):
                     except subprocess.TimeoutExpired:
                         pass
                 current["proc"] = None
+                tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
+                           else ("done" if code == 0 else "failed"))
+                step_node = None
                 log.write(f"=== Step {index} exited with status {code} after "
                           f"{time.time() - started:.0f} s ===\n".encode("utf-8"))
                 state["exit_code"] = code
+                if code == CANCELLED_EXIT_CODE and not current["cancelled"]:
+                    # Cancelled from the admin queue page (ADM.10).
+                    current["cancelled"] = True
+                    current["by_queue"] = True
                 if current["cancelled"]:
                     break
                 if code != 0:
@@ -178,7 +247,8 @@ def run(job_dir):
                     break
         if current["cancelled"]:
             state["status"] = "cancelled"
-            state["error"] = "Cancelled by an admin."
+            state["error"] = ("Cancelled from the admin queue page." if current.get("by_queue")
+                              else "Cancelled by an admin.")
         elif state["status"] == "running":
             state["status"] = "succeeded"
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost
@@ -188,6 +258,8 @@ def run(job_dir):
         state["finished_at"] = time.time()
         _write_json(state_path, state)
         _release_lock(jobs_dir, job["id"])
+        tree.close(step_node, "failed")
+        tree.close(tree.root, _TREE_STATES.get(state["status"], "failed"))
     return 0 if state["status"] == "succeeded" else 1
 
 

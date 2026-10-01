@@ -110,7 +110,7 @@ _TRACEBACK = re.compile(r"Traceback \(most recent call last\)|File \"[^\"]+\.py\
 SEARCH_PANELS = ("sectors", "systems", "stars", "planets", "moons", "belts")
 SIZE_ENTITIES = ("star", "planet", "moon")
 PAGE_PARAMS = {"page", "sectors_page", "standalone_page", "contents_page", "keys_page", "names_page",
-               *(f"{panel}_page" for panel in SEARCH_PANELS)}
+               "species_page", "polities_page", *(f"{panel}_page" for panel in SEARCH_PANELS)}
 OFFSET_PARAMS = {"offset", *(f"{panel}_offset" for panel in SEARCH_PANELS)}
 SIZE_PARAMS = {f"{entity}_{bound}_radius_km" for entity in SIZE_ENTITIES for bound in ("min", "max")}
 
@@ -773,16 +773,29 @@ _PAGE_ROUTES = [
     ("/systems", "standalone_page"), ("/phenomena", "page"), ("/sector/{sector}", "contents_page"),
     ("/galaxy?quadrant=I", "page"), ("/search?q=a", "sectors_page"), ("/search?q=a", "systems_page"),
     ("/search?q=a", "planets_page"), ("/admin", "keys_page"), ("/admin/stats", "names_page"),
+    ("/species", "species_page"), ("/species?spacefaring=1", "species_page"),
+    ("/polities", "polities_page"),  # TEST.51
 ]
+
+_POPULATION_PAGES = ("/species", "/polities")
+"""tuple: Pages that 404 until a population pass has run; the sweep
+switches them on (`apiclient.get_population_status`) so the page number
+still reaches the real API and MySQL's LIMIT/OFFSET (no rows: every page
+clamps back to page 1)."""
 
 
 @pytest.mark.parametrize("path,param", _PAGE_ROUTES, ids=[f"{p}:{n}" for p, n in _PAGE_ROUTES])
 @pytest.mark.parametrize("page", ["-5", "0", "1", "2", "999", str(2 ** 31), str(2 ** 63), "9" * 40, "abc", "1.5", ""])
-def test_page_numbers_clamp(app, admin_client, fuzz_db, path, param, page):
+def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param, page):
     """Every page-number parameter clamps: a page past the end shows the
     last page, a zero/negative/non-numeric one the first -- including
     pages whose row offset would pass MySQL's range (B2)."""
     base = path.format(sector=fuzz_db["sector_id"])
+    if base.startswith(_POPULATION_PAGES):
+        import apiclient
+
+        monkeypatch.setattr(apiclient, "get_population_status",
+                            lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
     sep = "&" if "?" in base else "?"
     client = admin_client if base.startswith("/admin") else app.test_client()
     full = f"{base}{sep}{urlencode({param: page})}"
@@ -1124,6 +1137,9 @@ def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
 # Admin routes refuse anonymous visitors
 # ---------------------------------------------------------------------
 
+ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors"})
+"""The admin pages' own JSON routes: a 403 instead of a redirect."""
+
 @pytest.mark.parametrize("rule", ADMIN_PAGE_RULES, ids=_rule_ids(ADMIN_PAGE_RULES))
 @settings(max_examples=scaled(8))
 @given(pairs=query_pairs)
@@ -1131,7 +1147,7 @@ def test_admin_pages_bounce_anonymous_visitors(app, fuzz_db, rule, pairs):
     path = build_path(rule, real_values(rule, fuzz_db))
     response = app.test_client().get(path, query_string=urlencode(pairs))
     check_response(response, path, sent=[v for pair in pairs for v in pair])
-    if rule.endpoint == "web.generate_status":
+    if rule.endpoint in ADMIN_JSON_ENDPOINTS:
         assert response.status_code == 403
         return
     assert response.status_code == 302, f"{path} -> {response.status_code}"
@@ -1174,7 +1190,7 @@ def test_default_credentials_admin_is_sent_to_account(fuzz_db, _mysql_server_ava
             path = build_path(rule, real_values(rule, fuzz_db))
             response = client.get(path)
             check_response(response, path)
-            if rule.endpoint == "web.generate_status":
+            if rule.endpoint in ADMIN_JSON_ENDPOINTS:
                 assert response.status_code == 403
             else:
                 assert response.status_code == 302 and urlsplit(response.headers["Location"]).path == "/account", path

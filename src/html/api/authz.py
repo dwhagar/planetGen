@@ -41,7 +41,7 @@ def _current_admin():
     return adminAuth.validate_session(conn, request.cookies.get(SESSION_COOKIE_NAME))
 
 
-def require_admin(fresh=False):
+def require_admin(fresh=False, session_only=False):
     """
     Route decorator: requires a valid session cookie or API key, storing
     the resolved admin on `g.admin_user` for the view (and for `audit`
@@ -57,11 +57,17 @@ def require_admin(fresh=False):
             can't do anything else until credentials are actually
             changed (see `adminAuth`'s module docstring and
             `control_schema.sql`'s `admin_users` comment).
+        session_only (bool): If `True`, an API key isn't enough: the
+            route manages the account itself (new API keys, credentials,
+            two-factor sign-in, logging out), so it needs a signed-in
+            browser session (TEST.44). Otherwise a leaked key could mint
+            a fresh key and outlive its own revocation.
 
     Raises (at request time, via `ApiError`):
         401: No valid session/API key.
         403: `fresh=True` and the admin still has the default,
-            never-rotated credentials.
+            never-rotated credentials; or `session_only=True` and the
+            caller used an API key.
     """
     def decorator(view):
         @wraps(view)
@@ -73,6 +79,11 @@ def require_admin(fresh=False):
                 log.debug(f"Access to {request.path} denied: no valid {via} (401)")
                 _log_refusal(bearer)
                 raise ApiError("authentication required", status_code=401)
+            if session_only and bearer:
+                log.debug(f"Access to {request.path} denied for {admin['username']!r}: API keys can't manage "
+                          f"the account (403)")
+                activitylog.event("AUTHZ", "apikey.refused", user=admin["username"], path=request.path)
+                raise ApiError("an API key can't do this; sign in with your password instead", status_code=403)
             if fresh and admin["must_change_credentials"]:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
                           f"not changed yet (403)")
@@ -85,6 +96,9 @@ def require_admin(fresh=False):
             g.admin_user = admin
             log.debug(f"Access to {request.path} granted to admin {admin['username']!r} via {via}")
             return view(*args, **kwargs)
+        # Read by the route sweep test (tests/test_api_auth_sweep.py) so
+        # a new route can't quietly skip the check.
+        wrapped.admin_required = {"fresh": fresh, "session_only": session_only}
         return wrapped
     return decorator
 

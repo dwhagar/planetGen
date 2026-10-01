@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, API, SEC, DOC and POP have no open items today.
+NAV, DB, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -208,8 +208,112 @@ with `clamp()`.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
-MAP.30) shipped in PR #234.
+MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
+
+- [ ] **MAP.52 Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug)**
+  Boss (2026-10-01 19:35Z): "galaxy map still doesn't highlight
+  correctly. highlights should be tween valid beginning and end points,
+  adjust the quadrant philosophy to selecting a wedge of the galaxy in
+  40 degree arcs and not set, the cursor point will be the center of
+  the arc, so it will always be +/- 20 degrees from the cursor's
+  merdidian snapped to the available meridians from the center that go
+  from the center to the edge." Today the first pick on the Galaxy Map
+  is a fixed quarter of the disk (`galaxystages.js`, `kind:
+  "quadrant"`, four arcs, MAP.19), later picks are fixed regions, and
+  the hover highlight (`galaxystageview.js`) can start or end where no
+  wedge line is. Done: the first pick is a 40-degree wedge centered on
+  the cursor's angle from the galaxy's center, running from the center
+  to the edge, its two sides snapped to the nearest meridians (the
+  wedge lines that run from the center to the edge, MAP.42 to MAP.44);
+  the highlight always starts and ends on such valid lines and follows
+  the cursor as it moves; clicking zooms to that wedge (the wedge zoom
+  of PR #243) with no gaps between blocks (PR #224); the URL and the
+  breadcrumb label name the wedge by its angles rather than "Quarter
+  n". Boss (19:37Z): "Doesn't have to be +/- 20 so long as it fits
+  into the wedge from center (ring 1) to edge." So 40 degrees is the
+  target, not an exact width: the wedge snaps to lines that run all the
+  way from ring 1 to the edge, and may come out a little wider or
+  narrower. Open questions: how snapping works where meridians stop
+  short of ring 1 (the inner rings have fewer slots); do the later
+  picks (regions inside the wedge) follow the same cursor-centered
+  rule?
+
+- [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
+  Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
+  around once it's zoomed into the wedge and zoom in more based on
+  window size." Today the wedge zoom of PR #243 fits the real wedge at
+  a fixed orientation and scale. Done: once zoomed into a wedge, the
+  user can rotate the view around it (drag, keys, and a touch gesture,
+  like the free camera below quarter level), and the zoom fits the
+  wedge to the map's actual size, so a bigger window shows it larger;
+  it refits when the window is resized or rotated. Ties in with MAP.52
+  (the 40-degree wedge pick). Boss (19:44Z): "Slabs will rotate
+  around their immediate center", so the view turns about the middle
+  of what is shown (the wedge, or the slab), not the galaxy's center.
+  Open question: is the rotation kept in the URL and bookmarks?
+
+- [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
+  Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
+  have a line going from each slab on the map (dynamically rendered to
+  always point where it needs to) from the button for that slab to the
+  slab itself on the map." Today slabs are picked with the slab slider
+  beside the map (MAP.30, shipped as a slider in PR #234,
+  `galaxystageview.js`). Done: the slider is replaced by one button per
+  slab, and each button has a line drawn from it to its slab on the
+  map; the lines are redrawn whenever the view rotates, zooms, pans or
+  the window resizes, so they always point at the slab; hovering or
+  focusing a button highlights its line and slab, and clicking picks
+  the slab as the slider does today. MAP.30 stays done; this item
+  replaces its slider. Open questions: how the lines stay readable with
+  many slabs (thin lines, only the hovered one drawn bright, or
+  grouping); how crossing or overlapping lines are kept apart; and
+  where the buttons sit on a phone-width screen. Default taken: a slab
+  should always be on screen after the zoom-fit, but if one ever falls
+  outside the frame (the isometric tilt, a very tall stack of slabs, a
+  small window), its line ends at the window's edge with an arrow
+  pointing toward it and its button still works; this may never happen
+  in practice. A slab hidden behind another keeps its line, drawn to
+  the visible part.
+
+- [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
+  Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
+  be under a menu except for back, forward, up, and reset. Reset and
+  whole galaxy do the same thing. Remove the wedges button entirely,
+  and bookmarks should be next to the back, forward, up, reset, and
+  bookmarks. Sector sell should go next to the galaxy map if there's
+  room right next to the slab buttons." Today the Galaxy Map's controls
+  (`galaxystageview.js`, `galaxymap3d.js`) are one row of buttons.
+  Done: only back, forward, up, reset and the bookmark button stay in
+  view, in that row; every other control moves into one menu button
+  beside them (keyboard and screen-reader friendly); "Whole galaxy" is
+  removed, since reset does the same; the Wedges button is removed
+  entirely; the "Sector cell" info panel (`#galaxymap3d-info`, showing
+  a picked sector's address and designation) sits beside the map next
+  to the slab buttons (MAP.54) when there is room, and below the map
+  when there isn't. Ties in with UX.21 (overlapping buttons). Open
+  question: what is in the menu and in what order?
+
+- [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
+  Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
+  of blocks should be selectable by the user, it isn't, so lets take
+  that back to the select-slab, zoom in, select segment of slab."
+  Today the drill-down (`galaxystages.js`) alternates layer and region
+  picks (MAP.19, PR #208: "quadrant, layer, region, layer, region, ...,
+  layer, sector"), and a region pick offers up to 3 x 3 options (a
+  third of the rings across, a third of the arc along, `PICK_SPLIT`).
+  Done: the region (3 x 3) pick is removed; the ladder becomes the
+  wedge pick (MAP.52), then select a slab (the slab buttons and lines
+  of MAP.54), then the view zooms to that slab (fitted to the window
+  and rotatable, MAP.53), then select a segment of the slab, repeating
+  slab and segment inside each smaller block down to a sector. Default
+  taken: a segment is one drill block of the next level inside the
+  slab (27 or 3 sectors a side), picked directly on the zoomed slab
+  with the same hover highlight as today's blocks; no existing item
+  defines it further. The URL and breadcrumb forms of a region pick
+  ("r4") go away; old links with one open at the nearest valid stage.
+  MAP.19's big targets still apply. Open question: should a segment be
+  one block, or a run of blocks along the arc when a block is too small
+  to click on a small screen?
 
 ## GEN: Generation and physics
 
@@ -365,6 +469,123 @@ MAP.30) shipped in PR #234.
     and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
 
+## API: The JSON API
+
+- [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
+  Boss (2026-10-01 19:22Z): "using an API key add a remote-generate
+  option where I can use generate.py with the right command lines to
+  have my local system (much faster than the server-side) generate
+  whatever I want and use the API to add it into the system once it's
+  generated. Do not implement yet." Today `generate.py` writes straight
+  to a MySQL/MariaDB database it can reach, and the API's write routes
+  (`api/edits.py`, API.1's create-a-system route from PR #170) take one
+  system or body at a time with an admin's API key. Done: `generate.py`
+  gets a remote mode (for example `--remote URL --api-key KEY`) for the
+  same commands and options as a local run (`sector`, `galaxy` modes,
+  `plan`, the bright-star scatter and backfill, `population`); it asks
+  the server for what it needs first (the galaxy's seed and skeleton,
+  which sectors are already filled, the id and name state), generates
+  on the local machine with all its workers, then uploads the results
+  in batches to new API routes that check the key, validate each batch
+  (ADM.5's validator), refuse sectors that were filled meanwhile, save
+  them the same way a server-side run does (names, ids, bright-star
+  levels, caches and tiles invalidated), and report what was added. A
+  remote run appears in the job tree and job page (ADM.10, ADM.12) like
+  a server-side one. Boss's answers (2026-10-01 19:28Z):
+  - Generate and keep in memory: the local machine needs no database of
+    its own.
+  - The name indexes and id state are downloaded from the API once, for
+    local use, so the run doesn't keep calling the API for them (the
+    server reserves id blocks and claims the sectors for the run).
+  - Uploads and downloads are compressed (gzip, bz2 or similar): some
+    compression time is worth faster transfers.
+  - Fully resumable: the local machine caches on disk every API call it
+    means to send until the server confirms it; the server keeps a
+    buffer of everything it receives, stages it, and writes to the
+    database in a controlled way only complete units (a complete star
+    system, a complete sector). This probably needs database changes
+    so staged data can be stored and flagged incomplete until it is.
+  - The local version must match the server's API version (API.4 and
+    API.5).
+  Boss's answers (2026-10-01 19:32Z):
+  - Only an admin's API key can upload; user-level keys can read but
+    never upload (API.6).
+  - Upload limits are investigated and planned separately (API.7).
+  - Reserved ids and claimed sectors stay reserved until the upload
+    finishes or an admin clears it; nothing else may use them in the
+    meantime. Admins see and clear incomplete uploads on their own page
+    (ADM.13).
+  - The server checks every upload and has the final say on what is
+    written to the database (API.8).
+
+- [ ] **API.4 API compatibility data in the docs**
+  Boss (2026-10-01 19:28Z): "let's make API compatibility data and put
+  that in the docs as another TODO item to add but not do yet." Done:
+  the API has a version of its own, separate from the release number,
+  and the docs carry a compatibility table: each API version, the
+  release that introduced it, the routes and payload formats it
+  changed, and which client versions (`generate.py` remote mode,
+  API.3, and the web pages' `lib/apiclient.py`) can talk to which
+  server versions. The table is updated in the same PR as any API
+  change. Open question: is the API version bumped by hand, or by a
+  release note kind like `changes/<name>.api.md`?
+
+- [ ] **API.5 API version and compatibility checking**
+  Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
+  compatibility checking so that we make sure the server knows how to
+  take data from different client versions." Done: every API request
+  carries the client's API version (a header); the server answers with
+  its own version and the range it accepts (`/api/health`), refuses a
+  client outside that range with a clear message saying which version
+  to install, and, inside the range, reads older clients' payloads
+  through converters so it knows how to take data from each supported
+  version. `generate.py`'s remote mode (API.3) checks before it starts
+  generating, not after. Built on API.4's compatibility data. Open
+  question: how many older versions the server keeps accepting.
+
+- [ ] **API.6 Admin-created user-level API keys that can read but not upload**
+  Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
+  create user-level API keys that can access but not upload." Today
+  API keys (`admin_api_keys`) belong to admins and carry every admin
+  right. Done: an admin can create, name, list and revoke user-level
+  API keys; a user-level key can use the read routes (and anything
+  later granted to users) but every write route, the remote upload
+  routes of API.3 above all, answers 403 for it; an admin key keeps
+  every right. Ties in with USR.1 and USR.2 (user accounts and roles)
+  and TEST.44 (what an API key may do). Open question: does a
+  user-level key belong to a user account (USR.1) or stand alone until
+  user accounts exist?
+
+- [ ] **API.7 Investigate and plan upload limits**
+  Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
+  investigate and plan." Done: a plan, agreed with Boss, for the limits
+  on API.3's uploads: the largest request and batch (compressed and
+  uncompressed), how many uploads may run at once per key and in all,
+  the rate per key, the server's staging-space cap, and what the
+  client does when it hits one (wait and retry, shrink the batch).
+  Measured against real sectors and the web server's own limits
+  (Apache `LimitRequestBody`, IIS `maxAllowedContentLength`, Flask
+  `MAX_CONTENT_LENGTH`, TEST.47) and the API limiter
+  (`api/limiter.py`). The plan only; building the limits is a later
+  item.
+
+- [ ] **API.8 Verify uploaded data before it is finalized**
+  Boss (2026-10-01 19:32Z): "the API will have to have a reliable method
+  of syncing and making sure uploaded data is verified good before it
+  is finalized in the DB, the server has the final say in how items are
+  added to the database." Done: the client and server agree, by batch
+  and by unit (a star system, a sector), on what has been sent and
+  received, with checksums, so nothing is lost or written twice; every
+  staged unit is checked on the server before it is finalized
+  (complete, well formed, inside its reserved sector and id block,
+  names unique, and the physics checks of ADM.5's validator); the
+  server finalizes a unit in one transaction or rejects it with the
+  reasons, and may correct what it can (renaming a clashing name,
+  re-running derived values) rather than trusting the client's copy.
+  Open question: which corrections the server makes on its own, and
+  which reject the unit so the client regenerates it.
+
+
 ## ADM: Admin tools
 
 - [ ] **ADM.4 Collapsible Generate page sections; pick the center sector**
@@ -467,6 +688,20 @@ MAP.30) shipped in PR #234.
   long finished trees are kept (today `KEEP_DAYS`), and whether their
   timings are summarized into speed records before they are pruned;
   whether a web job (`web/jobs.py`) becomes the root node of its tree.
+
+- [ ] **ADM.13 Incomplete uploads page**
+  Boss (2026-10-01 19:32Z): "Admin will have to have a page where they
+  can see incomplete uploads and clear them but reserved sectors by ID
+  cannot be used if an upload isn't finished." Done: an admin-only page
+  lists the remote uploads of API.3 that have not finished: who started
+  them, when, the sectors and id blocks they reserved, how much is
+  staged and verified (API.8), and when the client last sent anything.
+  Clearing one, confirmed and written to the admin activity log, throws
+  away its staged data and releases its sectors and id blocks; until
+  then nothing else (a server-side run, another upload) may use them.
+  Part of, or linked from, the job page (ADM.10). Open question: should
+  an upload with no contact for a long time be flagged as stale on the
+  page?
 
 ## SEC: Security
 
@@ -809,74 +1044,6 @@ clears each one.
   against a live database: up to date, needs migrating, newer than the
   code, unreachable, failed migration. Today they're only
   syntax-checked. [OPS]
-
-- [ ] **TEST.63 Math check that runs first**
-  Boss (2026-10-01 15:29Z): "I want a specific way that runs first
-  before other tests that basically validates the math works, before
-  batch generation, we need to verify the actual math works." One
-  module, `src/stellarObjects/mathCheck.py`: pure functions, no
-  database, network or files, fixed seeds, under 5 seconds. Each check
-  has a name, the function it calls, the expected value, a tolerance and
-  the source of the expected value (a textbook figure, a paper's table,
-  or an exact identity). The same module is used three ways: pytest runs
-  it first, `generate.py` and the Generate page run it before bulk
-  generation, and `update.sh` runs it after an update. The coverage
-  tests in TEST.4 and TEST.32 to TEST.36 stay as they are; this item is
-  the reference-value gate in front of them, and TEST.34's Kepler
-  reference values move here.
-
-  Default taken: no skip switch for the bulk gate, since it costs under
-  5 seconds. Open questions for Boss: should there be an emergency skip
-  flag anyway? Should the web app also run it at startup and show admins
-  a warning if it fails? Should the one-off system generator run it too,
-  or only bulk paths?
-
-  - [ ] **TEST.64 Reference values**
-    Known answers from real astronomy, each within a stated tolerance.
-    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
-    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
-    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
-    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
-    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
-    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
-    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
-    230 My); Holman-Wiegert critical radii from the paper's table; the
-    Kepler and Barker equations against known solutions.
-
-  - [ ] **TEST.65 Identities and invariants**
-    Things that must be exactly or nearly true for any input. Every unit
-    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
-    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
-    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
-    mismatch); luminosity rises and lifetime falls with mass; orbital
-    energy is conserved around a Kepler orbit; the sector grid's cell
-    volumes add up to each ring's annulus,
-    `sector_address_at(sector_position_pc(...))` returns the same
-    address, and ring sector counts match `ring_sector_count`; density
-    is normalised to 1 where the code says it is; no NaN or infinity
-    over a fixed sweep of inputs.
-
-  - [ ] **TEST.66 Distributions match their targets**
-    With fixed seeds, a few thousand draws of the IMF, star ages, the
-    Poisson sector counts, the bounded bell and the planet class table
-    land on their intended shares within a statistical tolerance (for
-    example a chi-square test), so a broken sampler fails even when
-    every single value looks fine.
-
-  - [ ] **TEST.67 Runs first in the suite and in CI**
-    A `mathcheck` marker (next to the `db`, `slow` and `browser` markers TEST.1 added); `conftest.py` moves
-    those tests to the front and stops the run if any fails, saying the
-    math is broken and the rest would be noise; CI runs it as its own
-    quick first job that the other jobs wait on.
-
-  - [ ] **TEST.68 Gate before bulk generation**
-    `generate.py check-math` runs it by hand; every bulk path (`galaxy`,
-    `sector` over many sectors, `plan`, `population`, the Generate
-    page's jobs and the map's block and neighbourhood generation) runs
-    it first and refuses to start if a check fails, naming the failed
-    check and writing nothing; the Generate page shows the result as the
-    job's first step; `update.sh` runs it after updating and warns on
-    failure.
 
 ## USR: User accounts
 
