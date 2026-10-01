@@ -869,7 +869,7 @@ def test_valid_csrf_token_is_accepted(app):
     token = with_csrf(client)
     response = client.post("/login", data={"username": "nobody", "password": "wrong-password", csrf.FIELD_NAME: token})
     check_response(response, "/login")
-    assert response.status_code == 200
+    assert response.status_code == 401  # the view ran: a wrong password (SEC.20)
     assert "Invalid username or password." in response.get_data(as_text=True)
     # The token only works with the nonce it was made for.
     client.set_cookie(csrf.COOKIE_NAME, "m" * 40, domain="localhost")
@@ -900,7 +900,7 @@ def test_csrf_token_is_bound_to_the_login_session(app, session):
     right = csrf_pair(session=session)[1]
     response = client.post("/login", data={"username": "nobody", "password": "wrong-password", csrf.FIELD_NAME: right})
     check_response(response, "/login")
-    assert response.status_code == 200
+    assert response.status_code == 401  # the view ran: a wrong password (SEC.20)
 
 
 def test_csrf_token_from_before_login_is_refused_after(app):
