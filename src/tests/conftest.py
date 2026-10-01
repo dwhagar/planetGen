@@ -72,6 +72,27 @@ def _test_server_kwargs():
     )
 
 
+def pytest_collection_modifyitems(config, items):
+    """Suite markers (registered in pytest.ini), so a run can pick a slice:
+    `-m "not db"` without a database, `-m "not slow"` for a quick loop,
+    `-m browser` for the Playwright checks alone.
+
+    - `db`: the test uses a real MySQL database (`mysql_config`, directly or
+      through another fixture).
+    - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
+      `test_bughunt_*`), whose cost is in their number of examples.
+    - `browser`: `test_web_a11y.py` (headless Chromium).
+    """
+    for item in items:
+        if "mysql_config" in getattr(item, "fixturenames", ()):
+            item.add_marker(pytest.mark.db)
+        name = item.path.name
+        if name.startswith(("test_fuzz_", "test_bughunt_")):
+            item.add_marker(pytest.mark.slow)
+        if name == "test_web_a11y.py":
+            item.add_marker(pytest.mark.browser)
+
+
 @pytest.fixture(scope="session")
 def _mysql_server_available():
     """

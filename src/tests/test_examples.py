@@ -47,12 +47,6 @@ def build_system(path):
 
 
 @pytest.mark.parametrize("path", EXAMPLE_FILES, ids=[os.path.basename(p) for p in EXAMPLE_FILES])
-def test_example_generates_without_error(path):
-    for _ in range(TRIALS):
-        build_system(path)
-
-
-@pytest.mark.parametrize("path", EXAMPLE_FILES, ids=[os.path.basename(p) for p in EXAMPLE_FILES])
 def test_example_renders_nonempty_output(path):
     system = build_system(path)
     text = str(system)

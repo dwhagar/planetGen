@@ -50,6 +50,30 @@ The user needs to create and drop databases: each test gets its own
 uniquely named, throwaway database, so the database tests are safe under
 `pytest -n auto` (see "Running in parallel" above).
 
+## Picking a slice of the suite
+
+`conftest.py` marks every test (markers registered in `pytest.ini`):
+
+- `db`: uses a real database (the `mysql_config` fixture, directly or
+  through another fixture);
+- `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
+  `test_bughunt_*`);
+- `browser`: the headless-browser checks (`test_web_a11y.py`).
+
+```sh
+pytest -n auto -m "not db and not slow"   # quick loop: about a minute on 4 cores
+pytest -n auto -m db                      # just the database tests
+```
+
+A pull request still needs the whole suite green.
+
+## Database engines
+
+Local runs here use MariaDB 10.11. CI's `test` job runs the whole suite
+three times: Python 3.9 on MySQL 8.0, and Python 3.12 on MySQL 8.4 and on
+MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
+than MariaDB, so a query that works locally can still fail there.
+
 ## Kinds of test
 
 - **Unit and behaviour tests** (`test_<area>.py`): one module or page each,
@@ -151,27 +175,6 @@ A red deep run is a real bug report: its log carries the shrunk input.
 
 ## CI runners
 
-Every workflow job picks its runner from a repository variable (Settings >
-Secrets and variables > Actions > Variables). Each holds JSON: a label
-list such as `["self-hosted", "Linux", "X64"]`, or a hosted runner name in
-quotes such as `"ubuntu-latest"`. Unset, a job uses the default below.
-
-| Variable | Jobs | Default |
-|---|---|---|
-| `RUNNER_LINUX` | tests, browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` |
-| `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` |
-| `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` (GitHub-hosted) |
-| `RUNNER_WINDOWS_INSTALLERS` | `install.ps1` on Windows | `"windows-latest"` (GitHub-hosted) |
-
-The installer jobs stay on GitHub's throwaway machines by default because
-they install planetGen as a system service (launchd daemons, scheduled
-tasks, a server on port 8000) with sudo or admin rights, which would stay
-behind on a machine of your own.
-
-A self-hosted Linux runner needs Docker (the MySQL 8 service container) and
-passwordless `sudo` for `playwright install --with-deps`. The MySQL
-container gets a free host port, so several jobs (or a MySQL of your own
-on 3306) can share a machine. Each job installs into its own virtualenv
-under `RUNNER_TEMP`, so packages don't carry over between jobs.
-`actions/setup-python` downloads the Python versions the jobs ask for
-(3.9 and 3.12) into the runner's tool cache on first use.
+CI can run on your own computers. Which jobs run where, what each machine
+needs, the security settings and troubleshooting are in
+[`ci-runners.md`](ci-runners.md).

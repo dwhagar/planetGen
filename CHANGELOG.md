@@ -1,5 +1,59 @@
 # Changelog
 
+## [7.102.253] - 2026-10-01
+
+### Added
+- **Test suite markers and more database engines in CI.** Every test is
+  marked `db`, `slow` or `browser` as it applies, so `pytest -n auto -m
+  "not db and not slow"` is a one-minute loop. CI's test job now runs on
+  MySQL 8.0, MySQL 8.4 and MariaDB 11.4 (local runs cover MariaDB 10.11).
+  `test_todo_tags.py` takes its category list from `bump_version.py`, so
+  `TODO(TEST.N)` tags are accepted.
+- **A guide to running CI on your own computers** (`docs/ci-runners.md`):
+  what each runner needs, how to register it, security settings,
+  troubleshooting. Pull requests from forks now always run on
+  GitHub-hosted runners, never on self-hosted ones, and the browser job
+  no longer needs passwordless sudo.
+
+## [7.101.253] - 2026-10-01
+
+### Removed
+- **Ten tests (2,819 parametrized cases) that no longer checked anything.**
+  Assert-free "generates
+  without error" tests whose very next test runs the same generation and
+  asserts on it (planets, the full star-by-class matrix, every star type,
+  the example files), three comet-orbit validation tests repeated word for
+  word in `test_kepler_motion.py`, three diminutive-prefix tests covered by
+  the fuzz walk over every prefix, a check that a constant equals its own
+  definition, a `None` Markdown check already in `test_mdconvert.py`, and a
+  one-off TODO-marker check `test_todo_tags.py` now covers. The guard that
+  `spaceSector.py` never imports a root script checked for `systemGen`,
+  which no longer exists; it now checks `generate` too.
+
+## [7.100.253] - 2026-10-01
+
+### Fixed
+
+- The Species and Polities pages answered 404 on MySQL 8 even after a
+  population pass: the population status probe aliased a column as
+  `generated`, a reserved word in MySQL 8 (not in MariaDB), so the query
+  failed and every population page stayed hidden. The alias is now quoted.
+
+## [7.99.253] - 2026-10-01
+
+### Changed
+- **The slowest tests run in seconds, and two tests that skipped at
+  random now always run.** The radius-neighborhood generation test builds
+  a sparser neighborhood (70 s to 3 s) and also checks every generated
+  sector is inside the radius; the sector-enumeration fuzz test checks
+  tolerances with `math.isclose` (30 s to 2 s). Tests hash passwords with
+  1,000 PBKDF2 rounds instead of 600,000, except the tests of the hashing
+  setting itself (marked `real_password_hashing`). The moon life-data
+  round trip used to skip almost every run (a moon with its own life data
+  is too rare to wait for) and the black-hole test skipped on one draw in
+  ten; both are now seeded and always run. The full suite on 4 workers
+  went from 5 min 13 s to 4 min 27 s.
+
 ## [7.98.253] - 2026-10-01
 
 ### Changed

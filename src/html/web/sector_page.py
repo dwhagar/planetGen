@@ -116,7 +116,10 @@ def _rogue_group_row(rogues):
         {
             "name": row["name"],
             "url": page_url("phenomenon", phenomenon_type="rogue_planet", phenomenon_id=row["id"]),
-            "details": (row["descriptor"] or "").capitalize(),
+            "details": ", ".join(bit for bit in (
+                f"Class {row['class']}" if row.get("class") else None,
+                (row["descriptor"] or "").capitalize(),
+            ) if bit),
             "distance": trusted_html(format_distance_ly(row["distance_ly"])),
             "map_target": f"rogue_planet:{row['id']}",
         }
