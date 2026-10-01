@@ -24,6 +24,7 @@ terminal run) `report` does nothing.
 """
 
 import json
+import math
 import os
 import tempfile
 import time
@@ -70,8 +71,8 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         "description": description,
         "completed": completed,
         "total": total,
-        "rate": rate,
-        "eta_s": eta_s,
+        "rate": _finite_or_none(rate),
+        "eta_s": _finite_or_none(eta_s),
         "detail": detail,
         "percent": bool(percent),
         "updated_at": now,
@@ -79,7 +80,7 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
     try:
         # Serialized up front, so a value json can't encode fails before
         # any temp file exists.
-        text = json.dumps(body)
+        text = json.dumps(body, allow_nan=False)
         directory = os.path.dirname(os.path.abspath(path))
     except (TypeError, ValueError):
         return
@@ -100,3 +101,11 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
                 os.unlink(tmp)
             except OSError:
                 pass
+
+
+def _finite_or_none(value):
+    """`value`, or `None` when it's a NaN or infinite float -- JSON has no
+    such numbers, and the Generate page's browser would refuse the file."""
+    if isinstance(value, float) and not math.isfinite(value):
+        return None
+    return value

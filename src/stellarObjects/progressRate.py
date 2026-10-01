@@ -45,13 +45,22 @@ class DecayingRate:
         self._amount = 0.0
 
     def add(self, amount, now=None):
-        """Records `amount` more units finished (at `now`)."""
-        if amount <= 0:
+        """Records `amount` more units finished (at `now`). A NaN or
+        infinite amount or time is ignored, so one bad report can't turn
+        the rate (and every later ETA) into NaN; a time earlier than the
+        last one (a clock stepped back) joins the latest interval."""
+        if not _finite(amount) or amount <= 0:
             return
         now = self.clock() if now is None else now
+        if not _finite(now):
+            return
         if now > self.last:
-            self._before = (self.rate, self.last)
-            self._amount = 0.0
+            # Units that finished at the bar's very first instant (a
+            # coarse clock) had no interval to fold into yet: they carry
+            # over into this one instead of being dropped.
+            if self.rate is not None or not self._amount:
+                self._before = (self.rate, self.last)
+                self._amount = 0.0
             self.last = now
         self._amount += amount
         rate, since = self._before
@@ -70,7 +79,7 @@ class DecayingRate:
         rate, counting down between updates; `None` until the first
         unit is done, 0 when nothing remains.
         """
-        if remaining is None:
+        if remaining is None or not _finite(remaining):
             return None
         if remaining <= 0:
             return 0.0
@@ -78,7 +87,17 @@ class DecayingRate:
             return None
         now = self.clock() if now is None else now
         left = remaining
+        # A clock stepped back (or a NaN one) doesn't add time to the
+        # estimate: it just hasn't started counting down yet.
+        elapsed = now - self.last if _finite(now) and now > self.last else 0.0
         # Counts down between updates, but never below the time the rest
         # takes once the next unit is overdue, so a slow unit holds the
         # estimate rather than letting it reach zero early.
-        return max(0.0, left / self.rate - (now - self.last), (left - 1) / self.rate)
+        return max(0.0, left / self.rate - elapsed, (left - 1) / self.rate)
+
+
+def _finite(value):
+    try:
+        return math.isfinite(value)
+    except TypeError:
+        return False

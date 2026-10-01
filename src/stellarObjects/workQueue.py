@@ -31,8 +31,8 @@ no grant on it) the queue still runs, just without the lease or the
 rows.
 
 One worker means no pool at all: every task runs in this process, in
-order, exactly as generation always did (still recorded in the control
-database, without the lease, when the run passes one).
+order, seeded the same way a worker would seed it (still recorded in
+the control database, without the lease, when the run passes one).
 
 Every job is a tree (ADM.12, control schema v7). `job_node` opens a
 node under the one this process has open (a `generate.py` run is the
@@ -1384,6 +1384,12 @@ class WorkQueue:
         if recorded:
             self._book("add_tasks", self.job_id, [task])
             self._book("start_tasks", [task])
+        # Seeded exactly as a worker would be, so one worker generates
+        # what many would (TEST.19); this process's own `random` stream
+        # carries on afterwards as if the task had run elsewhere, as it
+        # does with a pool.
+        outer = random.getstate()
+        random.seed(task_seed(self.run_seed, task.key))
         started = time.monotonic()
         try:
             result = task.fn(task.payload)
@@ -1392,6 +1398,8 @@ class WorkQueue:
                 state = "failed" if isinstance(exc, Exception) else "cancelled"
                 self._book("finish_task", self.job_id, task, state, error=f"{type(exc).__name__}: {exc}")
             raise
+        finally:
+            random.setstate(outer)
         seconds = time.monotonic() - started
         self.finished += 1
         if recorded:
