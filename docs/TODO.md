@@ -90,22 +90,53 @@ maps, search, NAV, admin auth and wiki publishing.
 
 ## Plan: what to do first
 
-- **Galaxy navigation (MAP.2):** the wedge, slice and block drill-down
-  with no free camera (MAP.17), then the map's own Back and Forward
-  (MAP.26). The Galaxy Map bugs (MAP.18, MAP.37, MAP.43,
-  MAP.44, MAP.47, MAP.48) and the slab list beside a 3:4 map
-  (MAP.30) go with it. Bookmarks (MAP.23) finish the NAV page's map
-  picks (MAP.22).
-- **Sector Map (MAP.11, MAP.15):** objects drawn outside the wireframe
-  and findable rogue planets, then stars as points of light.
-- **Generation at scale (PERF.1):** the per-sector density stats
-  (PERF.11) and speed records (PERF.10) feed the estimates (PERF.3,
-  PERF.9); the work queue (PERF.8) comes before parallel generation
-  (PERF.7).
-- **Admin editing (ADM.1)** starts with the validate module (ADM.5);
-  **user accounts (USR.1)** start with roles (USR.2).
-- **View from a planet (VIEW.1)** waits on a research session with Boss,
-  except the constellation names (VIEW.4).
+Boss (2026-10-01): "bugfixes and security are the two biggest concerns."
+Bugs come first, then security; everything else waits behind them. The
+research behind the security order is the design doc linked at the top
+of the SEC section.
+
+1. **Bugs, in this order:**
+   1. MAP.45 (objects drawn outside the sector's wireframe), then
+      MAP.46. MAP.45 goes first because it may mean stored positions
+      are wrong; find out before the next full regenerate.
+   2. The bright stars on the Galaxy Map: MAP.47 (vanish when zoomed
+      out), then MAP.48 (pop in after a zoom).
+   3. MAP.43 (wedge lines past the galaxy's edge) and MAP.37
+      (generated systems hard to find).
+   4. UX.16 (button spacing), then UX.15 (data beside the 3D render).
+   5. The drill-down rework, built together: MAP.17 and MAP.19 (no free
+      camera; big wedge, layer and region picks), with MAP.18 (dim
+      everything but the hovered pick) and MAP.44 (lines kept to the
+      zoomed block), then MAP.26 (open at the sector; the map's own Back
+      and Forward). It needs Boss's answers to MAP.17's and MAP.19's
+      open questions (what a slice and a region are) before it starts.
+2. **Security, in this order** (login blocking first):
+   1. SEC.20: log every failed and locked login with its address.
+   2. SEC.1: the per-IP lockout in the control database, with SEC.21
+      (the per-username backoff moved into the same table).
+   3. SEC.23 (bug): a wrong current password on `/account` isn't
+      counted.
+   4. SEC.22: trusted-device cookie, so a lockout can't shut the real
+      admin out.
+   5. SEC.24 (common and breached password blocklist), then SEC.25
+      (check the hashing cost, re-hash on login).
+   6. SEC.26: two-factor sign-in for admins.
+   7. SEC.27: the fail2ban recipe in the deployment docs.
+
+   SEC.20 and SEC.23 are small and touch different files from the bugs,
+   so they can run alongside step 1 if Boss wants.
+3. **After that**, as before:
+   - MAP.30 (slab list beside a 3:4 map) and bookmarks (MAP.23, which
+     finishes the NAV page's map picks, MAP.22).
+   - Sector Map stars as points of light (MAP.15).
+   - Generation at scale (PERF.1): the per-sector density stats
+     (PERF.11) and speed records (PERF.10) feed the estimates (PERF.3,
+     PERF.9); the work queue (PERF.8) comes before parallel generation
+     (PERF.7).
+   - Admin editing (ADM.1) starts with the validate module (ADM.5);
+     user accounts (USR.1) start with roles (USR.2).
+   - View from a planet (VIEW.1) waits on a research session with Boss,
+     except the constellation names (VIEW.4).
 
 ## UX: Web pages
 
@@ -528,6 +559,9 @@ MAP.48 and MAP.37 below.
   Done in 5.51.0 (PR #81); kept as the parent of its bugs. The Sector Map
   is `html/lib/starmap.py` and `static/sectormap.js`.
   - [ ] **MAP.45 (bug) Rogue planets (and maybe other objects) drawn outside the sector's wireframe**
+    First in the bug order (see the plan at the top): if stored
+    positions are wrong, that needs to be known before the next full
+    regenerate.
     Boss (2026-10-01): "rogue planets (and
     probably other objects) are shown outside the wireframe of the
     sector, so one of them is wrong. when you tackle this one, do a test
@@ -1070,7 +1104,39 @@ MAP.48 and MAP.37 below.
 
 ## SEC: Security
 
+Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
+
+The login protection research of 2026-10-01 (what's built today, the
+gaps found, standard methods compared, and the recommended design) is in
+the design doc above; its section numbers are cited below. Order: SEC.20,
+SEC.1 with SEC.21, SEC.23, SEC.22, SEC.24, SEC.25, SEC.26, SEC.27.
+
+- [ ] **SEC.20 Log every failed and locked login with its address**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 1 and 3 (step 1)
+
+  Today nothing records a failed or locked login: `admin_audit_log` only
+  gets admin actions (`authz.py` calls `adminAuth.record_audit`), and a
+  wrong password on the web `/login` form answers 200 with an error
+  message (`web/admin_pages.py`, `login`), so Apache's access log can't
+  tell it from a page view. Done: every failed login, every lock (per
+  username today, per address with SEC.1) and every wrong current
+  password (SEC.23) writes one log line with the time, client address
+  (`request.remote_addr`) and username, and a row in `admin_audit_log`
+  (`login.failed`, `login.locked`; the username as typed, capped in
+  length; never the password); the `/login` form answers 401 for a wrong
+  password and 429 for a lock; the admin stats page shows recent
+  failures. The log line's format is fixed and documented, so SEC.27's
+  fail2ban filter can match it. Open questions: the debug log (only
+  written when `debug` is on) or a separate always-on auth log file, and
+  where it lives (next to the debug log, mode 0640)? How long audit rows
+  for failures are kept (a flood of failures shouldn't grow the table
+  without bound: prune after 90 days, or cap the count)?
+
 - [ ] **SEC.1 Lock out an IP address after failed logins**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 2)
+
   Boss: "3 failed
   login attempts triggers the script refusing to allow that IP address
   to login again for an increasing amount of time (Starts at 5 minutes,
@@ -1084,11 +1150,122 @@ MAP.48 and MAP.37 below.
   which already honors the `proxy_fix` setting); after 3 failures that
   IP gets 429 + `Retry-After` for 5 minutes, doubling on each further
   lockout up to 1 day; checked before the password, shared by all
-  workers, and logged to `admin_audit_log`. Open questions: does a
-  successful login reset the doubling? Do both limits stay (per IP and
-  per username), or does this replace the in-memory one? Should
-  localhost or a configured allowlist be exempt so an admin can't lock
-  themselves out, and should there be an admin "unlock" command?
+  workers, kept across restarts, and logged as SEC.20 describes. The
+  research adds these safeguards (default taken; Boss can change them):
+  - `127.0.0.1`, `::1` and addresses in a new config allowlist are never
+    locked, so the server's own admin can always get in.
+  - When the site sits behind a proxy whose address isn't unwrapped
+    (`proxy_fix` unset), every visitor shares one address and a lockout
+    would block everyone for up to a day. If most logins come from one
+    private or loopback address, the app warns at start-up and on the
+    admin stats page.
+  - A successful login clears that address's failure count; its
+    doubling level decays (halves after a day with no lockout) rather
+    than resetting, so one right guess doesn't wipe it.
+  - An admin page and a command-line tool list current lockouts and
+    lift one.
+  - Covers every place a password is checked: `/login`, the API login,
+    change-credentials (SEC.23), and later user logins, password resets
+    and invite links (USR.4, USR.5) and the second step of SEC.26.
+
+  Open questions: do both limits stay (per IP and per username)?
+  Default: yes, see SEC.21. IPv6: lock the single address or its /64
+  (one machine often holds a whole /64)? Default: the /64.
+
+  - [ ] **SEC.21 Keep the per-username backoff in the control database too**
+    Today `loginbackoff.py` keeps its counts in memory, so a restart
+    clears every lock and each worker process counts separately (the
+    deployment guides run one process today, so this only bites with
+    more). Done: the per-username counts and locks live in SEC.1's
+    table (or a sibling), shared by every worker and kept across
+    restarts, with the same numbers (10 free failures, 1 s doubling to
+    15 min) and the same rule that unknown usernames are counted like
+    real ones; `LOGIN_BACKOFF_ENABLED` still turns it off for tests.
+
+  - [ ] **SEC.22 A trusted-device cookie so lockouts can't shut out the real admin**
+
+    Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 4)
+
+    Anyone who knows an admin's username can keep it locked by failing
+    on purpose (15 minutes at a time today). OWASP's answer is a device
+    cookie. Done: a successful login sets a long-lived, signed device
+    cookie for that account (only its hash stored in the control
+    database); a login from a browser holding a valid device cookie for
+    that username skips the per-username lock (SEC.21), while the
+    per-address lockout (SEC.1) and the per-IP rate limit still apply;
+    changing credentials, or an admin action, revokes the account's
+    device cookies. Open questions: how long a device cookie lasts
+    (default 90 days); whether a device cookie also skips SEC.1's
+    per-address lock (default: no).
+
+- [ ] **SEC.23 (bug) Wrong current passwords on `/account` aren't counted**
+  `POST /api/auth/change-credentials` re-checks the current password,
+  but a wrong one isn't counted by the login backoff, and the web
+  `/account` form only falls under the shared page limit (300 a minute;
+  in-process API calls skip the API's default limits, `api/limiter.py`).
+  Someone holding a stolen session cookie can guess the password there
+  quickly. Done: a wrong current password counts as a failed login for
+  that username (SEC.21) and address (SEC.1), is refused while either is
+  locked, is logged (SEC.20), and the route gets the same explicit
+  per-IP limit as login (`auth.LOGIN_RATE_LIMIT`). Can ship before SEC.1
+  using the in-memory backoff.
+
+- [ ] **SEC.24 Refuse common and breached passwords**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), sections 2 and 3 (step 6)
+
+  Today a password only has to be 12 characters and differ from the
+  username (`adminAuth.MIN_PASSWORD_LENGTH`). NIST SP 800-63B-4 asks for
+  a check against breached, common and expected passwords. Done: setting
+  a password (change-credentials, the installer's first password, and
+  later USR.5's reset) refuses one on a bundled offline list of common
+  and breached passwords, plus a few site words ("planetgen", the
+  username), with a message saying why; no composition rules are added.
+  Open questions: minimum length 12 or NIST's 15 for a password used
+  alone? Default: 12 until SEC.26 exists. Offline list only, or also Have
+  I Been Pwned's k-anonymity API? Default: offline only. Which list and
+  its license (for example the top 100,000 of a public corpus)?
+
+- [ ] **SEC.25 Check the password hashing cost and re-hash on login**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 7)
+
+  Passwords use werkzeug's default (scrypt N = 2^15, r = 8, p = 1 in
+  werkzeug 3.1.9); OWASP suggests scrypt N = 2^17, argon2id, or
+  PBKDF2-SHA256 at 600,000 rounds. Done: time a hash on a modest server;
+  if well under about 250 ms, pick stronger settings in one place in
+  `adminAuth.py` (minding memory: scrypt N = 2^17 needs 128 MiB per
+  login, times the five worker threads); a successful login re-hashes a
+  stored hash made with older settings. Open question: is a new
+  dependency (argon2-cffi) acceptable, or stay with werkzeug's built-ins?
+  Default: werkzeug's built-ins.
+
+- [ ] **SEC.26 Two-factor sign-in (TOTP) for admins**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 8)
+
+  The strongest single defense against a guessed or leaked password.
+  Done: an admin can turn on a time-based one-time code (any
+  authenticator app; QR code on the account page), gets single-use
+  recovery codes (stored hashed), and then signs in with password plus
+  code; the code step is throttled and logged like the password step;
+  API keys are unaffected. Open questions: optional or required for
+  admins (default: optional now, required for the Owner once USR.2
+  exists)? Can an admin reset another admin's second factor, or only the
+  command line? Is "remember this device for 30 days" (tied to SEC.22's
+  cookie) allowed?
+
+- [ ] **SEC.27 A fail2ban recipe in the deployment docs**
+
+  Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md), section 3 (step 9)
+
+  Done: `docs/deployment/` gets an optional Linux section with a
+  fail2ban filter matching SEC.20's log line and a jail that bans an
+  address at the firewall after repeated failures (ignoring the server's
+  own addresses and SEC.1's allowlist), and how to check and lift a ban;
+  a short note on Apache-level options (mod_evasive, mod_security) and
+  why they're optional. Nothing is installed by `install.sh`. Waits on
+  SEC.20.
 
 ## USR: User accounts
 
@@ -1108,7 +1285,8 @@ MAP.48 and MAP.37 below.
   Login protection already exists per username
   (`src/html/api/loginbackoff.py`, PR #131) and is planned per IP
   address (SEC.1); both must cover user logins, password resets and
-  invite links too.
+  invite links too, as must SEC.20's logging and SEC.26's second
+  factor.
 
   - [ ] **USR.2 Accounts with roles: user, admin and Owner**
     Boss: "Admin can
