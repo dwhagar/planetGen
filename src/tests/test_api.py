@@ -942,6 +942,99 @@ def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
         conn.close()
 
 
+def _generated_sectors(mysql_config, luminosities):
+    """One grid-placed sector per entry of `luminosities` along +X, 4 pc
+    apart, each holding one single star of that luminosity (solar)."""
+    from stellarObjects import physical_constants
+
+    sector_ids = [
+        _place_sector(mysql_config, f"Lit {i}", (2.0 + 4.0 * i, 2.0, 0.0), address=(i, 0, 0))
+        for i in range(len(luminosities))
+    ]
+    conn = _db.get_connection(mysql_config)
+    try:
+        for sector_id, lum in zip(sector_ids, luminosities):
+            conn.execute(
+                "UPDATE stars SET luminosity_w = ? WHERE star_system_id IN "
+                "(SELECT id FROM star_systems WHERE sector_id = ?)",
+                (lum * physical_constants.SOLAR_LUMINOSITY, sector_id),
+            )
+        conn.commit()
+        star_ids = [
+            conn.execute(
+                "SELECT st.id FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?",
+                (sector_id,),
+            ).fetchone()["id"]
+            for sector_id in sector_ids
+        ]
+    finally:
+        conn.close()
+    return sector_ids, star_ids
+
+
+def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql_config, monkeypatch):
+    """MAP.51: a tile lists its generated systems' stars at or above its
+    floor, most luminous first, placed at sector center plus system
+    offset; a star also pre-placed as a bright star isn't listed twice;
+    past the sector budget only every k-th sector is read."""
+    import zlib
+
+    lums = [0.002, 0.3, 40.0, 1.0, 0.01]
+    sector_ids, star_ids = _generated_sectors(mysql_config, lums)
+    lo, hi = (0.0, 0.0, -5.0), (64.0, 64.0, 5.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        every = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
+        assert [s["id"] for s in every] == [star_ids[i] for i in (2, 3, 1, 4, 0)]
+        top = every[0]
+        assert top["luminosity_sol"] == pytest.approx(40.0, rel=1e-3)
+        assert (top["x"], top["y"], top["z"]) == pytest.approx((10.0, 2.0, 0.0), abs=0.01)
+        assert (top["ring_index"], top["layer_index"], top["ring_slot_index"]) == (2, 0, 0)
+        assert top["radius_sol"] > 0 and top["temperature_k"] > 0 and top["system_id"] and top["name"]
+        floored = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.25, len(lums))
+        assert [s["id"] for s in floored] == [star_ids[i] for i in (2, 3, 1)]
+        assert len(queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums), limit=2)) == 2
+        assert queryDb.galaxy_generated_stars_in_box(conn, (100.0, 0.0, -5.0), (164.0, 64.0, 5.0), 0.0, 1) == []
+        assert queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 0) == []
+
+        monkeypatch.setattr(queryDb, "GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET", 2)
+        sampled = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
+        assert {s["id"] for s in sampled} == {
+            star for sector, star in zip(sector_ids, star_ids) if zlib.crc32(str(sector).encode()) % 3 == 0
+        }
+        monkeypatch.undo()
+
+        system_id = top["system_id"]
+        _db.insert_bright_stars(conn, [_bright_row((10.0, 2.0, 0.0), 600.0, 4.0)])
+        conn.execute("UPDATE bright_stars SET star_system_id = ?", (system_id,))
+        conn.commit()
+        assert star_ids[2] not in [s["id"] for s in queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 5)]
+    finally:
+        conn.close()
+
+
+def test_generated_star_floor_drops_fourfold_per_finer_tile_level():
+    from stellarObjects.galaxyViewport import TILE_MAX_LEVEL
+
+    assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL) == 0.0
+    assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL - 1) == pytest.approx(queryDb.GENERATED_STAR_FLOOR_SOL_AT_32_PC)
+    for level in range(3, TILE_MAX_LEVEL - 1):
+        assert queryDb.generated_star_floor_sol(level) == pytest.approx(4 * queryDb.generated_star_floor_sol(level + 1))
+    assert queryDb.generated_star_floor_sol(0) is None
+
+
+def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
+    """The finest tile lists every generated star, a coarser one only the
+    brighter ones, and a galaxy-sized one none (the bright stars cover it)."""
+    _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0])
+    finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
+    mid = tiles_intersecting_sphere(6, (2.0, 2.0, 0.0), 0.0)[0]
+    tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{mid},0/0/0/0").get_json()["tiles"]
+    assert [s["id"] for s in tiles[finest]["generated"]] == [star_ids[1], star_ids[0]]
+    assert [s["id"] for s in tiles[mid]["generated"]] == [star_ids[1]]
+    assert tiles["0/0/0/0"]["generated"] == []
+
+
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:

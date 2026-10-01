@@ -252,6 +252,21 @@ For example (a real chain under the default galaxy): Galaxy, Quarter
 Slab -1, then inside block 63·115 Slabs -7 to -5, Arc, Slab -7, then
 inside block 568·1036 Layer -20, and the sector.
 
+Two shortcuts (Boss, 2026-10-01):
+
+- **A block one sector tall shows its sectors.** A level-27 block whose
+  sectors all lie in one layer (at the disk's top and bottom faces) skips
+  its level-3 blocks: entering it shows its sectors at once, narrowed by
+  arcs (galaxystages.thinSectors). Their generated counts come from each
+  level-3 child that holds any.
+- **The last cube is picked in 3D.** Once the view is the sectors of a
+  level-3 block across several layers (27 at most), it is shown from a
+  fixed 55° slant with its layers pulled two sector-heights apart, so
+  every sector can be hovered (the others fade) and clicked on the map.
+  The strip still offers the layers. Clicking a sector moves on to its
+  own layer with it selected, or opens it when it is generated. Nothing
+  rotates.
+
 The admin Generate tools (section 6) appear once the view is one layer
 of a level-3 block.
 

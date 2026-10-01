@@ -44,6 +44,13 @@ const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
 const DRAG_CLICK_PX = 6;
+// A small cube of sectors (a level-3 block, 27 at most) is shown from a
+// fixed slant with its layers pulled apart, so each sector can be picked
+// on the map (Boss, 2026-10-01). Nothing rotates. The tilt from straight
+// down, and the gap between layers in sector heights.
+const CUBE_MAX_SECTORS = 27;
+const CUBE_TILT = (55 * Math.PI) / 180;
+const CUBE_LAYER_GAP = 2;
 const TWO_PI = 2 * Math.PI;
 
 export function createStageView(host) {
@@ -113,11 +120,32 @@ export function createStageView(host) {
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(sector.ring + "/" + sector.slot + "/" + sector.layer, sector);
         });
-        entry.value = { generated: generated, sectors: sectors };
-        entry.ready = true;
-        return entry.value;
-      }, function () {
-        entry.value = { generated: new Map(), sectors: new Map(), failed: true };
+        entry.value = { generated: generated, sectors: sectors, sectorGenerated: new Map() };
+        payload.sectors && payload.sectors.forEach(function (sector) {
+          entry.value.sectorGenerated.set(sector.ring + "/" + sector.slot + "/" + sector.layer, 1);
+        });
+        // A thin block's view is its sectors (galaxystages.thinSectors):
+        // their own counts come from each level-3 child holding any.
+        if (!at || !S.thinSectors(at, getOutline(), edgePc)) {
+          entry.ready = true;
+          return entry.value;
+        }
+        const filled = (payload.children || []).filter(function (child) { return child.generated > 0; });
+        return Promise.all(filled.map(function (child) {
+          const query = S.stageQuery({ at: { m: 3, ring: child.ring, wedge: child.wedge, slab: child.slab }, picks: [] });
+          return host.fetchStage(query).then(function (inner) {
+            (inner.sectors || []).forEach(function (sector) {
+              const key = sector.ring + "/" + sector.slot + "/" + sector.layer;
+              sectors.set(key, sector);
+              entry.value.sectorGenerated.set(key, 1);
+            });
+          }, function () { /* that child's sectors read as not generated */ });
+        })).then(function () {
+          entry.ready = true;
+          return entry.value;
+        });
+      }).then(null, function () {
+        entry.value = { generated: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -140,7 +168,9 @@ export function createStageView(host) {
 
   function generatedOf(block, data) {
     if (!data) return 0;
-    return data.generated.get(block.ring + "/" + block.wedge + "/" + block.slab) || 0;
+    const key = block.ring + "/" + block.wedge + "/" + block.slab;
+    if (block.m === 1) return data.sectorGenerated.get(key) || 0;
+    return data.generated.get(key) || 0;
   }
 
   function sumOf(blocks, data) {
@@ -158,6 +188,13 @@ export function createStageView(host) {
   // (no shape yet), only blocks holding generated sectors.
   function choicesOf(r, data) {
     let options = r.kind ? r.options : [{ pick: null, blocks: r.view.blocks, a0: r.view.a0, a1: r.view.a1 }];
+    if (isCube(r)) {
+      // Every sector is a choice of its own; the strip still offers the
+      // layers (r.options).
+      options = r.view.blocks.map(function (block) {
+        return { pick: null, blocks: [block], a0: r.view.a0, a1: r.view.a1 };
+      });
+    }
     if (getOutline().shapeless) {
       options = options.map(function (o) {
         return Object.assign({}, o, { blocks: o.blocks.filter(function (b) { return generatedOf(b, data) > 0; }) });
@@ -168,6 +205,25 @@ export function createStageView(host) {
 
   function isSectorView(r) {
     return !!(r && r.view && r.view.blocks.length && r.view.blocks[0].m === 1);
+  }
+
+  // A view of sectors across several layers, few enough to show as a
+  // cube and pick one by one.
+  function isCube(r) {
+    return !!(r && r.kind === "layer" && isSectorView(r) && r.view.blocks.length <= CUBE_MAX_SECTORS);
+  }
+
+  // How far a block is lifted in the cube (0 elsewhere): its layer's
+  // distance from the cube's middle layer, spread by CUBE_LAYER_GAP.
+  function liftOf(r, block) {
+    if (!isCube(r)) return 0;
+    let lo = Infinity;
+    let hi = -Infinity;
+    r.view.blocks.forEach(function (b) {
+      lo = Math.min(lo, b.slab);
+      hi = Math.max(hi, b.slab);
+    });
+    return (block.slab - (lo + hi) / 2) * CUBE_LAYER_GAP * edgePc;
   }
 
   function isWholeGalaxy(r) {
@@ -224,10 +280,12 @@ export function createStageView(host) {
         group.add(mesh);
         meshes.push(mesh);
       });
+      group.position.z = liftOf(r, option.blocks[0]);
       root.add(group);
       groups.push({ option: option, meshes: meshes, fade: 1 });
     });
     host.scene.add(root);
+    root.updateMatrixWorld(true);
     return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data };
   }
 
@@ -287,6 +345,17 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
+    if (isCube(r)) {
+      blocks.forEach(function (block) {
+        z0 = Math.min(z0, block.bounds.z0 + liftOf(r, block));
+        z1 = Math.max(z1, block.bounds.z1 + liftOf(r, block));
+      });
+      return {
+        target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
+        dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),
+        theta: theta, phi: CUBE_TILT,
+      };
+    }
     return {
       target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
       dist: (S.FIT_MARGIN * fp.radius) / Math.tan(fovHalf()) + (z1 - z0) / 2,
@@ -319,7 +388,7 @@ export function createStageView(host) {
           target: [p.center[0], p.center[1], from.target[2] + (to.target[2] - from.target[2]) * e],
           dist: p.w / (2 * tanHalf),
           theta: from.theta + turn * e,
-          phi: to.phi,
+          phi: from.phi + (to.phi - from.phi) * e,
         };
         applyView();
         if (progress) progress(t);
@@ -488,7 +557,7 @@ export function createStageView(host) {
   // -1. Layers are picked from the strip, not the map: from above, one
   // covers the others.
   function optionAt(clientX, clientY) {
-    if (!display || !resolved || resolved.kind === "layer") return -1;
+    if (!display || !resolved || (resolved.kind === "layer" && !isCube(display.resolved))) return -1;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return -1;
     const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
@@ -544,20 +613,32 @@ export function createStageView(host) {
   }
 
   // The hovered choice stays as it is and the others fade (a layer
-  // hovered in the strip too); a choice on the map gets an outline.
+  // hovered in the strip too: in the cube, its sectors stay); a choice on
+  // the map gets an outline.
   function applyHover() {
     if (!display) return;
-    const index = hover ? hover.option : -1;
+    const index = hover && hover.option != null ? hover.option : -1;
+    const layer = hover && hover.layer ? hover.layer : null;
     display.groups.forEach(function (group, n) {
-      group.fade = index >= 0 && n !== index ? OTHER_FADE : 1;
+      const slab = group.option.blocks[0].slab;
+      const lit = layer ? slab >= layer.lo && slab <= layer.hi : index < 0 || n === index;
+      group.fade = lit ? 1 : OTHER_FADE;
     });
     if (!animation) setDisplayFade(display, 1);
-    if (index >= 0 && resolved.kind !== "layer" && display.options[index]) {
-      outlineSpan(spanOf(display.options[index].blocks, (display.options[index].a0 + display.options[index].a1) / 2));
+    const option = index >= 0 ? display.options[index] : null;
+    if (option && (resolved.kind !== "layer" || isCube(resolved))) {
+      const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
+      if (option.blocks.length === 1) {
+        const b = option.blocks[0].bounds;
+        span.t0 = b.t0;
+        span.t1 = b.t1;
+      }
+      span.z1 += liftOf(resolved, option.blocks[0]);
+      outlineSpan(span);
     } else {
       clearOutline();
     }
-    markStripRow(index);
+    markStripRow(layer ? layer : option && isCube(resolved) ? { lo: option.blocks[0].slab, hi: option.blocks[0].slab } : null);
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -581,7 +662,7 @@ export function createStageView(host) {
   function tooltipAtOption(index) {
     const option = display.options[index];
     const fp = S.footprint(option.blocks);
-    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1).project(camera);
+    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1 + liftOf(resolved, option.blocks[0])).project(camera);
     const rect = canvasEl.getBoundingClientRect();
     showTooltip(optionText(index), rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
   }
@@ -686,6 +767,10 @@ export function createStageView(host) {
   // A stage's own hint in the info panel.
   function hintFor(r) {
     if (!r || !r.kind) return "";
+    if (isCube(r)) {
+      return "Click a sector to open it (a sector that isn't generated yet shows where it is"
+        + (host.canGenerate ? " and how to generate it" : "") + "), or pick a layer from the list to see just that one.";
+    }
     if (r.kind === "layer") {
       return "Pick a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) from the list beside the map.";
     }
@@ -710,6 +795,16 @@ export function createStageView(host) {
         return;
       }
       selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
+      if (isCube(resolved)) {
+        // Picked in the cube: on to that sector's own layer, selected.
+        const layerPick = resolved.options.find(function (o) {
+          return block.slab >= o.pick.lo && block.slab <= o.pick.hi;
+        });
+        if (layerPick) {
+          go({ at: stage.at, picks: stage.picks.concat([layerPick.pick]) }, { keepSector: true });
+          return;
+        }
+      }
       setHover({ option: index, sticky: true });
       showSectorInfo(block);
       renderCrumbs();
@@ -801,14 +896,23 @@ export function createStageView(host) {
     event.preventDefault();
     if (animation || !display || !display.options.length) return;
     const options = display.options;
-    const current = hover ? hover.option : -1;
+    const current = hover && hover.option != null ? hover.option : -1;
     if (key === "Enter") {
       if (current >= 0) act(current);
+      else if (hover && hover.layer) go({ at: stage.at, picks: stage.picks.concat([hover.layer]) });
       return;
     }
     let next = -1;
     if (current < 0) {
       next = 0;
+    } else if (isCube(resolved) && (key === "ArrowUp" || key === "ArrowDown")) {
+      // The same column, one layer up or down.
+      const here = options[current].blocks[0];
+      const slab = here.slab + (key === "ArrowUp" ? 1 : -1);
+      next = options.findIndex(function (o) {
+        const b = o.blocks[0];
+        return b.ring === here.ring && b.wedge === here.wedge && b.slab === slab;
+      });
     } else if (resolved.kind === "layer" || key === "ArrowLeft" || key === "ArrowRight") {
       const forward = key === "ArrowRight" || key === "ArrowUp";
       next = (current + (forward ? 1 : -1) + options.length) % options.length;
@@ -874,14 +978,18 @@ export function createStageView(host) {
     if (!box || !resolved || !resolved.view) return;
     box.textContent = "";
     const heading = document.createElement("h3");
-    heading.textContent = S.slabNoun(stage.at) + "s";
+    // A thin block's view is sectors, so its "slabs" are sector layers.
+    const noun = isSectorView(resolved) ? "Layer" : S.slabNoun(stage.at);
+    heading.textContent = noun + "s";
     box.appendChild(heading);
     const slabs = Array.from(new Set(resolved.view.blocks.map(function (b) { return b.slab; }))).sort(function (p, q) { return p - q; });
     if (resolved.kind !== "layer" || !display || display.resolved !== resolved) {
       const note = document.createElement("p");
       note.className = "galaxy-slab-note";
       if (slabs.length) {
-        note.textContent = "Showing " + S.pickLabel({ kind: "layer", lo: slabs[0], hi: slabs[slabs.length - 1] }, stage.at, resolved.view).toLowerCase()
+        const lo = slabs[0];
+        const hi = slabs[slabs.length - 1];
+        note.textContent = "Showing " + (lo === hi ? noun.toLowerCase() + " " + lo : noun.toLowerCase() + "s " + lo + " to " + hi)
           + (resolved.kind === "layer" ? "." : "; pick an arc on the map.");
       }
       box.appendChild(note);
@@ -889,14 +997,16 @@ export function createStageView(host) {
     }
     const data = display.data;
     const list = document.createElement("ul");
-    display.options.map(function (option, index) { return index; }).reverse().forEach(function (index) {
-      const option = display.options[index];
+    resolved.options.map(function (option, index) { return index; }).reverse().forEach(function (index) {
+      const option = resolved.options[index];
       const sum = sumOf(option.blocks, data);
+      const pick = option.pick;
       const item = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
       button.className = "galaxy-slab-row";
-      button.dataset.option = String(index);
+      button.dataset.lo = String(pick.lo);
+      button.dataset.hi = String(pick.hi);
       const name = document.createElement("span");
       name.textContent = S.pickLabel(option.pick, stage.at, resolved.view);
       const bar = document.createElement("span");
@@ -910,22 +1020,24 @@ export function createStageView(host) {
       button.appendChild(name);
       button.appendChild(bar);
       button.appendChild(count);
-      button.setAttribute("aria-label", optionText(index));
-      button.disabled = !pickable(index);
-      button.addEventListener("mouseenter", function () { if (!animation) setHover({ option: index }); });
+      button.setAttribute("aria-label", layerText(pick) + ", " + S.formatInt(sum.generated)
+        + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated");
+      button.disabled = generatedOnly && !(sum.generated > 0);
+      button.addEventListener("mouseenter", function () { if (!animation) setHover({ layer: pick }); });
       button.addEventListener("mouseleave", function () { if (hover && !hover.sticky) setHover(null); });
-      button.addEventListener("focus", function () { if (!animation) setHover({ option: index, sticky: true }); });
-      button.addEventListener("click", function () { act(index); });
+      button.addEventListener("focus", function () { if (!animation) setHover({ layer: pick, sticky: true }); });
+      button.addEventListener("click", function () { go({ at: stage.at, picks: stage.picks.concat([pick]) }); });
       item.appendChild(button);
       list.appendChild(item);
     });
     box.appendChild(list);
   }
 
-  function markStripRow(index) {
+  // Marks the strip row holding `layer` ({lo, hi}, or null for none).
+  function markStripRow(layer) {
     if (!els.slabs) return;
     els.slabs.querySelectorAll(".galaxy-slab-row").forEach(function (row) {
-      row.classList.toggle("is-hovered", index >= 0 && row.dataset.option === String(index));
+      row.classList.toggle("is-hovered", !!layer && Number(row.dataset.lo) <= layer.lo && Number(row.dataset.hi) >= layer.hi);
     });
   }
 
