@@ -245,6 +245,35 @@ stages themselves don't need it.
     neighborhood generate and item 75's NAV picking, which may want an
     arbitrary point?
 
+101. [ ] **Bug: "Show on Galaxy Map" should open at the sector, and the
+    map needs its own Back and Forward.** Boss (2026-10-01): "when the
+    user clicks "Show on Galaxy" It should be zoomed in to the sector
+    level of the slice that we can see that sector, and back and forward
+    buttons to travel ones own history on the map display". Today
+    `/galaxy?sector=<designation>` already opens the sector's stage 8
+    (`galaxystages.parseStageQuery`), but not every "Show on Galaxy
+    Map" link uses it: the NAV result's link opens the course overlay
+    (`/galaxy?course=<from>,<to>`, item 79) over the galaxy, and the
+    sector and system pages still link to the Quadrant table (item 78).
+    The map has no Back or Forward of its own; moving between stages
+    relies on the breadcrumb and the browser's Back button. Done:
+    - Every "Show on Galaxy Map" link (sector, system and search pages,
+      the NAV result) opens the map zoomed in to the sector level of
+      the slice holding that sector, with the sector in view and
+      highlighted.
+    - The map display has Back and Forward buttons that step through
+      the user's own history on the map (each stage or position they
+      visited), separate from but consistent with the browser's
+      history and the stage URLs.
+    This follows the wedge, slice and block drill-down of item 100
+    (the "slice" here is item 100's slice), and folds in item 78's links.
+    Open questions: for the NAV result, which sector is shown (the
+    start, the destination, or a view that fits both, as item 79's
+    course does today)? Is the map's history its own list or the
+    browser's history (`history.pushState` per stage) with the buttons
+    calling `history.back()`/`forward()`? Does it survive a page reload
+    or a visit to a sector page and back? How far back does it go?
+
 ### Web interface (`src/html/web/`, `src/html/static/`)
 
 Web workstream. Boss's UX reference for both items below is
