@@ -48,7 +48,8 @@ renumber when items are added or finished.
    and speeds (33-34), and facilities (35-36). 28 and 31 (classes)
    shipped in schema v38, 29 (containment) in v39, 30 (naming) in v40,
    26 (nearest systems) in v41 and 35 (facilities) in v42; 32 (the
-   correlative update moves everything) shipped with them.
+   correlative update moves everything) and 36 (placing facilities
+   from the web) shipped with them.
 - Each change site in the code carries a `TODO(<area> #N)` comment
    naming its item here (areas: distances, system-list, site-header,
    search, phenomena, galaxy-map, sector-map, orbits, nav, facilities,
@@ -293,28 +294,6 @@ for a mouse; spacing and type sized with `clamp()`.
       - The zero meridian "toward a reference quasar": here the quasar
         sits at the galactic center, so it can't set +X. Default taken:
         keep the galaxy's existing +X axis (ring slot 0).
-
-### Facilities (new)
-
-36. [ ] **Place facilities from the web interface.** Boss: "The web
-    interface should have a way to select within a star system where a
-    facility goes in orbit around the star or around the planet, which
-    will have calculated distances and orbital speeds the same way
-    everything else does, based on the approximate mass." An admin form
-    on the system page (`web/system_pages.system`), showing the
-    calculated distance and speed before saving; facilities listed on
-    the system page and drawn on the System Map; stand-alone ones on the
-    sector page.
-    - The database side shipped in schema v42 (2026-09-30): the
-      `facilities` table, the rules in `program_constants.FACILITY_RULES`
-      (`stellarObjects/facilities.py`), `_db.add_facility`, and the API:
-      `POST /api/facilities`, `DELETE /api/facilities/<id>`,
-      `GET /api/facilities/<id>`, `GET /api/systems/<id>/facilities`,
-      `GET /api/sectors/<id>/facilities` and
-      `GET /api/facilities/orbit?host_type=&host_id=&distance_km=` (the
-      orbit to show before saving). See `docs/api.md`.
-    - A colony makes its world inhabited: OR
-      `queryDb.colonized_body_ids` into `queryDb._with_life_fields`.
 
 ### Web API (`src/html/api/routes.py`)
 

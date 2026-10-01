@@ -7,8 +7,9 @@ The system and phenomenon pages (moved from the CGI `system.py`,
 - `/system/<id>`: one star system -- the system map, the expandable body
   list with each body's generated description, the Wikitext/Markdown
   code views (`?code=wikitext|markdown`), the Stars/Planets/Belts/Comets
-  tables, and for an admin an "Upload to Wiki" form (POST, CSRF-checked,
-  then redirected back to the GET page).
+  tables, the system's facilities, and for an admin an "Upload to Wiki"
+  form (POST, CSRF-checked, then redirected back to the GET page) and the
+  facility form and Remove buttons (`web/system_facilities.py`).
 - `/phenomena`: every exotic phenomenon, paged with `?page=N`.
 - `/phenomenon/<type>/<id>`: one phenomenon's data and its AU-scale
   diagram.
@@ -34,6 +35,7 @@ from classref import ROGUE_MASS_CLASS_NAMES
 from stellarObjects.program_constants import NEBULA_CLASSES
 
 from . import bp
+from . import system_facilities
 from .class_pages import class_url
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 from .nav_page import endpoint, nav_url
@@ -161,16 +163,13 @@ def _wiki_upload_options(system, wiki_config):
             if wiki_config.get(value) and not uploaded[value]]
 
 
-# TODO(facilities #36): an admin gets a way, on this page, to add a
-# facility and pick where it goes within the system: in orbit around the
-# star or around a planet (distance chosen, orbital speed calculated from
-# the host's approximate mass like everything else), on a terrestrial world
-# (a colony), in an asteroid belt; list facilities on this page and draw
-# them on the system map (lib/systemmap.py).
 @bp.route("/system/<int:system_id>", methods=["GET", "POST"])
 def system(system_id):
-    """One star system. POST is the admin "Upload to Wiki" form."""
-    if request.method == "POST":
+    """One star system. A POST with a `facility_action` is the admin
+    facility form (`web/system_facilities.py`); any other POST is the
+    admin "Upload to Wiki" form."""
+    facility_action = request.form.get("facility_action") if request.method == "POST" else None
+    if request.method == "POST" and facility_action not in system_facilities.ACTIONS:
         return _upload_to_wiki(system_id)
 
     db = db_name()
@@ -179,6 +178,12 @@ def system(system_id):
         code_fmt = None
 
     detail = apiclient.get_system(db, system_id)
+    facilities = apiclient.get_system_facilities(db, system_id)
+    facility_form = None
+    if facility_action:
+        facility_form = system_facilities.handle_post(system_id, detail, facilities)
+        if not isinstance(facility_form, dict):
+            return facility_form
     sections = apiclient.get_system_sections(db, system_id)
     code_content = apiclient.get_system_text(db, system_id, code_fmt)["content"] if code_fmt else None
 
@@ -190,7 +195,8 @@ def system(system_id):
     inside = detail.get("inside")
     map_html = ""
     if detail["stars"]:
-        map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
+        map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
+                                           facilities=facilities)
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links = nav_links("system", system_id) if detail["sector_id"] is not None else None
@@ -212,10 +218,18 @@ def system(system_id):
         code_content=code_content,
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
-        system_list_html=trusted_html(system_list_html(detail, sections, class_url)),
+        system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities)),
         stars_html=trusted_html(stars_html(detail["stars"], class_url)),
         wiki_options=wiki_options,
         wiki_status=wiki_status,
+        admin=admin,
+        facilities=system_facilities.facility_rows(facilities),
+        facility_status=system_facilities.MESSAGES.get(request.args.get("facility")) if admin else None,
+        facility_form=facility_form or {"fields": {}, "errors": [], "preview": None},
+        facility_hosts=system_facilities.host_options(detail) if admin else [],
+        facility_placements=system_facilities.PLACEMENT_OPTIONS,
+        facility_kinds=system_facilities.kind_options(),
+        facility_units=tuple(system_facilities.DISTANCE_UNITS),
     )
 
 

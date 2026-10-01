@@ -739,6 +739,101 @@ def _belt_ring_svg(cx, cy, radius_px, band_px, belt):
     )
 
 
+# --- Facilities (schema v42) -------------------------------------------------
+#
+# A facility is a small diamond at its host: an orbital one on a dashed
+# orbit around its star (on the scene's own log scale) or just outside its
+# planet's or moon's marker (a facility's orbit is far too small to show on
+# the system's scale, so it hugs its host the way the host's real orbit
+# would look from that far out), a terrestrial one on its world's rim, and
+# a belt one on the belt's ring. Its angle is its stored `orbit_phase_deg`;
+# a facility with none gets a fixed angle from its id. Clicking one fills
+# the info panel from its `data-*` attributes like any other marker; it is
+# not a `.sysmap-body`, so it gets no 3D sphere and isn't measurable.
+
+_FACILITY_HALF_PX = 4.5
+_FACILITY_HOST_GAP_PX = 6.0
+
+
+def _facility_angle_deg(facility):
+    phase = facility.get("orbit_phase_deg")
+    return phase if phase is not None else (facility["id"] * 137.5) % 360.0
+
+
+def _facility_point(anchor_x_px, anchor_y_px, radius_px, facility):
+    theta = math.radians(_facility_angle_deg(facility))
+    return anchor_x_px + radius_px * math.cos(theta), anchor_y_px - radius_px * math.sin(theta)
+
+
+def _facility_marker_svg(cx, cy, facility):
+    """One facility's clickable diamond."""
+    kind_label = facility["kind"].replace("-", " ").capitalize()
+    orbital = facility.get("orbit_distance_km") is not None
+    attrs = {
+        "kind": "facility",
+        "name": facility["name"],
+        "facilitykind": kind_label,
+        "host": facility.get("host_name") or facility["host_type"].replace("_", " ").capitalize(),
+        "placement": {"terrestrial": "On the surface", "orbital": "In orbit", "asteroid": "Among the asteroids"}
+        .get(facility["placement"], facility["placement"]),
+        "distance": format_distance_km(facility["orbit_distance_km"]) if orbital else None,
+        "period": format_period(facility["orbit_period_years"])
+        if orbital and facility.get("orbit_period_years") is not None else None,
+        "speed": f'{facility["orbital_speed_kms"]:,.2f} km/s'
+        if orbital and facility.get("orbital_speed_kms") is not None else None,
+    }
+    h = _FACILITY_HALF_PX
+    points = f"{cx:.1f},{cy - h:.1f} {cx + h:.1f},{cy:.1f} {cx:.1f},{cy + h:.1f} {cx - h:.1f},{cy:.1f}"
+    label = f'{facility["name"]} ({kind_label})'
+    return (
+        f'<g class="sysmap-facility sysmap-facility-{esc(facility["kind"])}" tabindex="0" role="button"'
+        f'{_data_attrs(attrs)} aria-label="{esc(label)}">'
+        f'<polygon points="{points}"></polygon><title>{esc(label)}</title></g>'
+    )
+
+
+def _facility_orbit_svg(cx, cy, radius_px):
+    return (f'<circle class="sysmap-facility-orbit" cx="{cx:.1f}" cy="{cy:.1f}" '
+            f'r="{radius_px:.1f}"></circle>')
+
+
+def _facilities_svg(facilities, hosts, scale):
+    """
+    Every facility whose host is drawn in this scene.
+
+    Args:
+        facilities (list[dict]): `GET /api/systems/<id>/facilities` items.
+        hosts (dict): `{(host_type, host_id): (cx, cy, r_px, centered)}`
+            for each marker drawn in this scene, `r_px` its drawn radius
+            (a belt's ring radius). `centered` marks the host the scene is
+            built around (a star, or a moon scene's planet): its orbital
+            facilities go on the scene's own log scale.
+        scale (tuple): The scene's `(lo_km, hi_km)`.
+
+    Returns:
+        tuple[str, str]: `(orbit lines, markers)`.
+    """
+    orbits, markers = [], []
+    for facility in facilities or ():
+        host = hosts.get((facility["host_type"], facility["host_id"]))
+        if host is None:
+            continue
+        cx, cy, r_px, centered = host
+        if facility["host_type"] == "asteroid_belt":
+            radius_px = r_px
+        elif facility["placement"] != "orbital":
+            radius_px = r_px
+        elif centered:
+            radius_px = max(_radial_px(facility["orbit_distance_km"], *scale), r_px + _FACILITY_HOST_GAP_PX)
+            orbits.append(_facility_orbit_svg(cx, cy, radius_px))
+        else:
+            radius_px = r_px + _FACILITY_HOST_GAP_PX
+            orbits.append(_facility_orbit_svg(cx, cy, radius_px))
+        fx, fy = _facility_point(cx, cy, radius_px, facility)
+        markers.append(_facility_marker_svg(fx, fy, facility))
+    return "".join(orbits), "".join(markers)
+
+
 def _binary_star_positions_km(system, stars):
     """
     Splits `star_systems.binary_mutual_position_x/y/z_km` (the secondary's
@@ -841,7 +936,8 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
     return orbits_svg + bodies_svg
 
 
-def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacle=None):
+def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacle=None,
+                    facilities=None):
     """
     Builds one star-centered scene: the given `star` fixed at this scene's
     own origin with its own `planets`/`belts` arranged around it on their
@@ -883,6 +979,9 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             `label_rect` (a `_star_label_rect`) is optional within this
             dict -- omitted when the obstacle has no label of its own to
             avoid.
+        facilities (list[dict], optional): The system's facilities; those
+            on this star, its planets and its belts are drawn
+            (`_facilities_svg`).
 
     Returns:
         str: A complete `<svg class="sysmap-svg">` scene.
@@ -916,13 +1015,18 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx_km, ly_km)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
+    facility_hosts = {("star", star["id"]): (_CENTER_PX, _CENTER_PX, star_r, True)}
     for belt in belts:
         r_px = _radial_px(belt["distance_km"], lo, hi)
         band_px = _belt_band_px(belt, r_px)
         belt_svgs.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
+        facility_hosts[("asteroid_belt", belt["id"])] = (_CENTER_PX, _CENTER_PX, r_px, False)
 
     _relax_markers(markers, _MARKER_GAP_PX)
     planet_markers = [m for m in markers if m["type"] == "planet"]
+    for marker in planet_markers:
+        facility_hosts[("planet", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
+    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
 
     star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs)
 
@@ -946,10 +1050,10 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
 
     return _scene_svg_pair(
         scene_id, aria_label, hidden,
-        "".join(orbit_paths),
+        "".join(orbit_paths) + facility_orbits,
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svg/body_svgs) had.
-        f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}',
+        f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}{facility_markers}',
         scale=(lo, hi),
     )
 
@@ -988,7 +1092,7 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
     return attrs
 
 
-def _render_wide_binary_scenes(system, stars, planets, belts):
+def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
     """
     Builds a wide (S-type) binary's two scenes: the primary's own "system"
     scene (default-visible) and the secondary's own scene, reached by
@@ -1064,18 +1168,18 @@ def _render_wide_binary_scenes(system, stars, planets, belts):
         "system", f'System map for {system["name"]}', False,
         primary, primary_planets, primary_belts,
         _wide_binary_star_attrs(system, primary, is_primary=True),
-        extra_svg=companion_marker_svg, extra_obstacle=companion_obstacle,
+        extra_svg=companion_marker_svg, extra_obstacle=companion_obstacle, facilities=facilities,
     )
     secondary_attrs = _wide_binary_star_attrs(system, secondary, is_primary=False)
     secondary_attrs["self"] = "true"
     secondary_scene = _star_scene_svg(
         secondary_scene_id, f'Planets of {_star_label(system, secondary)}', True,
-        secondary, secondary_planets, secondary_belts, secondary_attrs,
+        secondary, secondary_planets, secondary_belts, secondary_attrs, facilities=facilities,
     )
     return [primary_scene, secondary_scene]
 
 
-def _render_system_scene(system, stars, planets, belts):
+def _render_system_scene(system, stars, planets, belts, facilities=None):
     """Builds the "whole system" scene -- see the module docstring for the
     barycenter/anchor model this uses for a close binary pair (a wide
     pair instead gets two separate scenes -- see
@@ -1150,13 +1254,27 @@ def _render_system_scene(system, stars, planets, belts):
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{ax_px:.1f}" cy="{ay_px:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
 
+    facility_hosts = {}
     for belt in belts:
         ax_px, ay_px = anchor_px(belt.get("star_id"))
         r_px = _radial_px(belt["distance_km"], lo, hi)
         band_px = _belt_band_px(belt, r_px)
         belt_svgs.append(_belt_ring_svg(ax_px, ay_px, r_px, band_px, belt))
+        facility_hosts[("asteroid_belt", belt["id"])] = (ax_px, ay_px, r_px, False)
 
     _relax_markers(markers, _MARKER_GAP_PX)
+    # A close pair is orbited as one (`_db._facility_host`): a facility on
+    # either star circles the barycenter, clear of both markers.
+    pair_r = max((math.hypot(m["cx"] - _CENTER_PX, m["cy"] - _CENTER_PX) + m["r"] for m in star_markers),
+                 default=0.0)
+    for marker in markers:
+        if marker["type"] == "star":
+            host = (_CENTER_PX, _CENTER_PX, pair_r, True) if close_binary else (
+                marker["cx"], marker["cy"], marker["r"], True)
+            facility_hosts[("star", marker["star"]["id"])] = host
+        else:
+            facility_hosts[("planet", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
+    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
 
     star_svgs = []
     planet_markers = []
@@ -1201,15 +1319,15 @@ def _render_system_scene(system, stars, planets, belts):
 
     return _scene_svg_pair(
         "system", f'System map for {system["name"]}', False,
-        "".join(orbit_paths),
+        "".join(orbit_paths) + facility_orbits,
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
-        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}',
+        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{facility_markers}',
         scale=(lo, hi),
     )
 
 
-def _render_moon_scene(planet):
+def _render_moon_scene(planet, facilities=None):
     moons = planet.get("moons") or []
     for moon in moons:
         moon["_is_moon"] = True
@@ -1237,6 +1355,10 @@ def _render_moon_scene(planet):
 
     _relax_markers(markers, _MARKER_GAP_PX)
     markers = [m for m in markers if m["type"] == "moon"]
+    facility_hosts = {("planet", planet["id"]): (_CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, True)}
+    for marker in markers:
+        facility_hosts[("moon", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
+    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
 
     center_svg = _body_marker_svg(
         _CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["planet_class"], planet["body_type"], planet["name"],
@@ -1272,13 +1394,13 @@ def _render_moon_scene(planet):
     # any `[hidden]` CSS rule permanently out of sync with it.
     return _scene_svg_pair(
         f'planet-{planet["id"]}', f'Moons of {planet["name"]}', True,
-        "".join(orbit_paths),
-        f'{center_svg}{"".join(body_svgs)}',
+        "".join(orbit_paths) + facility_orbits,
+        f'{center_svg}{"".join(body_svgs)}{facility_markers}',
         scale=(lo, hi),
     )
 
 
-def render_system_map_panel(system, stars, planets, belts):
+def render_system_map_panel(system, stars, planets, belts, facilities=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
     `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
@@ -1307,23 +1429,25 @@ def render_system_map_panel(system, stars, planets, belts):
                               a `moons` key (list of `moons` rows, possibly
                               empty).
         belts (list[dict]): `asteroid_belts` rows, including `star_id`.
+        facilities (list[dict], optional): `GET /api/systems/<id>/
+            facilities` items, drawn at their hosts (`_facilities_svg`).
 
     Returns:
         str: A complete `<section class="panel">` block.
     """
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
-        scenes = _render_wide_binary_scenes(system, stars, planets, belts)
+        scenes = _render_wide_binary_scenes(system, stars, planets, belts, facilities)
     else:
-        scenes = [_render_system_scene(system, stars, planets, belts)]
+        scenes = [_render_system_scene(system, stars, planets, belts, facilities)]
     scenes.extend(
-        _render_moon_scene(planet) for planet in planets if planet.get("moons")
+        _render_moon_scene(planet, facilities) for planet in planets if planet.get("moons")
     )
 
     if planets or belts or stars:
         info_panel = (
             '<aside class="starmap-info" id="sysmap-info">'
-            '<p class="hint">Click a star, planet, moon, or asteroid belt for details.</p></aside>'
+            '<p class="hint">Click a star, planet, moon, asteroid belt or facility for details.</p></aside>'
         )
     else:
         info_panel = '<aside class="starmap-info" id="sysmap-info"><p class="hint">Nothing to show yet.</p></aside>'
@@ -1364,11 +1488,15 @@ def render_system_map_panel(system, stars, planets, belts):
         if stars else ""
     )
 
+    facility_legend = (
+        '<span class="sysmap-legend-facility" aria-hidden="true"></span> facility &middot; ' if facilities else ""
+    )
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; "Measure distance" then click two bodies for the real distance between them</span>
+  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; {facility_legend}"Measure distance" then click two bodies for the real distance between them</span>
 </div>
 <div class="starmap-layout" id="sysmap-root">
 <div class="starmap-viewport sysmap-viewport">

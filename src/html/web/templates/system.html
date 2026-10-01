@@ -80,4 +80,102 @@
   {%- endif %}
   {{ system_list_html }}
 </section>
+{%- if facilities or admin %}
+{%- set form = facility_form %}
+<section class="panel" id="facilities" aria-labelledby="facilities-heading">
+  <h2 id="facilities-heading">Facilities</h2>
+  {%- if facility_status %}
+  <p class="{{ 'error' if facility_status[0] else 'hint' }}" role="status">{{ facility_status[1] }}</p>
+  {%- endif %}
+  {%- if facilities %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th>{% if admin %}<th scope="col"><span class="sr-only">Remove</span></th>{% endif %}</tr></thead>
+    <tbody>
+      {%- for row in facilities %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.kind }}</td>
+        <td>{{ row.host }}</td>
+        <td>{{ row.placement }}</td>
+        <td>{% if row.distance %}{{ row.distance }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.period %}{{ row.period }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.speed %}{{ row.speed }}{% else %}&ndash;{% endif %}</td>
+        {%- if admin %}
+        <td><details class="facility-remove"><summary class="btn btn-small">Remove</summary>
+          <form method="post" action="{{ page_url('system', system_id=system.id) }}" class="table-form">
+            {{ csrf_field() }}
+            <input type="hidden" name="facility_action" value="remove">
+            <input type="hidden" name="facility_id" value="{{ row.id }}">
+            <button type="submit" class="btn">Yes, remove {{ row.name }}</button>
+          </form>
+        </details></td>
+        {%- endif %}
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p class="hint">No facilities in this system yet.</p>
+  {%- endif %}
+  {%- if admin %}
+  <h3 id="facility-form-heading">Place a facility</h3>
+  {%- for error in form.errors %}
+  <p class="error" role="alert">{{ error }}</p>
+  {%- endfor %}
+  {%- if form.preview and not form.errors %}
+  <div class="facility-preview" role="status">
+    <p><strong>Allowed by the placement rules.</strong>
+    {%- if form.preview.distance %} Orbit: {{ form.preview.distance }} from its host, one orbit every {{ form.preview.period }}, at {{ form.preview.speed }}.{% endif %}
+    Nothing is saved until you press Save.</p>
+  </div>
+  {%- endif %}
+  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form" aria-labelledby="facility-form-heading">
+    {{ csrf_field() }}
+    <div class="search-fields">
+      <label class="search-field">Name
+        <input type="text" name="name" maxlength="255" value="{{ form.fields.name or '' }}">
+      </label>
+      <label class="search-field">Host
+        <select name="host">
+          {%- for option in facility_hosts %}
+          <option value="{{ option.value }}"{% if option.value == form.fields.host %} selected{% endif %}>{{ option.label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Placement
+        <select name="placement">
+          {%- for value, label in facility_placements %}
+          <option value="{{ value }}"{% if value == form.fields.placement %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Kind
+        <select name="kind">
+          {%- for value, label in facility_kinds %}
+          <option value="{{ value }}"{% if value == form.fields.kind %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Orbital distance (in orbit only; blank for 3 host radii)
+        <input type="text" name="distance" inputmode="decimal" value="{{ form.fields.distance or '' }}">
+      </label>
+      <label class="search-field">Unit
+        <select name="distance_unit">
+          {%- for unit in facility_units %}
+          <option value="{{ unit }}"{% if unit == form.fields.distance_unit %} selected{% endif %}>{{ "AU" if unit == "au" else unit }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field">Description (optional)
+        <input type="text" name="description" maxlength="4000" value="{{ form.fields.description or '' }}">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn" name="facility_action" value="preview">Preview orbit</button>
+      <button type="submit" class="btn" name="facility_action" value="save">Save</button>
+    </div>
+  </form>
+  {%- endif %}
+</section>
+{%- endif %}
 {% endblock %}
