@@ -68,11 +68,14 @@ import getpass
 import json
 import logging
 import math
+import multiprocessing
 import os
+import queue as queue_module
 import random
 import re
 import secrets
 import sys
+import threading
 import time
 from collections import Counter
 
@@ -129,16 +132,41 @@ class _ReportingProgress(Progress):
     started this run).
     """
 
+    main_task = None
+    """The task the progress file reports when `detail_task` changes."""
+
+    detail_task = None
+    """A second bar under `main_task` (PERF.4's slow-layer bar), written
+    to the progress file as its `detail`."""
+
     def add_task(self, description, *args, **kwargs):
         task_id = super().add_task(description, *args, rate=progressRate.DecayingRate(), **kwargs)
         self._report(task_id, force=True)
         return task_id
+
+    def remove_task(self, task_id):
+        super().remove_task(task_id)
+        if self.main_task is not None:
+            self._report(self.main_task, force=True)
+
+    def _detail(self):
+        task = self._tasks.get(self.detail_task) if self.detail_task is not None else None
+        if task is None:
+            return None
+        rate = task.fields.get("rate")
+        remaining = None if task.total is None else task.total - task.completed
+        return {"description": task.description.strip(), "completed": task.completed, "total": task.total,
+                "eta_s": rate.eta(remaining) if rate is not None else None}
 
     def _rate(self, task_id):
         task = self._tasks.get(task_id)
         return task.fields.get("rate") if task is not None else None
 
     def _report(self, task_id, force=False):
+        if self.main_task is not None:
+            # A run with a main bar always writes that one, with any
+            # second bar as its `detail`.
+            task_id = self.main_task
         task = self._tasks.get(task_id)
         if task is None:
             return
@@ -146,7 +174,8 @@ class _ReportingProgress(Progress):
         remaining = None if task.total is None else task.total - task.completed
         progressFile.report(task.completed, task.total, task.description, force=force,
                             rate=rate.rate if rate is not None else None,
-                            eta_s=rate.eta(remaining) if rate is not None else None)
+                            eta_s=rate.eta(remaining) if rate is not None else None, detail=self._detail(),
+                            percent=bool(task.fields.get("percent")))
 
     def update(self, task_id, **kwargs):
         before = self._completed(task_id)
@@ -196,6 +225,18 @@ class _DecayingRemainingColumn(ProgressColumn):
         hours, rest = divmod(int(round(seconds)), 3600)
         minutes, secs = divmod(rest, 60)
         return Text(f"{hours}:{minutes:02d}:{secs:02d}", style="progress.remaining")
+
+
+class _CountColumn(MofNCompleteColumn):
+    """`MofNCompleteColumn`, or the share done for a task added with
+    `percent=True` (PERF.9's bright-star bar, whose units are weighted
+    work rather than anything worth counting)."""
+
+    def render(self, task):
+        if task.fields.get("percent"):
+            share = task.completed / task.total if task.total else 0.0
+            return Text(f"{100 * share:.0f}%", style="progress.download")
+        return super().render(task)
 
 
 def _generation_progress(disable=False):
@@ -256,7 +297,7 @@ def _generation_progress(disable=False):
     return _ReportingProgress(
         TextColumn("[progress.description]{task.description}"),
         BarColumn(),
-        MofNCompleteColumn(),
+        _CountColumn(),
         TextColumn("[dim]elapsed"),
         TimeElapsedColumn(),
         TextColumn("[dim]remaining"),
@@ -3161,7 +3202,7 @@ def scatter_bright_stars(args):
 
         t0 = time.perf_counter()
         counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed,
-                                 "Bright stars (layers)")
+                                 "Bright stars")
         _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
         conn.commit()
     finally:
@@ -3176,6 +3217,129 @@ def scatter_bright_stars(args):
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
+class _LayerTracker:
+    """
+    The bright-star scatter's progress (PERF.4, PERF.9): the main bar
+    counts expected work (`brightStars.layer_weight`, in stars) rather
+    than layers, credited as each layer in progress reports its stars,
+    so its ETA follows the galaxy's shape; and while layers finish
+    slower than one per `SLOW_LAYER_SECONDS`, a second bar under it
+    shows the stars of the layers being drawn, done of their estimate,
+    with their own ETA. The second bar goes again once layers finish
+    faster than one per `FAST_LAYER_SECONDS` (the gap keeps it from
+    flashing on and off near the line). Called from the run's own
+    thread and the progress channel's (`_drain_channel`), so every
+    change holds `lock`.
+    """
+
+    SLOW_LAYER_SECONDS = 30.0
+    FAST_LAYER_SECONDS = 20.0
+
+    def __init__(self, progress, label, weights, clock=time.monotonic):
+        self.progress = progress
+        self.label = label
+        self.weights = weights
+        self.clock = clock
+        self.lock = threading.Lock()
+        self.in_flight = {}
+        self.credited = {}
+        self.done_weight = 0.0
+        self.done_layers = 0
+        self.layer_rate = progressRate.DecayingRate(clock=clock)
+        self.last_done = clock()
+        self.detail = None
+        self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True)
+        progress.main_task = self.task
+
+    def _description(self):
+        return f"{self.label} ({self.done_layers:,} of {len(self.weights):,} layers)"
+
+    def layer_progress(self, layer_index, done, estimate):
+        """A layer in progress has drawn `done` of about `estimate` stars."""
+        with self.lock:
+            if layer_index in self.weights:
+                self.in_flight[layer_index] = (done, estimate)
+                self._refresh()
+
+    def layer_done(self, layer_index):
+        with self.lock:
+            self.in_flight.pop(layer_index, None)
+            self.credited.pop(layer_index, None)
+            self.done_weight += self.weights.get(layer_index, 0.0)
+            self.done_layers += 1
+            self.last_done = self.clock()
+            self.layer_rate.add(1)
+            self._refresh()
+
+    def slow(self):
+        """Whether layers are finishing slower than one per
+        `SLOW_LAYER_SECONDS` (or, once the second bar shows, not yet
+        faster than one per `FAST_LAYER_SECONDS`)."""
+        limit = self.FAST_LAYER_SECONDS if self.detail is not None else self.SLOW_LAYER_SECONDS
+        since = self.clock() - self.last_done
+        rate = self.layer_rate.rate
+        return since > limit or (rate is not None and rate < 1.0 / limit)
+
+    def _refresh(self):
+        partial = 0.0
+        for layer_index, (done, estimate) in self.in_flight.items():
+            share = min(done / estimate, 1.0) if estimate > 0 else 0.0
+            # Never back: an estimate that grows doesn't take credit away.
+            credit = max(self.credited.get(layer_index, 0.0), share * self.weights[layer_index])
+            self.credited[layer_index] = credit
+            partial += credit
+        self.progress.update(self.task, completed=self.done_weight + partial, description=self._description())
+        if self.in_flight and self.slow():
+            done = sum(item[0] for item in self.in_flight.values())
+            estimate = sum(max(item[0], item[1]) for item in self.in_flight.values())
+            layers = sorted(self.in_flight, key=lambda layer: (abs(layer), layer))
+            names = ", ".join(str(layer) for layer in layers[:4]) + (", ..." if len(layers) > 4 else "")
+            description = f"  Layer{'s' if len(layers) > 1 else ''} {names}: stars"
+            if self.detail is None:
+                self.detail = self.progress.add_task(description, total=max(estimate, 1.0), completed=done)
+                self.progress.detail_task = self.detail
+            # A new total writes the progress file at once.
+            self.progress.update(self.detail, completed=done, total=max(estimate, 1.0), description=description)
+        elif self.detail is not None and not self.slow():
+            self.progress.remove_task(self.detail)
+            self.progress.detail_task = None
+            self.detail = None
+
+
+class _DirectChannel:
+    """The progress channel of a scatter run with one worker: its layers
+    are drawn in this process, so reports go straight to the tracker."""
+
+    def __init__(self, tracker):
+        self.tracker = tracker
+
+    def put(self, item):
+        self.tracker.layer_progress(*item)
+
+
+def _drain_channel(channel, tracker, stop):
+    """Hands the workers' layer reports to the tracker until `stop`."""
+    while True:
+        try:
+            item = channel.get(timeout=0.25)
+        except queue_module.Empty:
+            if stop.is_set():
+                return
+            continue
+        except (EOFError, OSError):
+            return
+        tracker.layer_progress(*item)
+
+
+CHANNEL_INTERVAL_SECONDS = 0.25
+"""float: How often a worker drawing a layer reports its stars (PERF.4)."""
+
+
+def _layer_slots(outer_ring):
+    """Sector slots in rings 0 to `outer_ring` of one layer."""
+    return sum(ring_sector_count(ring_index) for ring_index in range(outer_ring + 1))
+
+
 def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
                     max_luminosity_sol=None):
     """
@@ -3184,6 +3348,12 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     above `min_luminosity_sol`, or only those below `max_luminosity_sol`
     too (one band of a staged scatter). Cells in `filled` are left out.
 
+    The bar counts each layer's expected work (PERF.9,
+    `brightStars.layer_weight`, worked out first in a second or two),
+    credited star by star as the workers report (PERF.4, `_LayerTracker`,
+    which also adds the second bar for slow layers). Each layer's time
+    goes into the speed stats as a "scatter" task (PERF.10).
+
     Returns:
         dict: Stars written per population.
     """
@@ -3191,27 +3361,61 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     # Densest layers (nearest the plane) first, so no worker is left
     # with a big one at the end while the others sit idle.
     layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
+    fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol)
+    e_value = skeleton.expected_system_count_at_density_1
+    weights, expected = {}, {}
+    for layer_index, outer_ring in layers:
+        weights[layer_index], expected[layer_index] = brightStars.layer_weight(
+            skeleton.shape, layer_index, outer_ring, skeleton.edge_pc, e_value, fractions,
+        )
+    log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(layers):,} layers.")
+    band_share = sum(fractions.values())
     with _generation_progress() as progress:
         log.set_console(progress.console)
         try:
-            task = progress.add_task(label, total=len(extents))
+            tracker = _LayerTracker(progress, label, weights)
+            outer_rings = dict(layers)
 
-            def layer_done(layer_counts, _seconds, _weight):
-                for population, count in layer_counts.items():
-                    counts[population] += count
-                progress.update(task, advance=1)
+            def on_done_for(layer_index):
+                def layer_done(layer_counts, seconds, _weight):
+                    for population, count in layer_counts.items():
+                        counts[population] += count
+                    tracker.layer_done(layer_index)
+                    stars = sum(layer_counts.values())
+                    slots = _layer_slots(outer_rings[layer_index])
+                    density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
+                    _generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars)
+                return layer_done
 
-            with _work_queue(args, label) as queue:
-                for layer_index, outer_ring in layers:
-                    payload = {
-                        "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
-                        "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc,
-                        "expected": skeleton.expected_system_count_at_density_1,
-                        "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                        "seed": seed, "skip": {address for address in filled if address[1] == layer_index},
-                    }
-                    queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
-                                 on_done=layer_done)
+            stop = threading.Event()
+            manager = drain = None
+            try:
+                with _work_queue(args, label) as queue:
+                    if queue.parallel:
+                        manager = multiprocessing.get_context("spawn").Manager()
+                        channel = manager.Queue()
+                        drain = threading.Thread(target=_drain_channel, args=(channel, tracker, stop),
+                                                 name="scatter-progress", daemon=True)
+                        drain.start()
+                    else:
+                        channel = _DirectChannel(tracker)
+                    for layer_index, outer_ring in layers:
+                        payload = {
+                            "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                            "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
+                            "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
+                            "seed": seed, "skip": {address for address in filled if address[1] == layer_index},
+                            "channel": channel,
+                        }
+                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
+                                     weight=weights[layer_index], on_done=on_done_for(layer_index))
+            finally:
+                stop.set()
+                if drain is not None:
+                    drain.join(timeout=5)
+                if manager is not None:
+                    manager.shutdown()
+                _finish_stats(args)
         finally:
             log.reset_console()
     return counts
@@ -3255,7 +3459,7 @@ def add_bright_star_band(args):
                    + (f", leaving out {len(filled):,} filled sectors." if filled else "."))
         t0 = time.perf_counter()
         counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, target, seed,
-                                 f"Bright stars {target:g}-{current:g} L_sun (layers)", max_luminosity_sol=current)
+                                 f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current)
         # The first scatter's seed stays: it names the galaxy's scatter.
         _db.record_bright_star_scatter(conn, target, first_seed)
         conn.commit()
@@ -3283,13 +3487,27 @@ def _scatter_layer_task(payload):
         dict: Stars written per population.
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
+    channel = payload.get("channel")
+    layer_index = payload["layer_index"]
+    last = [0.0]
+
+    def report(done, estimate):
+        # PERF.4: the stars drawn so far, a few times a second.
+        now = time.monotonic()
+        if channel is not None and now - last[0] >= CHANNEL_INTERVAL_SECONDS:
+            last[0] = now
+            try:
+                channel.put((layer_index, done, estimate))
+            except (EOFError, OSError):
+                pass
+
     conn = _db.get_connection(payload["mysql_config"])
     try:
         batch = []
         for row in brightStars.scatter_layer(
-            payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
+            payload["shape"], layer_index, payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
-            max_luminosity_sol=payload.get("max_luminosity_sol"),
+            max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
         ):
             counts[row[6]] += 1
             batch.append(row)

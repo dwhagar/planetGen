@@ -9,9 +9,6 @@
 // own page just stops polling. Without JavaScript the page still works:
 // reload it to see progress.
 
-const VERSION_QUERY = new URL(import.meta.url).search;
-const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
-
 const POLL_MS = 2000;
 
 const panel = document.getElementById("current-job");
@@ -19,10 +16,6 @@ const panel = document.getElementById("current-job");
 function setText(selector, text) {
   const el = panel.querySelector(selector);
   if (el && el.textContent !== text) el.textContent = text;
-}
-
-function number(value) {
-  return formatNumber(Math.round(value));
 }
 
 function render(job, log) {
@@ -46,12 +39,12 @@ function render(job, log) {
       bar.removeAttribute("value"); // indeterminate
     }
   }
-  let progressText = "";
-  if (job.progress_description) {
-    progressText = `${job.progress_description}: ${number(job.progress_completed || 0)}`;
-    if (job.progress_total) progressText += ` of ${number(job.progress_total)}`;
+  setText("[data-job-progress-text]", job.progress_text || "");
+  const detail = panel.querySelector("[data-job-progress-detail]");
+  if (detail) {
+    detail.textContent = job.progress_detail_text || "";
+    detail.hidden = !job.progress_detail_text;
   }
-  setText("[data-job-progress-text]", progressText);
   setText("[data-job-elapsed]", job.elapsed_text || "");
   setText("[data-job-remaining]", job.remaining_text ? `about ${job.remaining_text} left` : "");
 
