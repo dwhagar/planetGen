@@ -16,6 +16,7 @@ subcommand:
     generate.py plan [options]        -- the galaxy's density skeleton
     generate.py phenomenon [options]  -- one exotic stellar phenomenon
     generate.py population [options]  -- species, civilizations and territories
+    generate.py check-math            -- the math check bulk runs start with
 
 Run `generate.py <command> --help` for that command's own full option
 list. This replaces the five separate scripts this project used to ship
@@ -90,8 +91,8 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, generationLimits, generationStats, log, physical_constants, population, program_constants, progressFile,
-    progressRate, workQueue,
+    _db, activitylog, brightStars, generationLimits, generationStats, log, mathCheck, physical_constants, population,
+    program_constants, progressFile, progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -1506,6 +1507,7 @@ def run_sector(args):
 
     try:
         with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
+            queue.expect(args.num_sectors)
             for index in range(args.num_sectors):
                 queue.submit("sector", f"unplaced-{index}", _unplaced_sector_task, args, on_done=saved)
     finally:
@@ -2155,14 +2157,15 @@ def _work_queue(args, title):
     `--workers` (or `PLANETGEN_WORKERS`) worker processes, by default 80%
     of the cores less one when MySQL runs on this machine, with the
     control database's lease so only one run's workers use the machine
-    at a time. One worker generates every sector right here, in order.
+    at a time. One worker generates every sector right here, in order
+    (still recorded in the job tree, ADM.12, without the lease).
     """
     mysql_config = _db.mysql_config_from_args(args)
     workers = _worker_count(args)
     log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
     return workQueue.WorkQueue(
         title, workers=workers,
-        control_config=_db.control_mysql_config(mysql_config) if workers > 1 else None,
+        control_config=_db.control_mysql_config(mysql_config),
         log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
     )
 
@@ -2339,6 +2342,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, task):
     """Queues every `(address, position_pc, sector_args, suffix)` of
     `batch` (`_submit_sector`) and waits for them."""
     with _work_queue(args, title) as queue:
+        queue.expect(len(batch))
         for address, position_pc, sector_args, suffix in batch:
             _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=suffix)
 
@@ -2593,6 +2597,28 @@ class GenerationRefused(RuntimeError):
     message says why and how much it needs."""
 
 
+class MathCheckFailed(RuntimeError):
+    """TEST.68: the math check (`stellarObjects.mathCheck`) failed, so a
+    bulk generation was refused before writing anything; the message
+    names the failed checks."""
+
+
+def require_math_check():
+    """
+    The gate in front of every bulk generation (TEST.68): runs the math
+    check once per process (`mathCheck.startup_failures`, cached after
+    that) and raises if any check failed.
+
+    Raises:
+        MathCheckFailed: Naming the failed checks.
+    """
+    failed = mathCheck.startup_failures()
+    if failed:
+        raise MathCheckFailed(
+            f"the math check failed ({', '.join(r.name for r in failed)}), so nothing was generated. "
+            f"Run 'generate.py check-math' for details.")
+
+
 def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, estimate_only=False):
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
@@ -2628,6 +2654,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         GenerationRefused: The database disk can't hold it (nothing was
                    written).
         RuntimeError: If the galaxy's skeleton has never been built.
+        MathCheckFailed: If the math check failed (a real run only);
+            nothing is written.
     """
     edge_pc = _edge_pc()
     radius_pc = (
@@ -2635,6 +2663,8 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
     config = config or _db.DEFAULT_MYSQL_CONFIG
+    if not estimate_only:
+        require_math_check()
 
     conn = _db.get_connection(config)
     try:
@@ -3508,6 +3538,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drain.start()
                     else:
                         channel = _DirectChannel(tracker)
+                    queue.expect(len(layers))
                     for layer_index, outer_ring in layers:
                         payload = {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
@@ -3662,12 +3693,15 @@ def run_plan(args):
             "plan"`).
     """
     if getattr(args, "bright_stars_down_to", None) is not None:
-        add_bright_star_band(args)
+        with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
+            add_bright_star_band(args)
         return
     if getattr(args, "bright_stars_only", False):
-        scatter_bright_stars(args)
+        with workQueue.job_node("bright-stars", "Bright stars"):
+            scatter_bright_stars(args)
         return
-    summary = build_skeleton(args)
+    with workQueue.job_node("skeleton", "Galaxy skeleton"):
+        summary = build_skeleton(args)
     if summary["layer_count"]:
         layers = f"{summary['layer_count']} layers ({summary['top_layer_index']} to {-summary['top_layer_index']})"
     else:
@@ -3683,7 +3717,8 @@ def run_plan(args):
             f"parameters really do produce a galaxy this large."
         )
     if summary["layer_count"] and not getattr(args, "no_bright_stars", False):
-        scatter_bright_stars(args)
+        with workQueue.job_node("bright-stars", "Bright stars"):
+            scatter_bright_stars(args)
 
 
 # ===========================================================================
@@ -3914,7 +3949,8 @@ def run_population_after(args):
         return
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
-        counts = population.run_pass(conn)
+        with workQueue.job_node("population", "Population pass"):
+            counts = population.run_pass(conn)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -3978,6 +4014,15 @@ def build_parser():
         help="Generate a single exotic stellar phenomenon.")
     add_phenomenon_arguments(phenomenon_parser)
 
+    check_math_parser = subparsers.add_parser(
+        'check-math',
+        description="Runs the math check (stellarObjects/mathCheck.py): reference values from real "
+                    "astronomy, identities and sampler distributions. Exits 1 if any check fails.",
+        help="Check the generator's math before generating.")
+    check_math_parser.add_argument('-v', '--verbose', action='store_true',
+                                   help="List every check, not only the failures.")
+    add_logging_arguments(check_math_parser)
+
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
@@ -3991,6 +4036,7 @@ def build_parser():
         'plan': plan_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
+        'check-math': check_math_parser,
     }
 
 
@@ -4032,7 +4078,32 @@ def process_args():
     return args
 
 
+def run_check_math(args):
+    """`generate.py check-math`: prints the math check's report and exits
+    1 if any check failed (TEST.68)."""
+    results = mathCheck.run_all()
+    report = mathCheck.format_report(results, verbose=args.verbose)
+    if mathCheck.failures(results):
+        log.error(report)
+        raise SystemExit(1)
+    log.normal(report)
+
+
+BULK_COMMANDS = ("galaxy", "plan", "population")
+"""tuple: Subcommands that always generate in bulk, so the math check runs
+first (TEST.68); `sector` joins them when it makes more than one sector
+(`is_bulk_run`)."""
+
+
+def is_bulk_run(args):
+    """Whether this run is a bulk generation the math check must gate."""
+    if args.command in BULK_COMMANDS:
+        return True
+    return args.command == "sector" and (getattr(args, "num_sectors", 1) or 1) > 1
+
+
 _COMMAND_HANDLERS = {
+    'check-math': run_check_math,
     'system': run_system,
     'sector': run_sector,
     'galaxy': run_galaxy,
@@ -4070,9 +4141,18 @@ def main():
     log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
               f"option exists to reproduce this run).")
 
+    # TEST.68: a bulk run checks the math first and writes nothing at all
+    # (not even the activity log's start line) when it fails.
+    if is_bulk_run(args):
+        try:
+            require_math_check()
+        except MathCheckFailed as exc:
+            _fatal(str(exc))
+
     # One start and one finish line per run in the activity log (SEC.28);
-    # a `system --output` run writes no database, so it isn't logged.
-    logged = not getattr(args, "output", None)
+    # a `system --output` run writes no database, so it isn't logged, nor
+    # is `check-math`, which writes nothing.
+    logged = not getattr(args, "output", None) and args.command != "check-math"
     try:
         database = _db.mysql_config_from_args(args).database
     except AttributeError:  # a subcommand without the --mysql-* options
@@ -4081,6 +4161,7 @@ def main():
     if logged:
         activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
+    root = _open_run_node(args, database) if logged else None
     try:
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
@@ -4093,11 +4174,60 @@ def main():
     except KeyboardInterrupt:
         status = "interrupted"
         raise
+    except SystemExit as exc:
+        # SIGTERM inside a work queue (Cancel) exits with 128 + signal.
+        if isinstance(exc.code, int) and exc.code >= 128:
+            status = "interrupted"
+        elif exc.code in (None, 0):
+            status = "ok"
+        raise
     finally:
+        if root is not None:
+            workQueue.close_node(root, {"ok": "done", "interrupted": "cancelled"}.get(status, "failed"))
         if logged:
             activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
+
+
+RUN_ARGV_WITHHELD = ("--mysql-host", "--mysql-port", "--mysql-user", "--mysql-password", "--mysql-database",
+                     "--debug")
+"""tuple: Options left out of the command line a run records in its job
+tree root (`_run_argv`): the database is the site's own when the admin
+page runs it again, and a password never goes in the control database."""
+
+
+def _run_argv(argv):
+    """`argv` (after the script name) without `RUN_ARGV_WITHHELD`'s
+    options and their values."""
+    kept, skip = [], None
+    for arg in argv:
+        if skip == "value" or (skip == "optional" and not arg.startswith("-")):
+            skip = None
+            continue
+        skip = None
+        name = arg.split("=", 1)[0]
+        if name in RUN_ARGV_WITHHELD:
+            if "=" not in arg:
+                skip = "optional" if name == "--debug" else "value"
+            continue
+        kept.append(arg)
+    return kept
+
+
+def _open_run_node(args, database):
+    """The job tree root of this run (ADM.12): its command, what it was
+    asked to do, and the command line that would run it again. A run the
+    Generate page started goes under that page job's step
+    (`workQueue.PARENT_ENV_VAR`). Recorded in the control database when
+    there is one; never stops the run."""
+    argv = _run_argv(sys.argv[1:])
+    title = " ".join(["generate.py", *argv])[:255]
+    try:
+        control = _db.control_mysql_config(_db.mysql_config_from_args(args))
+    except AttributeError:  # a subcommand without the --mysql-* options
+        control = _db.control_mysql_config()
+    return workQueue.open_node(args.command, title, control, argv=argv, database=database)
 
 
 def _run_user():

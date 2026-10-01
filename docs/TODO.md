@@ -76,7 +76,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-MAP, NAV, DB, SEC, DOC and POP have no open items today.
+NAV, DB, SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -208,8 +208,112 @@ with `clamp()`.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
-No open items; the last ones (MAP.2 with MAP.22 and MAP.23, MAP.15 and
-MAP.30) shipped in PR #234.
+MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
+
+- [ ] **MAP.52 Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug)**
+  Boss (2026-10-01 19:35Z): "galaxy map still doesn't highlight
+  correctly. highlights should be tween valid beginning and end points,
+  adjust the quadrant philosophy to selecting a wedge of the galaxy in
+  40 degree arcs and not set, the cursor point will be the center of
+  the arc, so it will always be +/- 20 degrees from the cursor's
+  merdidian snapped to the available meridians from the center that go
+  from the center to the edge." Today the first pick on the Galaxy Map
+  is a fixed quarter of the disk (`galaxystages.js`, `kind:
+  "quadrant"`, four arcs, MAP.19), later picks are fixed regions, and
+  the hover highlight (`galaxystageview.js`) can start or end where no
+  wedge line is. Done: the first pick is a 40-degree wedge centered on
+  the cursor's angle from the galaxy's center, running from the center
+  to the edge, its two sides snapped to the nearest meridians (the
+  wedge lines that run from the center to the edge, MAP.42 to MAP.44);
+  the highlight always starts and ends on such valid lines and follows
+  the cursor as it moves; clicking zooms to that wedge (the wedge zoom
+  of PR #243) with no gaps between blocks (PR #224); the URL and the
+  breadcrumb label name the wedge by its angles rather than "Quarter
+  n". Boss (19:37Z): "Doesn't have to be +/- 20 so long as it fits
+  into the wedge from center (ring 1) to edge." So 40 degrees is the
+  target, not an exact width: the wedge snaps to lines that run all the
+  way from ring 1 to the edge, and may come out a little wider or
+  narrower. Open questions: how snapping works where meridians stop
+  short of ring 1 (the inner rings have fewer slots); do the later
+  picks (regions inside the wedge) follow the same cursor-centered
+  rule?
+
+- [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
+  Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
+  around once it's zoomed into the wedge and zoom in more based on
+  window size." Today the wedge zoom of PR #243 fits the real wedge at
+  a fixed orientation and scale. Done: once zoomed into a wedge, the
+  user can rotate the view around it (drag, keys, and a touch gesture,
+  like the free camera below quarter level), and the zoom fits the
+  wedge to the map's actual size, so a bigger window shows it larger;
+  it refits when the window is resized or rotated. Ties in with MAP.52
+  (the 40-degree wedge pick). Boss (19:44Z): "Slabs will rotate
+  around their immediate center", so the view turns about the middle
+  of what is shown (the wedge, or the slab), not the galaxy's center.
+  Open question: is the rotation kept in the URL and bookmarks?
+
+- [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
+  Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
+  have a line going from each slab on the map (dynamically rendered to
+  always point where it needs to) from the button for that slab to the
+  slab itself on the map." Today slabs are picked with the slab slider
+  beside the map (MAP.30, shipped as a slider in PR #234,
+  `galaxystageview.js`). Done: the slider is replaced by one button per
+  slab, and each button has a line drawn from it to its slab on the
+  map; the lines are redrawn whenever the view rotates, zooms, pans or
+  the window resizes, so they always point at the slab; hovering or
+  focusing a button highlights its line and slab, and clicking picks
+  the slab as the slider does today. MAP.30 stays done; this item
+  replaces its slider. Open questions: how the lines stay readable with
+  many slabs (thin lines, only the hovered one drawn bright, or
+  grouping); how crossing or overlapping lines are kept apart; and
+  where the buttons sit on a phone-width screen. Default taken: a slab
+  should always be on screen after the zoom-fit, but if one ever falls
+  outside the frame (the isometric tilt, a very tall stack of slabs, a
+  small window), its line ends at the window's edge with an arrow
+  pointing toward it and its button still works; this may never happen
+  in practice. A slab hidden behind another keeps its line, drawn to
+  the visible part.
+
+- [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
+  Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
+  be under a menu except for back, forward, up, and reset. Reset and
+  whole galaxy do the same thing. Remove the wedges button entirely,
+  and bookmarks should be next to the back, forward, up, reset, and
+  bookmarks. Sector sell should go next to the galaxy map if there's
+  room right next to the slab buttons." Today the Galaxy Map's controls
+  (`galaxystageview.js`, `galaxymap3d.js`) are one row of buttons.
+  Done: only back, forward, up, reset and the bookmark button stay in
+  view, in that row; every other control moves into one menu button
+  beside them (keyboard and screen-reader friendly); "Whole galaxy" is
+  removed, since reset does the same; the Wedges button is removed
+  entirely; the "Sector cell" info panel (`#galaxymap3d-info`, showing
+  a picked sector's address and designation) sits beside the map next
+  to the slab buttons (MAP.54) when there is room, and below the map
+  when there isn't. Ties in with UX.21 (overlapping buttons). Open
+  question: what is in the menu and in what order?
+
+- [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
+  Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
+  of blocks should be selectable by the user, it isn't, so lets take
+  that back to the select-slab, zoom in, select segment of slab."
+  Today the drill-down (`galaxystages.js`) alternates layer and region
+  picks (MAP.19, PR #208: "quadrant, layer, region, layer, region, ...,
+  layer, sector"), and a region pick offers up to 3 x 3 options (a
+  third of the rings across, a third of the arc along, `PICK_SPLIT`).
+  Done: the region (3 x 3) pick is removed; the ladder becomes the
+  wedge pick (MAP.52), then select a slab (the slab buttons and lines
+  of MAP.54), then the view zooms to that slab (fitted to the window
+  and rotatable, MAP.53), then select a segment of the slab, repeating
+  slab and segment inside each smaller block down to a sector. Default
+  taken: a segment is one drill block of the next level inside the
+  slab (27 or 3 sectors a side), picked directly on the zoomed slab
+  with the same hover highlight as today's blocks; no existing item
+  defines it further. The URL and breadcrumb forms of a region pick
+  ("r4") go away; old links with one open at the nearest valid stage.
+  MAP.19's big targets still apply. Open question: should a segment be
+  one block, or a run of blocks along the arc when a block is too small
+  to click on a small screen?
 
 ## GEN: Generation and physics
 
@@ -956,49 +1060,15 @@ clears each one.
   the reference-value gate in front of them, and TEST.34's Kepler
   reference values move here.
 
+  TEST.64 to TEST.67 (reference values, identities, distributions, and
+  running first in the suite and in CI) shipped in PR #281; TEST.68,
+  the gate before bulk generation, is what remains.
+
   Default taken: no skip switch for the bulk gate, since it costs under
   5 seconds. Open questions for Boss: should there be an emergency skip
   flag anyway? Should the web app also run it at startup and show admins
   a warning if it fails? Should the one-off system generator run it too,
   or only bulk paths?
-
-  - [ ] **TEST.64 Reference values**
-    Known answers from real astronomy, each within a stated tolerance.
-    For example: the Sun (1 M_sun gives 1 L_sun, about 10 Gy on the main
-    sequence, about 5,772 K from L and R through Stefan-Boltzmann);
-    Earth's orbit (1 AU around 1 M_sun is 1 year at 29.78 km/s by
-    vis-viva; Jupiter 11.86 years); Earth's Hill sphere about 1.5
-    million km; habitable zone and snow line at 1 L_sun; a 0.6 M_sun
-    white dwarf about Earth-sized; the Sun's Schwarzschild radius 2.95
-    km; the Sun's galactic orbit (about 8 kpc, about 220-230 km/s, about
-    230 My); Holman-Wiegert critical radii from the paper's table; the
-    Kepler and Barker equations against known solutions.
-
-  - [ ] **TEST.65 Identities and invariants**
-    Things that must be exactly or nearly true for any input. Every unit
-    conversion round-trips (pc, ly, AU, km, mpc) and the constants agree
-    with each other (found while planning: `SPEED_OF_LIGHT_M_S` is
-    2.998e8 while `LIGHTYEAR_M` uses the exact 299,792,458 m/s, a 0.003%
-    mismatch); luminosity rises and lifetime falls with mass; orbital
-    energy is conserved around a Kepler orbit; the sector grid's cell
-    volumes add up to each ring's annulus,
-    `sector_address_at(sector_position_pc(...))` returns the same
-    address, and ring sector counts match `ring_sector_count`; density
-    is normalised to 1 where the code says it is; no NaN or infinity
-    over a fixed sweep of inputs.
-
-  - [ ] **TEST.66 Distributions match their targets**
-    With fixed seeds, a few thousand draws of the IMF, star ages, the
-    Poisson sector counts, the bounded bell and the planet class table
-    land on their intended shares within a statistical tolerance (for
-    example a chi-square test), so a broken sampler fails even when
-    every single value looks fine.
-
-  - [ ] **TEST.67 Runs first in the suite and in CI**
-    A `mathcheck` marker (next to the `db`, `slow` and `browser` markers TEST.1 added); `conftest.py` moves
-    those tests to the front and stops the run if any fails, saying the
-    math is broken and the rest would be noise; CI runs it as its own
-    quick first job that the other jobs wait on.
 
   - [ ] **TEST.68 Gate before bulk generation**
     `generate.py check-math` runs it by hand; every bulk path (`galaxy`,

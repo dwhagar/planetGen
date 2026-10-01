@@ -264,6 +264,26 @@ function Invoke-MigrateOrReset {
 # Off by default (Boss, 2026-10-01): it runs with -Population, or when
 # someone answers y to the prompt (y/N, 30 seconds, default N). With no
 # console it is skipped. generate.py population can always be run later.
+# The math check (generate.py check-math, TEST.68): known answers from
+# real astronomy, identities and sampler distributions. A failure only
+# warns -- the update carries on and the site keeps serving -- and
+# returns $false so update.ps1 skips the population pass (which would
+# refuse anyway) and repeats the warning at the end.
+function Test-MathCheck {
+    $python = Get-VenvPython
+    Push-Location $Root
+    try {
+        & $python "generate.py" check-math | Out-Host
+        $ok = ($LASTEXITCODE -eq 0)
+    } finally {
+        Pop-Location
+    }
+    if (-not $ok) {
+        Write-Warning "The math check failed (above). Bulk generation refuses to start until it passes; run generate.py check-math -v for every check."
+    }
+    return $ok
+}
+
 function Invoke-OptionalPopulation([switch]$Run) {
     if ($Run) {
         $answer = "y"
