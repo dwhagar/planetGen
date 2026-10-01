@@ -98,8 +98,8 @@ parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
 14:41Z) set the next round, run as parallel threads:
 
 1. **First:** PERF.5 (scatter bright stars in stages), done in PR #229.
-2. **Galaxy Map and units:** GEN.23 (UX.13, UX.14, MAP.15, MAP.30 and
-   MAP.2 shipped in PR #234).
+2. **Galaxy Map and units:** done (UX.13, UX.14, MAP.15, MAP.30 and
+   MAP.2 in PR #234, GEN.23 in PR #226).
 3. **Generation estimates and progress:** done (PERF.3 and PERF.10 in
    PR #238, PERF.4 and PERF.9 in PR #258).
 4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
@@ -257,8 +257,9 @@ MAP.30) shipped in PR #234.
     Suggested default: the bulge scale radius, 200 pc, about 50 rings
     and roughly 7,900 sectors on layer 0.
   - Layer 0 only, not every layer the bulge reaches.
-  - GEN.23's smaller generate-around sphere and bright-star backfill
-    run around the core too, as they do around any generated sector.
+  - The generate-around sphere and bright-star backfill (GEN.23, PR
+    #226) run around the core too, as they do around any generated
+    sector.
   - Fill from ring 0 outward, so a run that stops early (or hits
     `--limit`) still leaves a solid disc around the nucleus.
 
@@ -384,6 +385,50 @@ MAP.30) shipped in PR #234.
   remembered per browser)? Which coordinates: a sector address, a
   position in pc or ly, or both? Does "locate" reuse the Sector Map pick
   mode (MAP.21) or the address bar's `/galaxy/locate` (MAP.24)?
+
+- [ ] **ADM.10 An admin page to view and manage the work queue**
+  Boss (2026-10-01 19:03Z): "we need to add a way for admins to view and
+  manage the work queue". Today the parallel runs of PERF.8 (PR #225)
+  record themselves in the control database (`work_jobs`, `work_tasks`
+  and the one-row `work_lease`, control schema v5, written by
+  `stellarObjects/workQueue.py`), but nothing on the web shows them;
+  the Generate page's "Current job" section shows only the web job
+  runner's own job (`web/jobs.py`: a job directory with `state.json`,
+  the log, `runner.pid` and the `cancel` file). Done: an admin-only
+  page lists runs (newest first, paged like every list) with their
+  state, title, holder, workers, task counts queued, running, done and
+  failed, start, last heartbeat and elapsed time; a run opens to its
+  tasks (kind, key, weight, state, seconds, error) and the web job and
+  log that started it, if any; the lease shows who holds it and how
+  stale its heartbeat is. Manage actions, each confirmed and written to
+  the admin activity log: cancel a run (through the web job's `cancel`
+  file when a web job owns it, otherwise a cancel flag the run checks),
+  clear a stale lease whose holder is gone, retry failed tasks, and
+  delete finished runs. Open questions: pause and resume (a run would
+  stop taking tasks but keep its lease), or cancel and retry only? Does
+  the page also list CLI runs started by hand in a terminal, and may
+  the web cancel those? Should the page refresh itself while a run is
+  live, like the Generate page's progress?
+
+- [ ] **ADM.11 Jobs keep running after the browser closes**
+  Boss (2026-10-01 19:03Z): "we need to make sure that generate or
+  other jobs continue even if the user closes the browser." Today a
+  web job runs in its own detached process (`web/jobs.py`
+  `_detached_options`: a new session on POSIX, a new process group
+  broken away from the server's job object on Windows), so closing the
+  page should not stop it; the one-off system page
+  (`web/system_page.py`) instead waits inside the request, since a
+  system takes about a second. Done: every long job started from the
+  web (each Generate page mode, plan, bright-star rebuild, reset,
+  admin regenerate and delete from ADM.8, population runs) is checked
+  and, where needed, changed so that it depends on no open page or
+  live request: closing the tab, losing the connection, or the browser
+  stopping its polling leaves the job running to the end, and coming
+  back to the Generate page (or ADM.10's page) shows it with its
+  progress and log. A web server restart (Apache reload, IIS recycle)
+  is checked too. A test starts a job, drops the client, and sees it
+  finish. Open question: should anything else that runs inside a
+  request for more than a few seconds move to a job?
 
 ## SEC: Security
 
