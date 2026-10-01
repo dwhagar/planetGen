@@ -762,19 +762,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.3 | MariaDB in CI | none | done, PR #251 (CI legs MySQL 8.0, MySQL 8.4, MariaDB 11.4; 10.11 covered by local runs) |
 | TEST.4 | Revive and widen the known-bug tests | none | done, PR #303 |
 | TEST.5 | Real 4 pc in boundary tests | none | done, PR #303 |
-| TEST.6 | SQL portability lint | none | open |
-| TEST.7 | Strict sql_mode on both engines | none | open |
-| TEST.8 | Migrate from real old schemas | none | open |
-| TEST.9 | Migration crash and re-run | none | open |
+| TEST.6 | SQL portability lint | none | done, PR #315 |
+| TEST.7 | Strict sql_mode on both engines | none | done, PR #315 |
+| TEST.8 | Migrate from real old schemas | none | done, PR #315 |
+| TEST.9 | Migration crash and re-run | none | done, PR #315 |
 | TEST.10 | Database newer than the code | none | done, PR #288 |
-| TEST.11 | Every column round-trips | none | open |
-| TEST.12 | Boundary values round-trip | none | open |
-| TEST.13 | Collation collisions | none | open |
-| TEST.14 | CHECK constraints enforced | none | open |
-| TEST.15 | Sector save fails halfway | none | open |
-| TEST.16 | Id blocks after reset and rollback | none | open |
-| TEST.17 | Batched writes at the limits | none | open |
-| TEST.18 | Full-text search edge cases | none | open |
+| TEST.11 | Every column round-trips | none | done, PR #315 |
+| TEST.12 | Boundary values round-trip | none | done, PR #315 |
+| TEST.13 | Collation collisions | none | done, PR #315 |
+| TEST.14 | CHECK constraints enforced | none | done, PR #315 |
+| TEST.15 | Sector save fails halfway | none | done, PR #315 |
+| TEST.16 | Id blocks after reset and rollback | none | done, PR #315 |
+| TEST.17 | Batched writes at the limits | none | done, PR #315 |
+| TEST.18 | Full-text search edge cases | none | done, PR #315 |
 | TEST.19 | Same galaxy at any worker count | none | open |
 | TEST.20 | Work queue failure paths | none | done, PR #305 |
 | TEST.21 | Cancelling a run | none | done, PR #305 |
