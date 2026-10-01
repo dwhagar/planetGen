@@ -68,7 +68,8 @@ defaults (a test checks they still match `generate.py plan`'s parser)."""
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
-     "(100 ly when the radius is left blank)."),
+     "(12 pc, about 39 ly, when the radius is left blank; the 100 ly around every generated "
+     "sector gets its bright stars either way)."),
     ("ring", "A whole ring",
      "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
      "or only the first few with a limit."),

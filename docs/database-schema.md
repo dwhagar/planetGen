@@ -152,7 +152,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v46" notes) rather than duplicated here, since that
+comment ("v2" through "v47" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -405,14 +405,14 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v45_to_v46`. `migrate_database`
+version, through `_migrate_v46_to_v47`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A pre-existing SQLite database
 from before the MySQL port itself is brought in with the separate,
 one-time `src/migrateSqliteToMysql.py` script instead (see its module
 docstring) — it only accepts a source already at the database's current
-`SCHEMA_VERSION` (today, v46), so a database still on an older SQLite
+`SCHEMA_VERSION` (today, v47), so a database still on an older SQLite
 schema needs a pre-MySQL-port release of this project first.
 
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
@@ -577,6 +577,22 @@ filled, which builds a system around each and sets `star_system_id`
 record the scatter; a fill reads them, not the constant. A plan re-run
 truncates the table (`_db.clear_bright_stars`). `_migrate_v42_to_v43`
 adds both, empty.
+
+**Bright-star backfill per sector block (v47, GEN.23).** Generating any
+galaxy sector first backfills the stars around it
+(`generate.backfill_bright_stars`): every sector block (a level-3 block
+of `galaxyDrill`, 3 rings by 3 layers by its wedge's slots) with a sector
+within 100 ly gets every star from 100 L_sun up to the level it already
+holds, in its sectors that aren't filled yet, as new `bright_stars` rows.
+`bright_star_blocks` keeps, per block (`block_ring`, `block_wedge`,
+`block_slab`), the dimmest luminosity it now goes down to
+(`min_luminosity_sol`), so a block already at 100 L_sun is skipped and no
+star is drawn twice. A block with no row is at the galaxy scatter's
+threshold. A sector's fill caps its own dim stars at its block's level
+(`_db.bright_star_fill_level`). A backfill takes the block's row lock
+(`INSERT IGNORE`, then `SELECT ... FOR UPDATE`, level NULL until it
+commits), so two generators never draw the same block. A plan re-run
+truncates it with `bright_stars`. `_migrate_v46_to_v47` creates it empty.
 
 **Facilities (v42).** `facilities` holds starbases, colonies and outposts,
 each on one host named by `host_type`: a star, planet, moon, asteroid belt,
@@ -1511,6 +1527,18 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `seed` | BIGINT UNSIGNED | NOT NULL | Seed for the system built around it later. |
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
+
+### `bright_star_blocks`
+
+Added in v47 (GEN.23). How deep the bright-star backfill has gone in each
+sector block. See "Bright-star backfill per sector block (v47, GEN.23)"
+above.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `block_ring`, `block_wedge`, `block_slab` | INT / INT / SMALLINT | PK | The level-3 block (`galaxyDrill.DrillBlock(3, ring, wedge, slab)`). |
+| `min_luminosity_sol` | DOUBLE | nullable | The dimmest luminosity (L_sun) the block's unfilled sectors hold every star down to. NULL only while a backfill holds the row. |
+| `updated_at` | TIMESTAMP | NOT NULL | |
 
 ### `species` / `polities` / `system_owners` / `population_state`
 

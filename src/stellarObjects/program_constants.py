@@ -2419,12 +2419,33 @@ float: The Milky Way's real approximate radius, in parsecs (commonly cited
 or accepts an address outside it.
 """
 
-RANDOM_START_NEIGHBORHOOD_RADIUS_LY = 100.0
+DEFAULT_GENERATE_RADIUS_PC = 12.0
 """
-float: The neighborhood radius, in light-years, `galaxyGen.py`'s
-no-argument "random start" mode generates around its randomly chosen
-starting sector -- every not-yet-generated sector within this radius, in
-every direction, per this feature's own request.
+float: The default generate-around sphere, in parsecs: `generate.py
+galaxy`'s no-argument random start, and `POST
+/api/sectors/<id>/generate-neighborhood` (the Sector page's and the
+Generate page's neighborhood) when no radius is given, fill every
+not-yet-generated sector this close to their center. Boss (GEN.23,
+2026-10-01): "about 10 pc, rounded up" -- to the next whole 4 pc sector,
+12 pc. It was 100 ly (about 30.7 pc) before; that sphere now gets only
+its bright stars (`BRIGHT_STAR_BACKFILL_RADIUS_LY`).
+"""
+
+BRIGHT_STAR_BACKFILL_RADIUS_LY = 100.0
+"""
+float: Every time a galaxy sector is generated, the sector blocks (3x3x3
+sectors, `galaxyDrill`'s level-3 blocks) reaching within this many
+light-years of it get every star down to
+`BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL` (GEN.23, `generate.py`'s
+`backfill_bright_stars`).
+"""
+
+BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL = 100.0
+"""
+float: How dim the bright-star backfill around a generated sector goes,
+in solar luminosities (GEN.23). A block keeps the dimmest level it has
+been filled to (`bright_star_blocks`), so it is only ever drawn once per
+luminosity band.
 """
 
 RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000

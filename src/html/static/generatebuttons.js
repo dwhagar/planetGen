@@ -11,10 +11,11 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
-// The neighborhood dialog's radius in light years: the default, and the
+// The neighborhood dialog's radius in light years: the default (about
+// program_constants.DEFAULT_GENERATE_RADIUS_PC, 12 pc; GEN.23), and the
 // bounds generationLimits allows (a sector's own edge up to
 // MAX_GENERATE_RADIUS_PC, about 652 ly).
-export var NEIGHBORHOOD_DEFAULT_LY = 100;
+export var NEIGHBORHOOD_DEFAULT_LY = 39;
 export var NEIGHBORHOOD_MIN_LY = 13;
 export var NEIGHBORHOOD_MAX_LY = 652;
 // More sectors than this asks before it starts.

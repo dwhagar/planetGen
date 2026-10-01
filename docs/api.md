@@ -416,13 +416,14 @@ connectivity to that specific schema rather than the default one.
   wiki (see "Wiki publishing" below).
 - `POST /api/sectors/<id>/generate-neighborhood` — generate every
   not-yet-generated sector within `radius_ly` (optional JSON body field,
-  default 100 ly, at most the generator's own radius cap) of this
+  default 12 pc, at most the generator's own radius cap) of this
   galaxy-placed sector, synchronously. Returns counts: `generated`,
   `already_existed`, `skipped`, `candidates` and `outside_galaxy`. `404`
   for an unknown or unplaced sector, `409`
-  when the galaxy has never been planned (`generate.py plan`). The default
-  radius covers thousands of candidate slots, so this can run for a long
-  time; a reverse proxy's timeout may need raising for it. The sector
+  when the galaxy has never been planned (`generate.py plan`). Every new
+  sector also gets the bright stars (100 L_sun and up) within 100 ly of it
+  (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
+  so this can run for a long time; a reverse proxy's timeout may need raising for it. The sector
   page's admin form calls it.
 - `POST /api/systems` — generate and create a system, standalone or in
   an existing sector.

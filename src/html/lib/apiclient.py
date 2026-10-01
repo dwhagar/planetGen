@@ -977,9 +977,9 @@ def delete_facility(cookie_header, db, facility_id):
 
 _NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS = 1800
 """float: `generate_sector_neighborhood` below can legitimately run for a
-very long time -- its default 100 ly radius holds on the order of
-2,000-3,000 candidate sector slots (confirmed by measurement, see that
-route's own docstring), each generated one at a time, synchronously (see
+very long time -- its default 12 pc radius holds about 100 candidate
+sector slots, but a 100 ly radius holds on the order of 2,000-3,000
+(see that route's own docstring), each generated one at a time, synchronously (see
 `routes.py`'s own note on this route having no background job queue to
 hand off to) -- unlike every other quick CRUD call this module makes,
 where `_TIMEOUT_SECONDS` alone would make a real, still-working request
@@ -994,7 +994,7 @@ def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None):
     """
     `POST /api/sectors/<id>/generate-neighborhood` -- generates every
     not-yet-generated sector within `radius_ly` (`None` for the API's own
-    default, 100 ly) of this already galaxy-placed sector. The admin-only
+    default, 12 pc) of this already galaxy-placed sector. The admin-only
     "generate more sectors around this one" action on `sector.py`. Uses
     `_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS` rather than this module's
     usual, much shorter timeout -- see that constant's own docstring.

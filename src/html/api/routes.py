@@ -1117,13 +1117,13 @@ def delete_sector(sector_id):
 def generate_sector_neighborhood_route(sector_id):
     """`POST /api/sectors/<id>/generate-neighborhood` -- generates every
     not-yet-generated sector within `radius_ly` (optional JSON body
-    field; defaults to `program_constants.RANDOM_START_NEIGHBORHOOD_RADIUS_LY`,
-    100 ly, the same "100 ly sphere" `generate.py galaxy`'s own
-    random-start mode uses) of this already galaxy-placed sector -- see
-    `generate.generate_sector_neighborhood`. **The default radius is
-    genuinely large** (~2,000-3,000 candidate sector slots, confirmed by
-    measurement -- see that function's own docstring), so this can run
-    for minutes to hours, not seconds. Runs synchronously like every
+    field; defaults to `program_constants.DEFAULT_GENERATE_RADIUS_PC`,
+    12 pc, the sphere `generate.py galaxy`'s own random-start mode uses)
+    of this already galaxy-placed sector -- see
+    `generate.generate_sector_neighborhood`. Every new sector also gets
+    the bright stars within 100 ly of it (GEN.23). **A large radius is
+    genuinely large** (100 ly is ~2,000-3,000 candidate sector slots), so
+    this can run for minutes to hours, not seconds. Runs synchronously like every
     other write route regardless (there's no background job queue in
     this project to hand it off to) -- `apiclient.py`'s own caller uses a
     much longer timeout than its other calls for exactly this reason, but
@@ -1238,7 +1238,8 @@ def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
     stellar population and (once a bright-star scatter ran) its dim-star
-    cap, as a sector fill would (`brightStars.FillContext`). `None` for a
+    cap (its block's level, GEN.23), as a sector fill would
+    (`brightStars.FillContext`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:
         placement = _db.get_sector_galaxy_position(conn, sector_id)
@@ -1248,10 +1249,10 @@ def _sector_generation_context(conn, sector_id, system_config):
         return None
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
-        settings = _db.bright_star_scatter_settings(conn)
+        level = _db.bright_star_fill_level(conn, placement["ring_index"], placement["layer_index"],
+                                           placement["ring_slot_index"])
         center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
-        brightStars.FillContext(center, skeleton.shape,
-                                min_luminosity_sol=settings[0] if settings else None).apply(system_config)
+        brightStars.FillContext(center, skeleton.shape, min_luminosity_sol=level).apply(system_config)
     return pc_to_ly(placement["galactic_radius_pc"])
 
 

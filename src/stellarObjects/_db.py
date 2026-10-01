@@ -68,6 +68,7 @@ from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
+from .galaxyDrill import DrillBlock, drill_parent
 from .galaxyGeometry import (
     SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
 )
@@ -88,7 +89,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 46
+SCHEMA_VERSION = 47
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -3991,11 +3992,13 @@ BRIGHT_STAR_COLUMNS = (
 
 def clear_bright_stars(conn):
     """
-    Empties `bright_stars` and forgets the scatter's threshold and seed --
+    Empties `bright_stars` and `bright_star_blocks` (v47) and forgets the
+    scatter's threshold and seed --
     a plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
+    conn.execute("TRUNCATE TABLE bright_star_blocks")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL")
     conn.commit()
 
@@ -4015,6 +4018,79 @@ def bright_star_scatter_settings(conn):
     if row is None or row["bright_star_min_luminosity_sol"] is None:
         return None
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
+
+
+def bright_star_block_levels(conn, blocks):
+    """
+    The stored backfill level of each of `blocks` that has one (GEN.23).
+
+    Args:
+        conn (Connection): An open connection.
+        blocks (iterable): Level-3 `galaxyDrill.DrillBlock`s (or
+            `(m, ring, wedge, slab)` tuples).
+
+    Returns:
+        dict: `(ring, wedge, slab)` -> `min_luminosity_sol`, for the
+            blocks with a finished level (a row a backfill still holds,
+            NULL, is left out).
+    """
+    keys = sorted({(int(b[1]), int(b[2]), int(b[3])) for b in blocks})
+    levels = {}
+    for start in range(0, len(keys), 500):
+        chunk = keys[start:start + 500]
+        marks = ", ".join("(?, ?, ?)" for _ in chunk)
+        rows = conn.execute(
+            "SELECT block_ring, block_wedge, block_slab, min_luminosity_sol FROM bright_star_blocks"
+            f" WHERE (block_ring, block_wedge, block_slab) IN ({marks}) AND min_luminosity_sol IS NOT NULL",
+            tuple(value for key in chunk for value in key),
+        ).fetchall()
+        for row in rows:
+            levels[(row["block_ring"], row["block_wedge"], row["block_slab"])] = row["min_luminosity_sol"]
+    return levels
+
+
+def lock_bright_star_block(conn, block):
+    """
+    Takes the row lock on one block's `bright_star_blocks` row, making the
+    row first (level NULL) if there is none, so two backfills never draw
+    the same block at once. Holds until the caller commits.
+
+    Returns:
+        float or None: The block's stored level, `None` for none yet.
+    """
+    key = (int(block[1]), int(block[2]), int(block[3]))
+    conn.execute("INSERT IGNORE INTO bright_star_blocks (block_ring, block_wedge, block_slab) VALUES (?, ?, ?)",
+                 key)
+    row = conn.execute(
+        "SELECT min_luminosity_sol FROM bright_star_blocks"
+        " WHERE block_ring = ? AND block_wedge = ? AND block_slab = ? FOR UPDATE", key,
+    ).fetchone()
+    return row["min_luminosity_sol"]
+
+
+def set_bright_star_block_level(conn, block, min_luminosity_sol):
+    """Records how dim one block's stars now go (inside the transaction
+    `lock_bright_star_block` started)."""
+    conn.execute(
+        "UPDATE bright_star_blocks SET min_luminosity_sol = ?"
+        " WHERE block_ring = ? AND block_wedge = ? AND block_slab = ?",
+        (min_luminosity_sol, int(block[1]), int(block[2]), int(block[3])),
+    )
+
+
+def bright_star_fill_level(conn, ring_index, layer_index, ring_slot_index):
+    """
+    The luminosity one sector's pre-placed stars go down to: its block's
+    backfill level (GEN.23) when it has one, else the galaxy's scatter
+    threshold, else `None` (no bright stars placed; a fill caps nothing).
+    """
+    if ring_index is not None and layer_index is not None and ring_slot_index is not None:
+        block = drill_parent(DrillBlock(1, ring_index, ring_slot_index, layer_index))
+        level = bright_star_block_levels(conn, [block]).get((block.ring, block.wedge, block.slab))
+        if level is not None:
+            return level
+    settings = bright_star_scatter_settings(conn)
+    return settings[0] if settings else None
 
 
 def insert_bright_stars(conn, rows, batch_size=10000):
@@ -7475,6 +7551,18 @@ def _migrate_v45_to_v46(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
 
 
+def _migrate_v46_to_v47(conn):
+    """
+    Adds `bright_star_blocks` (GEN.23) -- see `schema.sql`'s "v47" header
+    note. Empty: every block starts at the galaxy's scatter level.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    conn.execute(_schema_statement("bright_star_blocks"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -7580,6 +7668,7 @@ def _migration_steps():
         (44, _migrate_v43_to_v44),
         (45, _migrate_v44_to_v45),
         (46, _migrate_v45_to_v46),
+        (47, _migrate_v46_to_v47),
     ]
 
 

@@ -80,7 +80,7 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`generate.py`](../../generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
+| [`generate.py`](../../generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `migrateDb.py`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, and the same optional population prompt after the migration. Safe to run on a schedule (with no terminal the prompt is skipped). |
 | [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `-Population` runs the population pass without asking. |
@@ -151,7 +151,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 |---|---|
 | `stellarEvolution.py` | Draws a star as physics: Kroupa IMF mass, age from the star-formation history, evolved state (main sequence through remnant). |
 | `stellarPopulation.py` | The population model split at a luminosity threshold: bright stars for plan time, dim stars for sector fill. |
-| [`brightStars.py`](../../src/stellarObjects/brightStars.py) | Galaxy-wide bright-star scatter after `generate.py plan` (ring by ring, into `bright_stars`), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
+| [`brightStars.py`](../../src/stellarObjects/brightStars.py) | Galaxy-wide bright-star scatter after `generate.py plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
 
 #### Exotic phenomena (outside any system)
 

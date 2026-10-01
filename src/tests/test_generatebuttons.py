@@ -14,8 +14,9 @@ import subprocess
 
 import pytest
 
+from stellarObjects import program_constants
 from stellarObjects.generationLimits import MAX_GENERATE_RADIUS_LY
-from stellarObjects.utils import ly_to_pc
+from stellarObjects.utils import ly_to_pc, pc_to_ly
 
 NODE = shutil.which("node")
 MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "generatebuttons.js")
@@ -41,7 +42,7 @@ def test_light_years_convert_the_same_way_python_does(ly):
 def test_the_radius_bounds_match_the_generation_limits():
     out = _run("console.log(JSON.stringify({min: G.NEIGHBORHOOD_MIN_LY, max: G.NEIGHBORHOOD_MAX_LY, "
                "fallback: G.NEIGHBORHOOD_DEFAULT_LY, confirm: G.NEIGHBORHOOD_CONFIRM_SECTORS}));")
-    assert out["fallback"] == 100
+    assert out["fallback"] == round(pc_to_ly(program_constants.DEFAULT_GENERATE_RADIUS_PC))
     assert out["confirm"] == 5000
     # Never past what the Generate page accepts, and never under one sector.
     assert out["max"] <= MAX_GENERATE_RADIUS_LY

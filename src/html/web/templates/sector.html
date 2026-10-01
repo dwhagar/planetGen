@@ -69,10 +69,10 @@
   <p class="error" role="alert">{{ errors.neighborhood }}</p>
   {%- endif %}
   {%- if sector.placed %}
-  <p class="hint">Fills in every not-yet-generated sector within a 100 ly sphere
-  around this one (already-generated sectors are skipped). That sphere can hold
-  thousands of candidate sectors, so this can take anywhere from a few minutes
-  to a few hours to finish; the page will not respond until it completes.</p>
+  <p class="hint">Fills in every not-yet-generated sector within 12 pc (about
+  39 ly) of this one (already-generated sectors are skipped), and gives the
+  100 ly around every new sector its bright stars. That can take several
+  minutes; the page will not respond until it completes.</p>
   <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="generate_neighborhood">

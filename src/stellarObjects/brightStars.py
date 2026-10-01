@@ -12,6 +12,11 @@ has billions of cells): each ring's expected count per stellar
 population is averaged over angle bins, drawn as a Poisson count, and
 each star then lands in a qualifying slot of a bin picked in proportion
 to that population's density.
+
+The backfill (GEN.23, `backfill_cells`) goes the other way: around each
+generated sector, block by block, it adds the stars between a lower floor
+(`BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL`) and whatever was already
+placed there, cell by cell.
 """
 
 import math
@@ -30,7 +35,9 @@ from .galaxyGeometry import (
     sector_position_pc,
 )
 from .spaceSector import _sample_poisson_count
-from .stellarPopulation import bright_star_fraction, pick_population, sample_bright_stars
+from .stellarPopulation import (
+    band_fraction, bright_star_fraction, pick_population, sample_bright_stars, sample_stars_between,
+)
 from .utils import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge")
@@ -86,8 +93,6 @@ def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_
     total = sum(weights)
     bin_width = 2 * math.pi / len(weights)
     slot_width = 2 * math.pi / slots
-    r_low, r_high = ring_bounds_pc(ring_index, edge_pc)
-    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
     for _ in range(SLOT_REDRAWS):
         pick = rng.random() * total
         for k, weight in enumerate(weights):
@@ -98,14 +103,39 @@ def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_
         slot = min(int(theta / slot_width), slots - 1)
         if not _qualifies(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape, expected_at_density_1):
             continue
-        theta = (slot + rng.random()) * slot_width
-        # Uniform over the cell's area, which grows with radius.
-        radius = math.sqrt(rng.uniform(r_low * r_low, r_high * r_high))
-        point = (radius * math.cos(theta), radius * math.sin(theta), rng.uniform(z_low, z_high))
-        stored = tuple(round(value * MPC_PER_PC) for value in point)
-        if sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot):
+        stored = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+        if stored is not None:
             return slot, stored
     return None
+
+
+def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+    """A uniform point in one cell in whole milliparsecs, or `None` when
+    rounding carried it over the cell's edge."""
+    slot_width = 2 * math.pi / slots
+    r_low, r_high = ring_bounds_pc(ring_index, edge_pc)
+    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
+    theta = (slot + rng.random()) * slot_width
+    # Uniform over the cell's area, which grows with radius.
+    radius = math.sqrt(rng.uniform(r_low * r_low, r_high * r_high))
+    point = (radius * math.cos(theta), radius * math.sin(theta), rng.uniform(z_low, z_high))
+    stored = tuple(round(value * MPC_PER_PC) for value in point)
+    if sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot):
+        return stored
+    return None
+
+
+def _row(ring_index, layer_index, slot, point, population, params, rng):
+    """One star in `_db.BRIGHT_STAR_COLUMNS` order."""
+    x, y, z = point
+    return (
+        ring_index, layer_index, slot,
+        x, y, z,
+        population, params["type"], params["yerkes_class"], params["mass_kg"],
+        params["radius_km"], params["temperature_k"], params["luminosity_w"],
+        params["age_gy"], params["lifespan_gy"], params["initial_mass_sol"],
+        params["phase_end_age_gy"], rng.getrandbits(63),
+    )
 
 
 def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
@@ -153,17 +183,58 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
             if not spots:
                 continue
             stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng)
-            for (ring_index, slot, (x, y, z)), params in zip(spots, stars):
-                yield (
-                    ring_index, layer_index, slot,
-                    x, y, z,
-                    population, params["type"], params["yerkes_class"], params["mass_kg"],
-                    params["radius_km"], params["temperature_k"], params["luminosity_w"],
-                    params["age_gy"], params["lifespan_gy"], params["initial_mass_sol"],
-                    params["phase_end_age_gy"], rng.getrandbits(63),
-                )
+            for (ring_index, slot, point), params in zip(spots, stars):
+                yield _row(ring_index, layer_index, slot, point, population, params, rng)
         if on_layer is not None:
             on_layer(done, len(extents))
+
+
+def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, rng):
+    """
+    Draws and places every star in a luminosity band for a few cells (the
+    unfilled sectors of one sector block, GEN.23): the band below what was
+    already placed there, so no star is drawn twice.
+
+    Per qualifying cell and population, a Poisson count with mean
+    `expected_at_density_1 * density * band share` at the cell's center
+    (the per-cell rate `scatter` averages over a bin), each star uniform
+    in the cell.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        addresses (iterable): `(ring, layer, slot)` cells to fill.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        min_luminosity_sol (float): The band's floor (Lsun).
+        max_luminosity_sol (float or None): Its ceiling, the level the
+            cells were already filled to; `None` when nothing was placed.
+        rng (random.Random): The random source.
+
+    Yields:
+        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    fractions = {population: band_fraction(min_luminosity_sol, max_luminosity_sol, population)
+                 for population in POPULATIONS}
+    for ring_index, layer_index, slot in addresses:
+        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+        if not _qualifies(center, shape, expected_at_density_1):
+            continue
+        densities = _densities(center, shape)
+        slots = ring_sector_count(ring_index)
+        for population in POPULATIONS:
+            mean = expected_at_density_1 * densities[population] * fractions[population]
+            if mean <= 0.0:
+                continue
+            count = _sample_poisson_count(mean, rng=rng)
+            if not count:
+                continue
+            stars = sample_stars_between(count, min_luminosity_sol, max_luminosity_sol, population, rng)
+            for params in stars:
+                for _ in range(SLOT_REDRAWS):
+                    point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                    if point is not None:
+                        yield _row(ring_index, layer_index, slot, point, population, params, rng)
+                        break
 
 
 def star_params(row):
