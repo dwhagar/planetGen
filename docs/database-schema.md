@@ -492,6 +492,19 @@ supermassive black hole there instead, so every galaxy has one.
 intermediate-mass or supermassive; `_migrate_v35_to_v36` fills it from each
 row's mass.
 
+**Containment (v39).** `star_systems`, `rogue_planets`,
+`interstellar_comets`, `black_holes`, `neutron_stars`, `asteroid_fields`
+and `nebulae` get `inside_nebula_id` and `inside_remnant_id`, foreign keys
+(`ON DELETE SET NULL`) to the innermost nebula or supernova remnant whose
+sphere holds the object; at most one is set. `_db.refresh_containment`
+sets them by a 3D distance test when a sector is generated and, for
+every sector it reaches, when a nebula or remnant is placed.
+`_migrate_v38_to_v39` adds the columns and fills them. A nebula only
+nests inside a larger cloud. `queryDb.containing_cloud` names the cloud,
+and `sector_detail` returns it per system as `inside`. `schema.sql` turns
+foreign key checks off while it runs, since these tables are created
+before `nebulae`.
+
 **Letter classes (v38).** Nebulae (A-Q) and supernova remnants (R-W)
 get a class from `program_constants.NEBULA_CLASSES` with their contents
 (`dominant_species`, `density_cm3`, `temperature_k`, `extinction_av`),

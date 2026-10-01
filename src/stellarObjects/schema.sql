@@ -814,6 +814,16 @@
 --   `_migrate_v37_to_v38` infers classes for existing rows and fills
 --   each class's typical contents.
 --
+-- v39: containment. star_systems, rogue_planets, interstellar_comets,
+--   black_holes, neutron_stars, asteroid_fields and nebulae get
+--   `inside_nebula_id`/`inside_remnant_id`: the innermost (smallest)
+--   nebula or supernova remnant whose sphere holds the object, at most
+--   one of the two set. `_db.refresh_containment` sets them by a 3D
+--   distance test when a sector is generated, when a nebula or remnant is
+--   placed (for every sector it reaches), and in `_migrate_v38_to_v39`.
+--   A nebula only nests inside a larger cloud. ON DELETE SET NULL, so
+--   deleting a cloud frees what was inside it.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -860,6 +870,12 @@
 --     and `utf8mb4`/`utf8mb4_unicode_ci` (full Unicode, including
 --     generated names/flavor text outside the Basic Multilingual Plane,
 --     rather than MySQL's legacy 3-byte `utf8`).
+
+-- v39: star_systems and several phenomenon tables point at nebulae and
+-- supernova_remnants, which are created further down, so foreign key
+-- checks are off while this file runs (MySQL and MariaDB then accept a
+-- reference to a table that doesn't exist yet) and back on at the end.
+SET FOREIGN_KEY_CHECKS = 0;
 
 -- ---------------------------------------------------------------------
 -- schema_migrations -- DDL-level structure version tracking. Replaces
@@ -1043,8 +1059,6 @@ CREATE TABLE IF NOT EXISTS system_config_slots (
 -- ---------------------------------------------------------------------
 -- star_systems
 -- ---------------------------------------------------------------------
--- TODO(phenomena #29): add a nullable nebula_id for the nebula or supernova
--- remnant the system sits inside.
 CREATE TABLE IF NOT EXISTS star_systems (
     id                     BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     sector_id              BIGINT UNSIGNED,
@@ -1157,6 +1171,11 @@ CREATE TABLE IF NOT EXISTS star_systems (
     mediawiki_url        VARCHAR(2048),
     wikijs_url           VARCHAR(2048),
 
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1168,7 +1187,12 @@ CREATE TABLE IF NOT EXISTS star_systems (
     KEY idx_star_systems_system_config_id (system_config_id),
     KEY idx_star_systems_name (name),
     -- v27: see the header comment's "v27" note.
-    KEY idx_star_systems_modified_at (modified_at)
+    KEY idx_star_systems_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_star_systems_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_star_systems_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1614,6 +1638,11 @@ CREATE TABLE IF NOT EXISTS black_holes (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1636,7 +1665,12 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- header comment's "v26" note.
     KEY idx_black_holes_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_black_holes_modified_at (modified_at)
+    KEY idx_black_holes_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_black_holes_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_black_holes_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS neutron_stars (
@@ -1666,6 +1700,11 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1685,7 +1724,12 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     -- v26: see black_holes' identical "v26" index comment above.
     KEY idx_neutron_stars_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_neutron_stars_modified_at (modified_at)
+    KEY idx_neutron_stars_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_neutron_stars_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_neutron_stars_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1694,10 +1738,6 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 -- (v21 on) sectorGen.py's own per-sector generation -- see this file's
 -- "v18"/"v21" header notes.
 -- ---------------------------------------------------------------------
--- TODO(phenomena #29): add a nullable nebula_id (innermost containing
--- nebula or supernova remnant) here, for nesting, and on star_systems,
--- rogue_planets, interstellar_comets, black_holes, neutron_stars,
--- asteroid_fields and stand-alone facilities.
 CREATE TABLE IF NOT EXISTS nebulae (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
@@ -1734,6 +1774,11 @@ CREATE TABLE IF NOT EXISTS nebulae (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1757,7 +1802,12 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- v26: see black_holes' identical "v26" index comment above.
     KEY idx_nebulae_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_nebulae_modified_at (modified_at)
+    KEY idx_nebulae_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_nebulae_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_nebulae_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1898,6 +1948,11 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1915,7 +1970,12 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     KEY idx_rogue_planets_galactic_radius_pc (galactic_radius_pc),
     KEY idx_rogue_planets_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_rogue_planets_modified_at (modified_at)
+    KEY idx_rogue_planets_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_rogue_planets_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_rogue_planets_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1949,6 +2009,11 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -1966,7 +2031,12 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     KEY idx_interstellar_comets_galactic_radius_pc (galactic_radius_pc),
     KEY idx_interstellar_comets_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_interstellar_comets_modified_at (modified_at)
+    KEY idx_interstellar_comets_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_interstellar_comets_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_interstellar_comets_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
@@ -1991,7 +2061,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comet_composition (
 -- via the same shared `asteroidData.generate_asteroid_composition`).
 -- ---------------------------------------------------------------------
 -- TODO(phenomena #30): add the designation. Asteroid fields can sit inside
--- a nebula (nebula_id, #29) but never contain anything.
+-- a nebula (inside_nebula_id, v39) but never contain anything.
 CREATE TABLE IF NOT EXISTS asteroid_fields (
     id                    BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     -- v18: the nearest already-generated sector to center_x/y/z_pc below --
@@ -2018,6 +2088,11 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     galactic_radius_pc  DOUBLE,
 
     -- v27: row timestamps -- see the header comment's "v27" note.
+    -- v39: the innermost nebula or supernova remnant this sits inside
+    -- (at most one set; _db.refresh_containment).
+    inside_nebula_id    BIGINT UNSIGNED,
+    inside_remnant_id   BIGINT UNSIGNED,
+
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
@@ -2035,7 +2110,12 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     -- v26: see black_holes' identical "v26" index comment above.
     KEY idx_asteroid_fields_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_asteroid_fields_modified_at (modified_at)
+    KEY idx_asteroid_fields_modified_at (modified_at),
+    -- v39: containment -- see the header comment's "v39" note.
+    CONSTRAINT fk_asteroid_fields_inside_nebula
+        FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
+    CONSTRAINT fk_asteroid_fields_inside_remnant
+        FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS asteroid_field_composition (
@@ -2182,3 +2262,5 @@ CREATE OR REPLACE VIEW sector_objects AS
         NULL                            AS orbital_index
     FROM comets c
     JOIN star_systems ss ON ss.id = c.star_system_id;
+
+SET FOREIGN_KEY_CHECKS = 1;
