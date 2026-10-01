@@ -369,6 +369,106 @@ designed yet; the open questions are listed in each item.
     localhost or a configured allowlist be exempt so an admin can't lock
     themselves out, and should there be an admin "unlock" command?
 
+### User accounts (Boss's notes of 2026-10-01)
+
+Boss (2026-10-01): "a full user level interface to allow users to
+bookmark this will, of course, require an email loop for password setting
+/ resetting, invite only, so only an admin can invite a user which is done
+by unique link". Today there are only admin accounts: `admin_users`,
+`admin_sessions`, `admin_api_keys` and `admin_audit_log` in
+`stellarObjects/control_schema.sql`, managed by `stellarObjects/adminAuth.py`.
+Install seeds one admin with a random first password and
+`must_change_credentials` (`bootstrap_control_schema`), and nothing in the
+web interface or the CLI adds another account. There is no email support
+and no saved-bookmark feature (pages only have bookmarkable URLs). Order:
+64, then 65 and 66, then 67, 68 and 69. Login protection already exists
+per username (`src/html/api/loginbackoff.py`, PR #131) and is planned per
+IP address (item 61); both must cover user logins, password resets and
+invite links too.
+
+64. [ ] **Accounts with roles: user, admin and Owner.** Boss: "Admin can
+    then make a user admin or take away admin rights on everything but the
+    primary 1st admin account generated at install, that'll have a
+    designation of 'Owner' and no other account can override that." Done:
+    one accounts table in the control database (with an email address)
+    holding a role per account (user, admin, Owner); exactly one Owner,
+    which is the account install creates; an admin page where admins
+    promote a user to admin or demote an admin to user, refused for the
+    Owner; sessions and API keys that work for every role while the
+    admin-only pages and API routes stay admin-only; each role change
+    written to the audit log. Open questions: does `admin_users` become
+    this table (renamed, with a role column) or do users get their own
+    table? Which existing account becomes Owner on a server that already
+    has several admins (the lowest id?)? Can an admin demote themselves,
+    or another admin? Can an admin delete or disable a user account? Do
+    users get API keys?
+
+65. [ ] **SMTP settings in the admin config.** Boss: "We'll use SMTP for
+    email which means admin config needs SMTP settings." Done: SMTP host,
+    port, security (STARTTLS or TLS), username, password and From address,
+    set from an admin page (and the config file/installer), with a "send
+    test email" button; one small mail module that every flow in 66-68
+    uses, which logs failures and never shows the SMTP password. Open
+    questions: is the SMTP password kept in the config file (like the
+    database password) or in the control database, and is it encrypted
+    there? Who can change SMTP settings: any admin, or only the Owner?
+    What do invites and resets do when SMTP isn't configured (show the
+    link to the admin to pass on by hand?)?
+
+66. [ ] **Invite-only sign-up by unique link.** Boss: "only an admin can
+    invite a user which is done by unique link, admin can select how many
+    uses the link has or if it expires in 1 hour, 4, 6, 12, 24, 3 days, 7
+    days, 1 month, 1 year, or never. Likewise invite # of uses the link
+    gets can be infinite but infinite and never expire in combo ask for
+    confirmation as this is not recommended." Done: an admin page that
+    creates invite links (a random token stored hashed, like session
+    tokens) with a use count (a number, or infinite) and one of the
+    expiry choices above; infinite uses together with never expires asks
+    the admin to confirm and says it isn't recommended; a list of invites
+    with uses left, expiry and who made them, and a way to revoke one;
+    opening a valid link lets someone register (username, email), then
+    item 67's email loop sets their password; the account is a user, not
+    an admin. Open questions: does an admin optionally type the invitee's
+    email so the link is sent for them, or only copy the link? Is the
+    invite page rate-limited, and is there a cap on open invites? Does
+    a multi-use link record who used it?
+
+67. [ ] **Email loop for setting and resetting passwords.** Boss: "an
+    email loop for password setting / resetting". Done: a new account
+    sets its first password from an emailed link; "forgot password" on
+    the login page emails a reset link; links are single-use, short-lived
+    (stored hashed) and end the account's other sessions once used; the
+    page never says whether an email address has an account; resets are
+    rate-limited per address and per IP alongside the existing login
+    backoff and item 61. Open questions: how long a reset link lasts
+    (30 minutes? 1 hour?); does changing the email address also need an
+    email confirmation to the old and new addresses; does the Owner's
+    reset need anything extra?
+
+68. [ ] **Owner transfer.** Boss: "The owner CAN (with specific approval
+    and double password confirmation and email loop confirmation) assign
+    owner to someone else who then has to accept via email loop." Done:
+    only the Owner can start a transfer, from a page that asks them to
+    confirm the choice explicitly, enter their password twice, and then
+    confirm from an email link; the chosen account then gets an email and
+    must accept from its own link; only when both are done does Owner
+    move; every step goes to the audit log. Open questions: what the old
+    Owner becomes (admin?); does the new Owner have to be an admin
+    already; how long the pending transfer lasts and whether the Owner
+    can cancel it; what happens if the Owner loses their email or
+    password (recovery from the server's command line?).
+
+69. [ ] **A user-level interface with bookmarks.** Boss: "a full user
+    level interface to allow users to bookmark". Done: signed-in users
+    (any role) get an account page and can bookmark sectors, systems,
+    planets, phenomena and NAV courses, see them in a list, name them and
+    remove them; bookmarks are stored per account in the control
+    database. Open questions: which objects can be bookmarked, and can
+    users also add notes? What else a user can do that an anonymous
+    visitor can't (is the site still public to read, or sign-in only?)?
+    Do bookmarks survive a galaxy regenerate (object ids change), and if
+    not, what does a broken bookmark show?
+
 ## Population and Politics
 
 Exploratory ideas, not yet designed. Each needs a design pass before it
