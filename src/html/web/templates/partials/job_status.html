@@ -16,6 +16,7 @@ redraws the same parts from /admin/generate/status. -#}
     {%- if job.progress_description %}{{ job.progress_description }}: {{ num(job.progress_completed|int) }}{% if job.progress_total %} of {{ num(job.progress_total|int) }}{% endif %}{% endif -%}
   </span>
   <span class="hint" data-job-elapsed>{{ job.elapsed_text }}</span>
+  <span class="hint" data-job-remaining>{% if job.remaining_text %}about {{ job.remaining_text }} left{% endif %}</span>
 </p>
 <p class="error" role="alert" data-job-error{% if not job.error %} hidden{% endif %}>{{ job.error or "" }}</p>
 <pre class="job-log" data-job-log tabindex="0" aria-label="Job output">{{ output or "" }}</pre>

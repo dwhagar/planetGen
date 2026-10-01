@@ -200,6 +200,18 @@ every run), and `--workers 1` generates one sector at a time in the run's
 own process, as before. On a 4-core machine with MySQL local, 60 sectors
 of ring 2000 took 16.5 s on one worker and 9.8 s on the default two.
 
+`generate.py plan` draws its bright stars the same way, one layer of the
+galaxy per task, densest layers first (`--workers` works there too).
+Each layer draws from its own random stream, so the same seed places the
+same stars on any number of workers.
+
+Every progress bar shows the time elapsed and the time remaining until
+it's done. The remaining time comes from a decaying average of how many
+sectors (or layers) finished per second, weighted toward the last minute
+or so, so it follows the run's current speed and doesn't jump about when
+several workers finish at once. The Generate page shows the same
+estimate ("about 4 m 10 s left").
+
 Only one run's workers use the machine at a time: a run started while
 another is generating (from the command line or the Generate page) says
 it's waiting and starts when the other finishes. The control database
