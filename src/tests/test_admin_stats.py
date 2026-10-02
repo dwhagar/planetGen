@@ -114,6 +114,8 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     assert database["schema_current"] is True
     assert database["counts"] == {"sectors": 3, "star_systems": 4}
     assert database["bright_stars"] == {"placed": 0, "filled": 0, "unfilled": 0}
+    # PERF.11: these sectors aren't on the grid, so nothing is measured.
+    assert database["sector_stats"] == {"measured": 0, "backfilled": 0, "ratio": None, "fills": 0}
     assert {"sectors", "star_systems", "planets", "moons"} <= {t["name"] for t in database["tables"]}
 
     stamps = {t["table"]: t for t in database["timestamps"]}

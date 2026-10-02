@@ -403,7 +403,7 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v51_to_v52`. `migrate_database`
+version, through `_migrate_v52_to_v53`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A SQLite database from before
@@ -606,10 +606,38 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
 truncates it with `bright_stars`. `_migrate_v48_to_v49` creates it empty.
+v53 replaced the table with per-sector levels in `sector_stats`.
 
 **What made the galaxy, and every run (v52).** `_migrate_v51_to_v52`
 adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
 the empty `generation_runs` table (DB.6).
+
+**Per-sector stats (v53, GEN.44, PERF.11).** `sector_stats` holds one
+row per sector address a backfill reached or a fill generated (an
+unfilled sector has no `sectors` row, so the key is the address). Its
+`bright_level_sol` replaces v49's per-block levels: -1 untouched (the
+sector follows the galaxy scatter's threshold), a positive L_sun for the
+dimmest a backfill drew every star down to, 0 once the sector is
+generated. The backfill (`generate.backfill_bright_stars`) works sector
+by sector: each sector in range gets the stars from its own distance
+tier's floor up to its level, a few hundred sectors per transaction under
+their rows' locks (`_db.lock_sector_stats`), and its new level is written
+with its stars, so a crash leaves either the old level or none. A sector
+holding unbuilt stars with no level anywhere (no row level and no
+finished scatter) is left over from a failed run: the backfill deletes
+them and draws it whole. A band run (`plan --bright-stars-down-to`)
+leaves sectors with their own level out of its layers and tops each up
+from its own level. A sector's draws come in fixed luminosity bands
+(`brightStars.canonical_bands`, eight to a decade), each from its own
+stream, so down to 1000 L_sun and later to 500 gives exactly the stars of
+one draw to 500. A fill (`_db.record_sector_stats`) sets level 0, keeps
+the level it found in `level_before_fill_sol` (deleting the sector puts
+it back), and records the sector's expected density and what it got.
+`galaxy_shape.density_ratio_avg` is a decaying average of actual against
+expected systems over every fill. `_migrate_v52_to_v53` creates the
+table, gives every filled grid sector a row at level 0, moves each
+`bright_star_blocks` level onto its block's sectors, and drops that
+table. Density stats start empty for sectors filled before.
 
 **The galaxy seed (v51).** `_migrate_v50_to_v51` adds
 `galaxy_shape.galaxy_seed` (`BINARY(16)`: half the bytes of a
@@ -969,6 +997,8 @@ billions of candidates).
 | `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`generate.py plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
 | `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`versionKey.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
 | `planetgen_version`, `python_version`, `platform` | VARCHAR(32) / VARCHAR(16) / VARCHAR(64) | nullable | Added in v52 (DB.6). The same code's full release (`7.127.352`), Python version (`3.12.3`) and `platform.system()` and `.machine()` (`Linux x86_64`). |
+| `density_ratio_avg` | DOUBLE | nullable | Added in v53 (PERF.11). Systems a fill got against systems expected (`sector_stats`), as a mean over the first 1,000 fills, then a decaying average weighing each new fill 1 in 1,000 (`_db.DENSITY_RATIO_WINDOW`). NULL before any fill. |
+| `density_ratio_samples` | BIGINT UNSIGNED | NOT NULL, default 0 | Added in v53 (PERF.11). How many fills went into `density_ratio_avg`. |
 
 ### `galaxy_layer`
 
@@ -1665,16 +1695,24 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
 
-### `bright_star_blocks`
+### `sector_stats`
 
-Added in v49 (GEN.23). How deep the bright-star backfill has gone in each
-sector block. See "Bright-star backfill per sector block (v49, GEN.23)"
-above.
+Added in v53 (GEN.44, PERF.11); replaces v49's `bright_star_blocks`. One
+row per sector address a backfill reached or a fill generated. See
+"Per-sector stats (v53, GEN.44, PERF.11)" above.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
-| `block_ring`, `block_wedge`, `block_slab` | INT / INT / SMALLINT | PK | The level-3 block (`galaxyDrill.DrillBlock(3, ring, wedge, slab)`). |
-| `min_luminosity_sol` | DOUBLE | nullable | The dimmest luminosity (L_sun) the block's unfilled sectors hold every star down to. NULL only while a backfill holds the row. |
+| `ring_index`, `layer_index`, `ring_slot_index` | INT / SMALLINT / INT | PK | The sector's grid address. |
+| `bright_level_sol` | DOUBLE | NOT NULL, default -1 | How deep its bright stars go: -1 untouched (follows `galaxy_shape.bright_star_min_luminosity_sol`), a positive L_sun for a backfill's floor, 0 generated. Indexed. |
+| `level_before_fill_sol` | DOUBLE | nullable | The level a fill found, put back when the sector is deleted. |
+| `relative_density` | DOUBLE | nullable | The galaxy model's density at the sector's center (`galaxyDensity.relative_density`). |
+| `expected_systems` | DOUBLE | nullable | `relative_density` times `galaxy_shape.expected_system_count_at_density_1`. |
+| `actual_systems`, `actual_stars` | INT | nullable | What the fill gave it; NULL before. |
+| `mean_temperature_k`, `mean_luminosity_sol` | DOUBLE | nullable | The mean temperature and luminosity (L_sun) of its systems' stars. |
+| `fill_share` | DOUBLE | nullable | 0..1: its systems against the most a sector can hold (the density model's peak), on a log scale (`sectorLook.fill_share`); the Galaxy Map color's saturation (MAP.86). |
+| `color_r`, `color_g`, `color_b` | DOUBLE | nullable | Its Galaxy Map color, sRGB 0..1 (`sectorLook.sector_color`: hue from the stars' mean temperature, saturation from `fill_share`, lightness from their mean luminosity); NULL with no stars (MAP.86). |
+| `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
 ### `generation_runs`
