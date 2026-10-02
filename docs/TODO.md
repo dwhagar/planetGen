@@ -112,7 +112,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -1736,6 +1736,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
 
+- [ ] **GEN.64 A 64-bit position ID as the name of every interstellar object and bright-sweep system**
+  Boss (2026-10-02 05:32Z, in the naming-cost analysis thread): "ok so
+  let's do this.  let's create a bitmapped hex field.  So, each rogue
+  planet will have a location relative to the center of the galaxy, take
+  that and map it roughly so that we have 2 values between 1 and 360
+  each ( xxx mark yyy) and then a value between 0 and x ?pc (the scale
+  can change because we're going to have a value for if it's Gpc, Mpc,
+  kpc, pc, cpc, or mpc, how many bits do we need for this?  Also want
+  bit space for a number that says what kind of interstellar object it
+  is." and "We're constructing a unique ID for every single thing in
+  sector space (no solar system objects).  Then replace all names of
+  interstellar objects other than star systems (this even goes for stars
+  generated in the brightness sweep, will use that ID as their name."
+  Layout decided by Boss at 05:36Z (relayed by the coordinator): 64
+  bits, packed from the object's position relative to the galaxy's
+  center: type 4 bits, distance unit 3 bits (Gpc, Mpc, kpc, pc, cpc,
+  mpc), distance 17 bits, bearing 20 bits, mark 20 bits; stored as
+  `BIGINT`, shown as 16 hex digits. Done: every interstellar object
+  (rogue planets, black holes, neutron stars, nebulae, supernova
+  remnants, quasars, interstellar comets, asteroid fields) and every
+  system made by the bright-star sweep gets this ID, and the ID is its
+  name; ordinary star systems keep their names; a rogue planet's moons
+  are named for its ID plus a letter; these objects no longer go through
+  the name registry (`_db.reserve_system_names` and the Greek and Roman
+  collision decorations); in the rare case two objects pack to the same
+  ID, the one later in sector order bumps its lowest bit until it is
+  free, so the result does not depend on generation order; search,
+  pages, the API and the maps show the 16-digit form; a test packs and
+  unpacks positions at each unit and checks a forced clash. Being built
+  now by the analysis thread (2026-10-02 05:36Z). Related: TEST.85 (its
+  registry path no longer serves these objects; the fix still matters
+  for named star systems), GEN.57 (name clashes keyed on address: these
+  objects no longer have name clashes to settle), GEN.63 (planet names
+  unique in a sector: rogue planets and their moons drop out of it,
+  since their names come from the ID), GEN.46 (done, PR #370: the
+  two-word rule now applies only to named systems).
+
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
   sectors that need to be backfilled by taking the star density
@@ -1984,7 +2021,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     check reads the sector's existing names, not a running count (see
     TEST.85's negative collision count in `nameUniqueness.py`); duplicates
     across sectors stay allowed; and a test generates crowded sectors
-    and checks every name is unique within each. Prerequisites: GEN.57.
+    and checks every name is unique within each. Rogue planets and
+    their moons are named from GEN.64's position ID, so they drop out
+    of this check. Prerequisites: GEN.57.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
