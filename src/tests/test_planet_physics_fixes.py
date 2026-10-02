@@ -97,7 +97,7 @@ def test_rogue_gas_giant_radius_follows_the_giant_relation(mass_bin):
         sigma = pc.GIANT_RADIUS_SCATTER[planetPhysics.giant_regime(rogue.mass_kg)]
         assert median * (1 - 3 * sigma) <= rogue.radius_km <= median * (1 + 3 * sigma)
         density = rogue.mass_kg / ((4 / 3) * math.pi * (rogue.radius_km * 1000) ** 3) / 1000
-        assert 0.1 < density < 30.0  # 13 Jupiter masses at about Jupiter's radius is ~20 g/cm3
+        assert 0.1 < density < 50.0  # 13 Jupiter masses at 0.8 of Jupiter's radius is ~40 g/cm3
         seen.append((rogue.mass_kg, rogue.radius_km))
     assert seen
 
