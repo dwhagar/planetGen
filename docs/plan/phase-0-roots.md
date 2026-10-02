@@ -32,7 +32,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.23 | The bright-star progress bar can end at 101% (bug) |  | _LayerTracker in generate.py, same parallel scatter code. |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | PERF.23 | Same scatter functions (_scatter_layers, add_bright_star_band) as PERF.23. Judgment: could instead ride GEN.44's per-sector levels. |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | PERF.21 | Decided yes (Boss 01:34-01:46Z): 128-bit seed stored in the database and logged at the top of every run; seed + version (packed in hex) reproduce the galaxy; needs a fresh galaxy. It per-sector seeded draws touch the RNG calls in every generator file, so it lands right after PERF.21 and before GEN.47, GEN.42 and PERF.18, which all need 'same seed, same stars'. |
-| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; packed hex version. |
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
 | OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
 ### Physics bugs
