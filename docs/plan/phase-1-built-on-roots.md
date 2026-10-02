@@ -126,7 +126,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.13 | Every update records the version key, keeping the last 10 | OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.63 | Planet names are unique within a sector | GEN.62, GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; see TEST.85. |
+| GEN.63 | Planet names are unique within a sector | GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; see TEST.85. |
 
 ### Nearby search
 

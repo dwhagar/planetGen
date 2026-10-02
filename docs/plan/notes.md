@@ -160,10 +160,10 @@ None of Boss's 2026-10-01 notes apply to this phase.
 |---|---|---|
 | stellarObjects/workQueue.py | ADM.15, PERF.18, PERF.19/20 | PERF.21, PERF.22 and TEST.73 done (PR #371). |
 | generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44 (phase 0), GEN.41, GEN.42, GEN.43, PERF.18 | GEN.44 in phase 0; then GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
-| generate.py: command-line options | GEN.51 (phase 0), GEN.52, GEN.24, API.3 | GEN.51 in the binary pairs lane after GEN.62; GEN.52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
+| generate.py: command-line options | GEN.51 (phase 0), GEN.52, GEN.24, API.3 | GEN.51 in the binary pairs lane (GEN.62 done, PR #393); GEN.52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
 | generate.py: sector phenomena (generate_sector_phenomena) | GEN.47 (phase 0) | Generation bugs lane. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
-| systemData.py StarSystem constructor | GEN.62, GEN.51 (phase 0), GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50 done (PRs #367, #373). |
+| systemData.py StarSystem constructor | GEN.51 (phase 0), GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50, GEN.62 done (PRs #367, #373, #393). |
 | planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.60, GEN.38 with class S (phase 0), GEN.33/28, GEN.27, GEN.29 | Generation bugs lane first; the classes thread in phase 1. |
 | Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; tell the other generation threads to merge main when it lands. |
 | _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.85 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370). |
