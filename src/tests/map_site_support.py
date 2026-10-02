@@ -92,19 +92,25 @@ def _star_field():
     `galaxy_bright_stars_in_box` shape), luminosities 1e-4 to 1e5 L_sun."""
     import random
 
+    from stellarObjects.galaxyGeometry import sector_address_at
+
     rng = random.Random(87)
     stars = []
     for i in range(240):
         lum = 10 ** rng.uniform(-4.0, 5.0)
+        x = STAR_FIELD_CENTER_PC[0] + rng.uniform(-20.0, 20.0)
+        y = STAR_FIELD_CENTER_PC[1] + rng.uniform(-20.0, 20.0)
+        z = STAR_FIELD_CENTER_PC[2] + rng.uniform(-6.0, 6.0)
+        ring, layer, slot = sector_address_at((x, y, z), EDGE_PC)
         temperature = 2600.0 + 30000.0 * (math.log10(lum) + 4.0) / 9.0 * rng.uniform(0.6, 1.0)
         stars.append({
             "id": 9000 + i, "name": None,
-            "x": STAR_FIELD_CENTER_PC[0] + rng.uniform(-20.0, 20.0),
-            "y": STAR_FIELD_CENTER_PC[1] + rng.uniform(-20.0, 20.0),
-            "z": STAR_FIELD_CENTER_PC[2] + rng.uniform(-6.0, 6.0),
+            "x": x, "y": y, "z": z,
             "luminosity_sol": float("%.4g" % lum), "temperature_k": round(temperature),
             "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
-            "ring_index": None, "layer_index": None, "ring_slot_index": None, "system_id": None,
+            "ring_index": ring, "layer_index": layer, "ring_slot_index": slot,
+            # Every star "generated" (in a filled sector) so its panel links to a system page.
+            "system_id": SYSTEMS[i % len(SYSTEMS)][0],
         })
     return stars
 

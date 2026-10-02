@@ -408,7 +408,8 @@ function showCloudInfo(cloud) {
   addField(dl, "Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
   addField(dl, "Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z)));
   panel.appendChild(dl);
-  if (sceneData.phenomenonUrl) {
+  // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
+  if (sceneData.phenomenonUrl && !sceneData.pick) {
     panel.appendChild(pageLink(phenomenonUrl(cloud), "View phenomenon →"));
   }
 }
@@ -461,7 +462,7 @@ function showStarInfo(star) {
   addField(dl, "Address", formatAddress(star.ring_index, star.layer_index, star.ring_slot_index));
   addField(dl, "System", star.system_id != null ? null : "Not generated yet (its sector isn't filled)");
   panel.appendChild(dl);
-  if (sceneData.systemUrl && star.system_id != null) {
+  if (sceneData.systemUrl && star.system_id != null && !sceneData.pick) {
     panel.appendChild(pageLink(systemUrl(star.system_id), "View system →"));
   }
 }

@@ -88,11 +88,13 @@ def _info_title(page):
     return heading.inner_text() if heading.count() else None
 
 
-def _bright_spots(page, selector, limit=40):
+def _bright_spots(page, selector, limit=40, white=False):
     """Screen points (page coordinates) of the brightest small spots on a
-    canvas, brightest first: where its points of light are drawn."""
-    box = page.locator(selector).bounding_box()
+    canvas, brightest first: where its points of light are drawn (with
+    `white`, only near-white ones: a star's whitened core, not the Galaxy
+    Map's lit blocks)."""
     image = Image.open(io.BytesIO(_shot(page, selector))).convert("RGB")
+    box = page.locator(selector).bounding_box()  # after the shot, which may scroll
     width, height = image.size
     pixels = image.load()
     background = pixels[2, 2]
@@ -104,7 +106,7 @@ def _bright_spots(page, selector, limit=40):
     for y in range(2, height - 2):
         for x in range(2, width - 2):
             here = contrast(x, y)
-            if here < 120:
+            if here < 120 or (white and min(pixels[x, y]) < 225):
                 continue
             if all(here >= contrast(x + dx, y + dy) for dx in (-2, 0, 2) for dy in (-2, 0, 2)):
                 spots.append((here, x, y))
@@ -529,3 +531,38 @@ def test_sector_page_bookmark_shows_in_the_galaxy_menu(page, map_site):
     menu = page.locator("[data-bookmarks-menu]")
     menu.locator("summary").click()
     assert "Fixture Prime" in menu.locator("[data-bookmarks-panel]").inner_text()
+
+
+# --- NAV.30: no link out of a course being picked -----------------------------------
+
+def test_sector_map_pick_mode_offers_only_the_pick_button(page, map_site):
+    _open_sector(page, map_site, "?pick=to")
+    _x, _y, name = _click_a_star(page)
+    info = page.locator("#starmap-info")
+    links = [a.inner_text() for a in info.locator("a").all()]
+    assert links == ["Use as destination"] or (len(links) == 1 and "destination" in links[0].lower()), links
+    page.locator(".starmap-sr-list button", has_text="Fixture Pulsar").evaluate("b => b.click()")
+    links = [a.inner_text() for a in info.locator("a").all()]
+    assert len(links) == 1 and "View" not in links[0], links
+
+
+def _click_a_galaxy_star(page):
+    url = page.url
+    for x, y in _bright_spots(page, GALAXY_CANVAS, limit=40, white=True):
+        page.mouse.click(x, y)
+        heading = page.locator("#galaxymap3d-info h3")
+        if heading.count() and heading.inner_text() == "Bright star":
+            return
+        if page.url != url:  # missed, and took a block instead
+            page.go_back()
+            _settle(page)
+    pytest.fail("no click on the Galaxy Map picked a star")
+
+
+@pytest.mark.parametrize("pick", [False, True])
+def test_galaxy_map_star_links_to_its_system_except_while_picking(page, map_site, pick):
+    _open_galaxy(page, map_site, "?at=27.27.0.0" + ("&pick=to" if pick else ""))
+    page.wait_for_timeout(1000)
+    _click_a_galaxy_star(page)
+    links = page.locator("#galaxymap3d-info a", has_text="View system")
+    assert links.count() == (0 if pick else 1)

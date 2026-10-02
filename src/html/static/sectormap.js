@@ -114,7 +114,9 @@ function showObjectInfo(entry) {
     addField(dl, "Distance", entry.distanceText);
     panel.appendChild(dl);
     appendNavActions(panel, entry);
-    panel.appendChild(navLink(entry, "View phenomenon →"));
+    if (!picking(entry)) {
+      panel.appendChild(navLink(entry, "View phenomenon →"));
+    }
     return;
   }
   addField(dl, "Star type", entry.starType);
@@ -123,12 +125,22 @@ function showObjectInfo(entry) {
   addField(dl, "Location", entry.location);
   panel.appendChild(dl);
   appendNavActions(panel, entry);
-  panel.appendChild(navLink(entry, "View system →"));
+  if (!picking(entry)) {
+    panel.appendChild(navLink(entry, "View system →"));
+  }
+}
+
+// Whether the page is choosing a NAV start or destination (NAV's "Pick
+// on map", `entry.nav.pick`): the panel then offers only the pick button,
+// no link that would leave the course being built (NAV.30).
+function picking(entry) {
+  return !!(entry.nav && entry.nav.pick);
 }
 
 // NAV links for a system or phenomenon (`entry.nav`, built by the sector
-// page): in pick mode a "Use as destination" (or start) button that
-// lands on the plotted course, then "Nav from here" and "Nav to here".
+// page): in pick mode only a "Use as destination" (or start) button that
+// lands on the plotted course, otherwise "Nav from here" and "Nav to
+// here".
 function appendNavActions(panel, entry) {
   var nav = entry.nav;
   if (!nav) {
@@ -140,6 +152,7 @@ function appendNavActions(panel, entry) {
     pick.className = "btn starmap-pick";
     pick.textContent = nav.pickLabel;
     panel.appendChild(pick);
+    return;
   }
   var links = document.createElement("p");
   links.className = "page-actions";
