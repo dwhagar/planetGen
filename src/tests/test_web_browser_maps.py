@@ -166,6 +166,12 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     planet.click()
     assert _active_scene(page) == moons
     assert "Moons of" in page.locator("#sysmap-crumb").inner_text()
+    # MAP.92: the planet and its moons show their radius and mass.
+    info = page.locator("#sysmap-info").inner_text()
+    assert "Radius" in info and "Mass" in info, info
+    page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first.click()
+    info = page.locator("#sysmap-info").inner_text()
+    assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     page.click("#sysmap-crumb .sysmap-back-btn")
     assert _active_scene(page) == "system"
     assert page.locator("#sysmap-crumb button").count() == 0

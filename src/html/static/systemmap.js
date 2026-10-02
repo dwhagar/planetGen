@@ -135,11 +135,18 @@ function glowColorForTemp(tempK) {
   return "#bfe3ff";
 }
 
-// The whole diagram's fixed coordinate space -- must match
-// `lib/systemmap.py`'s own `_VIEW_SIZE_PX`, since this is what turns a
-// marker's `cx`/`cy`/`r` (in that same fixed viewBox) into real canvas
-// pixels below.
+// The diagram's coordinate space when a scene has no viewBox to read --
+// `lib/systemmap.py`'s own `_VIEW_SIZE_PX`. A scene's viewBox is usually
+// that 700 px frame, but MAP.88 widens it around the center when anything
+// drawn would run past the edge, so marker positions are turned into
+// canvas pixels through each marker's own scene's viewBox.
 var VIEW_SIZE_PX = 700;
+
+function viewBoxOf(el) {
+  var svg = el.ownerSVGElement;
+  var box = svg && svg.viewBox && svg.viewBox.baseVal;
+  return box && box.width ? box : { x: 0, y: 0, width: VIEW_SIZE_PX, height: VIEW_SIZE_PX };
+}
 
 // One shared WebGL context that renders every visible marker's own sphere
 // via a scissored sub-viewport per marker -- not one `<canvas>`/context
@@ -253,10 +260,11 @@ function initSphereField(canvasEl) {
 
   function recomputeRects() {
     var size = canvasEl.clientWidth || 0;
-    var scale = size / VIEW_SIZE_PX;
     rects = markers.map(function (marker) {
-      var cx = (parseFloat(marker.circle.getAttribute("cx")) || 0) * scale;
-      var cy = (parseFloat(marker.circle.getAttribute("cy")) || 0) * scale;
+      var view = viewBoxOf(marker.circle);
+      var scale = size / view.width;
+      var cx = ((parseFloat(marker.circle.getAttribute("cx")) || 0) - view.x) * scale;
+      var cy = ((parseFloat(marker.circle.getAttribute("cy")) || 0) - view.y) * scale;
       var r = (parseFloat(marker.circle.getAttribute("r")) || 0) * scale;
       // The local half-extent (`frameCamera`'s own units) that a gas
       // giant's ring or a plain glow shell needs to stay in-frame -- see
@@ -484,6 +492,8 @@ function showInfo(el) {
   } else {
     addField(dl, "Class", classField(el));
     addField(dl, "Type", el.dataset.bodytype);
+    addField(dl, "Radius", el.dataset.radius);
+    addField(dl, "Mass", el.dataset.mass);
     addField(dl, "Zone", el.dataset.zone);
     addField(dl, "Distance", el.dataset.distance);
     addField(dl, "Period", el.dataset.period);
@@ -497,6 +507,7 @@ function showInfo(el) {
     } else if (el.dataset.moons) {
       addField(dl, "Moons", el.dataset.moons);
     }
+    addField(dl, "Note", el.dataset.note);
   }
   panel.appendChild(dl);
 
