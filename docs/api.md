@@ -221,7 +221,8 @@ connectivity to that specific schema rather than the default one.
   the edge down to 16 pc at level 12, and a key is `level/ix/iy/iz`
   (`ix` counts cubes along x from the root cube's −x face). Returns
   `{"tiles": {"<key>": {"placed": [...], "planned": [...], "filled": {...},
-  "clouds": [...], "stars": [...], "generated": [...]}}, "edge_pc": ...,
+  "clouds": [...], "stars": [...], "generated": [...], "points": [...]}},
+  "edge_pc": ...,
   "has_shape": ...}`:
   `placed` is every placed sector whose center is in the tile's half-open
   box (the `/api/galaxy/sectors` shape plus `layer_index`, `ring_slot_index`,
@@ -248,11 +249,18 @@ connectivity to that specific schema rather than the default one.
   sector's center; `queryDb.galaxy_generated_stars_in_box`) at or above
   the tile level's luminosity floor (`queryDb.generated_star_floor_sol`:
   every star at level 12, four times brighter per coarser level, none
-  past 1,000 L☉), most luminous first, at most 1,000, read from at most
+  past 1,000 L☉), most luminous first, at most 1,000 (4,000 at level 12,
+  so the Galaxy Map zoomed to a sector shows all of its stars, MAP.80),
+  read from at most
   1,500 of its sectors (a hashed sample past that); a star already in
   `stars` isn't repeated: `{id, name, x, y, z, luminosity_sol,
   temperature_k, radius_sol, star_type, ring_index, layer_index,
-  ring_slot_index, system_id}` (`id` is the `stars` row). Predicted density isn't
+  ring_slot_index, system_id}` (`id` is the `stars` row). `points` lists
+  the placed black holes, neutron stars and quasars centered in the tile
+  (`queryDb.galaxy_point_phenomena_in_box`), only at level 10 (64 pc) and
+  finer, most luminous first, at most 200: `{type, id, name, descriptor,
+  luminosity_sol, x, y, z}` (`type` is `black_hole`, `neutron_star` or
+  `quasar`). Predicted density isn't
   served: the page evaluates the galaxy's shape itself
   (`static/galaxyprisms.js`). At most 128 keys per request; a
   malformed key is a 400. Every part depends only on its key and the
