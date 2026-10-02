@@ -766,16 +766,17 @@ page shows this as "000 mark 000", rounded to whole degrees.
   NAV Map plot (`html/lib/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
   scope, plus a phenomenon endpoint's own one-off node when `from`/`to` is
-  one; edges: each node's `k`-nearest neighbors, symmetrized), as a list of
+  one; edges: each node's `k`-nearest neighbors, symmetrized, then each
+  island that leaves linked to its nearest few islands by their closest
+  pair of systems, until one is left -- NAV.34), as a list of
   node ids from `from` to `to` inclusive (a plain int for a system, a
   `"phenomenon:<type>:<id>"` string for a phenomenon -- only `path[0]`/
   `path[-1]` can ever be the latter), its total distance, and `positions`
   (one `[x, y, z]` entry per id in `path`, keyed as a string either way
   since JSON object keys always are, same frame as `origin_position`/
-  `destination_position`). `null` if no path exists through the adjacency
-  graph (only possible for the `"galaxy"` scope — the `"sector"` scope's
-  graph is always fully reachable since every system in a sector gets an
-  edge once `k` is at least the sector's own system count minus one).
+  `destination_position`). `null` only when `from` and `to` are the same
+  node: with the islands joined, any two placed endpoints have a route,
+  however far apart the generated areas around them are.
 
 ## Write endpoints
 

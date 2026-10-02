@@ -64,14 +64,14 @@ from stellarObjects.galaxyViewport import (
 from stellarObjects.galaxyDrill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from stellarObjects.navGraph import build_knn_adjacency, shortest_path
+from stellarObjects.navGraph import build_route_graph, shortest_path
 from stellarObjects.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
 )
 from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.evolution import life_stage_from_paragraphs
 from stellarObjects.program_constants import (
-    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, PLANET_CLASSES,
+    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -786,7 +786,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             `from_kind == "system"`, else the phenomenon's own table id.
         to_id (int): Same, for the destination.
         adjacency_k (int): Passed through to
-            `navGraph.build_knn_adjacency` as `k`.
+            `navGraph.build_knn_adjacency` as `k`; the islands that
+            graph leaves are then joined (`navGraph.join_islands`,
+            `NAV_ISLAND_LINKS` nearest islands each).
         from_kind (str): `"system"` (default) or `"phenomenon"`.
         to_kind (str): Same, for the destination.
         from_type (str, optional): Required when `from_kind ==
@@ -802,8 +804,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             light-year positions `direct` was computed from, in `scope`'s
             frame -- sector-local for `"sector"`, galaxy-frame for
             `"galaxy"`), and `route`: `None` if the two endpoints resolve
-            to the same node or no path exists through the adjacency
-            graph, else `{"path": [...node ids...], "distance_ly": float,
+            to the same node (the joined graph always has a path
+            otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}}` (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `html/lib/navmap.py`, without
@@ -872,7 +874,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
 
     route = None
     if from_key != to_key:
-        graph = build_knn_adjacency(positions, adjacency_k)
+        # The graph's islands are joined (NAV.34), so two placed
+        # endpoints always have a route.
+        graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
         found = shortest_path(graph, from_key, to_key)
         if found is not None:
             path, distance_ly = found

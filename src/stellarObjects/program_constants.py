@@ -2790,6 +2790,18 @@ function's docstring), so a system can end up connected to more than `k`
 neighbors if others chose it as one of theirs.
 """
 
+NAV_ISLAND_LINKS = 6
+"""
+How many nearest islands each island of the NAV route graph is linked to
+(`stellarObjects.navGraph.join_islands`, NAV.34). The 6-nearest graph
+splits into islands wherever separately generated areas sit apart; in
+the hop-length study (2026-10-02), linking each island to its 6 nearest
+joined all 714 islands of 2,000 scattered sectors and gave a
+cross-galaxy route 1.29 times the direct distance (3 left 2 islands, 1
+left 208). Rounds repeat until one island is left, so any value of 1 or
+more always joins the graph; a bigger value gives shorter detours.
+"""
+
 # --- Facilities (schema v42) ---
 
 FACILITY_KINDS = {
