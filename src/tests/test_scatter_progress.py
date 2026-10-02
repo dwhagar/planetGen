@@ -117,6 +117,42 @@ def test_the_main_bar_credits_layers_in_progress_and_never_goes_back():
     assert main["completed"] == pytest.approx(100.0)
 
 
+def test_a_late_report_for_a_finished_layer_is_ignored():
+    """PERF.23: a report that reaches the tracker after its layer's
+    `layer_done` (the channel's thread lagging behind) used to put the
+    layer back in flight, counting it twice and ending the bar at 101%."""
+    progress, clock = _FakeProgress(), _Clock()
+    tracker = generate._LayerTracker(progress, "Bright stars", {0: 100.0, 1: 20.0}, clock=clock)
+    main = progress.tasks[tracker.task]
+    tracker.layer_progress(0, 40, 50)
+    tracker.layer_done(0)
+    tracker.layer_progress(0, 50, 50)  # late
+    assert main["completed"] == pytest.approx(100.0)
+    tracker.layer_progress(1, 10, 10)
+    tracker.layer_done(1)
+    tracker.layer_progress(1, 10, 10)  # late
+    tracker.layer_done(1)  # and counted once only
+    assert main["completed"] == pytest.approx(main["total"])
+    assert main["description"] == "Bright stars (2 of 2 layers)"
+    assert tracker.in_flight == {}
+
+
+def test_a_weighted_bar_never_shows_more_than_100_percent(tmp_path, monkeypatch, generate_page):
+    """PERF.23: the terminal, the progress file and the Generate page all
+    cap a share at 100%, whatever the count says."""
+    path = tmp_path / "progress.json"
+    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
+    progress = generate._generation_progress()
+    main = progress.add_task("Bright stars (41 of 41 layers)", total=200.0, percent=True)
+    progress.main_task = main
+    progress.update(main, completed=202.6, total=200.0)  # a new total writes the file at once
+    assert generate._CountColumn().render(progress.tasks[main]).plain == "100%"
+    data = json.loads(path.read_text())
+    assert data["completed"] == 200.0
+    job = {"id": "abc", "created_at": 0, "finished": False, "progress": dict(data, completed=202.6)}
+    assert generate_page._job_view(job)["progress_text"] == "Bright stars (41 of 41 layers): 100%"
+
+
 def test_slow_layers_add_a_second_bar_that_goes_once_they_speed_up():
     progress, clock = _FakeProgress(), _Clock()
     weights = {layer: 10.0 for layer in range(-5, 6)}

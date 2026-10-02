@@ -53,6 +53,7 @@ doesn't depend on how many workers there are or which finished first.
 import concurrent.futures
 import contextlib
 import hashlib
+import importlib
 import ipaddress
 import json
 import math
@@ -192,8 +193,39 @@ class Cancelled(SystemExit):
         return f"{self.title} was cancelled from the admin queue page."
 
 
+WORKER_HOOKS_ENV = "PLANETGEN_WORKER_HOOKS"
+
+# Set in a worker once it has been sent SIGTERM (see `_worker_sigterm`).
+_worker_stopping = False
+
+# How long a worker stopped mid-task waits, after the task has ended,
+# before stopping itself (`_run_task`), so the task's result is sent first.
+WORKER_STOP_DELAY_SECONDS = 0.2
+
+
 def _worker_sigterm(signum, _frame):
+    global _worker_stopping
+    _worker_stopping = True
     raise SystemExit(128 + signum)
+
+
+def _stop_worker_soon():
+    """
+    Sends this worker SIGTERM again once the task that the first one
+    ended has been reported (PERF.22). The pool runs every task inside
+    a `try` that catches `BaseException`, so a SIGTERM during a task
+    only ends that task; the worker would then wait for its next task
+    forever. When the pool itself is stopping a broken pool, it
+    terminates the workers and then joins them while holding its
+    shutdown lock (Python 3.12), so a worker that never exits hangs
+    the whole run.
+    """
+    # To the main thread itself: a process-wide signal can land on another
+    # thread, leaving the main thread blocked in its read.
+    timer = threading.Timer(WORKER_STOP_DELAY_SECONDS, signal.pthread_kill,
+                            (threading.main_thread().ident, signal.SIGTERM))
+    timer.daemon = True
+    timer.start()
 
 
 def _worker_init(log_level, debug_file):
@@ -214,12 +246,34 @@ def _worker_init(log_level, debug_file):
         log.configure(log_level, debug_file=debug_file, console=False)
     except OSError:
         log.configure(log_level, console=False)
+    _run_worker_hooks()
+
+
+def _run_worker_hooks():
+    """
+    Calls each `module:function` named in `$PLANETGEN_WORKER_HOOKS`
+    (comma separated) as a worker starts. The tests use it to patch the
+    workers the way they patch their own process (`tests/worker_patches.py`),
+    so a fault they inject reaches every worker count (PERF.21, TEST.74);
+    a real run never sets it.
+    """
+    hooks = os.environ.get(WORKER_HOOKS_ENV)
+    if not hooks:
+        return
+    for ref in hooks.split(","):
+        module_name, _, function = ref.strip().partition(":")
+        if module_name and function:
+            getattr(importlib.import_module(module_name), function)()
 
 
 def _run_task(fn, payload, seed):
     random.seed(seed)
     started = time.monotonic()
-    result = fn(payload)
+    try:
+        result = fn(payload)
+    finally:
+        if _worker_stopping:
+            _stop_worker_soon()
     return result, time.monotonic() - started
 
 
@@ -1161,7 +1215,8 @@ class WorkQueue:
         self._cancelled = False
         self._beat = None
         self._failure = None
-        self._old_sigterm = None
+        self._old_handlers = {}
+        self._signalled = None
         self.submitted = 0
         self.finished = 0
 
@@ -1313,26 +1368,52 @@ class WorkQueue:
     def _catch_sigterm(self):
         """A SIGTERM (Cancel on the Generate page, `kill`) ends the run
         through `__exit__`, so the lease is freed and the job marked
-        cancelled at once rather than after `STALE_SECONDS`."""
-        self._old_sigterm = None
-        if threading.current_thread() is not threading.main_thread() or not hasattr(signal, "SIGTERM"):
+        cancelled at once rather than after `STALE_SECONDS`. Ctrl+C
+        (SIGINT) does the same with `KeyboardInterrupt`.
+
+        The signal is also remembered (TEST.73): its exception can land
+        inside a database call that turns it into a database error
+        (pymysql, DBUtils), which bookkeeping then logs and carries on
+        past. `_check_signal` raises it again at the next step, and a
+        task failure the stop itself caused (a worker that got the same
+        signal) never wins over it."""
+        self._old_handlers = {}
+        self._signalled = None
+        if threading.current_thread() is not threading.main_thread():
             return
 
-        def _on_sigterm(signum, _frame):
-            raise SystemExit(128 + signum)
+        def _on_signal(signum, _frame):
+            self._signalled = signum
+            self._raise_signal()
 
-        try:
-            self._old_sigterm = signal.signal(signal.SIGTERM, _on_sigterm)
-        except (ValueError, OSError):
-            self._old_sigterm = None
-
-    def _restore_sigterm(self):
-        if self._old_sigterm is not None:
+        for name in ("SIGTERM", "SIGINT"):
+            signum = getattr(signal, name, None)
+            if signum is None:
+                continue
+            if signum == getattr(signal, "SIGINT", None) and signal.getsignal(signum) is not signal.default_int_handler:
+                continue  # someone else handles Ctrl+C here
             try:
-                signal.signal(signal.SIGTERM, self._old_sigterm)
+                self._old_handlers[signum] = signal.signal(signum, _on_signal)
             except (ValueError, OSError):
                 pass
-            self._old_sigterm = None
+
+    def _raise_signal(self):
+        if self._signalled == getattr(signal, "SIGINT", None):
+            raise KeyboardInterrupt
+        raise SystemExit(128 + self._signalled)
+
+    def _check_signal(self):
+        """Raises the stop signal again if one came in (`_catch_sigterm`)."""
+        if self._signalled is not None:
+            self._raise_signal()
+
+    def _restore_sigterm(self):
+        for signum, handler in self._old_handlers.items():
+            try:
+                signal.signal(signum, handler)
+            except (ValueError, OSError, TypeError):
+                pass
+        self._old_handlers = {}
 
     def _heartbeat(self):
         while not self._stop.wait(HEARTBEAT_SECONDS):
@@ -1362,6 +1443,7 @@ class WorkQueue:
             if not self._cancelled:
                 self._run_here(task)
             return
+        self._check_signal()
         self._raise_failure()
         self._obey()
         if self._cancelled:
@@ -1373,9 +1455,11 @@ class WorkQueue:
         while len(self._waiting) + len(self._running) > 2 * self.workers:
             self._dispatch()
             self._collect(block=True)
+            self._check_signal()
             self._obey()
         self._dispatch()
         self._collect(block=False)
+        self._check_signal()
 
     def _run_here(self, task):
         """One worker: runs `task` in this process, recording its row
@@ -1457,6 +1541,7 @@ class WorkQueue:
         """After a task failed: lets the tasks already running finish
         (each one's sector is its own transaction), then raises the
         first failure."""
+        self._check_signal()
         if self._failure is None:
             return
         failure = self._failure
@@ -1464,6 +1549,9 @@ class WorkQueue:
         while self._running:
             self._collect(block=True)
         self._failure = None
+        # A worker stopped by the same signal fails its task; the run was
+        # still stopped, not broken.
+        self._check_signal()
         raise failure
 
     def drain(self):
@@ -1475,6 +1563,7 @@ class WorkQueue:
             self._obey()
             self._dispatch()
             self._collect(block=True)
+            self._check_signal()
         self._raise_failure()
 
     def __exit__(self, exc_type, exc, tb):
@@ -1485,13 +1574,16 @@ class WorkQueue:
         try:
             if exc_type is None:
                 self.drain()
+                self._check_signal()
                 if self._cancelled:
                     state = "cancelled"
             else:
                 state = end_state(exc_type)
+                if self._signalled is not None:
+                    state = "cancelled"
                 self._waiting.clear()
         except BaseException as raised:
-            state = end_state(type(raised))
+            state = "cancelled" if self._signalled is not None else end_state(type(raised))
             raise
         finally:
             if self._executor is not None:
@@ -1499,6 +1591,11 @@ class WorkQueue:
             self._stop.set()
             self._restore_sigterm()
             self._close(state)
+        if self._signalled is not None and not issubclass(exc_type, (KeyboardInterrupt, SystemExit)):
+            # The stop signal turned into another error on its way out (a
+            # database error from inside pymysql, say): the run was still
+            # stopped, and ends that way.
+            self._raise_signal()
         return False
 
     def _close(self, state):

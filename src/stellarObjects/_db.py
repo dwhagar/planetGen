@@ -139,6 +139,16 @@ NAMED_LOCK_TIMEOUT_S = 50
 """int: How long `Connection.lock_until_commit` waits for a named lock,
 matching InnoDB's default `innodb_lock_wait_timeout`."""
 
+LOCK_HOLDER_ROW_WAIT_S = 3
+"""int: How long a named lock's holder waits for a row lock
+(`innodb_lock_wait_timeout`) before giving up, rolling back and letting
+`save_sector` start it over (PERF.21). A session waiting for the named
+lock still holds the rows it wrote first, and InnoDB can't see a wait on
+a named lock, so when the holder needs one of those rows (a name
+collision renames an existing system, which the holder's nearest-neighbor
+rows then reference) neither would move until InnoDB's own 50 s timeout.
+Giving up early breaks that wait at once."""
+
 CONTROL_SCHEMA_VERSION = 7
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
@@ -738,6 +748,7 @@ class Connection:
         self.prereserved_names = None
         self.deferred_name_confirmations = None
         self._txn_locks = []
+        self._short_row_waits = False
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -921,6 +932,12 @@ class Connection:
         if row["ok"] != 1:
             raise pymysql.err.OperationalError(1205, f"Lock wait timeout exceeded waiting for lock {name!r}")
         self._txn_locks.append(name)
+        if not self._short_row_waits:
+            # The holder must not wait long on a row: see
+            # `LOCK_HOLDER_ROW_WAIT_S`.
+            self._run("SET @planetgen_row_wait = @@SESSION.innodb_lock_wait_timeout,"
+                      " SESSION innodb_lock_wait_timeout = ?", (LOCK_HOLDER_ROW_WAIT_S,))
+            self._short_row_waits = True
 
     def _release_txn_locks(self):
         while self._txn_locks:
@@ -928,6 +945,12 @@ class Connection:
             try:
                 self._run("SELECT RELEASE_LOCK(?)", (name,))
             except pymysql.err.MySQLError:  # a lost session has already dropped it
+                pass
+        if self._short_row_waits:
+            self._short_row_waits = False
+            try:
+                self._run("SET SESSION innodb_lock_wait_timeout = @planetgen_row_wait", ())
+            except pymysql.err.MySQLError:  # a lost session has no setting left to restore
                 pass
 
     def commit(self):
@@ -4601,6 +4624,38 @@ def bright_star_fill_level(conn, ring_index, layer_index, ring_slot_index):
             return level
     settings = bright_star_scatter_settings(conn)
     return settings[0] if settings else None
+
+
+def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_size=500):
+    """
+    Deletes the unbuilt bright stars below `below_luminosity_w` (the
+    galaxy's star-fill level) outside `keep_addresses`: what a band run
+    (`generate.py plan --bright-stars-down-to`) that stopped part way left
+    in the layers it got through, since the level only moves once a band
+    is whole (GEN.32). Every finished scatter or band is at or above the
+    level, and the stars below it that belong there (a backfilled block's,
+    a filled sector's) are in `keep_addresses` or built.
+
+    Returns:
+        int: Stars deleted.
+    """
+    keep = set(keep_addresses)
+    rows = conn.execute(
+        "SELECT ring_index, layer_index, ring_slot_index FROM bright_stars"
+        " WHERE luminosity_w < ? AND star_system_id IS NULL"
+        " GROUP BY ring_index, layer_index, ring_slot_index", (below_luminosity_w,)).fetchall()
+    cells = [(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in rows]
+    cells = [cell for cell in cells if cell not in keep]
+    deleted = 0
+    for start in range(0, len(cells), batch_size):
+        chunk = cells[start:start + batch_size]
+        placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
+        cur = conn.execute(
+            "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
+            f" AND (ring_index, layer_index, ring_slot_index) IN ({placeholders})",
+            (below_luminosity_w, *[value for cell in chunk for value in cell]))
+        deleted += cur.rowcount
+    return deleted
 
 
 def insert_bright_stars(conn, rows, batch_size=10000):

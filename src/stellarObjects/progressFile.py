@@ -67,6 +67,9 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
     if not force and now - _last_write < MIN_INTERVAL_SECONDS:
         return
     _last_write = now
+    if percent and _finite_or_none(completed) is not None and _finite_or_none(total) is not None:
+        # A share is never shown past 100% (PERF.23).
+        completed = min(completed, total)
     body = {
         "description": description,
         "completed": completed,

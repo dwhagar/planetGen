@@ -28,6 +28,7 @@ from everything else, so they guard the rest of the surface.
 
 import argparse
 import contextlib
+import os
 import json
 import math
 import random
@@ -48,6 +49,7 @@ from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
 from stellarObjects.utils import ly_to_pc
 
+from tests import worker_patches
 from tests.bughunt_support import mysql_argv
 from tests.fuzz_support import hostile_text, scaled
 
@@ -647,6 +649,16 @@ def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
                         + mysql_argv(mysql_config)) == 1
 
 
+_ASKED_ENV = "PLANETGEN_TEST_ASKED_ADDRESSES"
+
+
+def _recording_fill_task(payload):
+    """A `_fill_sector_task` that only records the address it was asked
+    for, in the file `$PLANETGEN_TEST_ASKED_ADDRESSES` names."""
+    worker_patches.append_json(os.environ[_ASKED_ENV], list(payload["address"]))
+    return {"sector_id": 0, "name": "stub", "systems": 0, "phenomena": 0, "summary": ""}
+
+
 @pytest.mark.parametrize("radius,consequence", [
     ("nan", "was a raw ValueError: cannot convert float NaN to integer"),
     ("inf", "was a raw OverflowError from math.ceil(-inf)"),
@@ -654,7 +666,7 @@ def test_galaxy_before_plan_is_a_clean_refusal(mysql_config):
     ("1e308", "the largest finite radius; now past the radius bound"),
     (repr(generationLimits.MAX_GENERATE_RADIUS_PC), "the largest allowed radius, wider than the test galaxy"),
 ])
-def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, radius, consequence):
+def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radius, consequence):
     """A radius beyond the whole galaxy just means "every sector in it":
     the enumeration must be trimmed to the galaxy up front, not walk the
     whole sphere. A radius past `generationLimits.MAX_GENERATE_RADIUS_PC`
@@ -664,12 +676,13 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, radius, conseq
     for are checked."""
     _plan_flat_galaxy(mysql_config)
     center = _placed_sector_id(mysql_config)
-    asked = []
-    stub = {"sector_id": 0, "name": "stub", "systems": 0, "phenomena": 0, "summary": ""}
-    monkeypatch.setattr(generate, "_fill_sector_task", lambda payload: asked.append(payload["address"]) or stub)
+    # The stub is the task itself, so it reaches the workers (PERF.21).
+    monkeypatch.setenv(_ASKED_ENV, str(tmp_path / "asked.jsonl"))
+    monkeypatch.setattr(generate, "_fill_sector_task", _recording_fill_task)
     monkeypatch.setattr(generate, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)
+    asked = [tuple(address) for address in worker_patches.read_json_lines(str(tmp_path / "asked.jsonl"))]
     cells = sum(generate.ring_sector_count(ring) for ring in range(_OUTER_RING + 1)) * 3
     assert len(asked) == len(set(asked)) <= cells
     assert all(0 <= ring <= _OUTER_RING and -1 <= layer <= 1 for ring, layer, _slot in asked)

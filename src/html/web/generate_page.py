@@ -605,7 +605,7 @@ def _progress_text(progress):
         return ""
     completed, total = progress.get("completed") or 0, progress.get("total")
     if progress.get("percent") and total:
-        return f"{description}: {100 * float(completed) / float(total):.0f}%"
+        return f"{description}: {min(100 * float(completed) / float(total), 100.0):.0f}%"
     text = f"{description}: {format_number(completed)}"
     if total:
         text += f" of {format_number(total)}"

@@ -27,6 +27,7 @@ import generate
 from stellarObjects import _db, program_constants
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
 
+from tests import worker_patches
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.test_bright_star_scatter import EDGE_PC, _plan_args, _seed_galaxy
@@ -75,8 +76,7 @@ MODES = {
 }
 
 
-class _Interrupted(RuntimeError):
-    pass
+_Interrupted = worker_patches.Interrupted
 
 
 def _galaxy(config, mode_argv):
@@ -121,20 +121,24 @@ def _snapshot(config):
     return by_address, orphans, unbuilt, dangling
 
 
-def _fail_on_call(monkeypatch, owner, name, call_number):
+def _fail_on_call(monkeypatch, tmp_path, owner, name, call_number):
     """Makes `owner.name` raise `_Interrupted` on its `call_number`-th call
-    (1-based); every other call goes through."""
-    real = getattr(owner, name)
-    calls = [0]
+    (1-based), in this process and the workers alike; every other call
+    goes through. Returns the file that counts the calls."""
+    counter = str(tmp_path / f"{name}.calls")
+    worker_patches.patch_everywhere(monkeypatch, owner, name, "tests.worker_patches:fail_on_call",
+                                    counter=counter, call_number=call_number)
+    return counter
 
-    def wrapper(*args, **kwargs):
-        calls[0] += 1
-        if calls[0] == call_number:
-            raise _Interrupted(f"{name} interrupted at call {call_number}")
-        return real(*args, **kwargs)
 
-    monkeypatch.setattr(owner, name, wrapper)
-    return calls
+def _check_partial(partial, saved_before_failure):
+    """One worker stops at the failing sector; with more, the sectors
+    already handed out when it failed may still be saved (each is its
+    own transaction), but never the whole run."""
+    if worker_patches.workers() == 1:
+        assert len(partial) == saved_before_failure
+    else:
+        assert len(partial) >= saved_before_failure
 
 
 def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode):
@@ -151,14 +155,14 @@ def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode
 
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
-        mysql_config, second_mysql_config, monkeypatch, mode):
+        mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     _seed_skeleton(mysql_config, layers=LAYERS)
-    calls = _fail_on_call(monkeypatch, generate, "generate_and_save_sector_at", 4)
+    calls = _fail_on_call(monkeypatch, tmp_path, generate, "generate_and_save_sector_at", 4)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
-    assert calls[0] == 4
+    assert worker_patches.count(calls) >= 4
     partial, *_rest = _snapshot(mysql_config)
-    assert len(partial) == 3
+    _check_partial(partial, 3)
     monkeypatch.undo()
 
     _galaxy(mysql_config, MODES[mode])
@@ -167,15 +171,15 @@ def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
 
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
-        mysql_config, second_mysql_config, monkeypatch, mode):
+        mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     # `refresh_containment` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
     _seed_skeleton(mysql_config, layers=LAYERS)
-    _fail_on_call(monkeypatch, _db, "refresh_containment", 3)
+    _fail_on_call(monkeypatch, tmp_path, _db, "refresh_containment", 3)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
     partial, orphans, unbuilt, dangling = _snapshot(mysql_config)
-    assert len(partial) == 2
+    _check_partial(partial, 2)
     assert (orphans, unbuilt, dangling) == (0, 0, 0)
     monkeypatch.undo()
 
@@ -230,7 +234,8 @@ def _sector_rows(config):
     try:
         rows = conn.execute(
             "SELECT s.id, s.ring_index, s.layer_index, s.ring_slot_index, COUNT(ss.id) AS systems"
-            " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id GROUP BY s.id").fetchall()
+            " FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
+            " GROUP BY s.id, s.ring_index, s.layer_index, s.ring_slot_index").fetchall()
     finally:
         conn.close()
     return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): (row["id"], row["systems"])
