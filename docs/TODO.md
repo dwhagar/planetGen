@@ -1562,12 +1562,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   positions and star draws use the operating system's random source by
   design, so even at the same worker count one seed gives a different
   galaxy each run, and TEST.19 (retired with PR #321) couldn't check
-  its goal of the same sectors at any worker count. Done: Boss decides
-  whether generation should be reproducible from its seed; if yes,
-  every draw comes from the seeded generator (per sector, so worker
-  count doesn't matter) and a test checks that one seed gives the same
-  sectors at any worker count. Open question for Boss: should a seed
-  reproduce a galaxy?
+  its goal of the same sectors at any worker count. Decided (Boss,
+  2026-10-02 01:34Z): "one seed reproduces the same galaxy." Design:
+  each sector gets its own seed, derived from the galaxy seed and the
+  sector's address, and every draw for that sector (star positions,
+  star draws, systems, phenomena, backfill) comes from it, so the order
+  sectors run in and the worker count don't matter. Reproducible on the
+  same version only: a release that changes generation may change what
+  a seed makes. The seed's length and format are still being settled
+  with Boss. Done: no generation draw uses the operating system's random
+  source, and a test checks that one galaxy seed gives the same sectors
+  at 1, 2 and N workers (with TEST.74).
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of

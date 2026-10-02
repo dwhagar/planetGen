@@ -99,8 +99,9 @@ GEN.31 (the layer 0 boundary) before GEN.24 (generate the core on layer
 change; it replaces or sits beside `bright_star_blocks` and is what
 GEN.40 to GEN.43 and PERF.18 in phase 3 use to skip work, so it should
 land with or before GEN.32 (an interrupted band drawn twice), which
-touches the same backfill code. GEN.39 (reproducible seeds) needs
-Boss's answer first. GEN.46 (two-word names) changes `nameUniqueness.py`
+touches the same backfill code. GEN.39 (one seed reproduces the
+galaxy, decided; a seed per sector from the galaxy seed and address)
+waits only on the seed format. GEN.46 (two-word names) changes `nameUniqueness.py`
 and the name reservation in `_db.py`. GEN.47 (nebulae) is a new
 galaxy-scale placement, not a one-line fix.
 
@@ -222,7 +223,7 @@ Each thread is briefed with its exact item IDs and takes no others.
    GEN.29.
 3. Physics bugs: GEN.34, GEN.35, GEN.36, GEN.37, GEN.25, GEN.45.
 4. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
-   GEN.46 and GEN.39 (after Boss answers) alongside.
+   GEN.46 and GEN.39 alongside.
 5. Database: DB.2 to DB.5.
 6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
 7. Object references: NAV.7, NAV.8, NAV.9.
@@ -234,5 +235,4 @@ Each thread is briefed with its exact item IDs and takes no others.
 
 ## Open questions for Boss
 
-- GEN.39: should a seed reproduce a galaxy?
 - GEN.44: a new table per sector address, or rework `bright_star_blocks`?
