@@ -2,10 +2,10 @@
 //
 // The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
 // sections 4, 5, 8.1 and 10-11), drawn and driven: the whole galaxy in
-// 3D with an arc of it picked on the map (MAP.85), then a layer of the
+// 3D with an arc of it picked on the map (MAP.85), then a slab of the
 // arc (picked from the strip beside the map or on the map), then a
-// region of the ring band in view, then a layer, a region, ... down to a
-// sector. galaxystages.js has the rules; this file has the scene, the
+// segment of the slab (one block), then a slab and a segment inside that
+// block, ... down to a sector (MAP.56). galaxystages.js has the rules; this file has the scene, the
 // camera moves, the breadcrumb, the slab slider, the tooltip, keys,
 // touch, the stage URLs and the map's own Back and Forward.
 // galaxymap3d.js creates it (createStageView), hands it the pointer and
@@ -237,19 +237,9 @@ export function createStageView(host) {
   // is nothing left to pick, the view's blocks as one. Without an outline
   // (no shape yet), only blocks holding generated sectors.
   function choicesOf(r, data) {
+    // A slab pick has one choice per slab, lowest first; the cube too: a
+    // whole slab is lit and picked, never one of its sectors (MAP.91).
     let options = r.kind ? r.options : [{ pick: null, blocks: r.view.blocks, a0: r.view.a0, a1: r.view.a1 }];
-    if (r.kind === "layer") {
-      // One choice per slab, lowest first, so the slab slider beside the
-      // map can take any one of them (not just thirds). The cube too: a
-      // whole slab is lit and picked, never one of its sectors (MAP.91).
-      options = slabsIn(r.view.blocks).map(function (slab) {
-        return {
-          pick: { kind: "layer", lo: slab, hi: slab },
-          blocks: r.view.blocks.filter(function (b) { return b.slab === slab; }),
-          a0: r.view.a0, a1: r.view.a1,
-        };
-      });
-    }
     if (getOutline().shapeless) {
       options = options.map(function (o) {
         return Object.assign({}, o, { blocks: o.blocks.filter(function (b) { return generatedOf(b, data) > 0; }) });
@@ -927,7 +917,7 @@ export function createStageView(host) {
       return "Click a sector to open it; a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it." : ".");
     }
-    return "Click an arc of the map to zoom into it.";
+    return "Click a block of the slab to zoom into it.";
   }
 
   // --- Acting on a choice ----------------------------------------------------
@@ -1079,8 +1069,9 @@ export function createStageView(host) {
   }
 
   // Arrow keys move among the choices: Left and Right through them in
-  // order, Up and Down to the next one along the same arc (or the next
-  // layer up or down); Enter takes it.
+  // order, Up and Down to the next layer up or down, or (among the
+  // segments of a slab) to the nearest one a ring further out or in;
+  // Enter takes it.
   function onKey(event) {
     const key = event.key;
     if (key === "Escape" || key === "Backspace") {
@@ -1106,22 +1097,34 @@ export function createStageView(host) {
     let next = -1;
     if (current < 0) {
       next = 0;
-    } else if (resolved.kind === "layer" || key === "ArrowLeft" || key === "ArrowRight") {
+    } else if (resolved.kind !== "segment" || key === "ArrowLeft" || key === "ArrowRight") {
       const forward = key === "ArrowRight" || key === "ArrowUp";
       next = (current + (forward ? 1 : -1) + options.length) % options.length;
     } else {
-      const arc = options[current].arc;
-      const order = key === "ArrowUp" ? 1 : -1;
-      for (let n = current + order; n >= 0 && n < options.length; n += order) {
-        if (options[n].arc === arc) {
-          next = n;
-          break;
-        }
-      }
+      next = segmentBeside(options, current, key === "ArrowUp" ? 1 : -1);
     }
     if (next < 0) return;
     setHover({ option: next, sticky: true });
     tooltipAtOption(next);
+  }
+
+  // The segment a ring further out (step 1) or in (-1) from segment
+  // `current` whose middle bearing is nearest its own, or -1.
+  function segmentBeside(options, current, step) {
+    const here = options[current].blocks[0];
+    const mid = function (b) { return (b.bounds.t0 + b.bounds.t1) / 2; };
+    let best = -1;
+    let bestTurn = Infinity;
+    options.forEach(function (option, n) {
+      const block = option.blocks[0];
+      if (block.ring !== here.ring + step) return;
+      const turn = Math.abs(wrapAngle(mid(block) - mid(here)));
+      if (turn < bestTurn) {
+        bestTurn = turn;
+        best = n;
+      }
+    });
+    return best;
   }
 
   // --- Breadcrumb, slab slider, notice ---------------------------------------
@@ -1350,7 +1353,7 @@ export function createStageView(host) {
         const lo = slabs[0];
         const hi = slabs[slabs.length - 1];
         note.textContent = "Showing " + (lo === hi ? noun.toLowerCase() + " " + lo : noun.toLowerCase() + "s " + lo + " to " + hi)
-          + (resolved.kind === "layer" ? "." : "; pick an arc on the map.");
+          + (resolved.kind === "segment" ? "; pick " + (isSectorView(resolved) ? "a sector" : "a block") + " of it on the map." : ".");
       }
       box.appendChild(note);
       return;

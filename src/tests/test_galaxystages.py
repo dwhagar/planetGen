@@ -135,7 +135,7 @@ console.log(JSON.stringify({bad, blocks, sum, total: S.drillBlockTotal(at, outli
     {"at": None, "picks": [{"kind": "arc", "n": 21}, {"kind": "layer", "lo": 0, "hi": 0}]},
     {"at": {"m": 243, "ring": 1, "wedge": 2, "slab": 0}, "picks": []},
     {"at": {"m": 27, "ring": 14, "wedge": 30, "slab": -1}, "picks": [{"kind": "layer", "lo": 0, "hi": 0},
-                                                                     {"kind": "region", "n": 4}]},
+                                                                     {"kind": "segment", "ring": 130, "wedge": 500}]},
     {"at": {"m": 3, "ring": 130, "wedge": 500, "slab": 2}, "picks": [{"kind": "layer", "lo": 7, "hi": 7}]},
 ])
 def test_stage_urls_round_trip(stage):
@@ -202,14 +202,12 @@ console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.ring, s.layer,
     assert out["stage"] is None
 
 
-def test_the_ladder_is_arc_then_layer_then_region():
-    """MAP.85 (and MAP.19's "Layer + arc" below it): the galaxy offers its
-    arcs, each the blocks of one third of the radius whose middles fall in
-    one 45-degree bin, then a layer (at most three choices, lowest
-    first), then a region of the ring band in view (at most a 3 by 3 grid,
-    sorted into thirds of the view), and the choices together hold every
-    block in view. A choice's bearings reach exactly as far as its blocks
-    do."""
+def test_the_ladder_is_arc_then_slab_then_segment():
+    """MAP.85 and MAP.56: the galaxy offers its arcs, each the blocks of
+    one third of the radius whose middles fall in one 45-degree bin, then
+    a slab (one choice per slab, lowest first), then a segment of the slab
+    (one choice per block), and the choices together hold every block in
+    view. A choice's bearings reach exactly as far as its blocks do."""
     out = _run("""
 const top = S.settleStage({at: null, picks: []}, outline, edge);
 const pick = top.options.find(o => o.pick.n === S.ARCS_PER_TURN + 2);
@@ -230,7 +228,8 @@ console.log(JSON.stringify({
   arc: [arc.kind, arc.options.length, covers(arc), span(arc)],
   layers: arc.options.map(o => [o.pick.lo, o.pick.hi]),
   layer: [layer.kind, layer.options.length, covers(layer), span(layer)],
-  regions: layer.options.map(o => (o.a1 - o.a0) / span(layer)),
+  segments: layer.options.map(o => [o.blocks.length, o.pick.ring === o.blocks[0].ring && o.pick.wedge === o.blocks[0].wedge]),
+  slabs: layer.view.blocks.map(b => b.slab).filter((v, n, all) => all.indexOf(v) === n).length,
   label: S.pickLabel(pick.pick, null, arc.view),
 }));
 """)
@@ -239,18 +238,18 @@ console.log(JSON.stringify({
     assert 2 * 8 <= count <= 3 * 8
     assert all(out["oneBand"]) and all(out["inBin"])
     kind, count, covers, arc_span = out["arc"]
-    assert kind == "layer" and 2 <= count <= 3 and covers
+    assert kind == "layer" and count >= 2 and covers
     # The middle band's sides are wedge lines 45 degrees apart.
     assert arc_span == pytest.approx(math.pi / 4)
     assert out["label"] == "Arc 90°–135° (middle)"
     assert all(out["wedges"])
     los = [lo for lo, _hi in out["layers"]]
     assert los == sorted(los)
+    assert all(lo == hi for lo, hi in out["layers"])
     kind, count, covers, _span = out["layer"]
-    assert kind == "region" and 2 <= count <= 9 and covers
-    # A third of the view each, give or take a wedge where 8 wedges split
-    # into thirds.
-    assert all(share >= 1 / 4 - 1e-9 for share in out["regions"])
+    assert kind == "segment" and count >= 2 and covers
+    assert out["slabs"] == 1
+    assert all(n == 1 and same for n, same in out["segments"])
 
 
 def test_an_outline_runs_along_its_blocks_sides_and_closes():
@@ -441,5 +440,69 @@ console.log(JSON.stringify({found, plane, kind: r && r.kind,
     assert out["found"], "no thin block in the test galaxy"
     assert out["plane"] is None
     assert out["sectors"] and out["layers"] == 1
-    assert out["kind"] == "region"
+    assert out["kind"] == "segment"
     assert out["total"] == out["expected"]
+
+
+def test_a_segment_pick_enters_its_block_down_to_a_sector():
+    """MAP.56: slab and segment repeat inside each smaller block: a
+    segment of a slab enters that block, whose own slabs are picked next,
+    down to a level-3 block whose layer's sectors are the last segments."""
+    out = _run("""
+let r = S.settleStage({at: null, picks: []}, outline, edge);
+r = S.settleStage({at: null, picks: [r.options.find(o => o.pick.n === S.ARCS_PER_TURN + 2).pick]}, outline, edge);
+const kinds = [];
+const sizes = [];
+for (let guard = 0; guard < 20 && r.kind; guard++) {
+  kinds.push(r.kind);
+  const option = r.kind === "layer" ? r.options[Math.floor(r.options.length / 2)] : r.options[0];
+  r = S.settleStage({at: r.stage.at, picks: r.stage.picks.concat([option.pick])}, outline, edge);
+  sizes.push(r.stage.at ? r.stage.at.m : null);
+}
+const crumbs = S.crumbs(r.stage, outline, edge).map(c => c.label);
+console.log(JSON.stringify({kinds, sizes, sector: r.sector, crumbs, query: S.stageQuery(r.stage)}));
+""")
+    assert out["sector"], out
+    kinds = out["kinds"]
+    # Never a region; a slab is always followed by a segment.
+    assert set(kinds) <= {"layer", "segment"}
+    assert kinds[-1] == "segment"
+    assert all(b == "segment" for a, b in zip(kinds, kinds[1:]) if a == "layer")
+    assert [m for m in out["sizes"] if m] == sorted([m for m in out["sizes"] if m], reverse=True)
+    assert 3 in out["sizes"]
+    assert out["crumbs"][-1].startswith("Sector ")
+    assert "s" in out["query"]
+
+
+@pytest.mark.parametrize("query, picks", [
+    ("?at=27.14.30.-1&p=L0,r4", [{"kind": "layer", "lo": 0, "hi": 0}]),
+    ("?p=a1.90,L0,r4,L1", [{"kind": "arc", "n": 10}, {"kind": "layer", "lo": 0, "hi": 0}]),
+    ("?p=r2", []),
+])
+def test_an_older_region_link_opens_at_the_stage_before_it(query, picks):
+    """MAP.56 drops the 3 x 3 region pick; an older link holding one opens
+    at the nearest valid stage, the one before its first region."""
+    out = _run(f"console.log(JSON.stringify(S.parseStageQuery({json.dumps(query)})));")
+    assert out["problem"] is None
+    assert out["stage"]["picks"] == picks
+
+
+def test_a_segment_reads_in_a_url_and_must_be_in_the_slab():
+    out = _run("""
+const top = S.settleStage({at: null, picks: []}, outline, edge);
+const arc = top.options.find(o => o.pick.n === S.ARCS_PER_TURN + 2).pick;
+const r = S.settleStage({at: null, picks: [arc]}, outline, edge);
+const slab = r.options[0].pick;
+const inSlab = S.resolveStage({at: null, picks: [arc, slab]}, outline, edge);
+const seg = inSlab.options[0].pick;
+console.log(JSON.stringify({
+  token: S.pickToken(seg), back: S.parsePickToken(S.pickToken(seg)), seg,
+  beforeSlab: S.resolveStage({at: null, picks: [arc, seg]}, outline, edge).problem,
+  wrong: S.resolveStage({at: null, picks: [arc, slab, {kind: "segment", ring: 9999, wedge: 0}]}, outline, edge).problem,
+  ok: S.resolveStage({at: null, picks: [arc, slab, seg]}, outline, edge).problem,
+}));
+""")
+    assert out["token"] == f"s{out['seg']['ring']}.{out['seg']['wedge']}"
+    assert out["back"] == out["seg"]
+    assert out["beforeSlab"] and out["wrong"]
+    assert out["ok"] is None

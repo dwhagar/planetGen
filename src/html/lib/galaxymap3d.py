@@ -517,7 +517,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <span class="hint">The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or
   pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the
   radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or
-  with the slider to the right of the map, then a region, and so on down to single sectors &middot; Back and
+  with the slider to the right of the map, then a block of that slab, and so on down to single sectors &middot; Back and
   Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and
   Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
   or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are
