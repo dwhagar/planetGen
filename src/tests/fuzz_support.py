@@ -29,6 +29,8 @@ import contextlib
 import math
 import os
 import random
+import secrets
+from unittest import mock
 
 from hypothesis import HealthCheck, settings
 from hypothesis import strategies as st
@@ -56,10 +58,15 @@ settings.load_profile(os.environ.get("PLANETGEN_FUZZ_PROFILE") or "ci")
 @contextlib.contextmanager
 def deterministic_entropy(seed):
     """Seeds the global `random` module, which every generator draws from
-    (GEN.39), so a whole system (planet classes, moon coin-flips, flavor
-    text) is a pure function of `seed` for the duration of the block."""
-    random.seed(seed)
-    yield
+    (GEN.39), and pins the two draws that still come from `secrets` (a
+    `generate.py` run's own seed and a new galaxy's seed), so a whole
+    system or galaxy is a pure function of `seed` for the duration of the
+    block."""
+    rng = random.Random(seed)
+    with mock.patch.object(secrets, "randbits", rng.getrandbits), \
+            mock.patch.object(secrets, "token_bytes", lambda n: rng.getrandbits(8 * n).to_bytes(n, "big")):
+        random.seed(seed)
+        yield rng
 
 
 def scaled(n):
