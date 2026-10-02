@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), and the Galaxy Map drill-down lane apart from the slab-button fixes MAP.98, MAP.100 and MAP.99 (PRs #408, #410, #413). GEN.65, a web-only generation error, is high priority but held until Boss says to start.
+Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane apart from the slab-button fixes MAP.98, MAP.100 and MAP.99 (PRs #408, #410, #413). GEN.65, a web-only generation error, is high priority but held until Boss says to start.
 
 ## Threads
 
@@ -33,12 +33,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) |  | Boss 08:08Z. slabAnchor in galaxystageview.js ends the line inside the slab; end it on the prism outline nearest the button side. |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) |  | Boss 08:17Z. "#4 Unknown", "#2 < 0.01 % charted", "#6 ≈ 2.43% charted"; drop "generated" and x / total. |
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | MAP.100 | Boss 08:17Z. Two columns, one per side; smaller buttons on small screens; none at all if still too many. Lines still end per MAP.98; replaces the one column under 600 px. |
-
-### Generation bugs
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.47 | Nebulae almost never appear (bug) |  | Moved to phase 0: a bug whose prerequisite (GEN.39 per-region seeds) is done. Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
 
 ### Sector stats and colors
 
@@ -77,7 +71,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
 | NAV.41 | The NAV page's course map is too small to read (bug) |  | Boss 04:19Z. navmap.py 360-unit square at 22rem, 9px labels; widen and enlarge. |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
-| UX.33 | Filter phenomena by their classes and types (bug) | GEN.47 | Moved to phase 0: filters are built from the class lists, so new classes (GEN.28) appear on their own; after GEN.47 so nebula classes exist. Filters over class lists that GEN.28 and GEN.47 change. |
+| UX.33 | Filter phenomena by their classes and types (bug) |  | Moved to phase 0: filters are built from the class lists, so new classes (GEN.28) appear on their own; GEN.47 is done (PR #419), so nebulae exist and nothing blocks it. Filters over class lists that GEN.28 changes. |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) |  | Split out of UX.21 (its known dead control): lib/phenomenonmap.py lines 53 and 127, the mapzoom.js clamp; strict xfail in test_web_browser_maps.py. |
 
 ### Ops and flakes
@@ -105,10 +99,10 @@ is held: no thread starts on it until Boss says so (08:08Z).
 
 At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
-#395, #399), Binary pairs (PRs #393, #398, #403) and System Map (PR
-#405). Galaxy Map drill-down is done apart from MAP.98, MAP.100 and MAP.99 (PRs #408,
-#410, #413). Generation bugs (GEN.47 left; GEN.60 and GEN.38 done,
-PR #415) and Sector stats and colors are running. Then the lanes
+#395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
+#405) and Generation bugs (PRs #415, #419). Galaxy Map drill-down is
+done apart from MAP.98, MAP.100 and MAP.99 (PRs #408, #410, #413).
+Sector stats and colors is running. Then the lanes
 start in the order above as a slot frees: MAP.98, MAP.100 and MAP.99 (slab buttons), Routing groundwork, Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
 not approved yet), Small page bugs, and Ops and flakes last. NAV.7
