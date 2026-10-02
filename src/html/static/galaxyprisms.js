@@ -147,13 +147,30 @@ export function wedgeLines(edgePc, galaxyRadius) {
 }
 
 // The (ring, layer, slot) cell holding galaxy-frame point (x, y, z).
+// As galaxyGeometry.sector_address_at: each division-based guess is
+// checked against the cell's own bounds and moved by one if it rounded
+// across a face (GEN.31: one ulp under layer 0's top face is layer 0).
 export function sectorAddressAt(x, y, z, edgePc) {
-  var ring = Math.floor(Math.hypot(x, y) / edgePc);
-  var layer = Math.floor(z / edgePc + 0.5);
+  var r = Math.sqrt(x * x + y * y);
+  var ring = settleIndex(r, Math.floor(r / edgePc), function (i) { return [i * edgePc, (i + 1) * edgePc]; });
+  var layer = settleIndex(z, Math.floor(z / edgePc + 0.5), function (j) { return [(j - 0.5) * edgePc, (j + 0.5) * edgePc]; });
   var n = ringSectorCount(ring);
-  var theta = ((Math.atan2(y, x) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  // Python's atan2(y, x) % (2 * pi), to the bit: a tiny negative angle
+  // becomes 2 * pi itself and lands in the last slot.
+  var theta = Math.atan2(y, x);
+  theta = theta < 0 ? theta + 2 * Math.PI : theta + 0;
   var slot = Math.min(n - 1, Math.floor((theta * n) / (2 * Math.PI)));
+  var step = (2 * Math.PI) / n;
+  if (slot > 0 && theta < slot * step) slot -= 1;
+  else if (slot < n - 1 && theta >= (slot + 1) * step) slot += 1;
   return { ring: ring, layer: layer, slot: slot };
+}
+
+function settleIndex(value, guess, boundsOf) {
+  var b = boundsOf(guess);
+  if (value < b[0]) return guess - 1;
+  if (value >= b[1]) return guess + 1;
+  return guess;
 }
 
 // One sector's cell as bounds: {r0, r1, t0, t1, z0, z1}.
