@@ -141,7 +141,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `45`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `50`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -150,7 +150,7 @@ Two independent version numbers:
 
 The schema evolved through several versions while still SQLite-backed;
 each version's structural change is recorded in `schema.sql`'s own header
-comment ("v2" through "v49" notes) rather than duplicated here, since that
+comment ("v2" through "v50" notes) rather than duplicated here, since that
 file is the one place both the current column list and the historical
 rationale for it live together. In brief: v1→v2 split moons out of the
 shared `planets` table into their own `moons` table; v2→v3 added
@@ -689,7 +689,7 @@ dwarfs share the table), and `star_systems.runaway_class`/
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
 MySQL schema entirely (`stellarObjects/control_schema.sql`,
-`control_schema_migrations`, currently version 5) — see "The control
+`control_schema_migrations`, currently version 7) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
 about.
@@ -706,12 +706,13 @@ describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
 Thirteen tables, versioned independently via `control_schema_migrations`
-(currently version 6, mirroring `schema_migrations`'s own shape; v2 added
+(currently version 7, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
-`generation_stats` and `generation_size`, and every control-schema change so far is a new table,
-which `CREATE TABLE IF NOT EXISTS` adds to an older schema on the next
-`migrateDb.py` run):
+`generation_stats` and `generation_size`, and v7 the work queue's job
+tree and pause columns; v2 to v6 are new tables, which `CREATE TABLE IF
+NOT EXISTS` adds to an older schema on the next `migrateDb.py` run, and
+v7 adds columns, see below):
 
 - **`admin_users`** — one row per admin (`username`, `password_hash`,
   `must_change_credentials`). No roles/permissions column — every admin
@@ -837,6 +838,39 @@ links to that page (opening in a new tab) whenever either is set. `sectors.wiki_
 per-sector equivalent (see that table's own column doc above) — a single
 column, since a sector's page is generated fresh at upload time rather
 than persisted the way a system's is.
+
+## Planned changes (not built)
+
+Schema changes the open TODO items plan, as of 2026-10-02 (7.132.433,
+galaxy schema v50, control schema v7). None of these exists yet; each
+lands as a numbered migration when its item is built, and this section
+moves into the table descriptions below. Writers of the galaxy schema go
+one at a time in this order: GEN.44, PERF.11 with MAP.86, NAV.10,
+API.11; of the control schema, API.9 first, then USR.2, USR.4, USR.7 and
+NAV.19 ([plan/notes.md](plan/notes.md)). Why and how the reproducibility
+pieces fit together is in
+[design/reproducible-galaxies.md](design/reproducible-galaxies.md).
+
+Galaxy schema:
+
+| Item | Phase | Change |
+|---|---|---|
+| DB.6 | 0 | `galaxy_shape` gains the galaxy's 128-bit seed (`BINARY(16)`, written once when the galaxy is first planned, shown as 32 hex digits) and the version that made it: the 22-hex-digit version key, the full MAJOR.REVISION.BUILD string, the Python version and the platform. A new `generation_runs` table holds one row per run that changes the galaxy: command and options, version, start and end times, outcome. The bright-star scatter's seed (`bright_star_seed`) is then derived from the galaxy seed (GEN.39). No migration of old galaxies: GEN.39 starts from a wiped galaxy. |
+| GEN.44, PERF.11 | 1 | One per-sector stats table keyed by sector address (an unfilled sector has no `sectors` row): the backfill level (-1 never backfilled, the dimmest L_sun reached, 0 fully generated), expected and actual density, and the galaxy-wide expected-against-actual decaying average. MAP.86's per-sector colour, saturation and lightness go in the same table. |
+| DB.7 | 1 | Each `sectors` row records the version key and full version string that generated it. |
+| DB.9 | 1 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
+| NAV.10 | 1 | Indexes on positions, for the route corridor query. |
+| API.10, API.11 | 2 | Run reservations (claimed sectors and id ranges per run) and staging tables for uploaded batches. |
+
+Control schema:
+
+| Item | Phase | Change |
+|---|---|---|
+| API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
+| OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of nltk's `words` corpus files, `offensive_words.txt`, any name lists and `requirements.lock`, and the date; only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
+| GEN.59 | 1 | A pending-delta table: admin edits, deletes and regenerate seeds, by stable address path, as they happen, with the positional-update epoch. The daily merge (GEN.61, phase 2) folds them into a new settings file and clears them only after the file is written and read back. |
+| API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
+| USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
 
 ## Tables
 
