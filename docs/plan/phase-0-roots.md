@@ -48,7 +48,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) |  | galaxyViewport.py and lib/galaxymap3d.py, the tile-level code MAP.80 also changes. |
 | GEN.46 | Star system names of at most two words (bug) |  | nameUniqueness.py and _db.py name reservation; API.12 downloads the name state, so settle names first. Decided: only new names follow the rule. |
 
 ### System Map

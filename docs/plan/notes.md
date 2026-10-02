@@ -167,7 +167,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
 | galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.60, MAP.55, MAP.85, MAP.52, MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. |
-| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.90, MAP.80, MAP.86 | In that order; any payload change bumps the tile cache. |
+| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 | In that order (MAP.90 done, PR #365); any payload change bumps the tile cache. |
 | galaxyGeometry.py and galaxyprisms.js | GEN.24, MAP.85 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. |
 | bookmarks.js | MAP.55, NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. |
 | static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.60, MAP.55, MAP.85, MAP.52, MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. |
