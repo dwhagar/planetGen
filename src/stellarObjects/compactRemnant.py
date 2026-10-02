@@ -213,6 +213,7 @@ class BlackHole(CompactRemnant):
                 with `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`.
         """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if mass_class not in (None, "supermassive"):
             raise ValueError(f"mass_class must be None or 'supermassive', got {mass_class!r}")
@@ -409,6 +410,7 @@ class NeutronStar(CompactRemnant):
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
                  galactic_orbital_phase_deg=None):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.mass_solar = random.uniform(*program_constants.NEUTRON_STAR_MASS_RANGE_SOLAR)
         self.mass = self.mass_solar * physical_constants.SOLAR_MASS_TO_KG

@@ -204,6 +204,7 @@ class Comet:
         # A placeholder: `_db.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
         self.primary_mass_solar = primary_mass_solar
 
         if orbit_type:

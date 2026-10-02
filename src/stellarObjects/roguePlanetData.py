@@ -200,6 +200,7 @@ class RoguePlanet:
         """
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if mass_bin is None:
             bins = program_constants.ROGUE_PLANET_MASS_BINS
@@ -465,6 +466,7 @@ class InterstellarComet:
         """
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.nucleus_diameter_km = random.uniform(*program_constants.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
         self.velocity_kms = random.uniform(*program_constants.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
