@@ -112,7 +112,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -408,6 +408,7 @@ with `clamp()`.
   onto several lines (a container query, not a device check), never
   splitting a stop across lines; screen readers still get an ordered
   list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -454,6 +455,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   meridian snapping here still apply to its bearing, and it is also
   bounded in radius; the highlight shows the arc and its neighbors'
   boundaries only.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
   Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
@@ -470,6 +472,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question: is the rotation kept in the URL and bookmarks?
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the view rotates about the
   picked arc (then the slab), fitted to the window.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
   Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
@@ -495,6 +498,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the visible part.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the slabs are height bands
   of the picked arc.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
   - [ ] **MAP.76 Leader-line layout**
     An SVG overlay above the canvas, recomputed on every camera change
@@ -546,6 +550,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to click on a small screen?
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ladder is arc, slab,
   segment, then slab and segment again down to a sector.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
   Found by the generation tests (2026-10-01): a body whose computed
@@ -658,6 +663,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the short manual zoom range
   applies on the whole galaxy and the picked arc; it locks below the
   arc.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
   Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
@@ -731,6 +737,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the slab buttons and the Sector cell panel, and below the map on a
   phone), MAP.56 (the segment pick happens on the solid slab) and
   MAP.58 (the mini map is never zoomable).
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
   - [ ] **MAP.75 The mini map as a second engine view**
     The mini map is a second, locked camera on the same scene data;
@@ -867,6 +874,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the arc view draws only the
   slab boundaries; nothing is outlined on the whole galaxy except the
   hovered arc and its neighbors.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
   Boss (2026-10-01 21:11Z): "when the system zooms into a wedge, make
@@ -879,6 +887,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this whole-wedge fit, not a closer one.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): read "wedge" as the picked
   arc: the zoom frames the whole arc, then the whole slab or segment.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.79 Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug)**
   Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,
@@ -942,6 +951,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-02 01:53Z): this default. The other
   galaxy-map items carry an "Arc pick (MAP.85)" note saying how this
   changes them.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.86 Sector and block colors from what is in them: filled sectors translucent (bug)**
   Boss (2026-10-01 23:53Z): "Filled in sectors should be translucent,
@@ -1244,11 +1254,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hop-length study measured the full graph rebuild at 16 s for 200,000
   systems. NAV.34 (joining the graph's islands) comes first, and NAV.12
   (a route always exists, no hop limit) is built with it.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
   - [ ] **NAV.11 Travel times for the system-to-system route too**
     Today warp and fold times are shown only for the direct distance;
     the route shows only its length. Done: the route gets the same warp
     and fold tables, per hop and in total.
+    Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.29 Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug)**
   Boss (2026-10-01 21:15Z): "when navigating the "nav from and have to" buttons take you
@@ -1322,6 +1334,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per hop. Built with NAV.10, which already rebuilds the routing.
   Phase 1 is its anchor: NAV.34 and TEST.79 come before it (phase 0), UX.35 runs alongside it (phase 1), and NAV.36
   and NAV.39 need it first (phase 2).
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.34 Courses between separately generated areas find no route: the route graph splits into islands (bug)**
   Found by the hop-length study (2026-10-02; report in the project's
@@ -1337,6 +1350,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and gave a cross-galaxy route 1.29 times the direct distance), so two
   placed endpoints always have a route; a test with separated generated
   areas finds one. Lands with or before NAV.10; NAV.12 builds on it.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
   Boss (2026-10-02 01:53Z): "a jump through unknown space is marked in
@@ -1347,6 +1361,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
   shown by color alone. Prerequisites: NAV.12, UX.35, NAV.20.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
@@ -1354,6 +1369,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   may have been filled in the meantime; a hop that is now known shows
   as ordinary, and the course says what changed. Prerequisites: NAV.12,
   NAV.17.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 ## GEN: Generation and physics
 
@@ -1527,6 +1543,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.39 requires the galaxy to be nuked and a fresh start"): GEN.39
   starts from a wiped galaxy, which Boss does himself; no support for an
   unseeded galaxy and no migration of old galaxies is needed.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **DB.6 Store the galaxy's 128-bit seed, the version that made it, and every generation run**
     The storage half of GEN.39. Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
@@ -1583,6 +1600,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the word list itself goes in ADM.18's JSON file.
     No numpy or other numeric library is used, so the math library risk
     is covered by the OS, architecture and Python parts.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
     The log half of GEN.39 (Boss: "put it in the log at the top of any
@@ -1595,6 +1613,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     22-digit key, and the run's command (for example `Galaxy seed
     3f2a...c901, PlanetGen 7.127.352 (0007007F000160030C0300), run:
     sector 12 3 0`); a test checks the line is first.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -1784,7 +1803,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain that gets there; it is done when its last sub-item is. Order:
   - Phase 0: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
     OPS.10.
-  - Phase 1: OPS.11 (what "the same galaxy" means), GEN.56 (every
+  - Phase 1: GEN.56 (every
     draw seeded), GEN.57 (a sector's contents depend only on the seed,
     the version and its address), DB.7 (the version kept with each
     sector), GEN.58 (a fingerprint), TEST.77 (the golden-galaxy
@@ -1805,26 +1824,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
-
-  - [ ] **OPS.11 Define "the same galaxy" and which versions stay reproducible**
-    A short design note (`docs/design/reproducible-galaxies.md`) that
-    the other items build to. Simplest defaults, unless Boss changes
-    them: "the same galaxy" means every generated object has the same
-    address, position, properties and name; database ids, timestamps
-    and population data rebuilt later are not compared. Admin edits and
-    regenerations are compared after replaying ADM.18's JSON file
-    (GEN.59): its net changes per object and the seeds of regenerated
-    things. A seed reproduces a galaxy only on the
-    exact PlanetGen version that made it (recorded by DB.6); an older
-    galaxy is reproduced by checking out its version. Python's version,
-    the OS and the architecture are part of DB.6's key, and TEST.77 runs on every CI Python
-    leg so any difference between them shows up. Known risk: the math
-    library (libm) can differ in the last digit between machines, which
-    can change a result near a threshold; the golden-galaxy test
-    (TEST.77) watches for it. A release whose generation output changes
-    says so in its `changes/` note. The math behind "seed + version
-    gives the same galaxy" is in the seed math report (dependency tree
-    thread, 2026-10-02).
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.56 Every random draw in generation comes from the derived seeds**
     The sweep GEN.39's "no draw uses the operating system's random
@@ -1855,6 +1855,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (which follows `PYTHONHASHSEED`) or on locale-dependent sorting; the
     test runs a small generation under two `PYTHONHASHSEED` values and
     two locales and compares. Prerequisite: GEN.39.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.57 A sector's contents depend only on the seed, the version and its address**
     Seeding every draw (GEN.56) isn't enough when the result depends on
@@ -1868,7 +1869,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `population.py`), and ids come from per-worker id blocks; the
     backfill depends on which sectors are already filled and where the
     run started (with GEN.44); and nearest-system links depend on which
-    neighbours exist yet. Done: a sector's contents (as OPS.11 defines
+    neighbours exist yet. Done: a sector's contents (as docs/design/reproducible-galaxies.md defines
     them; ids and timestamps excluded) come out the same whichever
     sectors were generated before it, at any worker count; names, seeds
     and skips key on addresses and the galaxy seed, not on ids or arrival
@@ -1879,6 +1880,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     of the comparison; and a test generates the same sectors at 1 and 4
     workers and in two orders and compares fingerprints (GEN.58).
     Prerequisites: PERF.21, GEN.39, GEN.56, GEN.46, GEN.44.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
@@ -1887,6 +1889,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     a different release warns before it starts (CLI and Generate page),
     because a mixed-version galaxy reproduces only sector by sector, each
     on its own version. Prerequisite: DB.6.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.13 Every update records the version key, keeping the last 10**
     Boss (2026-10-02 02:08Z): "I approve the plan, every time the script
@@ -1906,6 +1909,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the seed value". The default reads that as recording the current
     key next to the unchanged seed, because a changed seed makes a
     different galaxy. Prerequisites: DB.6, OPS.7, OPS.8.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
@@ -1917,6 +1921,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     report print the same comparison, so a mismatched fingerprint says
     whether the platform or the corpus changed too. A test checks each
     field is named. Prerequisites: DB.6, DB.7, OPS.13.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
@@ -1926,6 +1931,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     one, and reports "generated output unchanged" or names the sectors
     that differ. The live galaxy is not touched. A test runs it across a
     change that alters a sector. Prerequisites: OPS.13, GEN.58.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.16 A daily maintenance script for Linux, macOS and Windows**
     Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
@@ -1945,6 +1951,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     fingerprint check, so changed output is noticed daily. A test runs
     it on a small galaxy and checks a second run started during the
     first exits at once. Prerequisites: GEN.61, OPS.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
     Done: `install.sh`, `install.ps1`, `update.sh` and `update.ps1`
@@ -1954,6 +1961,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     missing one. The deployment docs say how to change the time or turn
     it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
     them. Prerequisites: OPS.16, OPS.7, OPS.8, OPS.13.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.18 Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly**
     Boss (2026-10-02 02:28Z): "old JSON files are kept in the following
@@ -1964,15 +1972,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     deleted. The current file is always kept. A unit test runs the
     rotation over a simulated year of dates and checks which files
     survive. Prerequisite: GEN.61.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.58 A fingerprint of a galaxy's generated content**
-    A way to tell whether two builds are the same in the sense OPS.11
+    A way to tell whether two builds are the same in the sense
+    `docs/design/reproducible-galaxies.md`
     defines. Done: `generate.py fingerprint` (for the galaxy or a region)
     prints a canonical SHA-256 digest per sector and one for the region over the compared content in
     a fixed order (address order, canonical number formatting), skipping
     ids and timestamps, either as first generated or with the JSON
     file's edits and regenerations applied (GEN.59); the same function backs GEN.57's test,
-    TEST.77 and OPS.12. Prerequisite: OPS.11.
+    TEST.77 and OPS.12.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **TEST.77 A golden-seed regression test**
     Done: a fixed 128-bit seed builds a small galaxy (plan, a few
@@ -1984,6 +1995,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     fingerprint and its `changes/` note says generation output changed
     (`bump_version.py --check` checks the two go together). It runs on
     every CI Python leg. Prerequisites: GEN.57, GEN.58. [generation, infra]
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.12 `generate.py reproduce`: a version and a seed rebuild a galaxy and check it**
     The end state Boss asked for (phase 3+). Done: `generate.py reproduce
@@ -2003,6 +2015,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     warns when they differ. It reads the galaxy's settings from ADM.18's
     JSON file. Prerequisites: DB.6, DB.7, GEN.57, GEN.58, TEST.77,
     GEN.59, OPS.14, ADM.18, GEN.61, OPS.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
     Done: the Generate page shows the galaxy seed (32 hex digits, with a
@@ -2010,6 +2023,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (DB.6), and the new-galaxy form takes an optional seed (blank means a
     random one); the admin's System page shows the same for one system.
     Prerequisite: DB.6.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.18 The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard**
     Boss (2026-10-02 02:13Z): "Inject into Phase 1 that the system
@@ -2051,6 +2065,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     downloads the file and checks the name, settings, seed, key and word
     list.
     Prerequisites: DB.6, DB.7, OPS.13.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
     Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
@@ -2059,6 +2074,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     current one (ADM.18). Admin only. A test checks the list matches
     the files on disk and a download returns the file. Prerequisites:
     ADM.18, OPS.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.20 A "merge now" button on the Admin dashboard (low priority)**
     Boss (2026-10-02 02:31Z), on an on-demand merge button: "Let's put
@@ -2070,11 +2086,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the button says so and does nothing. A test presses it with pending
     deltas and checks the new file and the cleared rows. Prerequisites:
     OPS.16, GEN.61, OPS.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
     and the run history (DB.6), documented with the API; API.12's
     download uses the same fields. Prerequisites: DB.6, API.5.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
@@ -2083,6 +2101,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     API.8 can verify an upload by re-running a sample of its sectors on
     the server and comparing. Prerequisites: API.12, API.13, GEN.57,
     GEN.58.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.59 Admin changes stored as a net difference from the generated galaxy**
     Boss (2026-10-02 02:20Z): "Now track changes from original to new
@@ -2128,6 +2147,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
     (`adminEdits.py`, `editStore.py`). Prerequisites: GEN.39, GEN.56,
     GEN.58, ADM.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.61 The daily merge folds pending admin changes into a new JSON file**
     Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
@@ -2150,6 +2170,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     by fingerprint (GEN.58); another kills the merge before the check
     and finds the pending rows still there. Prerequisites: GEN.59,
     ADM.18.
+    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -2313,6 +2334,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   found. `--sector` and `--region` limit it to part of the galaxy. A test
   damages a copy of a small galaxy in each of these ways and checks the
   matching problem is reported, and an undamaged one passes.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.9 Repair a damaged galaxy database from a parity file**
   Boss (same message): "then Phase 1 inject a DB repair using parity
@@ -2333,6 +2355,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   - A test damages rows in a copy of a small galaxy, repairs them, and
     gets a passing check.
   Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
   From Boss's 02:28Z daily-merge rule (GEN.61). Done: DB.9's repair,
@@ -2343,6 +2366,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (OPS.18) and replays the pending deltas on top, saying so. A test
   repairs a sector with both merged and pending changes. Prerequisites:
   DB.9, GEN.61, OPS.18.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 ## API: The JSON API
 
@@ -2637,6 +2661,7 @@ clears each one.
   from 2,000 sectors). Done: the tests exist, marked expected-to-fail
   where today's code fails them, so NAV.34 and NAV.12 turn them green.
   [web, NAV]
+  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **TEST.76 A bright-star test breaks on Python 3.9 and 3.10 (bug)**
   Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). `_ScriptedRandom(random.Random)` in

@@ -122,11 +122,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible |  | Design note. |
 | GEN.56 | Every random draw in generation comes from the derived seeds | GEN.39 | Touches every generator module. |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | PERF.21, GEN.39, GEN.56, GEN.46, GEN.44 |  |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
-| GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Judgment: phase 1 so the golden test guards later changes. |
+| GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.39, GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. Moved from phase 3. |
 | OPS.13 | Every update records the version key, keeping the last 10 | DB.6, OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
