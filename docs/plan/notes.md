@@ -161,7 +161,6 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | stellarObjects/workQueue.py | ADM.15, PERF.18, PERF.19/20 | PERF.21, PERF.22 and TEST.73 done (PR #371). |
 | generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44 (phase 0), GEN.41, GEN.42, GEN.43, PERF.18 | GEN.44 in phase 0; then GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
 | generate.py: command-line options | GEN.52, GEN.24, API.3 | GEN.51 done (PR #398); GEN.52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
-| generate.py: sector phenomena (generate_sector_phenomena) | GEN.47 (phase 0) | Generation bugs lane. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
 | systemData.py StarSystem constructor | GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50, GEN.62, GEN.51 done (PRs #367, #373, #393, #398). |
 | planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.29 | GEN.60, GEN.38 and class S done (PR #415); the classes thread in phase 1. |
@@ -180,7 +179,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Generate page (generate.html) | ADM.14 (phase 0), ADM.16, GEN.24 | ADM.14 first. |
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, UX.31, UX.27 (phase 0), NAV.8 (1), UX.32, UX.30 (2), MAP.74 (3) | In that order; UX.32 and UX.30 in one thread. |
 | Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 (phase 0) | One lane, in that order. |
-| Search and phenomena list (queryDb search facets, phenomena.html) | UX.33 (phase 0) | After GEN.47. |
+| Search and phenomena list (queryDb search facets, phenomena.html) | UX.33 (phase 0) | GEN.47 done (PR #419). |
 | Navigation (nav_page.py, queryDb.nav_between, navigation.py) | NAV.7, NAV.10, NAV.11, NAV.16, NAV.17 | NAV.7 first; NAV.10 and NAV.16 touch different functions. |
 | Admin edits (editStore.py, adminEdits.py, api/edits.py) and the galaxy settings JSON | ADM.18, GEN.59, GEN.61, OPS.18, ADM.19, DB.10, OPS.12 | ADM.18 writes the file; GEN.59 records deltas; GEN.61 merges them daily; OPS.18 keeps 18 backups. |
 | update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.19 (phase 0), OPS.8, OPS.13 (1), OPS.15, OPS.17 (2) | OPS.7 then OPS.19 in the ops lane; OPS.8 rides with OPS.13; then OPS.15 and OPS.17. |

@@ -54,7 +54,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.24 | A keep-out radius for every kind of object | GEN.47 | Nebula keep-out question needs nebulae that actually exist. |
+| NAV.24 | A keep-out radius for every kind of object |  | Unblocked: nebulae exist since GEN.47 (PR #419), so the nebula keep-out question can be settled. |
 | NAV.36 | Unknown-space jumps drawn red and glowing | NAV.12, UX.35, NAV.20 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.12, NAV.17 | With NAV.17. |
 

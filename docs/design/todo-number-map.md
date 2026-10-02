@@ -485,7 +485,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
-| GEN.47 | Nebulae almost never appear (bug) | none | open |
+| GEN.47 | Nebulae almost never appear (bug) | none | done, PR #419 |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | done, PR #373 |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | done, PR #373 |

@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), and the Galaxy Map drill-down lane apart from the slab-button fixes MAP.98, MAP.100 and MAP.99 (PRs #408, #410, #413). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | GEN.65, MAP.98, MAP.100, MAP.99, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane apart from the slab-button fixes MAP.98, MAP.100 and MAP.99 (PRs #408, #410, #413). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | GEN.65, MAP.98, MAP.100, MAP.99, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -399,8 +399,8 @@ with `clamp()`.
   black hole and neutron star kinds), on both the Search page and the
   `/phenomena` list, through the API, with the counts per option.
   The filter options are built from each kind's class list, so classes
-  GEN.28 adds later appear on their own; only GEN.47 (nebulae that
-  exist) has to land first.
+  GEN.28 adds later appear on their own; GEN.47 (nebulae that exist)
+  is done (PR #419), so nothing blocks it.
 
 - [ ] **UX.34 The sector summary calls white dwarfs "B-type" and "A-type" systems (bug)**
   Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The "Systems: 4 B-type, ..." line in `generate.py`
@@ -1580,28 +1580,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (GEN.57), and a test that a sector with stars at -1 is wiped and
     redone.
 
-- [ ] **GEN.47 Nebulae almost never appear (bug)**
-  Boss (2026-10-01 23:53Z): "No nebulae are being created at all."
-  Checked in the code: nebulae are generated (`generate_sector_phenomena`
-  in `generate.py` runs for galaxy-placed sectors too), but at rates
-  that make them vanishingly rare in 4 pc sectors: about 3e-4 molecular
-  clouds and 2e-6 planetary nebulae per sector (densities 5e-6 and 3e-8
-  per pc^3 in `program_constants.py`), star-hosted nebulae only around
-  O stars and some B and A stars (`NEBULA_HOST_RULES`), and diffuse gas
-  (classes A and B) deliberately not generated. Nebulae are also many
-  parsecs across, far bigger than a sector, so per-sector rolls don't
-  fit them. Done: nebulae appear at realistic numbers across a
-  generated region: large clouds placed once per region at galaxy
-  scale (for example a density field with seeded centers, more in the
-  arms), spanning the sectors they cover, plus the star-hosted ones; a
-  test over a generated neighborhood finds them. Boss's research notes
-  suggest a 3D noise density field with Poisson-seeded centers and
-  per-class thresholds and radii (emission 15-45 pc near O/B stars,
-  reflection 10-30 pc, dark 5-25 pc, planetary 0.1-2 pc, remnants
-  5-20 pc). The field comes from the galaxy seed through GEN.39's
-  per-region seeds, so every worker and every later run agrees where a
-  nebula is (GEN.55). Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
 - [ ] **GEN.48 Forcing options are impractical for whole sectors; replace them with prevalence controls (bug)**
   Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss (2026-10-02): "the forcing options are impractical
   for an entire sector, so those options only apply to generating a star
@@ -1646,7 +1624,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     test), ADM.18 (the creation settings as a JSON file), GEN.59 (admin
     changes as a net difference in that file), OPS.13 (each
     update records the key, keeping the last 10) and OPS.14 (a warning when the running key differs from the
-    galaxy's). GEN.47's nebula field uses the derived seeds.
+    galaxy's). GEN.47's nebula field (done, PR #419) uses the derived seeds.
   - Phase 2: PERF.18 and GEN.42 give the one-process stars for one
     seed (already in their Done text); API.16 and ADM.17 show the seed
     and version; OPS.15 has each update say whether it changes
@@ -1658,7 +1636,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     DB.10 repairs from the newest JSON plus pending deltas; ADM.20 adds
     a "merge now" button (low priority).
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
-  Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
+  Anything that draws new randomness later (GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
