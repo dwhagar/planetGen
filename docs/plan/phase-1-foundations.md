@@ -29,13 +29,16 @@ comes first in this phase, before anything else starts.
 | PERF.22 (new) | On Python 3.12 a run hangs forever when a worker process dies (bug) | PERF.21 |
 | TEST.74 (new) | Generation tests at more than one worker | PERF.21 |
 | PERF.23 (new) | The bright-star progress bar can end at 101% (bug) |  |
+| GEN.39 | The same seed can't reproduce the same galaxy (bug) |  |
 
 TEST.74 (the generation tests at 1, 2 and 4 workers) lands first so the
 14 tests that fail at more than one worker show what PERF.21 has to fix;
 PERF.22 (the 3.12 hang in `workQueue._dispatch`) and PERF.23 (a late
 layer report counted twice in `_LayerTracker`) are in the same parallel
-code and go in the same thread. GEN.39 (reproducible seeds) touches the
-same tests; whichever lands second keeps both working.
+code and go in the same thread. GEN.39 (one seed reproduces the
+galaxy: a 64-bit galaxy seed, each sector, layer and backfill block
+seeded from it plus its address) follows PERF.21 in the same thread,
+since it touches the same tests.
 
 ### Forcing options and prevalence
 
@@ -89,7 +92,6 @@ rogue classes, settle the mix after them.
 | GEN.24 | Generate the galactic core on layer 0 |  |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) |  |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) |  |
-| GEN.39 | The same seed can't reproduce the same galaxy (bug) |  |
 | GEN.44 (new) | Store each sector's backfill level so finished sectors drop out of any backfill | GEN.40 |
 | GEN.46 (new) | Star system names of at most two words (bug) |  |
 | GEN.47 (new) | Nebulae almost never appear (bug) |  |
@@ -99,9 +101,7 @@ GEN.31 (the layer 0 boundary) before GEN.24 (generate the core on layer
 change; it replaces or sits beside `bright_star_blocks` and is what
 GEN.40 to GEN.43 and PERF.18 in phase 3 use to skip work, so it should
 land with or before GEN.32 (an interrupted band drawn twice), which
-touches the same backfill code. GEN.39 (one seed reproduces the
-galaxy, decided; a seed per sector from the galaxy seed and address)
-waits only on the seed format. GEN.46 (two-word names) changes `nameUniqueness.py`
+touches the same backfill code. GEN.46 (two-word names) changes `nameUniqueness.py`
 and the name reservation in `_db.py`. GEN.47 (nebulae) is a new
 galaxy-scale placement, not a one-line fix.
 
@@ -218,12 +218,12 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
 Each thread is briefed with its exact item IDs and takes no others.
 
 1. The parallel path (top priority, starts first): TEST.74, PERF.21,
-   PERF.22, PERF.23.
+   PERF.22, PERF.23, then GEN.39.
 2. Planet classes: GEN.28 (as GEN.33's PRs), then GEN.38, GEN.27,
    GEN.29.
 3. Physics bugs: GEN.34, GEN.35, GEN.36, GEN.37, GEN.25, GEN.45.
 4. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
-   GEN.46 and GEN.39 alongside.
+   GEN.46 alongside.
 5. Database: DB.2 to DB.5.
 6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
 7. Object references: NAV.7, NAV.8, NAV.9.
