@@ -223,11 +223,13 @@ back. With nothing pending and no epoch change it writes nothing.
 Changes made since the last merge live only in the database until the
 next one; the parity file (section 9) protects them in between.
 
-**Run the merge now (phase 3, low priority; ID being filed).** Boss
-(02:31Z): "Let's put that part of Phase 3, low priority." A button on
-the Admin dashboard runs the delta merge at once, under the same lock
-and rules as the daily run; the file it writes counts in that day's
-backup slot. It needs the maintenance script (OPS.16).
+**Merge now (ADM.20, phase 3, low priority).** Boss (02:31Z): "Let's
+put that part of Phase 3, low priority." An admin-only button on the
+Admin dashboard runs the delta merge at once, under the same lock and
+rules as the daily run, and writes a new seed-key-date-time file that
+counts toward that day's daily backup slot. If the daily run holds the
+lock, the button says so and does nothing. Needs OPS.16, GEN.61 and
+OPS.18.
 
 ## 8. The daily maintenance run (phase 2)
 
@@ -311,5 +313,5 @@ TEST.77 green.
 | 1 | DB.9 (parity repair) | DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14 |
 | 2 | GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 | GEN.59, ADM.18; OPS.17 also OPS.13 |
 | 2 | OPS.15, ADM.17, API.16 | OPS.13 and GEN.58; DB.6; DB.6 and API.5 |
-| 3 | API.17, DB.10; the "run the merge now" button (low priority) | API.12, API.13; DB.9, GEN.61, OPS.18; OPS.16 |
+| 3 | API.17, DB.10, ADM.20 (merge now, low priority) | API.12, API.13, GEN.57, GEN.58; DB.9, GEN.61, OPS.18; OPS.16, GEN.61, OPS.18 |
 | 3+ | OPS.12, closing GEN.55 | everything above it |
