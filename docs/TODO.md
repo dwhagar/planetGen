@@ -836,10 +836,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   line from a slab button (MAP.54, MAP.76, done in PR #410) ends at
   `slabAnchor` in `galaxystageview.js`: a point inside the slab, half a
   footprint radius from its center toward the camera, at mid-height.
-  Done: each line ends on the outline of its slab's prism as drawn on
-  screen, at the point nearest the line's last bend (its button side),
-  and stays there as the view turns and zooms; a slab off the map still
-  ends its line at the map's edge with an arrow. [map]
+  Boss again (08:35Z): "On map.98  the interface lines should not only
+  attach to the nearest edge but attached to the nearest edge at the
+  nearest point to the button". Done: each line ends on the edge of its
+  slab's prism (as drawn on screen) nearest its button, at the point on
+  that edge nearest the button, and stays there as the view turns and
+  zooms; a slab off the map still ends its line at the map's edge with
+  an arrow. [map]
 
 - [ ] **MAP.99 Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug)**
   Boss (2026-10-02 08:17Z): "Slab selection UI, if the column of slab
