@@ -400,10 +400,13 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert crumbs is None and re.search(r"/sector/\d+$", url), f"never opened a sector: {steps[-2:]}"
     assert int(url.rsplit("/", 1)[1]) in {sector[0] for sector in SECTORS}
     for query, _crumbs_seen in steps[1:-1]:
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[arL0-9.~,-]+)?", query), query
+        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[asL0-9.~,-]+)?", query), query
+    # MAP.56: arc, slab, segment (entering each block), slab, ... down to
+    # a sector; never a 3 x 3 region.
     kinds = " ".join(q for q, _ in steps[:-1])
-    for marker in ("p=a", "L", "r", "at=243.", "at=27.", "at=3."):
+    for marker in ("p=a", "L", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
+    assert not re.search(r"[=,]r\d", kinds), kinds
 
 
 def test_galaxy_map_back_forward_and_url_state(page, map_site):

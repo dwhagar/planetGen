@@ -93,9 +93,10 @@ export function drillBlockTotal(block, outline) {
 //
 // A stage is {at, picks}: `at` is the container (null for the galaxy, or a
 // drill block {m, ring, wedge, slab} of 243, 27 or 3 sectors a side) and
-// `picks` what has been picked inside it so far, in order. The picks
-// alternate, as Boss laid them out (MAP.19: "arc, layer, region, layer,
-// region, ..., layer, sector"):
+// `picks` what has been picked inside it so far, in order. The ladder is
+// arc, slab, segment, then slab and segment again inside each smaller
+// block down to a sector (MAP.56: "select-slab, zoom in, select segment
+// of slab"):
 // - {kind: "arc", n}: the galaxy's first pick (MAP.85), a piece of the
 //   disk about 40 degrees of bearing by a third of its radius, the whole
 //   height of the disk: arc n is radial band floor(n / ARCS_PER_TURN)
@@ -105,21 +106,18 @@ export function drillBlockTotal(block, outline) {
 // - {kind: "quadrant", n}: the galaxy's first pick before MAP.85, a
 //   quarter of the disk; still read from older links, never offered;
 // - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
-//   slice; pickOptions offers thirds while more than three are left (the
-//   keyboard and links use these), and the slab slider beside the map
-//   (galaxystageview.js) takes any one slab;
-// - {kind: "region", n}: an arc of the ring band in view, one of up to
-//   3 x 3 (a third of its rings across, a third of its arc along).
-// After a region comes a layer and after a layer a region, while each
-// still has something to split; the first pick inside a block is a
-// layer. A pick that leaves one block of one slab enters that block: it
-// becomes the container, and its children are picked the same way.
-// Inside a level-3 block the children are sectors, and the last pick is
-// a sector of one layer.
+//   slab; pickOptions offers each slab on its own (an older link may name
+//   a range, which is then narrowed to one slab);
+// - {kind: "segment", ring, wedge}: one block of the picked slab (a drill
+//   block of the next level down, or a sector inside a level-3 block);
+// - {kind: "region", n}: an older link's 3 x 3 pick (before MAP.56); it is
+//   never offered, and a link holding one opens at the stage before it.
+// While the view holds more than one slab the pick is a slab, then a
+// segment of it. A pick that leaves one block of one slab enters that
+// block: it becomes the container, and its children are picked the same
+// way. Inside a level-3 block the children are sectors, and the last
+// pick is a sector of one layer.
 
-// Up to this many slices or arcs per pick (so a pick is at least about a
-// ninth of the view: big targets, MAP.19).
-export const PICK_SPLIT = 3;
 // The galaxy's arcs (MAP.85): this many bearing bins a turn, in
 // ARC_BANDS bands of radius. 8 bins (45 degrees) is the count nearest
 // Boss's 40 degrees whose lines are wedge lines of every level-243 block
@@ -139,7 +137,9 @@ export function sameBlock(a, b) {
 
 export function samePick(a, b) {
   if (a.kind !== b.kind) return false;
-  return a.kind === "layer" ? a.lo === b.lo && a.hi === b.hi : a.n === b.n;
+  if (a.kind === "layer") return a.lo === b.lo && a.hi === b.hi;
+  if (a.kind === "segment") return a.ring === b.ring && a.wedge === b.wedge;
+  return a.n === b.n;
 }
 
 export function sameStage(a, b) {
@@ -240,36 +240,41 @@ function containerView(at, outline, edgePc) {
   return { at: at, blocks: blocks, a0: a0, a1: a1, hadFirstPick: false };
 }
 
-// What can be picked next in `view` after `picks`: "arc", "layer",
-// "region", or null when one block (of one slab) is left.
-export function nextPickKind(view, picks) {
+// What can be picked next in `view`: "arc", "layer" (a slab), "segment"
+// (a block of the one slab left), or null when one block (of one slab)
+// is left.
+export function nextPickKind(view) {
   const slabs = slabsOf(view.blocks).length;
   const columns = columnsOf(view.blocks).size;
   if (!view.at && !view.hadFirstPick && columns > 1) return "arc";
-  const last = picks.length ? picks[picks.length - 1].kind : null;
-  if (last !== "layer" && slabs > 1) return "layer";
-  if (columns > 1) return "region";
   if (slabs > 1) return "layer";
+  if (columns > 1) return "segment";
   return null;
 }
 
 // The choices for a pick of `kind` in `view`: [{pick, blocks, a0, a1}],
-// each holding at least one block. Layers come lowest first.
+// each holding at least one block. Slabs come lowest first, one each;
+// segments in ring order, then by bearing.
 export function pickOptions(view, kind) {
   const out = [];
   if (kind === "layer") {
-    const slabs = slabsOf(view.blocks);
-    const parts = Math.min(PICK_SPLIT, slabs.length);
-    for (let k = 0; k < parts; k++) {
-      const some = slabs.slice(Math.floor((k * slabs.length) / parts), Math.floor(((k + 1) * slabs.length) / parts));
-      const lo = some[0];
-      const hi = some[some.length - 1];
+    slabsOf(view.blocks).forEach(function (slab) {
       out.push({
-        pick: { kind: "layer", lo: lo, hi: hi },
-        blocks: view.blocks.filter(function (b) { return b.slab >= lo && b.slab <= hi; }),
+        pick: { kind: "layer", lo: slab, hi: slab },
+        blocks: view.blocks.filter(function (b) { return b.slab === slab; }),
         a0: view.a0, a1: view.a1,
       });
-    }
+    });
+    return out;
+  }
+  if (kind === "segment") {
+    const mid = (view.a0 + view.a1) / 2;
+    view.blocks.slice().sort(function (p, q) {
+      return p.ring - q.ring || angleFrom(p.bounds.t0, view.a0) - angleFrom(q.bounds.t0, view.a0);
+    }).forEach(function (block) {
+      const span = blockSpan([block], mid);
+      out.push({ pick: { kind: "segment", ring: block.ring, wedge: block.wedge }, blocks: [block], a0: span.a0, a1: span.a1 });
+    });
     return out;
   }
   const rings = distinct(view.blocks.map(function (b) { return b.ring; }));
@@ -280,12 +285,9 @@ export function pickOptions(view, kind) {
   });
   let widest = 0;
   perRing.forEach(function (n) { widest = Math.max(widest, n); });
-  let bands = Math.min(PICK_SPLIT, rings.length);
-  let arcs = Math.min(PICK_SPLIT, widest);
-  if (kind === "quadrant") {
-    bands = 1;
-    arcs = 4;
-  } else if (kind === "arc") {
+  let bands = 1;
+  let arcs = 4;
+  if (kind === "arc") {
     bands = Math.min(ARC_BANDS, rings.length);
     arcs = ARCS_PER_TURN;
   }
@@ -408,8 +410,9 @@ function applyPick(view, pick) {
     return { at: view.at, blocks: blocks, a0: view.a0, a1: view.a1, hadFirstPick: view.hadFirstPick };
   }
   if ((pick.kind === "arc" || pick.kind === "quadrant") && (view.at || view.hadFirstPick)) return null;
-  if (pick.kind === "region" && columnsOf(view.blocks).size < 2) return null;
-  const option = pickOptions(view, pick.kind).find(function (o) { return o.pick.n === pick.n; });
+  if (pick.kind === "segment" && nextPickKind(view) !== "segment") return null;
+  if (pick.kind !== "arc" && pick.kind !== "quadrant" && pick.kind !== "segment") return null;
+  const option = pickOptions(view, pick.kind).find(function (o) { return samePick(o.pick, pick); });
   if (!option) return null;
   return { at: view.at, blocks: option.blocks, a0: option.a0, a1: option.a1, hadFirstPick: true };
 }
@@ -417,6 +420,7 @@ function applyPick(view, pick) {
 function pickText(pick) {
   if (pick.kind === "layer") return "layer " + (pick.lo === pick.hi ? pick.lo : pick.lo + " to " + pick.hi);
   if (pick.kind === "arc") return "arc " + pickToken(pick).slice(1);
+  if (pick.kind === "segment") return "block " + pick.ring + "·" + pick.wedge;
   return pick.kind + " " + pick.n;
 }
 
@@ -434,7 +438,7 @@ export function resolveStage(stage, outline, edgePc) {
     if (!next) return { stage: stage, problem: "There is no " + pickText(stage.picks[n]) + " here." };
     view = next;
   }
-  const kind = view.blocks.length ? nextPickKind(view, stage.picks) : null;
+  const kind = view.blocks.length ? nextPickKind(view) : null;
   const options = kind ? pickOptions(view, kind) : [];
   const sector = !kind && view.blocks.length === 1 && view.blocks[0].m === 1 ? view.blocks[0] : null;
   return { stage: stage, view: view, kind: kind, options: options, sector: sector, problem: null };
@@ -625,11 +629,12 @@ export function parseAddress(text, edgePc) {
 // --- URLs ---------------------------------------------------------------------
 
 // A pick as it reads in a URL: "a1.90" (the arc of band 1, the middle
-// third, starting at bearing 90 degrees), "r4" (region), "L-1" (one slab
-// or layer) or "L-4~-2" (a range of them); "q1" (quadrant) from older
-// links.
+// third, starting at bearing 90 degrees), "L-1" (one slab or layer) or
+// "L-4~-2" (a range of them), "s14.30" (the segment of ring 14, wedge or
+// slot 30); "q1" (quadrant) and "r4" (region) from older links.
 export function pickToken(pick) {
   if (pick.kind === "layer") return "L" + pick.lo + (pick.hi === pick.lo ? "" : "~" + pick.hi);
+  if (pick.kind === "segment") return "s" + pick.ring + "." + pick.wedge;
   if (pick.kind === "arc") {
     const band = Math.floor(pick.n / ARCS_PER_TURN);
     return "a" + band + "." + ((pick.n % ARCS_PER_TURN) * 360) / ARCS_PER_TURN;
@@ -644,6 +649,8 @@ export function parsePickToken(token) {
     if (!Number.isInteger(bin) || bin >= ARCS_PER_TURN) return null;
     return { kind: "arc", n: Number(match[1]) * ARCS_PER_TURN + bin };
   }
+  match = /^s(\d+)\.(\d+)$/.exec(token);
+  if (match) return { kind: "segment", ring: Number(match[1]), wedge: Number(match[2]) };
   match = /^([qr])(\d+)$/.exec(token);
   if (match) return { kind: match[1] === "q" ? "quadrant" : "region", n: Number(match[2]) };
   match = /^L(-?\d+)(?:~(-?\d+))?$/.exec(token);
@@ -663,7 +670,9 @@ export function stageQuery(stage) {
 // The stage a URL's query asks for: {stage, sector, problem}. `sector`
 // ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
 // caller works out (sectorStage needs the outline). An older link's
-// ?slab=s reads as a pick of that one slab, before any others. Anything
+// ?slab=s reads as a pick of that one slab, before any others, and its
+// region picks (the 3 x 3 pick MAP.56 dropped) end its picks there: it
+// opens at the stage before the first one. Anything
 // malformed opens the galaxy, with `problem` saying why. Whether the
 // picks fit is the caller's to check against the outline (resolveStage).
 export function parseStageQuery(search) {
@@ -690,6 +699,7 @@ export function parseStageQuery(search) {
   for (let n = 0; n < tokens.length; n++) {
     const pick = parsePickToken(tokens[n]);
     if (!pick) return { stage: galaxy, sector: null, problem: "There is no pick " + tokens[n] + "." };
+    if (pick.kind === "region") break;
     picks.push(pick);
   }
   return { stage: { at: at, picks: picks }, sector: null, problem: null };
@@ -751,6 +761,10 @@ export function pickLabel(pick, at, view) {
   if (pick.kind === "arc") {
     const band = ARC_BAND_NAMES[Math.floor(pick.n / ARCS_PER_TURN)];
     return "Arc " + arcLabel(view.a0, view.a1) + (band ? " (" + band + ")" : "");
+  }
+  if (pick.kind === "segment") {
+    const block = view.blocks && view.blocks[0];
+    return (block && block.m === 1 ? "Sector " : "Block ") + (block ? blockLabel(block) : pick.ring + "·" + pick.wedge);
   }
   return (pick.kind === "quadrant" ? "Quarter " : "Arc ") + arcLabel(view.a0, view.a1);
 }

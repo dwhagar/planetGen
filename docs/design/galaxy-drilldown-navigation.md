@@ -814,17 +814,19 @@ below it (MAP.19, section 4) until MAP.56 replaces that.
 
 ### 15.3 Below the arc
 
-The ladder becomes arc, slab, segment, then slab and segment again
-inside each smaller block, down to a sector (MAP.56; the 3 by 3 region
-pick goes).
+The ladder is arc, slab, segment, then slab and segment again inside
+each smaller block, down to a sector (MAP.56, built; the 3 by 3 region
+pick is gone, and an older link holding one opens at the stage before
+it). A segment's URL token is `s<ring>.<wedge>`.
 
 - **Slab:** a height band of the arc, picked with one button per slab and
   a leader line from each button to its slab (MAP.54, layout MAP.76),
   replacing the slab slider. The arc view draws only the boundaries
   between slabs (MAP.77). Hovering the map lights and outlines the
   whole slab under the pointer, never a single cube (MAP.91).
-- **Segment:** one drill block of the next level inside the slab,
-  picked on the zoomed slab with the same hover highlight. The rest of
+- **Segment:** one drill block of the next level inside the slab (a
+  sector inside a level-3 block), picked on the zoomed slab with the same
+  hover highlight; picking it enters that block. The rest of
   the arc stays as a faint ghost so a slab doesn't read as a wedge
   (MAP.59).
 - On navigation screens the hover highlight is the same arc highlight

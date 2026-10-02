@@ -1,0 +1,2 @@
+### Fixed
+- **The Galaxy Map drill-down is arc, slab, segment again (MAP.56).** Below an arc you now pick a slab, then click one block of that slab (a segment) to zoom into it, then a slab and a segment inside that block, and so on down to a sector. The 3 by 3 "region" pick between them is gone. A segment's URL token is `s<ring>.<wedge>`; an older link holding a region (`r4`) opens at the stage before it. Up and Down arrows move to the nearest block a ring further out or in.

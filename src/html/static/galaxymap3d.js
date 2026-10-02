@@ -25,7 +25,7 @@
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
 // ./galaxystages.js): the visitor picks an arc of the disk (MAP.85), a
-// layer, a region, a layer, ... down to a sector. Every view can be
+// slab, a segment (block) of it, a slab, ... down to a sector (MAP.56). Every view can be
 // turned and zoomed within limits; the whole galaxy has no grid lines
 // drawn on it, so its stars and spiral show through. Density is computed right here from the galaxy's own
 // analytic shape, not fetched, and colors each block.

@@ -328,13 +328,15 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
             reached_sector = True
             break
         assert len(crumbs) == len(steps[-1][1]) + 1 or crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[arL0-9.~,-]+)?", query), query
+        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[asL0-9.~,-]+)?", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
     kinds = " ".join(q for q, _ in steps)
-    for marker in ("p=a", "L", "r", "at=243.", "at=27.", "at=3."):
+    # MAP.56: arc, slab, segment, slab, ... down to a sector; no regions.
+    for marker in ("p=a", "L", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
+    assert not re.search(r"[=,]r\d", kinds), kinds
 
     # Back and Forward (the browser's) walk the same stages, in order.
     # (Picking the sector may or may not add an entry of its own, so the
