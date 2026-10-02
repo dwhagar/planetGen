@@ -33,7 +33,7 @@ def test_every_class_has_a_rogue_flag_and_no_rogue_class_has_life():
         if data["r"]:
             assert not data.get("life_chemical"), code
             assert code not in program_constants.HABITABLE_PLANET_CLASSES
-    assert rogue_planet_classes("t") == ["C", "D"]
+    assert rogue_planet_classes("t") == ["C", "D", "S"]
     assert rogue_planet_classes("g") == ["I", "J", "T"]
 
 
@@ -51,11 +51,27 @@ def test_brown_dwarfs_have_no_planet_class():
 
 
 def test_a_rogue_too_big_for_every_class_gets_the_nearest():
-    """A rogue super-Earth past class C's 10,000 km ceiling still gets C."""
+    """A rocky rogue past every rocky class's ceiling gets the nearest:
+    class S, the rocky super-Earth (GEN.38), not class C."""
     mass = 15 * physical_constants.EARTH_MASS_TO_KG
-    assert rogue_planet_class_candidates("t", 17000.0, mass) == ["C"]
-    assert default_rogue_planet_class("t", 17000.0, mass) == "C"
+    assert rogue_planet_class_candidates("t", 17000.0, mass) == ["S"]
+    assert default_rogue_planet_class("t", 17000.0, mass) == "S"
     assert default_rogue_planet_class("g", 70000.0, physical_constants.JUPITER_MASS_TO_KG) == "J"
+
+
+def test_rocky_rogues_over_10000_km_are_class_s():
+    """GEN.38: a rocky rogue bigger than Class C's 10,000 km ceiling is a
+    rocky super-Earth (S), and one that fits S's radius and mass ranges
+    may only be S or nothing smaller."""
+    mass = 5 * physical_constants.EARTH_MASS_TO_KG
+    assert rogue_planet_class_candidates("t", 10500.0, mass) == ["S"]
+    big = []
+    for _ in range(600):
+        planet = RoguePlanet(SystemConfig(), mass_bin="sub-neptune")
+        if planet.planet_type == "t" and planet.radius_km > program_constants.PLANET_CLASSES["C"]["radius_range"][1]:
+            big.append(planet)
+            assert planet.planet_class == "S"
+    assert big
 
 
 def test_from_dict_without_a_class_gives_the_default():

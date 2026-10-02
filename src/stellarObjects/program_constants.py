@@ -591,7 +591,7 @@ BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
 # Zone flags: "h" hot zone, "e" ecosphere, "c" cold zone, and "r" (GEN.8)
 # whether a free-floating rogue planet may have the class -- "r" is the
 # rogue planet's zone. With no star to warm it, a rogue is a dead (C),
-# icy (D) or giant (I, J, T) world: every class with life needs starlight
+# icy (D), rocky super-Earth (S) or giant (I, J, T) world: every class with life needs starlight
 # (each one's life_chemical is a light-harvesting pigment), and the hot,
 # molten and volcanic classes need a star's heat.
 PLANET_CLASSES = {
@@ -1153,6 +1153,32 @@ PLANET_CLASSES = {
             "slow": (25.0, 50.0)
         }
     },
+    "S": {
+        # Rocky super-Earth (GEN.28's first class, built with GEN.38): 1.2-1.8
+        # Earth radii and 2-10 Earth masses, barren, in every zone. V stays
+        # the life-bearing super-Earth. Compressed rock is denser than
+        # Earth's own 5.51 g/cm3, so the density range is set so the class's
+        # masses run 2-10 Earth masses across its radii (1.2 Earth radii at
+        # 6.38 g/cm3 is 2 Earth masses, 1.8 at 9.45 is 10). Rogue-eligible:
+        # without it, rocky rogues past Class C's 10,000 km ceiling had no
+        # class that fit their size (GEN.38).
+        "description": "a barren, rocky Super-Earth, its surface molten when it orbits close to its star",
+        "composition": "silicate rock over a large iron core",
+        "radius_range": (7645, 11468),
+        # Smaller super-Earths are commoner (Fulton et al. 2017's radius
+        # distribution falls from 1.2 toward 1.8 Earth radii).
+        "size_mode": 0.30,
+        "density_range": (6.38, 9.45),
+        "h": True, "e": True, "c": True, "r": True,
+        "atmosphere": None,
+        "type": "t",
+        "life_chemical": None,
+        "age_ranges": {
+            "fast": (0.0, 0.1),
+            "normal": (0.0, 10.0),
+            "slow": (0.0, 100.0)
+        }
+    },
     "T": {
         # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
         # brown-dwarf/giant-planet physics (electron degeneracy pressure
@@ -1239,7 +1265,7 @@ PLANET_CLASS_PROBABILITIES = {
     'A': 0.1400, 'B': 0.0725, 'C': 0.2365, 'D': 0.0142, 'E': 0.0239, 'F': 0.0335,
     'G': 0.0432, 'H': 0.0915, 'I': 0.0722, 'J': 0.0531, 'K': 0.0142, 'L': 0.0335,
     'M': 0.1345, 'N': 0.0239, 'O': 0.0045, 'P': 0.0046, 'Q': 0.0001,
-    'T': 0.0001, 'V': 0.0045
+    'S': 0.0300, 'T': 0.0001, 'V': 0.0045
 }
 
 # --- Life and Photosynthesis Data ---
@@ -1473,7 +1499,7 @@ present here is uncapped (full range, up to and including a technological
 civilization).
 """
 
-MOON_BLACKLIST = ['Q', 'V']
+MOON_BLACKLIST = ['Q', 'S', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.
 """

@@ -96,14 +96,21 @@ def _sample_giant_mass_kg(low_kg, high_kg):
     return sample_power_law(low_kg, high_kg, program_constants.GIANT_MASS_FUNCTION_SLOPE)
 
 
-def _sample_giant_radius_km(cls, mass_kg):
+def sample_giant_radius_km(mass_kg):
     """`giant_radius_km(mass_kg)` with the relation's own scatter
-    (`GIANT_RADIUS_SCATTER`, cut at 3 sigma), kept inside class `cls`'s
-    radius range."""
+    (`GIANT_RADIUS_SCATTER`, cut at 3 sigma). Bound giants
+    (`_sample_giant_radius_km`) and rogue gas giants (GEN.60) both draw
+    their radius here."""
     sigma = physical_constants.GIANT_RADIUS_SCATTER[giant_regime(mass_kg)]
     factor = 1 + max(-3.0, min(3.0, random.gauss(0.0, 1.0))) * sigma
+    return giant_radius_km(mass_kg) * factor
+
+
+def _sample_giant_radius_km(cls, mass_kg):
+    """`sample_giant_radius_km(mass_kg)`, kept inside class `cls`'s radius
+    range."""
     low, high = program_constants.PLANET_CLASSES[cls]["radius_range"]
-    return min(high, max(low, giant_radius_km(mass_kg) * factor))
+    return min(high, max(low, sample_giant_radius_km(mass_kg)))
 
 
 def _giant_mass_for_radius_kg(cls, radius_km):

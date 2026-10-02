@@ -162,8 +162,9 @@ _BELT_ORBIT_GAP_PX = 2.0
 # small bodies, F/G/H/L's earthy greens-and-tans for the barren-to-
 # vegetated progression, M/O/P's blues for the habitable "water world"
 # spread (M dark, O a brighter ocean blue, P pale glacier blue), I/J/T's
-# gas-giant palette, and N/Q/V's outliers (Venus-hot mustard, an eccentric-
-# orbit violet, a high-gravity super-Earth magenta).
+# gas-giant palette, N/Q/V's outliers (Venus-hot mustard, an eccentric-
+# orbit violet, a high-gravity super-Earth magenta), and S's dark slate for
+# the barren rocky super-Earth.
 _CLASS_COLORS = {
     "A": "#d9483f",
     "B": "#e8823a",
@@ -182,6 +183,7 @@ _CLASS_COLORS = {
     "O": "#2f8fc9",
     "P": "#a9d8f0",
     "Q": "#7a5cc9",
+    "S": "#5b6878",
     "T": "#7a86d9",
     "V": "#9c3f63",
 }

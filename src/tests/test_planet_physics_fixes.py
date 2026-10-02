@@ -25,6 +25,7 @@ from stellarObjects import planetPhysics
 from stellarObjects import program_constants as prog_c
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
+from stellarObjects.roguePlanetData import RoguePlanet
 from stellarObjects.starData import Star
 
 N_SAMPLE = 300
@@ -79,6 +80,35 @@ def test_giant_mass_radius_relation_hits_the_solar_system(mass_earth, radius_ear
     """Neptune, Saturn and Jupiter land within 10% of their real radii."""
     radius_km = planetPhysics.giant_radius_km(mass_earth * pc.EARTH_MASS_TO_KG)
     assert radius_km / pc.EARTH_RADIUS_KM == pytest.approx(radius_earth, rel=0.10)
+
+
+@pytest.mark.parametrize("mass_bin", ["saturn", "jupiter", "sub-neptune"])
+def test_rogue_gas_giant_radius_follows_the_giant_relation(mass_bin):
+    """Rogue gas giants (GEN.60) take their radius from the same giant
+    mass-radius relation as bound giants, so a small one is not Jupiter's
+    size: every radius sits within the relation's 3-sigma scatter of
+    `giant_radius_km(mass)`, with a density a giant can have."""
+    seen = []
+    for _ in range(N_SAMPLE):
+        rogue = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
+        if rogue.planet_type != "g":
+            continue
+        median = planetPhysics.giant_radius_km(rogue.mass_kg)
+        sigma = pc.GIANT_RADIUS_SCATTER[planetPhysics.giant_regime(rogue.mass_kg)]
+        assert median * (1 - 3 * sigma) <= rogue.radius_km <= median * (1 + 3 * sigma)
+        density = rogue.mass_kg / ((4 / 3) * math.pi * (rogue.radius_km * 1000) ** 3) / 1000
+        assert 0.1 < density < 50.0  # 13 Jupiter masses at 0.8 of Jupiter's radius is ~40 g/cm3
+        seen.append((rogue.mass_kg, rogue.radius_km))
+    assert seen
+
+
+def test_small_rogue_gas_giants_are_smaller_than_large_ones():
+    """A 0.05 Jupiter-mass rogue is far smaller than a 10 Jupiter-mass one
+    (GEN.60: both used to be drawn around Jupiter's radius)."""
+    small = planetPhysics.giant_radius_km(0.05 * pc.JUPITER_MASS_TO_KG)
+    large = planetPhysics.giant_radius_km(10 * pc.JUPITER_MASS_TO_KG)
+    assert small < 0.5 * large
+    assert small / pc.EARTH_RADIUS_KM == pytest.approx(3.9, rel=0.15)
 
 
 def test_density_range_override_skips_the_blend(monkeypatch, host_star):
