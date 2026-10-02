@@ -1,2 +1,0 @@
-### Fixed
-- **The Galaxy Map's breadcrumb stays on one line (MAP.93, MAP.94).** A deep drill-down no longer wraps the breadcrumb onto several lines: when the steps don't fit, it shows the first step, a "…" button whose menu lists the hidden steps, and as many of the last steps as fit, then the current one, and it fits itself again when the window is resized. On a phone the breadcrumb line gives way to a round Steps button between Back and Forward, whose menu lists every step with the current one marked; Reset stays beside the arrows.
