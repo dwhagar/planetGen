@@ -91,8 +91,8 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, log, mathCheck, physical_constants,
-    population, program_constants, progressFile, progressRate, versionKey, workQueue,
+    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, log, mathCheck, nebulaField,
+    physical_constants, population, program_constants, progressFile, progressRate, versionKey, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -826,9 +826,10 @@ use the distance (their Hill sphere and galactic orbit). A planetary
 nebula is generated around its own new hot white dwarf system
 (`_add_planetary_nebula`). Runaway and hypervelocity stars are flags on
 ordinary systems (`flag_fast_stars`), and emission and reflection nebulae
-grow around a sector's own hot stars (`add_star_hosted_nebulae`). Diffuse
-gas (classes A-B) fills about half the disk, so it is the background, not
-generated."""
+grow around a sector's own hot stars (`add_star_hosted_nebulae`). In a
+galaxy-placed sector the "molecular-cloud" roll gives way to the galaxy's
+cloud field (`nebulaField`, GEN.47). Diffuse gas (classes A-B) fills about
+half the disk, so it is the background, not generated."""
 
 
 def add_shared_generation_options(parser):
@@ -1084,7 +1085,7 @@ def sector_star_count(sector):
     return sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
 
 
-def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
+def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -1116,6 +1117,11 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
             -- threaded into a standalone black hole's/neutron star's own
             Hill-sphere/galactic-orbit calculation, exactly like every star
             in the sector already gets.
+        cloud_field (tuple, optional): For a galaxy-placed sector, the
+            `nebulaField.clouds_reaching` arguments `(galaxy_seed, shape,
+            center_pc, reach_pc)`: its molecular clouds then come from the
+            galaxy's cloud field (GEN.47, into `sector.field_nebulae`)
+            instead of this sector's own `"molecular-cloud"` roll.
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -1130,6 +1136,9 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None):
     new_entries = []
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
+        if kind == "molecular-cloud" and cloud_field is not None:
+            sector.field_nebulae = nebulaField.clouds_reaching(*cloud_field)
+            continue
         count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
         for _ in range(count):
             phenomenon_config = SystemConfig()
@@ -1324,7 +1333,7 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
         entry.bright_star_id = row["id"]
 
 
-def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
+def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
     """
     Builds a fully populated `SpaceSector` from parsed args, without
     rendering, printing, or saving anything -- the shared core `run_sector`
@@ -1355,6 +1364,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
             population mix there and stays below the bright-star
             threshold; a `--density` count shrinks by the bright stars'
             share so the expected total is unchanged.
+        cloud_field (tuple, optional): See `generate_sector_phenomena`.
 
     Returns:
         tuple: `(sector_name, SpaceSector)` -- `sector_name` is
@@ -1439,7 +1449,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
             break
 
     with log.timed_phase("generate_sector_phenomena"):
-        generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+        generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
+                                  cloud_field=cloud_field)
         flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly)
 
     if density_driven and not sector.entries and not sector.phenomena:
@@ -2203,11 +2214,16 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         "galactic_radius_pc": radius_pc,
         "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
     }
+    galaxy_seed = _galaxy_seed(args)
+    # GEN.47: the galaxy's molecular clouds that reach this sector.
+    cloud_field = None
+    if fill is not None:
+        cloud_field = (galaxy_seed, fill.shape, tuple(position_pc), edge_pc * math.sqrt(3) / 2)
     # GEN.39: every draw for this sector, its save included, comes from
     # its own seed, so the run's order and worker count don't matter.
-    with galaxySeed.seeded(_galaxy_seed(args), "sector", address):
+    with galaxySeed.seeded(galaxy_seed, "sector", address):
         _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell,
-                                               fill=fill)
+                                               fill=fill, cloud_field=cloud_field)
         if address == NUCLEUS_ADDRESS:
             add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args),

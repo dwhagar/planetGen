@@ -698,6 +698,10 @@ class SpaceSector:
         self.cell = cell
         self.entries = []
         self.phenomena = []
+        # Galaxy-scale molecular clouds reaching this sector (GEN.47,
+        # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
+        # stored once by whichever sector it reaches is saved first.
+        self.field_nebulae = []
 
     def __len__(self):
         return len(self.entries)

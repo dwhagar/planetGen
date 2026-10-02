@@ -403,10 +403,13 @@ class FillContext:
         bright_rows (list): The sector's unfilled `bright_stars` rows.
         min_luminosity_sol (float or None): The scatter's threshold;
             `None` when no scatter ran (no star is capped then).
+        shape (GalaxyShape): The galaxy's shape (the molecular cloud
+            field reads its gas from it, GEN.47).
     """
 
     def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None):
         self.center_pc = center_pc
+        self.shape = shape
         self.densities = _densities(center_pc, shape)
         self.bright_rows = list(bright_rows)
         self.min_luminosity_sol = min_luminosity_sol

@@ -20,6 +20,7 @@ standard references.
 | | Inside badges on system and phenomenon pages, "Inside <name>" in sector Contents, `inside` in `GET /api/systems/<id>` | 7.41.0 (PR #148) | `queryDb.system_detail` |
 | | See-through cloud volumes on the Sector Map | 7.41.1 (PR #148) | `static/sectormap.js` |
 | | Class reference pages for nebula, remnant and asteroid field classes; class labels link to them | 7.46.0 (PR #167) | `html/lib/classref.py`, `web/class_pages.py` |
+| GEN.47 | Molecular clouds as a galaxy-scale field that spans sectors | | `nebulaField`, `_db._insert_field_nebulae` |
 
 Habitability does not use the squeezed heliopause yet.
 
@@ -143,6 +144,41 @@ compact objects keep their own tables and need no letters.
   `queryDb.system_detail` returns it as `heliopause_au`. At nH 3,000
   cm^-3 that puts this program's Sun (~85 AU in open space) at ~0.6 AU.
   Habitability doesn't use it yet.
+
+## The molecular cloud field (GEN.47)
+
+Boss (2026-10-01): "No nebulae are being created at all." Molecular
+clouds (classes M-Q) were rolled per sector at 5e-6 per pc^3 and placed
+inside it, about 3e-4 per 13 ly sector, so a cloud tens of light-years
+across showed up only if the one sector holding its center was
+generated. Now they belong to the galaxy (`stellarObjects/nebulaField.py`):
+
+- The galaxy is cut into 50 pc cells (`NEBULA_FIELD_CELL_PC`). Each cell
+  draws its clouds from its own seed (`galaxySeed.seeded`, kind
+  `nebula-cell`, address `i/j/k`): a Poisson count with mean
+  `PHENOMENON_DENSITY_PC3["molecular-cloud"]` (times its
+  `PHENOMENON_RATE_SCALE`) times the cell's volume times the gas factor,
+  each cloud's center uniform in the cell and its class, size and
+  contents drawn as before. A galaxy planned without a seed uses a
+  fixed one, so its sectors still agree.
+- The gas factor is the young stars' density (they share the gas's thin
+  layer and radial profile) with the gas's own arm contrast
+  (`NEBULA_FIELD_ARM_AMPLITUDE` 0.6, about 4:1), relative to the average
+  around the solar circle (2.82 disk scale lengths), to the power 1.4
+  (`GMC_GAS_DENSITY_EXPONENT`), capped at 3
+  (`NEBULA_FIELD_MAX_GAS_FACTOR`). At the solar circle that is about
+  2.3 on an arm's crest, 0.9 midway and 0.2 between arms, and almost
+  nothing 200 pc off the plane.
+- A galaxy-placed sector takes every cloud whose sphere reaches it
+  (center within its radius plus the sector's half diagonal, the same
+  test as `_db.sectors_reached_by`), instead of its own
+  `"molecular-cloud"` roll. `_db.insert_sector` stores each one under
+  the neighbor lock unless a nebula is already stored at its center: the
+  first sector saved that it reaches is its home sector, and containment
+  is refreshed in every stored sector it reaches.
+- Result at the solar circle: about 13% of arm sectors and 4% of
+  between-arm sectors sit inside a dark cloud. Emission, reflection and
+  planetary nebulae still come with their stars.
 
 ## Naming (GEN.13, built in v40, version 7.31.0)
 

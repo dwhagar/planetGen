@@ -82,7 +82,7 @@ def capture_generate_sector(_real, path):
     """A `generate_sector` that records each sector's `(density,
     num_systems)` in `path` and makes an empty sector."""
 
-    def fake(args, galactic_center_dist_ly=None, cell=None, fill=None):
+    def fake(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
         worker_patches.append_json(path, [args.density, args.num_systems])
         from stellarObjects.spaceSector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
@@ -667,7 +667,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
 
     captured = {}
 
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
+    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
         captured["density"] = args.density
         captured["num_systems"] = args.num_systems
         from stellarObjects.spaceSector import SpaceSector
