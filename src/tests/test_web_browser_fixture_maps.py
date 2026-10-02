@@ -480,20 +480,23 @@ SLAB_TIP = r"^(Slab|Layer)s? -?\d+( to -?\d+)?: "
 def test_galaxy_map_hover_while_picking_a_slab_lights_the_whole_slab(page, map_site):
     """MAP.91: whenever the next pick is a slab, at every level and in the
     3 by 3 by 3 view of sectors too, hovering any cube names (and the
-    slider marks) its whole slab, and a click picks that slab."""
+    slab's button and line light up for) its whole slab, and a click picks
+    that slab."""
     _open_galaxy(page, map_site)
     slab_stages = []
     for _ in range(16):
         if not _on_galaxy(page):
             break
-        if page.locator(".galaxy-slab-slider").count():
+        if page.locator(".galaxy-slab-button").count():
             heading = page.locator("#galaxymap3d-slabs-heading").inner_text()
             found = _hover_choice(page, GENERATED_CHOICE)
             assert found, f"no slab to hover at {_crumbs(page)}"
             text = found[2]
             assert re.match(SLAB_TIP, text), f"hovering a {heading} pick named {text!r}, not a slab"
-            readout = page.locator(".galaxy-slab-readout strong").inner_text()
-            assert readout == _label_of(text), f"the slider marks {readout!r}, the map {text!r}"
+            lit = page.locator(".galaxy-slab-button.is-lit .galaxy-slab-name")
+            assert lit.count() == 1, "one slab button lights"
+            assert lit.inner_text() == _label_of(text), f"the buttons mark {lit.inner_text()!r}, the map {text!r}"
+            assert page.locator(".galaxy-slab-leader.is-lit").count() == 1
             # Every cube of the slab names that same slab.
             names = set()
             for fx in (0.3, 0.5, 0.7):
@@ -866,3 +869,109 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
     page.mouse.click(found[0], found[1])
     _settle(page)
     assert (page.url, _crumbs(page)) == before
+
+
+LEADERS = """() => {
+    const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
+    const svg = document.querySelector(".galaxy-slab-leaders");
+    const base = svg.getBoundingClientRect();
+    return Array.from(document.querySelectorAll(".galaxy-slab-button")).map(button => {
+        const line = svg.querySelector('.galaxy-slab-leader[data-slab="' + button.dataset.slab + '"]');
+        const points = line.getAttribute("points").trim().split(" ").map(p => p.split(",").map(Number));
+        const at = points.map(p => [p[0] + base.left, p[1] + base.top]);
+        const b = button.getBoundingClientRect();
+        return {
+            slab: button.dataset.slab,
+            points: at,
+            start: at[0],
+            end: at[at.length - 1],
+            button: [b.left, b.top, b.right, b.bottom],
+            canvas: [canvas.left, canvas.top, canvas.right, canvas.bottom],
+            off: line.classList.contains("is-off"),
+        };
+    });
+}"""
+
+
+def _cross(a, b, c, d):
+    """Whether segments ab and cd cross (touching ends don't count)."""
+    def side(p, q, r):
+        return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
+    return (side(a, b, c) * side(a, b, d) < 0) and (side(c, d, a) * side(c, d, b) < 0)
+
+
+def _check_leaders(leaders):
+    assert len(leaders) >= 2, leaders
+    for line in leaders:
+        x0, y0, x1, y1 = line["button"]
+        # Each line leaves its own button ...
+        assert x0 - 1 <= line["start"][0] <= x1 + 1 and y0 - 1 <= line["start"][1] <= y1 + 1, line
+        # ... and ends on the map.
+        cx0, cy0, cx1, cy1 = line["canvas"]
+        assert cx0 <= line["end"][0] <= cx1 and cy0 <= line["end"][1] <= cy1, line
+    # Ordered by their slabs' height on screen, so no two lines cross.
+    for n, a in enumerate(leaders):
+        for b in leaders[n + 1:]:
+            for p, q in zip(a["points"], a["points"][1:]):
+                for r, t in zip(b["points"], b["points"][1:]):
+                    assert not _cross(p, q, r, t), (a, b)
+
+
+def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site):
+    """MAP.54 and MAP.76: no slab slider; one button per slab, each with a
+    line from it to its slab on the map that is redrawn when the view
+    turns; hovering a button lights its slab and line, and clicking it
+    picks the slab."""
+    _open_galaxy(page, map_site)
+    for _ in range(4):
+        if page.locator(".galaxy-slab-button").count():
+            break
+        _click_choice(page, GENERATED_CHOICE)
+    assert page.locator(".galaxy-slab-button").count() >= 2, _crumbs(page)
+    assert not page.locator("input[type=range]").count(), "the slab slider is gone"
+    before = page.evaluate(LEADERS)
+    _check_leaders(before)
+    # Turning the view moves the lines' ends with their slabs.
+    page.locator(GALAXY_CANVAS).scroll_into_view_if_needed()
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + 20)
+    page.mouse.down()
+    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + 40, steps=8)
+    page.mouse.up()
+    page.wait_for_timeout(200)
+    after = page.evaluate(LEADERS)
+    _check_leaders(after)
+    ends = {line["slab"]: line["end"] for line in before}
+    assert any(abs(line["end"][0] - ends[line["slab"]][0]) + abs(line["end"][1] - ends[line["slab"]][1]) > 2
+               for line in after), f"the lines didn't follow the turn: {before} {after}"
+    # A button lights its slab and line, and picks it.
+    button = page.locator(".galaxy-slab-button").first
+    label = button.locator(".galaxy-slab-name").inner_text()
+    button.hover()
+    assert "is-lit" in button.get_attribute("class")
+    lit = page.locator(".galaxy-slab-leader.is-lit")
+    assert lit.count() == 1 and lit.get_attribute("data-slab") == button.get_attribute("data-slab")
+    button.click()
+    _settle(page)
+    assert _crumbs(page)[-1] == label
+
+
+def test_galaxy_map_slab_lines_on_a_phone_leave_the_buttons_below_the_map(gl_browser, map_site):
+    """MAP.76: at phone width the buttons sit in one column below the map
+    and their lines still reach their slabs without crossing."""
+    context = gl_browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=1,
+                                     reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        _open_galaxy(page, map_site)
+        for _ in range(4):
+            if page.locator(".galaxy-slab-button").count():
+                break
+            _click_choice(page, GENERATED_CHOICE)
+        leaders = page.evaluate(LEADERS)
+        _check_leaders(leaders)
+        assert all(line["button"][1] >= line["canvas"][3] for line in leaders), "buttons below the map"
+        lefts = {round(line["button"][0]) for line in leaders}
+        assert len(lefts) == 1, "one column"
+    finally:
+        context.close()
