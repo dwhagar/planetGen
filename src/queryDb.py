@@ -2754,6 +2754,12 @@ GENERATED_STAR_MAX_FLOOR_SOL = 1000.0
 they span a good share of the galaxy, where the pre-placed bright stars
 (`galaxy_bright_stars_in_box`) already show everything that bright."""
 
+GALAXY_TILE_MAX_DETAIL_STARS = 4000
+"""int: Most stars of generated systems a finest tile (`TILE_MAX_LEVEL`,
+16 pc) lists (MAP.80): the map fetches these around a sector it is
+zoomed to, so the sector shows every star it holds. Only a tile deep in
+the bulge holds more, and then its faintest are left out."""
+
 GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET = 1500
 """int: Most generated sectors one tile reads stars from. A coarse tile
 over a large filled region reads an even sample of its sectors (every
@@ -2843,6 +2849,69 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
     } for row in rows]
 
 
+POINT_PHENOMENON_MIN_LEVEL = 10
+"""int: The coarsest tile level (64 pc tiles) that lists the point-like
+phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
+That is the level the map fetches once it is zoomed to a sector, so a
+sector shows every one of them; farther out they would be lost among the
+stars anyway."""
+
+GALAXY_TILE_MAX_POINTS = 200
+"""int: Most point-like phenomena one tile lists, the most luminous
+first. A 64 pc tile holds a handful."""
+
+_POINT_PHENOMENON_TABLES = (
+    ("black_holes", "black_hole", "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)"),
+    ("neutron_stars", "neutron_star", "pulsar_type"),
+    ("quasars", "quasar", "(CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END)"),
+)
+"""tuple: `(table, type_label, descriptor_expr)` for the phenomena the
+Galaxy Map draws as points (the same labels and descriptors as
+`_PHENOMENON_TABLES`)."""
+
+
+def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
+    """
+    The placed black holes, neutron stars and quasars whose center lies
+    in the box `[lo, hi)` (MAP.80), at most `limit`, read by each table's
+    `idx_<table>_center`. One bound to a star system (`star_id`) has no
+    placement of its own and is drawn as that system's star instead.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        limit (int): See `GALAXY_TILE_MAX_POINTS`.
+
+    Returns:
+        list[dict]: Most luminous first (ties by type, then id): `type`
+            (`"black_hole"`, `"neutron_star"` or `"quasar"`), `id`,
+            `name`, `descriptor`, `luminosity_sol` and `x`/`y`/`z`
+            (parsecs).
+    """
+    found = []
+    for table, type_label, descriptor_expr in _POINT_PHENOMENON_TABLES:
+        rows = conn.execute(
+            f"""
+            SELECT id, name, {descriptor_expr} AS descriptor, luminosity_w,
+                   center_x_pc, center_y_pc, center_z_pc
+            FROM {table} FORCE INDEX (idx_{table}_center)
+            WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? AND center_y_pc < ?
+              AND center_z_pc >= ? AND center_z_pc < ?
+            ORDER BY luminosity_w DESC, id
+            LIMIT ?
+            """,
+            (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+        ).fetchall()
+        found += [{
+            "type": type_label, "id": row["id"], "name": row["name"], "descriptor": row["descriptor"],
+            "luminosity_sol": float("%.4g" % (row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY)),
+            "x": round(row["center_x_pc"], 3), "y": round(row["center_y_pc"], 3), "z": round(row["center_z_pc"], 3),
+        } for row in rows]
+    found.sort(key=lambda point: (-point["luminosity_sol"], point["type"], point["id"]))
+    return found[:limit]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -2859,11 +2928,14 @@ def galaxy_tiles(conn, tile_keys):
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
             "filled": {...}, "clouds": [...], "stars": [...],
-            "generated": [...]}}`, see `galaxy_sectors_in_box`,
+            "generated": [...], "points": [...]}}`, see `galaxy_sectors_in_box`,
             `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
-            `generated_star_floor_sol`)),
+            `generated_star_floor_sol`, all of them in a finest tile up
+            to `GALAXY_TILE_MAX_DETAIL_STARS`) and
+            `galaxy_point_phenomena_in_box` (tiles of
+            `POINT_PHENOMENON_MIN_LEVEL` and finer)),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2909,10 +2981,12 @@ def galaxy_tiles(conn, tile_keys):
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count)
+            limit = GALAXY_TILE_MAX_DETAIL_STARS if level >= TILE_MAX_LEVEL else GALAXY_TILE_MAX_GENERATED_STARS
+            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit)
+        points = galaxy_point_phenomena_in_box(conn, lo, hi) if level >= POINT_PHENOMENON_MIN_LEVEL else []
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
-            "generated": generated,
+            "generated": generated, "points": points,
         }
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
@@ -2952,10 +3026,12 @@ def galaxy_stage(conn, at=None):
 
     Returns:
         dict: `at` (the canonical key, or `None`), `child_m`, `children`
-            (`[{ring, wedge, slab, generated}]`, at `child_m = 1` a
+            (`[{ring, wedge, slab, generated, look}]`, at `child_m = 1` a
             sector's `wedge` is its slot and `slab` its layer), and
-            `sectors` (`[{ring, layer, slot, id, name, system_count}]` at
-            `child_m = 1`, else `None`).
+            `sectors` (`[{ring, layer, slot, id, name, system_count,
+            look}]` at `child_m = 1`, else `None`). `look` is what the
+            generated sectors hold, from `sector_stats` (MAP.86,
+            `_stage_look`): `{share, color, colored}`.
 
     Raises:
         ValueError: On a malformed or impossible `at`.
@@ -2964,14 +3040,15 @@ def galaxy_stage(conn, at=None):
         block = None
         child_m = DRILL_TOP
         rows = conn.execute(
-            "SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
-            "FROM sectors WHERE ring_index IS NOT NULL GROUP BY ring_index, slab, ring_slot_index",
+            f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
+            f"FROM ({_stage_sectors_with_stats('ring_index IS NOT NULL')}) placed "
+            "GROUP BY ring_index, slab, ring_slot_index",
             ((DRILL_TOP - 1) // 2, DRILL_TOP),
         ).fetchall()
         counts = {}
         for r in rows:
             top = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * DRILL_TOP, int(r["ring_slot_index"]))[0]
-            counts[top] = counts.get(top, 0) + int(r["n"])
+            _add_stage_sums(counts, top, r)
         return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
     block = parse_drill_key(at)
@@ -2992,7 +3069,7 @@ def galaxy_stage(conn, at=None):
 
     if child_m == 1:
         rows = conn.execute(
-            f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {where} "
+            f"SELECT * FROM ({_stage_sectors_with_stats(where, 'id, name, ')}) placed "
             f"ORDER BY ring_index, layer_index, ring_slot_index",
             layer_params + params,
         ).fetchall()
@@ -3010,28 +3087,82 @@ def galaxy_stage(conn, at=None):
         sectors = [{
             "ring": r["ring_index"], "layer": r["layer_index"], "slot": r["ring_slot_index"],
             "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
+            "look": _stage_look([1, r["fill_share"] or 0.0, r["color_r"] or 0.0, r["color_g"] or 0.0,
+                                 r["color_b"] or 0.0, 0 if r["color_r"] is None else 1]),
         } for r in rows]
-        counts = {DrillBlock(1, s["ring"], s["slot"], s["layer"]): 1 for s in sectors}
+        counts = {}
+        for r, sector in zip(rows, sectors):
+            _add_stage_sums(counts, DrillBlock(1, sector["ring"], sector["slot"], sector["layer"]), {
+                "n": 1, "share_sum": r["fill_share"], "red": r["color_r"], "green": r["color_g"], "blue": r["color_b"],
+                "colored": 0 if r["color_r"] is None else 1,
+            })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors}
 
     child_half = (child_m - 1) // 2
     rows = conn.execute(
-        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
-        f"FROM sectors WHERE {where} GROUP BY ring_index, slab, ring_slot_index",
+        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
+        f"FROM ({_stage_sectors_with_stats(where)}) placed GROUP BY ring_index, slab, ring_slot_index",
         [child_half, child_m] + layer_params + params,
     ).fetchall()
     counts = {}
     for r in rows:
         child = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * child_m, int(r["ring_slot_index"]))[level]
-        counts[child] = counts.get(child, 0) + int(r["n"])
+        _add_stage_sums(counts, child, r)
     return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
 
+def _stage_sectors_with_stats(where, extra=""):
+    """The placed sectors matching `where` (on `sectors`' own columns),
+    each with its `sector_stats` look (MAP.86): `fill_share`, `color_r`,
+    `color_g`, `color_b` (NULL without a row or without stars)."""
+    return (
+        f"SELECT {extra}s.ring_index, s.layer_index, s.ring_slot_index, st.fill_share,"
+        " st.color_r, st.color_g, st.color_b"
+        f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
+        " ON st.ring_index = s.ring_index AND st.layer_index = s.layer_index"
+        " AND st.ring_slot_index = s.ring_slot_index"
+    )
+
+
+_STAGE_LOOK_SUMS = (
+    "COUNT(*) AS n, SUM(COALESCE(fill_share, 0)) AS share_sum, SUM(color_r) AS red, SUM(color_g) AS green,"
+    " SUM(color_b) AS blue, SUM(color_r IS NOT NULL) AS colored"
+)
+"""The per-group sums `galaxy_stage` folds into each child's look."""
+
+
+def _add_stage_sums(counts, child, row):
+    """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
+    `[sectors, share sum, red sum, green sum, blue sum, sectors with a
+    color]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0])
+    sums[0] += int(row["n"])
+    sums[1] += float(row["share_sum"] or 0.0)
+    sums[2] += float(row["red"] or 0.0)
+    sums[3] += float(row["green"] or 0.0)
+    sums[4] += float(row["blue"] or 0.0)
+    sums[5] += int(row["colored"] or 0)
+
+
+def _stage_look(sums):
+    """A child's `look` from its sums (MAP.86): `share`, the mean fill
+    share of its generated sectors (0 for one without stats); `color`, the
+    mean sRGB color of those with stars, or `None`; `colored`, how many
+    had one."""
+    n, share, red, green, blue, colored = sums
+    return {
+        "share": round(share / n, 4) if n else 0.0,
+        "color": [round(red / colored, 4), round(green / colored, 4), round(blue / colored, 4)] if colored else None,
+        "colored": colored,
+    }
+
+
 def _stage_children(counts):
-    """`galaxy_stage`'s `children` list from `{DrillBlock: count}`."""
+    """`galaxy_stage`'s `children` list from `{DrillBlock: sums}`
+    (`_add_stage_sums`)."""
     return [
-        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": n}
-        for b, n in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
+        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": sums[0], "look": _stage_look(sums)}
+        for b, sums in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
     ]
 
 

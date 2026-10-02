@@ -117,6 +117,17 @@ def _star_field():
 
 STAR_FIELD = _star_field()
 
+POINT_FIELD = [
+    {"type": "black_hole", "id": 61, "name": "Fixture Maw", "descriptor": "accreting", "luminosity_sol": 0.02,
+     "x": STAR_FIELD_CENTER_PC[0] - 12.0, "y": 9.0, "z": 0.0},
+    {"type": "neutron_star", "id": 41, "name": "Fixture Pulsar", "descriptor": "millisecond",
+     "luminosity_sol": 0.5, "x": STAR_FIELD_CENTER_PC[0] + 11.0, "y": 3.0, "z": 0.0},
+    {"type": "quasar", "id": 71, "name": "Fixture Beacon", "descriptor": "radio-loud", "luminosity_sol": 3e12,
+     "x": STAR_FIELD_CENTER_PC[0] + 4.0, "y": 14.0, "z": 0.0},
+]
+"""The Galaxy Map's fixture point phenomena (a tile's `points`, MAP.80),
+among the fixture stars."""
+
 
 def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
@@ -156,31 +167,50 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
+SECTOR_LOOKS = {
+    SECTOR_ID: (0.9, (1.0, 0.82, 0.45)),
+    8: (0.5, (0.45, 0.6, 1.0)),
+    9: (0.0, None),
+    10: (0.7, (0.95, 0.35, 0.2)),
+}
+"""Each fixture sector's stored fill share and color (MAP.86): a dense
+warm sector, a blue one, one with no stars and a red one."""
+
+
 def galaxy_stage(at=None):
     """`queryDb.galaxy_stage` over `SECTORS`, with no database."""
     chains = [(s, drill_chain_of(s[1], s[2], s[3])) for s in SECTORS]
     if not at:
         counts = {}
-        for _s, chain in chains:
-            counts[chain[0]] = counts.get(chain[0], 0) + 1
+        for s, chain in chains:
+            counts.setdefault(chain[0], []).append(s[0])
         return {"at": None, "child_m": 243, "children": _children(counts), "sectors": None}
     block = parse_drill_key(at)
     level = (243, 27, 3).index(block.m)
     inside = [(s, chain) for s, chain in chains if chain[level] == block]
     child_m = (27, 3, 1)[level]
     counts = {}
-    for _s, chain in inside:
-        counts[chain[level + 1]] = counts.get(chain[level + 1], 0) + 1
+    for s, chain in inside:
+        counts.setdefault(chain[level + 1], []).append(s[0])
     sectors = None
     if child_m == 1:
         sectors = [{"ring": s[1], "layer": s[2], "slot": s[3], "id": s[0], "name": s[4],
-                    "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0} for s, _chain in inside]
+                    "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0, "look": _look([s[0]])}
+                   for s, _chain in inside]
     return {"at": format_drill_key(block), "child_m": child_m, "children": _children(counts), "sectors": sectors}
 
 
+def _look(ids):
+    """`queryDb._stage_look` over these fixture sectors."""
+    colored = [SECTOR_LOOKS[i][1] for i in ids if SECTOR_LOOKS[i][1]]
+    return {"share": sum(SECTOR_LOOKS[i][0] for i in ids) / len(ids),
+            "color": [sum(c[k] for c in colored) / len(colored) for k in range(3)] if colored else None,
+            "colored": len(colored)}
+
+
 def _children(counts):
-    return [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": n}
-            for b, n in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))]
+    return [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(ids), "look": _look(ids)}
+            for b, ids in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))]
 
 
 class FixtureApi:
@@ -218,8 +248,10 @@ class FixtureApi:
             lo, hi = tile_bounds_pc(*parse_tile_key(key))
             stars = [star for star in STAR_FIELD
                      if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
+            points = [point for point in POINT_FIELD
+                      if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
             tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": [], "stars": stars,
-                          "generated": None}
+                          "generated": None, "points": points}
         return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):

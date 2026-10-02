@@ -583,13 +583,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | done, PR #410 |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | done, PR #410 |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
-| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | done, PR #429 |
 | MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | done, PR #351 |
 | MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
 | MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
 | MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
-| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | done, PR #432 |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | done, PR #405 |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
@@ -638,7 +638,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
-| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
@@ -942,11 +942,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
-| TEST.79 | Route edge cases, written before NAV.12 | none | open |
+| TEST.79 | Route edge cases, written before NAV.12 | none | done, PR #427 |
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
-| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
+| TEST.83 | Rate-limit tests fail under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |

@@ -61,7 +61,7 @@ const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js$
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const {
-  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
+  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
@@ -403,6 +403,50 @@ function starColor(temperatureK) {
   return [r, g, b].map(function (v) { return Math.min(255, Math.max(0, v)) / 255; });
 }
 
+// "9,300 L☉", "1.23 × 10⁴ L☉" (UX.20), "0.0031 L☉".
+function formatLuminosity(sol) {
+  if (sol < 100) {
+    return Number(sol.toPrecision(2)).toLocaleString("en-US", { maximumSignificantDigits: 2 }) + " L☉";
+  }
+  return formatNumber(sol) + " L☉";
+}
+
+var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar" };
+
+// "Black Hole (Accreting)", "Neutron Star (Millisecond pulsar)".
+function pointTypeLabel(point) {
+  var label = POINT_TYPE_LABELS[point.type] || capitalize(String(point.type).replace(/_/g, " "));
+  if (!point.descriptor) {
+    return label;
+  }
+  if (point.type === "neutron_star") {
+    return label + " (" + (point.descriptor === "non-pulsing" ? "Not pulsing" : capitalize(point.descriptor) + " pulsar") + ")";
+  }
+  return label + " (" + capitalize(point.descriptor) + ")";
+}
+
+// A black hole, neutron star or quasar on the map (MAP.80,
+// queryDb.galaxy_point_phenomena_in_box): what it is, and its page.
+function showPointInfo(point) {
+  var panel = document.getElementById("galaxymap3d-info");
+  if (!panel) {
+    return;
+  }
+  panel.textContent = "";
+  var heading = document.createElement("h3");
+  heading.textContent = point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon";
+  panel.appendChild(heading);
+  var dl = document.createElement("dl");
+  addField(dl, "Type", pointTypeLabel(point));
+  addField(dl, "Luminosity", formatLuminosity(point.luminosity_sol));
+  addField(dl, "Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
+  addField(dl, "Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z)));
+  panel.appendChild(dl);
+  if (sceneData.phenomenonUrl && !sceneData.pick) {
+    panel.appendChild(pageLink(phenomenonUrl(point), "View phenomenon →"));
+  }
+}
+
 function rgba(hex, alpha) {
   var n = parseInt(hex.slice(1), 16);
   return "rgba(" + (n >> 16) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + alpha + ")";
@@ -613,19 +657,18 @@ function initGalaxyMap3d(canvasEl, data) {
   // - solid: blocks whose every sector is generated, opaque;
   // - glass: everything else, translucent (no depth writes), its blocks
   //   sorted back to front from the camera when built. Unfilled space is
-  //   10% to 30% opaque by density, and a block grows more solid with its
-  //   filled share (galaxyblocks.blockOpacity).
+  //   10% to 30% opaque by density, and a filled sector only a little
+  //   more (galaxyblocks.lookOpacity, MAP.86).
   // `fade` scales a mesh's opacity (the drill-down's fades and dimming);
   // `gridEdges` (0 or 1) turns the outlines off, as on the whole galaxy,
   // which shows no sector or block lines (MAP.85).
   // The logdepthbuf chunks match the renderer's logarithmic depth buffer.
-  // Filled blocks (MAP.37: "a much higher contrast"): a saturated amber
-  // over most of the face and on the edges, nothing like the blue-white
-  // density ramp, the same for one generated sector as for many (their
-  // opacity still tells them apart). A deeper shade on the light theme's
-  // pale background.
+  // Filled blocks' edges are a saturated amber (MAP.37: "a much higher
+  // contrast"), a deeper shade on the light theme's pale background.
+  // Their faces take the color of what their sectors hold
+  // (galaxyblocks.lookColor, MAP.86), so no amber over them.
   var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
-  var FILLED_FACE_MIX = 0.85;
+  var FILLED_FACE_MIX = 0;
   // How far an unfilled block's edges brighten toward white: the ring,
   // wedge and layer boundaries of the grid, kept faint like the wedge
   // lines (a filled block's amber edges add up to 0.7 more).
@@ -840,12 +883,22 @@ function initGalaxyMap3d(canvasEl, data) {
     return found.map(function (f) { return f.key; });
   }
 
+  // MAP.80: zoomed in to about a sector (a view radius this small), the
+  // finest tiles within DETAIL_RADIUS_PC of the target are fetched too:
+  // they list every star (queryDb.galaxy_tiles), so the sector shows all
+  // of its own while the view's coarser tiles keep the rest thinned.
+  var DETAIL_VIEW_RADIUS_PC = 160;
+  var DETAIL_RADIUS_PC = 8;
+
   // The tiles the camera at orbit radius `radius` (default: where it is)
-  // needs.
+  // needs, the finest (detail) ones first.
   function neededTiles(radius) {
     var viewRadius = viewRadiusFor(radius || orbit.radius);
     var level = tileLevelForRadius(viewRadius);
     var keys = tilesIntersectingSphere(level, target, viewRadius);
+    if (level < TILE_MAX_LEVEL && viewRadius <= DETAIL_VIEW_RADIUS_PC) {
+      keys = tilesIntersectingSphere(TILE_MAX_LEVEL, target, Math.min(viewRadius, DETAIL_RADIUS_PC)).concat(keys);
+    }
     return { keys: keys, viewRadius: viewRadius };
   }
 
@@ -1210,9 +1263,24 @@ function initGalaxyMap3d(canvasEl, data) {
   var STAR_GLOW = [0.2, 0.6];
   var STAR_CORE_ALPHA = [0.75, 1];
   var STAR_LOG_LUMINOSITY = [-4, 6];
+  // A click within this many pixels of a black hole, neutron star or
+  // quasar's center picks it (stars themselves are never picked, MAP.101).
+  var POINT_PICK_PX = 7;
   // Stars new to the view fade in over this long (MAP.48: nothing pops
   // in); with reduced motion they just appear.
   var STAR_FADE_IN_MS = reducedMotion ? 0 : 300;
+
+  // MAP.80: how a black hole, neutron star or quasar is drawn among the
+  // stars -- its color, then where its halo and core sit on the stars'
+  // luminosity and radius scales (0..1), so each stands out at any
+  // luminosity of its own. The colors are off the blackbody line no star
+  // is drawn off (violet, mint green, pink).
+  var POINT_LOOKS = {
+    black_hole: ["#a070ff", 0.8, 0.7],
+    neutron_star: ["#5dffb0", 0.75, 0.6],
+    quasar: ["#ff7fd0", 0.95, 0.9],
+  };
+  var DEFAULT_POINT_LOOK = ["#ffffff", 0.5, 0.5];
 
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
@@ -1289,10 +1357,10 @@ function initGalaxyMap3d(canvasEl, data) {
     return performance.now() / 1000;
   }
 
-  // A star's key among the drawn ones: bright_stars and stars rows are
-  // numbered separately.
+  // A star's key among the drawn ones: bright_stars, stars and each
+  // phenomenon table's rows are numbered separately.
   function starKey(star) {
-    return (star.generated ? "s" : "b") + star.id;
+    return star.phenomenon ? star.type + star.id : (star.generated ? "s" : "b") + star.id;
   }
 
   // Where `value`'s log10 falls in `range`, 0..1.
@@ -1321,17 +1389,18 @@ function initGalaxyMap3d(canvasEl, data) {
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
     stars.forEach(function (star, i) {
-      var t = logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
+      var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
+      var t = look ? look[1] : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
-      var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
+      var r = look ? look[2] : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
       positions.set([star.x, star.y, star.z], 3 * i);
-      colors.set(starColor(star.temperature_k), 3 * i);
+      colors.set(look ? new THREE.Color(look[0]).toArray() : starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
       // MAP.87: the faint end drawn brighter (static/starlight.js).
       var halo = boostLight({
         sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
         glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
-      }, starLightBoost(star.luminosity_sol));
+      }, look ? 1 : starLightBoost(star.luminosity_sol));
       sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
       glows[i] = halo.glow;
       brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
@@ -1360,6 +1429,18 @@ function initGalaxyMap3d(canvasEl, data) {
       attribute.array[i] = inWedgeClip(star.x, star.y, star.z) ? 0 : 1;
     });
     attribute.needsUpdate = true;
+  }
+
+  // The black hole, neutron star or quasar (drawn as a star, MAP.80) whose
+  // center is nearest a screen point, within POINT_PICK_PX, or null.
+  // Plain stars are skipped: they never take the click (MAP.101).
+  function pointAtClientPoint(clientX, clientY) {
+    var found = nearestOnScreen(starList, camera, canvasEl.getBoundingClientRect(), clientX, clientY, {
+      reach: function () { return POINT_PICK_PX; },
+      accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
+      lastWins: true,
+    });
+    return found ? found.entry : null;
   }
 
   // --- Drawing from tiles --------------------------------------------------
@@ -1413,7 +1494,9 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // A tile's stars, bright and generated (each generated one marked),
-  // or none for a missing tile.
+  // and its black holes, neutron stars and quasars (MAP.80, marked
+  // `phenomenon`, drawn as stars in their own colors), or none for a
+  // missing tile.
   function tileStars(tile) {
     if (!tile) {
       return [];
@@ -1422,6 +1505,8 @@ function initGalaxyMap3d(canvasEl, data) {
       Object.defineProperty(tile, "allStars", {
         value: (tile.stars || []).concat((tile.generated || []).map(function (star) {
           return Object.assign({ generated: true }, star);
+        }), (tile.points || []).map(function (point) {
+          return Object.assign({ phenomenon: true }, point);
         })),
       });
     }
@@ -1920,8 +2005,9 @@ function initGalaxyMap3d(canvasEl, data) {
   //
   // Everything goes to the drill-down, which turns and zooms the view
   // where it may.
-  // A click on a cloud small enough to aim at shows it instead of picking
-  // what's under it (never a star: MAP.101).
+  // A click on a black hole, neutron star or quasar, or a cloud small
+  // enough to aim at, shows it instead of picking what's under it (never a
+  // star: MAP.101).
   canvasEl.addEventListener("pointerdown", function (event) { stageView.onPointerDown(event); });
   canvasEl.addEventListener("pointermove", function (event) { stageView.onPointerMove(event); });
   canvasEl.addEventListener("pointerup", function (event) { stageView.onPointerUp(event); });
@@ -1945,12 +2031,19 @@ function initGalaxyMap3d(canvasEl, data) {
     return new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
   }
 
-  // The cloud a click at a screen point means, shown in the panel and
-  // ringed: true when there was one. Stars are never picked here (MAP.101):
+  // The phenomenon (a black hole, neutron star or quasar, or a cloud) a
+  // click at a screen point means, shown in the panel and ringed: true
+  // when there was one. Stars are never picked here (MAP.101):
   // in a dense sector they would cover it, so a click on one picks the
   // block, slab or sector under it, and a star's details are on its
   // sector's page.
   function showPointAt(clientX, clientY) {
+    var point = pointAtClientPoint(clientX, clientY);
+    if (point) {
+      highlightPosition(point.x, point.y, point.z);
+      showPointInfo(point);
+      return true;
+    }
     var found = cloudAtClientPoint(clientX, clientY);
     if (found && found.core) {
       highlightPosition(found.cloud.x, found.cloud.y, found.cloud.z);

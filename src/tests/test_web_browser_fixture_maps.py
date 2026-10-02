@@ -22,7 +22,7 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
-from tests.map_site_support import PHENOMENA, SECTOR_ID, SECTORS, SYSTEMS, map_site  # noqa: E402,F401 -- fixture
+from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, map_site  # noqa: E402,F401 -- fixture
 
 VIEWPORT = {"width": 1280, "height": 900}
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
@@ -1235,3 +1235,72 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     page.click('#galaxymap3d-controls [data-action="up"]')
     _settle(page)
     assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
+
+
+# --- MAP.80: every star of the sector at sector zoom ------------------------------------
+
+def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_site):
+    """MAP.80: shown a sector, the map also fetches the finest tiles
+    around it (they list every star and point phenomenon), not just the
+    view's thinned coarser ones."""
+    urls = []
+    page.on("request", lambda request: urls.append(request.url) if "/galaxy/tiles" in request.url else None)
+    _open_deep_galaxy(page, map_site)
+    page.wait_for_timeout(500)
+    requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
+                for url in urls]
+    # The sector stage's own fetch (its view's tiles are level 10; the
+    # prefetches around it are 12 and 9) leads with the finest tiles.
+    view = next(levels for levels in requests if 10 in levels)
+    assert view[0] == 12 and set(view) == {10, 12}, requests
+
+
+def _point_colored_spots(page, selector, limit=30):
+    """Screen points of the spots no star could be: colors off the
+    blackbody line (a star's red, green and blue always run in order), as
+    the black holes, neutron stars and quasars are drawn (MAP.80)."""
+    image = Image.open(io.BytesIO(_shot(page, selector))).convert("RGB")
+    box = page.locator(selector).bounding_box()
+    width, height = image.size
+    pixels = image.load()
+    spots = []
+    for y in range(2, height - 2):
+        for x in range(2, width - 2):
+            r, g, b = pixels[x, y]
+            off = max(g - max(r, b), min(r, b) - g)  # green above or below both others
+            if off > 20 and max(r, g, b) > 150:
+                spots.append((off, x, y))
+    spots.sort(reverse=True)
+    kept = []
+    for _off, x, y in spots:
+        if all(abs(x - kx) + abs(y - ky) > 8 for kx, ky in kept):
+            kept.append((x, y))
+        if len(kept) >= limit:
+            break
+    return [(box["x"] + x * box["width"] / width, box["y"] + y * box["height"] / height) for x, y in kept]
+
+
+def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_site):
+    """MAP.80: black holes, neutron stars and quasars are drawn among the
+    stars in their own colors, and a click on one names it and links to
+    its phenomenon page."""
+    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    page.wait_for_timeout(1000)
+    names = {point["name"]: point for point in POINT_FIELD}
+    found = {}
+    url = page.url
+    for x, y in _point_colored_spots(page, GALAXY_CANVAS):
+        page.mouse.click(x, y)
+        heading = page.locator("#galaxymap3d-info h3")
+        if heading.count() and heading.inner_text() in names:
+            point = names[heading.inner_text()]
+            link = page.locator("#galaxymap3d-info a", has_text="View phenomenon")
+            found[point["type"]] = (link.get_attribute("href"), page.locator("#galaxymap3d-info").inner_text())
+        if page.url != url:
+            page.go_back()
+            _settle(page)
+    assert set(found) == {"black_hole", "neutron_star", "quasar"}, found
+    for kind, (href, text) in found.items():
+        point = next(p for p in POINT_FIELD if p["type"] == kind)
+        assert href and str(point["id"]) in href, (kind, href)
+    assert "Millisecond pulsar" in found["neutron_star"][1]

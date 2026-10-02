@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), the routing groundwork lane (TEST.79, NAV.34: PR #427), the sector stats and colors lane (GEN.44, PERF.11, PERF.1, MAP.80, MAP.86: PRs #425, #429, #432), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -126,7 +126,7 @@ became these items:
 
 | # | Boss's item | ID |
 |---|---|---|
-| 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 |
+| 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 (done, PR #425) |
 | 2 | Rogue planets after systems and phenomena; expanded rows span the table | UX.24 |
 | 3 | Rogue planet gas giant vs terrestrial probability | GEN.45 |
 | 4 | Rogue planet octant and a map symbol link | UX.25 |
@@ -142,9 +142,9 @@ became these items:
 | 14 | System edit as a quick menu, not a long panel | UX.31 |
 | 15 | Planet rows show class only | UX.32 |
 | 16 | Filter phenomena by type and class | UX.33 |
-| 17 | No nebulae being created | GEN.47 |
+| 17 | No nebulae being created | GEN.47 (done, PR #419) |
 | 18 | 3D galaxy, arc pick, no sector lines (other galaxy-map items edited to match) | MAP.85 |
-| 19 | Filled sectors translucent, colored by their stars; blocks averaged | MAP.86 |
+| 19 | Filled sectors translucent, colored by their stars; blocks averaged | MAP.86 (done, PR #432) |
 
 Done before this plan: the bug round (MAP.17 to MAP.19, MAP.26, MAP.37,
 MAP.43 to MAP.51, UX.15, UX.16, UX.19, UX.20, ADM.9), login security
@@ -779,56 +779,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
 
-- [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
-  Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
-  the galactic arc it is close enough to see almost all stars in the
-  sector including pulsars, quasars, and black holes." Today the Galaxy
-  Map's level of detail (MAP.14, MAP.51) thins out the points drawn in
-  a filled sector, so at the last drill-down stage a sector shows only
-  some of its stars and its phenomena may be missing. Done: once the
-  view is zoomed to sector level, the sector is drawn with nearly all
-  of its stars and every pulsar, quasar and black hole in it, as close
-  as the Sector Map shows them; the thinning only applies farther out.
-  Ties in with MAP.66 (the sector as the drill-down's last stage).
-  Boss (21:17Z) confirmed it is a fix: "fix it".
-
-- [ ] **MAP.86 Sector and block colors from what is in them: filled sectors translucent (bug)**
-  Boss (2026-10-01 23:53Z): "Filled in sectors should be translucent,
-  just a hair more solid than the unfilled sectors, since they are a
-  different color. Also make the color based on density averaged out
-  with average star color and brightness of the stars within the
-  sector. Then, that color will be averaged with the other sectors in a
-  block (or mega block) to come up with that region's color. The scale
-  is unfilled (color and opacity of an unfilled sector), filled but
-  empty (more opaque and a shade more saturation), then the scale goes
-  from empty to full (max possible density) in saturation and average
-  color of the stars within the sector for hue. Average Luminosity
-  compared to the sun to set the luminosity of the color of the sector.
-  Blocks / Mega Blocks are then set by averaging the color and opacity
-  of every sector in the block." Today (`galaxyblocks.js`,
-  `galaxymap3d.js`) unfilled blocks use a density ramp at opacity 0.1 to
-  0.3; a block with filled sectors is lifted to at least 0.6 opacity,
-  fully opaque when all of it is filled; a one-sector block is colored
-  bronze to gold by density; nothing uses the stars' colors or
-  luminosity. Done:
-  - Unfilled sector: today's unfilled color and opacity.
-  - Filled but empty sector: a little more opaque and a shade more
-    saturated than unfilled, still translucent.
-  - Filled sector with stars: saturation from its star density (empty to
-    the highest possible density), hue from the average color of its
-    stars (by temperature), lightness from their average luminosity
-    compared to the Sun; still translucent, only a little more solid
-    than unfilled.
-  - A block or mega block's color and opacity are the average of its
-    sectors' (unfilled sectors counted as unfilled).
-  - The per-sector color, saturation and lightness are stored or served
-    with the tiles (a new API field, computed when a sector is saved), so
-    the map doesn't need each star.
-  Proposed numbers from Boss's research notes (tune on screen):
-  unfilled opacity about 0.03, filled-empty 0.15, densest filled up to
-  about 0.45. Ties in with MAP.85 (no lines, so color carries the
-  structure) and MAP.59 (the ghost).
-
 - [ ] **MAP.101 Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug)**
   High priority, phase 0. Boss (2026-10-02 08:52Z): "Found a pretty
   serious bug that we need to add to the to-do list, and that is: stars
@@ -1106,7 +1056,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (used by NAV.6); and a measured time on a 100,000-sector database.
   Needs a galaxy schema migration for the position indexes. The
   hop-length study measured the full graph rebuild at 16 s for 200,000
-  systems. NAV.34 (joining the graph's islands) comes first, and NAV.12
+  systems. NAV.34 (joining the graph's islands) is done (PR #427), and NAV.12
   (a route always exists, no hop limit) is built with it.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -1194,33 +1144,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   project's shared files under `nav-hop-length/`). Today two things
   stop it: a same-sector route uses only that sector's own systems
   (`queryDb.nav_between`, sector scope), and the k = 6
-  nearest-neighbour graph splits into pieces (NAV.34), so the NAV page
-  says "No route via adjacent systems could be found". Done: same-sector
-  routes may leave the sector; the route graph always joins its pieces
-  with the shortest link between them; the longest hop is shown; each
+  nearest-neighbour graph split into pieces (fixed by NAV.34, PR #427:
+  `navGraph.join_islands` joins them, so a route always exists). Done:
+  same-sector routes may leave the sector; the longest hop is shown; each
   hop is flagged as a jump through unknown space when its line crosses
   one or more unfilled (ungenerated) sectors (the default reading of
   "unknown space"; NAV.38's `galaxyGeometry.sectors_along_segment`,
   done in PR #357, finds the sectors), and `/api/nav` returns the flag
   per hop. Built with NAV.10, which already rebuilds the routing.
-  Phase 1 is its anchor: NAV.34 and TEST.79 come before it (phase 0), UX.35 runs alongside it (phase 1), and NAV.36
+  Three strict-xfail tests in `src/tests/test_route_edge_cases.py` pin
+  it (TEST.79, PR #427): `test_nav_between_reports_the_longest_hop`
+  (`route["longest_hop_ly"]`), `test_nav_between_flags_a_hop_through_unfilled_sectors`
+  (`route["hops"][i]["unknown_space"]`) and
+  `test_nav_between_same_sector_route_uses_nearer_stars_next_door` (a
+  same-sector route that leaves the sector); NAV.12 turns them green and
+  removes the xfail marks (it may rename the keys).
+  Phase 1 is its anchor: NAV.34 and TEST.79 are done (PR #427), UX.35 runs alongside it (phase 1), and NAV.36
   and NAV.39 need it first (phase 2).
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.34 Courses between separately generated areas find no route: the route graph splits into islands (bug)**
-  Found by the hop-length study (2026-10-02; report in the project's
-  shared files under `nav-hop-length/`). `navGraph.build_knn_adjacency`
-  links each system to its 6 nearest generated systems, so any
-  separately generated area with 7 or more systems becomes an island
-  with no links out: 2,000 generated sectors over the disk split into
-  714 islands and a cross-galaxy course found no route; two generated
-  neighbourhoods 1 kpc apart found none either; and where a route did
-  cross a gap it could hide one huge hop (a 6,504 ly last hop). Done:
-  the islands of the route graph are joined (each island linked to its
-  nearest few islands; in the study, 6 nearest joined all 714 in 0.2 s
-  and gave a cross-galaxy route 1.29 times the direct distance), so two
-  placed endpoints always have a route; a test with separated generated
-  areas finds one. Lands with or before NAV.10; NAV.12 builds on it.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
@@ -2332,18 +2272,6 @@ clears each one.
   on both engines (group by every selected column, or no GROUP BY), and
   the test passes on MariaDB 10.11 and SQLite. [infra, DB]
 
-- [ ] **TEST.79 Route edge cases, written before NAV.12**
-  Tests that pin the cases NAV.12 must handle, taken from the
-  hop-length study (`nav-hop-length/report.md` in the project's shared
-  files): an isolated system; empty and unfilled sectors between the
-  endpoints; the galaxy edge and the halo (a lone system 2 kpc above
-  the disk); both endpoints in one sector when the best route leaves
-  it; and a route graph in separate pieces (the study's 714 islands
-  from 2,000 sectors). Done: the tests exist, marked expected-to-fail
-  where today's code fails them, so NAV.34 and NAV.12 turn them green.
-  [web, NAV]
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **TEST.80 Intermittent failure in the admin change-star test (bug)**
   `test_admin_edits.py::test_change_star_keeps_classes_and_saves_the_type`
   failed once under `pytest -n auto` (a planet's class 'J' came back as
@@ -2371,13 +2299,17 @@ clears each one.
   test over seeds or runs), the cause is fixed in the test or in the
   code it found, and the test passes on every run tried. [infra, GEN]
 
-- [ ] **TEST.83 The sign-in rate-limit test fails under parallel load (bug)**
+- [ ] **TEST.83 Rate-limit tests fail under parallel load (bug)**
   `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone
   but fails under `pytest -n auto` load, which points at timing (seen
-  by the Galaxy map picker and arc thread, PR #369, 2026-10-02). Done:
-  the failing case is found (loop it under load), the test or the rate
-  limit stops depending on wall-clock speed, and the test passes on
-  every run tried, alone and under `-n auto`. [infra, SEC]
+  by the Galaxy map picker and arc thread, PR #369, 2026-10-02). The
+  Routing groundwork thread (PR #427, 2026-10-02) saw 6 more rate-limit
+  tests in `test_web_pages.py`, `test_web_request_limits.py` and
+  `test_web_security_limits.py` fail under `-n auto` on MariaDB 10.11
+  and all pass when rerun alone. Done: the failing cases are found
+  (loop them under load), the tests or the rate limits stop depending
+  on wall-clock speed, and they pass on every run tried, alone and
+  under `-n auto`. [infra, SEC]
 
 - [ ] **TEST.84 The every-column round-trip test depends on whether a quasar got placed (bug)**
   `test_db_column_round_trip.py::test_every_column_is_written` fails

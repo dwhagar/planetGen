@@ -24,7 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.66 | The sector as the drill-down's last stage, on the same page | MAP.65, MAP.80 | Sector as the last stage. |
+| MAP.66 | The sector as the drill-down's last stage, on the same page | MAP.65 | Sector as the last stage. |
 | MAP.67 | One URL and history scheme for every level | MAP.66, NAV.7 |  |
 | MAP.68 | Remove the old Sector Map code | MAP.67, MAP.79 | Deletes sectormap.js. |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | MAP.65, MAP.66, MAP.67, MAP.68 | Parent; closes with its subitems. |

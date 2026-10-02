@@ -50,6 +50,17 @@ export const BLOCK_OPACITY_DENSE = 0.3;
 // log of the filled count against the log of the block's total, so a
 // block turns solid only when every sector in it is filled.
 export const FILLED_MIN_STEP = 0.6;
+// MAP.86: a drill-down block colored by what its generated sectors hold
+// (each cell's `look`, from the stage API's sector_stats averages). A
+// filled sector is only a little more solid than unfilled space: this
+// much for one with no stars, up to FILLED_DENSE_STEP more for the
+// densest possible; a block averages its sectors, unfilled ones counted
+// as unfilled. Boss (2026-10-01 23:53Z).
+export const FILLED_EMPTY_STEP = 0.05;
+export const FILLED_DENSE_STEP = 0.2;
+// A filled sector with no stars: the unfilled color, a shade more
+// saturated.
+const FILLED_EMPTY_SATURATION = 0.15;
 // Block shading runs over a wide density range: the drawing floor
 // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
 // through a dim-to-accent-to-white ramp.
@@ -111,6 +122,49 @@ export function prismIntensity(relativeDensity) {
 export function blockOpacity(cell) {
   const base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
   return base + (1 - base) * blockFillStep(cell);
+}
+
+// MAP.86: a block's opacity from its sectors: unfilled space's own, plus
+// each filled sector's step (FILLED_EMPTY_STEP, and FILLED_DENSE_STEP
+// times its fill share), averaged over every sector in the block.
+export function lookOpacity(cell) {
+  const base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
+  if (!(cell.filled > 0)) {
+    return base;
+  }
+  const share = cell.look && cell.look.share > 0 ? Math.min(1, cell.look.share) : 0;
+  const filledShare = Math.min(1, cell.filled / Math.max(cell.total || 0, cell.filled));
+  return Math.min(1, base + filledShare * (FILLED_EMPTY_STEP + FILLED_DENSE_STEP * share));
+}
+
+function srgbToLinear(v) {
+  return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+}
+
+// `color` (linear) pushed `amount` of the way from its own grey toward
+// full saturation.
+function saturate(color, amount) {
+  const grey = (color[0] + color[1] + color[2]) / 3;
+  return color.map(function (v) { return Math.max(0, grey + (v - grey) * (1 + amount)); });
+}
+
+// MAP.86: a block's color (linear) from its sectors: each unfilled one in
+// `unfilled` (the density ramp's color), each filled one with stars in its
+// stored color, each filled one without in `unfilled` a shade more
+// saturated -- averaged over every sector in the block.
+export function lookColor(cell, unfilled) {
+  if (!(cell.filled > 0)) {
+    return unfilled;
+  }
+  const total = Math.max(cell.total || 0, cell.filled);
+  const look = cell.look || null;
+  const colored = look && look.color ? Math.min(cell.filled, look.colored || cell.filled) : 0;
+  const empty = cell.filled - colored;
+  const emptyColor = saturate(unfilled, FILLED_EMPTY_SATURATION);
+  const own = colored ? look.color.map(srgbToLinear) : [0, 0, 0];
+  return [0, 1, 2].map(function (i) {
+    return ((total - cell.filled) * unfilled[i] + empty * emptyColor[i] + colored * own[i]) / total;
+  });
 }
 
 // The arm model's own amplitude, clamped to 0..1; 0 without arms.
@@ -278,7 +332,8 @@ export function createBlockScene(config) {
     cells.forEach(function (cell, n) {
       middles.push(cellCoordinates(cell).cartesian);
       const placed = cell.sectorPoint != null;
-      colorOf.push(placed ? placedColor(cell.sectorRelative) : prismColor(shape ? prismShade(cell, armAmplitude) : 0.5));
+      const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
+      colorOf.push("look" in cell ? lookColor(cell, ramp()) : placed ? placedColor(cell.sectorRelative) : ramp());
       alphaOf.push(Math.round(cell.opacity * 255));
       fillOf.push(Math.round(blockFillStep(cell) * 255));
       const o = n * CELL_STRIDE;
@@ -344,7 +399,11 @@ export function createBlockScene(config) {
 
   // Packs an explicit list of blocks the same way (the drill-down's
   // stages, which pick their own blocks): each cell has ring, seg, slab
-  // and bounds r0..z1, and optionally filled and total. Density comes
+  // and bounds r0..z1, and optionally filled and total. A cell with a
+  // `look` key (the stage API's {share, color, colored}, or null) is
+  // colored and made translucent by its sectors' stats (MAP.86:
+  // lookColor, lookOpacity) instead of lifted toward solid by its filled
+  // share. Density comes
   // from the shape. `dim` (optional) is a test: cells it accepts are drawn
   // at a fifth of their opacity (the "Generated only" toggle). Returns
   // {solid, glass} as build does, plus `cells`: [solid cells, glass
@@ -358,7 +417,7 @@ export function createBlockScene(config) {
         cell.density = sampled.density;
         cell.meanDensity = sampled.mean;
       }
-      cell.opacity = blockOpacity(cell);
+      cell.opacity = "look" in cell ? lookOpacity(cell) : blockOpacity(cell);
       if (dim && dim(cell)) {
         cell.opacity *= 0.2;
       }
