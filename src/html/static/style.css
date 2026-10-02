@@ -1906,12 +1906,25 @@ code {
   min-width: 0;
 }
 
+/* MAP.99: the slab column's width (--slab-col) and how many there are
+   (--slab-cols: two when the buttons split across both sides of the map)
+   come from galaxystageview.js's classes on .galaxy-map-main. */
 .galaxymap3d-panel .galaxy-map-main {
+  --slab-col: 9.5rem;
+  --slab-cols: 1;
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
   min-width: 0;
-  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3 + 7.25rem));
+  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3 + var(--slab-cols) * (var(--slab-col) + 0.75rem)));
+}
+
+.galaxymap3d-panel .galaxy-map-main.is-slab-split {
+  --slab-cols: 2;
+}
+
+.galaxymap3d-panel .galaxy-map-main.is-slab-small {
+  --slab-col: 3.5rem;
 }
 
 @media (max-width: 599px) {
@@ -2850,7 +2863,7 @@ body.app {
 }
 
 .galaxy-slabs {
-  flex: 0 0 6.5rem;
+  flex: 0 0 var(--slab-col, 9.5rem);
   align-self: stretch;
   display: flex;
   flex-direction: column;
@@ -2886,14 +2899,19 @@ body.app {
   list-style: none;
 }
 
+/* One line each (MAP.100): "#4" and how much of the slab is charted. */
 .galaxy-slab-button {
   position: relative;
   z-index: 2;
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35em;
   width: 100%;
-  padding: 0.25rem 0.4rem;
+  padding: 0.2rem 0.35rem;
+  white-space: nowrap;
+  overflow: hidden;
   font: inherit;
   color: var(--text);
   background: var(--bg-subtle);
@@ -2919,9 +2937,40 @@ body.app {
 }
 
 .galaxy-slab-count {
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-muted);
   font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
+}
+
+/* Small buttons (MAP.99): the number alone, the rest in the title and
+   the screen-reader label. */
+.is-slab-small .galaxy-slab-count {
+  display: none;
+}
+
+.is-slab-small .galaxy-slab-buttons {
+  gap: 0.15rem;
+}
+
+.is-slab-small .galaxy-slab-button {
+  padding: 0.1rem 0.2rem;
+  font-size: 0.72rem;
+}
+
+.is-slab-small .galaxy-slabs h3 {
+  font-size: 0.8rem;
+}
+
+/* The left column of split buttons has no heading of its own; it lines
+   up with the right one's buttons. */
+.galaxy-slabs-side {
+  padding-top: 1.6rem;
+}
+
+.is-slab-small .galaxy-slabs-side {
+  padding-top: 1.35rem;
 }
 
 .galaxymap3d-panel .galaxy-map-main {
@@ -2971,7 +3020,11 @@ body.app {
   }
 
   .galaxy-slabs .galaxy-slab-buttons {
-    width: 9rem;
+    width: 11rem;
+  }
+
+  .is-slab-small .galaxy-slabs .galaxy-slab-buttons {
+    width: 3.5rem;
   }
 }
 
