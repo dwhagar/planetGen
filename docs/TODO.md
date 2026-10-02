@@ -97,18 +97,25 @@ maps, search, NAV, admin auth and wiki publishing.
 
 Boss (2026-10-01 23:53Z) asked for the open work to be planned in
 phases, one plan file per phase with everything that phase needs, and
-this file as the master and index. Every open item below is in exactly
-one phase. Each phase file gives the order, the dependencies, how to
-split the work into build threads, the research notes that apply and
-the open questions; this file keeps each item's full text. A new item
-goes into a phase's table in the same PR that files it.
+this file as the master and index. On 2026-10-02 the phases were
+rebuilt as phases 0 to 3+ from the dependency report (each item's
+prerequisites, the files it shares, and Boss's decisions of that
+night). Every open item below is in exactly one phase, and every
+item's prerequisites are in its own phase or an earlier one. Each phase
+file gives the goal, the build threads with their order and
+prerequisites, and the open questions;
+[plan/notes.md](plan/notes.md) keeps the research notes, the files
+several items share and the judgment calls. This file keeps each
+item's full text. A new item goes into a phase's table in the same PR
+that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, PERF.11, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15, DB.6, OPS.10, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, NAV.34 |
-| 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
-| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, ADM.17, API.16, API.17, GEN.59 |
-| 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9, GEN.55, OPS.12 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, DB.6, OPS.10, DB.5, DB.4, DB.3, DB.2, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, NAV.34 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.11, NAV.12, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, GEN.59 |
+| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
@@ -1602,8 +1609,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UNSIGNED` holds only 64 bits) and shown as 32 hex digits, a new
   `--seed` option on `plan` and new galaxies that accepts it, and each
   sector, layer and backfill block seeded from the galaxy seed plus its
-  address. Each unit's seed is a SHA-256 hash of the full 128-bit seed
-  plus the unit's address, and the bright-star scatter's own 63-bit seed
+  address. Each unit's seed is SHA-256(128-bit galaxy seed || "kind:"
+  address), for example `sector:12/3/0`; the version is not mixed into
+  the hash but stored alongside (DB.6), and the bright-star scatter's own 63-bit seed
   is derived from the 128-bit galaxy seed too, so no step throws bits
   away. Builds after PERF.21, in the parallel path thread. Done: no
   generation draw uses the operating system's random source; a test
@@ -1638,11 +1646,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     existing galaxies: GEN.39 starts from a wiped galaxy.
     The version: Boss (2026-10-02 01:46Z): "I would say the version
     number all added together into a number stored in hex", so the
-    stored version value is MAJOR + REVISION + BUILD, in hex. A plain sum
-    is not unique (7.59.155 and 7.58.156 both sum to 221), so two
-    different releases can share a value. Open question for Boss: is
-    that acceptable? Default: store the full MAJOR.REVISION.BUILD string
-    next to the summed hex value, and match releases on the string.
+    stored version value combines MAJOR, REVISION and BUILD into one
+    number in hex. A plain sum collides (7.127.352 and 7.128.351 both
+    sum to 486), so the default, the collision-free form of "all added
+    together", packs the parts: MAJOR<<32 | REVISION<<16 | BUILD, shown
+    as 12 hex digits (7.127.352 is `0007007F0160`), stored with the
+    galaxy (here) and with each sector (DB.7), with the full
+    MAJOR.REVISION.BUILD string kept next to it. Open question for
+    Boss: is the packed form fine, or does he want the plain sum anyway?
 
   - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
     The log half of GEN.39 (Boss: "put it in the log at the top of any
@@ -1715,8 +1726,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     migration, its row in `database-schema.md`). Decided (Boss,
     2026-10-02 01:46Z): "gen.44/perf.11 is one shared per sector stats
     table", so the level lives in the same per-sector stats table as
-    PERF.11's densities, keyed by (ring, layer, slot), built in one
-    migration. No migration of existing galaxies (GEN.39 starts fresh).
+    PERF.11's densities, keyed by sector address (ring, layer, slot), so
+    unfilled sectors have rows for their backfill level, built in one
+    migration. Default: MAP.86's per-sector color, saturation and
+    lightness go in the same table. No migration of existing galaxies (GEN.39 starts fresh).
     GEN.40 to GEN.43 and PERF.18 use it to skip work.
 
 - [ ] **GEN.45 Check the rogue planet mix of terrestrial and gas giants (bug)**
@@ -1853,18 +1866,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   version number and a seed value would reproduce the same galaxy by the
   end of the phases." This item is the
   chain that gets there; it is done when its last sub-item is. Order:
-  - Phase 1: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
-    OPS.10; then OPS.11 (what "the same galaxy" means), GEN.56 (every
+  - Phase 0: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
+    OPS.10.
+  - Phase 1: OPS.11 (what "the same galaxy" means), GEN.56 (every
     draw seeded), GEN.57 (a sector's contents depend only on the seed,
     the version and its address), DB.7 (the version kept with each
     sector), GEN.58 (a fingerprint) and TEST.77 (the golden-galaxy
     test). GEN.47's nebula field uses the derived seeds.
-  - Phases 2 and 3: PERF.18 and GEN.42 give the one-process stars for
-    one seed (already in their Done text); API.16 and ADM.17 show the
-    seed and version; API.17 makes remote generation reproduce the
-    server's; GEN.59 records edits and time evolution as layers on top
-    of the seed.
-  - Phase 4 (the end state): OPS.12, `generate.py reproduce`.
+  - Phase 2: PERF.18 and GEN.42 give the one-process stars for one
+    seed (already in their Done text); API.16 and ADM.17 show the seed
+    and version.
+  - Phase 3: API.17 makes remote generation reproduce the server's;
+    GEN.59 records edits and time evolution as layers on top of the
+    seed.
+  - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
 
@@ -1878,8 +1893,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     exact PlanetGen version that made it (recorded by DB.6); an older
     galaxy is reproduced by checking out its version. Python's version
     and platform are recorded too, and TEST.77 runs on every CI Python
-    leg so any difference between them shows up. A release whose
-    generation output changes says so in its `changes/` note.
+    leg so any difference between them shows up. Known risk: the math
+    library (libm) can differ in the last digit between machines, which
+    can change a result near a threshold; the golden-galaxy test
+    (TEST.77) watches for it. A release whose generation output changes
+    says so in its `changes/` note. The math behind "seed + version
+    gives the same galaxy" is in the seed math report (dependency tree
+    thread, 2026-10-02).
 
   - [ ] **GEN.56 Every random draw in generation comes from the derived seeds**
     The sweep GEN.39's "no draw uses the operating system's random
@@ -1901,7 +1921,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     generation modules and fails on `secrets`, `SystemRandom`,
     `os.urandom`, `uuid4`, `time` or an unseeded `random.seed()` used
     for a draw, with an allowlist for login, CSRF, API keys and job ids.
-    Prerequisite: GEN.39.
+    Python only promises that `random.random()` gives the same numbers
+    across Python versions, not `choice`, `uniform`, `gauss` or
+    `shuffle`, so generators draw through small in-house helpers built
+    on `random()` alone (choice, uniform, normal, shuffle), and the test
+    above also fails on direct calls to the others. Prerequisite: GEN.39.
 
   - [ ] **GEN.57 A sector's contents depend only on the seed, the version and its address**
     Seeding every draw (GEN.56) isn't enough when the result depends on
@@ -1919,7 +1943,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     them; ids and timestamps excluded) come out the same whichever
     sectors were generated before it, at any worker count; names, seeds
     and skips key on addresses and the galaxy seed, not on ids or arrival
-    order (for example, collisions resolved in address order);
+    order: in a name collision the sector with the lower address keeps
+    the name and the other is renamed from its own seeded stream (with
+    GEN.46);
     nearest-system links are rebuilt from content, so they are left out
     of the comparison; and a test generates the same sectors at 1 and 4
     workers and in two orders and compares fingerprints (GEN.58).
@@ -1927,7 +1953,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
-    it (DB.6 keeps the galaxy's first version); extending a galaxy with
+    it, as DB.6's packed hex version and the full string (DB.6 keeps the
+    galaxy's first version); extending a galaxy with
     a different release warns before it starts (CLI and Generate page),
     because a mixed-version galaxy reproduces only sector by sector, each
     on its own version. Prerequisite: DB.6.
@@ -1952,7 +1979,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     every CI Python leg. Prerequisites: GEN.57, GEN.58. [generation, infra]
 
   - [ ] **OPS.12 `generate.py reproduce`: a version and a seed rebuild a galaxy and check it**
-    The end state Boss asked for (phase 4). Done: `generate.py reproduce
+    The end state Boss asked for (phase 3+). Done: `generate.py reproduce
     --seed X --version Y` rebuilds a galaxy, or a region, into a fresh
     database from the seed and the stored run history (DB.6), and checks
     it against the fingerprint (GEN.58) of the live galaxy or a given
@@ -1991,8 +2018,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     update) are logged as ordered layers with the release that applied
     them. Done: "seed + version" rebuilds a galaxy as first generated,
     and "seed + version + edit log + epoch" rebuilds it as it is now;
-    regenerations use a seed derived from the galaxy seed and the edit,
-    not `random.seed()` (today in `api/edits.py`). Prerequisites: GEN.56,
+    a regeneration draws from SHA-256(sector seed || edit number), not
+    `random.seed()` (today in `api/edits.py`), so replaying the edit log
+    replays it. Prerequisites: GEN.56,
     GEN.58.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -2022,7 +2050,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     with these numbers, and PERF.3, PERF.5 and PERF.9 use the
     expected-versus-actual ratio to correct their estimates. Decided
     (Boss, 2026-10-02 01:46Z): one per-sector stats table shared with
-    GEN.44's backfill level, built with it in phase 1; no backfill of
+    GEN.44's backfill level, built with it; no backfill of
     existing sectors (GEN.39 starts fresh). Open questions: whether
     "actual" counts systems, stars, or both; what the decaying average
     is taken over (the ratio per density bucket, so it ties in with
@@ -2073,7 +2101,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   items from it.
 
 - [ ] **PERF.21 Generation works with any worker count: the parallel path is built, used and tested (bug)**
-  Top priority, and the first item of phase 1 (Boss, 2026-10-02). Found by
+  Top priority, and the first thread of phase 0 (Boss, 2026-10-02). Found by
   the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss: "We need a working parallel path, we need to make
   sure the code properly builds and uses the work queue and the worker
   pool to run no matter how many workers it is given. This is the top
@@ -2314,7 +2342,7 @@ DB.1 shipped in 7.35.0 (PR #152).
   code it got back; the API docs say that HTTP response codes are used
   for parity with the web server's logs; a test makes a call each way
   and checks the log rows. Needs no user accounts: it logs today's admin
-  accounts (and "god"), so it is placed in phase 1, ahead of API.6; once
+  accounts (and "god"), so it is placed in phase 0, ahead of API.6; once
   user accounts exist (USR.1) the logged user can be any account.
 
 - [ ] **API.7 Investigate and plan upload limits**
