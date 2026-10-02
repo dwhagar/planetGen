@@ -20,6 +20,12 @@ Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
 
+### Galaxy Map drill-down
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) |  | Boss 08:52Z, serious: high priority, next to start. Drop the star branch of showPointAt (galaxymap3d.js) so clicks pick the block or sector; stars stay visible, no hover or info. Clouds keep their core click (default). |
+
 ### Web generation error (high priority)
 
 | ID | Item | Needs | Note |
@@ -88,12 +94,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 GEN.65 (web generation error) is high priority and comes first, but
 is held: no thread starts on it until Boss says so (08:08Z).
+MAP.101 (stars take the click on the Galaxy Map, Boss 08:52Z) is
+high priority and the next lane to start.
 
 At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
 #405), Generation bugs (PRs #415, #419) and Galaxy Map drill-down
-(PRs #408, #410, #413, #422). Sector stats and colors and Routing
+(PRs #408, #410, #413, #422) apart from MAP.101. Sector stats and colors and Routing
 groundwork are running. Then the lanes start in the order above as a
 slot frees: Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
