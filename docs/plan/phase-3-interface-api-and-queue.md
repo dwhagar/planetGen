@@ -108,15 +108,18 @@ GEN.42 in one thread: both change `backfill_bright_stars_around`.
 
 | ID | Item | Parent |
 |---|---|---|
-| GEN.55 (new) | A version number and a seed reproduce the same galaxy (end goal) |  |
-| OPS.12 (new) | Check that a version and a seed rebuild the same galaxy | GEN.55 |
 | ADM.17 (new) | The Generate page shows the galaxy's seed and version | GEN.55 |
 | API.16 (new) | The API reports the galaxy's seed, version and run history | GEN.55 |
+| API.17 (new) | Remote generation reproduces what the server would make | GEN.55 |
+| GEN.59 (new) | Edits and time evolution recorded as layers on top of the seed | GEN.55 |
 
 Phase 1 builds the seeds, storage, fingerprint and golden test (DB.6,
-OPS.10, OPS.11, GEN.56 to GEN.58, TEST.77). Here OPS.12 (the reproduce
-check) proves the end goal, and ADM.17 and API.16 show the seed and
-version; API.12's download uses API.16's fields. GEN.42 and PERF.18 in
+OPS.10, OPS.11, GEN.56 to GEN.58, DB.7, TEST.77). Here ADM.17 and API.16
+show the seed and version (API.12's download uses API.16's fields),
+API.17 makes remote generation reproduce the server's (after API.12 and
+API.13; API.8 re-runs a sample to verify uploads), and GEN.59 records
+edits and time evolution as layers. OPS.12 (`generate.py reproduce`,
+the end goal) follows in phase 4. GEN.42 and PERF.18 in
 this phase must use the derived seeds and keep TEST.77 green.
 
 ## Research notes
@@ -178,7 +181,8 @@ Each thread is briefed with its exact item IDs and takes no others.
 6. Work queue: PERF.19, PERF.20, ADM.15.
 7. Backfill: GEN.41, then PERF.18 with GEN.42 and GEN.43; PERF.11.
 8. Independent: UX.2, UX.3, ADM.14.
-9. Reproducible galaxies: API.16, ADM.17, then OPS.12 (closes GEN.55).
+9. Reproducible galaxies: API.16, ADM.17, GEN.59, then API.17 (after
+   thread 5's API.12 and API.13).
 
 ## Open questions for Boss
 

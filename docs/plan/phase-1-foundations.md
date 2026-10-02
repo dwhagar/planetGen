@@ -44,7 +44,8 @@ since it touches the same tests.
 ### Reproducible galaxies (version + seed)
 
 Boss (2026-10-02) wants a version number and a seed to rebuild the same
-galaxy by the end of the phases (GEN.55, finished in phase 3).
+galaxy by the end of the phases (GEN.55, finished in phase 4 by
+OPS.12).
 
 | ID | Item | Parent |
 |---|---|---|
@@ -52,7 +53,8 @@ galaxy by the end of the phases (GEN.55, finished in phase 3).
 | OPS.10 (new) | The galaxy seed and version at the top of every generation log | GEN.39 |
 | OPS.11 (new) | Define "the same galaxy" and which versions stay reproducible | GEN.55 |
 | GEN.56 (new) | Every random draw in generation comes from the derived seeds | GEN.55 |
-| GEN.57 (new) | Generation output doesn't depend on worker count, run order or timing | GEN.55 |
+| GEN.57 (new) | A sector's contents depend only on the seed, the version and its address | GEN.55 |
+| DB.7 (new) | The version that generated each sector, and a warning for mixed-version galaxies | GEN.55 |
 | GEN.58 (new) | A fingerprint of a galaxy's generated content | GEN.55 |
 | TEST.77 (new) | A golden-seed regression test | GEN.55 |
 
@@ -61,7 +63,9 @@ DB.6 (the seed, version and run history, a galaxy schema migration) and
 OPS.10 (the log line). OPS.11 (the design note) can be written any time
 before GEN.58. GEN.56 (every draw seeded) touches every generator
 module, so it lands after GEN.39 and the physics threads rebase onto it;
-then GEN.57 (worker count, order and timing), GEN.58 (the fingerprint)
+then GEN.57 (contents depend only on seed, version and address, with
+GEN.46 and GEN.44), DB.7 (the version per sector), GEN.58 (the
+fingerprint)
 and TEST.77 (the golden-seed test), which from then on catches any
 change to generation output. GEN.47 (nebulae) uses the derived seeds.
 
@@ -179,6 +183,7 @@ scale, so it goes in the same thread, after them.
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) |  |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) |  |
+| NAV.34 (new) | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  |
 | TEST.76 (new) | A bright-star test breaks on Python 3.9 and 3.10 (bug) |  |
 | MAP.90 (new) | The tile-level helper crashes on a subnormal view radius (bug) |  |
 | UX.34 (new) | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  |
@@ -186,7 +191,9 @@ scale, so it goes in the same thread, after them.
 | API.15 (new) | Log every API call with its user, how it came in, and its HTTP response code |  |
 
 Small and independent (TEST.76, MAP.90, UX.34 and OPS.9 are low-priority
-finds of the debug-mode bug hunt; API.15, the API call log, needs no
+finds of the debug-mode bug hunt; NAV.34, joining the route graph's
+islands in `navGraph.py`, is a small fix that phase 2's routing
+work, NAV.10 and NAV.12, builds on; API.15, the API call log, needs no
 user accounts and logs today's admin accounts and the console user
 "god"). OPS.7 and OPS.8 both change `update.sh`,
 `update.ps1` and `scripts/deploy-common.*`; one PR.
@@ -253,12 +260,12 @@ Each thread is briefed with its exact item IDs and takes no others.
 6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
 7. Object references: NAV.7, NAV.8, NAV.9.
 8. Ops and flakes: OPS.6 to OPS.9, TEST.71 to TEST.73, TEST.76,
-   MAP.90, UX.34, API.15.
+   MAP.90, UX.34, API.15, NAV.34.
 9. Forcing and prevalence: GEN.49, GEN.50, GEN.51, GEN.52, ADM.16,
    TEST.75 (parent GEN.48).
 10. Binary pairs: GEN.53, GEN.54.
 11. Reproducible galaxies: DB.6, OPS.10 (with GEN.39 in thread 1),
-    then OPS.11, GEN.56, GEN.57, GEN.58, TEST.77 (parent GEN.55).
+    then OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77 (parent GEN.55).
 
 ## Open questions for Boss
 
