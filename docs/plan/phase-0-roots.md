@@ -26,6 +26,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) |  | lib/systemmap.py. |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | MAP.57 | Fit the whole scene; same file as MAP.57 and MAP.89. |
+| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | MAP.88 | Boss 04:29Z. showInfo in systemmap.js and the marker attributes in lib/systemmap.py; same files as MAP.57/MAP.88. |
 
 ### Object references
 
@@ -66,6 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
 | NAV.41 | The NAV page's course map is too small to read (bug) |  | Boss 04:19Z. navmap.py 360-unit square at 22rem, 9px labels; widen and enlarge. |
+| UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
 
 ### Routing groundwork
 
@@ -99,6 +101,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
+| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
+| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
+| MAP.95 | A "Forward to current" button next to the map's Back and Forward |  | Boss 04:29Z. Jumps to maxIndex of the map history (MAP.26). |
 
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;

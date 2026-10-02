@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.36 |
-| MAP | MAP.92 |
+| UX | UX.37 |
+| MAP | MAP.96 |
 | NAV | NAV.43 |
 | GEN | GEN.64 |
 | PERF | PERF.24 |
@@ -593,6 +593,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | open |
+| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | open |
+| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | open |
+| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | open |
+| MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -754,6 +758,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
+| UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
