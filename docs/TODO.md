@@ -601,9 +601,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - Before and after screenshots of the six system types in the study.
   Separate from MAP.88 (fit the whole drawn system inside the frame);
   both change `lib/systemmap.py`, and whichever lands second keeps the
-  other working. Open question for Boss: should the map also get a
-  "Spacing: fitted / even" toggle beside "Measure distance"? Default
-  taken: no toggle for now; revisit if crowded systems still read badly.
+  other working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
+  with fitted for the orbital spacing in MAP.89"): fitted scale with the
+  12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
 - [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
   Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
