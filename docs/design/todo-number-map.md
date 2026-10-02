@@ -489,7 +489,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | done, PR #373 |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | done, PR #373 |
-| GEN.51 | Forcing options only for single-system generation | none | open |
+| GEN.51 | Forcing options only for single-system generation | none | done, PR #398 |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
@@ -592,7 +592,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
-| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | open |
+| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | done, PR #395 |
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | open |
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | open |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | open |

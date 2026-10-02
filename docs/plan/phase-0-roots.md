@@ -25,13 +25,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. Root cause: _db.reserve_system_names counts a name redrawn in the same pass against a later row; fix by computing name keys once per pass (also 1.7x faster on dense sectors). After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
-| GEN.51 | Forcing options only for single-system generation |  | Moved to phase 0: the fix half of the GEN.48 bug (forcing stops applying to sector and galaxy runs); prevalence controls stay in phase 1. generate.py sector/galaxy argument parsing. |
 
 ### Galaxy Map follow-ups
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
