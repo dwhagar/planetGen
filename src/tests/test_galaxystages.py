@@ -506,3 +506,23 @@ console.log(JSON.stringify({
     assert out["back"] == out["seg"]
     assert out["beforeSlab"] and out["wrong"]
     assert out["ok"] is None
+
+
+def test_slab_button_labels_read_on_one_line():
+    """MAP.100: "#N" and how much of the slab is charted, to two decimals
+    with the ≈ sign; "Unknown" with nothing; "< 0.01%" under that."""
+    out = _run("""
+const one = {kind: "layer", lo: 4, hi: 4};
+console.log(JSON.stringify([
+  S.slabButtonLabel(one, 0, 1000),
+  S.slabButtonLabel({kind: "layer", lo: 2, hi: 2}, 1, 1e6),
+  S.slabButtonLabel({kind: "layer", lo: 6, hi: 6}, 243, 10000),
+  S.slabButtonLabel({kind: "layer", lo: -1, hi: -1}, 50, 50),
+  S.slabButtonLabel({kind: "layer", lo: 0, hi: 0}, 99999, 100000),
+  S.slabButtonLabel({kind: "layer", lo: 0, hi: 0}, 3, 0),
+  S.slabButtonLabel({kind: "layer", lo: 2, hi: 3}, 0, 10),
+  S.slabNumber(one),
+]));
+""")
+    assert out == ["#4 Unknown", "#2 < 0.01% charted", "#6 ≈ 2.43% charted", "#-1 100% charted",
+                   "#0 ≈ 99.99% charted", "#0 3 charted", "#2–3 Unknown", "#4"]

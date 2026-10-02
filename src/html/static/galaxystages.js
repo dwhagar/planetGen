@@ -769,6 +769,27 @@ export function pickLabel(pick, at, view) {
   return (pick.kind === "quadrant" ? "Quarter " : "Arc ") + arcLabel(view.a0, view.a1);
 }
 
+// A slab button's number (MAP.100, MAP.99): "#4", or "#2–3" for a pick
+// of several slabs.
+export function slabNumber(pick) {
+  return "#" + (pick.lo === pick.hi ? pick.lo : pick.lo + "–" + pick.hi);
+}
+
+// A slab button's one-line label (MAP.100): its number and how much of it
+// is charted (its sectors generated) to two decimals: "#4 Unknown" with
+// none, "#2 < 0.01% charted" under that, "#6 ≈ 2.43% charted", "#1 100%
+// charted" when all of it is. With no total (a galaxy with no stored
+// shape), the count: "#0 3 charted".
+export function slabButtonLabel(pick, generated, total) {
+  const head = slabNumber(pick) + " ";
+  if (!(generated > 0)) return head + "Unknown";
+  if (!(total > 0)) return head + formatCount(generated) + " charted";
+  if (generated >= total) return head + "100% charted";
+  const percent = (100 * generated) / total;
+  if (percent < 0.01) return head + "< 0.01% charted";
+  return head + "≈ " + Math.min(percent, 99.99).toFixed(2) + "% charted";
+}
+
 // The breadcrumb for `stage`: one crumb per step from the galaxy down,
 // {stage, label, last}. A crumb's label names the pick that led there, or
 // the block entered.

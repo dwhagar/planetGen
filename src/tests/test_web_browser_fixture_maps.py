@@ -497,9 +497,10 @@ def test_galaxy_map_hover_while_picking_a_slab_lights_the_whole_slab(page, map_s
             assert found, f"no slab to hover at {_crumbs(page)}"
             text = found[2]
             assert re.match(SLAB_TIP, text), f"hovering a {heading} pick named {text!r}, not a slab"
-            lit = page.locator(".galaxy-slab-button.is-lit .galaxy-slab-name")
+            lit = page.locator(".galaxy-slab-button.is-lit")
             assert lit.count() == 1, "one slab button lights"
-            assert lit.inner_text() == _label_of(text), f"the buttons mark {lit.inner_text()!r}, the map {text!r}"
+            named = lit.get_attribute("title").split(":")[0]
+            assert named == _label_of(text), f"the buttons mark {named!r}, the map {text!r}"
             assert page.locator(".galaxy-slab-leader.is-lit").count() == 1
             # Every cube of the slab names that same slab.
             names = set()
@@ -950,7 +951,7 @@ def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site)
                for line in after), f"the lines didn't follow the turn: {before} {after}"
     # A button lights its slab and line, and picks it.
     button = page.locator(".galaxy-slab-button").first
-    label = button.locator(".galaxy-slab-name").inner_text()
+    label = button.get_attribute("title").split(":")[0]
     button.hover()
     assert "is-lit" in button.get_attribute("class")
     lit = page.locator(".galaxy-slab-leader.is-lit")
@@ -977,6 +978,130 @@ def test_galaxy_map_slab_lines_on_a_phone_leave_the_buttons_below_the_map(gl_bro
         assert all(line["button"][1] >= line["canvas"][3] for line in leaders), "buttons below the map"
         lefts = {round(line["button"][0]) for line in leaders}
         assert len(lefts) == 1, "one column"
+    finally:
+        context.close()
+
+
+SLAB_LABEL = r"^#-?\d+(–-?\d+)? (Unknown|< 0\.01% charted|≈ \d+\.\d\d% charted|100% charted)$"
+OUTLINES = "() => document.querySelector('#galaxymap3d-canvas').galaxySlabOutlines()"
+STRIP = """() => {
+    const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
+    const box = (el) => { const b = el.getBoundingClientRect(); return [b.left, b.top, b.right, b.bottom]; };
+    const shown = (el) => !!el.offsetParent;
+    return {
+        canvas: [canvas.left, canvas.top, canvas.right, canvas.bottom],
+        buttons: Array.from(document.querySelectorAll(".galaxy-slab-button")).filter(shown).map(b => ({
+            slab: b.dataset.slab, text: b.innerText.replace(/\\s+/g, " ").trim(), box: box(b), title: b.title,
+            count: shown(b.querySelector(".galaxy-slab-count")),
+        })),
+        note: Array.from(document.querySelectorAll(".galaxy-slab-none-note")).some(shown),
+        lines: !document.querySelector(".galaxy-slab-leaders").hidden,
+    };
+}"""
+
+
+def _open_block_slabs(page, map_site):
+    """Walks down to an entered block: nine slabs to pick from."""
+    _open_galaxy(page, map_site, "?at=243.0.1.0")
+    page.wait_for_selector(".galaxy-slab-button", state="attached")
+    page.wait_for_timeout(200)
+
+
+def _near_outline(point, pieces):
+    """How far `point` is from the nearest of the outline `pieces`."""
+    def dist(p, a, b):
+        dx, dy = b[0] - a[0], b[1] - a[1]
+        length = dx * dx + dy * dy
+        t = 0 if not length else max(0, min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / length))
+        return math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dy * t)
+    return min(dist(point, a, b) for a, b in pieces)
+
+
+def test_galaxy_map_slab_buttons_read_on_one_line(page, map_site):
+    """MAP.100: each slab button is one line, "#N" and how much of the
+    slab is charted ("Unknown" with nothing), with no "generated" and no
+    "x / total"; its title and screen-reader label keep the full name."""
+    _open_block_slabs(page, map_site)
+    state = page.evaluate(STRIP)
+    assert len(state["buttons"]) == 9, state
+    for button in state["buttons"]:
+        assert re.match(SLAB_LABEL, button["text"]), button
+        assert button["text"].startswith("#" + button["slab"] + " "), button
+        assert button["title"].startswith("Slab " + button["slab"] + ":"), button
+        assert button["box"][3] - button["box"][1] < 30, f"more than one line: {button}"
+    texts = {b["slab"]: b["text"] for b in state["buttons"]}
+    assert texts["0"] == "#0 < 0.01% charted" and texts["1"] == "#1 Unknown", texts
+    label = page.locator('.galaxy-slab-button[data-slab="0"]').get_attribute("aria-label")
+    assert "sectors generated" in label, label
+
+
+def test_galaxy_map_slab_lines_end_on_the_nearest_edge_of_their_slab(page, map_site):
+    """MAP.98: each line ends on its slab's outline as drawn on the map,
+    at the outline's point nearest the line's last bend, and still does
+    after the view turns."""
+    _open_galaxy(page, map_site, "?p=a0.180")
+    page.wait_for_selector(".galaxy-slab-button", state="attached")
+    for turn in (False, True):
+        if turn:
+            box = page.locator(GALAXY_CANVAS).bounding_box()
+            page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + 30)
+            page.mouse.down()
+            page.mouse.move(box["x"] + box["width"] * 0.65, box["y"] + 60, steps=8)
+            page.mouse.up()
+            page.wait_for_timeout(200)
+        outlines = page.evaluate(OUTLINES)
+        leaders = page.evaluate(LEADERS)
+        _check_leaders(leaders)
+        for line in leaders:
+            pieces = outlines["slabs"][line["slab"]]
+            assert pieces, line
+            if line["off"]:
+                continue
+            assert _near_outline(line["end"], pieces) < 1.5, f"the line doesn't end on its slab: {line}"
+            bend = line["points"][-2]
+            nearest = min(_near_outline(bend, [piece]) for piece in pieces)
+            reach = math.hypot(line["end"][0] - bend[0], line["end"][1] - bend[1])
+            assert reach <= nearest + 1.5, f"not the nearest edge: {reach} > {nearest} ({line})"
+
+
+@pytest.mark.parametrize("size, mode", [((900, 430), "split"), ((640, 330), "small"), ((640, 230), "none")])
+def test_galaxy_map_slab_buttons_fit_the_window(gl_browser, map_site, size, mode):
+    """MAP.99: when one column of slab buttons is taller than the map they
+    split, one column each side of it; smaller still, the buttons show
+    their number alone; and when even that won't fit there are no buttons
+    and the box says to pick on the map. Each column is no taller than the
+    map, and each line leaves its own button for its slab."""
+    context = gl_browser.new_context(viewport={"width": size[0], "height": size[1]}, device_scale_factor=1,
+                                     reduced_motion="reduce")
+    page = context.new_page()
+    try:
+        _open_block_slabs(page, map_site)
+        assert page.evaluate(OUTLINES)["mode"] == mode
+        state = page.evaluate(STRIP)
+        if mode == "none":
+            assert not state["buttons"] and state["note"] and not state["lines"], state
+            return
+        assert len(state["buttons"]) == 9 and not state["note"], state
+        left, top, right, bottom = state["canvas"]
+        sides = {"left": [b for b in state["buttons"] if b["box"][2] <= left + 1],
+                 "right": [b for b in state["buttons"] if b["box"][0] >= right - 1]}
+        assert len(sides["left"]) == 4 and len(sides["right"]) == 5, state
+        for column in sides.values():
+            assert column[-1]["box"][3] - column[0]["box"][1] <= bottom - top + 1, f"a column taller than the map: {state}"
+        for button in state["buttons"]:
+            assert button["count"] == (mode == "split"), button
+            assert re.match(r"^#-?\d+$" if mode == "small" else SLAB_LABEL, button["text"]), button
+        leaders = page.evaluate(LEADERS)
+        for line in leaders:
+            x0, y0, x1, y1 = line["button"]
+            assert x0 - 1 <= line["start"][0] <= x1 + 1 and y0 - 1 <= line["start"][1] <= y1 + 1, line
+            assert left <= line["end"][0] <= right and top <= line["end"][1] <= bottom, line
+        for column in sides.values():
+            slabs = {b["slab"] for b in column}
+            mine = [line for line in leaders if line["slab"] in slabs]
+            for n, a in enumerate(mine):
+                for b in mine[n + 1:]:
+                    assert not _cross(a["start"], a["end"], b["start"], b["end"]), (a, b)
     finally:
         context.close()
 

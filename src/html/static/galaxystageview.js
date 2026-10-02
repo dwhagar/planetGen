@@ -625,6 +625,17 @@ export function createStageView(host) {
     return { blockEdges: blockEdges, slabLines: slabLines, kind: display.resolved.kind };
   };
 
+  // Each slab button's slab outline on the map, as line pieces in client
+  // pixels cut to the map ({slab: [[[x, y], [x, y]], ...]}), and the
+  // strip's mode (MAP.98, MAP.99). Read by the browser tests.
+  canvasEl.galaxySlabOutlines = function () {
+    if (!strip || !view) return null;
+    const rect = canvasEl.getBoundingClientRect();
+    const out = { mode: strip.mode, slabs: {} };
+    strip.rows.forEach(function (r) { out.slabs[r.option.pick.lo] = outlineOnScreen(r.outline, rect); });
+    return out;
+  };
+
   // The camera's tilt from straight down, in degrees (0 top-down, 90
   // edge-on, 180 from under the plane), and whether a flight is running.
   // Read by the browser tests.
@@ -1568,11 +1579,16 @@ export function createStageView(host) {
   // slabs' height on screen, top first, so the lines don't cross. The
   // lines are faint, and the slab hovered on the map or with its button
   // (or the focused button) lights its own; clicking a button picks its
-  // slab. A slab off the map ends its line at the map's edge with an
-  // arrow. Otherwise the box says which layers the view holds.
+  // slab. Each line ends on its slab's outline at the point nearest the
+  // button (MAP.98); a slab off the map ends its line at the map's edge
+  // with an arrow. Each button reads on one line, "#4 Unknown" or "#6 ≈
+  // 2.43% charted" (MAP.100). A column taller than the map splits into
+  // two, one each side of it, then the buttons shrink to their numbers,
+  // and when even that won't fit they give way to picking on the map
+  // (MAP.99). Otherwise the box says which layers the view holds.
   const SVG_NS = "http://www.w3.org/2000/svg";
-  // {rows: [{option, item, button, line}], list, svg}, while there are
-  // buttons.
+  // {rows: [{option, item, button, line, outline, side}], list, other,
+  // side, note, svg, mode, phone, fitFor}, while there are buttons.
   let strip = null;
   let leaderSvg = null;
 
@@ -1619,6 +1635,7 @@ export function createStageView(host) {
     const box = els.slabs;
     strip = null;
     clearLeaders();
+    clearSideBox();
     if (!box || !resolved || !resolved.view) return;
     box.textContent = "";
     const heading = document.createElement("h3");
@@ -1647,6 +1664,19 @@ export function createStageView(host) {
     const list = document.createElement("ol");
     list.className = "galaxy-slab-buttons";
     box.appendChild(list);
+    // Said in place of the buttons when none fit (MAP.99).
+    const note = document.createElement("p");
+    note.className = "galaxy-slab-note galaxy-slab-none-note";
+    note.textContent = "Too many " + noun.toLowerCase() + "s for buttons here; pick one on the map.";
+    note.hidden = true;
+    box.appendChild(note);
+    const side = sideBox();
+    let other = null;
+    if (side) {
+      other = document.createElement("ol");
+      other.className = "galaxy-slab-buttons";
+      side.appendChild(other);
+    }
     const rows = choices.slice().reverse().map(function (option) {
       const pick = option.pick;
       const sum = sumOf(option.blocks, data);
@@ -1656,21 +1686,27 @@ export function createStageView(host) {
       button.type = "button";
       button.className = "galaxy-slab-button";
       button.dataset.slab = String(pick.lo);
+      // One line (MAP.100): "#4" and how much is charted, the second part
+      // left out when the buttons are small (MAP.99).
+      const label = S.slabButtonLabel(pick, sum.generated, getOutline().shapeless ? 0 : sum.total);
+      const number = S.slabNumber(pick);
       const name = document.createElement("span");
       name.className = "galaxy-slab-name";
-      name.textContent = S.pickLabel(pick, stage.at, resolved.view);
+      name.textContent = number;
       const count = document.createElement("span");
       count.className = "galaxy-slab-count";
-      count.textContent = S.formatCount(sum.generated) + (sum.total > 0 ? " / " + S.formatCount(sum.total) : "") + " generated";
+      count.textContent = label.slice(number.length + 1);
       button.appendChild(name);
       button.appendChild(count);
+      button.title = S.pickLabel(pick, stage.at, resolved.view) + ": " + label.slice(number.length + 1);
       button.setAttribute("aria-label", layerText(pick) + ", " + S.formatInt(sum.generated)
         + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated"
         + (takeable ? "" : " (nothing generated here to pick)"));
       if (!takeable) button.setAttribute("aria-disabled", "true");
       const light = function () { if (!animation) setHover({ layer: pick, sticky: true }); };
       const unlight = function () {
-        if (hover && hover.layer && hover.layer.lo === pick.lo && !list.contains(document.activeElement)) setHover(null);
+        const inStrip = list.contains(document.activeElement) || (other && other.contains(document.activeElement));
+        if (hover && hover.layer && hover.layer.lo === pick.lo && !inStrip) setHover(null);
       };
       button.addEventListener("pointerenter", light);
       button.addEventListener("focus", light);
@@ -1689,18 +1725,110 @@ export function createStageView(host) {
         line.dataset.slab = String(pick.lo);
         svg.appendChild(line);
       }
-      return { option: option, item: item, button: button, line: line };
+      // The slab's outline on the map (as its hover draws it), where its
+      // line ends (MAP.98).
+      const mid = (option.a0 + option.a1) / 2;
+      const span = spanOf(option.blocks, mid);
+      const outline = edgePoints(S.outlineEdges(option.blocks, mid), span.z1, span);
+      return { option: option, item: item, button: button, line: line, outline: outline, side: "right" };
     });
-    strip = { rows: rows, list: list, svg: svg };
-    drawLeaders();
+    strip = { rows: rows, list: list, other: other, side: side, note: note, svg: svg, mode: null, fitFor: null };
+    fitStrip(true);
     applyHover();
   }
 
-  // Where a slab's line ends, in client pixels: the middle of its blocks,
-  // moved toward the camera to the side of the slab facing it (so a slab
-  // under another still gets a line to a part of it that shows), at the
-  // slab's mid height. {x, y, off}: off when that point is not on the map
-  // (then x, y are on its edge).
+  // --- Fitting the buttons to the map (MAP.99) ---------------------------------
+
+  // The box on the map's other side (left) that takes half the buttons
+  // when one column is taller than the map; made once, beside els.slabs.
+  let sideEl = null;
+
+  function sideBox() {
+    const main = els.slabs && els.slabs.parentElement;
+    if (!main) return null;
+    if (!sideEl) {
+      sideEl = document.createElement("div");
+      sideEl.className = "galaxy-slabs galaxy-slabs-side";
+      sideEl.id = "galaxymap3d-slabs-side";
+      sideEl.setAttribute("role", "group");
+      sideEl.setAttribute("aria-labelledby", "galaxymap3d-slabs-heading");
+      sideEl.hidden = true;
+      main.insertBefore(sideEl, main.firstChild);
+    }
+    sideEl.textContent = "";
+    return sideEl;
+  }
+
+  function clearSideBox() {
+    if (sideEl) {
+      sideEl.textContent = "";
+      sideEl.hidden = true;
+    }
+    const main = els.slabs && els.slabs.parentElement;
+    if (main) main.classList.remove("is-slab-split", "is-slab-small", "is-slab-none");
+  }
+
+  function isPhone() {
+    return typeof window.matchMedia === "function" && window.matchMedia("(max-width: 599px)").matches;
+  }
+
+  // Puts the strip in `mode`: "one" (one column beside the map, below it
+  // on a phone), "split" (two columns, one each side), "small" (the
+  // number alone: two columns beside the map, one below it on a phone) or
+  // "none" (no buttons; the box says to pick on the map).
+  function setStripMode(mode, phone) {
+    const main = els.slabs.parentElement;
+    const two = !phone && (mode === "split" || mode === "small");
+    main.classList.toggle("is-slab-split", two);
+    main.classList.toggle("is-slab-small", mode === "small");
+    main.classList.toggle("is-slab-none", mode === "none");
+    strip.list.hidden = mode === "none";
+    strip.note.hidden = mode !== "none";
+    if (strip.side) strip.side.hidden = !two;
+    strip.mode = mode;
+    strip.phone = phone;
+    orderStrip(true);
+  }
+
+  // Whether the buttons fit: each column no taller than the map (below
+  // the map on a phone, no taller than the window left under it).
+  function stripFits(phone) {
+    const rect = canvasEl.getBoundingClientRect();
+    if (!rect.height) return true;
+    const budget = phone ? Math.max(rect.height, window.innerHeight - rect.height - 48) : rect.height;
+    const heading = els.slabs.querySelector("h3");
+    const top = heading ? heading.getBoundingClientRect().height + 6 : 0;
+    return [strip.list, strip.other].every(function (list) {
+      if (!list || !list.children.length || list.parentElement.hidden) return true;
+      const first = list.children[0].getBoundingClientRect();
+      const last = list.children[list.children.length - 1].getBoundingClientRect();
+      return top + last.bottom - first.top <= budget + 1;
+    });
+  }
+
+  // Picks the first mode whose buttons fit, then draws the lines. Only
+  // when the strip is new or the window changed size, so the map
+  // resizing as the columns change doesn't refit it again.
+  function fitStrip(force) {
+    if (!strip) return;
+    const phone = isPhone();
+    const key = window.innerWidth + "x" + window.innerHeight;
+    if (force || strip.fitFor !== key) {
+      strip.fitFor = key;
+      const modes = phone ? ["one", "small", "none"] : ["one", "split", "small", "none"];
+      for (let n = 0; n < modes.length; n++) {
+        setStripMode(modes[n], phone);
+        if (modes[n] === "none" || stripFits(phone)) break;
+      }
+    }
+    drawLeaders();
+  }
+
+  // Where a slab's line ends, in client pixels, when its outline gives
+  // none: the middle of its blocks, moved toward the camera to the side of
+  // the slab facing it, at the slab's mid height. {x, y, off}: off when
+  // that point is not on the map (then x, y are on its edge). The buttons
+  // are also ordered by it.
   function slabAnchor(blocks, rect) {
     const fp = S.footprint(blocks);
     let z0 = Infinity;
@@ -1729,6 +1857,107 @@ export function createStageView(host) {
     return { x: cx, y: cy, off: !ahead || cx !== x || cy !== y };
   }
 
+  // The slab's outline on screen as line pieces [[x, y], [x, y]] in client
+  // pixels, each cut to the map (pieces with an end behind the camera
+  // left out).
+  function outlineOnScreen(points, rect) {
+    const inset = 3;
+    const box = { x0: rect.left + inset, y0: rect.top + inset, x1: rect.right - inset, y1: rect.bottom - inset };
+    const screen = points.map(function (p) {
+      if (p.clone().applyMatrix4(camera.matrixWorldInverse).z >= 0) return null;
+      const q = p.clone().project(camera);
+      return [rect.left + ((q.x + 1) / 2) * rect.width, rect.top + ((1 - q.y) / 2) * rect.height];
+    });
+    const pieces = [];
+    for (let n = 0; n + 1 < screen.length; n += 2) {
+      const a = screen[n];
+      const b = screen[n + 1];
+      if (!a || !b) continue;
+      const cut = clipPiece(a, b, box);
+      if (cut) pieces.push(cut);
+    }
+    return pieces;
+  }
+
+  // Piece a-b cut to box {x0, y0, x1, y1} (Liang-Barsky), or null.
+  function clipPiece(a, b, box) {
+    const dx = b[0] - a[0];
+    const dy = b[1] - a[1];
+    let t0 = 0;
+    let t1 = 1;
+    const sides = [[-dx, a[0] - box.x0], [dx, box.x1 - a[0]], [-dy, a[1] - box.y0], [dy, box.y1 - a[1]]];
+    for (let n = 0; n < sides.length; n++) {
+      const p = sides[n][0];
+      const q = sides[n][1];
+      if (p === 0) {
+        if (q < 0) return null;
+        continue;
+      }
+      const t = q / p;
+      if (p < 0) t0 = Math.max(t0, t);
+      else t1 = Math.min(t1, t);
+      if (t0 > t1) return null;
+    }
+    return [[a[0] + dx * t0, a[1] + dy * t0], [a[0] + dx * t1, a[1] + dy * t1]];
+  }
+
+  // Where a slab's line ends (MAP.98): on its outline as drawn on the map,
+  // at the point nearest `from` (the line's last bend), or with `lane` (an
+  // x), nearest that upright lane (a phone's lines come across from it).
+  // Falls back to slabAnchor when none of the outline is on the map.
+  function slabEnd(r, from, lane, rect) {
+    const pieces = outlineOnScreen(r.outline, rect);
+    let best = null;
+    pieces.forEach(function (piece) {
+      const a = piece[0];
+      const b = piece[1];
+      let t;
+      if (lane != null) {
+        // The piece's end nearer the lane (a straight piece is nearest
+        // the lane at one end, or all along it).
+        t = Math.abs(a[0] - lane) <= Math.abs(b[0] - lane) ? 0 : 1;
+      } else {
+        const dx = b[0] - a[0];
+        const dy = b[1] - a[1];
+        const len = dx * dx + dy * dy;
+        t = len > 0 ? Math.max(0, Math.min(1, ((from[0] - a[0]) * dx + (from[1] - a[1]) * dy) / len)) : 0;
+      }
+      const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+      const d = lane != null ? Math.abs(p[0] - lane) * 1e3 + Math.abs(p[1] - from[1])
+        : Math.hypot(p[0] - from[0], p[1] - from[1]);
+      if (!best || d < best.d) best = { x: p[0], y: p[1], d: d };
+    });
+    if (!best) return slabAnchor(r.option.blocks, rect);
+    return { x: best.x, y: best.y, off: false };
+  }
+
+  // Orders the buttons by their slabs' height on screen, top first (on a
+  // phone, the lowest slab first, so the lanes nest), and with two
+  // columns deals them out in turn, right first, so each column runs the
+  // map's whole height. Leaves them be while one has focus, unless
+  // `force` (the columns changed).
+  function orderStrip(force) {
+    if (!strip || !view) return;
+    const rect = canvasEl.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const rows = strip.rows;
+    const keys = new Map();
+    rows.forEach(function (r) { keys.set(r, slabAnchor(r.option.blocks, rect).y); });
+    const below = strip.phone;
+    const order = rows.slice().sort(function (p, q) {
+      const d = keys.get(p) - keys.get(q) || q.option.pick.lo - p.option.pick.lo;
+      return below ? -d : d;
+    });
+    const two = strip.side && !strip.side.hidden;
+    const focused = strip.list.contains(document.activeElement) || (strip.other && strip.other.contains(document.activeElement));
+    if (focused && !force) return;
+    order.forEach(function (r, n) {
+      r.side = two && n % 2 === 1 ? "left" : "right";
+      const list = r.side === "left" ? strip.other : strip.list;
+      if (list.children[list.children.length - 1] !== r.item) list.appendChild(r.item);
+    });
+  }
+
   // Redraws the lines from each button to its slab, reordering the
   // buttons first if their slabs' order on screen changed.
   function drawLeaders() {
@@ -1737,7 +1966,7 @@ export function createStageView(host) {
     const row = svg.parentElement;
     const base = row.getBoundingClientRect();
     const rect = canvasEl.getBoundingClientRect();
-    if (!rect.width || !rect.height || !base.width) {
+    if (!rect.width || !rect.height || !base.width || strip.mode === "none") {
       svg.hidden = true;
       return;
     }
@@ -1745,35 +1974,28 @@ export function createStageView(host) {
     svg.setAttribute("width", String(base.width));
     svg.setAttribute("height", String(base.height));
     svg.setAttribute("viewBox", "0 0 " + base.width + " " + base.height);
+    orderStrip();
     const rows = strip.rows;
-    const anchors = new Map();
-    rows.forEach(function (r) { anchors.set(r, slabAnchor(r.option.blocks, rect)); });
     // Below the map (a phone) the lines run up lanes along the map's right
     // edge, so they nest: the bottom button's line takes the outer lane
     // to the highest slab, and the column runs from the lowest slab down.
     const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
-    const order = rows.slice().sort(function (p, q) {
-      const d = anchors.get(p).y - anchors.get(q).y || q.option.pick.lo - p.option.pick.lo;
-      return below ? -d : d;
-    });
-    const shown = Array.from(strip.list.children);
-    const moved = order.some(function (r, n) { return shown[n] !== r.item; });
-    if (moved && !strip.list.contains(document.activeElement)) {
-      order.forEach(function (r) { strip.list.appendChild(r.item); });
-    }
     const items = Array.from(strip.list.children);
     rows.forEach(function (r) {
       if (!r.line) return;
-      const end = anchors.get(r);
       const b = r.button.getBoundingClientRect();
       const points = [];
+      let end;
       if (below) {
         // Out of the button's right end to its own lane, up the lane to
         // the slab's height, then across to the slab.
         const lane = rect.right - 8 - 7 * (items.length - 1 - items.indexOf(r.item));
+        end = slabEnd(r, [lane, b.top + b.height / 2], lane, rect);
         points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, end.y]);
       } else {
-        points.push([b.left, b.top + b.height / 2]);
+        const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
+        end = slabEnd(r, from, null, rect);
+        points.push(from);
       }
       points.push([end.x, end.y]);
       r.line.setAttribute("points", points.map(function (p) {
@@ -1803,9 +2025,8 @@ export function createStageView(host) {
     if (active && view && !animation) {
       reframe();
       applyView();
-    } else {
-      drawLeaders();
     }
+    fitStrip(false);
   }
   if (typeof ResizeObserver === "function") {
     const observer = new ResizeObserver(relayout);
@@ -1911,6 +2132,7 @@ export function createStageView(host) {
       clearOutline();
       strip = null;
       clearLeaders();
+      clearSideBox();
       showTooltip("", 0, 0);
       notice("");
       return;
