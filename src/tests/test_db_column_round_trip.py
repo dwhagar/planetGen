@@ -96,6 +96,12 @@ NEVER_READ = {
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
     ("polities", "created_at"): "row timestamp", ("species", "created_at"): "row timestamp",
+    # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
+    **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
+       ("version_key", "planetgen_version", "python_version", "platform")},
+    **{("generation_runs", column): "run history (DB.6)" for column in
+       ("id", "command", "arguments", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
+        "python_version", "platform", "started_at", "finished_at", "outcome")},
 }
 """`(table, column)` the loaders and detail endpoints don't read, with why."""
 

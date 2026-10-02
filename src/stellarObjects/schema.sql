@@ -911,6 +911,15 @@
 --   first planned. `_migrate_v50_to_v51` adds it empty: a galaxy made
 --   before has no seed, and none can be worked out for it.
 --
+-- v52: what made the galaxy and every run since (DB.6,
+--   docs/design/reproducible-galaxies.md): `galaxy_shape` gains the
+--   22-hex-digit version key (`versionKey.version_key`), the PlanetGen,
+--   Python and platform versions, written with the galaxy seed; and the
+--   `generation_runs` table below holds one row per `generate.py` run that
+--   changes the galaxy. A galaxy is built by a series of commands, not by
+--   the seed alone, so these rows are what a rebuild replays.
+--   `_migrate_v51_to_v52` adds both empty.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1084,7 +1093,15 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- v51: the galaxy's 128-bit seed (GEN.39), set by `generate.py plan`
     -- (`--seed`, or drawn at random) and kept by every later plan.
     -- NULL only on a galaxy planned before v51.
-    galaxy_seed                     BINARY(16)
+    galaxy_seed                     BINARY(16),
+
+    -- v52 (DB.6): the code that wrote `galaxy_seed` -- the version key
+    -- (MAJOR 4, REVISION 4, BUILD 6, Python 2+2+2, OS 1, architecture 1
+    -- hex digits), the full release, Python version and platform.
+    version_key                     CHAR(22),
+    planetgen_version               VARCHAR(32),
+    python_version                  VARCHAR(16),
+    platform                        VARCHAR(64)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per layer that holds content (v33; replaces v32's
@@ -2483,6 +2500,33 @@ CREATE TABLE IF NOT EXISTS bright_star_blocks (
     updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (block_ring, block_wedge, block_slab)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- generation_runs (v52, DB.6): one row per `generate.py` run that changes
+-- the galaxy, written when it starts and finished when it ends: its
+-- subcommand and command line (JSON, without the --mysql-* and --debug
+-- options), the run's own 128-bit seed (what a random start or a
+-- one-off system draws from) and the galaxy seed it ran against, the
+-- code's version key and versions, and the outcome (`ok`, `failed`,
+-- `interrupted`; NULL while it runs or when it died without saying).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS generation_runs (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    command              VARCHAR(32) NOT NULL,
+    arguments            TEXT NOT NULL,
+    run_seed             BINARY(16),
+    galaxy_seed          BINARY(16),
+    version_key          CHAR(22) NOT NULL,
+    planetgen_version    VARCHAR(32) NOT NULL,
+    python_version       VARCHAR(16) NOT NULL,
+    platform             VARCHAR(64) NOT NULL,
+    started_at           TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    finished_at          TIMESTAMP(3) NULL,
+    outcome              VARCHAR(16),
+
+    KEY idx_generation_runs_started_at (started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

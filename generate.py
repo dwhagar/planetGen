@@ -4447,6 +4447,7 @@ def main():
         activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
     root = _open_run_node(args, database) if logged else None
+    history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
     try:
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
@@ -4469,6 +4470,8 @@ def main():
     finally:
         if root is not None:
             workQueue.close_node(root, {"ok": "done", "interrupted": "cancelled"}.get(status, "failed"))
+        if history is not None:
+            _finish_history(args, history, status)
         if logged:
             activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
@@ -4513,6 +4516,42 @@ def _open_run_node(args, database):
     except AttributeError:  # a subcommand without the --mysql-* options
         control = _db.control_mysql_config()
     return workQueue.open_node(args.command, title, control, argv=argv, database=database)
+
+
+def _start_history(args, run_seed):
+    """
+    Records this run in the galaxy's run history (`generation_runs`, DB.6):
+    its subcommand and command line (`_run_argv`), its own seed, and the
+    code's version key. A galaxy is built by a series of runs, not by its
+    seed alone, so this is what a rebuild replays. Never stops the run.
+
+    Returns:
+        int or None: The row's id, or `None` when it couldn't be written.
+    """
+    try:
+        conn = _db.get_connection(_db.mysql_config_from_args(args))
+    except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors
+        log.debug(f"Run history: can't open the database ({exc}).")
+        return None
+    try:
+        return _db.start_generation_run(conn, args.command, _run_argv(sys.argv[1:]), run_seed)
+    except Exception as exc:  # noqa: BLE001 -- the history never fails a run
+        log.debug(f"Run history: can't record this run ({exc}).")
+        return None
+    finally:
+        conn.close()
+
+
+def _finish_history(args, run_id, status):
+    """Records how the run ended (`_start_history`); never raises."""
+    try:
+        conn = _db.get_connection(_db.mysql_config_from_args(args))
+        try:
+            _db.finish_generation_run(conn, run_id, status)
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- the history never fails a run
+        log.debug(f"Run history: can't record how this run ended ({exc}).")
 
 
 def _run_user():
