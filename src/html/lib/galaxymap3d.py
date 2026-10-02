@@ -227,7 +227,10 @@ def _tile_level_for_view_radius(radius_pc):
         return TILE_MAX_LEVEL
     if math.isinf(radius_pc):
         return 0
-    return max(0, min(TILE_MAX_LEVEL, math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))))
+    ratio = TILE_ROOT_EDGE_PC / radius_pc
+    if math.isinf(ratio):
+        return TILE_MAX_LEVEL
+    return max(0, min(TILE_MAX_LEVEL, math.floor(math.log2(ratio))))
 
 
 def _tiles_intersecting_sphere(level, center_pc, radius_pc):
