@@ -170,7 +170,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.89, MAP.71 | MAP.57, MAP.88, MAP.92 done (PR #405); MAP.89 next in phase 1. |
-| galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Galaxy Map follow-ups, then the drill-down lane, then MAP.86 (stats lane), then MAP.95 and phase 2. |
+| galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Follow-ups and drill-down lanes done (PRs #395, #399, #408, #410, #413); MAP.86 (stats lane) next, then MAP.95 and phase 2. |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 (phase 0) | In that order; any payload change bumps the tile cache. |
 | bookmarks.js, nav_page.py | NAV.18, USR.7, NAV.19 | NAV.40 done (PR #399). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Later items in the engine thread. |

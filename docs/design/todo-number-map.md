@@ -555,8 +555,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
 | MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | done, PR #369 |
-| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | open |
-| MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
+| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | done, PR #410 |
+| MAP.54 | Slab leader lines instead of the slab slider (bug) | none | done, PR #410 |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | done, PR #408 |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | done, PR #405 |
@@ -578,9 +578,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.73 | Free camera on the shared engine | none | open |
 | MAP.74 | The 3D view on the system page, the flat diagram kept | none | open |
 | MAP.75 | The mini map as a second engine view | none | open |
-| MAP.76 | Leader-line layout | none | open |
-| MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | open |
-| MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
+| MAP.76 | Leader-line layout | none | done, PR #410 |
+| MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | done, PR #410 |
+| MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | done, PR #410 |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
 | MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | done, PR #351 |
@@ -598,8 +598,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
 | MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
-| MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | open |
-| MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | open |
+| MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | done, PR #413 (open: keep the rotation in the URL and bookmarks? Not stored today) |
+| MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | done, PR #413 (defaults: a manual turn does not carry to the next step; Reset view returns to the step's preset) |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |

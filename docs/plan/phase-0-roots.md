@@ -12,25 +12,13 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405).
+Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405) and the Galaxy Map drill-down lane (PRs #408, #410, #413).
 
 ## Threads
 
 Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
-
-### Galaxy Map drill-down
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| MAP.76 | Leader-line layout |  | Moved to phase 0 as groundwork: the layout half of MAP.54, same PR. Layout half of MAP.54; same PR. |
-| MAP.54 | Slab leader lines instead of the slab slider (bug) | MAP.76 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. |
-| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) |  | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Rotation and fit on MAP.64's controller. |
-| MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | MAP.53 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. The fit itself; with MAP.53. |
-| MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) |  | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Which lines show at each level, once the ladder and ghost exist. Dependency on MAP.59 dropped: slab-only lines need no ghost; MAP.59 keeps this rule instead. |
-| MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | MAP.53 | Boss 05:12Z. clampTilt (TOP_DOWN_PHI to MAX_TILT 80 deg) in galaxystageview.js; turn any way at every level, trackball-style; picks keep working. |
-| MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | MAP.96 | Boss 05:12Z. cameraFor presets: galaxy and slab top-down (replaces GALAXY_TILT 35 deg), block isometric, animated both ways; open questions on carrying a manual turn over and returning to the preset. |
 
 ### Generation bugs
 
@@ -102,18 +90,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
-#395, #399), Binary pairs (PRs #393, #398, #403) and System Map (PR
-#405). Galaxy Map drill-down (MAP.56 done, PR #408) and Generation
-bugs are running. Then the lanes start in the order above as a slot
-frees: Sector stats and colors (MAP.80 and
-MAP.86 after the drill-down merges), Routing groundwork, Sector and
+#395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
+#405) and Galaxy Map drill-down (PRs #408, #410, #413). Generation
+bugs and Sector stats and colors are running. Then the lanes start
+in the order above as a slot frees: Routing groundwork, Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
 not approved yet), Small page bugs, and Ops and flakes last. NAV.7
 and DB.8 open phase 1.
 
 ## Open questions for Boss
 
-- MAP.54: Slab leader lines instead of the slab slider (bug), see its entry in TODO.md.
-- MAP.53: Rotate a zoomed-in wedge, and zoom it to fit the window (bug), see its entry in TODO.md.
-- MAP.97: The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug), see its entry in TODO.md.
 - PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
