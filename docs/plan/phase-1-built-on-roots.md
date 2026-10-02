@@ -67,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | MAP.90 | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
 
 ### References
 
