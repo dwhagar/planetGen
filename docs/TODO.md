@@ -1603,7 +1603,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
 
-- [ ] **GEN.64 A 64-bit position ID as the name of every interstellar object and bright-sweep system**
+- [ ] **GEN.64 A packed position ID as the name of every interstellar object and bright-sweep system**
   Boss (2026-10-02 05:32Z, in the naming-cost analysis thread): "ok so
   let's do this.  let's create a bitmapped hex field.  So, each rogue
   planet will have a location relative to the center of the galaxy, take
@@ -1616,23 +1616,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector space (no solar system objects).  Then replace all names of
   interstellar objects other than star systems (this even goes for stars
   generated in the brightness sweep, will use that ID as their name."
-  Layout decided by Boss at 05:36Z (relayed by the coordinator): 64
-  bits, packed from the object's position relative to the galaxy's
-  center: type 4 bits, distance unit 3 bits (Gpc, Mpc, kpc, pc, cpc,
-  mpc), distance 17 bits, bearing 20 bits, mark 20 bits; stored as
-  `BIGINT`, shown as 16 hex digits. Done: every interstellar object
+  Layout first decided by Boss at 05:36Z (relayed by the coordinator):
+  64 bits, type 4, distance unit 3 (Gpc, Mpc, kpc, pc, cpc, mpc),
+  distance 17, bearing 20, mark 20, bumping the lowest bit on a clash.
+  Changed by Boss at 06:44Z: "ok instead of ID II add another 2 bits so
+  that is our collision number we can have up to 4 collisions and then
+  another 2 bits to object types so that it includes remnant core
+  objects as well  so that we just have bits expressed in hex." and
+  06:48Z: "You know what let's also add 2 bits to each of the 3
+  coordinates (x mark y distance z) so we can include and another 2
+  bits to our duplicate counter." Layout now, as the analysis thread
+  reports it (final numbers confirmed in PR #406): type 6 bits (remnant
+  cores are their own type), distance unit 3 bits, collision counter 4
+  bits (up to 16 objects per cell), distance 19 bits, bearing 22 bits,
+  mark 22 bits: 76 bits, shown as 19 hex digits, so it no longer fits
+  one `BIGINT` column. Done: every interstellar object
   (rogue planets, black holes, neutron stars, nebulae, supernova
-  remnants, quasars, interstellar comets, asteroid fields) and every
-  system made by the bright-star sweep gets this ID, and the ID is its
-  name; ordinary star systems keep their names; a rogue planet's moons
-  are named for its ID plus a letter; these objects no longer go through
-  the name registry (`_db.reserve_system_names` and the Greek and Roman
-  collision decorations); in the rare case two objects pack to the same
-  ID, the one later in sector order bumps its lowest bit until it is
-  free, so the result does not depend on generation order; search,
-  pages, the API and the maps show the 16-digit form; a test packs and
+  remnants and their cores, quasars, interstellar comets, asteroid
+  fields) and every system made by the bright-star sweep gets this ID,
+  and the ID is its name; a remnant's core has its own ID rather than
+  an "<ID> Core" name; ordinary star systems keep their names; a rogue
+  planet's moons are named for its ID plus a letter; these objects no
+  longer go through the name registry (`_db.reserve_system_names` and
+  the Greek and Roman collision decorations); when objects pack to the
+  same cell, the collision counter numbers them in sector order, so the
+  result does not depend on generation order; search, pages, the API
+  and the maps show the 19-digit form; a test packs and
   unpacks positions at each unit and checks a forced clash. Being built
-  now by the analysis thread (2026-10-02 05:36Z). Related: TEST.85 (done,
+  now by the analysis thread (draft PR #406). Related: TEST.85 (done,
   PR #403: its registry path no longer serves these objects; the fix
   still matters for named star systems), GEN.57 (name clashes keyed on address: these
   objects no longer have name clashes to settle), GEN.63 (planet names
