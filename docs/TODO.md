@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so is the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403). | MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405). | MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -556,51 +556,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outlined on the map, not one cube.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
-- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
-  Found by the generation tests (2026-10-01): a body whose computed
-  position is NaN or infinite is written straight into the System
-  Map's SVG. Done: such a body is left out or drawn at a safe place
-  with a note, the SVG never holds NaN or inf, and the strict xfail
-  test for it passes.
-
-- [ ] **MAP.88 Parts of a star system run off the edge of the System Map (bug)**
-  Boss (2026-10-02 00:49Z): "sometimes the star systems go off the edge
-  for planets and such, the window should be scaled down so that we
-  don't run any part of the star system past the outer edge of the
-  viewing space." Today the System Map (`lib/systemmap.py`) draws into a
-  fixed 700 px square viewBox: each body's distance from its anchor is
-  log-scaled out to `_MIN_RADIUS_PX + _RADIUS_SPREAD_PX` (335 px from the
-  center), then moons are placed around their planets, belts get a band,
-  and `_relax_markers` pushes crowded markers apart, all of which can
-  carry an outer planet, its moons or its marker past the frame; only
-  the labels are slid back inside it (MAP.50). Done: after everything is
-  placed, the map works out the drawn extent of every star, planet,
-  moon, belt, facility and marker (with its radius) and scales the
-  whole scene down to fit the frame with a small margin, so nothing
-  ever runs past the edge, with a test over many generated systems that
-  every drawn element sits inside the viewBox. Separate from the orbit
-  spacing study (the "Orbit spacing options" thread), which may change
-  how the same map spaces orbits; whichever lands second keeps this
-  fit.
-
-- [ ] **MAP.92 The System Map's side panel leaves out a planet's or moon's radius and mass (bug)**
-  Boss (2026-10-02 04:29Z): "Add TODO items for bugfix, planet and moon
-  data on the side-bar when you tap or click on a planet or moon, it
-  should show the radius and mass as well as the information it shows
-  now." Checked on main: `showInfo` in `static/systemmap.js` fills the
-  side panel for a star with its mass and radius, but for a planet or
-  moon only with class, type, zone, distance, period, gravity,
-  atmosphere, surface composition and temperature, life chemistry and
-  moons or host; `lib/systemmap.py` puts no mass or radius on the
-  marker (only the raw `radiuskm` for routing), though both are stored
-  (`mass_kg`, `radius_km`). Done: clicking or tapping a planet or moon
-  shows everything it shows today plus its radius and mass, formatted
-  in the server like the other fields (default taken: radius in km with
-  Earth radii, mass in Earth masses, Jupiter masses for gas giants),
-  for planets, moons and a drilled-into planet in its moon scene; a
-  test checks the two fields on a planet and a moon. Same files as
-  MAP.57 and MAP.88, so it follows them in the System Map lane.
-
 - [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
   Boss (2026-10-02 04:29Z, with MAP.93, done in PR #399): "we'll keep track of back and
   forth so we can always undo our last zoom, and we'll use that for the
@@ -713,9 +668,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     p = 1; a huge-span system falls back to log; JavaScript and Python
     give the same pixel radius for the same knots.
   - Before and after screenshots of the six system types in the study.
-  Separate from MAP.88 (fit the whole drawn system inside the frame);
-  both change `lib/systemmap.py`, and whichever lands second keeps the
-  other working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
+  Builds on MAP.88 (fit the whole drawn system inside the frame; done,
+  PR #405) in the same `lib/systemmap.py`, and keeps that fit working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
   with fitted for the orbital spacing in MAP.89"): fitted scale with the
   12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
