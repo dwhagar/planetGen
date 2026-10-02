@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.149.469] - 2026-10-02
+
+### Fixed
+- **Bookmarks work while picking a course (NAV.40).** While choosing a NAV start or destination, every bookmark keeps the pick and the end already chosen: in the Galaxy Map's Bookmarks menu (and its 1 to 9 keys) a system or phenomenon bookmark sets that end and opens the course, a sector bookmark opens that sector's page in pick mode, and a saved map view opens the Galaxy Map there, still picking. The sector page in pick mode now has a Bookmarks menu that works the same way, the NAV page's Bookmarks select also lists saved map views, and the course page offers bookmarks to change either end. The Galaxy Map also keeps the pick in its own URL as it moves, so Back or a reload no longer drops it.
+
 ## [7.148.469] - 2026-10-02
 
 ### Changed
