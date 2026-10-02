@@ -492,6 +492,8 @@ function showInfo(el) {
   } else {
     addField(dl, "Class", classField(el));
     addField(dl, "Type", el.dataset.bodytype);
+    addField(dl, "Radius", el.dataset.radius);
+    addField(dl, "Mass", el.dataset.mass);
     addField(dl, "Zone", el.dataset.zone);
     addField(dl, "Distance", el.dataset.distance);
     addField(dl, "Period", el.dataset.period);

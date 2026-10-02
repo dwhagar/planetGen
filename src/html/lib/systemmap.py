@@ -80,7 +80,7 @@ import statistics
 from fmt import esc, format_distance_km, format_speed_kms, format_temperature_k
 from starmap import _star_color, _SUN_RADIUS_KM
 from tabledisplay import (
-    format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
+    format_body_distance, format_body_mass, format_body_radius, format_period, format_star_luminosity, format_star_mass, format_star_radius,
     to_plain_text,
 )
 
@@ -787,6 +787,10 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         # sphere in `static/systemmap.js` (`#sysmap-spheres-canvas`).
         "color": _class_color(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
+        # MAP.92: the side panel's radius and mass, formatted here like
+        # every other field.
+        "radius": to_plain_text(format_body_radius(planet.get("radius_km"))),
+        "mass": to_plain_text(format_body_mass(planet.get("mass_kg"), planet["body_type"] == "g")),
         "zone": _ZONE_LABELS.get(planet["zone"], ""),
         "distance": to_plain_text(format_body_distance(planet["distance_km"], planet.get("_is_moon", False))),
         "period": format_period(planet["period_years"]),

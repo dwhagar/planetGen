@@ -738,3 +738,36 @@ def test_wide_binary_companion_marker_carries_the_real_separation_not_its_drawn_
     # The primary, in its own "system" scene, is always the local origin.
     assert 'data-xkm="0.0"' in html
     assert 'data-ykm="0.0"' in html
+
+
+# --- MAP.92: radius and mass in the side panel --------------------------------
+
+def _marker_attrs(html, kind, body_id):
+    tag = re.search(r'<g class="sysmap-body[^"]*"[^>]*data-kind="%s" data-id="%d"[^>]*>' % (kind, body_id), html)
+    assert tag, (kind, body_id)
+    return dict(_ATTR.findall(tag.group(0)))
+
+
+def test_planet_and_moon_markers_carry_radius_and_mass():
+    moon = dict(_moon(7, 4e5, 0.0, radius_km=1737.0), mass_kg=7.35e22)
+    earth = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon]), mass_kg=5.972e24)
+    giant = dict(_planet(2, 10, 5 * AU_KM, 0.0, radius_km=69_911.0, planet_class="J", body_type="g"),
+                 mass_kg=1.898e27)
+    html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [earth, giant], [])
+    planet = _marker_attrs(html, "planet", 1)
+    assert planet["data-radius"] == "6.37 × 10³ km (1.00 Earth radii)"
+    assert planet["data-mass"] == "5.97 × 10²⁴ kg (1.00 Earth masses)"
+    assert _marker_attrs(html, "planet", 2)["data-mass"] == "1.90 × 10²⁷ kg (1.00 Jupiter masses)"
+    moon_attrs = _marker_attrs(html, "moon", 7)
+    assert moon_attrs["data-radius"] == "1.74 × 10³ km (0.273 Earth radii)"
+    assert moon_attrs["data-mass"] == "7.35 × 10²² kg (0.0123 Earth masses)"
+    # The planet drilled into, at the center of its moon scene, too.
+    center = re.search(r'<g class="sysmap-body sysmap-planet" [^>]*data-self="true"[^>]*>', html).group(0)
+    assert 'data-mass="5.97 × 10²⁴ kg (1.00 Earth masses)"' in center
+
+
+def test_unknown_radius_and_mass_show_a_dash():
+    planet = dict(_planet(1, 10, AU_KM, 0.0, radius_km=None), mass_kg=None)
+    html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [planet], [])
+    attrs = _marker_attrs(html, "planet", 1)
+    assert attrs["data-radius"] == attrs["data-mass"] == "–"
