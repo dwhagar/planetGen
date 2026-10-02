@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91, NAV.40, NAV.41 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91, NAV.40, NAV.41, UX.36, MAP.92, MAP.93, MAP.94, MAP.95 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63, NAV.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -413,6 +413,22 @@ with `clamp()`.
   list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
+- [ ] **UX.36 Scientific notation starts too early for whole numbers (bug)**
+  Boss (2026-10-02 04:29Z): "Also another bugfix TODO item, scientific
+  notation for numbers doiesn't start until it gets passed the 6th
+  digit when decimals are not used, and the 4th when decimals are
+  used." Checked on main: both copies of the formatter (`formatNumber`
+  and `threeFigures` in `static/numberformat.js`, `format_number` and
+  `_three_figures` in `src/stellarObjects/utils.py`, kept in step by
+  `tests/test_number_format.py`, from UX.20) switch to scientific
+  notation at 5 whole digits (`SCIENTIFIC_MIN_INTEGER_DIGITS = 5`)
+  whether or not the number shows decimals. Done: a number shown with
+  no decimals stays in plain digits up to 6 whole digits (999,999) and
+  goes scientific from 7; a number shown with decimals keeps today's
+  rule (scientific from 5 whole digits); both copies change together
+  and the shared test covers 6- and 7-digit whole numbers and 4- and
+  5-digit decimals. UX.23's unit ladder keeps this rule.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -539,6 +555,82 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   covers hover on a slab at each level. MAP.54's slab buttons, MAP.56's
   ladder and MAP.77's slab-only lines keep this hover.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 5.2 and 15.3
+
+- [ ] **MAP.92 The System Map's side panel leaves out a planet's or moon's radius and mass (bug)**
+  Boss (2026-10-02 04:29Z): "Add TODO items for bugfix, planet and moon
+  data on the side-bar when you tap or click on a planet or moon, it
+  should show the radius and mass as well as the information it shows
+  now." Checked on main: `showInfo` in `static/systemmap.js` fills the
+  side panel for a star with its mass and radius, but for a planet or
+  moon only with class, type, zone, distance, period, gravity,
+  atmosphere, surface composition and temperature, life chemistry and
+  moons or host; `lib/systemmap.py` puts no mass or radius on the
+  marker (only the raw `radiuskm` for routing), though both are stored
+  (`mass_kg`, `radius_km`). Done: clicking or tapping a planet or moon
+  shows everything it shows today plus its radius and mass, formatted
+  in the server like the other fields (default taken: radius in km with
+  Earth radii, mass in Earth masses, Jupiter masses for gas giants),
+  for planets, moons and a drilled-into planet in its moon scene; a
+  test checks the two fields on a planet and a moon. Same files as
+  MAP.57 and MAP.88, so it follows them in the System Map lane.
+
+- [ ] **MAP.93 The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug)**
+  Boss (2026-10-02 04:29Z): "Another bugfix for the breadcrumb trail,
+  when you get over a number of steps based on the screen size (i.e. on
+  my phone probably only show back and forward buttons but on my
+  computer I can fit a certain amount, basically the idea is that the
+  breadcrumbs should never be more than a single line and thus the
+  middle has to automatically collapse so we get the beginning ... last
+  few before where you are now. ... is a button that pulls up a menu of
+  the contained steps, that menu is not available on a phone screen but
+  instead there's a circle button between the two arrows at the top and
+  the circle is the menu and there's also a 'go back to start' button
+  and we'll keep track of back and forth so we can always undo our last
+  zoom, and we'll use that for the forward if we just went back we get
+  to go back forward again and that also need a 'forward to current'
+  button."
+  Checked on main: the breadcrumb (`renderCrumbs` in
+  `static/galaxystageview.js`, `.galaxy-crumbs` in `static/style.css`)
+  is a flex list with `flex-wrap: wrap`, so a deep drill-down wraps
+  onto two or more lines (the `.galaxy-crumb-menu` styles there are
+  left over and used by nothing). Done: the breadcrumb always fits on one line
+  at any width: when the steps don't fit, it shows the first step, a
+  "…" button, and as many of the last steps before the current one as
+  fit, then the current one; the number shown follows the space
+  available (measured, not a fixed count per device) and re-fits on
+  resize; "…" opens a menu of the hidden steps, each one going to that
+  step; the bookmark ☆ stays on the line. A browser test checks one
+  line at phone and desktop widths on the deepest stage. Split from
+  Boss's message: the phone layout is MAP.94, the "Forward to current"
+  button MAP.95. The map's Back and Forward history already exists
+  (MAP.26, PR #208) and Reset already goes back to the whole galaxy
+  (MAP.55, PR #369), so those parts need nothing new. NAV.14 carries
+  this breadcrumb to the other pages.
+
+- [ ] **MAP.94 On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug)**
+  Boss (2026-10-02 04:29Z, with MAP.93): "that menu is not available on
+  a phone screen but instead there's a circle button between the two
+  arrows at the top and the circle is the menu and there's also a 'go
+  back to start' button". Done: at phone width the breadcrumb line is
+  replaced by the map's Back and Forward arrows with a round button
+  between them that opens the same menu of steps as MAP.93's "…", plus
+  the current step; the "go back to start" button is MAP.55's Reset
+  (back to the whole galaxy), kept beside the arrows at that width.
+  Uses UX.28's icons when they exist. A browser test at phone width.
+  Prerequisite: MAP.93.
+
+- [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
+  Boss (2026-10-02 04:29Z, with MAP.93): "we'll keep track of back and
+  forth so we can always undo our last zoom, and we'll use that for the
+  forward if we just went back we get to go back forward again and that
+  also need a 'forward to current' button." Checked on main: the map's
+  Back and Forward (MAP.26) already walk its own history (`mapIndex`
+  and `maxIndex` on browser history entries in
+  `static/galaxystageview.js`), so undoing a zoom and redoing it work
+  today. Done: a "Forward to current" button beside Forward jumps
+  straight to the newest view in that history (`maxIndex`), disabled
+  when already there, on desktop and in MAP.94's phone layout. A
+  browser test goes in three levels, back two, and forward to current.
 
 - [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
   Boss (2026-10-02 00:45Z): "investigate different ways to space orbits
@@ -950,6 +1042,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     breadcrumb component built from the reference's parent chain, the
     same on the Galaxy Map, the sector, the system page and the NAV
     page.
+    It keeps MAP.93's one-line collapse and MAP.94's phone layout on
+    every page (Boss 04:29Z: "the breadcrumbs should never be more
+    than a single line").
 
   - [ ] **NAV.15 Pick mode everywhere**
     Today pick mode (choose a NAV start or destination) exists on the
