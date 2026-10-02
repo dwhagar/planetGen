@@ -238,15 +238,10 @@ export function createStageView(host) {
   // (no shape yet), only blocks holding generated sectors.
   function choicesOf(r, data) {
     let options = r.kind ? r.options : [{ pick: null, blocks: r.view.blocks, a0: r.view.a0, a1: r.view.a1 }];
-    if (isCube(r)) {
-      // Every sector is a choice of its own; the strip still offers the
-      // layers (r.options).
-      options = r.view.blocks.map(function (block) {
-        return { pick: null, blocks: [block], a0: r.view.a0, a1: r.view.a1 };
-      });
-    } else if (r.kind === "layer") {
+    if (r.kind === "layer") {
       // One choice per slab, lowest first, so the slab slider beside the
-      // map can take any one of them (not just thirds).
+      // map can take any one of them (not just thirds). The cube too: a
+      // whole slab is lit and picked, never one of its sectors (MAP.91).
       options = slabsIn(r.view.blocks).map(function (slab) {
         return {
           pick: { kind: "layer", lo: slab, hi: slab },
@@ -628,8 +623,7 @@ export function createStageView(host) {
   }
 
   // The choice under a screen point (an index into display.options), or
-  // -1. Layers are picked from the strip, not the map: from above, one
-  // covers the others.
+  // -1; while the pick is a slab, the slab of the block under it.
   function optionAt(clientX, clientY) {
     // Below the whole galaxy the view is slanted, so the block under the
     // pointer picks its layer too.
@@ -724,7 +718,9 @@ export function createStageView(host) {
     const mid = (option.a0 + option.a1) / 2;
     const span = spanOf(option.blocks, mid);
     const isArc = option.pick && option.pick.kind === "arc";
-    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, isArc ? span : null), 1);
+    // An arc or a slab is outlined round its whole height (MAP.91).
+    const walls = isArc || (option.pick && option.pick.kind === "layer");
+    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, walls ? span : null), 1);
     if (!isArc) return;
     neighborArcs(option.pick.n).forEach(function (n) {
       const other = display.options.find(function (o) { return o.pick && o.pick.kind === "arc" && o.pick.n === n; });
@@ -752,8 +748,8 @@ export function createStageView(host) {
   }
 
   // The hovered choice stays as it is and the others fade (a layer
-  // hovered in the strip too: in the cube, its sectors stay); a choice on
-  // the map gets an outline.
+  // hovered in the strip too); a choice on the map gets an outline, a
+  // slab round all its blocks (MAP.91).
   function applyHover() {
     if (!display) return;
     const index = hover && hover.option != null ? hover.option : -1;
@@ -765,14 +761,13 @@ export function createStageView(host) {
     });
     if (!animation) setDisplayFade(display, 1);
     const option = index >= 0 ? display.options[index] : null;
-    if (option && (resolved.kind !== "layer" || isCube(resolved))) {
+    if (option) {
       outlineOption(index);
     } else {
       clearOutline();
     }
     let row = layer;
-    if (!row && option && isCube(resolved)) row = { lo: option.blocks[0].slab, hi: option.blocks[0].slab };
-    else if (!row && option && resolved.kind === "layer" && option.pick) row = { lo: option.pick.lo, hi: option.pick.hi };
+    if (!row && option && resolved.kind === "layer" && option.pick) row = { lo: option.pick.lo, hi: option.pick.hi };
     markStripRow(row);
   }
 
@@ -910,8 +905,7 @@ export function createStageView(host) {
   function baseHint(r) {
     if (!r || !r.kind) return "";
     if (isCube(r)) {
-      return "Click a sector to open it (a sector that isn't generated yet shows where it is"
-        + (host.canGenerate ? " and how to generate it" : "") + "), or pick a layer with the slider to see just that one.";
+      return "Click a layer of sectors on the map, or pick one with the slider beside the map, to see just that layer.";
     }
     if (r.kind === "layer") {
       return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the slider beside the map.";
@@ -929,7 +923,9 @@ export function createStageView(host) {
   function act(index) {
     if (!pickable(index)) return;
     const option = display.options[index];
-    if (option.blocks.length === 1 && option.blocks[0].m === 1) {
+    // One sector is opened, unless it is all of a slab to pick (MAP.91).
+    const slabPick = option.pick && option.pick.kind === "layer";
+    if (!slabPick && option.blocks.length === 1 && option.blocks[0].m === 1) {
       const block = option.blocks[0];
       const sector = sectorRecord(block);
       if (sector && host.sectorUrl(sector.id)) {
@@ -937,16 +933,6 @@ export function createStageView(host) {
         return;
       }
       selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
-      if (isCube(resolved)) {
-        // Picked in the cube: on to that sector's own layer, selected.
-        const layerPick = resolved.options.find(function (o) {
-          return block.slab >= o.pick.lo && block.slab <= o.pick.hi;
-        });
-        if (layerPick) {
-          go({ at: stage.at, picks: stage.picks.concat([layerPick.pick]) }, { keepSector: true });
-          return;
-        }
-      }
       setHover({ option: index, sticky: true });
       showSectorInfo(block);
       renderCrumbs();
@@ -1108,14 +1094,6 @@ export function createStageView(host) {
     let next = -1;
     if (current < 0) {
       next = 0;
-    } else if (isCube(resolved) && (key === "ArrowUp" || key === "ArrowDown")) {
-      // The same column, one layer up or down.
-      const here = options[current].blocks[0];
-      const slab = here.slab + (key === "ArrowUp" ? 1 : -1);
-      next = options.findIndex(function (o) {
-        const b = o.blocks[0];
-        return b.ring === here.ring && b.wedge === here.wedge && b.slab === slab;
-      });
     } else if (resolved.kind === "layer" || key === "ArrowLeft" || key === "ArrowRight") {
       const forward = key === "ArrowRight" || key === "ArrowUp";
       next = (current + (forward ? 1 : -1) + options.length) % options.length;
@@ -1211,7 +1189,7 @@ export function createStageView(host) {
   // or Open takes it. Otherwise it says which layers the view holds.
   function sliderChoices() {
     if (!resolved || resolved.kind !== "layer" || !display || display.resolved !== resolved) return null;
-    return isCube(resolved) ? resolved.options : display.options;
+    return display.options;
   }
 
   let stripShow = null;

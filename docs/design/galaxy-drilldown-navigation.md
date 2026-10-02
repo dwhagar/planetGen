@@ -294,10 +294,10 @@ Two shortcuts (Boss, 2026-10-01):
 - **The last cube is picked in 3D.** Once the view is the sectors of a
   level-3 block across several layers (27 at most), it is shown from a
   fixed 55° slant with its layers touching (no space between blocks or
-  layers anywhere on the map, Boss 2026-10-01), so
-  every sector can be hovered (the others fade) and clicked on the map.
-  The strip still offers the layers. Clicking a sector moves on to its
-  own layer with it selected, or opens it when it is generated. The cube
+  layers anywhere on the map, Boss 2026-10-01). The next pick is still a
+  layer, so hovering any sector lights and outlines its whole layer
+  (the others fade) and a click picks that layer, the same one the strip
+  marks (MAP.91); the layer then shows its sectors one by one. The cube
   can be turned like any view below the quarters.
 
 The admin Generate tools (section 6) appear once the view is one layer
@@ -353,10 +353,10 @@ of a level-3 block.
   and a bar of its generated share. Dragging it or its arrow keys dim
   the other slabs on the map; letting go, Enter or its Open button takes
   the slab, and hovering a slab on the map moves the slider there. At
-  other stages it says which layers the view holds. Planned (MAP.91,
-  Boss 2026-10-02): hovering any cube of a slab on the map lights and
-  outlines the whole slab, at every level including the 3 by 3 by 3
-  view, where today one cube is outlined. This is the paper's
+  other stages it says which layers the view holds. Hovering any cube
+  of a slab on the map lights the whole slab and outlines it round its
+  full height, at every level including the 3 by 3 by 3 view (MAP.91,
+  Boss 2026-10-02). This is the paper's
   elevation panel, and it gives keyboard and screen-reader users the
   same choice. The map beside it is 4:3 and no taller than the window
   (1:1 on a phone).
