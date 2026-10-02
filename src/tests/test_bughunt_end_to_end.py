@@ -14,7 +14,7 @@ it properly" (the request this whole pass was scoped from) means taken
 literally.
 """
 
-from tests.bughunt_support import mysql_argv, run_cli
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.webpage_support import live_api  # noqa: F401
 
 
@@ -65,10 +65,11 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
 
 def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):
     sector_name = "Bughunt E2E Sector"
-    run_cli(
-        "sector",
-        ["--name", sector_name, "--num-systems", "2", "-planets"] + mysql_argv(mysql_config),
-    )
+    with forced_system_config(PLANETS=False):
+        run_cli(
+            "sector",
+            ["--name", sector_name, "--num-systems", "2"] + mysql_argv(mysql_config),
+        )
 
     conn = _db_get_connection(mysql_config)
     try:

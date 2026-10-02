@@ -339,6 +339,20 @@ class TristateAction(argparse.Action):
         setattr(namespace, self.dest, option_string.startswith('+'))
 
 
+class SingleSystemOnlyAction(argparse.Action):
+    """
+    A forcing option (`+name`/`-name`) given to `sector` or `galaxy`: it
+    applies only to a single system now (GEN.51), so the run stops with a
+    message naming the option rather than argparse's bare "unrecognized
+    arguments" -- which is what a queued or saved command line from before
+    the change would otherwise get.
+    """
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        parser.error(f"{option_string} forces one system, so it only works with 'generate.py system' "
+                     f"(and the one-off system page); sector and galaxy runs no longer take forcing options.")
+
+
 def finite_float(text):
     """
     `argparse` type for every float option: a plain `float`, but NaN and
@@ -838,11 +852,13 @@ def add_shared_generation_options(parser):
                                           (`prefix_chars='-+'`) for the
                                           tri-state options below.
     """
-    for name, _attr, description in TRISTATE_OPTIONS:
-        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=TristateAction,
-                            nargs=0, default=None,
-                            help=f"+{name} forces every system in the sector to have {description}; "
-                                 f"-{name} forces every system in the sector to not have {description}.")
+    # The forcing options are for a single system only (GEN.51). They stay
+    # registered, hidden, so one given here gets a clear error, and their
+    # attributes stay None ("let the generator decide") for
+    # build_system_config.
+    for name, _attr, _description in TRISTATE_OPTIONS:
+        parser.add_argument(f'-{name}', f'+{name}', dest=name, action=SingleSystemOnlyAction,
+                            nargs=0, default=None, help=argparse.SUPPRESS)
 
     parser.add_argument('--num-systems', type=int, default=None,
                         help="The exact number of star systems to generate in the sector. Cannot be "
@@ -930,20 +946,8 @@ def validate_shared_generation_args(args, parser):
     if args.min_habitable < 0:
         parser.error("--min-habitable cannot be negative.")
 
-    if args.min_habitable > 0 and args.habitable_world is False:
-        parser.error("--min-habitable cannot be combined with -habitable_world.")
-
-    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
-        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
-
-    if args.star_type and args.large_star:
-        parser.error("--star-type cannot be combined with +large_star.")
-
     _validate_star_type(args, parser)
     _validate_name(args, parser)
-
-    if args.intelligent_life is not None and args.habitable_world is False:
-        parser.error("+intelligent_life/-intelligent_life cannot be combined with -habitable_world.")
 
     if args.flavor_chance_system is not None and not (0.0 <= args.flavor_chance_system <= 1.0):
         parser.error("--flavor-chance-system must be a float between 0.0 and 1.0.")
@@ -1012,12 +1016,11 @@ def validate_sector_args(args, parser):
 def build_sector_configs(args):
     """
     Builds one `SystemConfig` per system in the sector, sharing the same
-    tri-state/value options across all of them (via `build_system_config`,
-    so this can never silently drift from what those options mean for a
-    single system), then -- if `--min-habitable` was given and not
-    already guaranteed by a uniform `+habitable_world` -- forces
-    `HABITABLE_WORLD = True` on that many randomly-chosen configs among
-    the rest.
+    value options across all of them (via `build_system_config`, so this
+    can never silently drift from what those options mean for a single
+    system; sector runs take no forcing options, GEN.51), then -- if
+    `--min-habitable` was given -- sets `HABITABLE_WORLD = True` on that
+    many randomly-chosen configs.
 
     Args:
         args (argparse.Namespace): Parsed arguments, with
@@ -1045,9 +1048,8 @@ def iter_sector_configs(args):
     configs one at a time, so a huge count (`--num-systems 1000000000`,
     or a huge `--density` draw) never builds them all up front --
     `generate_sector` stops pulling once the sector is full. Every config
-    comes from the same `args`, so they share one `HABITABLE_WORLD`
-    value; the `--min-habitable` indices are therefore chosen (and any
-    conflict reported) before the first config is yielded.
+    comes from the same `args`; the `--min-habitable` indices are chosen
+    (and any conflict reported) before the first config is yielded.
 
     Raises:
         SystemExit: As `build_sector_configs`.
@@ -1066,24 +1068,13 @@ def iter_sector_configs(args):
 
     first = build_system_config(args)
     forced = set()
-    if args.min_habitable > 0 and first.HABITABLE_WORLD is not True:
+    if args.min_habitable > 0:
         forced = set(random.sample(range(count), k=args.min_habitable))
-        # Mirrors build_system_config's own habitable-world + asteroid-belt
-        # normalization, reapplied here since it ran before this override.
-        if first.ASTEROID_BELT is True and first.LARGE_STAR is False:
-            log.error(
-                "Error: --min-habitable requires forcing a habitable world onto a system that also "
-                "has +asteroid_belt forced sector-wide; that combination needs a large star, but "
-                "-large_star was also forced sector-wide."
-            )
-            raise SystemExit(1)
 
     for i in range(count):
         config = first if i == 0 else build_system_config(args)
         if i in forced:
             config.HABITABLE_WORLD = True
-            if config.ASTEROID_BELT is True:
-                config.LARGE_STAR = True
         yield config
 
 
