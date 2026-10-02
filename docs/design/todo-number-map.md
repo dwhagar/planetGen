@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.29 |
 | TEST | TEST.80 |
 | USR | USR.8 |
-| OPS | OPS.13 |
+| OPS | OPS.16 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -633,6 +633,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
+| OPS.13 | Every update records the version key, keeping the last 10 | none | open |
+| OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
+| OPS.15 | Each update says whether it changes generated output | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |

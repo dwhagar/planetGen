@@ -173,7 +173,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
 | Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 | One thread, in that order. |
 | Navigation (nav_page.py, queryDb.nav_between, navigation.py) | NAV.7, NAV.10, NAV.11, NAV.16, NAV.17 | NAV.7 first; NAV.10 and NAV.16 touch different functions. |
-| update.sh and update.ps1 | OPS.7, OPS.8 | One PR. |
+| update.sh and update.ps1 | OPS.7, OPS.8, then OPS.13, then OPS.15 | OPS.7 and OPS.8 one PR; OPS.13 and OPS.15 after it. |
 | test_gen_bright_scatter_edges.py | TEST.76, TEST.74, PERF.21 | TEST.76 first. |
 
 ## Near-cycles and how they are broken

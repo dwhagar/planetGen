@@ -115,6 +115,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.17 | The Generate page shows the galaxy's seed and version | DB.6 |  |
+| OPS.15 | Each update says whether it changes generated output | OPS.13, GEN.58 | Needs the fingerprint, so phase 2. |
 
 ## Open questions for Boss
 

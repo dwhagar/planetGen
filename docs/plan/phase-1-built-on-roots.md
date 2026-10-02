@@ -127,6 +127,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
 | GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
+| OPS.13 | Every update records the version key, keeping the last 10 | DB.6, OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
+| OPS.14 | A warning when the running version key differs from the galaxy's | DB.6, DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 
 ## Open questions for Boss
 
@@ -135,3 +137,4 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn visitors while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
+- OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.
