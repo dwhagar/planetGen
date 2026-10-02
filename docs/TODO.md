@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91, NAV.40 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -1281,6 +1281,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: NAV.12,
   NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
+
+- [ ] **NAV.40 Bookmarks can't be used to find the start or destination once a course pick has begun (bug)**
+  Boss (2026-10-02 04:12Z): "navigation system doesn't let you use
+  bookmarks to find your target once you start the nav process."
+  Checked in the code on main (inferred from the code, not reproduced):
+  the NAV page's own Bookmarks select (`renderNavSelect` and
+  `wireNavSelect` in `static/bookmarks.js`, `_bookmark_pick` in
+  `web/nav_page.py`) is offered only on the two "choose a start" and
+  "choose a destination" steps, and lists only system, phenomenon and
+  sector bookmarks, not saved map views. Once the user goes on to pick
+  on a map (`?pick=` on the Galaxy Map, `galaxymap3d.py`, or the
+  sector page's pick banner, `sector.html`), the Galaxy Map's Bookmarks
+  menu (`renderMenu`) links each bookmark to its own page (`urlOf`)
+  with no pick, so following one leaves the course and drops the
+  endpoint already chosen; the sector page in pick mode offers no
+  bookmarks at all; and once both ends are set, the course page has no
+  way to swap either end for a bookmark. NAV.30 (PR #351) only hid the
+  "View" links while picking and is not the cause. Done: while picking
+  a start or destination, every place that offers bookmarks (the
+  Galaxy Map's menu, the sector page, the NAV page) keeps the pick: a
+  system or phenomenon bookmark sets that endpoint and continues the
+  course, a sector bookmark opens that sector's page in pick mode, and
+  a saved map view opens the Galaxy Map there with the pick kept, all
+  keeping the other endpoint; the course page offers bookmarks to
+  change either end; MAP.81's 1 to 9 keys follow the same rule on the
+  map; and a browser test picks a destination from a bookmark on each
+  of those pages.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 8.2 and 9
 
 ## GEN: Generation and physics
 

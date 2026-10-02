@@ -173,7 +173,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.91 (phase 0), MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 | In that order (MAP.90 done, PR #365); any payload change bumps the tile cache. |
 | galaxyGeometry.py and galaxyprisms.js | GEN.24 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. MAP.85 done (PR #369). |
-| bookmarks.js | NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. MAP.55 done (PR #369). |
+| bookmarks.js | NAV.40 (phase 0), NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. MAP.55 done (PR #369). |
 | static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Generate page (generate.html) | ADM.14, ADM.16, GEN.24 | ADM.14 first. |
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
