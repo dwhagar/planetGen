@@ -20,6 +20,12 @@ Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
 
+### Interstellar IDs
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.64 | A 64-bit position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread. 64-bit packed position ID (type 4, unit 3, distance 17, bearing 20, mark 20) as the name; registry path goes away for these objects. Related: TEST.85, GEN.57, GEN.63. |
+
 ### References
 
 | ID | Item | Needs | Note |
