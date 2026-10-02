@@ -250,17 +250,18 @@ def _map_picks(pick, other):
     return links
 
 
-def _bookmark_pick(pick, other_param):
+def _bookmark_pick(pick, other_param, label="Bookmarks"):
     """
-    The NAV page's Bookmarks select (MAP.22, MAP.23; design doc section
-    9): `static/bookmarks.js` fills it with the browser's system and
-    phenomenon bookmarks (and sectors, which open their system picker)
-    and goes to `/nav` with the `pick` endpoint set and `other_param`, the
-    other endpoint's value, kept.
+    The NAV page's Bookmarks select (MAP.22, MAP.23, NAV.40; design doc
+    section 9): `static/bookmarks.js` fills it with the browser's system
+    and phenomenon bookmarks (and sectors, which open their system
+    picker, and saved map views, which open the Galaxy Map there to pick
+    on) and goes on with the `pick` endpoint set and `other_param`, the
+    other endpoint's value, kept. `label` names the select.
     """
     keep = "to" if pick == "from" else "from"
     return {"pick": pick, "keep_name": keep, "keep_value": other_param or "", "db": db_name(),
-            "nav_url": url_for("web.nav")}
+            "nav_url": url_for("web.nav"), "label": label}
 
 
 def _route_names(route, known):
@@ -454,6 +455,8 @@ def nav():
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
         map_html=trusted_html(map_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
+        bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),
+                          _bookmark_pick("to", _param_of(origin), "New destination")],
         galaxy_map_url=galaxy_map_url(_param_of(origin), _param_of(destination)),
         start_over=nav_url(_param_of(origin)),
         **page,

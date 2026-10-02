@@ -1915,6 +1915,9 @@ function initGalaxyMap3d(canvasEl, data) {
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
+    // While picking a NAV start or destination, the map's own URLs keep
+    // the pick, so Back, a reload or a bookmark of the page keep it too.
+    pickQuery: data.pickQuery || "",
     setCamera: function (v) {
       target.set(v.target[0], v.target[1], v.target[2]);
       orbit.radius = v.dist;
@@ -1959,6 +1962,7 @@ function initGalaxyMap3d(canvasEl, data) {
       address: document.getElementById("galaxymap3d-address"),
       matches: document.getElementById("galaxymap3d-matches"),
       controls: document.getElementById("galaxymap3d-controls"),
+      steps: document.getElementById("galaxymap3d-steps"),
     },
   });
 

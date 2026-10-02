@@ -405,7 +405,14 @@ the end. The same path is used for the address bar's jumps
   `Galaxy › Quarter 90°–180° › Slab 0 › Arc 120°–150° › … › Block
   568·1036 › Layer -20 › Sector 1,705·-20·3,225`. Blocks read
   `ring·wedge`, and the last crumb is the address `ring·layer·slot`.
-  Clicking a crumb returns to that step.
+  Clicking a crumb returns to that step. The breadcrumb is always one
+  line (MAP.93): when the steps don't fit, it shows the first, a "…"
+  button whose menu lists the steps it hides, and as many of the last
+  steps as fit, then the current one, measured again whenever the
+  line's width changes; the ☆ stays on the line. At phone width
+  (under 600 px) the line gives way to a round Steps button between
+  Back and Forward whose menu lists every step, the current one marked
+  (MAP.94); Reset stays beside the arrows.
 - **Back** and **Forward** buttons beside the map (MAP.26) step through
   the stages visited on this map. They use the browser's own history:
   every stage change does `history.pushState`, with the map's own index
@@ -578,7 +585,18 @@ Built (MAP.23), with decision 4's default: per browser, no migration.
   but not from a text box or select (MAP.81: they were Ctrl+1 to Ctrl+9,
   which Chrome and Firefox on Windows and Linux keep for switching tabs).
 - The NAV page's Bookmarks select lists system and phenomenon bookmarks
-  (section 9). A sector bookmark opens the system picker for that sector.
+  (section 9). A sector bookmark opens the system picker for that sector,
+  and a saved map view opens the Galaxy Map there to pick on. Once both
+  ends are set, the course page offers the same select for a new start
+  or a new destination.
+- Bookmarks keep a course pick (NAV.40): while a start or destination is
+  being chosen, the Galaxy Map's menu and its 1 to 9 keys, and a
+  Bookmarks menu under the sector page's pick banner, carry the pick
+  (`data-pick`, `data-keep-name`, `data-keep-value`, `data-nav-url`). A
+  system or phenomenon bookmark sets that end on the NAV page, and a
+  sector page, a sector on the map or a saved map view opens in pick
+  mode, all keeping the other end. The Galaxy Map keeps the pick on its
+  own stage URLs too.
 - One module, `static/bookmarks.js`, serves the map, the system,
   phenomenon and sector pages and the NAV page; importing it wires
   whatever each page has, with no inline script. The Sector Map's own
@@ -594,7 +612,9 @@ the following (all built: MAP.22, with sections 9.1 to 9.4):
    - The map shows a banner, "Choosing a destination · Cancel" (Cancel
      returns to `/nav` with the endpoint already chosen).
    - In pick mode "Generated only" is forced on, since NAV endpoints are
-     systems and phenomena, which exist only in generated sectors.
+     systems and phenomena, which exist only in generated sectors. Hover
+     still lights every arc and choice as outside pick mode (NAV.31);
+     one holding nothing generated says so and can't be taken.
    - At the sector level, clicking a sector goes to
      `/sector/<id>?pick=to&from=system:12`.
 2. **Pick in this sector** appears once the other endpoint is known. It
