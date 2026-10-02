@@ -160,8 +160,8 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | systemData.py StarSystem constructor | GEN.53, GEN.54, GEN.49, GEN.50, then GEN.52 | One thread in phase 0 (D); GEN.52 after it. |
 | planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.25, GEN.36, GEN.35, GEN.34, GEN.37, then GEN.33/28, GEN.27, GEN.38, GEN.29 | Physics bugs thread (phase 0, C), then the classes thread. |
 | Random draws in every generator file | GEN.39 (if Boss says yes) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
-| _db.py | DB.3 then API.10 (id blocks), GEN.46 then API.12 (names) | DB.4 and DB.5 done in PR #342. |
-| Galaxy schema (schema.sql, v50 today) | DB.2 (if it drops tables), GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11, GEN.46 (if names are migrated) | One writer at a time, in this order: DB.2, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. |
+| _db.py | API.10 (id blocks), GEN.46 then API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347). |
+| Galaxy schema (schema.sql, v50 today) | GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11, GEN.46 (if names are migrated) | One writer at a time, in this order: GEN.44, PERF.11 with MAP.86, NAV.10, API.11. |
 | Control schema (v7 today) | API.9, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; API.9 first unless user keys must wait for USR.2. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.89, MAP.63 (helpers), MAP.71 | One thread: MAP.57, MAP.88, MAP.89; MAP.63 merges main after. |
 | sectormap.js and lib/starmap.py | MAP.87, MAP.82, MAP.83, MAP.84, NAV.30, MAP.63, MAP.64, MAP.65, MAP.79, NAV.29, MAP.68 | Small fixes, then the extraction, in the phase 0 map thread (F); later items in the engine thread. |

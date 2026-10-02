@@ -424,8 +424,8 @@ Parents marked "new parent" had no old number of their own.
 | API.16 | The API reports the galaxy's seed, version and run history | none | open |
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
-| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
-| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
+| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
+| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
 | DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | done, PR #342 |
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
