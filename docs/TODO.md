@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405). | MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405) and the Galaxy Map drill-down lane (PRs #408, #410, #413). | GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -477,58 +477,6 @@ with `clamp()`.
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
-- [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
-  Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
-  around once it's zoomed into the wedge and zoom in more based on
-  window size." Today the wedge zoom of PR #243 fits the real wedge at
-  a fixed orientation and scale. Done: once zoomed into a wedge, the
-  user can rotate the view around it (drag, keys, and a touch gesture,
-  like the free camera below quarter level), and the zoom fits the
-  wedge to the map's actual size, so a bigger window shows it larger;
-  it refits when the window is resized or rotated. Ties in with MAP.52
-  (the 40-degree wedge pick). Boss (19:44Z): "Slabs will rotate
-  around their immediate center", so the view turns about the middle
-  of what is shown (the wedge, or the slab), not the galaxy's center.
-  How far the view turns (any direction, any amount, Boss 05:12Z) is
-  MAP.96; the camera preset at each zoom step is MAP.97.
-  Open question: is the rotation kept in the URL and bookmarks?
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the view rotates about the
-  picked arc (then the slab), fitted to the window.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
-- [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
-  Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
-  have a line going from each slab on the map (dynamically rendered to
-  always point where it needs to) from the button for that slab to the
-  slab itself on the map." Today slabs are picked with the slab slider
-  beside the map (MAP.30, shipped as a slider in PR #234,
-  `galaxystageview.js`). Done: the slider is replaced by one button per
-  slab, and each button has a line drawn from it to its slab on the
-  map; the lines are redrawn whenever the view rotates, zooms, pans or
-  the window resizes, so they always point at the slab; hovering or
-  focusing a button highlights its line and slab, and clicking picks
-  the slab as the slider does today. MAP.30 stays done; this item
-  replaces its slider. Open questions: how the lines stay readable with
-  many slabs (thin lines, only the hovered one drawn bright, or
-  grouping); how crossing or overlapping lines are kept apart; and
-  where the buttons sit on a phone-width screen. Default taken: a slab
-  should always be on screen after the zoom-fit, but if one ever falls
-  outside the frame (the isometric tilt, a very tall stack of slabs, a
-  small window), its line ends at the window's edge with an arrow
-  pointing toward it and its button still works; this may never happen
-  in practice. A slab hidden behind another keeps its line, drawn to
-  the visible part.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the slabs are height bands
-  of the picked arc.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
-  - [ ] **MAP.76 Leader-line layout**
-    An SVG overlay above the canvas, recomputed on every camera change
-    from the slabs' projected centres; lines kept from crossing by
-    ordering the buttons by the slabs' screen height; a phone layout
-    with the buttons in one column below the map. Picks MAP.54's
-    defaults for its open questions.
-
 - [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
   Boss (2026-10-02 04:29Z, with MAP.93, done in PR #399): "we'll keep track of back and
   forth so we can always undo our last zoom, and we'll use that for the
@@ -541,56 +489,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   straight to the newest view in that history (`maxIndex`), disabled
   when already there, on desktop and in MAP.94's phone layout. A
   browser test goes in three levels, back two, and forward to current.
-
-- [ ] **MAP.96 The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug)**
-  Boss (2026-10-02 05:12Z): "Add TODO bugfix for phase 0 chain, the user
-  should be able to rotate the contents of the galaxy map any direction
-  any amount, when it zooms to a block it moves as isometric, wen it
-  zooms to a slab it moves to top-down and the other direction as well.
-  The only exception is the galaxy strtas out top-down so we can see the
-  spiral arms." Checked on main: dragging turns the view at every level
-  (`MC.orbitByDrag` in `static/galaxystageview.js`), but `clampTilt`
-  holds the tilt between straight down (`TOP_DOWN_PHI`) and `MAX_TILT`
-  (80 degrees), so the map can never be turned past edge-on or seen from
-  below the plane, and only drag and keys turn it. Done: at every level
-  of the ladder the user can turn the map's contents in any direction by
-  any amount (drag, arrow keys, a one-finger touch drag; full turns in
-  bearing, and tilt through edge-on and under the plane, without the
-  view flipping at the poles, for example a trackball-style turn), about
-  the middle of what is shown (MAP.53's rule); hover, picks and the slab
-  and arc highlights keep working at any angle, because picking already
-  raycasts in 3D; panning and zoom are unchanged; a browser test turns
-  the view past 80 degrees and under the plane and still picks the
-  hovered slab. MAP.53 keeps the fit to the window; this item is the
-  range of the turn. Split from Boss's message: the camera presets per
-  zoom step are MAP.97.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
-- [ ] **MAP.97 The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug)**
-  Boss (2026-10-02 05:12Z, with MAP.96): "Add TODO bugfix for phase 0
-  chain, the user should be able to rotate the contents of the galaxy
-  map any direction any amount, when it zooms to a block it moves as
-  isometric, wen it zooms to a slab it moves to top-down and the other
-  direction as well.  The only exception is the galaxy strtas out
-  top-down so we can see the spiral arms." Checked on main: `cameraFor`
-  in `static/galaxystageview.js` opens the whole galaxy at `GALAXY_TILT`
-  (35 degrees, PR #369) and every view below it at the isometric slant
-  (`ISO_TILT`). Done: each zoom step flies the camera to a preset for
-  what it now shows, and zooming back out flies to the preset of the
-  step it returns to: the whole galaxy straight down (top-down), so the
-  spiral arms show (Boss's one exception; this replaces the 35-degree
-  opening tilt); a slab (one layer, after a slab pick on MAP.56's
-  ladder) straight down; a block (a volume of several layers: a picked
-  arc or segment, and the 3 by 3 by 3 cube at the bottom of the ladder)
-  at the isometric slant. The flight animates the tilt with the move, as
-  stage flights do today, and the bearing still faces the picked arc.
-  Open questions for Boss, with the defaults taken: does a manual turn
-  (MAP.96) carry over to the next zoom step? (Default: no, each step's
-  preset takes over, and a turn holds only within the step.) How does
-  the user get back to the preset? (Default: the existing "Reset view"
-  button, which flies to the step's preset.) A browser test checks the
-  tilt at each step going in and coming back out. Prerequisite: MAP.96.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
   Boss (2026-10-02 00:45Z): "investigate different ways to space orbits
@@ -684,8 +582,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and then add the to-do items to make it happen."
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ghost is the rest of
   the picked arc.
-  Its ghost keeps MAP.77's rule (slab outlines only), and MAP.77 lands
-  first (phase 0). Prerequisites: MAP.53, MAP.54, MAP.75, MAP.77.
+  Its ghost keeps MAP.77's rule (slab outlines only; MAP.77 done, PR
+  #410). Prerequisite: MAP.75.
 
   Why it looks like a wedge today: once a slab is picked, only that
   slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
@@ -862,39 +760,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     default the last one used); a screen-reader list of bodies stands in
     for the canvas; a fallback to the diagram where WebGL is missing.
     Open question: should 3D be the default?
-
-- [ ] **MAP.77 Galaxy Map draws block divisions inside a picked slab before zooming to it (bug)**
-  Boss (2026-10-01 21:11Z): "when zooming in and navigating from the
-  galactic map, when selecting a slab, don't show the divisions between
-  interior blocks, only show divisions between the slabs. Then on a
-  slab show the divisions between the blocks." Done: while slabs are
-  being picked (the wedge view, MAP.52), the map draws only the
-  boundaries between slabs, with no lines between the blocks inside
-  each slab; once the view is on one slab (MAP.53, MAP.56), it draws
-  the divisions between that slab's blocks, which are the segments the
-  user picks next. The faint wire ghost of the other slabs (MAP.59)
-  shows their outlines only, never their blocks. This repeats at every
-  level of the slab and segment ladder of MAP.56.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the arc view draws only the
-  slab boundaries; nothing is outlined on the whole galaxy except the
-  hovered arc and its neighbors.
-  Replan (2026-10-02): it no longer waits for MAP.59; drawing slab lines
-  only needs no ghost, so it lands in phase 0 and MAP.59 (later) keeps
-  its rule.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
-- [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
-  Boss (2026-10-01 21:11Z): "when the system zooms into a wedge, make
-  sure it is the entire wedge as you drill down." Done: whenever the
-  view zooms to a wedge (MAP.52) or to a slab or segment inside it
-  (MAP.56), the zoom frames all of what was picked, with no part cropped
-  by the map's edges or by the controls over it; the fit uses the map's
-  actual size (MAP.53) and holds while the view rotates and when the
-  window is resized. Under MAP.58's locked zoom, the locked level is
-  this whole-wedge fit, not a closer one.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): read "wedge" as the picked
-  arc: the zoom frames the whole arc, then the whole slab or segment.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.79 Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug)**
   Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,

@@ -24,9 +24,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | MAP.53 | A zoom policy of MAP.64. |
-| MAP.75 | The mini map as a second engine view | MAP.54 | Locked second camera on MAP.64. |
-| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.54, MAP.53, MAP.75, MAP.77 |  |
+| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it |  | A zoom policy of MAP.64. |
+| MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
+| MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
 
 ### Engine
 
@@ -50,7 +50,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.20 | Draw the direct line and the route apart | NAV.13 |  |
-| NAV.21 | Fit the view to the whole course | MAP.53, MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
+| NAV.21 | Fit the view to the whole course | MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
