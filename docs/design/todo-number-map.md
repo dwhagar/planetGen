@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.35 |
 | MAP | MAP.91 |
 | NAV | NAV.34 |
-| GEN | GEN.55 |
+| GEN | GEN.59 |
 | PERF | PERF.24 |
-| DB | DB.6 |
-| API | API.16 |
-| ADM | ADM.17 |
+| DB | DB.7 |
+| API | API.17 |
+| ADM | ADM.18 |
 | SEC | SEC.29 |
-| TEST | TEST.77 |
+| TEST | TEST.78 |
 | USR | USR.8 |
-| OPS | OPS.10 |
+| OPS | OPS.13 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -405,6 +405,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | open |
+| ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
@@ -420,11 +421,13 @@ Parents marked "new parent" had no old number of their own.
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
+| API.16 | The API reports the galaxy's seed, version and run history | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
 | DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | open |
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | open |
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -482,6 +485,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
+| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
+| GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
+| GEN.57 | Generation output doesn't depend on worker count, run order or timing | none | open |
+| GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -614,6 +621,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
+| OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
+| OPS.12 | Check that a version and a seed rebuild the same galaxy | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -880,6 +890,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.74 | Generation tests at more than one worker | none | open |
 | TEST.75 | Tests for forcing and prevalence | none | open |
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | open |
+| TEST.77 | A golden-seed regression test | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

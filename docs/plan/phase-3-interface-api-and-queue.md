@@ -104,6 +104,21 @@ GEN.43 are built; all of them use phase 1's GEN.44 levels to skip
 finished sectors, and PERF.11's stored densities. Build PERF.18 and
 GEN.42 in one thread: both change `backfill_bright_stars_around`.
 
+### Reproducible galaxies, finished
+
+| ID | Item | Parent |
+|---|---|---|
+| GEN.55 (new) | A version number and a seed reproduce the same galaxy (end goal) |  |
+| OPS.12 (new) | Check that a version and a seed rebuild the same galaxy | GEN.55 |
+| ADM.17 (new) | The Generate page shows the galaxy's seed and version | GEN.55 |
+| API.16 (new) | The API reports the galaxy's seed, version and run history | GEN.55 |
+
+Phase 1 builds the seeds, storage, fingerprint and golden test (DB.6,
+OPS.10, OPS.11, GEN.56 to GEN.58, TEST.77). Here OPS.12 (the reproduce
+check) proves the end goal, and ADM.17 and API.16 show the seed and
+version; API.12's download uses API.16's fields. GEN.42 and PERF.18 in
+this phase must use the derived seeds and keep TEST.77 green.
+
 ## Research notes
 
 Boss's research notes (kept in the project's shared files under `todo-tasks/research/`) proposed fixes and numbers. They were checked against the code on 2026-10-01; where they were wrong about the code, the correction is given. Their numbers are starting points to tune, not requirements.
@@ -163,6 +178,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 6. Work queue: PERF.19, PERF.20, ADM.15.
 7. Backfill: GEN.41, then PERF.18 with GEN.42 and GEN.43; PERF.11.
 8. Independent: UX.2, UX.3, ADM.14.
+9. Reproducible galaxies: API.16, ADM.17, then OPS.12 (closes GEN.55).
 
 ## Open questions for Boss
 

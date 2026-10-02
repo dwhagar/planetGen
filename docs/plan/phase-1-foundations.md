@@ -41,6 +41,30 @@ digits, each sector, layer and backfill block
 seeded from it plus its address) follows PERF.21 in the same thread,
 since it touches the same tests.
 
+### Reproducible galaxies (version + seed)
+
+Boss (2026-10-02) wants a version number and a seed to rebuild the same
+galaxy by the end of the phases (GEN.55, finished in phase 3).
+
+| ID | Item | Parent |
+|---|---|---|
+| DB.6 (new) | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 |
+| OPS.10 (new) | The galaxy seed and version at the top of every generation log | GEN.39 |
+| OPS.11 (new) | Define "the same galaxy" and which versions stay reproducible | GEN.55 |
+| GEN.56 (new) | Every random draw in generation comes from the derived seeds | GEN.55 |
+| GEN.57 (new) | Generation output doesn't depend on worker count, run order or timing | GEN.55 |
+| GEN.58 (new) | A fingerprint of a galaxy's generated content | GEN.55 |
+| TEST.77 (new) | A golden-seed regression test | GEN.55 |
+
+GEN.39 (in the parallel path thread, after PERF.21) comes first, with
+DB.6 (the seed, version and run history, a galaxy schema migration) and
+OPS.10 (the log line). OPS.11 (the design note) can be written any time
+before GEN.58. GEN.56 (every draw seeded) touches every generator
+module, so it lands after GEN.39 and the physics threads rebase onto it;
+then GEN.57 (worker count, order and timing), GEN.58 (the fingerprint)
+and TEST.77 (the golden-seed test), which from then on catches any
+change to generation output. GEN.47 (nebulae) uses the derived seeds.
+
 ### Forcing options and prevalence
 
 | ID | Item | Parent |
@@ -233,6 +257,8 @@ Each thread is briefed with its exact item IDs and takes no others.
 9. Forcing and prevalence: GEN.49, GEN.50, GEN.51, GEN.52, ADM.16,
    TEST.75 (parent GEN.48).
 10. Binary pairs: GEN.53, GEN.54.
+11. Reproducible galaxies: DB.6, OPS.10 (with GEN.39 in thread 1),
+    then OPS.11, GEN.56, GEN.57, GEN.58, TEST.77 (parent GEN.55).
 
 ## Open questions for Boss
 
