@@ -1,5 +1,0 @@
-### Added
-- **One seed, one galaxy (GEN.39).** The galaxy now has a 128-bit seed, shown as 32 hex digits and stored with it (`galaxy_shape.galaxy_seed`, `BINARY(16)`, schema v51). `generate.py plan --seed <32 hex digits>` sets it; without it the first plan draws one and every later plan keeps it, and a different seed is refused once any sector exists. Every sector, the bright-star scatter, each band and each backfill block draws from its own seed, the SHA-256 of the galaxy seed and its address (for example `sector:12/3/0`), so the same seed fills a sector the same way at any `--workers` count and in any run that reaches it, on the same PlanetGen release. The galaxy has to be wiped and planned again: a galaxy made before has no seed.
-
-### Changed
-- Generation no longer draws from the operating system's random source: planet classes, life, moons, names and star positions all come from the sector's seed. A save retried after a deadlock replays the same draws, and the bright-star backfill picks its center sector by address, not save order.
