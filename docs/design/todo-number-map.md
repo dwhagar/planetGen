@@ -638,7 +638,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
-| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
@@ -942,11 +942,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
-| TEST.79 | Route edge cases, written before NAV.12 | none | open |
+| TEST.79 | Route edge cases, written before NAV.12 | none | done, PR #427 |
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
-| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
+| TEST.83 | Rate-limit tests fail under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |

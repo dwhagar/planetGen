@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start.
+Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), the routing groundwork lane (TEST.79, NAV.34: PR #427), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start.
 
 ## Threads
 
@@ -38,13 +38,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Moved to phase 0: a bug with nothing ahead of it; tile listing, before MAP.86 in the same tile files. Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) |  | Moved to phase 0 with its groundwork GEN.44 and PERF.11 (done, PR #425). Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
-
-### Routing groundwork
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| TEST.79 | Route edge cases, written before NAV.12 |  | Cases from the hop-length study's report. |
-| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | navGraph.build_knn_adjacency; needed before NAV.12. |
 
 ### Sector and system pages
 
@@ -84,7 +77,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
-| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
+| TEST.83 | Rate-limit tests fail under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 | TEST.87 | The two-process id-block test times out under full parallel load (bug) |  | test_db_id_blocks_edges.py; _queue.Empty under -n auto, passes alone 3/3. Same path as TEST.81. |
@@ -92,14 +85,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 GEN.65 (web generation error) is high priority and comes first, but
 is held: no thread starts on it until Boss says so (08:08Z).
 MAP.101 (stars take the click on the Galaxy Map, Boss 08:52Z) is
-high priority and the next lane to start.
+high priority and running.
 
 At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
-#405), Generation bugs (PRs #415, #419) and Galaxy Map drill-down
-(PRs #408, #410, #413, #422) apart from MAP.101. Sector stats and colors (MAP.80, MAP.86 left; GEN.44, PERF.11, PERF.1 done, PR #425) and Routing
-groundwork are running. Then the lanes start in the order above as a
+#405), Generation bugs (PRs #415, #419), Routing groundwork (PR
+#427) and Galaxy Map drill-down (PRs #408, #410, #413, #422) apart
+from MAP.101. Sector stats and colors (MAP.80, MAP.86 left; GEN.44,
+PERF.11, PERF.1 done, PR #425) and MAP.101 are running. Then the
+lanes start in the order above as a
 slot frees: Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
 not approved yet), Small page bugs, and Ops and flakes last. NAV.7

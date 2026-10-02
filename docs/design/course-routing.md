@@ -34,11 +34,14 @@ item and phase.
 
 What goes wrong (from the study):
 
-- **Islands.** A separately generated area with 7 or more systems has no
+- **Islands.** A separately generated area with 7 or more systems had no
   link out, because each of its systems' 6 nearest are inside it. 2,000
   generated sectors spread over the disk split into 714 islands, and a
   course across the galaxy found no route ("No route via adjacent
-  systems could be found").
+  systems could be found"). Fixed by NAV.34 (PR #427):
+  `navGraph.join_islands` links each island to its `NAV_ISLAND_LINKS`
+  (6) nearest islands, in rounds until one island is left, so a route
+  always exists.
 - **Hidden long hops.** A lone system or a small cluster always links
   out, however far: a system 2 kpc above the disk was reached by a route
   whose last hop was 6,504 ly.
@@ -61,7 +64,7 @@ limit of any kind.
 
 - **A route always exists** between two placed endpoints. The islands
   of the route graph are joined, each linked to its nearest few islands
-  (NAV.34, phase 0). In the study, linking each island to its 6 nearest
+  (NAV.34, built in PR #427). In the study, linking each island to its 6 nearest
   joined all 714 in 0.2 s and gave a cross-galaxy route 1.29 times the
   direct distance.
 - **Same-sector routes may leave the sector**, so the nearest star is
@@ -75,7 +78,7 @@ limit of any kind.
   `galaxyprisms.sectorsAlongSegment`. `/api/nav` returns the flag per hop.
 - Route edge cases from the study (islands, lone systems, the halo, the
   dense core, endpoints that are phenomena) are written as tests first
-  (TEST.79, phase 0).
+  (TEST.79, built in PR #427).
 
 ## 3. Routing that scales (NAV.10, phase 1)
 
@@ -124,8 +127,8 @@ every system on the route (Boss, 2026-10-02 04:19Z).
 
 | ID | Piece | Phase | Needs |
 |---|---|---|---|
-| TEST.79 | Route edge cases, written first | 0 | |
-| NAV.34 | Join the route graph's islands (bug) | 0 | |
+| TEST.79 | Route edge cases, written first | 0 | **Built, PR #427** |
+| NAV.34 | Join the route graph's islands (bug) | 0 | **Built, PR #427** |
 | NAV.38 | Every sector a straight line passes through | 0 | **Built, PR #357** |
 | NAV.10 | Corridor search, A*, position indexes | 1 | queues behind PERF.11's schema migration |
 | NAV.12 | No hop limit, longest hop shown, unknown-space flag | 1 | NAV.34, NAV.38, TEST.79, NAV.10 |
