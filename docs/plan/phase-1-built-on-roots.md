@@ -86,9 +86,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes; queue behind PERF.11. nav_between in queryDb. |
-| NAV.11 | Travel times for the system-to-system route too | NAV.10 |  |
-| NAV.12 | No hop limit by default: show the longest hop, flag deep-space hops, optional ship range | NAV.10, NAV.34 | Settled by the hop-length study: no global cap, longest hop shown, deep-space hops flagged, optional ship range. |
+| NAV.10 | Routing that scales past a few thousand systems | NAV.12 | Galaxy schema migration for position indexes; queue behind PERF.11. Must keep NAV.12's guarantee (a route always exists). |
+| NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.35 | Times per hop, including unknown-space jumps. |
 
 ### Pages
 
@@ -120,12 +119,19 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible |  | Design note; write before GEN.58. |
-| GEN.56 | Every random draw in generation comes from the derived seeds | GEN.39 | Touches every generator module: land it, then the other generation threads merge main. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | PERF.21, GEN.39, GEN.56, GEN.46, GEN.44 | Names with GEN.46, backfill state with GEN.44. |
-| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 | Version per sector; galaxy schema, one writer at a time. |
-| GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Phase 1 so the golden test guards every later generation change. |
-| TEST.77 | A golden-seed regression test | GEN.57, GEN.58 | From here on, a generation change updates the pinned fingerprint with a changes note. |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible |  | Design note. |
+| GEN.56 | Every random draw in generation comes from the derived seeds | GEN.39 | Touches every generator module. |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | PERF.21, GEN.39, GEN.56, GEN.46, GEN.44 |  |
+| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
+| GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Judgment: phase 1 so the golden test guards later changes. |
+| TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
+
+### Route display
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| NAV.36 | Unknown-space jumps drawn in glowing red | NAV.35 | NAV map now; course drawings later. |
+| UX.35 | The route shown horizontally, wrapping onto several lines on narrow screens | NAV.12 | NAV page layout. |
 
 ## Open questions for Boss
 

@@ -25,22 +25,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) |  | Same test file as 4 of PERF.21's 14 failures; fix first so the multi-worker run is clean on the py3.9 CI leg. |
-| TEST.74 | Generation tests at more than one worker | TEST.76, DB.5 | Lands first in the thread: shows what PERF.21 must fix. Fresh test databases at N workers hit DB.5's schema race. |
+| TEST.74 | Generation tests at more than one worker | TEST.76 | Lands first in the thread: shows what PERF.21 must fix. Fresh test databases at N workers hit DB.5's schema race. |
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) |  | workQueue._dispatch; same code as PERF.21. |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | TEST.74, PERF.22 | TOP PRIORITY (Boss). Rewrite fault injection so it reaches spawned workers instead of relying on the seeded single-process stream. |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | TEST.74 | Race in the parallel interrupt path of workQueue.py; same thread. |
 | PERF.23 | The bright-star progress bar can end at 101% (bug) |  | _LayerTracker in generate.py, same parallel scatter code. |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | PERF.23 | Same scatter functions (_scatter_layers, add_bright_star_band) as PERF.23. Judgment: could instead ride GEN.44's per-sector levels. |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | PERF.21 | Decided yes (Boss 01:34-01:46Z): 128-bit seed stored in the database and logged at the top of every run; seed + version (packed in hex) reproduce the galaxy; needs a fresh galaxy. It per-sector seeded draws touch the RNG calls in every generator file, so it lands right after PERF.21 and before GEN.47, GEN.42 and PERF.18, which all need 'same seed, same stars'. |
-| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39. Needs a fresh galaxy (Boss wipes it). Galaxy schema: one writer at a time. |
-| OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39: seed and version first in every generation log. |
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; packed hex version. |
+| OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
 ### Database fixes
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.5 | Several first connections to an empty database race to create the schema (bug) |  | _ensure_schema in _db.get_connection; one PR with DB.4. |
-| DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | DB.5 | Same function as DB.5. |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) |  | id_blocks handling in _db.py; API.10's reservations build on it. |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) |  | Open question (read the rows or drop the tables). If dropped it is a galaxy schema migration; if read, UX.30 shows them. |
 
@@ -115,7 +113,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
-| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | From the hop-length study; navGraph.build_knn_adjacency only. NAV.10 and NAV.12 build on it. |
+| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
 
 ### Page groundwork and small page bugs
 
@@ -128,6 +126,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
 
+### Routing guarantee
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | First in the routing thread; navGraph.build_knn_adjacency. |
+| NAV.12 | Routes always reach the nearest star they can, across any number of sectors | NAV.34 | Boss 01:53Z game mechanic: phase 0. Replaces the study's no-cap + ship-range recommendation. |
+| NAV.35 | Mark jumps through unknown space in the route | NAV.12 | Unknown space = the hop crosses an ungenerated sector. |
+
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
 MAP.60 onward can be a second thread once MAP.64 merges, since they
@@ -139,5 +145,4 @@ most 4 build threads run at once (Boss).
 
 ## Open questions for Boss
 
-- DB.6: Store the galaxy's 128-bit seed, the version that made it, and every generation run, see its entry in TODO.md.
 - MAP.52: Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug), see its entry in TODO.md.
