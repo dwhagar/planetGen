@@ -17,7 +17,7 @@ import pytest
 
 import updateOrbits
 from stellarObjects import _db
-from tests.bughunt_support import mysql_argv, run_cli
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.db_schema_support import scratch_database
 from tests.fuzz_support import deterministic_entropy
@@ -61,8 +61,9 @@ def build_rich_galaxy(config, seed=20261001):
 def _build(config):
     target = mysql_argv(config)
     run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
-    run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "6", "+planets", "--population",
-                       "--yes", "--quiet"] + target)
+    with forced_system_config(PLANETS=True):
+        run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "6", "--population",
+                           "--yes", "--quiet"] + target)
     conn = _db.get_connection(config)
     try:
         sector_id = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]

@@ -264,16 +264,19 @@ def test_flag_fast_stars(monkeypatch):
 # that exception propagate and discard every system already generated.
 # ---------------------------------------------------------------------------
 
-def _real_sector_args(num_systems, name, extra_argv=()):
+def _real_sector_args(num_systems, name, planets=None):
     """A real `sector` subcommand namespace, built via generate.py's own
     parser/validators -- generate_sector reads far more of `args` (via
     build_sector_configs/build_system_config) than a hand-built
-    SimpleNamespace could safely stand in for."""
+    SimpleNamespace could safely stand in for. `planets=False` makes every
+    system planet-less (cheap); `sector` takes no `-planets` option any
+    more (GEN.51), so it is set on the namespace build_system_config reads."""
     parser, command_parsers = sectorGen.build_parser()
-    args = parser.parse_args(["sector", "--num-systems", str(num_systems), "--name", name, *extra_argv])
+    args = parser.parse_args(["sector", "--num-systems", str(num_systems), "--name", name])
     command_parser = command_parsers["sector"]
     sectorGen.validate_shared_generation_args(args, command_parser)
     sectorGen.validate_sector_args(args, command_parser)
+    args.planets = planets
     return args
 
 
@@ -293,7 +296,7 @@ def test_generate_sector_stops_gracefully_once_a_system_cannot_be_placed(monkeyp
 
     monkeypatch.setattr(SpaceSector, "add_system", flaky_add_system)
 
-    args = _real_sector_args(10, "CapacityTestSector", extra_argv=["-planets"])
+    args = _real_sector_args(10, "CapacityTestSector", planets=False)
     _sector_name, sector = sectorGen.generate_sector(args)
 
     assert len(sector.entries) == 3  # stopped right after the 3 successful placements
@@ -325,7 +328,7 @@ def test_generate_sector_does_not_generate_systems_past_the_first_placement_fail
 
     monkeypatch.setattr(StarSystem, "__init__", counting_init)
 
-    args = _real_sector_args(10, "NoWastedGenerationSector", extra_argv=["-planets"])
+    args = _real_sector_args(10, "NoWastedGenerationSector", planets=False)
     sectorGen.generate_sector(args)
 
     # 2 successful placements + the 1 that triggered the failure -- not
@@ -341,7 +344,7 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector():
     # all 60 (sampled fills run about 20-59). -planets keeps this fast (skips
     # planet/moon generation) without touching the real placement logic
     # this test actually cares about.
-    args = _real_sector_args(120, "RealCapacityOverflowSector", extra_argv=["-planets"])
+    args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
     _sector_name, sector = sectorGen.generate_sector(args)
 
     assert 0 < len(sector.entries) < 120

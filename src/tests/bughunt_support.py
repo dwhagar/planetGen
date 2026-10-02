@@ -39,6 +39,7 @@ documented home and a consistent failure-reporting format.
 
 from __future__ import annotations
 
+import contextlib
 import random
 import sys
 from dataclasses import dataclass, field
@@ -135,6 +136,31 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
         sys.argv = old_argv
         for name, value in saved.items():
             setattr(program_constants, name, value)
+
+
+@contextlib.contextmanager
+def forced_system_config(**fields):
+    """
+    Sets `SystemConfig` `fields` (e.g. `PLANETS=False`) on every system a
+    `sector` or `galaxy` run builds. Those runs take no forcing options
+    (GEN.51), but tests still want, say, planet-less systems so a large
+    run stays cheap. Works for in-process runs (`PLANETGEN_WORKERS=1`).
+    """
+    import generate as _generate
+
+    real = _generate.build_system_config
+
+    def build(args):
+        config = real(args)
+        for name, value in fields.items():
+            setattr(config, name, value)
+        return config
+
+    _generate.build_system_config = build
+    try:
+        yield
+    finally:
+        _generate.build_system_config = real
 
 
 def mysql_argv(mysql_config) -> list[str]:

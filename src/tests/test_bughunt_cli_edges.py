@@ -78,14 +78,17 @@ def test_sector_min_habitable_exceeding_num_systems_is_rejected(mysql_config):
         run_cli("sector", ["--num-systems", "3", "--min-habitable", "4"] + mysql_argv(mysql_config))
 
 
-def test_sector_min_habitable_with_forbidden_habitable_world_is_rejected(mysql_config):
-    with pytest.raises(SystemExit):
-        run_cli("sector", ["--min-habitable", "1", "-habitable_world"] + mysql_argv(mysql_config))
-
-
-def test_sector_star_type_with_large_star_is_rejected(mysql_config):
-    with pytest.raises(SystemExit):
-        run_cli("sector", ["--star-type", "G2V", "+large_star"] + mysql_argv(mysql_config))
+@pytest.mark.parametrize("subcommand", ["sector", "galaxy"])
+@pytest.mark.parametrize("option", ["-habitable_world", "+large_star", "-planets", "+comets"])
+def test_sector_and_galaxy_runs_refuse_forcing_options(subcommand, option, mysql_config, capsys):
+    """GEN.51: forcing options are for a single system only; a sector or
+    galaxy run (or a saved command line that still has one) stops with a
+    message naming the option."""
+    with pytest.raises(SystemExit) as exc:
+        run_cli(subcommand, [option] + mysql_argv(mysql_config))
+    assert exc.value.code == 2
+    err = capsys.readouterr().err
+    assert option in err and "generate.py system" in err
 
 
 # --- Numeric boundary values that SHOULD be accepted --------------------

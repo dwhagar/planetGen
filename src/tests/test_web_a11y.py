@@ -58,7 +58,7 @@ from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from stellarObjects._db import MySQLConfig  # noqa: E402
 
-from tests.bughunt_support import mysql_argv, run_cli  # noqa: E402
+from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
 AXE_JS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "vendor", "axe-core", "axe.min.js")
@@ -216,7 +216,8 @@ def site_db(_mysql_server_available):
             # Galaxy Map to draw some.
             run_cli("plan", ["--quiet", "--no-bright-stars"] + target)
             _add_bright_stars(config)
-            run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "+planets", "--yes", "--quiet"] + target)
+            with forced_system_config(PLANETS=True):
+                run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
             for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)

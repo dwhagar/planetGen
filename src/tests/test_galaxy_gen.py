@@ -46,6 +46,7 @@ from stellarObjects.galaxyGeometry import (
 from stellarObjects.utils import ly_to_pc, mpc_to_pc
 
 from tests import worker_patches
+from tests.bughunt_support import forced_system_config
 
 EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
@@ -141,13 +142,17 @@ def _mysql_argv(mysql_config):
     ]
 
 
-def _run_cli(argv):
+def _run_cli(argv, planets=None):
     """Runs `generate.main()` with the `galaxy` subcommand and the given
-    argv (excluding argv[0]), restoring `sys.argv` afterward."""
+    argv (excluding argv[0]), restoring `sys.argv` afterward. `planets=False`
+    makes every system planet-less (cheap), as `-planets` did before galaxy
+    runs lost their forcing options (GEN.51)."""
     old_argv = sys.argv
+    forced = {} if planets is None else {"PLANETS": planets}
     try:
         sys.argv = ["generate.py", "galaxy"] + argv
-        galaxyGen.main()
+        with forced_system_config(**forced):
+            galaxyGen.main()
     finally:
         sys.argv = old_argv
 
@@ -1122,7 +1127,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     trimmed to 25 ly here so this test runs in a reasonable time) -- run
     for real, against a real skeleton, with neither `--density` nor
     `--num-systems` given so every sector's own system count is driven
-    end-to-end by its real galaxy-frame position. `-planets` is forced so
+    end-to-end by its real galaxy-frame position. planet-less systems are forced (`planets=False`) so
     each system skips its own planet/moon tree -- system *count* per
     sector (what this test actually checks) doesn't depend on that, and
     skipping it keeps this test's runtime independent of how dense a
@@ -1146,8 +1151,8 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     assert summary["outer_ring_index"] > 0, "the toy shape's own skeleton should find real content"
 
     _run_cli([
-        "--max-ring", "55", "--radius-pc", str(radius_pc), "-planets",
-    ] + _mysql_argv(mysql_config))
+        "--max-ring", "55", "--radius-pc", str(radius_pc),
+    ] + _mysql_argv(mysql_config), planets=False)
 
     sectors = _all_sectors(mysql_config)
     assert sectors, "random-start mode should have generated at least the seed sector"
@@ -1220,8 +1225,8 @@ def test_ring_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql
     for extra in ([], ["--num-systems", "1"]):
         with pytest.raises(SystemExit):
             _run_cli([
-                "--ring", str(beyond_edge_ring), "--limit", "25", "-planets",
-            ] + extra + _mysql_argv(mysql_config))
+                "--ring", str(beyond_edge_ring), "--limit", "25",
+            ] + extra + _mysql_argv(mysql_config), planets=False)
 
     assert _all_sectors(mysql_config) == []
 
@@ -1373,7 +1378,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
     phenomenon types to appear in every sector -- deterministic, full
     coverage of every checkable type's own placement path.
 
-    `-planets` keeps each system's own generation cheap (position, not
+    `planets=False` keeps each system's own generation cheap (position, not
     planet/moon content, is what this test cares about).
     """
     worker_patches.patch_everywhere(monkeypatch, galaxyGen, "_sample_poisson_count",
@@ -1382,8 +1387,8 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 
     for ring_index, layer_index in _BOUNDS_TEST_ADDRESSES:
         _run_cli(
-            ["--ring", str(ring_index), "--layer", str(layer_index), "--num-systems", "3", "-planets"]
-            + _mysql_argv(mysql_config)
+            ["--ring", str(ring_index), "--layer", str(layer_index), "--num-systems", "3"]
+            + _mysql_argv(mysql_config), planets=False
         )
 
     sectors = _all_sectors(mysql_config)
@@ -1472,8 +1477,8 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
     from starmap import render_map_panel
 
     _plan_wide_galaxy(mysql_config)
-    _run_cli(["--ring", "0", "--num-systems", "10", "-planets"] + _mysql_argv(mysql_config))
-    _run_cli(["--ring", "2", "--limit", "3", "--num-systems", "10", "-planets"] + _mysql_argv(mysql_config))
+    _run_cli(["--ring", "0", "--num-systems", "10"] + _mysql_argv(mysql_config), planets=False)
+    _run_cli(["--ring", "2", "--limit", "3", "--num-systems", "10"] + _mysql_argv(mysql_config), planets=False)
 
     contexts = _sector_cell_contexts(mysql_config)
     conn = _db.get_connection(mysql_config)
@@ -1592,7 +1597,7 @@ def test_neighborhood_around_a_sector_outside_the_outline_is_refused(mysql_confi
 def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config):
     summary = _build_real_skeleton(mysql_config)
     assert summary["layer_count"] > 0
-    _run_cli(["--radius-pc", "10", "--num-systems", "1", "-planets"] + _mysql_argv(mysql_config))
+    _run_cli(["--radius-pc", "10", "--num-systems", "1"] + _mysql_argv(mysql_config), planets=False)
 
     conn = _db.get_connection(mysql_config)
     try:
