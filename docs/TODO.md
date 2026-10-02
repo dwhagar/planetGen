@@ -1569,9 +1569,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star draws, systems, phenomena, backfill) comes from it, so the order
   sectors run in and the worker count don't matter. Reproducible on the
   same version only: a release that changes generation may change what
-  a seed makes. Seed shape (default unless Boss changes it): one 64-bit
-  galaxy seed stored with the galaxy and shown as 16 hex digits, a new
-  `--seed` option on `plan` and new galaxies, and each sector, layer and
+  a seed makes. Seed shape (Boss, 2026-10-02 01:36Z: "I want to use a
+  128bit seed"): one 128-bit galaxy seed stored with the galaxy (a
+  `BINARY(16)` column or a 32-character hex string, since `BIGINT
+  UNSIGNED` holds only 64 bits) and shown as 32 hex digits, a new
+  `--seed` option on `plan` and new galaxies that accepts it, and each sector, layer and
   backfill block seeded from the galaxy seed plus its address. Builds
   after PERF.21, in the parallel path thread. Done: no generation draw uses the operating system's random
   source, and a test checks that one galaxy seed gives the same sectors

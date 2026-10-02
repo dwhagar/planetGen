@@ -36,7 +36,8 @@ TEST.74 (the generation tests at 1, 2 and 4 workers) lands first so the
 PERF.22 (the 3.12 hang in `workQueue._dispatch`) and PERF.23 (a late
 layer report counted twice in `_LayerTracker`) are in the same parallel
 code and go in the same thread. GEN.39 (one seed reproduces the
-galaxy: a 64-bit galaxy seed, each sector, layer and backfill block
+galaxy: a 128-bit galaxy seed, stored as 16 bytes and shown as 32 hex
+digits, each sector, layer and backfill block
 seeded from it plus its address) follows PERF.21 in the same thread,
 since it touches the same tests.
 
