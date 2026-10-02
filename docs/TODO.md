@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -459,10 +459,9 @@ with `clamp()`.
   #369) already folded the Galaxy Map's buttons into one Menu. Why phase
   2: the sweep audits controls that are still changing, so it waits for
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
-  Map breadcrumb and history buttons (MAP.93, MAP.94, MAP.95), the NAV
+  Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.93,
-  MAP.94, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
 
 - [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
   Split out of UX.21 (replan, 2026-10-02), its one known dead control:
@@ -602,53 +601,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test checks the two fields on a planet and a moon. Same files as
   MAP.57 and MAP.88, so it follows them in the System Map lane.
 
-- [ ] **MAP.93 The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug)**
-  Boss (2026-10-02 04:29Z): "Another bugfix for the breadcrumb trail,
-  when you get over a number of steps based on the screen size (i.e. on
-  my phone probably only show back and forward buttons but on my
-  computer I can fit a certain amount, basically the idea is that the
-  breadcrumbs should never be more than a single line and thus the
-  middle has to automatically collapse so we get the beginning ... last
-  few before where you are now. ... is a button that pulls up a menu of
-  the contained steps, that menu is not available on a phone screen but
-  instead there's a circle button between the two arrows at the top and
-  the circle is the menu and there's also a 'go back to start' button
-  and we'll keep track of back and forth so we can always undo our last
-  zoom, and we'll use that for the forward if we just went back we get
-  to go back forward again and that also need a 'forward to current'
-  button."
-  Checked on main: the breadcrumb (`renderCrumbs` in
-  `static/galaxystageview.js`, `.galaxy-crumbs` in `static/style.css`)
-  is a flex list with `flex-wrap: wrap`, so a deep drill-down wraps
-  onto two or more lines (the `.galaxy-crumb-menu` styles there are
-  left over and used by nothing). Done: the breadcrumb always fits on one line
-  at any width: when the steps don't fit, it shows the first step, a
-  "…" button, and as many of the last steps before the current one as
-  fit, then the current one; the number shown follows the space
-  available (measured, not a fixed count per device) and re-fits on
-  resize; "…" opens a menu of the hidden steps, each one going to that
-  step; the bookmark ☆ stays on the line. A browser test checks one
-  line at phone and desktop widths on the deepest stage. Split from
-  Boss's message: the phone layout is MAP.94, the "Forward to current"
-  button MAP.95. The map's Back and Forward history already exists
-  (MAP.26, PR #208) and Reset already goes back to the whole galaxy
-  (MAP.55, PR #369), so those parts need nothing new. NAV.14 carries
-  this breadcrumb to the other pages.
-
-- [ ] **MAP.94 On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug)**
-  Boss (2026-10-02 04:29Z, with MAP.93): "that menu is not available on
-  a phone screen but instead there's a circle button between the two
-  arrows at the top and the circle is the menu and there's also a 'go
-  back to start' button". Done: at phone width the breadcrumb line is
-  replaced by the map's Back and Forward arrows with a round button
-  between them that opens the same menu of steps as MAP.93's "…", plus
-  the current step; the "go back to start" button is MAP.55's Reset
-  (back to the whole galaxy), kept beside the arrows at that width.
-  Uses UX.28's icons when they exist. A browser test at phone width.
-  Prerequisite: MAP.93.
-
 - [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
-  Boss (2026-10-02 04:29Z, with MAP.93): "we'll keep track of back and
+  Boss (2026-10-02 04:29Z, with MAP.93, done in PR #399): "we'll keep track of back and
   forth so we can always undo our last zoom, and we'll use that for the
   forward if we just went back we get to go back forward again and that
   also need a 'forward to current' button." Checked on main: the map's
@@ -1126,7 +1080,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     breadcrumb component built from the reference's parent chain, the
     same on the Galaxy Map, the sector, the system page and the NAV
     page.
-    It keeps MAP.93's one-line collapse and MAP.94's phone layout on
+    It keeps MAP.93's one-line collapse and MAP.94's phone layout (PR #399) on
     every page (Boss 04:29Z: "the breadcrumbs should never be more
     than a single line").
 
@@ -1393,19 +1347,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offers the same two buttons, which start the course from that object.
   Ties in with NAV.3, NAV.13 and NAV.15.
 
-- [ ] **NAV.31 Galaxy wedges don't highlight on the navigation screens (bug)**
-  Boss (2026-10-01 21:15Z): "in the navigation screen the wedges of the galaxy do not
-  highlight at all and they should." Done: when picking a course on
-  the Galaxy Map, hovering highlights the wedge under the cursor the
-  same way the Galaxy Map does outside pick mode (MAP.52), and every
-  later stage's hover highlight works too. Ties in with NAV.32.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the hover highlight on the
-  navigation screens is the arc highlight of MAP.85.
-  Replan (2026-10-02): it needs no shared pick mode (NAV.15);
-  course-pick mode lights the arc highlight PR #369 built. That
-  highlight may already work there: check first, and close it with a
-  test if so.
-
 - [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
   should be functional in the nav screens." Done: picking a course
@@ -1490,34 +1431,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: NAV.12,
   NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.40 Bookmarks can't be used to find the start or destination once a course pick has begun (bug)**
-  Boss (2026-10-02 04:12Z): "navigation system doesn't let you use
-  bookmarks to find your target once you start the nav process."
-  Checked in the code on main (inferred from the code, not reproduced):
-  the NAV page's own Bookmarks select (`renderNavSelect` and
-  `wireNavSelect` in `static/bookmarks.js`, `_bookmark_pick` in
-  `web/nav_page.py`) is offered only on the two "choose a start" and
-  "choose a destination" steps, and lists only system, phenomenon and
-  sector bookmarks, not saved map views. Once the user goes on to pick
-  on a map (`?pick=` on the Galaxy Map, `galaxymap3d.py`, or the
-  sector page's pick banner, `sector.html`), the Galaxy Map's Bookmarks
-  menu (`renderMenu`) links each bookmark to its own page (`urlOf`)
-  with no pick, so following one leaves the course and drops the
-  endpoint already chosen; the sector page in pick mode offers no
-  bookmarks at all; and once both ends are set, the course page has no
-  way to swap either end for a bookmark. NAV.30 (PR #351) only hid the
-  "View" links while picking and is not the cause. Done: while picking
-  a start or destination, every place that offers bookmarks (the
-  Galaxy Map's menu, the sector page, the NAV page) keeps the pick: a
-  system or phenomenon bookmark sets that endpoint and continues the
-  course, a sector bookmark opens that sector's page in pick mode, and
-  a saved map view opens the Galaxy Map there with the pick kept, all
-  keeping the other endpoint; the course page offers bookmarks to
-  change either end; MAP.81's 1 to 9 keys follow the same rule on the
-  map; and a browser test picks a destination from a bookmark on each
-  of those pages.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 8.2 and 9
 
 - [ ] **NAV.41 The NAV page's course map is too small to read (bug)**
   Boss (2026-10-02 04:19Z): "Add TODO item to queue, bugfix, the font is unreadable for the
