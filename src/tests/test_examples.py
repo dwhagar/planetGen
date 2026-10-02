@@ -77,10 +77,12 @@ def test_example_narrative_never_misapplies_main_sequence_notes(path):
     """
     for _ in range(TRIALS):
         system = build_system(path)
-        text = str(system)
         for star in system.stars:
             if star.yerkes_class == "V":
                 continue
+            # Only this star's own paragraphs: a main-sequence companion
+            # (GEN.54) rightly carries its own note.
+            text = "\n\n".join(star.to_paragraph_list())
             for fragment in _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS:
                 assert fragment not in text, (
                     f"{path}: non-main-sequence star {star.name} ({star.type}) narrative "
