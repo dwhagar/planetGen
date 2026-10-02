@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | GEN.62, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -1702,40 +1702,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
 
-- [ ] **GEN.62 Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug)**
-  Found while retiring GEN.46 (PR #370, 2026-10-02): a binary's stars
-  put their own generated word after the system name (`bodyNames.py`,
-  `generate_star_word`; `systemData.py` lines 482 and 529), so a
-  two-word system gives three-word star names, and planets add their
-  numeral on top (`name_bodies(prefix, ...)`). Boss's first answer
-  (03:38Z: drop the extra word, close pairs A and B) is replaced by his
-  decision of 2026-10-02 04:03Z: "Revert back to the wide binary names
-  the way they were. 2 words, first name the same, and 2nd name
-  different. Pick the 2nd word for the 2nd star from a phoneme salad
-  the involves influence from words that mean small, little, daughter,
-  son, child, etc etc etc so that those phoneme are heavily represented
-  in the case of a wide binary 2nd word name generation. Stars are
-  named Blue Green and Blue Red. Planets around Blue Green are called
-  Blue I, II, III, etc. Planets around Blue Red are called Red I, II,
-  III, etc... Now, we don't care if planet names are duplicated just
-  like there are 100 cities named Paris out there." Rule as read from
-  his example (inferred; Boss to correct): a wide pair's two stars are
-  two words each, the same first word (the system's) and a different
-  second word; the primary's second word is drawn as today, and the
-  companion's from a phoneme salad heavily weighted toward sounds from
-  words meaning small, little, daughter, son, child and the like;
-  planets around the primary are named for the shared first word
-  (`Blue I`, `Blue IIa`), and planets around the companion for the
-  companion's own second word (`Red I`). Planet names may repeat across
-  the galaxy; within one sector GEN.63 keeps them apart. Close pairs
-  are not part of this change: their circumbinary planets keep the
-  system name as today. Only new names follow the rule, as with GEN.46.
-  Done: every new wide binary's stars have two-word names sharing the
-  first word, the companion's second word comes from the weighted
-  salad (a test over many draws shows the weighted sounds well above
-  their share in ordinary names), planets follow the rule above, and a
-  test over generated wide binaries checks the names.
-
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
   sectors that need to be backfilled by taking the star density
@@ -1989,8 +1955,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     check reads the sector's existing names, not a running count (see
     TEST.85's negative collision count in `nameUniqueness.py`); duplicates
     across sectors stay allowed; and a test generates crowded sectors
-    and checks every name is unique within each. Prerequisites: GEN.62,
-    GEN.57.
+    and checks every name is unique within each. Prerequisites: GEN.57.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
@@ -2759,7 +2724,7 @@ clears each one.
   fixed seed, or the list worked out from what the run produced), and
   it passes on every run tried. [infra, DB]
 
-- [ ] **TEST.85 A bright-star layer test once hit a name collision count of -1 (bug)**
+- [ ] **TEST.85 Name collisions can count -1 existing names and fail generation (bug)**
   `test_bright_star_scatter.py::test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band`
   failed once in the full suite with `ValueError: existing_count must
   be >= 0, got -1` from `nameUniqueness.py` line 137, and passed in 7
@@ -2772,7 +2737,15 @@ clears each one.
   not arrival order); GEN.46 (done, PR #370) last changed the
   collision code. Done: the failing case is found (loop the test under
   `-n auto`), the count can never go below 0, and the test passes on
-  every run tried. [infra, GEN]
+  every run tried. Seen again (2026-10-02 05:00Z): the same error hit
+  two tests in `test_galaxy_gen.py` in the Binary pairs lane's run of
+  PR #393, so at least three tests in two files fail on it. It is a
+  real bug in the name collision count (`nameUniqueness.py` line 137
+  rejects a count `_db.py` produced), not a timing flake, so it moves
+  out of the flakes to the Binary pairs and single-system forcing lane,
+  right after GEN.51, which works in the same naming code; GEN.57 and
+  GEN.63 (phase 1) build their address-keyed and per-sector name rules
+  on a count that is right. [infra, GEN]
 
 - [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
   `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`

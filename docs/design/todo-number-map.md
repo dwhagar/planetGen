@@ -500,7 +500,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
-| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | open |
+| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -939,7 +939,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
-| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) | none | open |
+| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | open |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

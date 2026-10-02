@@ -24,7 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) |  | Boss 04:03Z: wide pairs "Blue Green"/"Blue Red", companion word from small/child sounds, planets Blue I / Red I. Replaces the 03:38Z A/B rule. |
+| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
 | GEN.51 | Forcing options only for single-system generation |  | Moved to phase 0: the fix half of the GEN.48 bug (forcing stops applying to sector and galaxy runs); prevalence controls stay in phase 1. generate.py sector/galaxy argument parsing. |
 
 ### Galaxy Map follow-ups
@@ -121,7 +121,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
-| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) |  | nameUniqueness.py:137; related to GEN.44 bands and GEN.57 names. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 
 At most two build threads run at once (Boss 02:51Z). The Galaxy Map
