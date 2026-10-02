@@ -353,7 +353,10 @@ of a level-3 block.
   and a bar of its generated share. Dragging it or its arrow keys dim
   the other slabs on the map; letting go, Enter or its Open button takes
   the slab, and hovering a slab on the map moves the slider there. At
-  other stages it says which layers the view holds. This is the paper's
+  other stages it says which layers the view holds. Planned (MAP.91,
+  Boss 2026-10-02): hovering any cube of a slab on the map lights and
+  outlines the whole slab, at every level including the 3 by 3 by 3
+  view, where today one cube is outlined. This is the paper's
   elevation panel, and it gives keyboard and screen-reader users the
   same choice. The map beside it is 4:3 and no taller than the window
   (1:1 on a phone).
@@ -798,7 +801,8 @@ pick goes).
 - **Slab:** a height band of the arc, picked with one button per slab and
   a leader line from each button to its slab (MAP.54, layout MAP.76),
   replacing the slab slider. The arc view draws only the boundaries
-  between slabs (MAP.77).
+  between slabs (MAP.77). Hovering the map lights and outlines the
+  whole slab under the pointer, never a single cube (MAP.91).
 - **Segment:** one drill block of the next level inside the slab,
   picked on the zoomed slab with the same hover highlight. The rest of
   the arc stays as a faint ghost so a slab doesn't read as a wedge

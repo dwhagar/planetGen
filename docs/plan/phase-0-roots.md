@@ -92,6 +92,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 
+### Galaxy map picker and arc
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
+
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
 MAP.60 onward can be a second thread once MAP.64 merges, since they

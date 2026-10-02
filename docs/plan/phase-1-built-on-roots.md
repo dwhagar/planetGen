@@ -45,7 +45,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 | ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
-| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
 | PERF.11 | Store each sector's expected and actual density | GEN.44 | Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
 | PERF.1 | Generation at scale | PERF.11 | Parent; only PERF.11 is open under it. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | GEN.44 | Investigation; go/no-go for GEN.42. |
