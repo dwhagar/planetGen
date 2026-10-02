@@ -173,6 +173,94 @@ function settleIndex(value, guess, boundsOf) {
   return guess;
 }
 
+// Every sector the straight segment from start to end ([x, y, z] pc, both
+// ends included) passes through, in the order it first enters each one:
+// [{ring, layer, slot}, ...]. The browser twin of
+// galaxyGeometry.sectors_along_segment (NAV.38), which explains the method.
+export function sectorsAlongSegment(start, end, edgePc) {
+  var x0 = start[0], y0 = start[1], z0 = start[2];
+  var dx = end[0] - x0, dy = end[1] - y0, dz = end[2] - z0;
+  var at = function (t) {
+    return t === 1 ? [end[0], end[1], end[2]] : [x0 + t * dx, y0 + t * dy, z0 + t * dz];
+  };
+  var cuts = [0, 1];
+  var addCut = function (t) { if (t > 0 && t < 1) cuts.push(t); };
+  if (dz !== 0) {
+    var zLow = Math.min(z0, end[2]), zHigh = Math.max(z0, end[2]);
+    var jHigh = sectorAddressAt(0, 0, zHigh, edgePc).layer;
+    for (var j = sectorAddressAt(0, 0, zLow, edgePc).layer; j <= jHigh; j++) {
+      addCut(((j + 0.5) * edgePc - z0) / dz);
+    }
+  }
+  var a = dx * dx + dy * dy;
+  if (a > 0) {
+    var b = x0 * dx + y0 * dy;
+    var c = x0 * x0 + y0 * y0;
+    var tNear = Math.min(1, Math.max(0, -b / a));
+    addCut(tNear);
+    var near = at(tNear);
+    var ringLow = sectorAddressAt(near[0], near[1], 0, edgePc).ring;
+    var ringHigh = Math.max(sectorAddressAt(x0, y0, 0, edgePc).ring, sectorAddressAt(end[0], end[1], 0, edgePc).ring);
+    for (var i = Math.max(1, ringLow); i <= ringHigh; i++) {
+      var radius = i * edgePc;
+      var disc = b * b - a * (c - radius * radius);
+      if (disc < 0) continue;
+      var root = Math.sqrt(disc);
+      addCut((-b - root) / a);
+      addCut((-b + root) / a);
+    }
+  }
+  var byValue = function (p, q) { return p - q; };
+  var turn = x0 * dy - y0 * dx;
+  if (turn !== 0) {
+    var ordered = cuts.slice().sort(byValue);
+    for (var k = 0; k + 1 < ordered.length; k++) {
+      var ta = ordered[k], tb = ordered[k + 1];
+      var mid = at((ta + tb) / 2);
+      var n = ringSectorCount(sectorAddressAt(mid[0], mid[1], mid[2], edgePc).ring);
+      var sa = slotOfAngle(at(ta), n), sb = slotOfAngle(at(tb), n);
+      var first = turn > 0 ? sa : sb, last = turn > 0 ? sb : sa;
+      if (last < first) last += n;
+      var step = (2 * Math.PI) / n;
+      for (var f = first - 1; f < last + 3; f++) {
+        var phi = (((f % n) + n) % n) * step;
+        var ux = Math.cos(phi), uy = Math.sin(phi);
+        var denom = ux * dy - uy * dx;
+        if (denom === 0) continue;
+        var t = -(ux * y0 - uy * x0) / denom;
+        if (t > ta && t < tb) {
+          var p = at(t);
+          if (ux * p[0] + uy * p[1] > 0) cuts.push(t);
+        }
+      }
+    }
+  }
+  cuts.sort(byValue);
+  var out = [];
+  var known = new Set();
+  var visit = function (p) {
+    var s = sectorAddressAt(p[0], p[1], p[2], edgePc);
+    var key = s.ring + ':' + s.layer + ':' + s.slot;
+    if (!known.has(key)) {
+      known.add(key);
+      out.push(s);
+    }
+  };
+  for (var m = 0; m + 1 < cuts.length; m++) {
+    if (cuts[m] === cuts[m + 1]) continue;
+    visit(at(cuts[m]));
+    visit(at((cuts[m] + cuts[m + 1]) / 2));
+  }
+  visit(end);
+  return out;
+}
+
+function slotOfAngle(p, n) {
+  var theta = Math.atan2(p[1], p[0]);
+  theta = theta < 0 ? theta + 2 * Math.PI : theta;
+  return Math.min(n - 1, Math.floor((theta * n) / (2 * Math.PI)));
+}
+
 // One sector's cell as bounds: {r0, r1, t0, t1, z0, z1}.
 export function sectorCellBounds(ring, layer, slot, edgePc) {
   var step = (2 * Math.PI) / ringSectorCount(ring);
