@@ -379,6 +379,35 @@ ROMAN_NUMERALS_BY_VALUE = {
 }
 """`ROMAN_NUMERAL_VALUES` entry -> its roman numeral text, e.g. `10: "X"`."""
 
+COMPANION_STAR_NAMES = [
+    "Filia", "Filius", "Puella", "Puer", "Parvula", "Infans", "Petite", "Petit",
+    "Piccola", "Bambina", "Bambino", "Nina", "Nino", "Hija", "Hijo", "Pequena",
+    "Kindchen", "Tochter", "Klein", "Dotter", "Liten", "Barnet", "Musume",
+    "Musuko", "Kodomo", "Chiisai", "Dochka", "Synok", "Detka", "Malysh",
+    "Paidi", "Mikros", "Thugater", "Pikku", "Lapsi", "Tytar", "Poika", "Bairn",
+    "Wean", "Merch", "Bachgen", "Putri", "Putra", "Anak", "Kecil", "Mtoto",
+    "Binti", "Ndogo", "Saghir", "Bint", "Yeled", "Katan", "Mala", "Beti",
+]
+"""
+Base names for a wide binary's second star word (GEN.62, Boss 2026-10-02):
+words for small, little, daughter, son and child from many languages
+(Latin, French, Italian, Spanish, German, Swedish, Japanese, Russian,
+Greek, Finnish, Scots, Welsh, Malay, Swahili, Arabic, Hebrew, Polish,
+Hindi), so their sounds dominate the companion's name the way a
+diminutive would.
+"""
+
+COMPANION_STAR_PREFIXES = ["Pi", "Mi", "Ni", "Ki", "Bi", "Ti", "Li", "I", "E"]
+"""Short, light openings for a companion star word."""
+
+COMPANION_STAR_SUFFIXES = [
+    "ita", "ito", "ina", "ino", "ette", "elle", "ling", "kin", "chen", "lein",
+    "ik", "ka", "ula", "illa", "ie", "y", "isha", "ek",
+]
+"""Diminutive endings (Spanish -ita/-ito, Italian -ina/-ino, French
+-ette/-elle, English -ling/-kin/-ie, German -chen/-lein, Slavic
+-ik/-ka/-ek, Latin -ula/-illa) for a companion star word."""
+
 DIMINUTIVE_PREFIXES = [
     "Little", "Petit", "Piccolo", "Klein", "Pequeno", "Pieni", "Liten",
     "Maly", "Malutki", "Chiisai", "Kuchuk", "Mikro", "Beag", "Bach",

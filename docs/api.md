@@ -986,17 +986,21 @@ objects are searched. Success returns
 planet or moon).
 
 Generated names derive from the system (`src/stellarObjects/bodyNames.py`):
-a single star shares the system's name (`Voranthis`), a binary's stars add
-their own word after it (`Voranthis Kelmoor`, `Voranthis Ostra`), planets
-are numbered in orbit order after the star they orbit (`Voranthis II`, or
-`Voranthis Kelmoor II` around one star of a wide pair), and moons add a
+a single star shares the system's name (`Voranthis`), a close pair's stars
+are its A and B (`Voranthis A`, `Voranthis B`), a wide pair's stars are the
+system name's first word plus their own word (`Voranthis Kelmoor`,
+`Voranthis Pikkita`), planets are numbered in orbit order (`Voranthis II`;
+around a wide pair's secondary, after its own word: `Pikkita II`; planet
+names may repeat across systems), and moons add a
 letter (`Voranthis IIa`). Renames keep that in step:
 
 - **System:** every star, planet and moon whose name starts with the old
-  system name is renamed with it. Names set by hand are left alone.
+  system name is renamed with it (for a wide pair, the old first word
+  becomes the new first word). Names set by hand are left alone.
 - **Star:** a single star shares its system's name, so this renames the
   system (as above). A binary's star is renamed on its own, along with the
-  planets and moons named after it.
+  planets and moons named after it (a wide pair's primary's planets follow
+  its first word, its secondary's follow its last).
 - **Planet or moon:** just that body. A renamed planet's moons keep their
   names.
 

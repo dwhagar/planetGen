@@ -76,7 +76,7 @@ from .galaxyDrill import DrillBlock, drill_parent
 from .galaxyGeometry import (
     SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
 )
-from .bodyNames import rename_prefix
+from .bodyNames import rename_prefix, wide_pair_first_word
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nameUniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
@@ -1701,14 +1701,21 @@ def rename_star_system(conn, star_system_id, new_name):
     Returns:
         bool: `False` if no such system exists.
     """
-    row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
+    row = conn.execute("SELECT name, binary_configuration FROM star_systems WHERE id = ?",
+                       (star_system_id,)).fetchone()
     if row is None:
         return False
     conn.execute(
         "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
         (new_name, star_system_id),
     )
-    _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name)
+    if row["binary_configuration"] == "wide":
+        # A wide pair's stars and its primary's planets carry only the
+        # system name's first word (GEN.62).
+        _rename_bodies_with_prefix(conn, star_system_id, wide_pair_first_word(row["name"]),
+                                   wide_pair_first_word(new_name))
+    else:
+        _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name)
     return True
 
 
@@ -1728,13 +1735,21 @@ def rename_star(conn, star_id, new_name):
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
     conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
+    # Since GEN.62 a wide pair's planets carry one word of their star's
+    # name: the primary's the shared first word, the secondary's its own
+    # last. Planets named before carry the whole star name.
+    prefixes = [(row["name"], new_name)]
+    if row["name"] and new_name and len(row["name"].split()) == 2:
+        pick = 0 if row["role"] == "primary" else -1
+        prefixes.append((row["name"].split()[pick], new_name.split()[pick]))
     for table in ("planets", "moons"):
         rows = conn.execute(
             f"SELECT id, name FROM {table} WHERE star_system_id = ? AND star_id = ?",
             (row["star_system_id"], star_id),
         ).fetchall()
         for body in rows:
-            renamed = rename_prefix(body["name"], row["name"], new_name)
+            renamed = next((r for r in (rename_prefix(body["name"], old, new) for old, new in prefixes)
+                            if r is not None), None)
             if renamed is not None:
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, body["id"]))
     _rename_comets(conn, "star_system_id = ? AND star_id = ?", (row["star_system_id"], star_id),
