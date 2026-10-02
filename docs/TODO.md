@@ -1393,19 +1393,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
 
-- [ ] **GEN.62 Star names in a binary system can reach three words (bug)**
+- [ ] **GEN.62 Binary star names stay within two words, and a close pair is named A and B (bug)**
   Found while retiring GEN.46 (PR #370, 2026-10-02): GEN.46 keeps a
   star system's name within two words, but a binary's stars put their
   own generated word after the system name (`bodyNames.py`), so a
   two-word system gives three-word star names (`Xy Zz Kelmoor`), and a
   wide pair's planets and moons add their numeral on top
-  (`Xy Zz Kelmoor IIa`). Boss's reason for GEN.46 was to keep planet
-  names reasonable. Open question: should star names also stay within
-  two words (for example a one-word star word replacing the system's
-  second word, or binaries only around one-word system names), or are
-  three-word binary names acceptable? Done: the rule Boss picks holds
-  for every new star name, and a test over generated binary systems
-  checks it.
+  (`Xy Zz Kelmoor IIa`). Decided (Boss, 2026-10-02 03:38Z): "If a star
+  ends up with more than 2 names and is part of a binary pair then
+  delete the additional name to keep it at 2", and for a close binary
+  pair "we will go with the star name a / b and have planets just named
+  for star name since there will be only one system." Defaults taken
+  unless Boss corrects them: in a wide pair each star keeps its own
+  word and drops the system name's extra word, so `Xy Zz Kelmoor`
+  becomes `Xy Kelmoor` (its planets `Xy Kelmoor I`); a close pair's
+  system keeps its one name, its stars are `<name> A` and `<name> B`
+  (shown together as `<name> A / B`), and its planets are
+  `<name> <numeral>` with no star letter; the A or B letter, like a
+  planet's numeral, does not count as a word. Only new names follow the
+  rule, as with GEN.46. Done: no new star name in a binary is longer
+  than two words plus its letter, close pairs' stars are A and B of the
+  system name with planets named for the system, and a test over
+  generated wide and close binaries checks both.
 
 - [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star

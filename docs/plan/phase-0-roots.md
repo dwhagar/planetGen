@@ -34,6 +34,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) |  | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.49 | Same forcing code; rejected for single systems. |
+| GEN.62 | Binary star names stay within two words, and a close pair is named A and B (bug) |  | bodyNames.py binary star words. Decided (Boss 03:38Z): wide pairs drop the extra word, close pairs are <name> A / B with planets named for the system. |
 
 ### System Map
 
@@ -90,12 +91,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 
-### Galaxy geometry and names
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.62 | Star names in a binary system can reach three words (bug) |  | bodyNames.py binary star words. Open question for Boss: should star names also stay within two words? |
-
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
 MAP.60 onward can be a second thread once MAP.64 merges, since they
@@ -107,4 +102,4 @@ most 4 build threads run at once (Boss).
 
 ## Open questions for Boss
 
-- GEN.62: Star names in a binary system can reach three words (bug), see its entry in TODO.md.
+None.
