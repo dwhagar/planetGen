@@ -103,8 +103,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403) and System Map (PR
-#405). Galaxy Map drill-down is running. Then the lanes start in the
-order above as a slot frees: Generation bugs, Sector stats and colors (MAP.80 and
+#405). Galaxy Map drill-down (MAP.56 done, PR #408) and Generation
+bugs are running. Then the lanes start in the order above as a slot
+frees: Sector stats and colors (MAP.80 and
 MAP.86 after the drill-down merges), Routing groundwork, Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
 not approved yet), Small page bugs, and Ops and flakes last. NAV.7
