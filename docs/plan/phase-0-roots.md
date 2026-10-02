@@ -39,9 +39,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.53 | The two stars of a binary don't share one age (bug) |  | StarSystem constructor in systemData.py (secondary made around line 270). |
-| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | GEN.53 | Same lines as GEN.53; one PR. |
-| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | GEN.54 | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
+| GEN.49 | `+habitable_world` silently fails on hot stars (bug) |  | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.49 | Same forcing code; rejected for single systems. |
 
 ### Galaxy geometry and names
