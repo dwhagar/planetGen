@@ -236,13 +236,10 @@ class RoguePlanet:
                        f"mass {mass_jupiter:.4g} Mjup >= ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
                        f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 'g'
-            # Real gas giants show a near-flat mass-radius relation from
-            # roughly Saturn's mass up through the deuterium-burning limit
-            # -- electron-degeneracy pressure counteracts the added weight
-            # of extra mass almost exactly (Chabrier & Baraffe 2000, ARA&A
-            # 38:337) -- so radius is drawn as a narrow variation around
-            # Jupiter's own radius rather than scaled with mass.
-            self.radius_km = physical_constants.JUPITER_RADIUS_KM * random.uniform(0.8, 1.15)
+            # The same giant mass-radius relation as a bound giant (GEN.34,
+            # GEN.60): radius grows with mass up to about Saturn's mass,
+            # then stays near Jupiter's as degeneracy pressure takes over.
+            self.radius_km = planetPhysics.sample_giant_radius_km(self.mass_kg)
             self.composition = "hydrogen and helium, similar in bulk composition to Jupiter or Saturn"
         else:
             log.choice("Rogue planet type", "terrestrial",

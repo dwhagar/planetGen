@@ -1,0 +1,2 @@
+### Fixed
+- **Rogue gas giants get a radius that follows their mass (GEN.60).** A free-floating gas giant used to be drawn around Jupiter's radius whatever its mass, so a 0.05 Jupiter-mass rogue was as big as a 10 Jupiter-mass one. Rogue gas giants now use the same giant mass-radius relation as gas giants around stars: a Neptune-mass rogue is about four Earth radii across, and from about Saturn's mass up the radius stays near Jupiter's. Rogue planets already in a database keep their stored size.
