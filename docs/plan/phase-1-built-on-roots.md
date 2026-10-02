@@ -129,6 +129,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
 | OPS.13 | Every update records the version key, keeping the last 10 | DB.6, OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.6, DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.6, DB.7, OPS.13 | Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
+
+### Database consistency check
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
 ## Open questions for Boss
 

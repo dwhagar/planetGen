@@ -127,6 +127,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.79 | Route edge cases, written before NAV.12 |  | Cases from the hop-length study's report. |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | navGraph.build_knn_adjacency; needed before NAV.12. |
 
+### Database consistency check
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
+
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
 MAP.60 onward can be a second thread once MAP.64 merges, since they

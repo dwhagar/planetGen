@@ -18,9 +18,9 @@ release is stamped.
 | NAV | NAV.40 |
 | GEN | GEN.60 |
 | PERF | PERF.24 |
-| DB | DB.8 |
+| DB | DB.10 |
 | API | API.18 |
-| ADM | ADM.18 |
+| ADM | ADM.19 |
 | SEC | SEC.29 |
 | TEST | TEST.80 |
 | USR | USR.8 |
@@ -406,6 +406,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | open |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
@@ -430,6 +431,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
+| DB.8 | Check a galaxy database and say whether it is damaged | none | open |
+| DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
