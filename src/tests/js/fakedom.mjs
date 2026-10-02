@@ -402,6 +402,11 @@ export class FakeElement extends EventTargetish {
 
   releasePointerCapture() {}
 
+  contains(node) {
+    for (let up = node; up; up = up.parentNode) if (up === this) return true;
+    return false;
+  }
+
   focus() {
     if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }

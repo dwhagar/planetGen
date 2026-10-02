@@ -34,18 +34,18 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.51 | Forcing options only for single-system generation | GEN.50 | generate.py sector/galaxy argument parsing. |
+| GEN.51 | Forcing options only for single-system generation |  | generate.py sector/galaxy argument parsing. |
 | GEN.52 | Prevalence controls for sector and galaxy runs | GEN.51 | Probability adjustments reach systemData.py, the same constructor phase 0 thread D fixed. |
 | TEST.75 | Tests for forcing and prevalence | GEN.52 | Grows with GEN.49 to GEN.52. |
 | ADM.16 | Prevalence controls on the Generate page | GEN.52, ADM.14 | generate.html, after ADM.14's layout. |
-| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75 | Parent; closes with its subitems. |
+| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | GEN.51, GEN.52, ADM.16, TEST.75 | Parent; closes with its subitems. |
 
 ### Galaxy gen
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 | ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
-| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
 | PERF.11 | Store each sector's expected and actual density | GEN.44 | Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
 | PERF.1 | Generation at scale | PERF.11 | Parent; only PERF.11 is open under it. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | GEN.44 | Investigation; go/no-go for GEN.42. |
@@ -61,7 +61,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | MAP.85, PERF.11 | Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | PERF.11 | Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
 
 ### Galaxy tiles
 

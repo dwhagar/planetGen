@@ -62,7 +62,8 @@ def fixtures():
                                      "designation": provisional_sector_designation(ring, layer, slot)})
 
     def actions(html):
-        controls = re.search(r'<div[^>]*id="galaxymap3d-controls"[^>]*>(.*?)</div>', html, re.S).group(1)
+        # The row and its Menu (MAP.55), up to the side panel's end.
+        controls = html[html.index('id="galaxymap3d-controls"'):html.index('<script type="application/json"')]
         return re.findall(r'data-action="([^"]+)"', controls)
 
     view = {"stamp": "0123456789abcdef", "tiles": {}, "edge_pc": EDGE_PC, "has_shape": True}

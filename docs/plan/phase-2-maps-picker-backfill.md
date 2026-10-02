@@ -24,8 +24,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | MAP.85 | Arc, slab, segment ladder in galaxystages.js. |
-| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | MAP.85 | Rotation and fit on MAP.64's controller. |
+| MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) |  | Arc, slab, segment ladder in galaxystages.js. |
+| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) |  | Rotation and fit on MAP.64's controller. |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | MAP.53 | A zoom policy of MAP.64. |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | MAP.53 | The fit itself; with MAP.53. |
 | MAP.76 | Leader-line layout | MAP.56 | Layout half of MAP.54; same PR. |
@@ -48,7 +48,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.15 | Pick mode everywhere | NAV.13, NAV.14, MAP.65 | Pick mode in the shared panel layer. |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | NAV.13, NAV.15 | Needs the step out/in of NAV.13. |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | NAV.15 |  |
-| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | NAV.15, MAP.85 | The highlight is MAP.85's arc highlight. |
+| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | NAV.15 | The highlight is MAP.85's arc highlight. |
 | NAV.16 | NAV endpoints can be any object | NAV.7 | navigation.py legs, nav_page.py endpoints. |
 
 ### Courses

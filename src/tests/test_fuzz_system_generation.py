@@ -105,7 +105,7 @@ def _normalize(cfg):
         assume(cfg.HABITABLE_WORLD is not False)
         cfg.HABITABLE_WORLD = True
     if cfg.PLANETS is False:
-        assume(not (cfg.MOONS or cfg.MAX_PLANETS or cfg.HABITABLE_WORLD))
+        assume(not (cfg.MOONS or cfg.MAX_PLANETS or cfg.HABITABLE_WORLD or cfg.ASTEROID_BELT))
         assume(cfg.NUM_ORBITS is None and not cfg.SLOTS)
     if cfg.HABITABLE_WORLD is True and cfg.ASTEROID_BELT is True:
         assume(cfg.LARGE_STAR is not False)

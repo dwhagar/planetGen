@@ -66,9 +66,14 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   sectors appear for the next pick. Note the word: "arc" was MAP.19's
   name for one cell of the old 3x3 region pick
   ([galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md));
-  it now means this first pick; the design doc's section 15 ("Planned:
-  the arc pick", PR #362) describes it, and is rewritten as the current
-  design when MAP.85 ships.
+  it now means this first pick; the design doc's section 15 ("The arc
+  pick") describes it as built. Shipped in PR #369 (MAP.60,
+  MAP.55, MAP.85, MAP.52): arcs are 45 degrees wide (the width nearest
+  40 degrees whose edges fall on wedge lines in every block ring) by a
+  third of the disk radius, 24 arcs in all; the galaxy map is a tilted
+  3D view with no grid lines, a one-line scale, and the buttons Back,
+  Forward, Up, Reset, Bookmarks and Menu, as text labels with a hook
+  for UX.28's icons.
 - **Sector colors (MAP.86).** The notes' starting values:
 
   | State | Opacity | Saturation | Hue from |
@@ -157,7 +162,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44, GEN.41, GEN.42, GEN.43, PERF.18 | Fixed order GEN.44, GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
 | generate.py: command-line options | GEN.51, GEN.52, GEN.24, API.3 | GEN.51/52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
-| systemData.py StarSystem constructor | GEN.49, GEN.50, then GEN.52 | One thread in phase 0 (GEN.53 and GEN.54 done, PR #367); GEN.52 after it. |
+| systemData.py StarSystem constructor | GEN.52 | GEN.53 and GEN.54 done (PR #367), GEN.49 and GEN.50 done (PR #373). |
 | planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
 | Random draws in every generator file | GEN.39, then GEN.56 (decided yes, Boss 01:34Z) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
 | _db.py | API.10 (id blocks), API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347); GEN.46 done (PR #370). |
@@ -165,17 +170,17 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Control schema (v7 today) | OPS.13 (key history), API.9, API.15 (call log), USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
-| galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.60, MAP.55, MAP.85, MAP.52, MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. |
+| galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.91 (phase 0), MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 | In that order (MAP.90 done, PR #365); any payload change bumps the tile cache. |
-| galaxyGeometry.py and galaxyprisms.js | GEN.24, MAP.85 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. |
-| bookmarks.js | MAP.55, NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. |
-| static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.60, MAP.55, MAP.85, MAP.52, MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. |
+| galaxyGeometry.py and galaxyprisms.js | GEN.24 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. MAP.85 done (PR #369). |
+| bookmarks.js | NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. MAP.55 done (PR #369). |
+| static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Generate page (generate.html) | ADM.14, ADM.16, GEN.24 | ADM.14 first. |
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
 | Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 | One thread, in that order. |
 | Navigation (nav_page.py, queryDb.nav_between, navigation.py) | NAV.7, NAV.10, NAV.11, NAV.16, NAV.17 | NAV.7 first; NAV.10 and NAV.16 touch different functions. |
 | Admin edits (editStore.py, adminEdits.py, api/edits.py) and the galaxy settings JSON | ADM.18, GEN.59, GEN.61, OPS.18, ADM.19, DB.10, OPS.12 | ADM.18 writes the file; GEN.59 records deltas in the control database; GEN.61 merges them daily; OPS.18 keeps 18 backups. |
-| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.8, then OPS.13, then OPS.15, then OPS.17 | OPS.7 and OPS.8 one PR; OPS.13, OPS.15 and OPS.17 after it, in that order. |
+| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.8, OPS.19, then OPS.13, then OPS.15, then OPS.17 | OPS.7 and OPS.8 one PR, OPS.19 (jobs folder move) in the same lane; OPS.13, OPS.15 and OPS.17 after them, in that order. |
 
 ## Near-cycles and how they are broken
 

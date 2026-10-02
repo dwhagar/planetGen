@@ -2,9 +2,9 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
-**Status (2026-10-02, checked against 7.132.433):** built. The arc pick
-(MAP.85, phase 0) will replace the first pick and the ladder below it;
-it is planned and not built, and section 15 describes it.
+**Status (2026-10-02):** built. The arc pick (MAP.85) has replaced the
+galaxy's first pick (section 4); section 15's later steps (slab, then
+segment, MAP.56 onward) are still planned.
 
 | Piece | Section | TODO | Built in |
 |---|---|---|---|
@@ -20,6 +20,7 @@ it is planned and not built, and section 15 describes it.
 | NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | 7.94.253 (the picks earlier) |
 | Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81) | 8.2 | MAP.23 | 7.94.253 |
 | "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | 7.64.174 |
+| The whole galaxy in 3D with no grid lines, the arc pick in place of the quarter, outlines along real wedge lines, one scale line, the controls' Menu | 4, 5, 8.1, 10, 15 | MAP.85, MAP.52, MAP.60, MAP.55 | PR #369 |
 
 Later requests changed this design, and the sections below describe the
 map as it now is: MAP.17 (no free camera and no rotation at all; start
@@ -30,6 +31,13 @@ on Galaxy Map" opens at the sector's own layer, and the map has its own
 Back and Forward). Boss settled what a slice and a region are on
 2026-10-01 ("Layer + arc", section 11, decision 8). The open work items
 are in `docs/TODO.md`, and each one points back to a section here.
+
+MAP.85 (Boss, 2026-10-01 23:53Z; arc size decided 2026-10-02 01:53Z)
+then made the whole galaxy a 3D disk the visitor can turn, with no
+sector, block or wedge lines drawn on it, and replaced the quarter with
+an arc (section 4); MAP.55 put every control but Back, Forward, Up,
+Reset and Bookmarks into a Menu and dropped the Wedges button and the
+wedge lines; MAP.60 cut the scale readout to one line.
 
 ## 1. What Boss asked for
 
@@ -219,20 +227,30 @@ sectors of its children.
 
 ## 4. The stages
 
-The whole galaxy is seen from straight above and can't be turned
-(MAP.17). Every view below it, from a quarter down, opens at an
-isometric slant (Boss, 2026-10-01, "turn the angle to be isometric so
-that the user can select layers easier"), so layers can be clicked on
-the map as well as picked from the strip; a quarter itself still can't
-be turned. Below the quarters (once an arc is picked, and inside
-every block) the view can be turned, moved and zoomed freely, to make
-layers, blocks and sectors easier to pick (Boss, 2026-10-01, section
-5.1); each step still opens on its own view. A stage is a container (the galaxy or
+The whole galaxy is a 3D disk, opened tilted 35° from straight down,
+that the visitor can turn and tilt, and zoom in to about twice as close
+but no further out than its fit (MAP.85, MAP.58's range); it has no
+sector, block or wedge lines, so the stars and the spiral show through.
+Every view below it, from an arc down, opens at an isometric slant
+(Boss, 2026-10-01, "turn the angle to be isometric so that the user can
+select layers easier"), so layers can be clicked on the map as well as
+picked from the strip, and can be turned, moved and zoomed within a
+short range, to make layers, blocks and sectors easier to pick (Boss,
+2026-10-01, section 5.1); each step still opens on its own view. A stage is a container (the galaxy or
 one block of the ladder, section 3) and the picks made inside it so far.
 The picks go:
 
-- **Quarter**, at the galaxy only: one of four 90° wedges, its edges on
-  the wedge lines (bearings 0°, 90°, 180°, 270°).
+- **Arc** (MAP.85), at the galaxy only: a piece of the disk about 40°
+  of bearing by a third of its radius (inner, middle or outer), running
+  the whole height of the disk. An arc holds the level-243 blocks of
+  its third of the block rings whose middle bearing falls in one of
+  eight 45° bins: 45° is the width nearest 40° whose lines are wedge
+  lines of every block ring past the core (their wedge counts are all
+  multiples of 8), so an arc's sides run straight from its inner edge
+  to its outer one; the core's three 120° blocks join the arc their
+  middle falls in. That makes 24 arcs. Hovering one outlines it, top and
+  bottom with its corners joined, and its neighbors faintly; nothing
+  else is outlined. Older links' quarters (`q<n>`) still open.
 - **Layer** (MAP.17's "slice"): a layer of the disk. While the view
   holds more than three slabs of the container's children, the choice
   is between the lowest, middle and highest third of them; with three
@@ -243,13 +261,13 @@ The picks go:
   the view has fewer rings or blocks across), so each arc is about a
   third of the wedge in view. A block belongs to the cell its middle
   falls in. The map zooms into the region picked.
-- A quarter or region reaches as far as its blocks do, not just its
+- An arc, quarter or region reaches as far as its blocks do, not just its
   even share of the bearings (Boss, 2026-10-01): near the core a block
   sits between meridians that run all the way in and can be wider than
   the share (quarter 0°–90° holds the 0°–120° core wedge), so the
   highlight, the label and the zoom all follow the real wedge.
 
-They alternate: after the quarter, a layer, then a region, then a layer
+They alternate: after the arc, a layer, then a region, then a layer
 and so on (galaxystages.nextPickKind). A layer comes next whenever the
 last pick wasn't a layer and the view still spans more than one slab;
 otherwise a region while the view is more than one column of blocks
@@ -335,7 +353,10 @@ of a level-3 block.
   and a bar of its generated share. Dragging it or its arrow keys dim
   the other slabs on the map; letting go, Enter or its Open button takes
   the slab, and hovering a slab on the map moves the slider there. At
-  other stages it says which layers the view holds. This is the paper's
+  other stages it says which layers the view holds. Planned (MAP.91,
+  Boss 2026-10-02): hovering any cube of a slab on the map lights and
+  outlines the whole slab, at every level including the 3 by 3 by 3
+  view, where today one cube is outlined. This is the paper's
   elevation panel, and it gives keyboard and screen-reader users the
   same choice. The map beside it is 4:3 and no taller than the window
   (1:1 on a phone).
@@ -392,8 +413,10 @@ the end. The same path is used for the address bar's jumps
   keeps the stage, and a visit to a sector page and back returns to it.
   Back is off at the first stage of the visit and Forward once nothing
   is ahead.
-- **Up** goes one step back out (the same as Esc), and **Whole galaxy**
-  starts over (Home).
+- **Up** goes one step back out (the same as Esc), and **Reset** starts
+  over at the whole galaxy (Home). Back, Forward, Up, Reset and
+  Bookmarks are the only buttons in view; Reset view, Generated only
+  and Territories are in the Menu beside them (MAP.55).
 
 ### 5.5 The sector at the end
 
@@ -501,11 +524,13 @@ one: `{ring, layer, slot, id, name, system_count}`.
 | Stage | URL |
 | --- | --- |
 | The galaxy | `/galaxy` |
-| Picks at the galaxy | `/galaxy?p=q1,L0,r4` |
+| Picks at the galaxy | `/galaxy?p=a1.90,L0,r4` |
 | A block, and picks inside it | `/galaxy?at=243.7.14.0&p=L-4~-2,r4` (`m.ring.wedge.slab`) |
 | A sector | `/galaxy?sector=<designation>` |
 
-- A pick reads `q<n>` (quarter n, counterclockwise from bearing 0),
+- A pick reads `a<band>.<bearing>` (the arc of band 0, 1 or 2, inner
+  first, starting at that bearing in degrees), `q<n>` (quarter n, from
+  older links),
   `r<n>` (region n of the 3 by 3 grid, band by arc, inner band first),
   `L<s>` (slab s of the container's children) or `L<lo>~<hi>` (slabs lo
   to hi).
@@ -630,12 +655,14 @@ link, this one included, to open at the sector level.
 
 - Click-to-center, double-click zoom, the +/− buttons, Slice and Free
   look are gone (MAP.17); the stages are the only way between places.
-  Drag-rotate, panning and wheel zoom are back below the galaxy and its
-  quarters (section 5.1). The buttons beside the map are Back, Forward,
-  Up, Whole galaxy, Reset view, Wedges, Generated only and (with
-  polities) Territories.
-- Wedge lines, density shading, the filled-share look, the sector/pc/ly
-  scale readout and the info panel all stay.
+  Drag-rotate, panning and wheel zoom are back everywhere (section 5.1;
+  the whole galaxy since MAP.85). The buttons beside the map are Back,
+  Forward, Up, Reset and Bookmarks, with Reset view, Generated only and
+  (with polities) Territories in the Menu (MAP.55).
+- Density shading, the filled-share look and the info panel stay. The
+  wedge lines and the Wedges button are gone (MAP.85), and the scale
+  readout is one line, a bar and its length in sectors, pc and ly
+  (MAP.60).
 - Each stage draws at most a few hundred blocks.
 - The Territories overlay (7.54.0, population-and-politics.md) and the
   NAV course line (section 9.4) draw over the map.
@@ -702,16 +729,18 @@ MAP.3 (the bigger map) shipped in 7.55.0. MAP.27 shipped before MAP.22, using
 the NAV result's link rather than the NAV pickers. Everything in this
 table is built: MAP.20's `--block` mode in 7.60.174, MAP.25 in 7.64.174,
 MAP.17 and MAP.26 in 7.73.177, and MAP.22 and MAP.23 in 7.94.253
-(bookmarks per browser, decision 4's default). The open work is the arc
-pick and what follows it, section 15.
+(bookmarks per browser, decision 4's default). The arc pick shipped in
+PR #369 (section 15); the open work is what follows it, section 15.3
+onward.
 
-## 15. Planned: the arc pick (MAP.85)
+## 15. The arc pick (MAP.85)
 
-Planned, not built. Boss asked for it on 2026-10-01 (23:53Z) and moved it
-into phase 0 on 2026-10-02 (01:46Z); the arc size below is his decision
-of 01:53Z. When it is built it replaces sections 4 and 5.2's quarter,
-layer and region picks, and this section becomes the description of
-the map.
+Boss asked for it on 2026-10-01 (23:53Z) and moved it into phase 0 on
+2026-10-02 (01:46Z); the arc size below is his decision of 01:53Z.
+15.1 and 15.2 are built (PR #369, with MAP.52, MAP.55 and MAP.60) and
+describe the map as it is. Still planned: the zoom lock below the arc
+(MAP.58), the turn about the arc's middle (MAP.53), framing every level
+whole (MAP.78), 15.3 and the colours of 15.4.
 
 > Redo the galactic selection, so that the galaxy map is 3D, we can
 > manipulate it. The user doesn't select an entire wedge, just a large
@@ -722,32 +751,46 @@ the map.
 > then they can see it's boundaries and the boundaries of the other
 > segments.
 
-"Arc" now means this first pick. Until MAP.85 lands it still means one
-cell of today's 3 by 3 region pick (MAP.19, section 4).
+"Arc" means this first pick; a "region" is one cell of the 3 by 3 pick
+below it (MAP.19, section 4) until MAP.56 replaces that.
 
 ### 15.1 The whole galaxy
 
-- A 3D galaxy the user can turn and tilt, drawn as its stars and spiral
-  structure only: no sector, block or wedge lines, and no Wedges button
-  (MAP.55 removes it).
-- Zoom on the whole galaxy and on a picked arc is a short manual range:
-  in to about twice the fitted view, out until the whole galaxy fits.
-  Below the arc, user zoom is locked and each pick's staged zoom fits
-  the view (MAP.58).
+- The whole galaxy opens as a 3D disk tilted 35 degrees from straight
+  down, galactic north up the screen, that the user can turn and tilt
+  (`GALAXY_TILT` in `static/galaxystageview.js`). It is drawn as its
+  stars, spiral structure and block shading only: no sector, block or
+  wedge lines, and no Wedges button.
+- Zoom on the whole galaxy is a short manual range: in to about twice
+  the fitted view, out until the whole galaxy fits. Locking user zoom
+  below the arc, with each pick's staged zoom fitting the view, is
+  planned (MAP.58).
+- The scale readout is one line: the bar and its length (MAP.60).
+- Back, Forward, Up, Reset and Bookmarks stay beside the map; Reset
+  view, Generated only and Territories are in a Menu (MAP.55). The
+  buttons are text labels and carry a `data-icon` hook, so UX.28's icons
+  can replace the words later.
 
 ### 15.2 The arc
 
 - An arc is a piece of the disk bounded by bearing and by distance from
   the center, running the full height of the disk.
-- Size: about 40 degrees of bearing (MAP.52's width, its sides snapped
-  to the meridians of the sector grid) by a third of the disk's radius
-  (inner, middle or outer), so the disk has about 27 arcs. Near the core
-  the meridians stop short, so an inner arc can come out wider than 40
-  degrees, as quarters do today (section 4).
-- Hovering shows the arc under the cursor with its boundary, and the
-  boundaries of the neighboring arcs faintly. Nothing else is outlined.
-- Clicking flies to the arc, framed whole in the window (MAP.78), and
-  the view turns about the arc's own middle (MAP.53).
+- Size: 45 degrees of bearing by a third of the disk's radius (inner,
+  middle or outer), so the disk has 24 arcs (`ARCS_PER_TURN` = 8 and
+  `ARC_BANDS` = 3 in `static/galaxystages.js`). Boss asked for about 40
+  degrees (MAP.52's width); 45 is the nearest width whose sides are
+  wedge lines of every block ring past the core (their wedge counts are
+  all multiples of 8), so an arc's sides run straight from its inner
+  edge to its outer one. A block joins the arc its middle bearing falls
+  in; the core's three 120-degree blocks do the same.
+- Hovering outlines the arc under the cursor along its blocks' own
+  sides, top and bottom with its corners joined, and the neighboring
+  arcs' outlines faintly. Nothing else is outlined.
+- Clicking flies to the arc from the isometric slant, its middle
+  bearing up the screen, fitted round its blocks. Its URL token is
+  `a<band>.<bearing>` (for example `a1.90`); older links' quarters
+  (`q<n>`) still open. Framing every level whole (MAP.78) and turning
+  about the arc's own middle (MAP.53) are planned.
 
 ### 15.3 Below the arc
 
@@ -758,7 +801,8 @@ pick goes).
 - **Slab:** a height band of the arc, picked with one button per slab and
   a leader line from each button to its slab (MAP.54, layout MAP.76),
   replacing the slab slider. The arc view draws only the boundaries
-  between slabs (MAP.77).
+  between slabs (MAP.77). Hovering the map lights and outlines the
+  whole slab under the pointer, never a single cube (MAP.91).
 - **Segment:** one drill block of the next level inside the slab,
   picked on the zoomed slab with the same hover highlight. The rest of
   the arc stays as a faint ghost so a slab doesn't read as a wedge
@@ -772,8 +816,8 @@ With the lines gone, colour shows the structure: each sector's colour,
 saturation and opacity come from its stars (density, average colour by
 temperature, average luminosity), filled sectors stay translucent, and a
 block is the average of its sectors (MAP.86, phase 1, with its stored
-per-sector colour served with the tiles). Until MAP.86 lands the arc
-pick keeps today's block shading. At sector zoom the map shows almost
+per-sector colour served with the tiles). Until MAP.86 lands, the map
+keeps today's block shading (built in PR #369 without lines). At sector zoom the map shows almost
 every star of the sector (MAP.80, phase 1).
 
 ### 15.5 Order
@@ -781,9 +825,9 @@ every star of the sector (MAP.80, phase 1).
 | ID | Piece | Phase | Needs |
 |---|---|---|---|
 | MAP.63, MAP.64 | Shared map helpers (`static/mapcore.js`), one camera and input controller (`static/mapcontrol.js`) | 0 | **Built, PR #351**, with TEST.70, MAP.87, MAP.82 to MAP.84, NAV.30 and MAP.81 |
-| MAP.60 | One scale line | 0 | MAP.64 |
-| MAP.55 | Buttons into a menu; back, forward, up, reset and bookmark showing | 0 | MAP.60, UX.28 (icons; text labels until then) |
-| MAP.85 + MAP.52 | The arc pick, one PR | 0 | MAP.55, MAP.64 |
+| MAP.60 | One scale line | 0 | **Built, PR #369** |
+| MAP.55 | Buttons into a menu; back, forward, up, reset and bookmark showing | 0 | **Built, PR #369**, text labels with a `data-icon` hook for UX.28 |
+| MAP.85 + MAP.52 | The arc pick, one PR | 0 | **Built, PR #369** |
 | MAP.86, MAP.80 | Sector colours; most stars at sector zoom | 1 | MAP.85, PERF.11 (MAP.86); MAP.90, MAP.87 (MAP.80) |
 | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77 | Slab and segment ladder, rotate and fit, zoom limits, leader lines, mini map, ghost | 2 | MAP.85, in that order, one thread |
 | MAP.65, NAV.15, NAV.31 | One picking layer, pick mode on it, the arc highlight while picking | 2 | MAP.56 (MAP.65); NAV.13, NAV.14, MAP.65 (NAV.15); NAV.15 (NAV.31) |

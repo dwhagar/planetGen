@@ -318,12 +318,12 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
             reached_sector = True
             break
         assert len(crumbs) == len(steps[-1][1]) + 1 or crumbs[-1].startswith("Block "), crumbs
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[qrL0-9~,-]+)?", query), query
+        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[arL0-9.~,-]+)?", query), query
         assert query != steps[-1][0], "the URL names the new stage"
         steps.append((query, crumbs))
     assert reached_sector, f"never reached a sector: {steps[-1]}"
     kinds = " ".join(q for q, _ in steps)
-    for marker in ("p=q", "L", "r", "at=243.", "at=27.", "at=3."):
+    for marker in ("p=a", "L", "r", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
 
     # Back and Forward (the browser's) walk the same stages, in order.
@@ -377,19 +377,17 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
 
 
 def _scale_text(page):
-    return page.locator("#galaxymap3d-scale").inner_text()
+    """The scale line: its label and its bar's width (a zoom between two
+    nice lengths only changes the bar)."""
+    return page.locator("#galaxymap3d-scale").inner_html()
 
 
 def test_galaxy_map_free_camera_from_an_arc_down(page, base_url):
     _open_galaxy(page, base_url)
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
-    assert reset_view.is_disabled(), "the whole galaxy can't be turned"
-    for _ in range(4):
-        _click_choice(page)
-        if not reset_view.is_disabled():
-            break
-    assert not reset_view.is_disabled(), f"no free stage by {_crumbs(page)}"
-    assert parse_qs(_query(page))["p"][0].split(",")[-1].startswith("r"), "an arc is the first free stage"
+    assert not reset_view.is_disabled(), "the whole galaxy turns (MAP.85)"
+    _click_choice(page)
+    assert parse_qs(_query(page))["p"][0].startswith("a"), "the galaxy's first pick is an arc"
 
     canvas = "#galaxymap3d-canvas"
     box = page.locator(canvas).bounding_box()
@@ -417,6 +415,7 @@ def test_galaxy_map_free_camera_from_an_arc_down(page, base_url):
     page.mouse.up(button="right")
     assert _shot(page, canvas) != turned, "right-drag didn't move the view"
 
+    page.click("#galaxymap3d-menu summary")
     reset_view.click()
     _wait_settled(page)
     assert _scale_text(page) == scale, "Reset view is back at the stage's own zoom"
@@ -428,16 +427,10 @@ def test_galaxy_map_buttons(page, base_url):
     controls = page.locator("#galaxymap3d-controls")
     actions = controls.locator("[data-action]").evaluate_all("els => els.map(e => e.dataset.action)")
     canvas = "#galaxymap3d-canvas"
-    for action in ("back", "forward", "up", "reset-view"):
+    for action in ("back", "forward", "up"):
         assert controls.locator(f'[data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
-
-    if "wedges" in actions:
-        wedges = controls.locator('[data-action="wedges"]')
-        before, pressed = _shot(page, canvas), wedges.get_attribute("aria-pressed")
-        wedges.click()
-        assert wedges.get_attribute("aria-pressed") != pressed
-        assert _shot(page, canvas) != before, "Wedges didn't change the map"
-        wedges.click()
+    assert "wedges" not in actions, "no Wedges button (MAP.85)"
+    page.click("#galaxymap3d-menu summary")
 
     if "generated-only" in actions:
         only = controls.locator('[data-action="generated-only"]')

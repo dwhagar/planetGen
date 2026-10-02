@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.36 |
-| MAP | MAP.91 |
+| MAP | MAP.92 |
 | NAV | NAV.40 |
 | GEN | GEN.63 |
 | PERF | PERF.24 |
@@ -22,9 +22,9 @@ release is stamped.
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.83 |
+| TEST | TEST.86 |
 | USR | USR.8 |
-| OPS | OPS.19 |
+| OPS | OPS.20 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -487,8 +487,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
-| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | open |
-| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
+| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | done, PR #373 |
+| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | done, PR #373 |
 | GEN.51 | Forcing options only for single-system generation | none | open |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
@@ -500,7 +500,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
-| GEN.62 | Star names in a binary system can reach three words (bug) | none | open |
+| GEN.62 | Binary star names stay within two words, and a close pair is named A and B (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -552,15 +552,15 @@ Parents marked "new parent" had no old number of their own.
 | MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
-| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | open |
+| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | done, PR #369 |
 | MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | open |
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
-| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
+| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
-| MAP.60 | Galaxy Map scale readout: one scale line | none | open |
+| MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
@@ -585,12 +585,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
 | MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
 | MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
-| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | open |
+| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
+| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -648,6 +649,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
 | PERF.1 | Generation at scale | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -921,6 +923,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
+| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
+| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
+| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

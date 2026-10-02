@@ -24,10 +24,10 @@
 //
 // The galaxy's sector grid is drawn as blocks of whole sectors, one
 // drill-down stage at a time (./galaxystageview.js, rules in
-// ./galaxystages.js): the visitor picks a quarter, a layer, an arc, a
-// layer, an arc, ... down to a sector. The whole galaxy and its quarters
-// are seen from straight above; below them the view can be turned, moved
-// and zoomed. Density is computed right here from the galaxy's own
+// ./galaxystages.js): the visitor picks an arc of the disk (MAP.85), a
+// layer, a region, a layer, ... down to a sector. Every view can be
+// turned and zoomed within limits; the whole galaxy has no grid lines
+// drawn on it, so its stars and spiral show through. Density is computed right here from the galaxy's own
 // analytic shape, not fetched, and colors each block.
 // Unfilled space is mostly see-through; a block holding generated
 // sectors is amber and grows more solid with their share (MAP.37).
@@ -51,7 +51,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
   blockSectorCount, blockSectorRanges, blockSlotRange, cellCoordinates, cellVertices, drillBlockBounds, drillSlotRange,
-  sectorAddressAt, wedgeLines,
+  sectorAddressAt,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
@@ -89,8 +89,7 @@ export { formatAddress };
 
 // The map's control buttons (lib/galaxymap3d.py's panel), by their
 // data-action: what each does, given the map's own parts in `ctx`
-// ({stageView, setTerritories(on, button), territoriesWanted(),
-// wedgeGroup}). A button whose action isn't here does nothing.
+// ({stageView, setTerritories(on, button), territoriesWanted()}). A button whose action isn't here does nothing.
 export function mapControlHandlers(ctx) {
   return {
     "territories": function (button) {
@@ -107,11 +106,25 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
-    "wedges": function (button) {
-      ctx.wedgeGroup.visible = !ctx.wedgeGroup.visible;
-      button.setAttribute("aria-pressed", String(ctx.wedgeGroup.visible));
-    },
   };
+}
+
+// The controls' Menu (MAP.55, a <details> dropping down over the page):
+// Escape closes it and puts the focus back on its button, and a press
+// anywhere outside it closes it.
+export function wireMapMenu(menuEl) {
+  menuEl.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && menuEl.open) {
+      event.preventDefault();
+      menuEl.open = false;
+      menuEl.querySelector("summary").focus();
+    }
+  });
+  menuEl.ownerDocument.addEventListener("pointerdown", function (event) {
+    if (menuEl.open && !menuEl.contains(event.target)) {
+      menuEl.open = false;
+    }
+  });
 }
 
 // Sends each [data-action] button's clicks to its handler.
@@ -563,9 +576,6 @@ function initGalaxyMap3d(canvasEl, data) {
   var MIN_RADIUS = data.minViewRadiusPc;
   var MAX_RADIUS = data.maxViewRadiusPc;
   var GALAXY_RADIUS = data.galaxyRadiusPc || data.maxViewRadiusPc;
-  // The galaxy's real edge (its outermost ring, unpadded): the wedge
-  // lines stop here (MAP.43).
-  var GALAXY_EDGE = data.galaxyEdgePc || GALAXY_RADIUS;
 
   var target = new THREE.Vector3(data.initialCenter[0], data.initialCenter[1], data.initialCenter[2]);
   var initialRadius = data.initialRadiusPc;
@@ -595,94 +605,18 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   applyCamera();
 
-  // --- Wedge lines ---------------------------------------------------------
-  //
-  // The master lines of the sector grid (galaxyprisms.wedgeLines): lines in
-  // the galactic plane out to the galaxy's edge (its outermost ring, not
-  // past it: MAP.43), 3 from the core, then 6, 12, ... each starting where
-  // its zone does. The coarsest are labelled with their
-  // bearing (degrees counterclockwise from +X, the zero meridian), so a
-  // view can be placed around the galaxy at a glance. Each zone's lines
-  // show only while they are at least WEDGE_MIN_GAP_PX apart on screen
-  // (updateWedgeLevels). Drawn over everything (no depth test) and never
-  // picked. The Wedges button hides them.
-  var wedgeColor = new THREE.Color(cssVar("--text", "#e6e8f0"));
-  // Guide lines only: mostly see-through, just visible enough to follow
-  // (Boss, 2026-10-01). The bearing labels stay fully readable.
-  var WEDGE_LINE_OPACITY = 0.22;
-  var wedgeGroup = new THREE.Group();
-  wedgeGroup.renderOrder = 2;
-  scene.add(wedgeGroup);
-  var WEDGE_LABEL_PX = 16;
-  // Zones with more master lines than this (15 degrees apart) go unlabelled.
-  var WEDGE_LABEL_MAX_MASTERS = 24;
-  var WEDGE_MIN_GAP_PX = 24;
-  var wedgeLabels = [];
-  // [{masters, r0, objects: [LineSegments, label sprites...]}], coarsest first.
-  var wedgeLevels = [];
-  (function buildWedgeLines() {
-    var reach = GALAXY_EDGE;
-    var byMasters = new Map();
-    wedgeLines(data.edgePc || 1, GALAXY_EDGE).forEach(function (line) {
-      // A zone starting at (or past) the edge has nothing to draw.
-      if (line.r0 >= reach) {
-        return;
-      }
-      if (!byMasters.has(line.masters)) {
-        byMasters.set(line.masters, []);
-      }
-      byMasters.get(line.masters).push(line);
-    });
-    var material = new THREE.LineBasicMaterial({
-      color: wedgeColor, transparent: true, opacity: WEDGE_LINE_OPACITY, depthTest: false, depthWrite: false,
-    });
-    byMasters.forEach(function (lines, masters) {
-      var level = { masters: masters, r0: lines[0].r0, lines: lines, objects: [], segments: null };
-      var points = new Float32Array(lines.length * 6);
-      lines.forEach(function (line, n) {
-        var cos = Math.cos(line.angleRad);
-        var sin = Math.sin(line.angleRad);
-        points.set([line.r0 * cos, line.r0 * sin, 0, reach * cos, reach * sin, 0], 6 * n);
-        if (masters > WEDGE_LABEL_MAX_MASTERS) {
-          return;
-        }
-        var label = new THREE.Sprite(new THREE.SpriteMaterial({
-          map: makeLabelTexture(String(line.bearingDeg).padStart(3, "0"), "#" + wedgeColor.getHexString()),
-          transparent: true, depthTest: false, depthWrite: false, sizeAttenuation: false,
-        }));
-        label.position.set(reach * 1.06 * cos, reach * 1.06 * sin, 0);
-        label.renderOrder = 2;
-        wedgeLabels.push(label);
-        level.objects.push(label);
-      });
-      var geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.BufferAttribute(points, 3));
-      var segments = new THREE.LineSegments(geometry, material);
-      segments.renderOrder = 2;
-      segments.frustumCulled = false;
-      level.objects.push(segments);
-      level.segments = segments;
-      level.objects.forEach(function (object) { wedgeGroup.add(object); });
-      wedgeLevels.push(level);
-    });
-  })();
-
   // The part of the galaxy the drill-down shows ({r0, r1, a0, a1, z0,
   // z1}: radii and heights in pc, bearings in radians, and optionally
   // `cells`, the bounds {r0, r1, t0, t1, z0, z1} of the blocks in view),
-  // or null for the whole galaxy. Zoomed in, only that wedge shows (Boss,
-  // 2026-10-01): the wedge lines, stars and clouds are kept to its blocks
-  // (MAP.44); zoomed out to the galaxy they run to its edge (MAP.43).
+  // or null for the whole galaxy. Zoomed in, only that part shows (Boss,
+  // 2026-10-01): the stars and clouds are kept to its blocks (MAP.44).
+  // There are no wedge lines: the galaxy shows its stars and spiral
+  // structure with no grid drawn over it (MAP.85).
   var wedgeClip = null;
-  var WEDGE_CLIP_EPSILON = 1e-6;
 
   function setWedgeClip(clip) {
     wedgeClip = clip;
     markClippedStars();
-    // Zoomed in, the lines lie on the floor of the layers in view, not
-    // the galactic plane, so seen at a slant they run along the blocks.
-    wedgeGroup.position.z = clip && clip.z0 != null ? clip.z0 : 0;
-    updateWedgeLevels(pcPerPixelAtTarget());
     updateClouds();
   }
 
@@ -710,80 +644,6 @@ function initGalaxyMap3d(canvasEl, data) {
     return inside(c, c.a0, c.a1);
   }
 
-  // Shows each zone's lines while neighbours in that zone are at least
-  // WEDGE_MIN_GAP_PX apart on screen, measured where the view reaches
-  // farthest out (the focus's radius plus half the screen's height), or at
-  // the zone's start. The bearing labels only show over the whole galaxy.
-  function updateWedgeLevels(pcPerPixel) {
-    var focusR = Math.hypot(target.x, target.y);
-    var reachR = Math.min(GALAXY_EDGE, focusR + 0.5 * (canvasEl.clientHeight || 1) * pcPerPixel);
-    wedgeLevels.forEach(function (level) {
-      var gapPx = (2 * Math.PI * Math.max(level.r0, reachR)) / level.masters / pcPerPixel;
-      var show = level.masters === wedgeLevels[0].masters || gapPx >= WEDGE_MIN_GAP_PX;
-      level.objects.forEach(function (object) {
-        object.visible = show && (object === level.segments || !wedgeClip);
-      });
-      if (show) {
-        clipWedgeLevel(level);
-      }
-    });
-  }
-
-  // Each of a zone's lines from where it starts to the galaxy's edge, or
-  // with a clip, only the part across the clip (none for a line whose
-  // bearing is outside it).
-  function clipWedgeLevel(level) {
-    var attribute = level.segments.geometry.getAttribute("position");
-    var points = attribute.array;
-    var c = wedgeClip;
-    var marginR = 0;
-    var marginA = c ? WEDGE_CLIP_EPSILON : 0;
-    level.lines.forEach(function (line, n) {
-      var cos = Math.cos(line.angleRad);
-      var sin = Math.sin(line.angleRad);
-      var near = line.r0;
-      var far = GALAXY_EDGE;
-      if (c && c.cells) {
-        // Only across the blocks the line's bearing passes through.
-        var lo = Infinity;
-        var hi = -Infinity;
-        c.cells.forEach(function (b) {
-          if (bearingFrom(line.angleRad, b.t0 - marginA) <= b.t1 - b.t0 + 2 * marginA) {
-            lo = Math.min(lo, b.r0);
-            hi = Math.max(hi, b.r1);
-          }
-        });
-        if (lo > hi) {
-          far = near;
-        } else {
-          near = Math.max(near, lo);
-          far = Math.min(far, hi);
-        }
-      } else if (c) {
-        var off = bearingFrom(line.angleRad, c.a0 - marginA);
-        if (off > c.a1 - c.a0 + 2 * marginA) {
-          far = near;
-        } else {
-          near = Math.max(near, c.r0 - marginR);
-          far = Math.min(far, c.r1 + marginR);
-        }
-      }
-      far = Math.max(near, far);
-      points.set([near * cos, near * sin, 0, far * cos, far * sin, 0], 6 * n);
-    });
-    attribute.needsUpdate = true;
-  }
-
-  // Keeps the labels WEDGE_LABEL_PX tall on screen: a sprite without size
-  // attenuation spans scale / tan(fov / 2) half-heights of the view.
-  function updateWedgeLabels() {
-    var heightPx = canvasEl.clientHeight || 1;
-    var h = (WEDGE_LABEL_PX * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
-    wedgeLabels.forEach(function (label) {
-      label.scale.set(h * label.material.map.userData.aspect, h, 1);
-    });
-  }
-
   // --- The block solid -------------------------------------------------------
   //
   // A stage's blocks (galaxyprisms.js) fill their whole cells; a thin
@@ -795,7 +655,9 @@ function initGalaxyMap3d(canvasEl, data) {
   //   sorted back to front from the camera when built. Unfilled space is
   //   10% to 30% opaque by density, and a block grows more solid with its
   //   filled share (galaxyblocks.blockOpacity).
-  // `fade` scales a mesh's opacity (the drill-down's fades and dimming).
+  // `fade` scales a mesh's opacity (the drill-down's fades and dimming);
+  // `gridEdges` (0 or 1) turns the outlines off, as on the whole galaxy,
+  // which shows no sector or block lines (MAP.85).
   // The logdepthbuf chunks match the renderer's logarithmic depth buffer.
   // Filled blocks (MAP.37: "a much higher contrast"): a saturated amber
   // over most of the face and on the edges, nothing like the blue-white
@@ -812,7 +674,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function makeBlockMaterial(translucent) {
     return new THREE.ShaderMaterial({
       uniforms: {
-        filledTint: { value: FILLED_TINT }, fade: { value: 1 },
+        filledTint: { value: FILLED_TINT }, fade: { value: 1 }, gridEdges: { value: 1 },
       },
       transparent: translucent,
       depthWrite: !translucent,
@@ -843,13 +705,14 @@ function initGalaxyMap3d(canvasEl, data) {
         "varying vec3 vColor;",
         "uniform vec3 filledTint;",
         "uniform float fade;",
+        "uniform float gridEdges;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
         "void main() {",
         "  #include <logdepthbuf_fragment>",
         "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
-        "  float edge = 1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y));",
+        "  float edge = gridEdges * (1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y)));",
         "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
         "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade);",
@@ -890,13 +753,11 @@ function initGalaxyMap3d(canvasEl, data) {
   var PRISM_HOT = new THREE.Color(0xeef0ff);
   var galaxyShape = data.densityShape || null;
   var edgePc = data.edgePc || 1;
-  // How many sectors a side the drawn blocks are.
-  var drawnSectorsPerPrism = 1;
 
   // Parsecs per screen pixel at the view's focus (the orbit target), for
   // the camera at orbit radius `radius` (default: where it is). Per CSS
   // pixel, on purpose, not per device pixel: the block size (a block at
-  // least blockMinPx across) and the scale readout's "1 px" are about what
+  // least blockMinPx across) and the scale line are about what
   // a person can see and click, which is the same on a 2x phone screen as
   // on a 1x monitor. The renderer draws at up to 2 device pixels per CSS
   // pixel (setPixelRatio) for sharpness only, and the bright stars' sizes
@@ -2044,11 +1905,10 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Drill-down stages ------------------------------------------------------
   //
-  // The map opens on the drill-down (galaxystageview.js): the galaxy in
-  // level-243 blocks, a slab of them from above, a block's level-27
-  // children, and so on down to a sector, always from straight above.
-  // Pointer and key input goes to the stage view; tiles (stars, clouds)
-  // and the wedge lines follow the camera.
+  // The map opens on the drill-down (galaxystageview.js): the whole
+  // galaxy in 3D, an arc of it (MAP.85), a slab of the arc, a block's
+  // level-27 children, and so on down to a sector. Pointer and key input
+  // goes to the stage view; tiles (stars, clouds) follow the camera.
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
@@ -2071,10 +1931,6 @@ function initGalaxyMap3d(canvasEl, data) {
           }
           return response.json();
         });
-    },
-    setBlockSize: function (m) {
-      drawnSectorsPerPrism = m;
-      updateScaleBar();
     },
     showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
     showPlacedInfo: showPlacedInfo,
@@ -2118,8 +1974,7 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.addEventListener("pointercancel", function (event) { stageView.onPointerUp(event); });
   canvasEl.addEventListener("pointerleave", function (event) { stageView.onPointerLeave(event); });
   canvasEl.addEventListener("keydown", function (event) { stageView.onKey(event); });
-  // Below the galaxy and its quarters the wheel zooms; above them it is
-  // left to scroll the page.
+  // The wheel zooms within the stage's zoom policy.
   canvasEl.addEventListener("wheel", function (event) {
     if (stageView.onWheel(event)) {
       event.preventDefault();
@@ -2167,8 +2022,11 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView: stageView,
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
-      wedgeGroup: wedgeGroup,
     }));
+  }
+  var menuEl = document.getElementById("galaxymap3d-menu");
+  if (menuEl) {
+    wireMapMenu(menuEl);
   }
 
   // --- Scale bar -----------------------------------------------------------
@@ -2186,33 +2044,21 @@ function initGalaxyMap3d(canvasEl, data) {
     return count === 1 ? word : word + "s";
   }
 
-  // One line of the readout: "<lead> <sectors> · <distance>", the distance
-  // on the shared ladder (static/distance.js), which adds ly in
-  // parentheses to parsec values.
-  function scaleLine(lead, pc, suffix) {
+  // The readout's label: "<sectors> · <distance>", the distance on the
+  // shared ladder (static/distance.js), which adds ly in parentheses to
+  // parsec values.
+  function scaleLabel(pc) {
     var sectors = pc / edgePc;
-    var line = document.createElement("span");
-    line.className = "starmap-scale-label";
-    // Wraps on a phone instead of running off the canvas.
-    line.style.whiteSpace = "normal";
-    line.textContent = lead + " " + formatCount(sectors) + " " + plural(sectors, "sector") + (suffix || "")
-      + " · " + formatDistancePc(pc);
-    return line;
+    var label = document.createElement("span");
+    label.className = "starmap-scale-label";
+    label.textContent = formatCount(sectors) + " " + plural(sectors, "sector") + " · " + formatDistancePc(pc);
+    return label;
   }
 
-  // Three lines: what one screen pixel spans at the focus, how big one
-  // prism (block) is, and a bar of about SCALE_BAR_PX rounded to a nice
-  // number of parsecs. All per CSS pixel, like the block size itself:
-  // they're about what a person can see and click, not device pixels.
+  // One scale line (MAP.60): a bar of about SCALE_BAR_PX rounded to a nice
+  // number of parsecs, and its length. Per CSS pixel: it is about what a
+  // person can see, not device pixels.
   var SCALE_BAR_PX = 70;
-  if (scaleEl) {
-    // A column instead of the other maps' one-line row (set here, not in
-    // style.css: only this map's readout stacks).
-    scaleEl.style.flexDirection = "column";
-    scaleEl.style.alignItems = "flex-start";
-    scaleEl.style.gap = "0.1rem";
-    scaleEl.style.maxWidth = "calc(100% - 1.5rem)";
-  }
 
   function updateScaleBar() {
     if (!scaleEl) {
@@ -2223,18 +2069,10 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!nicePc) {
       return;
     }
-    var m = drawnSectorsPerPrism || 1;
-    var block = scaleLine("1 block =", m * edgePc, m === 1 ? "" : " across (≈ " + formatCount(m * m * m) + ")");
-    var barRow = document.createElement("span");
-    barRow.style.display = "flex";
-    barRow.style.alignItems = "center";
-    barRow.style.gap = "0.4rem";
     var bar = document.createElement("span");
     bar.className = "starmap-scale-bar";
     bar.style.width = (nicePc / pcPerScreenPx).toFixed(1) + "px";
-    barRow.appendChild(bar);
-    barRow.appendChild(scaleLine("≈", nicePc));
-    scaleEl.replaceChildren(scaleLine("1 px ≈", pcPerScreenPx), block, barRow);
+    scaleEl.replaceChildren(bar, scaleLabel(nicePc));
   }
 
   // --- Resize/render loop ----------------------------------------------
@@ -2261,8 +2099,7 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.setActive(true);
 
   // Every frame: the drill-down's camera move, then (when the view moved)
-  // the stars and clouds from cached tiles, a fetch for missing ones and
-  // the wedge lines.
+  // the stars and clouds from cached tiles and a fetch for missing ones.
   var lastViewSignature = "";
 
   (function animate(now) {
@@ -2276,12 +2113,10 @@ function initGalaxyMap3d(canvasEl, data) {
       if (missing.length && !fetchTimer && !activeAbort) {
         scheduleFetch(false);
       }
-      updateWedgeLevels(pcPerPixelAtTarget());
     }
     starMaterial.uniforms.now.value = starClock();
     updateClouds();
     updateHighlightScale();
-    updateWedgeLabels();
     updateCourseMarkers();
     renderer.render(scene, camera);
   })();

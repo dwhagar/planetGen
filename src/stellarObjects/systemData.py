@@ -144,6 +144,13 @@ class StarSystem:
     runaway_speed_kms = None
     """float or None: That speed, km/s; `None` unless `runaway_class`."""
 
+    unmet_requirements = ()
+    """list of str: What `system_config` forced (a habitable world, an
+    asteroid belt) that every placement attempt failed to give this
+    system, e.g. a habitable world around a hot O star; empty when nothing
+    was missed. A single-system run refuses to save such a system
+    (`generate.run_system`, GEN.49)."""
+
     def __init__(self, system_config: SystemConfig, galactic_center_dist_ly=None, compact_remnant=None,
                  primary_star_params=None):
         """
@@ -388,6 +395,15 @@ class StarSystem:
             log.debug(f"Planet generation attempt {_attempt + 1}/{program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
                       f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                       f"required and found: {belt_satisfied})")
+
+        self.unmet_requirements = []
+        if not habitable_satisfied:
+            self.unmet_requirements.append("a habitable world")
+        if not belt_satisfied:
+            self.unmet_requirements.append("an asteroid belt")
+        if self.unmet_requirements:
+            log.debug(f"Planet generation gave up after {program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
+                      f"without {' or '.join(self.unmet_requirements)}")
 
         # A pair's two stars share one age (GEN.53): a close pair's proxy
         # settles it for both, a wide pair's from both stars' own planets.

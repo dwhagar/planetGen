@@ -1,5 +1,44 @@
 # Changelog
 
+## [7.141.445] - 2026-10-02
+
+### Changed
+- Galaxy Map: the whole galaxy is a 3D disk you can turn, tilt and zoom (to about twice as close), with no sector, block or wedge lines drawn on it, so its stars and spiral show through (MAP.85).
+- Galaxy Map: the first pick is an arc instead of a quarter: about 40° of bearing (45°, snapped to wedge lines every block ring shares) by a third of the radius, the full height of the disk, 24 in all. Hovering one outlines it along its blocks' real sides, top and bottom, with its neighbors' outlines faint; the breadcrumb reads "Arc 90°–135° (middle)" and the URL `p=a1.90`. Older `q<n>` links still open (MAP.85, MAP.52).
+- Galaxy Map: only Back, Forward, Up, Reset and Bookmarks stay in the controls row; Reset view, Generated only and Territories moved into a Menu (Escape or a click outside closes it). "Whole galaxy" is now Reset, the Wedges button is gone, and the info panel sits beside the slab slider when the row has room (MAP.55).
+- Galaxy Map: the scale readout is one line, a bar and its length in sectors, pc and ly (MAP.60).
+
+### Fixed
+- Galaxy Map: hover outlines start and end on real wedge lines instead of crossing blocks (MAP.52), and an arc label no longer reads "360.0°" for a bearing a hair under 0.
+
+## [7.140.445] - 2026-10-02
+
+### Fixed
+
+- Generation with more than one worker no longer stalls for 50 seconds at a time. A worker waiting for the neighbour lock kept the rows it had written, and when the lock's holder needed one of them (a name collision renames an existing system) neither moved until MySQL's lock wait timeout. The holder now gives up after 3 seconds and starts its sector save over. A seven-ring test run at 2 workers went from 266 s to 18 s (PERF.21).
+- A generation run no longer hangs forever on Python 3.12 when a worker process dies. The pool stops the other workers with SIGTERM, but a worker caught it in the middle of a task, ended only that task and then waited for another one, so Python 3.12's pool cleanup waited on it for good. A worker sent SIGTERM now exits as soon as its task has been reported (PERF.22).
+- Cancelling or interrupting a parallel run (SIGTERM, Ctrl+C) can no longer be lost. When the signal landed inside a database call it became a database error the work queue logged and carried on past, and the run finished as if nothing had happened. The queue now remembers the signal, stops at the next step and ends the job as cancelled (TEST.73).
+- The bright-star progress bar no longer ends at 101%: a progress report that arrives after its layer has finished is ignored, and the terminal, `progress.json` and the Generate page never show a share above 100% (PERF.23).
+- Re-running `generate.py plan --bright-stars-down-to` after a run of it stopped part way no longer puts the band in twice: the re-run first removes what the stopped run left below the star-fill level, then draws the whole band (GEN.32).
+- A bright-star placement test now works on Python 3.9 and 3.10 (TEST.76).
+
+### Added
+
+- CI runs the generation tests again with 2 and 4 worker processes (Python 3.12 and 3.13), and tests can patch the workers as well as their own process (`tests/worker_patches.py`, described in `docs/testing.md`) (TEST.74, PERF.21).
+
+## [7.139.445] - 2026-10-02
+
+### Fixed
+
+- New star system names are at most two words (GEN.46). A name collision
+  is now resolved within two words: a one-word name gets a Greek letter
+  ("Beta Vor") or, against a sector of the same name, one diminutive
+  ("Little Vor"); where a decoration would add a third word (a two-word
+  name, the Roman-numeral tier, a Greek letter plus a diminutive) a fresh
+  name is drawn instead. Planet and moon names built on them stay short.
+  Names already in the database are unchanged; sector names are not
+  affected.
+
 ## [7.138.440] - 2026-10-02
 
 ### Fixed

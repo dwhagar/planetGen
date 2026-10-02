@@ -495,8 +495,8 @@ def validate_system_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
-    if args.planets is False and (args.moons or args.max_planets or args.habitable_world):
-        parser.error("-planets cannot be combined with +moons, +max_planets, or +habitable_world.")
+    if args.planets is False and (args.moons or args.max_planets or args.habitable_world or args.asteroid_belt):
+        parser.error("-planets cannot be combined with +moons, +max_planets, +habitable_world, or +asteroid_belt.")
 
     if args.star_type and args.large_star:
         parser.error("--star-type cannot be combined with +large_star.")
@@ -692,6 +692,34 @@ def build_system_config(args):
     return system_config
 
 
+def single_system_conflict(system_config):
+    """
+    The contradiction in a single system's resolved options, or `None`:
+    `-planets` (no planets or belts at all) with anything that needs a
+    planet or a belt (GEN.50). `validate_system_args` already rejects these
+    on the command line; this also catches them from a `--system-file`.
+
+    Args:
+        system_config (SystemConfig): The resolved configuration.
+
+    Returns:
+        str or None: The error message.
+    """
+    if system_config.PLANETS is not False:
+        return None
+    forced = [flag for attr, flag in (("MOONS", "+moons"), ("MAX_PLANETS", "+max_planets"),
+                                      ("HABITABLE_WORLD", "+habitable_world"),
+                                      ("ASTEROID_BELT", "+asteroid_belt"))
+              if getattr(system_config, attr) is True]
+    if system_config.NUM_ORBITS:
+        forced.append("num_orbits")
+    if system_config.SLOTS:
+        forced.append("slots")
+    if not forced:
+        return None
+    return f"-planets cannot be combined with {', '.join(forced)}."
+
+
 def run_system(args):
     """
     Generates one star system and saves it to the database, or, with
@@ -699,12 +727,38 @@ def run_system(args):
     database at all -- the admin site's one-off system page runs it that
     way (`src/html/web/system_page.py`).
 
+    A forced option the system can't meet is never saved silently
+    (GEN.49): contradictory options are refused up front, and a system
+    still missing a forced body after `SINGLE_SYSTEM_GENERATION_ATTEMPTS`
+    whole systems ends the run with an error, saving nothing.
+
     Args:
         args (argparse.Namespace): Validated arguments (`command ==
             "system"`).
+
+    Raises:
+        SystemExit: On contradictory options, or when no attempt met every
+            forced option.
     """
     system_config = build_system_config(args)
-    system = StarSystem(system_config=system_config)
+    conflict = single_system_conflict(system_config)
+    if conflict:
+        log.error(f"Error: {conflict}")
+        raise SystemExit(1)
+
+    attempts = program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
+    for attempt in range(1, attempts + 1):
+        system = StarSystem(system_config=system_config)
+        if not system.unmet_requirements:
+            break
+        log.debug(f"System attempt {attempt}/{attempts}: no {' or '.join(system.unmet_requirements)} "
+                  f"around {system.primary_star.type}; trying a new system")
+    else:
+        star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
+        log.error(f"Error: no system with {' and '.join(system.unmet_requirements)} came out of {attempts} "
+                  f"tries for {star}; nothing was saved. Hot, short-lived and very large stars often have "
+                  f"no room for one: try another star type or drop the forced option.")
+        raise SystemExit(1)
 
     if args.output:
         text = render_star_system(system, "markdown" if system_config.MARKDOWN else "wikitext")
