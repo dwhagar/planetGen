@@ -154,19 +154,28 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
 
 None of Boss's 2026-10-01 notes apply to this phase.
 
+### Sector stats defaults (PERF.11, done in PR #425)
+
+PERF.11's open questions shipped with these defaults, which Boss can
+still change: the `sector_stats` table (galaxy schema v53, shared with
+GEN.44's backfill level) stores both systems and stars as "actual";
+the decaying average of expected against actual is one galaxy-wide
+figure over a window of 1000 fills; regenerating a sector adds a new
+sample; deleting a sector leaves the average as it is.
+
 ## Files that several items touch
 
 | Files | Items | Order |
 |---|---|---|
 | stellarObjects/workQueue.py | ADM.15, PERF.18, PERF.19/20 | PERF.21, PERF.22 and TEST.73 done (PR #371). |
-| generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44 (phase 0), GEN.41, GEN.42, GEN.43, PERF.18 | GEN.44 in phase 0; then GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
+| generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.41, GEN.42, GEN.43, PERF.18 | GEN.44 done (PR #425); then GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
 | generate.py: command-line options | GEN.52, GEN.24, API.3 | GEN.51 done (PR #398); GEN.52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
 | systemData.py StarSystem constructor | GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50, GEN.62, GEN.51 done (PRs #367, #373, #393, #398). |
 | planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.29 | GEN.60, GEN.38 and class S done (PR #415); the classes thread in phase 1. |
 | Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; tell the other generation threads to merge main when it lands. |
 | _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.87, GEN.57 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370); GEN.64 done (PR #406, `_claim_object_ids`). |
-| Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
+| Galaxy schema (schema.sql, v53 today, PR #425) | MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: MAP.86 (if it needs a column), then DB.7, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.89, MAP.71 | MAP.57, MAP.88, MAP.92 done (PR #405); MAP.89 next in phase 1. |
 | galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.101, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Follow-ups and drill-down lanes done (PRs #395, #399, #408, #410, #413, #422); MAP.86 (stats lane) next, then MAP.95 and phase 2. |

@@ -36,11 +36,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v53 (one writer at a time; v52 is DB.6's version key and run history). Backfill code shared with PERF.18 and GEN.42. |
-| PERF.11 | Store each sector's expected and actual density | GEN.44 | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
-| PERF.1 | Generation at scale | PERF.11 | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). Parent; only PERF.11 is open under it. |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Moved to phase 0: a bug with nothing ahead of it; tile listing, before MAP.86 in the same tile files. Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
-| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | PERF.11 | Moved to phase 0 with its groundwork GEN.44 and PERF.11. Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) |  | Moved to phase 0 with its groundwork GEN.44 and PERF.11 (done, PR #425). Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
 
 ### Routing groundwork
 
@@ -101,7 +98,7 @@ At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
 #405), Generation bugs (PRs #415, #419) and Galaxy Map drill-down
-(PRs #408, #410, #413, #422) apart from MAP.101. Sector stats and colors and Routing
+(PRs #408, #410, #413, #422) apart from MAP.101. Sector stats and colors (MAP.80, MAP.86 left; GEN.44, PERF.11, PERF.1 done, PR #425) and Routing
 groundwork are running. Then the lanes start in the order above as a
 slot frees: Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
@@ -110,4 +107,4 @@ and DB.8 open phase 1.
 
 ## Open questions for Boss
 
-- PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
+None.
