@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.36 |
 | MAP | MAP.91 |
 | NAV | NAV.40 |
-| GEN | GEN.61 |
+| GEN | GEN.62 |
 | PERF | PERF.24 |
-| DB | DB.10 |
+| DB | DB.11 |
 | API | API.18 |
-| ADM | ADM.19 |
+| ADM | ADM.20 |
 | SEC | SEC.29 |
 | TEST | TEST.80 |
 | USR | USR.8 |
-| OPS | OPS.16 |
+| OPS | OPS.19 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -407,6 +407,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.16 | Prevalence controls on the Generate page | none | open |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
+| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -433,6 +434,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -496,6 +498,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
+| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -640,6 +643,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.13 | Every update records the version key, keeping the last 10 | none | open |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
+| OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
+| OPS.17 | Install and update set up the daily maintenance schedule | none | open |
+| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | PERF.1 | Generation at scale | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |

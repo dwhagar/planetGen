@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, and the API pieces remote generation needs first.
+The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first.
 
 ## Threads
 
@@ -116,6 +116,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | ADM.17 | The Generate page shows the galaxy's seed and version | DB.6 |  |
 | OPS.15 | Each update says whether it changes generated output | OPS.13, GEN.58 | Needs the fingerprint, so phase 2. |
+
+### Daily maintenance
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.61 | The daily merge folds pending admin changes into a new JSON file | GEN.59, ADM.18 | Boss 02:28Z: JSON changes only with the day's deltas. |
+| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | GEN.61 | Grandfather-father-son rotation; unit test with simulated dates. |
+| OPS.16 | A daily maintenance script for Linux, macOS and Windows | GEN.61, OPS.18 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
+| OPS.17 | Install and update set up the daily maintenance schedule | OPS.16, OPS.7, OPS.8, OPS.13 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
+| ADM.19 | The Admin dashboard lists the 18 settings backups for download | ADM.18, OPS.18 |  |
 
 ## Open questions for Boss
 
