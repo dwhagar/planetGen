@@ -18,6 +18,46 @@ this phase changes how the site looks, except the System Map NaN fix.
 
 ## Items
 
+### The parallel path (top priority)
+
+Boss (2026-10-02) made this the top priority of the whole plan: it
+comes first in this phase, before anything else starts.
+
+| ID | Item | Parent |
+|---|---|---|
+| PERF.21 (new) | Generation works with any worker count: the parallel path is built, used and tested (bug) |  |
+| PERF.22 (new) | On Python 3.12 a run hangs forever when a worker process dies (bug) | PERF.21 |
+| TEST.74 (new) | Generation tests at more than one worker | PERF.21 |
+| PERF.23 (new) | The bright-star progress bar can end at 101% (bug) |  |
+
+TEST.74 (the generation tests at 1, 2 and 4 workers) lands first so the
+14 tests that fail at more than one worker show what PERF.21 has to fix;
+PERF.22 (the 3.12 hang in `workQueue._dispatch`) and PERF.23 (a late
+layer report counted twice in `_LayerTracker`) are in the same parallel
+code and go in the same thread. GEN.39 (reproducible seeds) touches the
+same tests; whichever lands second keeps both working.
+
+### Forcing options and prevalence
+
+| ID | Item | Parent |
+|---|---|---|
+| GEN.48 (new) | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) |  |
+| GEN.49 (new) | `+habitable_world` silently fails on hot stars (bug) | GEN.48 |
+| GEN.50 (new) | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.48 |
+| GEN.51 (new) | Forcing options only for single-system generation | GEN.48 |
+| GEN.52 (new) | Prevalence controls for sector and galaxy runs | GEN.48 |
+| ADM.16 (new) | Prevalence controls on the Generate page | GEN.48 |
+| TEST.75 (new) | Tests for forcing and prevalence | GEN.48 |
+| GEN.53 (new) | The two stars of a binary don't share one age (bug) |  |
+| GEN.54 (new) | A `--star-type` secondary gets a mass that doesn't fit its type (bug) |  |
+
+GEN.49 and GEN.50 (single-system forcing that fails or contradicts
+itself) first, then GEN.51 (forcing only for single systems) and
+GEN.52 (prevalence as a percentage deviation), then ADM.16 (the
+Generate page fields); TEST.75 grows with each. GEN.53 and GEN.54 are
+both in how a `--star-type` secondary is made (`systemData.py`) and go
+in one PR.
+
 ### Planet classes and physics
 
 | ID | Item | Parent |
@@ -113,8 +153,13 @@ scale, so it goes in the same thread, after them.
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) |  |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) |  |
+| TEST.76 (new) | A bright-star test breaks on Python 3.9 and 3.10 (bug) |  |
+| MAP.90 (new) | The tile-level helper crashes on a subnormal view radius (bug) |  |
+| UX.34 (new) | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  |
+| OPS.9 (new) | Multi-line messages lose their prefix in the debug log (bug) |  |
 
-Small and independent. OPS.7 and OPS.8 both change `update.sh`,
+Small and independent (TEST.76, MAP.90, UX.34 and OPS.9 are low-priority
+finds of the debug-mode bug hunt). OPS.7 and OPS.8 both change `update.sh`,
 `update.ps1` and `scripts/deploy-common.*`; one PR.
 
 ## Research notes
@@ -168,15 +213,21 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
 
 Each thread is briefed with its exact item IDs and takes no others.
 
-1. Planet classes: GEN.28 (as GEN.33's PRs), then GEN.38, GEN.27,
+1. The parallel path (top priority, starts first): TEST.74, PERF.21,
+   PERF.22, PERF.23.
+2. Planet classes: GEN.28 (as GEN.33's PRs), then GEN.38, GEN.27,
    GEN.29.
-2. Physics bugs: GEN.34, GEN.35, GEN.36, GEN.37, GEN.25, GEN.45.
-3. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
+3. Physics bugs: GEN.34, GEN.35, GEN.36, GEN.37, GEN.25, GEN.45.
+4. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
    GEN.46 and GEN.39 (after Boss answers) alongside.
-4. Database: DB.2 to DB.5.
-5. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
-6. Object references: NAV.7, NAV.8, NAV.9.
-7. Ops and flakes: OPS.6 to OPS.8, TEST.71 to TEST.73.
+5. Database: DB.2 to DB.5.
+6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
+7. Object references: NAV.7, NAV.8, NAV.9.
+8. Ops and flakes: OPS.6 to OPS.9, TEST.71 to TEST.73, TEST.76,
+   MAP.90, UX.34.
+9. Forcing and prevalence: GEN.49, GEN.50, GEN.51, GEN.52, ADM.16,
+   TEST.75 (parent GEN.48).
+10. Binary pairs: GEN.53, GEN.54.
 
 ## Open questions for Boss
 

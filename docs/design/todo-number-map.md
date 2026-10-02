@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.34 |
-| MAP | MAP.90 |
+| UX | UX.35 |
+| MAP | MAP.91 |
 | NAV | NAV.34 |
-| GEN | GEN.48 |
-| PERF | PERF.21 |
+| GEN | GEN.55 |
+| PERF | PERF.24 |
 | DB | DB.6 |
 | API | API.15 |
-| ADM | ADM.16 |
+| ADM | ADM.17 |
 | SEC | SEC.29 |
-| TEST | TEST.74 |
+| TEST | TEST.77 |
 | USR | USR.8 |
-| OPS | OPS.9 |
+| OPS | OPS.10 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -404,6 +404,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.13 | Incomplete uploads page | none | open |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
+| ADM.16 | Prevalence controls on the Generate page | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
@@ -473,6 +474,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | open |
 | GEN.46 | Star system names of at most two words (bug) | none | open |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
+| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
+| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | open |
+| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
+| GEN.51 | Forcing options only for single-system generation | none | open |
+| GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
+| GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
+| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -562,6 +570,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | open |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
+| MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -603,6 +612,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | open |
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
+| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -623,6 +633,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | open |
 | PERF.20 | Short-term caching through the work queue and API (needs planning) | none | open |
+| PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | open |
+| PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | open |
+| PERF.23 | The bright-star progress bar can end at 101% (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -698,6 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
+| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -862,6 +876,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | open |
+| TEST.74 | Generation tests at more than one worker | none | open |
+| TEST.75 | Tests for forcing and prevalence | none | open |
+| TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
