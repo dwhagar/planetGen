@@ -97,6 +97,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
+| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
 
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;

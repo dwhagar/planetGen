@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.36 |
 | MAP | MAP.92 |
-| NAV | NAV.40 |
+| NAV | NAV.41 |
 | GEN | GEN.64 |
 | PERF | PERF.24 |
 | DB | DB.11 |
@@ -632,6 +632,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
 | NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
+| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
