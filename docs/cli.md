@@ -172,10 +172,10 @@ generates it, and then generates every not-yet-generated sector within
 12 pc (about 39 ly) of it too, in every direction — a whole small starmap
 around a fresh, randomly chosen starting point in one run. Every sector
 any `galaxy` mode generates (and every sector the map generates on a
-visit) first gets the bright stars around it: each sector block (3x3x3
-sectors) within 100 ly is given every star from 100 L_sun up to what was
-already placed there, once per block, leaving filled sectors alone
-(GEN.23). `--max-ring` bounds how
+visit) first gets the bright stars around it: each sector within 100 ly
+is given every star from its distance tier's floor up to what was already
+placed there, once per sector, leaving filled sectors alone (GEN.23,
+GEN.44). `--max-ring` bounds how
 far out the random starting address can land (defaults to the galaxy's
 own edge from `generate.py plan`), `--radius-pc` overrides the default 12 pc
 neighborhood radius, and `--min-start-density` requires the randomly

@@ -611,6 +611,23 @@ def bright_star_text(database):
     return f"about {format_count(row['approx_rows'])} placed in all (estimate)"
 
 
+def density_text(database):
+    """
+    The Stats page's density row (PERF.11): the decaying average of the
+    systems sector fills got against the systems the galaxy model
+    expected, and how many sectors are measured or backfilled
+    (`database["sector_stats"]`, `adminStats.density_stats`).
+    """
+    stats = database.get("sector_stats")
+    if not stats:
+        return "not tracked by this schema"
+    backfilled = f"{format_count(stats['backfilled'])} sectors backfilled to their own level"
+    if stats["ratio"] is None:
+        return f"no sector filled yet; {backfilled}"
+    return (f"{stats['ratio']:.2f} of the expected systems (average of {format_count(stats['fills'])} fills); "
+            f"{format_count(stats['measured'])} sectors measured, {backfilled}")
+
+
 def _time_or(value, missing):
     """A stats time as local-time markup, or `missing` when there is none."""
     return trusted_html(utc_time_html(value)) if value else missing
@@ -774,6 +791,7 @@ def admin_stats():
                 ("Newest system", _time_or(systems_stamp.get("newest_created_at"), "none")),
                 ("Last sector change", _time_or(stamps.get("sectors", {}).get("last_modified_at"), "never")),
                 ("Bright stars", bright_star_text(database)),
+                ("Sector density", density_text(database)),
             ],
             name_tiles=[
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),

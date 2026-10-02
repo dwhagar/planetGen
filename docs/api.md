@@ -105,8 +105,13 @@ connectivity to that specific schema rather than the default one.
   part of this sector, `false` for a neighbor's cloud) — `queryDb.phenomena_near_sector`, empty
   for an unplaced sector; see `schema.sql`'s "v18"/"v21"/"v28" header
   notes),
-  and `wiki_url` (`null` until this sector has a wiki page — see "Wiki
-  publishing" below) (`queryDb.sector_detail`). Distinct from
+  `wiki_url` (`null` until this sector has a wiki page — see "Wiki
+  publishing" below), and `stats` (PERF.11, GEN.44: the sector's
+  `sector_stats` row — `bright_level_sol`, `relative_density`,
+  `expected_systems`, `actual_systems`, `actual_stars`,
+  `mean_temperature_k`, `mean_luminosity_sol`, `fill_share` and its Galaxy
+  Map color `color_r`/`color_g`/`color_b` (MAP.86) — or `null` for a sector off
+  the grid) (`queryDb.sector_detail`). Distinct from
   `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
   ids-and-display-fields shape the sector page's (`/sector/<id>`) Contents table
@@ -471,7 +476,10 @@ forced credential change. They back the admin stats page
   `mysql` (server version, uptime, connected threads; `null` fields when
   `SHOW GLOBAL STATUS` isn't allowed), and `database` (`reachable`,
   `schema_version`/`schema_expected`/`schema_current`, `size_bytes`,
-  exact `counts` for `sectors`/`star_systems`, `tables` with
+  exact `counts` for `sectors`/`star_systems`, `sector_stats` (PERF.11:
+  `measured` and `backfilled` sector counts, and `ratio`, the decaying
+  average of the systems fills got against the systems expected, over
+  `fills` fills; `null` before v53), `tables` with
   `information_schema`'s estimated rows and data/index bytes,
   `timestamps` with each v27 table's newest `created_at` and latest
   `modified_at`, and `name_collisions`: how many base names had to be

@@ -20,7 +20,7 @@ pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
     "schema_migrations", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
-    "orbit_simulation_state", "galaxy_column", "galaxy_layer", "bright_star_blocks", "bright_stars",
+    "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
@@ -99,6 +99,9 @@ NEVER_READ = {
     # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
     **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
        ("version_key", "planetgen_version", "python_version", "platform")},
+    # PERF.11: galaxy-wide stats, read by `_db.galaxy_density_ratio`, not by an object loader.
+    ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
+    ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",
     **{("generation_runs", column): "run history (DB.6)" for column in
        ("id", "command", "arguments", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
         "python_version", "platform", "started_at", "finished_at", "outcome")},

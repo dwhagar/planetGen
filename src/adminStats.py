@@ -163,6 +163,29 @@ def bright_star_counts(conn):
     return {"placed": placed, "filled": int(filled), "unfilled": placed - int(filled)}
 
 
+def density_stats(conn):
+    """
+    The per-sector stats (PERF.11, GEN.44, `sector_stats`): how many
+    sectors were measured by a fill and how many a backfill took to their
+    own bright-star level, and the decaying average of the systems fills
+    got against the systems the galaxy model expected.
+
+    Returns:
+        dict | None: `measured`, `backfilled`, `ratio` (None before any
+            fill) and `fills`; `None` when the table can't be read (a
+            database older than v53).
+    """
+    try:
+        row = conn.execute(
+            "SELECT COALESCE(SUM(actual_systems IS NOT NULL), 0) AS measured,"
+            " COALESCE(SUM(bright_level_sol > 0), 0) AS backfilled FROM sector_stats").fetchone()
+        ratio, fills = _db.galaxy_density_ratio(conn)
+    except Exception:
+        return None
+    return {"measured": int(row["measured"]), "backfilled": int(row["backfilled"]),
+            "ratio": None if ratio is None else float(ratio), "fills": fills}
+
+
 def timestamp_stats(conn):
     """
     For every table with v27 row timestamps (`_db.TIMESTAMPED_TABLES`):

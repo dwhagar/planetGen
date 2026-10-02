@@ -72,7 +72,7 @@ from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from .galaxyDensity import GalaxyShape
-from .galaxyDrill import DrillBlock, drill_parent
+from .galaxyDrill import DrillBlock
 from .galaxyGeometry import (
     SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
 )
@@ -97,7 +97,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 52
+SCHEMA_VERSION = 53
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1323,6 +1323,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (53, _table_marker("sector_stats")),
     (52, _table_marker("generation_runs")),
     (51, _column_marker("galaxy_shape", "galaxy_seed")),
     (50, _column_marker("system_configs", "comets")),
@@ -4652,13 +4653,16 @@ BRIGHT_STAR_COLUMNS = (
 
 def clear_bright_stars(conn):
     """
-    Empties `bright_stars` and `bright_star_blocks` (v49) and forgets the
-    scatter's threshold and seed --
-    a plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
-    commit), since a real scatter leaves tens of millions of rows.
+    Empties `bright_stars`, sets every sector's own bright-star level
+    (`sector_stats`, v53, GEN.44) back to untouched (-1; a filled sector
+    stays at 0, and the level a delete would put back is forgotten too)
+    and forgets the scatter's threshold and seed -- a plan re-run or a new
+    galaxy starts over. `TRUNCATE` (an implicit commit), since a real
+    scatter leaves tens of millions of rows.
     """
     conn.execute("TRUNCATE TABLE bright_stars")
-    conn.execute("TRUNCATE TABLE bright_star_blocks")
+    conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
+    conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL")
     conn.commit()
 
@@ -4680,96 +4684,225 @@ def bright_star_scatter_settings(conn):
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
 
 
-def bright_star_block_levels(conn, blocks):
+UNTOUCHED_LEVEL = -1.0
+"""float: `sector_stats.bright_level_sol` of a sector no backfill has
+drawn (GEN.44): it follows the galaxy scatter's level."""
+
+FILLED_LEVEL = 0.0
+"""float: `sector_stats.bright_level_sol` of a generated sector (GEN.44)."""
+
+
+def _address_chunks(addresses, size=500):
+    keys = sorted({(int(a[0]), int(a[1]), int(a[2])) for a in addresses})
+    for start in range(0, len(keys), size):
+        yield keys[start:start + size]
+
+
+def sector_bright_levels(conn, addresses):
     """
-    The stored backfill level of each of `blocks` that has one (GEN.23).
+    The stored bright-star level (GEN.44) of each of `addresses` that has
+    a `sector_stats` row: -1 untouched, a positive L_sun for the dimmest a
+    backfill drew it down to, 0 filled.
 
     Args:
         conn (Connection): An open connection.
-        blocks (iterable): Level-3 `galaxyDrill.DrillBlock`s (or
-            `(m, ring, wedge, slab)` tuples).
+        addresses (iterable): `(ring, layer, slot)` tuples.
 
     Returns:
-        dict: `(ring, wedge, slab)` -> `min_luminosity_sol`, for the
-            blocks with a finished level (a row a backfill still holds,
-            NULL, is left out).
+        dict: `(ring, layer, slot)` -> level, for the sectors with a row.
     """
-    keys = sorted({(int(b[1]), int(b[2]), int(b[3])) for b in blocks})
     levels = {}
-    for start in range(0, len(keys), 500):
-        chunk = keys[start:start + 500]
+    for chunk in _address_chunks(addresses):
         marks = ", ".join("(?, ?, ?)" for _ in chunk)
-        rows = conn.execute(
-            "SELECT block_ring, block_wedge, block_slab, min_luminosity_sol FROM bright_star_blocks"
-            f" WHERE (block_ring, block_wedge, block_slab) IN ({marks}) AND min_luminosity_sol IS NOT NULL",
+        for row in conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index, bright_level_sol FROM sector_stats"
+            f" WHERE (ring_index, layer_index, ring_slot_index) IN ({marks})",
             tuple(value for key in chunk for value in key),
-        ).fetchall()
-        for row in rows:
-            levels[(row["block_ring"], row["block_wedge"], row["block_slab"])] = row["min_luminosity_sol"]
+        ).fetchall():
+            levels[(row["ring_index"], row["layer_index"], row["ring_slot_index"])] = row["bright_level_sol"]
     return levels
 
 
-def bright_star_block_keys(conn):
+def sector_bright_level_keys(conn):
     """
-    Every sector block with a `bright_star_blocks` row (GEN.23), whatever
-    its level: what a staged scatter (`generate.py plan
-    --bright-stars-down-to`) hands to the backfill instead of the layers.
+    Every sector a backfill took to its own level (`bright_level_sol` above
+    0, GEN.44), as `(ring, layer, slot) -> level`: what a staged scatter
+    (`generate.py plan --bright-stars-down-to`) leaves out of its layers
+    and tops up sector by sector instead.
+    """
+    rows = conn.execute("SELECT ring_index, layer_index, ring_slot_index, bright_level_sol FROM sector_stats"
+                        " WHERE bright_level_sol > 0").fetchall()
+    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["bright_level_sol"] for row in rows}
+
+
+def lock_sector_stats(conn, entries):
+    """
+    Takes the row locks on some sectors' `sector_stats` rows (GEN.44),
+    making each row first (untouched, -1) with its expected density
+    (PERF.11) if there is none, so two backfills never draw the same
+    sector at once. Rows are locked in address order, so two callers
+    wait rather than deadlock. Holds until the caller commits.
 
     Args:
         conn (Connection): An open connection.
+        entries (iterable): `((ring, layer, slot), relative_density,
+            expected_systems)` per sector.
 
     Returns:
-        list: `(ring, wedge, slab)` tuples, sorted.
+        dict: `(ring, layer, slot)` -> the level now stored.
     """
-    rows = conn.execute("SELECT block_ring, block_wedge, block_slab FROM bright_star_blocks").fetchall()
-    return sorted((row["block_ring"], row["block_wedge"], row["block_slab"]) for row in rows)
+    rows = sorted((int(address[0]), int(address[1]), int(address[2]), density, expected)
+                  for address, density, expected in entries)
+    for start in range(0, len(rows), 500):
+        chunk = rows[start:start + 500]
+        # ON DUPLICATE KEY UPDATE takes each row's exclusive lock at once;
+        # INSERT IGNORE would take a shared one, and two workers both
+        # upgrading it to exclusive for the SELECT below would deadlock.
+        # A derived table rather than VALUES(col), deprecated on MySQL
+        # (tests/test_sql_portability.py).
+        selects = " UNION ALL ".join(
+            ["SELECT ? AS ring_index, ? AS layer_index, ? AS ring_slot_index, ? AS density, ? AS expected"]
+            + ["SELECT ?, ?, ?, ?, ?"] * (len(chunk) - 1)
+        )
+        conn.execute(
+            "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, relative_density, expected_systems)"
+            f" SELECT * FROM ({selects}) AS incoming"
+            " ON DUPLICATE KEY UPDATE relative_density = COALESCE(sector_stats.relative_density, incoming.density),"
+            " expected_systems = COALESCE(sector_stats.expected_systems, incoming.expected)",
+            tuple(value for row in chunk for value in row),
+        )
+    levels = {}
+    for chunk in _address_chunks([row[:3] for row in rows]):
+        marks = ", ".join("(?, ?, ?)" for _ in chunk)
+        for row in conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index, bright_level_sol FROM sector_stats"
+            f" WHERE (ring_index, layer_index, ring_slot_index) IN ({marks}) FOR UPDATE",
+            tuple(value for key in chunk for value in key),
+        ).fetchall():
+            levels[(row["ring_index"], row["layer_index"], row["ring_slot_index"])] = row["bright_level_sol"]
+    return levels
 
 
-def lock_bright_star_block(conn, block):
-    """
-    Takes the row lock on one block's `bright_star_blocks` row, making the
-    row first (level NULL) if there is none, so two backfills never draw
-    the same block at once. Holds until the caller commits.
-
-    Returns:
-        float or None: The block's stored level, `None` for none yet.
-    """
-    key = (int(block[1]), int(block[2]), int(block[3]))
-    # ON DUPLICATE KEY UPDATE takes the row's exclusive lock at once; INSERT
-    # IGNORE would take a shared one, and two workers both upgrading it to
-    # exclusive for the SELECT below would deadlock.
-    conn.execute("INSERT INTO bright_star_blocks (block_ring, block_wedge, block_slab) VALUES (?, ?, ?)"
-                 " ON DUPLICATE KEY UPDATE block_ring = block_ring", key)
-    row = conn.execute(
-        "SELECT min_luminosity_sol FROM bright_star_blocks"
-        " WHERE block_ring = ? AND block_wedge = ? AND block_slab = ? FOR UPDATE", key,
-    ).fetchone()
-    return row["min_luminosity_sol"]
-
-
-def set_bright_star_block_level(conn, block, min_luminosity_sol):
-    """Records how dim one block's stars now go (inside the transaction
-    `lock_bright_star_block` started)."""
-    conn.execute(
-        "UPDATE bright_star_blocks SET min_luminosity_sol = ?"
-        " WHERE block_ring = ? AND block_wedge = ? AND block_slab = ?",
-        (min_luminosity_sol, int(block[1]), int(block[2]), int(block[3])),
+def set_sector_bright_levels(conn, levels):
+    """Records how dim some sectors' stars now go (`(ring, layer, slot) ->
+    L_sun`), inside the transaction `lock_sector_stats` started."""
+    conn.executemany(
+        "UPDATE sector_stats SET bright_level_sol = ? WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
+        [(level, *address) for address, level in sorted(levels.items())],
     )
 
 
 def bright_star_fill_level(conn, ring_index, layer_index, ring_slot_index):
     """
-    The luminosity one sector's pre-placed stars go down to: its block's
-    backfill level (GEN.23) when it has one, else the galaxy's scatter
-    threshold, else `None` (no bright stars placed; a fill caps nothing).
+    The luminosity one sector's pre-placed stars go down to: its own
+    backfill level (GEN.44, `sector_stats`) when it has one, else the
+    galaxy's scatter threshold, else `None` (no bright stars placed; a
+    fill caps nothing).
     """
     if ring_index is not None and layer_index is not None and ring_slot_index is not None:
-        block = drill_parent(DrillBlock(1, ring_index, ring_slot_index, layer_index))
-        level = bright_star_block_levels(conn, [block]).get((block.ring, block.wedge, block.slab))
-        if level is not None:
+        level = sector_bright_levels(conn, [(ring_index, layer_index, ring_slot_index)]).get(
+            (ring_index, layer_index, ring_slot_index))
+        if level is not None and level > 0:
             return level
     settings = bright_star_scatter_settings(conn)
     return settings[0] if settings else None
+
+
+DENSITY_RATIO_WINDOW = 1000
+"""int: The decaying average of actual against expected systems (PERF.11)
+is a plain mean over the first fills, then weighs each new fill 1 in
+this many, so it follows a galaxy whose model drifts."""
+
+
+def record_sector_stats(conn, sector_id, address, center_pc):
+    """
+    Writes a sector's stats once it is generated (PERF.11, GEN.44): its
+    expected density from the galaxy model, the systems and stars it got,
+    the mean temperature and luminosity of those stars, and its Galaxy
+    Map color worked out from them (MAP.86, `sectorLook`), and
+    level 0 (filled), keeping the level it had in
+    `level_before_fill_sol`; then folds its actual-to-expected systems
+    into `galaxy_shape`'s decaying average. Inside the sector's own save,
+    last, so the galaxy row is locked only for the commit.
+
+    Args:
+        conn (Connection): An open connection, mid-transaction.
+        sector_id (int): The new `sectors.id`.
+        address (tuple): Its `(ring, layer, slot)`.
+        center_pc (tuple): Its galaxy-frame center, parsecs.
+    """
+    from .galaxyDensity import relative_density
+    from .sectorLook import fill_share, max_sector_systems, sector_color
+
+    skeleton = get_galaxy_shape(conn)
+    density = expected = None
+    if skeleton is not None:
+        density = max(relative_density(center_pc, skeleton.shape), 0.0)
+        expected = density * skeleton.expected_system_count_at_density_1
+    systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+    stars = conn.execute(
+        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity"
+        " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
+    ).fetchone()
+    luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
+    temperature = None if stars["temperature"] is None else float(stars["temperature"])
+    share = fill_share(systems, max_sector_systems(skeleton))
+    color = sector_color(temperature, luminosity, share) or (None, None, None)
+    conn.execute(
+        "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol, level_before_fill_sol,"
+        " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
+        " fill_share, color_r, color_g, color_b, filled_at)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
+        " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
+        " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, fill_share = ?, color_r = ?,"
+        " color_g = ?, color_b = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, share, *color))),
+    )
+    if expected:
+        ratio = systems / expected
+        conn.execute(
+            "UPDATE galaxy_shape SET density_ratio_avg = IF(density_ratio_avg IS NULL, ?,"
+            " density_ratio_avg + (? - density_ratio_avg) / LEAST(density_ratio_samples + 1, ?)),"
+            " density_ratio_samples = density_ratio_samples + 1 WHERE id = 1",
+            (ratio, ratio, DENSITY_RATIO_WINDOW),
+        )
+
+
+def forget_sector_fill(conn, address):
+    """
+    A generated sector was deleted (GEN.44): its stats row goes back to
+    the bright-star level it had before the fill, and its actual stats
+    are cleared (the decaying average keeps what it learned). Nothing for
+    a sector off the grid.
+    """
+    if address is None or any(value is None for value in address):
+        return
+    conn.execute(
+        "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
+        " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
+        " fill_share = NULL, color_r = NULL, color_g = NULL, color_b = NULL,"
+        " filled_at = NULL WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ? AND bright_level_sol = 0",
+        tuple(address),
+    )
+
+
+def get_sector_stats(conn, ring_index, layer_index, ring_slot_index):
+    """One sector's `sector_stats` row as a dict (PERF.11), or `None`."""
+    return conn.execute(
+        "SELECT * FROM sector_stats WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
+        (ring_index, layer_index, ring_slot_index),
+    ).fetchone()
+
+
+def galaxy_density_ratio(conn):
+    """`(average, samples)`: the decaying average of the systems sector
+    fills got against the systems expected (PERF.11); the average is
+    `None` before any fill."""
+    row = conn.execute("SELECT density_ratio_avg, density_ratio_samples FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None:
+        return None, 0
+    return row["density_ratio_avg"], int(row["density_ratio_samples"])
 
 
 def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_size=500):
@@ -4931,11 +5064,20 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     multi-row INSERT per table and statement shape, with ids from
     `id_blocks`, instead of one INSERT per row.
 
+    A grid-addressed sector's stats (`sector_stats`, PERF.11, GEN.44) are
+    written last, from the rows just stored (`record_sector_stats`).
+
     Returns:
         int: The new `sectors.id`.
     """
     with conn.batched():
-        return _insert_sector_rows(conn, sector, galaxy_position)
+        sector_id = _insert_sector_rows(conn, sector, galaxy_position)
+    address = None if galaxy_position is None else tuple(
+        galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
+    if address is not None and None not in address:
+        record_sector_stats(conn, sector_id, address, (galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
+                                                       galaxy_position["center_z_pc"]))
+    return sector_id
 
 
 def _insert_sector_rows(conn, sector, galaxy_position):
@@ -8723,7 +8865,14 @@ def _migrate_v48_to_v49(conn):
     Args:
         conn (Connection): An open connection, mid-migration.
     """
-    conn.execute(_schema_statement("bright_star_blocks"))
+    # Inline, not `_schema_statement`: v53 drops the table from schema.sql.
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS bright_star_blocks (block_ring INT NOT NULL, block_wedge INT NOT NULL,"
+        " block_slab SMALLINT NOT NULL, min_luminosity_sol DOUBLE,"
+        " updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,"
+        " PRIMARY KEY (block_ring, block_wedge, block_slab))"
+        " ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci"
+    )
     conn.execute("INSERT INTO schema_migrations (version) VALUES (49)")
 
 
@@ -8823,6 +8972,61 @@ def _migrate_v51_to_v52(conn):
                      " ADD COLUMN python_version VARCHAR(16), ADD COLUMN platform VARCHAR(64)")
     conn.execute(_schema_statement("generation_runs"))
     conn.execute("INSERT INTO schema_migrations (version) VALUES (52)")
+
+
+def _migrate_v52_to_v53(conn):
+    """
+    Adds the per-sector stats (GEN.44, PERF.11) -- see `schema.sql`'s
+    "v53" header note: the `sector_stats` table and `galaxy_shape`'s
+    density-ratio columns. Every filled grid sector gets a row at level 0;
+    each `bright_star_blocks` level moves onto the block's sectors (the
+    unfilled ones' level, the filled ones' level before their fill), and
+    the table is dropped. The density stats start empty: no sector is
+    measured after the fact (GEN.39 starts a fresh galaxy).
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    conn.execute(_schema_statement("sector_stats"))
+    if not _has_column(conn, "galaxy_shape", "density_ratio_avg"):
+        conn.execute("ALTER TABLE galaxy_shape ADD COLUMN density_ratio_avg DOUBLE,"
+                     " ADD COLUMN density_ratio_samples BIGINT UNSIGNED NOT NULL DEFAULT 0")
+    conn.execute(
+        "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol)"
+        " SELECT ring_index, layer_index, ring_slot_index, 0 FROM sectors WHERE ring_index IS NOT NULL"
+        " ON DUPLICATE KEY UPDATE bright_level_sol = 0"
+    )
+    has_blocks = conn.execute(
+        "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'bright_star_blocks'"
+    ).fetchone() is not None
+    if has_blocks:
+        from .galaxyDrill import drill_block_sectors, drill_slabs
+
+        bounds = get_galaxy_bounds(conn)
+        rows = []
+        for row in conn.execute("SELECT block_ring, block_wedge, block_slab, min_luminosity_sol FROM bright_star_blocks"
+                                " WHERE min_luminosity_sol IS NOT NULL").fetchall():
+            block = DrillBlock(3, row["block_ring"], row["block_wedge"], row["block_slab"])
+            for slab in drill_slabs(block):
+                for sector in drill_block_sectors(block, slab):
+                    if bounds is None or bounds.contains(sector.ring, sector.slab):
+                        rows.append((sector.ring, sector.slab, sector.wedge, row["min_luminosity_sol"]))
+        for start in range(0, len(rows), 1000):
+            chunk = rows[start:start + 1000]
+            conn.executemany(
+                "INSERT IGNORE INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol)"
+                " VALUES (?, ?, ?, ?)",
+                chunk,
+            )
+            # A filled sector's row (level 0) keeps the block's level as
+            # the one a delete puts back.
+            conn.executemany(
+                "UPDATE sector_stats SET level_before_fill_sol = ? WHERE ring_index = ? AND layer_index = ?"
+                " AND ring_slot_index = ? AND bright_level_sol = 0",
+                [(level, ring, layer, slot) for ring, layer, slot, level in chunk],
+            )
+        conn.execute("DROP TABLE bright_star_blocks")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (53)")
 
 
 def _schema_statement(table):
@@ -8936,6 +9140,7 @@ def _migration_steps():
         (50, _migrate_v49_to_v50),
         (51, _migrate_v50_to_v51),
         (52, _migrate_v51_to_v52),
+        (53, _migrate_v52_to_v53),
     ]
 
 

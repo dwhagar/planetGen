@@ -89,10 +89,12 @@ def _systems(config):
 
 def _back_to_v48(config):
     """Makes a current database look like one at v48 (before
-    `bright_star_blocks`), so the step has one migration to run."""
+    `bright_star_blocks`, which v53 replaced with `sector_stats`), so the
+    step has migrations to run."""
     conn = _db.get_connection(config)
     try:
-        conn.execute("DROP TABLE bright_star_blocks")
+        conn.execute("DROP TABLE sector_stats")
+        conn.execute("ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples")
         conn.execute("DELETE FROM schema_migrations WHERE version > 48")
         conn.execute("INSERT IGNORE INTO schema_migrations (version) VALUES (48)")
         conn.commit()

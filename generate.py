@@ -100,7 +100,7 @@ from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
 from stellarObjects.galaxyDrill import (
-    DRILL_LEVELS, DrillBlock, drill_block_sectors, drill_children, drill_parent, drill_slabs, format_drill_key,
+    DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
     parse_drill_key,
 )
 from stellarObjects.galaxyGeometry import (
@@ -1946,8 +1946,8 @@ def _edge_pc():
 
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
-    mix, and its unfilled pre-placed bright stars down to its block's
-    level (`_db.bright_star_fill_level`: the backfill's, else the galaxy
+    mix, and its unfilled pre-placed bright stars down to its own level
+    (`_db.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
     scatter's). `None` without a stored skeleton (nothing to take the mix
     from)."""
     conn = _db.get_connection(_db.mysql_config_from_args(args))
@@ -1962,12 +1962,6 @@ def _fill_context(args, address, position_pc):
     finally:
         conn.close()
     return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level)
-
-
-def _block_addresses(block):
-    """Every sector `(ring, layer, slot)` of level-3 block `block`."""
-    return [(sector.ring, sector.slab, sector.wedge)
-            for layer in drill_slabs(block) for sector in drill_block_sectors(block, layer)]
 
 
 def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):
@@ -2011,20 +2005,23 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
 def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminosity_sol=None, tiers=None):
     """
     The bright-star backfill around generated sectors (GEN.23, tiered by
-    GEN.30): every sector block (`galaxyDrill`'s level-3 blocks, 3x3x3
-    sectors) with a sector within the farthest tier of any of `centers_pc` gets
-    every star from its tier's floor up to the level it already holds (its
-    own `bright_star_blocks` level, else the galaxy scatter's threshold,
-    else no ceiling when no scatter ran), in its sectors that aren't
-    filled yet (it never adds stars to a generated sector). A block's
-    tier is the one its nearest sector falls in, from the nearest center,
-    so a block straddling two tiers takes the nearer, dimmer floor. Each
-    block is drawn whole, under a row lock, and then records its new
-    level, so a block already that deep is skipped (one query for the
-    whole sphere), a block a nearer sector reaches later is only topped up
-    with the band it lacks, and no star is ever drawn twice. A block's
-    draw is seeded from the galaxy's scatter seed, the block and the band,
-    so it is the same whichever sector reached it first.
+    GEN.30, per sector since GEN.44): every unfilled sector within the
+    farthest tier of any of `centers_pc` gets every star from its tier's
+    floor (by its own distance from the nearest center) up to the level it
+    already holds: its own `sector_stats` level, else the galaxy scatter's
+    threshold, else no ceiling when no scatter ran. A sector at level 0
+    (generated) or already that deep is skipped (one query for the whole
+    sphere), and one a nearer sector reaches later is topped up with only
+    the band it lacks, so no star is ever drawn twice. A sector with no
+    level anywhere that still holds stars is left over from a run that
+    failed part way: they are wiped and it is drawn whole.
+
+    Sectors are drawn a few hundred at a time, under their rows' locks,
+    and each one's new level is written in the transaction that writes
+    its stars. A sector's draw is seeded from the galaxy's scatter seed,
+    its address and fixed luminosity bands (`brightStars.backfill_cells`),
+    so it is the same whichever sector reached it first, and whatever
+    steps took it there.
 
     Args:
         config (MySQLConfig): Connection parameters.
@@ -2039,20 +2036,19 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
             100 ly).
 
     Returns:
-        dict: `blocks` (drawn now) and `stars` (placed now), both int;
+        dict: `sectors` (drawn now) and `stars` (placed now), both int;
             zeros without a stored skeleton or when the galaxy scatter
             already went that deep.
     """
     tiers = backfill_tiers(radius_ly, min_luminosity_sol, tiers)
     radius_pc = ly_to_pc(tiers[-1][0])
-    summary = {"blocks": 0, "stars": 0}
+    summary = {"sectors": 0, "stars": 0}
     conn = _db.get_connection(config)
     try:
         skeleton = _db.get_galaxy_shape(conn)
         if skeleton is None:
             return summary
-        settings = _db.bright_star_scatter_settings(conn)
-        galaxy_level, seed = settings if settings else (None, 0)
+        galaxy_level, seed = _scatter_level_and_seed(conn, skeleton)
         if galaxy_level is not None and galaxy_level <= min(floor for _out_to, floor in tiers):
             return summary
         bounds = _db.get_galaxy_bounds(conn)
@@ -2063,66 +2059,111 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
                 if not bounds.contains(ring, layer):
                     continue
                 floor = _tier_floor(tiers, pc_to_ly(distance_pc))
-                if floor is None:
-                    continue
-                block = drill_parent(DrillBlock(1, ring, slot, layer))
-                floors[block] = min(floor, floors.get(block, math.inf))
+                if floor is not None:
+                    floors[(ring, layer, slot)] = min(floor, floors.get((ring, layer, slot), math.inf))
         if galaxy_level is not None:
-            floors = {block: floor for block, floor in floors.items() if floor < galaxy_level}
-        levels = _db.bright_star_block_levels(conn, set(floors))
-        todo = sorted(block for block, floor in floors.items()
-                      if levels.get((block.ring, block.wedge, block.slab), math.inf) > floor)
-        for block in todo:
-            floor = floors[block]
-            level = _db.lock_bright_star_block(conn, block)
-            if level is not None and level <= floor:
-                conn.commit()
-                continue
-            ceiling = level if level is not None else galaxy_level
-            rows = _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed)
-            conn.commit()
-            summary["blocks"] += 1
-            summary["stars"] += len(rows)
+            floors = {address: floor for address, floor in floors.items() if floor < galaxy_level}
+        levels = _db.sector_bright_levels(conn, floors)
+        filled = _db.get_occupied_addresses(conn, {address[0] for address in floors})
+        todo = sorted(address for address, floor in floors.items()
+                      if address not in filled and _needs_band(levels.get(address), galaxy_level, floor))
+        drawn = _draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed)
+        summary["sectors"], summary["stars"] = drawn
     except BaseException:
         conn.rollback()
         raise
     finally:
         conn.close()
-    if summary["blocks"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['blocks']} block(s), tiers "
+    if summary["sectors"]:
+        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), tiers "
                   f"{format_backfill_tiers(tiers)}")
     return summary
 
 
-def _backfill_block(conn, skeleton, bounds, block, floor, ceiling, seed):
+BACKFILL_CHUNK_SECTORS = 200
+"""int: How many sectors one backfill transaction locks, draws and
+records (GEN.44)."""
+
+
+def _scatter_level_and_seed(conn, skeleton):
+    """The galaxy scatter's level (`None` before any scatter) and the seed
+    every sector's own draws use: the scatter's, else the galaxy seed's
+    (GEN.39), else 0 for a galaxy planned before v51."""
+    settings = _db.bright_star_scatter_settings(conn)
+    if settings is not None:
+        return settings
+    if skeleton.galaxy_seed is None:
+        return None, 0
+    return None, galaxySeed.short_seed(skeleton.galaxy_seed, "bright-stars", "scatter")
+
+
+def _effective_level(level, galaxy_level):
+    """A sector's bright-star level (GEN.44): its own when it has one (0
+    filled, or a backfill's floor), else the galaxy scatter's (`None`
+    when no scatter ran: untouched)."""
+    if level is not None and level >= 0:
+        return level
+    return galaxy_level
+
+
+def _needs_band(level, galaxy_level, floor):
+    """Whether a sector at stored `level` lacks stars down to `floor`."""
+    current = _effective_level(level, galaxy_level)
+    return current is None or current > floor
+
+
+def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ceiling_cap=None, counts=None):
     """
-    Draws one sector block's band of bright stars, `floor` up to (not
-    including) `ceiling` (`None`: no ceiling), into its sectors that aren't
-    filled, and records `floor` as the block's level. The caller holds the
-    block's row lock (`_db.lock_bright_star_block`) and commits.
+    Draws each of `addresses` down to its floor (`floors`, a dict or one
+    number) from the level it holds, `BACKFILL_CHUNK_SECTORS` at a time:
+    locks the chunk's `sector_stats` rows, rechecks each level under the
+    lock (another run may have got there first, or filled it), wipes the
+    stray stars of a sector with no level at all (a failed run, GEN.44),
+    writes the stars and the new levels, and commits. `ceiling_cap` caps
+    the ceiling (a band run never draws above the galaxy's old level).
+    `counts`, when given, adds up the stars written per population.
 
     Returns:
-        list: The rows written, in `_db.BRIGHT_STAR_COLUMNS` order.
+        tuple: `(sectors drawn, stars written)`.
     """
-    addresses = [address for address in _block_addresses(block) if bounds.contains(address[0], address[1])]
-    filled = _db.get_occupied_addresses(conn, {address[0] for address in addresses})
-    rng = random.Random(f"{seed}:{block.ring}:{block.wedge}:{block.slab}:{floor:g}:{ceiling}")
-    unfilled = [address for address in addresses if address not in filled]
-    rows = list(brightStars.backfill_cells(
-        skeleton.shape, unfilled, skeleton.edge_pc,
-        skeleton.expected_system_count_at_density_1, floor, ceiling, rng,
-    ))
-    if ceiling is None:
-        # No finished scatter and no level here yet: any unbuilt star in
-        # these cells is left over from a scatter that failed before it
-        # recorded its threshold (TEST.25). This draw has no ceiling, so
-        # keeping them would place those stars twice.
-        for address in unfilled:
-            conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
-                         " AND ring_slot_index = ? AND star_system_id IS NULL", address)
-    _db.insert_bright_stars(conn, rows)
-    _db.set_bright_star_block_level(conn, block, floor)
-    return rows
+    sectors = stars = 0
+    e_value = skeleton.expected_system_count_at_density_1
+    for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
+        chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
+        entries = []
+        for address in chunk:
+            density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
+            entries.append((address, density, density * e_value))
+        locked = _db.lock_sector_stats(conn, entries)
+        filled = _db.get_occupied_addresses(conn, {address[0] for address in chunk})
+        rows, new_levels = [], {}
+        for address in chunk:
+            floor = floors if isinstance(floors, (int, float)) else floors[address]
+            level = locked.get(address)
+            if address in filled or not _needs_band(level, galaxy_level, floor):
+                continue
+            ceiling = _effective_level(level, galaxy_level)
+            if ceiling is None:
+                # No level here and no finished scatter: any unbuilt star in
+                # this cell is left over from a run that failed before it
+                # recorded one (TEST.25, GEN.44). This draw has no ceiling,
+                # so it is wiped and drawn again whole.
+                conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
+                             " AND ring_slot_index = ? AND star_system_id IS NULL", address)
+            if ceiling_cap is not None:
+                ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
+            rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
+                                                   ceiling, seed))
+            new_levels[address] = floor
+        _db.insert_bright_stars(conn, rows)
+        _db.set_sector_bright_levels(conn, new_levels)
+        conn.commit()
+        if counts is not None:
+            for row in rows:
+                counts[row[6]] += 1
+        sectors += len(new_levels)
+        stars += len(rows)
+    return sectors, stars
 
 
 def _requested_center(args, generated, edge_pc, conn):
@@ -2164,7 +2205,7 @@ def backfill_after_run(args, edge_pc, started_at):
         dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
     """
     mode = getattr(args, "backfill_from", "requested") or "requested"
-    summary = {"blocks": 0, "stars": 0}
+    summary = {"sectors": 0, "stars": 0}
     if mode == "none":
         return summary
     config = _db.mysql_config_from_args(args)
@@ -2181,7 +2222,7 @@ def backfill_after_run(args, edge_pc, started_at):
         return summary
     log.normal(f"Backfilling the bright stars around {'every generated sector' if mode == 'all' else 'the requested sector'}...")
     summary = backfill_bright_stars_around(config, centers)
-    log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['blocks']:,} sector blocks.")
+    log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
     return summary
 
 
@@ -3879,13 +3920,11 @@ def add_bright_star_band(args):
             return None
         extents = _db.get_galaxy_layers(conn)
         filled = _db.filled_sector_addresses(conn)
-        # Sector blocks a GEN.23 backfill reached already hold part of the
-        # band (down to their own level): the layer scatter leaves them out
-        # and each gets only what it lacks below, one block at a time.
-        blocks = [DrillBlock(3, ring, wedge, slab) for ring, wedge, slab in _db.bright_star_block_keys(conn)]
-        skip = set(filled)
-        for block in blocks:
-            skip.update(_block_addresses(block))
+        # Sectors a backfill took to their own level (GEN.44) already hold
+        # part of the band: the layer scatter leaves them out and each gets
+        # only what it lacks below its level, sector by sector.
+        own = _db.sector_bright_level_keys(conn)
+        skip = set(filled) | set(own)
         # GEN.32: a band run that stopped part way left the band in the
         # layers it finished; this run draws the whole band again, so it
         # starts from none of it.
@@ -3896,20 +3935,15 @@ def add_bright_star_band(args):
         seed = _bright_star_seed(skeleton, f"band/{target:g}-{current:g}")
         log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
                    + (f", leaving out {len(filled):,} filled sectors" if filled else "")
-                   + (f" and {len(blocks):,} backfilled sector blocks" if blocks else "") + ".")
+                   + (f" and {len(own):,} backfilled sectors" if own else "") + ".")
         t0 = time.perf_counter()
         counts = _scatter_layers(args, mysql_config, skeleton, extents, skip, target, seed,
                                  f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current)
-        bounds = _db.get_galaxy_bounds(conn)
-        for block in blocks:
-            level = _db.lock_bright_star_block(conn, block)
-            if level is not None and level <= target:
-                conn.commit()
-                continue
-            for row in _backfill_block(conn, skeleton, bounds, block, target, current if level is None else min(level, current),
-                                       first_seed):
-                counts[row[6]] += 1
-            conn.commit()
+        topped = sorted(address for address, level in own.items() if address not in filled and level > target)
+        if topped:
+            _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
+                                                 ceiling_cap=current, counts=counts)
+            log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
         _db.record_bright_star_scatter(conn, target, first_seed)
         conn.commit()

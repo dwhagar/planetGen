@@ -1106,7 +1106,13 @@ def delete_sector(sector_id):
     conn = _write_conn()
     try:
         with conn:
+            address = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+                                   (sector_id,)).fetchone()
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
+            if address is not None:
+                # GEN.44: the slot goes back to the bright-star level it had unfilled.
+                _db.forget_sector_fill(conn, (address["ring_index"], address["layer_index"],
+                                              address["ring_slot_index"]))
     finally:
         conn.close()
 
@@ -1257,7 +1263,7 @@ def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
     stellar population and (once a bright-star scatter ran) its dim-star
-    cap (its block's level, GEN.23), as a sector fill would
+    cap (its own backfill level, GEN.44), as a sector fill would
     (`brightStars.FillContext`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:

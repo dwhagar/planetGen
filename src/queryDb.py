@@ -1088,7 +1088,8 @@ def sector_detail(conn, sector_id):
             `sector_neighbors`, `[]` for a sector with no galaxy
             placement), and `wiki_url` (`sectors.wiki_url` -- `None` if
             this sector has never been uploaded to, or manually linked
-            to, a wiki page; see `schema.sql`'s "v22" header note).
+            to, a wiki page; see `schema.sql`'s "v22" header note), and
+            `stats` (`sector_stats`, PERF.11: `None` off the grid).
 
     Raises:
         ValueError: If no such sector exists.
@@ -1153,7 +1154,32 @@ def sector_detail(conn, sector_id):
         "phenomena": phenomena_near_sector(conn, sector_id),
         "neighbors": sector_neighbors(conn, sector),
         "wiki_url": sector["wiki_url"],
+        "stats": sector_stats(conn, sector["ring_index"], sector["layer_index"], sector["ring_slot_index"]),
     }
+
+
+SECTOR_STATS_FIELDS = (
+    "bright_level_sol", "relative_density", "expected_systems", "actual_systems", "actual_stars",
+    "mean_temperature_k", "mean_luminosity_sol", "fill_share", "color_r", "color_g", "color_b",
+)
+"""tuple: The `sector_stats` columns `sector_stats` reads (PERF.11)."""
+
+
+def sector_stats(conn, ring_index, layer_index, ring_slot_index):
+    """
+    One grid sector's stored stats (PERF.11, GEN.44): its bright-star
+    level, its expected density and, once filled, what it holds
+    (`SECTOR_STATS_FIELDS`). `None` for a sector off the grid or with no
+    row yet.
+    """
+    if ring_index is None or layer_index is None or ring_slot_index is None:
+        return None
+    row = conn.execute(
+        f"SELECT {', '.join(SECTOR_STATS_FIELDS)} FROM sector_stats"
+        " WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?",
+        (ring_index, layer_index, ring_slot_index),
+    ).fetchone()
+    return None if row is None else {field: row[field] for field in SECTOR_STATS_FIELDS}
 
 
 def interstellar_debris_count(star_count):

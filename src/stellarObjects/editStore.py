@@ -341,8 +341,8 @@ def delete_sector_with_contents(conn, sector_id):
         dict: `{"systems": n, "phenomena": n}` deleted, or `None` when
         there was no such sector.
     """
-    row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
-                       (sector_id,)).fetchone()
+    row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, ring_index, layer_index, ring_slot_index"
+                       " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
     systems = conn.execute("DELETE FROM star_systems WHERE sector_id = ?", (sector_id,)).rowcount
@@ -353,6 +353,8 @@ def delete_sector_with_contents(conn, sector_id):
     conn.execute("DELETE FROM facilities WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
+    # GEN.44: the slot goes back to the bright-star level it had unfilled.
+    _db.forget_sector_fill(conn, (row["ring_index"], row["layer_index"], row["ring_slot_index"]))
     if row["center_x_pc"] is not None:
         refresh_nearest_around(conn, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]))
     return {"systems": systems, "phenomena": phenomena}
