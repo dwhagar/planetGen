@@ -9,6 +9,7 @@ covers the pure, database-free "planned" half of, plus the cube tiles.
 
 import math
 import random
+import sys
 
 import pytest
 
@@ -251,3 +252,13 @@ def test_planned_slots_skip_big_tiles_and_tiny_sectors():
     assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, None, None, set()) == []
     # A 0.5 pc sector edge would put thousands of slots in a 16 pc tile.
     assert planned_slots_in_tile(TILE_MAX_LEVEL, 2048, 2048, 2048, 0.5, None, None, set()) == []
+
+
+@pytest.mark.parametrize("radius", [5e-324, 2.2e-311, 1e-308, sys.float_info.min])
+def test_tile_level_for_a_tiny_positive_radius_is_the_finest(radius):
+    """MAP.90: a subnormal radius used to overflow log2; any tiny positive
+    radius gets the finest level, here and in the page module's copy."""
+    from lib.galaxymap3d import _tile_level_for_view_radius
+
+    assert tile_level_for_view_radius(radius) == TILE_MAX_LEVEL
+    assert _tile_level_for_view_radius(radius) == TILE_MAX_LEVEL

@@ -2,23 +2,25 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
-**Status (2026-10-01, checked against 7.58.2):** mostly built.
+**Status (2026-10-02):** built. The arc pick (MAP.85) has replaced the
+galaxy's first pick (section 4); section 15's later steps (slab, then
+segment, MAP.56 onward) are still planned.
 
 | Piece | Section | TODO | Built in |
 |---|---|---|---|
 | Block ladder (`stellarObjects/galaxyDrill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.28 | 7.41.2, PR #160 |
 | Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.29 | 7.41.3, PR #160 |
 | The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only" | 4, 5, 8.1 | MAP.16 | 7.44.0, PR #171 |
-| Top-down only, quarter, layer and arc picks, dimmed hover, wedge lines kept to the view, opening at a sector's layer, the map's Back and Forward | 4, 5, 8.1, 10, 11 | MAP.17, MAP.18, MAP.19, MAP.44, MAP.26 | this change |
+| Top-down only, quarter, layer and arc picks, dimmed hover, wedge lines kept to the view, opening at a sector's layer, the map's Back and Forward | 4, 5, 8.1, 10, 11 | MAP.17, MAP.18, MAP.19, MAP.44, MAP.26 | 7.73.177 |
 | Address bar (`/galaxy/locate`) | 9.3 | MAP.24 | 7.50.0, PR #172 |
 | Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.27 | 7.52.0, PR #176 |
 | Map Generate buttons and the light-year radius dialog | 6 | MAP.20 (map side) | 7.53.0, PR #177 |
 | Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.21 | 7.58.0, PR #178 |
-| Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.20 | not built |
-| NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | this change (the picks earlier) |
-| Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81) | 8.2 | MAP.23 | this change |
-| "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | not built (`?sector=` itself works) |
-| The whole galaxy in 3D with no grid lines, the arc pick in place of the quarter, outlines along real wedge lines, one scale line, the controls' Menu | 4, 5, 8.1, 10 | MAP.85, MAP.52, MAP.60, MAP.55 | this change |
+| Generate this layer or slab (`generate.py galaxy --block`, the Generate page's block form) | 6 | MAP.20 | 7.60.174 |
+| NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | 7.94.253 (the picks earlier) |
+| Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81) | 8.2 | MAP.23 | 7.94.253 |
+| "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | 7.64.174 |
+| The whole galaxy in 3D with no grid lines, the arc pick in place of the quarter, outlines along real wedge lines, one scale line, the controls' Menu | 4, 5, 8.1, 10, 15 | MAP.85, MAP.52, MAP.60, MAP.55 | this change |
 
 Later requests changed this design, and the sections below describe the
 map as it now is: MAP.17 (no free camera and no rotation at all; start
@@ -459,10 +461,12 @@ centered on the selected sector, generated or not.
 **As built (7.53.0):** the buttons and the radius dialog work as above
 (default 100 ly, 13 to 652 ly, the estimate, and the confirmation past
 5,000 sectors); the radius goes as `slot_radius_pc`. Since GEN.23 the dialog's default
-is 39 ly (about 12 pc, `DEFAULT_GENERATE_RADIUS_PC`). Generate this layer
-or slab is not built: it waits for the `--block` mode. The progress line
-below is not built either; the form still posts and follows the redirect
-to the job page.
+is 39 ly (about 12 pc, `DEFAULT_GENERATE_RADIUS_PC`). Since 7.60.174 a
+level-3 block also offers "Generate this layer" and "Generate this
+block" (`blockGenerateButtons` in `static/generatebuttons.js`), posting
+the Generate page's block mode (`--block`, `--block-layer`). The
+progress line below is not built; the form still posts and follows the
+redirect to the job page.
 
 **After starting (planned):** the form posts to the admin Generate page as today.
 Instead of following the redirect, the map sends it with `fetch` and
@@ -708,20 +712,107 @@ Each has a default, and work can start on it.
 | MAP.28 | Nested ladder geometry, JS and Python, with a parity test (section 3). **Built, 7.41.2, PR #160** | Galaxy Map | none |
 | MAP.29 | Stage contents API and caching (section 7). **Built, 7.41.3, PR #160** | Galaxy Map | MAP.28 |
 | MAP.16 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.28, MAP.29, MAP.3 |
-| MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177**; `--block`, the form and progress open | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
+| MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177; `--block` and the form built, 7.60.174** | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
 | MAP.21 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
 | MAP.22 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9). **Built** | Web | MAP.16, MAP.21 |
 | MAP.23 | Bookmarks (section 8.2). **Built** | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.16 |
 | MAP.24 | Address bar (section 9.3). **Built, 7.50.0, PR #172** | Galaxy Map | MAP.16 |
-| MAP.25 | "Show on Galaxy Map" links with `?sector=` (section 8.1) | Web | MAP.16's URL format |
+| MAP.25 | "Show on Galaxy Map" links with `?sector=` (section 8.1). **Built, 7.64.174** | Web | MAP.16's URL format |
 | MAP.27 | Course on the Galaxy Map (section 9.4). **Built, 7.52.0, PR #176** | Galaxy Map and Web | MAP.16, MAP.22 |
-| MAP.17 | No free camera; drill down top-down by wedge, slice and block (bug against MAP.16; decision 2) | Galaxy Map | MAP.16 |
-| MAP.26 | "Show on Galaxy Map" opens at the sector level; the map's own Back and Forward (bug; folds in MAP.25) | Galaxy Map and Web | MAP.17, MAP.25 |
+| MAP.17 | No free camera; drill down top-down by wedge, slice and block (bug against MAP.16; decision 2). **Built, 7.73.177** | Galaxy Map | MAP.16 |
+| MAP.26 | "Show on Galaxy Map" opens at the sector level; the map's own Back and Forward (bug; folds in MAP.25). **Built, 7.73.177** | Galaxy Map and Web | MAP.17, MAP.25 |
 
 MAP.3 (the bigger map) shipped in 7.55.0. MAP.27 shipped before MAP.22, using
-the NAV result's link rather than the NAV pickers. What is left is MAP.20's
-`--block` mode; MAP.22 and MAP.23 are built (bookmarks per browser,
-decision 4's default).
+the NAV result's link rather than the NAV pickers. Everything in this
+table is built: MAP.20's `--block` mode in 7.60.174, MAP.25 in 7.64.174,
+MAP.17 and MAP.26 in 7.73.177, and MAP.22 and MAP.23 in 7.94.253
+(bookmarks per browser, decision 4's default). The open work is the arc
+pick and what follows it, section 15.
+
+## 15. The arc pick (MAP.85)
+
+Boss asked for it on 2026-10-01 (23:53Z) and moved it into phase 0 on
+2026-10-02 (01:46Z); the arc size below is his decision of 01:53Z.
+15.1 and 15.2 are built (section 4 describes them as built: 24 arcs of
+45 degrees, the width nearest 40 whose lines are wedge lines of every
+block ring past the core); the zoom lock below the arc (MAP.58), the
+turn about the arc's middle (MAP.53) and 15.3 are still planned.
+
+> Redo the galactic selection, so that the galaxy map is 3D, we can
+> manipulate it. The user doesn't select an entire wedge, just a large
+> arc, then zoom in to select slab, and go from there. ... Don't show any
+> sector lines at so that the star map really comes through and the
+> spiral pattern. When the user mouses over an arc they can select (each
+> arc goes from top to bottom so slab of that we'll do in the next part)
+> then they can see it's boundaries and the boundaries of the other
+> segments.
+
+"Arc" means this first pick; a "region" is one cell of the 3 by 3 pick
+below it (MAP.19, section 4) until MAP.56 replaces that.
+
+### 15.1 The whole galaxy
+
+- A 3D galaxy the user can turn and tilt, drawn as its stars and spiral
+  structure only: no sector, block or wedge lines, and no Wedges button
+  (MAP.55 removes it).
+- Zoom on the whole galaxy and on a picked arc is a short manual range:
+  in to about twice the fitted view, out until the whole galaxy fits.
+  Below the arc, user zoom is locked and each pick's staged zoom fits
+  the view (MAP.58).
+
+### 15.2 The arc
+
+- An arc is a piece of the disk bounded by bearing and by distance from
+  the center, running the full height of the disk.
+- Size: about 40 degrees of bearing (MAP.52's width, its sides snapped
+  to the meridians of the sector grid) by a third of the disk's radius
+  (inner, middle or outer), so the disk has about 27 arcs. Near the core
+  the meridians stop short, so an inner arc can come out wider than 40
+  degrees, as quarters do today (section 4).
+- Hovering shows the arc under the cursor with its boundary, and the
+  boundaries of the neighboring arcs faintly. Nothing else is outlined.
+- Clicking flies to the arc, framed whole in the window (MAP.78), and
+  the view turns about the arc's own middle (MAP.53).
+
+### 15.3 Below the arc
+
+The ladder becomes arc, slab, segment, then slab and segment again
+inside each smaller block, down to a sector (MAP.56; the 3 by 3 region
+pick goes).
+
+- **Slab:** a height band of the arc, picked with one button per slab and
+  a leader line from each button to its slab (MAP.54, layout MAP.76),
+  replacing the slab slider. The arc view draws only the boundaries
+  between slabs (MAP.77).
+- **Segment:** one drill block of the next level inside the slab,
+  picked on the zoomed slab with the same hover highlight. The rest of
+  the arc stays as a faint ghost so a slab doesn't read as a wedge
+  (MAP.59).
+- On navigation screens the hover highlight is the same arc highlight
+  (NAV.31), and pick mode runs on the shared picker (NAV.15).
+
+### 15.4 Colour instead of lines
+
+With the lines gone, colour shows the structure: each sector's colour,
+saturation and opacity come from its stars (density, average colour by
+temperature, average luminosity), filled sectors stay translucent, and a
+block is the average of its sectors (MAP.86, phase 1, with its stored
+per-sector colour served with the tiles). Until MAP.86 lands the arc
+pick keeps today's block shading. At sector zoom the map shows almost
+every star of the sector (MAP.80, phase 1).
+
+### 15.5 Order
+
+| ID | Piece | Phase | Needs |
+|---|---|---|---|
+| MAP.63, MAP.64 | Shared map helpers (`static/mapcore.js`), one camera and input controller (`static/mapcontrol.js`) | 0 | **Built, PR #351**, with TEST.70, MAP.87, MAP.82 to MAP.84, NAV.30 and MAP.81 |
+| MAP.60 | One scale line | 0 | MAP.64 |
+| MAP.55 | Buttons into a menu; back, forward, up, reset and bookmark showing | 0 | MAP.60, UX.28 (icons; text labels until then) |
+| MAP.85 + MAP.52 | The arc pick, one PR | 0 | MAP.55, MAP.64 |
+| MAP.86, MAP.80 | Sector colours; most stars at sector zoom | 1 | MAP.85, PERF.11 (MAP.86); MAP.90, MAP.87 (MAP.80) |
+| MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77 | Slab and segment ladder, rotate and fit, zoom limits, leader lines, mini map, ghost | 2 | MAP.85, in that order, one thread |
+| MAP.65, NAV.15, NAV.31 | One picking layer, pick mode on it, the arc highlight while picking | 2 | MAP.56 (MAP.65); NAV.13, NAV.14, MAP.65 (NAV.15); NAV.15 (NAV.31) |
+| MAP.66 to MAP.68 | The sector as the last stage, one engine for all three maps | 3 | MAP.65 |
 
 ## 13. Sources
 

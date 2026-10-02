@@ -21,7 +21,7 @@ from .config import SystemConfig
 from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
 from .serialization import fields_from_dict, fields_to_dict
-from .starData import Star
+from .starData import Star, adjust_pair_age_for_planets
 from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
                     format_distance_au, format_distance_km, format_galactic_orbit, format_relative_to_sol,
@@ -317,18 +317,16 @@ class BinaryStarProxy(Star):
 
     def adjust_age_for_planets(self, planets):
         """
-        Adjusts the age and lifespan of both constituent stars to accommodate
-        the evolutionary requirements of the system's planets, then recomputes
-        the proxy's combined `age` and `lifespan` as the maximum of the two
-        (now-adjusted) stars' values.
+        Settles one shared age for both constituent stars that suits the
+        system's circumbinary planets (see `adjust_pair_age_for_planets`),
+        and gives the proxy that age too; its `lifespan` stays the longer
+        of the two stars'.
 
         Args:
             planets (list): A list of `Planet` objects in the system.
         """
-        for star_obj in self.stars:
-            star_obj.adjust_age_for_planets(planets)
-        # After adjusting individual stars, update the proxy's age to reflect the primary's
-        self.age = max(self._primary.age, self._secondary.age)
+        adjust_pair_age_for_planets(self._primary, self._secondary, planets, planets)
+        self.age = self._primary.age
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
     def get_table_properties(self):
