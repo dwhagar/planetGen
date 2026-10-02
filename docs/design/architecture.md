@@ -90,7 +90,7 @@ flowchart LR
 | `pytest.ini` | Puts `.`, `src` and `src/html` on the path for the tests. |
 | `CHANGELOG.md`, `README.md` | Release history and the project front page. Both are stamped by the release flow, never edited for the version by hand. |
 | `changes/` | Pending release notes, one file per PR. See [Flow 5](#flow-5-install-update-and-releases). |
-| `docs/` | Reference docs, `design/` topic designs, `analysis/` reviews, `deployment/` server guides, `TODO.md`. |
+| `docs/` | Reference docs, `design/` topic designs, `analysis/` reviews, `deployment/` server guides, `TODO.md` (open work) and `plan/` (one plan per phase of it). |
 
 ### scripts/
 

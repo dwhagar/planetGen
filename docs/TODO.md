@@ -51,6 +51,10 @@ that default.
   on its own line under the item:
   `Design: [docs/design/x.md](design/x.md), section N`. Design documents
   don't list item IDs.
+- The phase plans in [plan/](plan/) are the other place that lists
+  item IDs: each phase file has a table of its items (see "Plan:
+  phases" below). File a new item into one phase's table in the same
+  PR, and delete its row when it ships.
 - Code tags cite the ID: `TODO(MAP.16): what to do here`. Grep
   `"TODO(MAP."` for an area, or `"TODO(MAP.16)"` for one item.
 - `changes/` notes, PR titles and commit messages cite the ID, for
@@ -76,7 +80,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-NAV, DB, SEC, DOC and POP have no open items today.
+SEC, DOC and POP have no open items today.
 
 ## Background
 
@@ -89,26 +93,59 @@ density skeleton, and the Flask API (`src/html/api/`) with server-rendered
 pages served by the same app (`src/html/web/`): Galaxy, Sector and System
 maps, search, NAV, admin auth and wiki publishing.
 
-## Plan: what to do now
+## Plan: phases
 
-The bug round (MAP.17 to MAP.19, MAP.26, MAP.37, MAP.43 to MAP.51,
-UX.15, UX.16, UX.19, UX.20, ADM.9), login security (SEC.1, SEC.20 to
-SEC.28), the database-call work (PERF.6, PERF.12 to PERF.17) and
-parallel generation (PERF.7, PERF.8) are done. Boss (2026-10-01
-14:41Z) set the next round, run as parallel threads:
+Boss (2026-10-01 23:53Z) asked for the open work to be planned in
+phases, one plan file per phase with everything that phase needs, and
+this file as the master and index. Every open item below is in exactly
+one phase. Each phase file gives the order, the dependencies, how to
+split the work into build threads, the research notes that apply and
+the open questions; this file keeps each item's full text. A new item
+goes into a phase's table in the same PR that files it.
 
-1. **First:** PERF.5 (scatter bright stars in stages), done in PR #229.
-2. **Galaxy Map and units:** done (UX.13, UX.14, MAP.15, MAP.30 and
-   MAP.2 in PR #234, GEN.23 in PR #226).
-3. **Generation estimates and progress:** done (PERF.3 and PERF.10 in
-   PR #238, PERF.4 and PERF.9 in PR #258).
-4. **Admin editing:** done (ADM.5 in PR #235, ADM.8 in PR #244, ADM.6
-   and ADM.7 in PR #260).
+| Phase | Plan | Goal | Items |
+|---|---|---|---|
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73 |
+| 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
+| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11 |
+| 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9 |
 
-Waiting behind those: PERF.11, UX.2, UX.3, GEN.9,
-user accounts (USR.1,
-starting with roles, USR.2). View from a planet (VIEW.1) waits on a
-research session with Boss, except the constellation names (VIEW.4).
+Phases overlap: a phase's later threads can start while the next
+phase's first ones run, as long as the order inside each phase holds.
+
+Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
+the files are in the project's shared files under `todo-tasks/research/`)
+became these items:
+
+| # | Boss's item | ID |
+|---|---|---|
+| 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 |
+| 2 | Rogue planets after systems and phenomena; expanded rows span the table | UX.24 |
+| 3 | Rogue planet gas giant vs terrestrial probability | GEN.45 |
+| 4 | Rogue planet octant and a map symbol link | UX.25 |
+| 5 | Edit and admin buttons as a button menu | UX.26 |
+| 6 | Rogue planets dim, barely noticeable | MAP.82 |
+| 7 | "Mark Rogue Planets" keeps its highlight while on | MAP.83 |
+| 8 | Rogue planets smaller unmarked, bigger and clickable marked | MAP.84 |
+| 9 | System and nav buttons in one row, nav folding into a menu | UX.27 |
+| 10 | Icons instead of words on buttons (investigate) | UX.28 |
+| 11 | Star names at most two words | GEN.46 |
+| 12 | Every comet's type shown with a link | UX.29 |
+| 13 | Planet information without the Markdown render | UX.30 |
+| 14 | System edit as a quick menu, not a long panel | UX.31 |
+| 15 | Planet rows show class only | UX.32 |
+| 16 | Filter phenomena by type and class | UX.33 |
+| 17 | No nebulae being created | GEN.47 |
+| 18 | 3D galaxy, arc pick, no sector lines (other galaxy-map items edited to match) | MAP.85 |
+| 19 | Filled sectors translucent, colored by their stars; blocks averaged | MAP.86 |
+
+Done before this plan: the bug round (MAP.17 to MAP.19, MAP.26, MAP.37,
+MAP.43 to MAP.51, UX.15, UX.16, UX.19, UX.20, ADM.9), login security
+(SEC.1, SEC.20 to SEC.28), the database-call work (PERF.6, PERF.12 to
+PERF.17), parallel generation (PERF.7, PERF.8), the round Boss set at
+14:41Z (PERF.5, UX.13, UX.14, MAP.15, MAP.30, MAP.2, GEN.23, PERF.3,
+PERF.4, PERF.9, PERF.10, ADM.5 to ADM.8) and the OPS, ADM and TEST
+build of the evening.
 
 ## UX: Web pages
 
@@ -219,6 +256,136 @@ with `clamp()`.
     quantity family: mass; temperature; pressure and gravity; density,
     luminosity and power.
 
+- [ ] **UX.24 Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug)**
+  Boss (2026-10-01 23:53Z): "rogue planets should come after star
+  systems and other phenomena, and each line item should span the table
+  when expanded." Today `_contents` in `web/sector_page.py` sorts every
+  row (systems, phenomena, facilities, the folded "N rogue planets" row)
+  by distance from the sector's center only, and the only row that
+  expands is the rogue group, a `<details>` inside its Name cell
+  (`templates/sector.html`), so its members squeeze into one column.
+  Done: the table lists star systems first, then the other phenomena,
+  then rogue planets (each group still nearest first); an expanded row's
+  content spans every column of the table (a full-width detail row
+  under it, `colspan` of the whole table), on phones too.
+
+- [ ] **UX.25 Rogue planets: octant and a small map symbol beside each name (bug)**
+  Boss (2026-10-01 23:53Z): "Rogue planets each one has a location and
+  octant, show on map should be a little map symbol next to the name as
+  a link." Today a lone rogue planet's row shows its octant and a
+  "Show on map" text button, but the members of the folded rogue group
+  show no octant or location, only a "Show on map" button
+  (`sector_page.py` `_rogue_group_row`, `sector.html`). Done: every
+  rogue planet, alone or in the group, shows its octant and location,
+  and "Show on map" is a small map icon link beside its name (with a
+  text label for screen readers and a tooltip) that selects it on the
+  Sector Map, as the button does today. Applies to the same link on
+  other rows once UX.28 settles the icon set.
+
+- [ ] **UX.26 Edit and admin actions as a button that opens a menu (bug)**
+  Boss (2026-10-01 23:53Z): "Edit buttons and admin buttons in any view
+  (such as sectors or star systems) should appear as a button menu
+  (click the button the menu appears)." Today the sector page has an
+  Admin panel (generate-neighborhood forms) and an Edit panel, and the
+  `edit_buttons` macro (`templates/partials/edit_controls.html`) shows
+  Regenerate and Delete as inline `<details>` confirm forms. Done: in
+  every view, the admin and edit actions sit behind one button that
+  opens a menu (keyboard and screen-reader friendly, closes on Escape
+  or a click outside, doesn't shift the page); picking an action opens
+  its confirm step or form on top (a popover or dialog), not inline
+  below the page. UX.31 is the system page's case.
+
+  - [ ] **UX.31 Editing a star system: an edit button with a quick menu, not a long panel (bug)**
+    Boss (2026-10-01 23:53Z): "Edit on a star system shouldn't be a big
+    long menu under the interface but instead an edit icon or button
+    that when clicks opens a little quick menu showing the edit
+    options." Today the system page has a separate Edit panel below the
+    System panel (`system.html`, `_edit_rows` in `system_pages.py`): a
+    table of every body with Regenerate, Delete, "Change star" and
+    "Change class" `<details>` forms. Done: the system, and each body
+    in the System panel, has an edit icon button that opens a small
+    menu of its actions (Regenerate, Delete, Change star or Change
+    class); choosing one opens just that form; the long Edit panel is
+    gone.
+
+- [ ] **UX.27 System page: the system and navigation buttons on one row that doesn't overlap (bug)**
+  Boss (2026-10-01 23:53Z): "When viewing a star from sector view system
+  and nav buttons should be in a row and should not overlap. If room is
+  needed the nav buttons can collapse into a nav button that opens a
+  from here or to here menu." Today the system page's subhead
+  (`system.html`, `.page-subhead` and `.page-actions` in `style.css`)
+  wraps the badges, "Navigate from here", "Navigate to here", "Show on
+  Galaxy Map" and the bookmark button. Done: these buttons sit on one
+  row with no overlap at every size class; when there isn't room, the
+  two navigate buttons fold into one "Navigate" button whose menu holds
+  "From here" and "To here" (container query, not a device check).
+  Ties in with NAV.29 (the Start Here / End Here wording) and UX.21.
+
+- [ ] **UX.28 Investigate icons instead of words on buttons**
+  Boss (2026-10-01 23:53Z): "Investigate using symbols for buttons
+  instead of words where appropriate. Adhering to modern web interface
+  standards." Done: a short survey of every button and link on the site
+  saying which should become an icon (for example edit, delete, show on
+  map, filter, navigate, bookmark, menu), the icon set to use (inline
+  SVG, one sprite, no icon font or external CDN), and the rules
+  (visible tooltip, `aria-label`, 44 px touch target on coarse
+  pointers, a text label kept where an icon alone is unclear); Boss
+  approves the list, then the changes are filed as their own items or
+  folded into UX.25, UX.26, UX.27 and MAP.55.
+
+- [ ] **UX.29 Every comet in a system shows its type as a link (bug)**
+  Boss (2026-10-01 23:53Z): "Comets in a star system some show the type
+  with a link and some don't. Type / link should be there for all."
+  Today `_comet_row_html` (`lib/systempage.py`) shows "Elliptical comet"
+  or "Parabolic comet" as plain text and links only the period class
+  (`class_url("comet", period_class)`); parabolic comets have no period
+  class (`cometData.py`), so they get no link, and an unknown code gets
+  none either. Done: every comet row shows its type as a link to its
+  class reference page, parabolic comets included (a class entry for
+  them, or a link to the comet class overview), and a test checks every
+  comet kind has a working link.
+
+- [ ] **UX.30 Planet information without the Markdown render**
+  Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
+  away from the markdown render and instead fits with the modern web UI
+  as we've seen it so far." Today each body's expanded row on the
+  system page is the generator's Markdown (`systemRender.render_system_sections`)
+  turned into HTML by `lib/mdconvert.py` (`systempage._row_html`), and
+  so is the system overview; only the stat chips are built as HTML.
+  Done: the system page builds each body's details from its stored
+  values as structured HTML (property grids, atmosphere composition
+  bars, orbit figures, moons, life), styled like the rest of the site in
+  both themes and every size class, using the unit ladders (UX.22);
+  `mdconvert` is no longer used for them. The wikitext and Markdown
+  views (the Wikitext/Markdown toggle and wiki upload) keep using the
+  text render. Open question: does the overview text stay as prose?
+
+- [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
+  Boss (2026-10-01 23:53Z): "Remove type of planet (Terrestrial / gas)
+  and moon from the row display just giving class instead of class and
+  type." Today each planet row's chips (`systempage.py`, around line
+  215) are "Class X", a type chip ("Terrestrial" or "Gas Giant" from
+  `_type_chip`, or "Habitable"), optional "Habitable moon" and
+  "Inhabited", then distance, period and gravity, and moons sit in a
+  "N moons of X" group under the row. Done: the row shows the class
+  (linked to its reference page) and no Terrestrial/Gas Giant chip or
+  moon label; the moons stay reachable from a small count on the row.
+  Open question: does "Habitable" stay as a chip?
+
+- [ ] **UX.33 Filter phenomena by their classes and types (bug)**
+  Boss (2026-10-01 23:53Z): "Searching for phenomena should have the
+  ability to filter rogue plants by type, comets by types, really and
+  class related to the phenomena should be searchable." Today the
+  `/phenomena` list (`system_pages.py`, `phenomena.html`) has no filters,
+  and the Search page's "Phenomenon Class" facet covers only nebulae,
+  supernova remnants and asteroid fields (`_SEARCH_PHENOMENON_CLASS_COLUMNS`
+  in `queryDb.py`), not rogue planets (`rogue_planets.planet_class`) or
+  interstellar comets. Done: phenomena can be filtered by kind and by
+  every class or type that kind has (rogue planet class and terrestrial
+  or gas giant, interstellar comet type, nebula class, remnant type,
+  black hole and neutron star kinds), on both the Search page and the
+  `/phenomena` list, through the API, with the counts per option.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -259,6 +426,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mini map, header). MAP.57 (System Map NaN) is independent. MAP.61's
   first two sub-items (shared helpers, one camera controller) should
   come before or with MAP.53 and MAP.58, which add camera rules.
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the first pick is an arc,
+  not a whole wedge from the center to the edge: the 40-degree width and
+  meridian snapping here still apply to its bearing, and it is also
+  bounded in radius; the highlight shows the arc and its neighbors'
+  boundaries only.
 
 - [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
   Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
@@ -273,6 +445,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   around their immediate center", so the view turns about the middle
   of what is shown (the wedge, or the slab), not the galaxy's center.
   Open question: is the rotation kept in the URL and bookmarks?
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the view rotates about the
+  picked arc (then the slab), fitted to the window.
 
 - [ ] **MAP.54 Slab leader lines instead of the slab slider (bug)**
   Boss (2026-10-01 19:40Z): "don't use a slider for the slab, instead
@@ -296,6 +470,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pointing toward it and its button still works; this may never happen
   in practice. A slab hidden behind another keeps its line, drawn to
   the visible part.
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the slabs are height bands
+  of the picked arc.
 
   - [ ] **MAP.76 Leader-line layout**
     An SVG overlay above the canvas, recomputed on every camera change
@@ -321,6 +497,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the slab buttons (MAP.54) when there is room, and below the map
   when there isn't. Ties in with UX.21 (overlapping buttons). Open
   question: what is in the menu and in what order?
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the wedge lines go entirely
+  (no sector lines on the galaxy), as well as the Wedges button.
 
 - [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
   Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
@@ -343,6 +521,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.19's big targets still apply. Open question: should a segment be
   one block, or a run of blocks along the arc when a block is too small
   to click on a small screen?
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ladder is arc, slab,
+  segment, then slab and segment again down to a sector.
 
 - [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
   Found by the generation tests (2026-10-01): a body whose computed
@@ -378,12 +558,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
   whole-galaxy view itself zoom (today it doesn't)? Should a locked view
   keep panning, or only rotate?
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the short manual zoom range
+  applies on the whole galaxy and the picked arc; it locks below the
+  arc.
 
 - [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
   Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
   zoomed into a specific slab, that we're viewing a specific slab and
   not a wedge. I'm not sure how to do that so do some research on that
   and then add the to-do items to make it happen."
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ghost is the rest of
+  the picked arc.
 
   Why it looks like a wedge today: once a slab is picked, only that
   slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
@@ -600,6 +785,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   user picks next. The faint wire ghost of the other slabs (MAP.59)
   shows their outlines only, never their blocks. This repeats at every
   level of the slab and segment ladder of MAP.56.
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the arc view draws only the
+  slab boundaries; nothing is outlined on the whole galaxy except the
+  hovered arc and its neighbors.
 
 - [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
   Boss (2026-10-01 21:11Z): "when the system zooms into a wedge, make
@@ -610,6 +798,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   actual size (MAP.53) and holds while the view rotates and when the
   window is resized. Under MAP.58's locked zoom, the locked level is
   this whole-wedge fit, not a closer one.
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): read "wedge" as the picked
+  arc: the zoom frames the whole arc, then the whole slab or segment.
 
 - [ ] **MAP.79 Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug)**
   Boss (2026-10-01 21:15Z): "rogue plants are just, everyhere and clog up the screen,
@@ -628,6 +818,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dim", so rogue planets are also drawn dim by default (a faint point,
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
+
+  - [ ] **MAP.82 Unmarked rogue planets barely visible (bug)**
+    Boss (2026-10-01 23:53Z): "Rogue planet detail is for them to be dim
+    barely noticeable." Today every rogue planet has a bright violet
+    core and glow (`sectormap.js`, `{power 2.0, strength 1.6}`) and at
+    least a 4 px radius (`lib/starmap.py`). Done: unmarked rogue
+    planets are a dim, small point with no glow, barely noticeable
+    against the background, while stars and other objects show through.
+
+  - [ ] **MAP.83 The "Mark rogue planets" button shows when it is on (bug)**
+    Boss (2026-10-01 23:53Z): ""Mark Rogue Planets" button should
+    retain a highlight if it is "on" and loose the highlight when it is
+    "off" (default)". Today the button (`lib/starmap.py`) starts with
+    `aria-pressed="true"`, and `sectormap.js` flips `aria-pressed` but no
+    style follows it (`.starmap-btn-active` exists in `style.css` but is
+    never applied), so on and off look the same. Done: off is the
+    default; while on, the button keeps a clear highlight in both themes
+    (styled from `aria-pressed`), and it loses it when turned off.
+
+  - [ ] **MAP.84 Marked rogue planets grow and become clickable; unmarked ones stay small (bug)**
+    Boss (2026-10-01 23:53Z): "Rogue planets should not only be dim and
+    hard to see when not "marked" but also should be physically
+    smaller. When "marked" they get bigger and more prominent and
+    clickable." Today the toggle only shows or hides a ring sprite; the
+    planet itself never changes. Done: unmarked rogue planets are drawn
+    smaller than stars (with MAP.82's dimness); marking them makes them
+    bigger, brighter and ringed, and only then easy to hover and pick
+    (a larger hit area). Proposed values from Boss's research notes
+    (tune on screen): unmarked about 1.5 px at 0.2 opacity, marked about
+    5 px at full opacity with a glow ring.
 
 - [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
   Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
@@ -651,6 +871,76 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (for example Alt+Shift+1 to 9, or plain 1 to 9 while the map has
   focus), the help text says which, and a test pins it. Open question:
   which keys does Boss want?
+
+- [ ] **MAP.85 The galaxy pick is an arc, on a 3D galaxy with no sector lines**
+  Boss (2026-10-01 23:53Z): "Redo the galactic selection, so that the
+  galaxy map is 3D, we can manipulate it. The user doesn't select an
+  entire wedge, just a large arc, then zoom in to select slab, and go
+  from there. (edit all other TODO's about galactic interface to match
+  this). Don't show any sector lines at so that the star map really
+  comes through and the spiral pattern. When the user mouses over an
+  arc they can select (each arc goes from top to bottom so slab of that
+  we'll do in the next part) then they can see it's boundaries and the
+  boundaries of the other segments." Today the first pick is a quarter
+  of the disk (MAP.52 would make it a 40-degree wedge from the center to
+  the edge), the map draws the wedge lines of the sector grid with
+  bearing labels (`galaxymap3d.js`, the "Wedges" toggle), and every
+  block is a shaded prism. Done:
+  - The whole-galaxy view is a 3D galaxy the user can turn and tilt
+    (rotation as MAP.53, zoom as MAP.58), drawn as its stars and spiral
+    structure with no sector, block or wedge lines.
+  - The first pick is an arc: a large piece of the disk bounded by
+    bearing and by distance from the center, running the full height of
+    the disk from top to bottom. Hovering shows the arc under the cursor
+    with its boundary, and the boundaries of the neighboring arcs
+    faintly; nothing else is outlined.
+  - Clicking zooms to the arc (fitted to the window, MAP.78), where the
+    user picks a slab (a height band of the arc, MAP.54 and MAP.59),
+    then a segment of the slab (MAP.56), and on down to a sector.
+  Default taken: an arc spans about 40 degrees of bearing (MAP.52's
+  width, snapped to the grid's meridians) and a third of the disk's
+  radius (inner, middle or outer), so the disk has about 27 arcs. Open
+  question: is that the arc Boss means, or should an arc run the whole
+  way from the center to the edge (a wedge) or be smaller? The other
+  galaxy-map items carry an "Arc pick (MAP.85)" note saying how this
+  changes them.
+
+- [ ] **MAP.86 Sector and block colors from what is in them: filled sectors translucent (bug)**
+  Boss (2026-10-01 23:53Z): "Filled in sectors should be translucent,
+  just a hair more solid than the unfilled sectors, since they are a
+  different color. Also make the color based on density averaged out
+  with average star color and brightness of the stars within the
+  sector. Then, that color will be averaged with the other sectors in a
+  block (or mega block) to come up with that region's color. The scale
+  is unfilled (color and opacity of an unfilled sector), filled but
+  empty (more opaque and a shade more saturation), then the scale goes
+  from empty to full (max possible density) in saturation and average
+  color of the stars within the sector for hue. Average Luminosity
+  compared to the sun to set the luminosity of the color of the sector.
+  Blocks / Mega Blocks are then set by averaging the color and opacity
+  of every sector in the block." Today (`galaxyblocks.js`,
+  `galaxymap3d.js`) unfilled blocks use a density ramp at opacity 0.1 to
+  0.3; a block with filled sectors is lifted to at least 0.6 opacity,
+  fully opaque when all of it is filled; a one-sector block is colored
+  bronze to gold by density; nothing uses the stars' colors or
+  luminosity. Done:
+  - Unfilled sector: today's unfilled color and opacity.
+  - Filled but empty sector: a little more opaque and a shade more
+    saturated than unfilled, still translucent.
+  - Filled sector with stars: saturation from its star density (empty to
+    the highest possible density), hue from the average color of its
+    stars (by temperature), lightness from their average luminosity
+    compared to the Sun; still translucent, only a little more solid
+    than unfilled.
+  - A block or mega block's color and opacity are the average of its
+    sectors' (unfilled sectors counted as unfilled).
+  - The per-sector color, saturation and lightness are stored or served
+    with the tiles (a new API field, computed when a sector is saved), so
+    the map doesn't need each star.
+  Proposed numbers from Boss's research notes (tune on screen):
+  unfilled opacity about 0.03, filled-empty 0.15, densest filled up to
+  about 0.45. Ties in with MAP.85 (no lines, so color carries the
+  structure) and MAP.59 (the ghost).
 
 ## NAV: Navigation and courses
 
@@ -946,6 +1236,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Galaxy Map, hovering highlights the wedge under the cursor the
   same way the Galaxy Map does outside pick mode (MAP.52), and every
   later stage's hover highlight works too. Ties in with NAV.32.
+  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the hover highlight on the
+  navigation screens is the arc highlight of MAP.85.
 
 - [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
@@ -1207,6 +1499,80 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     test over many seeds checks that the number and spread of bright
     stars, including in low-density regions, match the backfill without
     the pass.
+
+  - [ ] **GEN.44 Store each sector's backfill level so finished sectors drop out of any backfill**
+    Boss (2026-10-01 23:53Z): "stores every sector it's backfill level
+    from -1 (infinite, no backfill), and if it has been back-filled but
+    is not generated entirely it will store the lowest solar lum value
+    it was backfilled to. If it is totally generated it stores a 0.,
+    this way we can eliminate sectors from any backfill dynamically".
+    Today the backfill's depth is kept per 3x3x3 block, not per sector
+    (`bright_star_blocks.min_luminosity_sol`, schema v49, read and set
+    by `_backfill_block` in `generate.py`), and a sector counts as
+    generated only because its `sectors` row exists. Done: every sector
+    address has a backfill level: -1 never backfilled, a positive
+    number for the dimmest luminosity (L_sun) it was backfilled down to,
+    0 once it is fully generated. A backfill at a given floor skips
+    every sector at 0 or already at or below that floor, and sets the
+    level of each sector it draws. Since unfilled sectors have no
+    `sectors` row, the level lives in its own table keyed by
+    (ring, layer, slot), or replaces `bright_star_blocks` (a schema
+    migration, its row in `database-schema.md`); existing galaxies are
+    migrated from their block levels. GEN.40 to GEN.43 and PERF.18 use
+    it to skip work.
+
+- [ ] **GEN.45 Check the rogue planet mix of terrestrial and gas giants (bug)**
+  Boss (2026-10-01 23:53Z): "investigate probability for a gas giant
+  rogue planet vs terrestrial, verify we are actually seeing the
+  results we expect." Today `roguePlanetData.py` picks a mass bin by
+  weight (`ROGUE_PLANET_MASS_BINS`: terrestrial 0.1-2 Earth masses
+  weight 5, sub-Neptune 2-20 weight 1, Saturn and Jupiter bins 0.25
+  each), draws a log-uniform mass in it, and calls anything at or over
+  0.05 Jupiter masses (about 16 Earth masses) a gas giant: about 91%
+  terrestrial and 9% gas giants by arithmetic. The only test
+  (`test_rogue_planets_are_mostly_terrestrial`) checks the terrestrial
+  bin's share, not the terrestrial/gas split. Done: the split is
+  measured over a large sample and compared with the expected one
+  (microlensing surveys: free-floating planets are mostly Earth-mass to
+  Neptune-mass, Jupiter-mass ones rarer); if they differ the weights
+  are fixed; a test pins the split. Boss's research notes propose a
+  power-law mass function, dN/dM proportional to M^-0.65 from 0.01
+  Earth masses to 13 Jupiter masses, as the reference to check against.
+
+- [ ] **GEN.46 Star system names of at most two words (bug)**
+  Boss (2026-10-01 23:53Z): "Name generation should not produce star
+  names that are more than 2 words long. This keeps planet names from
+  getting too long to be reasonable." Today a base name is one word,
+  or two after `split_long_word` (`utils.py`), but the uniqueness
+  decorations add words (`nameUniqueness.py`, applied in `_db.py`): a
+  Greek prefix (3 words), "Alpha <base> <Roman>" (4), a diminutive
+  stacked outside ("Little Alpha Xy Zz IV", 5), and diminutives can
+  stack again. Done: no star system name is longer than two words: a
+  collision is resolved within two words (for example a Greek letter
+  with a one-word base, or a new base name), and a test over many
+  generated and decorated names checks it. Planet and moon names keep
+  their numeral and letter (`bodyNames.py`). Open question: do existing
+  longer names get renamed by a migration, or only new ones?
+
+- [ ] **GEN.47 Nebulae almost never appear (bug)**
+  Boss (2026-10-01 23:53Z): "No nebulae are being created at all."
+  Checked in the code: nebulae are generated (`generate_sector_phenomena`
+  in `generate.py` runs for galaxy-placed sectors too), but at rates
+  that make them vanishingly rare in 4 pc sectors: about 3e-4 molecular
+  clouds and 2e-6 planetary nebulae per sector (densities 5e-6 and 3e-8
+  per pc^3 in `program_constants.py`), star-hosted nebulae only around
+  O stars and some B and A stars (`NEBULA_HOST_RULES`), and diffuse gas
+  (classes A and B) deliberately not generated. Nebulae are also many
+  parsecs across, far bigger than a sector, so per-sector rolls don't
+  fit them. Done: nebulae appear at realistic numbers across a
+  generated region: large clouds placed once per region at galaxy
+  scale (for example a density field with seeded centers, more in the
+  arms), spanning the sectors they cover, plus the star-hosted ones; a
+  test over a generated neighborhood finds them. Boss's research notes
+  suggest a 3D noise density field with Poisson-seeded centers and
+  per-class thresholds and radii (emission 15-45 pc near O/B stars,
+  reflection 10-30 pc, dark 5-25 pc, planetary 0.1-2 pc, remnants
+  5-20 pc). Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
