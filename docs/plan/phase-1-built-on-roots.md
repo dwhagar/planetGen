@@ -24,10 +24,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.33 | One class per PR, each with its tests | GEN.34, GEN.35, GEN.36, GEN.25, GEN.37 | One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
+| GEN.33 | One class per PR, each with its tests |  | One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
-| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | GEN.33, GEN.45 | Probably solved by a rogue-eligible S class. |
-| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33, GEN.37 | Same reconcile/zone code as phase 0's physics fixes. |
+| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | GEN.33 | Probably solved by a rogue-eligible S class. |
+| GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Same reconcile/zone code as phase 0's physics fixes. |
+| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) |  | From the Physics bugs thread (PR #350): use GEN.34's giant mass-radius relation in roguePlanetData.py. |
 
 ### Prevalence
 
