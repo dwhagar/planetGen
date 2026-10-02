@@ -86,12 +86,14 @@ function open(href, options) {
     }),
     makeBlockMesh,
     setCamera(v) {
-      calls.cameras.push(v);
-      const s = Math.sin(v.phi);
-      camera.position.set(v.target[0] + v.dist * s * Math.cos(v.theta), v.target[1] + v.dist * s * Math.sin(v.theta),
-        v.target[2] + v.dist * Math.cos(v.phi));
-      camera.lookAt(v.target[0], v.target[1], v.target[2]);
+      camera.quaternion.fromArray(v.quaternion);
+      const back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
+      camera.position.set(v.target[0] + back.x, v.target[1] + back.y, v.target[2] + back.z);
       camera.updateMatrixWorld();
+      // The tilt from straight down and the screen's up direction on the
+      // galaxy plane, for the checks below.
+      const up = new THREE.Vector3(0, 1, 0).applyQuaternion(camera.quaternion);
+      calls.cameras.push({ ...v, tilt: Math.acos(Math.max(-1, Math.min(1, back.z / v.dist))), heading: Math.atan2(up.y, up.x) });
     },
     fetchStage(query) {
       calls.fetches.push(query);
@@ -178,16 +180,6 @@ function lastCamera(m) {
 }
 
 // --- Pure helpers --------------------------------------------------------------
-
-test("clampTilt keeps the view between straight down and 80 degrees", () => {
-  assert.equal(SV.clampTilt(-1), SV.TOP_DOWN_PHI);
-  assert.equal(SV.clampTilt(0), SV.TOP_DOWN_PHI);
-  assert.equal(SV.clampTilt(0.5), 0.5);
-  assert.equal(SV.clampTilt(SV.MAX_TILT + 0.01), SV.MAX_TILT);
-  assert.equal(SV.clampTilt(Math.PI), SV.MAX_TILT);
-  assert.ok(Math.abs(SV.MAX_TILT - (80 * Math.PI) / 180) < 1e-12);
-  assert.ok(SV.ISO_TILT > SV.TOP_DOWN_PHI && SV.ISO_TILT < SV.MAX_TILT, "the isometric slant is a legal tilt");
-});
 
 test("clampZoom keeps the distance between 1/8 and 2.5 times the fit", () => {
   assert.equal(SV.clampZoom(1, 100), 100 * SV.MIN_ZOOM);
@@ -298,7 +290,7 @@ test("opens on the whole galaxy with nothing to go back to", async () => {
   assert.equal(button(m, "reset-view").disabled, false, "the whole galaxy turns (MAP.85)");
   assert.equal(m.calls.fetches[0], "", "the galaxy's own counts");
   const cam = lastCamera(m);
-  assert.ok(Math.abs(cam.phi - SV.GALAXY_TILT) < 1e-12, "tilted, so the disk reads in 3D");
+  assert.ok(cam.tilt < 1e-6, "the galaxy starts top-down (MAP.97)");
 });
 
 // Every drawn block mesh's gridEdges uniform.
@@ -337,7 +329,7 @@ test("the whole galaxy turns and zooms in to half its fit, never out past it", a
   m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 480, clientY: 260, pointerId: 1, pointerType: "mouse" }));
   m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 480, clientY: 260, pointerId: 1, button: 0, pointerType: "mouse" }));
   const turned = lastCamera(m);
-  assert.ok(Math.abs(turned.theta - fit.theta) > 0.1 && Math.abs(turned.phi - fit.phi) > 0.05, "dragging turns and tilts it");
+  assert.ok(Math.abs(turned.heading - fit.heading) > 0.05 && turned.tilt > 0.05, "dragging turns and tilts it");
   assert.deepEqual(m.view.stage(), { at: null, picks: [] }, "a drag picks nothing");
 });
 
@@ -545,7 +537,7 @@ async function freeStage() {
   // An arc of the galaxy, seen at the isometric slant.
   await drillOnce(m);
   assert.equal(m.view.stage().picks[0].kind, "arc");
-  assert.ok(Math.abs(lastCamera(m).phi - SV.ISO_TILT) < 1e-12, "an arc is seen at a slant");
+  assert.ok(Math.abs(lastCamera(m).tilt - SV.ISO_TILT) < 1e-9, "an arc is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
   return m;
 }
@@ -562,18 +554,20 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit);
 });
 
-test("dragging turns a free stage, and the tilt stops short of edge-on", async () => {
+test("dragging turns a free stage any way, past edge-on and under the plane (MAP.96)", async () => {
   const m = await freeStage();
   const before = lastCamera(m);
   m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
   m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 450, clientY: 300, pointerId: 1, pointerType: "mouse" }));
   const turned = lastCamera(m);
-  assert.ok(Math.abs(turned.theta - before.theta) > 0.1, "the bearing turned");
-  m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 450, clientY: -5000, pointerId: 1, pointerType: "mouse" }));
-  assert.equal(lastCamera(m).phi, SV.MAX_TILT);
-  m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 450, clientY: 50000, pointerId: 1, pointerType: "mouse" }));
-  assert.equal(lastCamera(m).phi, SV.TOP_DOWN_PHI);
-  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 450, clientY: 50000, pointerId: 1, button: 0, pointerType: "mouse" }));
+  assert.ok(Math.abs(turned.quaternion[2] - before.quaternion[2]) + Math.abs(turned.quaternion[3] - before.quaternion[3]) > 0.01, "it turned");
+  let most = 0;
+  for (let n = 1; n <= 40; n++) {
+    m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 450, clientY: 300 - 20 * n, pointerId: 1, pointerType: "mouse" }));
+    most = Math.max(most, lastCamera(m).tilt);
+  }
+  assert.ok(most > Math.PI / 2 + 0.1, `turns past edge-on to under the plane (${most})`);
+  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 450, clientY: -500, pointerId: 1, button: 0, pointerType: "mouse" }));
   const stage = m.view.stage();
   await arrive(m);
   assert.deepEqual(m.view.stage(), stage, "a drag picks nothing");
@@ -592,7 +586,7 @@ test("right-dragging moves a free stage, no further than 1.5 fits", async () => 
   const half = Math.min(vertical, Math.atan(Math.tan(vertical) * (WIDTH / HEIGHT)));
   const reach = SV.PAN_REACH * fit.dist * Math.tan(half);
   assert.ok(off > 0.9 * reach && off <= reach * (1 + 1e-9), `moved ${off} of ${reach}`);
-  assert.equal(moved.theta, fit.theta, "moving doesn't turn");
+  assert.deepEqual(moved.quaternion, fit.quaternion, "moving doesn't turn");
   m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 8400, clientY: 300, pointerId: 1, button: 2, pointerType: "mouse" }));
 });
 
@@ -608,7 +602,8 @@ test("Reset view flies back to the stage's own view", async () => {
   button(m, "reset-view").click();
   await arrive(m);
   const back = lastCamera(m);
-  for (const k of ["dist", "theta", "phi"]) assert.ok(Math.abs(back[k] - fit[k]) < 1e-9 * Math.max(1, Math.abs(fit[k])), k);
+  assert.ok(Math.abs(back.dist - fit.dist) < 1e-9 * fit.dist, "dist");
+  for (let i = 0; i < 4; i++) assert.ok(Math.abs(Math.abs(back.quaternion[i]) - Math.abs(fit.quaternion[i])) < 1e-9, "quaternion " + i);
   assert.deepEqual(back.target, fit.target);
 });
 
