@@ -819,16 +819,27 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 # rows carry no luminosity): a quasar outshines everything on the map, an
 # accreting black hole is a hot orange point (its disc, not the hole,
 # shines, so its core is not whitened), a neutron star a small blue-white
-# one. A quiescent black hole, a rogue planet and an interstellar comet
-# give off no light of their own and keep their spheres (MAP.46's rogue
-# planet rings with them); nebulae, supernova remnants and asteroid fields
-# stay clouds.
+# one. A quiescent black hole and an interstellar comet give off no light
+# of their own and keep their spheres; a rogue planet is a faint point of
+# its own (`_ROGUE_LIGHT`); nebulae, supernova remnants and asteroid
+# fields stay clouds.
 _PHENOMENON_LIGHTS = {
     "quasar": {"color": "#dfe6ff", "corePx": 5.0, "sizePx": 48.0, "glow": 0.9, "bright": 1.0},
     "blackHoleAccreting": {
         "color": "#ff9d4d", "corePx": 3.0, "sizePx": 28.0, "glow": 0.75, "bright": 0.95, "whiten": 0.0,
     },
     "neutronStar": {"color": "#a9d4ff", "corePx": 2.2, "sizePx": 22.0, "glow": 0.7, "bright": 1.0},
+}
+
+# A rogue planet gives off no light of its own, so unmarked it is a dim,
+# tiny point with no glow, barely noticeable (MAP.82): Boss, "Rogue planet
+# detail is for them to be dim barely noticeable". The "Mark rogue
+# planets" button (off by default, MAP.83) swaps in `_ROGUE_MARKED_LIGHT`:
+# bigger, fully lit and glowing, ringed, and easy to pick (MAP.84; the
+# pick reach is sectormap.js's ROGUE_PICK_PX).
+_ROGUE_LIGHT = {"color": "#a993f0", "corePx": 1.5, "sizePx": 3.5, "glow": 0.0, "bright": 0.2, "whiten": 0.0}
+_ROGUE_MARKED_LIGHT = {
+    "color": "#b59cff", "corePx": 5.0, "sizePx": 18.0, "glow": 0.6, "bright": 1.0, "whiten": 0.3,
 }
 
 
@@ -993,6 +1004,9 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     if light is not None:
         # Drawn as a point of light rather than a sphere (MAP.15).
         data["light"] = dict(light)
+    elif data["kind"] == "roguePlanet":
+        data["light"] = dict(_ROGUE_LIGHT)
+        data["markedLight"] = dict(_ROGUE_MARKED_LIGHT)
     return data
 
 
@@ -1268,12 +1282,12 @@ def render_map_panel(
 
     noscript_html = _noscript_list_html(link_url, systems, phenomena, neighbors)
 
-    # MAP.46: rogue planets are dark and easy to lose, so sectormap.js
-    # rings each one with a marker that keeps its size on screen; this
-    # button turns the markers off and on.
+    # MAP.46, MAP.82 to MAP.84: rogue planets are faint points; this
+    # button (off by default, highlighted while on) marks them: bigger,
+    # brighter, ringed and easy to pick.
     rogue_toggle_html = (
-        '\n  <button type="button" class="starmap-btn" data-action="toggle-rogue-markers" aria-pressed="true">'
-        "Mark rogue planets</button>"
+        '\n  <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers"'
+        ' aria-pressed="false">Mark rogue planets</button>'
         if any(cloud["kind"] == "roguePlanet" for cloud in clouds_data) else ""
     )
 
@@ -1281,7 +1295,7 @@ def render_map_panel(
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black holes/rogue planets (ringed)/interstellar comets &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black holes/interstellar comets &middot; faint points &asymp; rogue planets (Mark rogue planets shows them) &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">

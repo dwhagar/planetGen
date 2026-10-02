@@ -242,13 +242,16 @@ def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
 def test_sector_map_rogue_planet_markers_toggle(page, map_site):
     _open_sector(page, map_site)
     toggle = page.locator('#starmap-controls [data-action="toggle-rogue-markers"]')
-    assert toggle.get_attribute("aria-pressed") == "true"
+    background = toggle.evaluate("b => getComputedStyle(b).backgroundColor")
+    assert toggle.get_attribute("aria-pressed") == "false", "off by default (MAP.83)"
     before = _shot(page, SECTOR_CANVAS)
     toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "false"
+    assert toggle.get_attribute("aria-pressed") == "true"
+    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") != background, "highlighted while on"
     assert _shot(page, SECTOR_CANVAS) != before
     toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "true"
+    assert toggle.get_attribute("aria-pressed") == "false"
+    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") == background
 
 
 def test_sector_map_screen_reader_list_selects(page, map_site):

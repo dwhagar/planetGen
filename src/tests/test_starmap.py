@@ -168,7 +168,7 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
     ("neutron_star", "pulsar", True),
     ("black_hole", "accreting", True),
     ("black_hole", "quiescent", False),
-    ("rogue_planet", "terrestrial", False),
+    ("rogue_planet", "terrestrial", True),
     ("interstellar_comet", "icy", False),
     ("nebula", "emission", False),
     ("supernova_remnant", "shell", False),
@@ -176,9 +176,9 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
 ])
 def test_only_light_giving_phenomena_are_points_of_light(type_, descriptor, lit):
     """MAP.15: quasars, neutron stars and accreting black holes are drawn
-    as points of light; a quiescent black hole, a rogue planet (MAP.46
-    keeps it ringed) and an interstellar comet keep their spheres, and
-    clouds stay clouds."""
+    as points of light, and so is a rogue planet, faintly (MAP.82); a
+    quiescent black hole and an interstellar comet keep their spheres,
+    and clouds stay clouds."""
     phenomenon = _phenomenon(type_=type_, descriptor=descriptor)
     scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon]))
     cloud = scene["clouds"][0]
@@ -559,3 +559,42 @@ def test_a_sun_is_boosted_part_way():
     light = _light_for(1.0)
     before = _unboosted(1.0)
     assert light["glow"] / before["glow"] == pytest.approx(2.2 ** 0.5, rel=0.02)
+
+
+# --- MAP.82 to MAP.84: rogue planets ---------------------------------------------------
+
+def _rogue_scene():
+    phenomenon = _phenomenon(type_="rogue_planet", descriptor="terrestrial")
+    html = render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])
+    return html, _scene_data(html)["clouds"][0]
+
+
+def test_an_unmarked_rogue_planet_is_a_faint_speck_with_no_glow():
+    _html, rogue = _rogue_scene()
+    light = rogue["light"]
+    assert light["glow"] == 0
+    assert light["bright"] <= 0.25
+    assert light["corePx"] <= 2 and light["sizePx"] <= 4
+    star = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()]))["stars"][0]["light"]
+    assert light["sizePx"] < star["corePx"] * 2, "smaller than a star"
+
+
+def test_a_marked_rogue_planet_is_bigger_brighter_and_glows():
+    _html, rogue = _rogue_scene()
+    unmarked, marked = rogue["light"], rogue["markedLight"]
+    assert marked["corePx"] >= 3 * unmarked["corePx"]
+    assert marked["bright"] == 1.0 and marked["glow"] > 0.3
+    assert marked["sizePx"] > 4 * unmarked["sizePx"]
+
+
+def test_the_mark_rogue_planets_button_starts_off_and_can_show_it():
+    html, _rogue = _rogue_scene()
+    button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
+    assert 'aria-pressed="false"' in button
+    assert "starmap-toggle" in button
+
+
+def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():
+    css = open(os.path.join(os.path.dirname(__file__), "..", "html", "static", "style.css"), encoding="utf-8").read()
+    rule = re.search(r'\.starmap-toggle\[aria-pressed="true"\]\s*\{([^}]*)\}', css)
+    assert rule and "var(--accent)" in rule.group(1)

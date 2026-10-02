@@ -18,8 +18,9 @@
 // star, accreting black hole), is a point of light (MAP.15): a tiny bright
 // core in a soft halo a fixed number of screen pixels across, the way
 // `static/galaxymap3d.js` draws its bright stars, all in one `THREE.Points`
-// (see "Points of light" below). A phenomenon with no light of its own
-// (quiescent black hole, rogue planet, interstellar comet) or an asteroid
+// (see "Points of light" below). A rogue planet is a faint point in the
+// same set, bigger and ringed once marked (MAP.82 to MAP.84). A phenomenon
+// with no light of its own (quiescent black hole, interstellar comet) or an asteroid
 // field is a textured `THREE.Mesh` sphere with a fresnel glow shell from
 // `./bodyRendering.js`, and a nebula or supernova remnant a see-through
 // volume. Labels and the highlight ring are sprites.
@@ -414,12 +415,16 @@ function glowRecipeForCloud(cloud) {
 // coming from outside rather than belonging to this sector.
 var NEIGHBOR_CLOUD_DIM = 0.4;
 
-// MAP.46: every rogue planet gets a ring that keeps one size on screen
+// MAP.46: a marked rogue planet gets a ring that keeps one size on screen
 // (a fraction of the canvas height) however far out the camera is, so a
 // small dark world stays easy to spot zoomed out. A violet that reads on
 // the light and the dark theme's map background.
 var ROGUE_MARKER_COLOR = "#8f6df2";
 var ROGUE_MARKER_SCREEN_SIZE = 0.03;
+// MAP.84: how near (pixels) a click must land to pick a rogue planet:
+// an unmarked one is a faint speck and only a click right on it takes
+// it; marked, it is a big, easy target.
+var ROGUE_PICK_PX = { unmarked: 3, marked: 14 };
 
 // A real 3D body: a textured core sphere plus a fresnel glow shell
 // (./bodyRendering.js), for every phenomenon that is neither a cloud
@@ -811,12 +816,59 @@ export function initStarmap(canvasEl, data, options) {
   }
 
   // Not in interactiveGroup: a click on a marker's empty middle should
-  // still reach whatever is behind it.
+  // still reach whatever is behind it. Rogue planets are points of light
+  // (lib/starmap.py's _ROGUE_LIGHT); "Mark rogue planets" (off by
+  // default) swaps in each one's markedLight and shows these rings.
   var rogueMarkers = new THREE.Group();
+  rogueMarkers.visible = false;
   scene.add(rogueMarkers);
   var rogueMarkerMaterial = null;
+  var roguesMarked = false;
+
+  function setRoguesMarked(marked) {
+    roguesMarked = marked;
+    rogueMarkers.visible = marked;
+    if (!pointsOfLight) {
+      return;
+    }
+    var geometry = pointsOfLight.geometry;
+    pointEntries.forEach(function (entry, i) {
+      if (entry.kind !== "roguePlanet" || !entry.markedLight) {
+        return;
+      }
+      var light = marked ? entry.markedLight : entry.unmarkedLight;
+      var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
+      entry.light = light;
+      var color = new THREE.Color(light.color || "#ffffff");
+      geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
+      geometry.getAttribute("pointSize").array[i] = light.sizePx;
+      geometry.getAttribute("pointCore").array[i] = light.corePx;
+      geometry.getAttribute("pointGlow").array[i] = light.glow * dim;
+      geometry.getAttribute("pointBright").array[i] = light.bright * dim;
+      geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
+    });
+    ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"].forEach(function (name) {
+      geometry.getAttribute(name).needsUpdate = true;
+    });
+    if (highlightedPoint) {
+      updatePointHighlight();
+    }
+  }
 
   (data.clouds || []).forEach(function (cloud) {
+    if (cloud.kind === "roguePlanet") {
+      cloud.unmarkedLight = cloud.light;
+      if (!rogueMarkerMaterial) {
+        rogueMarkerMaterial = new THREE.SpriteMaterial({
+          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
+          sizeAttenuation: false,
+        });
+      }
+      var ring = new THREE.Sprite(rogueMarkerMaterial);
+      ring.position.set(cloud.x, cloud.y, cloud.z);
+      ring.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
+      rogueMarkers.add(ring);
+    }
     if (cloud.light) {
       return;
     }
@@ -841,18 +893,6 @@ export function initStarmap(canvasEl, data, options) {
     interactiveGroup.add(bodies.core);
     scene.add(bodies.glow);
     entryByObject.set(bodies.core, cloud);
-    if (cloud.kind === "roguePlanet") {
-      if (!rogueMarkerMaterial) {
-        rogueMarkerMaterial = new THREE.SpriteMaterial({
-          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
-          sizeAttenuation: false,
-        });
-      }
-      var marker = new THREE.Sprite(rogueMarkerMaterial);
-      marker.position.set(cloud.x, cloud.y, cloud.z);
-      marker.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
-      rogueMarkers.add(marker);
-    }
   });
 
   // Neighboring-sector indicators: a small flat dot at the scene's own
@@ -1108,7 +1148,9 @@ export function initStarmap(canvasEl, data, options) {
       var px = Math.hypot(
         rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
         rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
-      var reach = Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
+      var reach = entry.kind === "roguePlanet"
+        ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
+        : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
       if (px <= reach && px < bestPx) {
         best = entry;
         bestPx = px;
@@ -1137,10 +1179,13 @@ export function initStarmap(canvasEl, data, options) {
         else if (action === "zoom-out") setZoom(currentZoom() - ZOOM_STEP);
         else if (action === "reset") resetView();
         else if (action === "toggle-rogue-markers") {
-          rogueMarkers.visible = !rogueMarkers.visible;
-          button.setAttribute("aria-pressed", rogueMarkers.visible ? "true" : "false");
+          setRoguesMarked(!roguesMarked);
+          button.setAttribute("aria-pressed", roguesMarked ? "true" : "false");
         }
       });
+      if (button.dataset.action === "toggle-rogue-markers") {
+        setRoguesMarked(button.getAttribute("aria-pressed") === "true");
+      }
     });
   }
 
