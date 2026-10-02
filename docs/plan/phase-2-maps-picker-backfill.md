@@ -55,13 +55,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.20 | Draw the direct line and the route apart | NAV.13, NAV.36 | Draws unknown-space jumps in glowing red (NAV.36). |
+| NAV.20 | Draw the direct line and the route apart | NAV.13 |  |
 | NAV.21 | Fit the view to the whole course | MAP.53, MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17, MAP.81 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.24 | A keep-out radius for every kind of object | GEN.47 | Nebula keep-out question needs nebulae that actually exist. |
-| NAV.37 | An optional ship range for routes (open question) | NAV.12, NAV.35 | Conflicts with NAV.12's guarantee; waits for Boss. |
+| NAV.36 | Unknown-space jumps drawn red and glowing | NAV.12, UX.35, NAV.20 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.12, NAV.17 | With NAV.17. |
 
 ### Classes
 
@@ -124,4 +125,3 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.
 - UX.32: Planet rows show the class only, without the type and moon labels, see its entry in TODO.md.
 - UX.30: Planet information without the Markdown render, see its entry in TODO.md.
-- NAV.37: An optional ship range for routes (open question), see its entry in TODO.md.

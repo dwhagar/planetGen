@@ -53,7 +53,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.22 | Courses inside a sector and a system | NAV.20, NAV.16, MAP.66, MAP.73 |  |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.20, NAV.21 |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.20, NAV.21, NAV.22, NAV.23 | Parent; most of it exists (MAP.27). |
-| NAV.25 | Find the obstacles along a path | NAV.10, NAV.24 | Corridor query from NAV.10. |
+| NAV.25 | Find the obstacles along a path | NAV.10, NAV.24, NAV.38 | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26, MAP.70, NAV.16 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4, NAV.20 |  |

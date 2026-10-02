@@ -86,8 +86,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems | NAV.12 | Galaxy schema migration for position indexes; queue behind PERF.11. Must keep NAV.12's guarantee (a route always exists). |
-| NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.35 | Times per hop, including unknown-space jumps. |
+| NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes; queue behind PERF.11. Built with NAV.12 (no hop limit, a route always exists). |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, NAV.38, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
+| NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps. |
 
 ### Pages
 
@@ -125,13 +127,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
 | GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
-
-### Route display
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| NAV.36 | Unknown-space jumps drawn in glowing red | NAV.35 | NAV map now; course drawings later. |
-| UX.35 | The route shown horizontally, wrapping onto several lines on narrow screens | NAV.12 | NAV page layout. |
 
 ## Open questions for Boss
 
