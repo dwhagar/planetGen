@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.154.469] - 2026-10-02
+
+### Fixed
+- **The whole star system fits on the System Map (MAP.88).** An outer planet, its ring or moons, a belt, a facility, a wide pair's companion star or a name no longer runs past the edge of the map. Once everything is placed, the map measures how far the drawn scene reaches and zooms out evenly around the star (or the planet, in a moon view) just enough to hold it all with a small margin. A scene that already fits looks as before.
+
 ## [7.153.469] - 2026-10-02
 
 ### Fixed
