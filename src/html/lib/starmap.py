@@ -725,6 +725,48 @@ _LIGHT_BRIGHT = (0.9, 1.0)
 """The core's opacity and how far it whitens, faint star to bright star."""
 
 
+# MAP.87: the dim end of the luminosity range drawn brighter, on the
+# Sector Map here and on the Galaxy Map (`static/starlight.js`, this
+# curve's JavaScript twin; tests/js/starlight.test.mjs checks they agree).
+# Display only: nothing stored changes.
+_BOOST_AT_DIM = 4.0
+"""How many times as bright the dimmest stars are drawn."""
+_BOOST_LOG_LUMINOSITY = (-4.0, 3.0)
+"""log10(L / L_sun) where the boost is `_BOOST_AT_DIM` (1e-4 L_sun and
+fainter) and where it has tapered to none (1000 L_sun and brighter)."""
+
+
+_BOOST_TAPER_POWER = 1.5
+"""The boost's exponent falls as `share ** 1.5` over the log range: flat
+at the dim end, and slow enough that a brighter star never ends up drawn
+fainter than a dimmer one on either map (the halo's own light grows only
+about 5.6 times from 1e-4 to 1000 L_sun on the Sector Map, so a faster
+taper, a smoothstep say, would dip in the middle)."""
+
+
+def star_light_boost(luminosity_solar):
+    """
+    How many times as bright a star's point of light is drawn (MAP.87):
+    `_BOOST_AT_DIM` at the dim end of `_BOOST_LOG_LUMINOSITY`, 1 from its
+    bright end up, tapering in between (`_BOOST_TAPER_POWER`); a Sun gets
+    about 2.2. 1 for a star with no luminosity on record.
+    """
+    if not luminosity_solar or luminosity_solar <= 0:
+        return 1.0
+    lo, hi = _BOOST_LOG_LUMINOSITY
+    share = max(0.0, min(1.0, (math.log10(luminosity_solar) - lo) / (hi - lo)))
+    return _BOOST_AT_DIM ** (1.0 - share ** _BOOST_TAPER_POWER)
+
+
+def _boost_light(size_px, glow, boost):
+    """A point of light drawn `boost` times as bright: its halo's strength
+    and area each grow by sqrt(boost) (its width by boost ** 0.25); the
+    core, sized and lit by the star itself, is left alone. Returns
+    `(size_px, glow)`."""
+    root = math.sqrt(boost)
+    return size_px * math.sqrt(root), glow * root
+
+
 def _log_share(value, value_range):
     """Where `value`'s log10 falls in `value_range`, clamped to 0..1."""
     lo, hi = value_range
@@ -740,8 +782,9 @@ def _star_light(luminosity_w, radius_km, temperature_k):
     """
     A star's point of light (MAP.15), as `sectormap.js` draws it: a core
     sized by the star's radius, a halo whose width and strength grow with
-    its luminosity, the core a little dimmer for a faint star, all in the
-    star's blackbody color (`_kelvin_to_hex`, the same fit the Galaxy
+    its luminosity, the core a little dimmer for a faint star, the faint
+    end drawn brighter (`star_light_boost`, MAP.87), all in the star's
+    blackbody color (`_kelvin_to_hex`, the same fit the Galaxy
     Map's `starColor` uses).
 
     Returns:
@@ -759,11 +802,15 @@ def _star_light(luminosity_w, radius_km, temperature_k):
         radius_solar = luminosity_solar ** 0.35
     lum_share = _log_share(luminosity_solar, _LIGHT_LOG_LUMINOSITY)
     core_px = _lerp(_LIGHT_CORE_PX, _log_share(radius_solar, _LIGHT_LOG_RADIUS))
+    size_px, glow = _boost_light(
+        _lerp(_LIGHT_SIZE_PX, lum_share * lum_share), _lerp(_LIGHT_GLOW, lum_share),
+        star_light_boost(luminosity_solar),
+    )
     return {
         "color": _kelvin_to_hex(temperature_k or 5778.0),
         "corePx": round(core_px, 2),
-        "sizePx": round(max(_lerp(_LIGHT_SIZE_PX, lum_share * lum_share), 2 * core_px + 2), 2),
-        "glow": round(_lerp(_LIGHT_GLOW, lum_share), 3),
+        "sizePx": round(max(size_px, 2 * core_px + 2), 2),
+        "glow": round(glow, 3),
         "bright": round(_lerp(_LIGHT_BRIGHT, lum_share), 3),
     }
 

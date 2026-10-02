@@ -82,6 +82,36 @@ PHENOMENA = [
 ]
 
 
+STAR_FIELD_CENTER_PC = (3000.0, 0.0, 0.0)
+"""Where the Galaxy Map's fixture stars sit: a field 40 pc across, well
+away from the generated sectors near the core."""
+
+
+def _star_field():
+    """The Galaxy Map's fixture stars (a tile's `stars`, the
+    `galaxy_bright_stars_in_box` shape), luminosities 1e-4 to 1e5 L_sun."""
+    import random
+
+    rng = random.Random(87)
+    stars = []
+    for i in range(240):
+        lum = 10 ** rng.uniform(-4.0, 5.0)
+        temperature = 2600.0 + 30000.0 * (math.log10(lum) + 4.0) / 9.0 * rng.uniform(0.6, 1.0)
+        stars.append({
+            "id": 9000 + i, "name": None,
+            "x": STAR_FIELD_CENTER_PC[0] + rng.uniform(-20.0, 20.0),
+            "y": STAR_FIELD_CENTER_PC[1] + rng.uniform(-20.0, 20.0),
+            "z": STAR_FIELD_CENTER_PC[2] + rng.uniform(-6.0, 6.0),
+            "luminosity_sol": float("%.4g" % lum), "temperature_k": round(temperature),
+            "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
+            "ring_index": None, "layer_index": None, "ring_slot_index": None, "system_id": None,
+        })
+    return stars
+
+
+STAR_FIELD = _star_field()
+
+
 def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
     shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)._asdict()
@@ -175,9 +205,16 @@ class FixtureApi:
         return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "tiles": []}
 
     def get_galaxy_tiles(self, db, tile_keys):
-        return {"tiles": {key: {"placed": [], "planned": [], "filled": None, "clouds": [], "stars": [],
-                                "generated": None} for key in tile_keys},
-                "edge_pc": EDGE_PC, "has_shape": True}
+        from stellarObjects.galaxyViewport import parse_tile_key, tile_bounds_pc
+
+        tiles = {}
+        for key in tile_keys:
+            lo, hi = tile_bounds_pc(*parse_tile_key(key))
+            stars = [star for star in STAR_FIELD
+                     if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
+            tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": [], "stars": stars,
+                          "generated": None}
+        return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):
         return galaxy_stage(at)

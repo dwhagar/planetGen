@@ -57,6 +57,7 @@ const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`)
 const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
+const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
@@ -1429,8 +1430,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // distance): a core sized by the star's radius (STAR_CORE_PX, a red
   // dwarf one pixel, a supergiant four or five) in a soft halo whose width
   // and strength grow with luminosity (STAR_MIN_PX to STAR_MAX_PX), the
-  // core dimmer for a fainter star, all in the star's blackbody color.
-  // Halos blend normally rather than adding up, so a crowded arm zoomed
+  // core dimmer for a fainter star, all in the star's blackbody color;
+  // the faint end is drawn brighter by the Sector Map's own curve (MAP.87,
+  // static/starlight.js). Halos blend normally rather than adding up, so a crowded arm zoomed
   // out glows in its stars' colors instead of burning to white; stars are
   // drawn over the blocks, never hidden by them.
   var STAR_MIN_PX = 6;
@@ -1559,8 +1561,13 @@ function initGalaxyMap3d(canvasEl, data) {
       positions.set([star.x, star.y, star.z], 3 * i);
       colors.set(starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
-      sizes[i] = Math.max(THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t), 2 * cores[i] + 2);
-      glows[i] = THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t);
+      // MAP.87: the faint end drawn brighter (static/starlight.js).
+      var halo = boostLight({
+        sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
+        glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
+      }, starLightBoost(star.luminosity_sol));
+      sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
+      glows[i] = halo.glow;
       brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
     });
     var geometry = new THREE.BufferGeometry();
