@@ -162,7 +162,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44, GEN.41, GEN.42, GEN.43, PERF.18 | Fixed order GEN.44, GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
 | generate.py: command-line options | GEN.51, GEN.52, GEN.24, API.3 | GEN.51/52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
-| systemData.py StarSystem constructor | GEN.49, GEN.50, then GEN.52 | One thread in phase 0 (GEN.53 and GEN.54 done, PR #367); GEN.52 after it. |
+| systemData.py StarSystem constructor | GEN.52 | GEN.53 and GEN.54 done (PR #367), GEN.49 and GEN.50 done (PR #373). |
 | planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
 | Random draws in every generator file | GEN.39, then GEN.56 (decided yes, Boss 01:34Z) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
 | _db.py | API.10 (id blocks), API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347); GEN.46 done (PR #370). |

@@ -34,11 +34,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.51 | Forcing options only for single-system generation | GEN.50 | generate.py sector/galaxy argument parsing. |
+| GEN.51 | Forcing options only for single-system generation |  | generate.py sector/galaxy argument parsing. |
 | GEN.52 | Prevalence controls for sector and galaxy runs | GEN.51 | Probability adjustments reach systemData.py, the same constructor phase 0 thread D fixed. |
 | TEST.75 | Tests for forcing and prevalence | GEN.52 | Grows with GEN.49 to GEN.52. |
 | ADM.16 | Prevalence controls on the Generate page | GEN.52, ADM.14 | generate.html, after ADM.14's layout. |
-| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75 | Parent; closes with its subitems. |
+| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | GEN.51, GEN.52, ADM.16, TEST.75 | Parent; closes with its subitems. |
 
 ### Galaxy gen
 
