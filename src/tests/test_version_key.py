@@ -3,12 +3,15 @@
 """
 DB.6: the 22-hex-digit version key, what made the galaxy (stored with
 its seed), and the run history (`generation_runs`, one row per
-`generate.py` run that changes the galaxy).
+`generate.py` run that changes the galaxy). OPS.10: the seed and version
+line every generation run writes first.
 """
 
 import json
+import os
 import secrets
 import sys
+import time
 
 import pytest
 
@@ -155,3 +158,75 @@ def test_the_history_never_stops_a_run(mysql_config, monkeypatch):
     _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")
     assert _runs(mysql_config) == []
+
+
+# ---------------------------------------------------------------------------
+# The first line of every run (OPS.10)
+# ---------------------------------------------------------------------------
+
+def test_the_run_line():
+    assert versionKey.run_line(SEED, "sector 12 3 0") == (
+        f"Galaxy seed 00112233445566778899AABBCCDDEEFF, PlanetGen {__version__} ({versionKey.version_key()}), "
+        f"run: sector 12 3 0")
+    assert versionKey.run_line(None, "plan").startswith("Galaxy seed none yet, PlanetGen ")
+
+
+GALAXY_RUN = ["galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1", "--backfill-from", "none"]
+
+
+def test_a_run_writes_its_seed_and_version_first(mysql_config, monkeypatch, capsys):
+    _seed_skeleton(mysql_config, galaxy_seed=SEED, layers=[(0, 5)])
+    capsys.readouterr()
+    _generate(mysql_config, monkeypatch, *GALAXY_RUN)
+    lines = capsys.readouterr().out.splitlines()
+    # The command line is shown without the --mysql-* options.
+    assert lines[0] == versionKey.run_line(SEED, " ".join(GALAXY_RUN))
+    assert len(lines) > 1
+
+
+def test_a_plan_names_the_seed_it_was_given_or_none_yet(mysql_config, monkeypatch, capsys):
+    plan = ["plan", "--no-bright-stars", "--max-ring", "40"]
+    _generate(mysql_config, monkeypatch, *plan)
+    assert capsys.readouterr().out.splitlines()[0] == versionKey.run_line(None, " ".join(plan))
+    # A new seed for a galaxy with no sectors yet: the line names the one given.
+    other = "FF" * 16
+    _generate(mysql_config, monkeypatch, *plan, "--seed", other)
+    assert capsys.readouterr().out.splitlines()[0] == versionKey.run_line(
+        bytes.fromhex(other), " ".join([*plan, "--seed", other]))
+
+
+def test_the_line_is_first_in_a_debug_file_too(mysql_config, monkeypatch, tmp_path, capsys):
+    _seed_skeleton(mysql_config, galaxy_seed=SEED, layers=[(0, 5)])
+    debug = tmp_path / "run.log"
+    _generate(mysql_config, monkeypatch, *GALAXY_RUN, "--debug", str(debug))
+    first = debug.read_text(encoding="utf-8").splitlines()[0]
+    assert first.endswith("[INFO] " + versionKey.run_line(SEED, " ".join(GALAXY_RUN)))
+
+
+def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path):
+    import jobRunner
+
+    _seed_skeleton(mysql_config, galaxy_seed=SEED)
+    job_dir = tmp_path / "jobs" / "20261002-120000-abcd"
+    job_dir.mkdir(parents=True)
+    env = {
+        "PLANETGEN_MYSQL_HOST": mysql_config.host, "PLANETGEN_MYSQL_PORT": str(mysql_config.port),
+        "PLANETGEN_MYSQL_USER": mysql_config.user, "PLANETGEN_MYSQL_PASSWORD": mysql_config.password or "",
+        "PLANETGEN_MYSQL_DATABASE": mysql_config.database,
+    }
+    (job_dir / "job.json").write_text(json.dumps({
+        "id": job_dir.name, "kind": "galaxy", "title": "Generate sectors", "database": mysql_config.database,
+        "created_at": time.time(), "cwd": os.getcwd(), "env": env,
+        "steps": [{"label": "Step one", "argv": [sys.executable, "-c", "print('stepping')"]}],
+    }))
+    assert jobRunner.run(str(job_dir)) == 0
+    lines = (job_dir / "output.log").read_text(encoding="utf-8").splitlines()
+    assert lines[0] == versionKey.run_line(SEED, "Generate sectors")
+    assert "stepping" in lines
+
+
+def test_a_web_job_without_a_database_still_gets_the_line(tmp_path):
+    import jobRunner
+
+    job = {"id": "x", "title": "Reset", "env": {"PLANETGEN_MYSQL_HOST": "127.0.0.1", "PLANETGEN_MYSQL_PORT": "1"}}
+    assert jobRunner._run_line(job) == versionKey.run_line(None, "Reset")

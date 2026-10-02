@@ -126,6 +126,12 @@ used, so the OS, architecture and Python parts cover the maths library.
   example `Galaxy seed 3f2a...c901, PlanetGen 7.127.352
   (0007007F000160030C0300), run: sector 12 3 0`. Today `generate.py`
   logs its `secrets.randbits(128)` run seed at debug level only.
+  As built (OPS.10): `versionKey.run_line` writes it, first thing after
+  `generate.py` sets up logging (a `plan --seed` names the seed given,
+  otherwise the stored one, `none yet` before the first plan), and
+  `jobRunner.py` writes it at the top of a job's `output.log` with the
+  job's title. A work queue always runs inside a `generate.py` run, so
+  its line is that run's.
 - **The run history (DB.6, phase 0).** A `generation_runs` table, one
   row per run that changes the galaxy (command and options, version,
   start and end, outcome). A galaxy is built by a series of commands

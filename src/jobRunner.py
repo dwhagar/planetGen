@@ -112,6 +112,47 @@ def _release_lock(jobs_dir, job_id):
         pass
 
 
+def _mysql_config(job):
+    """The job's database (`jobs.mysql_env`'s variables), as planetGen's
+    `MySQLConfig`; imports planetGen, so only called once `state.json` is
+    written."""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from stellarObjects import _db
+
+    env = job.get("env") or {}
+    return _db.MySQLConfig(
+        host=env.get("PLANETGEN_MYSQL_HOST"), port=env.get("PLANETGEN_MYSQL_PORT"),
+        user=env.get("PLANETGEN_MYSQL_USER"), password=env.get("PLANETGEN_MYSQL_PASSWORD"),
+        database=env.get("PLANETGEN_MYSQL_DATABASE"),
+    )
+
+
+def _run_line(job):
+    """
+    The job log's first line (OPS.10): the galaxy seed when the job
+    starts, the PlanetGen version with its key, and the job's title
+    (`versionKey.run_line`). Each `generate.py` step then writes its own
+    as its first line. Never raises: without planetGen's modules or the
+    database, the line says what it can.
+    """
+    run = job.get("title") or job["id"]
+    try:
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        from stellarObjects import _db, versionKey
+    except Exception:  # noqa: BLE001 -- the job runs without the line's details
+        return f"Galaxy seed unknown, PlanetGen unknown, run: {run}"
+    seed = None
+    try:
+        conn = _db.get_connection(_mysql_config(job), ensure_schema=False)
+        try:
+            seed = _db.get_galaxy_seed(conn)
+        finally:
+            conn.close()
+    except Exception:  # noqa: BLE001 -- no database or no galaxy yet
+        pass
+    return versionKey.run_line(seed, run)
+
+
 class _JobTree:
     """The job's nodes in the control database's job tree, or nothing at
     all when planetGen's modules or the control database aren't there."""
@@ -120,15 +161,9 @@ class _JobTree:
         self.queue = None
         self.root = None
         try:
-            sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
             from stellarObjects import _db, workQueue
 
-            env = job.get("env") or {}
-            base = _db.MySQLConfig(
-                host=env.get("PLANETGEN_MYSQL_HOST"), port=env.get("PLANETGEN_MYSQL_PORT"),
-                user=env.get("PLANETGEN_MYSQL_USER"), password=env.get("PLANETGEN_MYSQL_PASSWORD"),
-                database=env.get("PLANETGEN_MYSQL_DATABASE"),
-            )
+            base = _mysql_config(job)
             self.queue = workQueue
             self.root = workQueue.open_node(
                 "web-job", job.get("title") or job["id"], _db.control_mysql_config(base),
@@ -201,6 +236,7 @@ def run(job_dir):
     step_node = None
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
+            log.write((_run_line(job) + "\n").encode("utf-8"))
             for index, step in enumerate(steps, start=1):
                 if _cancel_requested():
                     break

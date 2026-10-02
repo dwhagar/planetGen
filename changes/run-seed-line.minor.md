@@ -1,0 +1,2 @@
+### Added
+- **The seed and version at the top of every run (OPS.10).** Every `generate.py` run now writes one line first, at normal level, to the console, the `--debug` file and the debug log: the galaxy seed, the PlanetGen release with its 22-hex-digit version key, and the command line (without the `--mysql-*` and `--debug` options), for example `Galaxy seed 3F2A...C901, PlanetGen 7.127.352 (0007007F000160030C0300), run: galaxy --ring 3`. A Generate page job's log starts with the same line for the job, before its first step.

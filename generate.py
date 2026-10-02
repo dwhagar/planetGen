@@ -92,7 +92,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src
 
 from stellarObjects import (
     _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, log, mathCheck, physical_constants,
-    population, program_constants, progressFile, progressRate, workQueue,
+    population, program_constants, progressFile, progressRate, versionKey, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -4418,6 +4418,8 @@ def main():
         log.configure(level, debug_file=(args.debug or None))
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
+    logged = not getattr(args, "output", None) and args.command != "check-math"
+    log.normal(versionKey.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 
@@ -4436,8 +4438,7 @@ def main():
 
     # One start and one finish line per run in the activity log (SEC.28);
     # a `system --output` run writes no database, so it isn't logged, nor
-    # is `check-math`, which writes nothing.
-    logged = not getattr(args, "output", None) and args.command != "check-math"
+    # is `check-math`, which writes nothing (`logged`, above).
     try:
         database = _db.mysql_config_from_args(args).database
     except AttributeError:  # a subcommand without the --mysql-* options
@@ -4516,6 +4517,29 @@ def _open_run_node(args, database):
     except AttributeError:  # a subcommand without the --mysql-* options
         control = _db.control_mysql_config()
     return workQueue.open_node(args.command, title, control, argv=argv, database=database)
+
+
+def _run_line_seed(args):
+    """
+    The galaxy seed the run's first line names (OPS.10): a `plan --seed`'s
+    own, else the stored one. Read without touching the schema; `None`
+    when there is none yet or the database can't be read (the run then
+    reports that itself).
+    """
+    if getattr(args, "seed", None) is not None and args.command == "plan":
+        return args.seed
+    try:
+        conn = _db.get_connection(_db.mysql_config_from_args(args), ensure_schema=False)
+    except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors
+        log.debug(f"Run line: can't open the database ({exc}).")
+        return None
+    try:
+        return _db.get_galaxy_seed(conn)
+    except Exception as exc:  # noqa: BLE001 -- no galaxy_shape table yet
+        log.debug(f"Run line: no galaxy seed to show ({exc}).")
+        return None
+    finally:
+        conn.close()
 
 
 def _start_history(args, run_seed):
