@@ -24,7 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
+| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. Root cause: _db.reserve_system_names counts a name redrawn in the same pass against a later row; fix by computing name keys once per pass (also 1.7x faster on dense sectors). After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
 | GEN.51 | Forcing options only for single-system generation |  | Moved to phase 0: the fix half of the GEN.48 bug (forcing stops applying to sector and galaxy runs); prevalence controls stay in phase 1. generate.py sector/galaxy argument parsing. |
 
 ### Galaxy Map follow-ups

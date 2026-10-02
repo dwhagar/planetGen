@@ -115,7 +115,7 @@ that files it.
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
+| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
@@ -2798,7 +2798,23 @@ clears each one.
   out of the flakes to the Binary pairs and single-system forcing lane,
   right after GEN.51, which works in the same naming code; GEN.57 and
   GEN.63 (phase 1) build their address-keyed and per-sector name rules
-  on a count that is right. [infra, GEN]
+  on a count that is right.
+  Root cause (naming-cost analysis thread, 2026-10-02, report
+  https://claude.ai/artifact/Qzz9KEefo7k1WDH26iq5XQ): in
+  `_db.reserve_system_names`, a name redrawn by
+  `_regenerate_star_name()` during a pass is counted in the `uses` of a
+  registry row handled later in the same pass, though it was never
+  inserted for that row, so that row's existing count comes out -1 and
+  the sector save fails. Captured case: seed
+  `0123456789abcdef0123456789abcdef`, ring 700 layer 0, the 4th sector,
+  slot 1016 "Aogbun Alibas" redrawn to "Askaus", where the Askaus row
+  (`occurrence_count` 1) counted 2 uses; it gets more likely as the
+  registry fills. Fix hint: work out each name's key once per pass,
+  after the redraws, rather than in `uses = [i for i in todo if
+  _name_key(names[i]) in row_keys]`; that comprehension is also O(n^2),
+  about 0.85 s per dense sector, and precomputing the keys made dense
+  sectors about 1.7 times faster with identical output. The captured
+  case becomes a regression test. [infra, GEN]
 
 - [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
   `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`
@@ -2920,6 +2936,27 @@ clears each one.
     (`static/bookmarks.js`, MAP.23) shipped in PR #234; storing them in
     the database still needs decision 4 of the drill-down design and a
     migration.
+
+  - [ ] **USR.8 Every signed-in user can generate a one-off system**
+    Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
+    one-off system, but you have to be logged in." Checked on main: the
+    one-off system page (`/admin/generate/system` and its `/download`,
+    `html/web/system_page.py`) is admins only (`_admin_or_redirect` /
+    `_admin_or_403` from `generate_page.py`), and the only accounts
+    today are admin accounts, so anonymous visitors already can't use it
+    and nothing needs changing until user accounts exist. Done: once
+    USR.2 adds the user role, any signed-in account (user, admin or
+    Owner) can open the one-off page from a link outside the admin menu
+    (for example `/generate/system`, with the old admin URL
+    redirecting), with the same options and output; it still never saves
+    to the database; anonymous visitors are sent to sign in; the rest of
+    `/admin/generate` stays admin-only; a test covers anonymous, user
+    and admin. Open question for Boss, with the default taken: a
+    per-user limit, since each system runs the generator in a separate
+    process for about a second (default: 30 one-off systems per hour per
+    user account, admins and the Owner unlimited, a clear message when
+    the limit is reached, the count kept in the control database).
+    Prerequisite: USR.2.
 
 ## OPS: Installers, hosting, CI, releases
 

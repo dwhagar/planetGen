@@ -23,7 +23,7 @@ release is stamped.
 | ADM | ADM.21 |
 | SEC | SEC.29 |
 | TEST | TEST.87 |
-| USR | USR.8 |
+| USR | USR.9 |
 | OPS | OPS.20 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
@@ -727,6 +727,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.5 | Email loop for setting and resetting passwords | 67 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.6 | Owner transfer | 68 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.7 | A user-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.8 | Every signed-in user can generate a one-off system | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | open |
