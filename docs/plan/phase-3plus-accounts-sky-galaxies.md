@@ -31,6 +31,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | USR.5 | Email loop for setting and resetting passwords | USR.3 |  |
 | USR.6 | Owner transfer | USR.5 |  |
 | USR.7 | A user-level interface with bookmarks | USR.2, NAV.7 | Bookmarks of any object use NAV.7 references. |
+| USR.8 | Every signed-in user can generate a one-off system | USR.2 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
 
@@ -64,6 +65,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - USR.5: Email loop for setting and resetting passwords, see its entry in TODO.md.
 - USR.6: Owner transfer, see its entry in TODO.md.
 - USR.7: A user-level interface with bookmarks, see its entry in TODO.md.
+- USR.8: Every signed-in user can generate a one-off system, see its entry in TODO.md.
 - VIEW.4: Constellation names in the name generator, see its entry in TODO.md.
 - VIEW.3: Render the view as a PNG, with constellations, see its entry in TODO.md.
 - GEN.9: Plan for more than one galaxy in the database, see its entry in TODO.md.
