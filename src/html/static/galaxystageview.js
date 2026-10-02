@@ -1800,8 +1800,8 @@ export function createStageView(host) {
     const top = heading ? heading.getBoundingClientRect().height + 6 : 0;
     return [strip.list, strip.other].every(function (list) {
       if (!list || !list.children.length || list.parentElement.hidden) return true;
-      const first = list.firstElementChild.getBoundingClientRect();
-      const last = list.lastElementChild.getBoundingClientRect();
+      const first = list.children[0].getBoundingClientRect();
+      const last = list.children[list.children.length - 1].getBoundingClientRect();
       return top + last.bottom - first.top <= budget + 1;
     });
   }
@@ -1954,7 +1954,7 @@ export function createStageView(host) {
     order.forEach(function (r, n) {
       r.side = two && n % 2 === 1 ? "left" : "right";
       const list = r.side === "left" ? strip.other : strip.list;
-      if (list.lastElementChild !== r.item) list.appendChild(r.item);
+      if (list.children[list.children.length - 1] !== r.item) list.appendChild(r.item);
     });
   }
 
