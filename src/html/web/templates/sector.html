@@ -31,7 +31,14 @@
 {% block content %}
 {%- if pick %}
 <p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> pick a system or phenomenon on the
-  Sector Map, then &ldquo;{{ pick.label }}&rdquo;. <a href="{{ pick.cancel }}">Cancel</a></p>
+  Sector Map, then &ldquo;{{ pick.label }}&rdquo;, or use a bookmark. <a href="{{ pick.cancel }}">Cancel</a></p>
+{#- Bookmarks that keep the pick (NAV.40): static/bookmarks.js fills it. -#}
+<details class="bookmarks-menu pick-bookmarks" data-bookmarks-menu data-bookmark-db="{{ bookmark.db }}"
+         data-pick="{{ pick.pick }}" data-keep-name="{{ pick.keep_name }}" data-keep-value="{{ pick.keep_value }}"
+         data-nav-url="{{ pick.nav_url }}">
+  <summary class="btn btn-small">Bookmarks</summary>
+  <div class="bookmarks-panel" data-bookmarks-panel></div>
+</details>
 {%- endif %}
 {%- for message in messages %}
 <p class="hint" role="status">{{ message }}</p>

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.39 |
 | MAP | MAP.98 |
 | NAV | NAV.46 |
-| GEN | GEN.64 |
+| GEN | GEN.65 |
 | PERF | PERF.24 |
 | DB | DB.11 |
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.87 |
+| TEST | TEST.88 |
 | USR | USR.9 |
 | OPS | OPS.20 |
 | DOC | DOC.4 |
@@ -502,6 +502,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | open |
+| GEN.64 | A 64-bit position ID as the name of every interstellar object and bright-sweep system | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -558,7 +559,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
-| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
+| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | done, PR #405 |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
@@ -589,13 +590,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
-| MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
+| MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | done, PR #405 |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | done, PR #395 |
-| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | open |
-| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | open |
-| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | open |
+| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | done, PR #405 |
+| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
+| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
 | MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
 | MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | open |
 | MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | open |
@@ -629,7 +630,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.28 | Show and save the adjusted course | none | open |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
-| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
+| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
@@ -638,7 +639,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
 | NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
-| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | open |
+| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | open |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
@@ -942,8 +943,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
-| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | open |
+| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
+| TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -2069,12 +2069,18 @@ def reserve_system_names(conn, candidate_names):
     results = [None] * len(names)
     todo = list(range(len(names)))
     while todo:
+        # Each name's key as this pass inserts it, taken once: a name
+        # redrawn below (`_regenerate_star_name`) belongs to the next pass,
+        # and must not count as a holder of whatever row its new spelling
+        # happens to match later in this one (TEST.85: that row was then
+        # short of holders, an existing count of -1).
+        key_of = {i: _name_key(names[i]) for i in todo}
         counts = {}
         for i in todo:
-            counts[_name_key(names[i])] = counts.get(_name_key(names[i]), 0) + 1
+            counts[key_of[i]] = counts.get(key_of[i], 0) + 1
         spelled = {}
         for i in todo:
-            spelled.setdefault(_name_key(names[i]), names[i])
+            spelled.setdefault(key_of[i], names[i])
         keys = sorted(counts)
         sector_hits = set()
         for first in range(0, len(keys), _NAME_BATCH):
@@ -2109,7 +2115,7 @@ def reserve_system_names(conn, candidate_names):
 
         retry = []
         for row, row_keys in by_row.values():
-            uses = [i for i in todo if _name_key(names[i]) in row_keys]
+            uses = [i for i in todo if key_of[i] in row_keys]
             existing_before = row["occurrence_count"] - len(uses)
             diminutive_index = row["diminutive_index"]
             holder = "db" if existing_before > 0 else None

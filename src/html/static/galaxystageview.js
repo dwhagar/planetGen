@@ -477,6 +477,12 @@ export function createStageView(host) {
     });
   }
 
+  // A stage's query with the NAV pick kept (host.pickQuery, "?pick=...").
+  function withPick(query) {
+    if (!host.pickQuery) return query;
+    return query ? query + "&" + host.pickQuery.slice(1) : host.pickQuery;
+  }
+
   // Goes to stage `next` (carried on through any choice of one). push:
   // record it in the browser history (default yes).
   function go(next, options) {
@@ -493,7 +499,7 @@ export function createStageView(host) {
       selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
     }
     const token = ++goToken;
-    const query = options.query || S.stageQuery(r.stage);
+    const query = withPick(options.query || S.stageQuery(r.stage));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
       mapIndex += 1;
       maxIndex = mapIndex;
@@ -623,7 +629,10 @@ export function createStageView(host) {
   }
 
   // The choice under a screen point (an index into display.options), or
-  // -1; while the pick is a slab, the slab of the block under it.
+  // -1; while the pick is a slab, the slab of the block under it. Every
+  // choice lights on hover, with "Generated only" on (always on while
+  // picking a NAV end) too: only taking one needs something generated
+  // (pickable, NAV.31).
   function optionAt(clientX, clientY) {
     // Below the whole galaxy the view is slanted, so the block under the
     // pointer picks its layer too.
@@ -639,7 +648,6 @@ export function createStageView(host) {
       const hit = hits[n];
       const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
       if (!cell) continue;
-      if (generatedOnly && !(cell.filled > 0)) continue;
       return cell.option;
     }
     return -1;
@@ -822,6 +830,10 @@ export function createStageView(host) {
   }
 
   function optionText(index) {
+    return choiceText(index) + (pickable(index) ? "" : " (nothing generated here to pick)");
+  }
+
+  function choiceText(index) {
     const option = display.options[index];
     const data = display.data;
     if (option.blocks.length === 1) return blockText(option.blocks[0], data);
@@ -1144,34 +1156,130 @@ export function createStageView(host) {
     return { kind: "stage", value: location.pathname + S.stageQuery(stage), name: labels.join(" › ") };
   }
 
-  function renderCrumbs() {
-    const nav = els.crumbs;
-    if (!nav) return;
-    nav.textContent = "";
-    const list = document.createElement("ol");
+  // The breadcrumb (MAP.93): one line at any width. When the steps don't
+  // all fit, it shows the first, a "…" button (a menu of the steps it
+  // hides) and as many of the last ones as fit, then the current one,
+  // measured again whenever the line's width changes. At phone width the
+  // line gives way to the round Steps button between Back and Forward
+  // (MAP.94, els.steps), a menu of every step.
+  let crumbItems = [];
+  let crumbWidth = -1;
+  // The line's "…" menu, while it has one.
+  let moreMenu = null;
+
+  function crumbSteps() {
     const items = S.crumbs(stage, getOutline(), edgePc);
     if (selectedSector && !(resolved && resolved.sector)) {
       items.push({ label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }), last: true, sector: true });
       items[items.length - 2].last = false;
     }
-    items.forEach(function (crumb) {
+    return items;
+  }
+
+  // One step: the current one as text, the others as buttons going there.
+  function crumbNode(crumb, className) {
+    if (crumb.last) {
+      const here = document.createElement("span");
+      here.textContent = crumb.label;
+      here.setAttribute("aria-current", "location");
+      return here;
+    }
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = className;
+    button.textContent = crumb.label;
+    button.addEventListener("click", function () { go(crumb.stage); });
+    return button;
+  }
+
+  // A <details> menu of `steps` (a summary showing `text`, labelled
+  // `label`); a step taken closes it.
+  function stepsMenu(steps, text, label, className) {
+    const menu = document.createElement("details");
+    menu.className = className;
+    const summary = document.createElement("summary");
+    summary.textContent = text;
+    summary.setAttribute("aria-label", label);
+    summary.title = label;
+    menu.appendChild(summary);
+    const list = document.createElement("ul");
+    steps.forEach(function (crumb) {
       const item = document.createElement("li");
-      if (crumb.last) {
-        const here = document.createElement("span");
-        here.textContent = crumb.label;
-        here.setAttribute("aria-current", "location");
-        item.appendChild(here);
+      const node = crumbNode(crumb, "");
+      if (!crumb.last) node.addEventListener("click", function () { menu.open = false; });
+      item.appendChild(node);
+      list.appendChild(item);
+    });
+    menu.appendChild(list);
+    return menu;
+  }
+
+  // The line's steps, those between the first and the last `keep` folded
+  // into "…" (none folded while keep covers them all).
+  function fillCrumbs(list, keep) {
+    list.textContent = "";
+    const items = crumbItems;
+    const folded = keep >= items.length - 1 ? [] : items.slice(1, items.length - keep);
+    const shown = folded.length ? [items[0], null].concat(items.slice(items.length - keep)) : items;
+    moreMenu = null;
+    shown.forEach(function (crumb) {
+      const item = document.createElement("li");
+      if (crumb) {
+        item.appendChild(crumbNode(crumb, "galaxy-crumb"));
       } else {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "galaxy-crumb";
-        button.textContent = crumb.label;
-        button.addEventListener("click", function () { go(crumb.stage); });
-        item.appendChild(button);
+        item.className = "galaxy-crumb-more";
+        moreMenu = stepsMenu(folded, "…", folded.length === 1 ? "1 more step" : folded.length + " more steps", "galaxy-crumb-menu");
+        item.appendChild(moreMenu);
       }
       list.appendChild(item);
     });
-    nav.appendChild(list);
+  }
+
+  function layoutCrumbs() {
+    const nav = els.crumbs;
+    const list = nav && nav.querySelector("ol");
+    if (!list) return;
+    crumbWidth = nav.clientWidth || 0;
+    fillCrumbs(list, crumbItems.length);
+    // Hidden, or no layout (a phone, where the line gives way): nothing
+    // to measure.
+    if (!list.clientWidth) return;
+    // Measured at full length: the current step is cut short only when
+    // even the shortest line doesn't fit.
+    list.classList.add("galaxy-crumbs-measuring");
+    for (let keep = crumbItems.length - 2; keep >= 1 && list.scrollWidth > list.clientWidth + 1; keep--) {
+      fillCrumbs(list, keep);
+    }
+    list.classList.remove("galaxy-crumbs-measuring");
+  }
+
+  function renderSteps() {
+    const box = els.steps;
+    if (!box) return;
+    const panel = box.querySelector("[data-steps-panel]");
+    if (!panel) return;
+    panel.textContent = "";
+    const list = document.createElement("ol");
+    crumbItems.forEach(function (crumb) {
+      const item = document.createElement("li");
+      const node = crumbNode(crumb, "");
+      if (!crumb.last) node.addEventListener("click", function () { box.open = false; });
+      item.appendChild(node);
+      list.appendChild(item);
+    });
+    panel.appendChild(list);
+  }
+
+  function renderCrumbs() {
+    const nav = els.crumbs;
+    if (!nav) return;
+    crumbItems = crumbSteps();
+    let list = nav.querySelector("ol");
+    if (!list) {
+      nav.textContent = "";
+      list = document.createElement("ol");
+      nav.appendChild(list);
+    }
     if (!bookmarkButton) {
       bookmarkButton = document.createElement("button");
       bookmarkButton.type = "button";
@@ -1179,8 +1287,36 @@ export function createStageView(host) {
       refreshBookmark = B.toggleButton(bookmarkButton, bookmarkEntry, true);
     }
     nav.appendChild(bookmarkButton);
+    layoutCrumbs();
+    renderSteps();
     refreshBookmark();
   }
+
+  // The line is measured again when its width changes (a resize, the
+  // panel shown).
+  if (els.crumbs && typeof ResizeObserver === "function") {
+    new ResizeObserver(function () {
+      if (els.crumbs.clientWidth !== crumbWidth) layoutCrumbs();
+    }).observe(els.crumbs);
+  }
+  // A "…" or Steps menu closes on a click elsewhere or Escape.
+  function openStepMenus() {
+    return [moreMenu, els.steps].filter(function (menu) { return menu && menu.open; });
+  }
+  document.addEventListener("click", function (event) {
+    const path = event.composedPath ? event.composedPath() : [];
+    openStepMenus().forEach(function (menu) {
+      if (path.indexOf(menu) < 0) menu.open = false;
+    });
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key !== "Escape") return;
+    openStepMenus().forEach(function (menu) {
+      menu.open = false;
+      const summary = menu.querySelector("summary");
+      if (summary && menu.contains(event.target)) summary.focus();
+    });
+  });
 
   // The slab slider (MAP.17, MAP.30): beside the map, top slab at the
   // top. While the next pick is a layer it has one step per slab;

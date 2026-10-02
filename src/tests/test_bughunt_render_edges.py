@@ -13,19 +13,14 @@ literal), across a battery of malformed/adversarial markdown/wikitext
 (broken tables, unterminated formatting, huge input, control characters,
 `None`).
 
-Known bug (strict xfail, TEST.4; was a Tier 2 report):
-`render_system_map_panel` given a `NaN`/`Inf` position (never
-produced by normal generation -- every physics function that could yield
-one either already guards against it or was hardened by
-`test_bughunt_physics_edges.py`/`test_bughunt_serialization_fuzz.py`, so
-this is a defense-in-depth check at the render boundary, not a live path)
-does not crash, but does silently embed the literal string "nan"/"inf"
-into an SVG numeric attribute -- invalid SVG a browser will just fail to
-draw that one element for, not a page-level crash. Kept as a strict xfail
-(the fix would touch every `:.1f`-style
-coordinate format across 5 separate map-rendering files -- `starmap.py`/
-`systemmap.py`/`galaxymap.py`/`navmap.py`/`phenomenonmap.py` -- a wider
-change than this pass's scope). A `None` or negative radius renders clean.
+Fixed (MAP.57; was a strict xfail, TEST.4, and before that a Tier 2 report):
+`render_system_map_panel` given a `NaN`/`Inf` number (never
+produced by normal generation, so this is defense in depth at the render
+boundary) used to embed the literal string "nan"/"inf" into an SVG
+numeric attribute. It now copies every row with such numbers set to
+`None` first: a body with a lost position is drawn at its orbit distance
+with a note, or left out when it has no distance either.
+A `None` or negative radius renders clean.
 """
 
 import math
@@ -118,12 +113,47 @@ def test_system_map_odd_radius_renders_finite_numbers(planet):
     assert _non_finite_attrs(planet) == []
 
 
-@pytest.mark.xfail(strict=True, reason="systemmap writes NaN/inf positions straight into SVG attributes "
-                                       "(cx=\"nan\", data-xkm=\"inf\"); generation never stores one, so "
-                                       "this is defense in depth at the render boundary")
-@pytest.mark.parametrize("x_km", [float("nan"), float("inf")], ids=["NaN", "inf"])
+@pytest.mark.parametrize("x_km", [float("nan"), float("inf"), float("-inf")], ids=["NaN", "inf", "-inf"])
 def test_system_map_non_finite_position_renders_finite_numbers(x_km):
-    """TEST.4: the other half of the old Tier 2 report, now a strict xfail.
-    The page still renders (no exception); only the bad body's own numbers
-    are broken."""
-    assert _non_finite_attrs(_planet(1, 1, x_km, 0.0)) == []
+    """TEST.4, MAP.57: a body whose stored position is NaN or infinite
+    never puts "nan"/"inf" into the SVG."""
+    assert _non_finite_attrs(_planet(1, 1, x_km, 0.0, distance_km=1e8)) == []
+
+
+def test_system_map_lost_position_is_drawn_at_its_orbit_distance_with_a_note():
+    """MAP.57: drawn due east at its orbit distance, with a note in its
+    info panel."""
+    html = sm.render_system_map_panel({"name": "Test", "binary_configuration": None}, [_star(1)],
+                                      [_planet(1, 1, float("nan"), 0.0, distance_km=1e8)], [])
+    marker = re.search(r'<g class="sysmap-body sysmap-planet"[^>]*>', html).group(0)
+    assert 'data-note="Position not recorded' in marker
+    assert 'data-xkm="100000000.0"' in marker and 'data-ykm="0.0"' in marker
+
+
+def test_system_map_leaves_out_a_body_with_no_position_or_distance():
+    """MAP.57: nothing left to place it by, so it isn't drawn."""
+    planet = _planet(1, 1, float("nan"), 0.0, distance_km=float("nan"))
+    planet["name"] = "Lost"
+    html = sm.render_system_map_panel({"name": "Test", "binary_configuration": None}, [_star(1)], [planet], [])
+    assert "Lost" not in html
+    assert not _NON_FINITE_ATTR.findall(html)
+
+
+def test_system_map_non_finite_numbers_anywhere_render_finite():
+    """MAP.57: NaN or infinity in a star, moon, belt, facility or the
+    binary offset never reaches the SVG either."""
+    nan, inf = float("nan"), float("inf")
+    moon = _planet(5, None, inf, nan, radius_km=nan, gravity_g=inf, period_years=nan)
+    moon["name"] = "Moonlet"
+    planet = _planet(2, 1, 1.5e8, 0.0, radius_km=inf, mass_kg=nan, moons=[moon])
+    stars = [_star(1, radius_km=nan, temperature_k=nan), _star(3, mass_kg=inf, luminosity_w=nan)]
+    belts = [{"id": 9, "star_id": None, "distance_km": nan, "lower_limit_km": inf, "upper_limit_km": nan,
+              "density": "sparse", "composition_summary": "rock"}]
+    facilities = [{"id": 4, "name": "Dock", "kind": "station", "host_type": "planet", "host_id": 2,
+                   "placement": "orbital", "orbit_distance_km": nan, "orbit_period_years": inf,
+                   "orbital_speed_kms": nan, "orbit_phase_deg": nan}]
+    system = {"name": "Test", "binary_configuration": "close", "binary_mutual_position_x_km": nan,
+              "binary_mutual_position_y_km": inf}
+    html = sm.render_system_map_panel(system, stars, [planet], belts, facilities)
+    assert not _NON_FINITE_ATTR.findall(html)
+    assert not re.search(r'="[^"]*\b(?:nan|inf)\b', html, re.IGNORECASE)

@@ -111,8 +111,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405). | MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -459,10 +459,9 @@ with `clamp()`.
   #369) already folded the Galaxy Map's buttons into one Menu. Why phase
   2: the sweep audits controls that are still changing, so it waits for
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
-  Map breadcrumb and history buttons (MAP.93, MAP.94, MAP.95), the NAV
+  Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.93,
-  MAP.94, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
 
 - [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
   Split out of UX.21 (replan, 2026-10-02), its one known dead control:
@@ -557,98 +556,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   outlined on the map, not one cube.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
-- [ ] **MAP.57 The System Map writes NaN or infinite positions into its SVG (bug)**
-  Found by the generation tests (2026-10-01): a body whose computed
-  position is NaN or infinite is written straight into the System
-  Map's SVG. Done: such a body is left out or drawn at a safe place
-  with a note, the SVG never holds NaN or inf, and the strict xfail
-  test for it passes.
-
-- [ ] **MAP.88 Parts of a star system run off the edge of the System Map (bug)**
-  Boss (2026-10-02 00:49Z): "sometimes the star systems go off the edge
-  for planets and such, the window should be scaled down so that we
-  don't run any part of the star system past the outer edge of the
-  viewing space." Today the System Map (`lib/systemmap.py`) draws into a
-  fixed 700 px square viewBox: each body's distance from its anchor is
-  log-scaled out to `_MIN_RADIUS_PX + _RADIUS_SPREAD_PX` (335 px from the
-  center), then moons are placed around their planets, belts get a band,
-  and `_relax_markers` pushes crowded markers apart, all of which can
-  carry an outer planet, its moons or its marker past the frame; only
-  the labels are slid back inside it (MAP.50). Done: after everything is
-  placed, the map works out the drawn extent of every star, planet,
-  moon, belt, facility and marker (with its radius) and scales the
-  whole scene down to fit the frame with a small margin, so nothing
-  ever runs past the edge, with a test over many generated systems that
-  every drawn element sits inside the viewBox. Separate from the orbit
-  spacing study (the "Orbit spacing options" thread), which may change
-  how the same map spaces orbits; whichever lands second keeps this
-  fit.
-
-- [ ] **MAP.92 The System Map's side panel leaves out a planet's or moon's radius and mass (bug)**
-  Boss (2026-10-02 04:29Z): "Add TODO items for bugfix, planet and moon
-  data on the side-bar when you tap or click on a planet or moon, it
-  should show the radius and mass as well as the information it shows
-  now." Checked on main: `showInfo` in `static/systemmap.js` fills the
-  side panel for a star with its mass and radius, but for a planet or
-  moon only with class, type, zone, distance, period, gravity,
-  atmosphere, surface composition and temperature, life chemistry and
-  moons or host; `lib/systemmap.py` puts no mass or radius on the
-  marker (only the raw `radiuskm` for routing), though both are stored
-  (`mass_kg`, `radius_km`). Done: clicking or tapping a planet or moon
-  shows everything it shows today plus its radius and mass, formatted
-  in the server like the other fields (default taken: radius in km with
-  Earth radii, mass in Earth masses, Jupiter masses for gas giants),
-  for planets, moons and a drilled-into planet in its moon scene; a
-  test checks the two fields on a planet and a moon. Same files as
-  MAP.57 and MAP.88, so it follows them in the System Map lane.
-
-- [ ] **MAP.93 The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug)**
-  Boss (2026-10-02 04:29Z): "Another bugfix for the breadcrumb trail,
-  when you get over a number of steps based on the screen size (i.e. on
-  my phone probably only show back and forward buttons but on my
-  computer I can fit a certain amount, basically the idea is that the
-  breadcrumbs should never be more than a single line and thus the
-  middle has to automatically collapse so we get the beginning ... last
-  few before where you are now. ... is a button that pulls up a menu of
-  the contained steps, that menu is not available on a phone screen but
-  instead there's a circle button between the two arrows at the top and
-  the circle is the menu and there's also a 'go back to start' button
-  and we'll keep track of back and forth so we can always undo our last
-  zoom, and we'll use that for the forward if we just went back we get
-  to go back forward again and that also need a 'forward to current'
-  button."
-  Checked on main: the breadcrumb (`renderCrumbs` in
-  `static/galaxystageview.js`, `.galaxy-crumbs` in `static/style.css`)
-  is a flex list with `flex-wrap: wrap`, so a deep drill-down wraps
-  onto two or more lines (the `.galaxy-crumb-menu` styles there are
-  left over and used by nothing). Done: the breadcrumb always fits on one line
-  at any width: when the steps don't fit, it shows the first step, a
-  "…" button, and as many of the last steps before the current one as
-  fit, then the current one; the number shown follows the space
-  available (measured, not a fixed count per device) and re-fits on
-  resize; "…" opens a menu of the hidden steps, each one going to that
-  step; the bookmark ☆ stays on the line. A browser test checks one
-  line at phone and desktop widths on the deepest stage. Split from
-  Boss's message: the phone layout is MAP.94, the "Forward to current"
-  button MAP.95. The map's Back and Forward history already exists
-  (MAP.26, PR #208) and Reset already goes back to the whole galaxy
-  (MAP.55, PR #369), so those parts need nothing new. NAV.14 carries
-  this breadcrumb to the other pages.
-
-- [ ] **MAP.94 On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug)**
-  Boss (2026-10-02 04:29Z, with MAP.93): "that menu is not available on
-  a phone screen but instead there's a circle button between the two
-  arrows at the top and the circle is the menu and there's also a 'go
-  back to start' button". Done: at phone width the breadcrumb line is
-  replaced by the map's Back and Forward arrows with a round button
-  between them that opens the same menu of steps as MAP.93's "…", plus
-  the current step; the "go back to start" button is MAP.55's Reset
-  (back to the whole galaxy), kept beside the arrows at that width.
-  Uses UX.28's icons when they exist. A browser test at phone width.
-  Prerequisite: MAP.93.
-
 - [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
-  Boss (2026-10-02 04:29Z, with MAP.93): "we'll keep track of back and
+  Boss (2026-10-02 04:29Z, with MAP.93, done in PR #399): "we'll keep track of back and
   forth so we can always undo our last zoom, and we'll use that for the
   forward if we just went back we get to go back forward again and that
   also need a 'forward to current' button." Checked on main: the map's
@@ -759,9 +668,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     p = 1; a huge-span system falls back to log; JavaScript and Python
     give the same pixel radius for the same knots.
   - Before and after screenshots of the six system types in the study.
-  Separate from MAP.88 (fit the whole drawn system inside the frame);
-  both change `lib/systemmap.py`, and whichever lands second keeps the
-  other working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
+  Builds on MAP.88 (fit the whole drawn system inside the frame; done,
+  PR #405) in the same `lib/systemmap.py`, and keeps that fit working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
   with fitted for the orbital spacing in MAP.89"): fitted scale with the
   12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
@@ -1126,7 +1034,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     breadcrumb component built from the reference's parent chain, the
     same on the Galaxy Map, the sector, the system page and the NAV
     page.
-    It keeps MAP.93's one-line collapse and MAP.94's phone layout on
+    It keeps MAP.93's one-line collapse and MAP.94's phone layout (PR #399) on
     every page (Boss 04:29Z: "the breadcrumbs should never be more
     than a single line").
 
@@ -1393,19 +1301,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offers the same two buttons, which start the course from that object.
   Ties in with NAV.3, NAV.13 and NAV.15.
 
-- [ ] **NAV.31 Galaxy wedges don't highlight on the navigation screens (bug)**
-  Boss (2026-10-01 21:15Z): "in the navigation screen the wedges of the galaxy do not
-  highlight at all and they should." Done: when picking a course on
-  the Galaxy Map, hovering highlights the wedge under the cursor the
-  same way the Galaxy Map does outside pick mode (MAP.52), and every
-  later stage's hover highlight works too. Ties in with NAV.32.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the hover highlight on the
-  navigation screens is the arc highlight of MAP.85.
-  Replan (2026-10-02): it needs no shared pick mode (NAV.15);
-  course-pick mode lights the arc highlight PR #369 built. That
-  highlight may already work there: check first, and close it with a
-  test if so.
-
 - [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
   should be functional in the nav screens." Done: picking a course
@@ -1490,34 +1385,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as ordinary, and the course says what changed. Prerequisites: NAV.12,
   NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.40 Bookmarks can't be used to find the start or destination once a course pick has begun (bug)**
-  Boss (2026-10-02 04:12Z): "navigation system doesn't let you use
-  bookmarks to find your target once you start the nav process."
-  Checked in the code on main (inferred from the code, not reproduced):
-  the NAV page's own Bookmarks select (`renderNavSelect` and
-  `wireNavSelect` in `static/bookmarks.js`, `_bookmark_pick` in
-  `web/nav_page.py`) is offered only on the two "choose a start" and
-  "choose a destination" steps, and lists only system, phenomenon and
-  sector bookmarks, not saved map views. Once the user goes on to pick
-  on a map (`?pick=` on the Galaxy Map, `galaxymap3d.py`, or the
-  sector page's pick banner, `sector.html`), the Galaxy Map's Bookmarks
-  menu (`renderMenu`) links each bookmark to its own page (`urlOf`)
-  with no pick, so following one leaves the course and drops the
-  endpoint already chosen; the sector page in pick mode offers no
-  bookmarks at all; and once both ends are set, the course page has no
-  way to swap either end for a bookmark. NAV.30 (PR #351) only hid the
-  "View" links while picking and is not the cause. Done: while picking
-  a start or destination, every place that offers bookmarks (the
-  Galaxy Map's menu, the sector page, the NAV page) keeps the pick: a
-  system or phenomenon bookmark sets that endpoint and continues the
-  course, a sector bookmark opens that sector's page in pick mode, and
-  a saved map view opens the Galaxy Map there with the pick kept, all
-  keeping the other endpoint; the course page offers bookmarks to
-  change either end; MAP.81's 1 to 9 keys follow the same rule on the
-  map; and a browser test picks a destination from a bookmark on each
-  of those pages.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 8.2 and 9
 
 - [ ] **NAV.41 The NAV page's course map is too small to read (bug)**
   Boss (2026-10-02 04:19Z): "Add TODO item to queue, bugfix, the font is unreadable for the
@@ -1735,6 +1602,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass-radius relation. Done: rogue gas giants (`roguePlanetData.py`)
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
+
+- [ ] **GEN.64 A 64-bit position ID as the name of every interstellar object and bright-sweep system**
+  Boss (2026-10-02 05:32Z, in the naming-cost analysis thread): "ok so
+  let's do this.  let's create a bitmapped hex field.  So, each rogue
+  planet will have a location relative to the center of the galaxy, take
+  that and map it roughly so that we have 2 values between 1 and 360
+  each ( xxx mark yyy) and then a value between 0 and x ?pc (the scale
+  can change because we're going to have a value for if it's Gpc, Mpc,
+  kpc, pc, cpc, or mpc, how many bits do we need for this?  Also want
+  bit space for a number that says what kind of interstellar object it
+  is." and "We're constructing a unique ID for every single thing in
+  sector space (no solar system objects).  Then replace all names of
+  interstellar objects other than star systems (this even goes for stars
+  generated in the brightness sweep, will use that ID as their name."
+  Layout decided by Boss at 05:36Z (relayed by the coordinator): 64
+  bits, packed from the object's position relative to the galaxy's
+  center: type 4 bits, distance unit 3 bits (Gpc, Mpc, kpc, pc, cpc,
+  mpc), distance 17 bits, bearing 20 bits, mark 20 bits; stored as
+  `BIGINT`, shown as 16 hex digits. Done: every interstellar object
+  (rogue planets, black holes, neutron stars, nebulae, supernova
+  remnants, quasars, interstellar comets, asteroid fields) and every
+  system made by the bright-star sweep gets this ID, and the ID is its
+  name; ordinary star systems keep their names; a rogue planet's moons
+  are named for its ID plus a letter; these objects no longer go through
+  the name registry (`_db.reserve_system_names` and the Greek and Roman
+  collision decorations); in the rare case two objects pack to the same
+  ID, the one later in sector order bumps its lowest bit until it is
+  free, so the result does not depend on generation order; search,
+  pages, the API and the maps show the 16-digit form; a test packs and
+  unpacks positions at each unit and checks a forced clash. Being built
+  now by the analysis thread (2026-10-02 05:36Z). Related: TEST.85 (done,
+  PR #403: its registry path no longer serves these objects; the fix
+  still matters for named star systems), GEN.57 (name clashes keyed on address: these
+  objects no longer have name clashes to settle), GEN.63 (planet names
+  unique in a sector: rogue planets and their moons drop out of it,
+  since their names come from the ID), GEN.46 (done, PR #370: the
+  two-word rule now applies only to named systems).
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -1981,10 +1885,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     resolved by the system with the lower address keeping the name and
     the other renaming from its own seeded stream (GEN.57's rule, so
     the result doesn't depend on generation order or worker count); the
-    check reads the sector's existing names, not a running count (see
-    TEST.85's negative collision count in `nameUniqueness.py`); duplicates
+    check reads the sector's existing names, not a running count (TEST.85,
+    done in PR #403, fixed the negative collision count in
+    `nameUniqueness.py`); duplicates
     across sectors stay allowed; and a test generates crowded sectors
-    and checks every name is unique within each. Prerequisites: GEN.57.
+    and checks every name is unique within each. Rogue planets and
+    their moons are named from GEN.64's position ID, so they drop out
+    of this check. Prerequisites: GEN.57.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
@@ -2753,45 +2660,6 @@ clears each one.
   fixed seed, or the list worked out from what the run produced), and
   it passes on every run tried. [infra, DB]
 
-- [ ] **TEST.85 Name collisions can count -1 existing names and fail generation (bug)**
-  `test_bright_star_scatter.py::test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band`
-  failed once in the full suite with `ValueError: existing_count must
-  be >= 0, got -1` from `nameUniqueness.py` line 137, and passed in 7
-  runs alone (seen by the Binary pairs and single-system forcing
-  thread, PR #373, 2026-10-02; not fixed there). The count of existing
-  names comes from the name reservation in `_db.py`, so a -1 suggests a
-  reservation counted against a name another worker or an earlier band
-  removed. Related: GEN.44 (adding only the new luminosity band to a
-  sector, Boss 03:25Z) and GEN.57 (name collisions keyed on address,
-  not arrival order); GEN.46 (done, PR #370) last changed the
-  collision code. Done: the failing case is found (loop the test under
-  `-n auto`), the count can never go below 0, and the test passes on
-  every run tried. Seen again (2026-10-02 05:00Z): the same error hit
-  two tests in `test_galaxy_gen.py` in the Binary pairs lane's run of
-  PR #393, so at least three tests in two files fail on it. It is a
-  real bug in the name collision count (`nameUniqueness.py` line 137
-  rejects a count `_db.py` produced), not a timing flake, so it moves
-  out of the flakes to the Binary pairs and single-system forcing lane,
-  right after GEN.51 (done, PR #398), in the same naming code; GEN.57 and
-  GEN.63 (phase 1) build their address-keyed and per-sector name rules
-  on a count that is right.
-  Root cause (naming-cost analysis thread, 2026-10-02, report
-  https://claude.ai/artifact/Qzz9KEefo7k1WDH26iq5XQ): in
-  `_db.reserve_system_names`, a name redrawn by
-  `_regenerate_star_name()` during a pass is counted in the `uses` of a
-  registry row handled later in the same pass, though it was never
-  inserted for that row, so that row's existing count comes out -1 and
-  the sector save fails. Captured case: seed
-  `0123456789abcdef0123456789abcdef`, ring 700 layer 0, the 4th sector,
-  slot 1016 "Aogbun Alibas" redrawn to "Askaus", where the Askaus row
-  (`occurrence_count` 1) counted 2 uses; it gets more likely as the
-  registry fills. Fix hint: work out each name's key once per pass,
-  after the redraws, rather than in `uses = [i for i in todo if
-  _name_key(names[i]) in row_keys]`; that comprehension is also O(n^2),
-  about 0.85 s per dense sector, and precomputing the keys made dense
-  sectors about 1.7 times faster with identical output. The captured
-  case becomes a regression test. [infra, GEN]
-
 - [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
   `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`
   failed once in a full `pytest -n auto` run and passed 3 of 3 alone
@@ -2799,6 +2667,18 @@ clears each one.
   2026-10-02). Done: the failing case is found (loop the test under
   `-n auto`), the cause is fixed in the test or in the code it found,
   and the test passes on every run tried. [infra, GEN]
+
+- [ ] **TEST.87 The two-process id-block test times out under full parallel load (bug)**
+  `test_db_id_blocks_edges.py::test_two_processes_using_up_blocks_of_one_table_never_collide`
+  times out with `_queue.Empty` in a full `pytest -n auto` run and
+  passed 3 of 3 alone (seen by the Binary pairs thread, PR #403,
+  2026-10-02). The test spawns two processes that reserve id blocks of
+  one table and reads their results from a queue, so a slow spawn under
+  load can outrun the queue wait. Related: TEST.81 (the same two-process
+  reservation can deadlock on MariaDB 10.11). Done: the cause is found
+  (a wait too short for a loaded machine, or a real stall in
+  `_db._reserve_id_block`), fixed in the test or the code, and the test
+  passes on every full `-n auto` run tried. [infra, DB]
 
 ## USR: User accounts
 

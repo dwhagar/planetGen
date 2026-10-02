@@ -64,6 +64,7 @@ try:
     from stellarObjects.config import SystemConfig
     from stellarObjects.utils import (
         format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol,
+        to_scientific_notation,
     )
 
     _HTML_CONFIG = SystemConfig()
@@ -82,8 +83,8 @@ def _dash_unless_positive(formatter):
     would spell -1e300 out as a 300-digit percentage (TEST.53)."""
     guarded = dash_unless_finite(formatter)
 
-    def positive(value):
-        return "\u2013" if isinstance(value, (int, float)) and value < 0 else guarded(value)
+    def positive(value, *args, **kwargs):
+        return "\u2013" if isinstance(value, (int, float)) and value < 0 else guarded(value, *args, **kwargs)
     positive.__name__ = formatter.__name__
     positive.__doc__ = formatter.__doc__
     return positive
@@ -136,6 +137,39 @@ def format_body_distance(distance_km, is_moon=False):
     return format_distance_km(distance_km)
 
 
+def _times_reference(ratio):
+    """A body's size or mass as a multiple of Earth's or Jupiter's: plain
+    digits from 0.001 to a million, scientific notation outside that."""
+    if ratio >= 1e6:
+        return to_scientific_notation(_HTML_CONFIG, ratio, 2)
+    if ratio >= 100:
+        return f"{ratio:,.0f}"
+    if ratio >= 1:
+        return f"{ratio:.2f}"
+    if ratio >= 0.001:
+        return f"{ratio:.3g}"
+    return to_scientific_notation(_HTML_CONFIG, ratio, 2)
+
+
+def format_body_radius(radius_km):
+    """A planet's or moon's radius (MAP.92): km in scientific notation like
+    every body radius, then in Earth radii."""
+    if _HTML_CONFIG is None:
+        return f"{radius_km} km"
+    ratio = radius_km / physical_constants.EARTH_RADIUS_KM
+    return f"{format_body_radius_km(_HTML_CONFIG, radius_km)} ({_times_reference(ratio)} Earth radii)"
+
+
+def format_body_mass(mass_kg, gas_giant=False):
+    """A planet's or moon's mass (MAP.92): kg in scientific notation, then
+    in Earth masses, or Jupiter masses for a gas giant."""
+    if _HTML_CONFIG is None:
+        return f"{mass_kg} kg"
+    reference, label = ((physical_constants.JUPITER_MASS_TO_KG, "Jupiter masses") if gas_giant
+                        else (physical_constants.EARTH_MASS_TO_KG, "Earth masses"))
+    return f"{to_scientific_notation(_HTML_CONFIG, mass_kg)} kg ({_times_reference(mass_kg / reference)} {label})"
+
+
 # TEST.53: `None`, NaN, an infinity or a number past float range shows a
 # dash, never "nan km" or a traceback.
 format_star_mass = _dash_unless_positive(format_star_mass)
@@ -143,3 +177,5 @@ format_star_luminosity = _dash_unless_positive(format_star_luminosity)
 format_star_radius = dash_unless_finite(format_star_radius)
 format_period = dash_unless_finite(format_period)
 format_body_distance = dash_unless_finite(format_body_distance)
+format_body_radius = _dash_unless_positive(format_body_radius)
+format_body_mass = _dash_unless_positive(format_body_mass)

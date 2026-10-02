@@ -1,5 +1,64 @@
 # Changelog
 
+## [7.155.469] - 2026-10-02
+
+### Fixed
+- **The System Map's side panel shows a planet's or moon's radius and mass (MAP.92).** Clicking or tapping a planet or moon (or the planet at the center of its moon view) now lists its radius in km and Earth radii and its mass in kg and Earth masses (Jupiter masses for a gas giant), alongside everything it showed before. An unknown value shows a dash.
+
+## [7.154.469] - 2026-10-02
+
+### Fixed
+- **The whole star system fits on the System Map (MAP.88).** An outer planet, its ring or moons, a belt, a facility, a wide pair's companion star or a name no longer runs past the edge of the map. Once everything is placed, the map measures how far the drawn scene reaches and zooms out evenly around the star (or the planet, in a moon view) just enough to hold it all with a small margin. A scene that already fits looks as before.
+
+## [7.153.469] - 2026-10-02
+
+### Fixed
+- **The System Map never draws a broken number (MAP.57).** A NaN or infinite value stored for a star, planet, moon, belt or facility no longer ends up in the map's SVG. A planet or moon whose position was lost is drawn at its orbit distance, due east of what it orbits, with a note in its info panel; one with no distance either is left out.
+
+## [7.152.469] - 2026-10-02
+
+### Fixed
+
+- A sector save no longer fails with "existing_count must be >= 0, got
+  -1" (TEST.85). When a system name with no decoration left was drawn
+  again during name reservation, the new name was also counted as a
+  holder of the registry row it matched later in the same pass, leaving
+  that row one holder short. Each name's key is now taken once per pass,
+  so a redrawn name only counts in the next pass. Names that never
+  collide come out exactly as before.
+
+## [7.151.469] - 2026-10-02
+
+### Fixed
+- **Hover lights the galaxy's arcs while picking a course (NAV.31).** While choosing a NAV start or destination on the Galaxy Map, hovering now lights and outlines the arc under the pointer, and at every later stage the choice under it, just as when browsing the map. Before, with "Generated only" forced on for the pick, only the few arcs holding generated sectors reacted at all. An arc or block with nothing generated still can't be taken, and its tooltip says so. The same applies whenever "Generated only" is on.
+
+## [7.150.469] - 2026-10-02
+
+### Fixed
+- **The Galaxy Map's breadcrumb stays on one line (MAP.93, MAP.94).** A deep drill-down no longer wraps the breadcrumb onto several lines: when the steps don't fit, it shows the first step, a "…" button whose menu lists the hidden steps, and as many of the last steps as fit, then the current one, and it fits itself again when the window is resized. On a phone the breadcrumb line gives way to a round Steps button between Back and Forward, whose menu lists every step with the current one marked; Reset stays beside the arrows.
+
+## [7.149.469] - 2026-10-02
+
+### Fixed
+- **Bookmarks work while picking a course (NAV.40).** While choosing a NAV start or destination, every bookmark keeps the pick and the end already chosen: in the Galaxy Map's Bookmarks menu (and its 1 to 9 keys) a system or phenomenon bookmark sets that end and opens the course, a sector bookmark opens that sector's page in pick mode, and a saved map view opens the Galaxy Map there, still picking. The sector page in pick mode now has a Bookmarks menu that works the same way, the NAV page's Bookmarks select also lists saved map views, and the course page offers bookmarks to change either end. The Galaxy Map also keeps the pick in its own URL as it moves, so Back or a reload no longer drops it.
+
+## [7.148.469] - 2026-10-02
+
+### Changed
+
+- The `+name`/`-name` forcing options (`+habitable_world`, `-planets`,
+  `+comets` and the rest) now work only for a single system: `generate.py
+  system` and the one-off system page (GEN.51). `generate.py sector` and
+  `galaxy` refuse them with an error that names the option and points to
+  `system`, so a saved or queued command line that still has one gets a
+  clear message. `--min-habitable` still works for sectors. Prevalence
+  controls for sector and galaxy runs come later (GEN.52).
+
+## [7.147.469] - 2026-10-02
+
+### Fixed
+- **Picking a slab lights the whole slab (MAP.91).** On the Galaxy Map, whenever the next pick is a slab (a layer of blocks, or a layer of sectors in the 3 by 3 by 3 view at the bottom of the drill-down), hovering any cube of it now lights and outlines that whole slab, round its full height, and fades the others; the slider beside the map marks the same slab, and a click picks it. Before, the 3 by 3 by 3 view lit and outlined a single sector, and the bigger slab picks gave the hovered slab no outline. A single cube is highlighted only when the pick really is one sector.
+
 ## [7.146.467] - 2026-10-02
 
 ### Changed

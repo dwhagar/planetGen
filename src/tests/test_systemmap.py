@@ -15,6 +15,7 @@ needed, since `render_system_map_panel` takes plain dicts, the same shape
 
 Run with: pytest src/tests/test_systemmap.py
 """
+import html as html_lib
 import math
 import os
 import random
@@ -234,7 +235,7 @@ def test_label_sides_2d_keeps_every_label_inside_the_view(cx, cy):
 def test_rendered_label_is_slid_inside_the_view():
     # An outer planet due west with a long name: its label's drawn text
     # (middle-anchored below/above, or start/end-anchored beside) stays
-    # within the 700 px frame.
+    # within the scene's frame.
     name = "Very Long Outer Planet Name"
     planets = [_planet(1, 10, -30.0 * AU_KM, 0.0), _planet(2, 10, 1.0 * AU_KM, 0.0)]
     planets[0]["name"] = name
@@ -245,7 +246,8 @@ def test_rendered_label_is_slid_inside_the_view():
     x, anchor = float(match.group(1)), match.group(2)
     width = 2 * sm._label_half_width_px(name)
     left = {"start": x, "middle": x - width / 2, "end": x - width}[anchor]
-    assert left >= 0 and left + width <= sm._VIEW_SIZE_PX
+    lo, _, size, _ = map(float, re.search(r'viewBox="([^"]+)"', html).group(1).split())
+    assert left >= lo and left + width <= lo + size
 
 
 def test_label_sides_2d_pushes_a_fifth_label_further_out_instead_of_dropping_it():
@@ -396,6 +398,122 @@ def test_no_planet_orbit_is_drawn_inside_a_belt(seed):
     for center, width in drawn_belts:
         for orbit in orbits:
             assert not (center - width / 2 < orbit < center + width / 2), (orbit, center, width)
+
+
+# --- MAP.88: the whole scene fits the frame ---------------------------------
+
+_SCENE_SVG = re.compile(r'<svg class="sysmap-svg[^"]*"[^>]*?viewBox="([^"]+)"[^>]*>(.*?)</svg>', re.S)
+_DRAWN = re.compile(r'<(circle|ellipse|polygon|line|text)\b([^>]*)>([^<]*)')
+_ATTR = re.compile(r'([\w-]+)="([^"]*)"')
+
+
+def drawn_outside_view(html, slack=0.15):
+    """Every element of every System Map scene that reaches past its own
+    scene's viewBox: circles (with a belt's band), ellipses (a gas giant's
+    ring, by its long radius), polygons, lines, and names (by the same
+    estimated width the layout reserves for them)."""
+    outside = []
+    for view, inner in _SCENE_SVG.findall(html):
+        x0, y0, width, height = map(float, view.split())
+        for tag, raw, text in _DRAWN.findall(inner):
+            a = dict(_ATTR.findall(raw))
+            if tag == "circle":
+                r = float(a["r"]) + float(a.get("stroke-width", 0)) / 2
+                box = (float(a["cx"]) - r, float(a["cy"]) - r, float(a["cx"]) + r, float(a["cy"]) + r)
+            elif tag == "ellipse":
+                r = float(a["rx"])
+                box = (float(a["cx"]) - r, float(a["cy"]) - r, float(a["cx"]) + r, float(a["cy"]) + r)
+            elif tag == "polygon":
+                points = [tuple(map(float, p.split(","))) for p in a["points"].split()]
+                xs, ys = [p[0] for p in points], [p[1] for p in points]
+                box = (min(xs), min(ys), max(xs), max(ys))
+            elif tag == "line":
+                xs, ys = (float(a["x1"]), float(a["x2"])), (float(a["y1"]), float(a["y2"]))
+                box = (min(xs), min(ys), max(xs), max(ys))
+            elif "sysmap-label" in a.get("class", ""):
+                x, y, w = float(a["x"]), float(a["y"]), 2 * sm._label_half_width_px(html_lib.unescape(text))
+                left = {"start": x, "middle": x - w / 2, "end": x - w}[a["text-anchor"]]
+                box = (left, y - 12, left + w, y + 4)
+            else:
+                continue
+            if (box[0] < x0 - slack or box[1] < y0 - slack or box[2] > x0 + width + slack
+                    or box[3] > y0 + height + slack):
+                outside.append((tag, a.get("class"), box, view))
+    return outside
+
+
+def _random_system(rng):
+    """A crowded random system: up to 14 planets (gas giants with rings,
+    moons) out to hundreds of AU, belts, facilities, and a single star, a
+    close pair or a wide pair."""
+    kind = rng.choice([None, "close", "wide"])
+    stars = [_star(1, radius_km=696_000 * rng.uniform(0.2, 40))]
+    system = {"name": "Fit %d" % rng.randint(0, 999), "binary_configuration": kind}
+    if kind:
+        stars.append(_star(2, radius_km=696_000 * rng.uniform(0.2, 10)))
+        sep = (0.1 if kind == "close" else 300) * AU_KM * rng.uniform(0.5, 3)
+        angle = rng.uniform(0, 2 * math.pi)
+        system.update(binary_mutual_position_x_km=sep * math.cos(angle),
+                      binary_mutual_position_y_km=sep * math.sin(angle), binary_mutual_position_z_km=0.0)
+    planets, belts, facilities, next_id = [], [], [], 1
+    for star_id in ([1, 2] if kind == "wide" else [None if kind else 1]):
+        r_au = rng.uniform(0.05, 1.0)
+        for _ in range(rng.randint(1, 14)):
+            r_au *= rng.uniform(1.2, 2.5)
+            if rng.random() < 0.2:
+                upper = r_au * rng.uniform(1.05, 2.0)
+                belts.append(_belt(next_id, star_id, r_au * AU_KM, r_au * AU_KM, upper * AU_KM))
+                r_au = upper
+            else:
+                angle = rng.uniform(0, 2 * math.pi)
+                giant = rng.random() < 0.4
+                moons = [_moon(100 * next_id + m, *(lambda d, t: (d * math.cos(t), d * math.sin(t)))(
+                    rng.uniform(2e5, 5e7), rng.uniform(0, 2 * math.pi)), radius_km=rng.uniform(5, 5000))
+                    for m in range(rng.randint(0, 6))]
+                planets.append(_planet(next_id, star_id, r_au * AU_KM * math.cos(angle),
+                                       r_au * AU_KM * math.sin(angle),
+                                       radius_km=rng.uniform(70_000, 250_000) if giant else rng.uniform(500, 20_000),
+                                       planet_class="J" if giant else "G", body_type="g" if giant else "t",
+                                       moons=moons))
+                planets[-1]["name"] = rng.choice(["Ib", "Very Long Outermost Planet Name", "Kepler Prime"])
+                if rng.random() < 0.3:
+                    facilities.append({"id": next_id, "name": "Dock", "kind": "station", "host_type": "planet",
+                                       "host_id": next_id, "host_name": None, "placement": "orbital",
+                                       "orbit_distance_km": 4e4, "orbit_period_years": 0.01,
+                                       "orbital_speed_kms": 3.0, "orbit_phase_deg": rng.uniform(0, 360)})
+            next_id += 1
+    facilities.append({"id": 999, "name": "Far Gate", "kind": "outpost", "host_type": "star", "host_id": 1,
+                       "host_name": None, "placement": "orbital", "orbit_distance_km": 2000 * AU_KM,
+                       "orbit_period_years": 9e4, "orbital_speed_kms": 0.5, "orbit_phase_deg": 45.0})
+    return system, stars, planets, belts, facilities
+
+
+@pytest.mark.parametrize("seed", range(60))
+def test_every_drawn_element_sits_inside_the_view(seed):
+    # MAP.88: outer planets, their rings and moons, belts, facilities and
+    # names never run past the edge of any scene.
+    html = sm.render_system_map_panel(*_random_system(random.Random(seed)))
+    assert drawn_outside_view(html) == []
+
+
+def test_a_scene_that_fits_keeps_the_fixed_frame():
+    # The outermost orbit is 335 px out; a small world there fits.
+    planet = _planet(1, 10, AU_KM, 0.0, radius_km=100.0)
+    planet["name"] = "B"
+    html = sm.render_system_map_panel({"name": "Small", "binary_configuration": None}, [_star(10)], [planet], [])
+    assert set(re.findall(r'viewBox="([^"]+)"', html)) == {"0 0 700 700"}
+
+
+def test_a_scene_that_overflows_widens_its_view_evenly_around_the_center():
+    # An outermost gas giant's ring reaches past the 700 px frame, so the
+    # view grows (the scene shrinks on screen) and stays centered on the star.
+    giant = _planet(2, 10, 30 * AU_KM, 0.0, radius_km=200_000, planet_class="J", body_type="g")
+    planets = [_planet(1, 10, AU_KM, 0.0), giant]
+    html = sm.render_system_map_panel({"name": "Wide", "binary_configuration": None}, [_star(10)], planets, [])
+    x0, y0, width, height = map(float, re.search(r'viewBox="([^"]+)"', html).group(1).split())
+    assert x0 < 0 and x0 == y0 and width == height
+    assert x0 + width / 2 == pytest.approx(sm._CENTER_PX, abs=0.1)
+    assert drawn_outside_view(html) == []
 
 
 def test_close_binary_places_both_stars_and_shares_planets_at_the_barycenter():
@@ -620,3 +738,36 @@ def test_wide_binary_companion_marker_carries_the_real_separation_not_its_drawn_
     # The primary, in its own "system" scene, is always the local origin.
     assert 'data-xkm="0.0"' in html
     assert 'data-ykm="0.0"' in html
+
+
+# --- MAP.92: radius and mass in the side panel --------------------------------
+
+def _marker_attrs(html, kind, body_id):
+    tag = re.search(r'<g class="sysmap-body[^"]*"[^>]*data-kind="%s" data-id="%d"[^>]*>' % (kind, body_id), html)
+    assert tag, (kind, body_id)
+    return dict(_ATTR.findall(tag.group(0)))
+
+
+def test_planet_and_moon_markers_carry_radius_and_mass():
+    moon = dict(_moon(7, 4e5, 0.0, radius_km=1737.0), mass_kg=7.35e22)
+    earth = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon]), mass_kg=5.972e24)
+    giant = dict(_planet(2, 10, 5 * AU_KM, 0.0, radius_km=69_911.0, planet_class="J", body_type="g"),
+                 mass_kg=1.898e27)
+    html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [earth, giant], [])
+    planet = _marker_attrs(html, "planet", 1)
+    assert planet["data-radius"] == "6.37 × 10³ km (1.00 Earth radii)"
+    assert planet["data-mass"] == "5.97 × 10²⁴ kg (1.00 Earth masses)"
+    assert _marker_attrs(html, "planet", 2)["data-mass"] == "1.90 × 10²⁷ kg (1.00 Jupiter masses)"
+    moon_attrs = _marker_attrs(html, "moon", 7)
+    assert moon_attrs["data-radius"] == "1.74 × 10³ km (0.273 Earth radii)"
+    assert moon_attrs["data-mass"] == "7.35 × 10²² kg (0.0123 Earth masses)"
+    # The planet drilled into, at the center of its moon scene, too.
+    center = re.search(r'<g class="sysmap-body sysmap-planet" [^>]*data-self="true"[^>]*>', html).group(0)
+    assert 'data-mass="5.97 × 10²⁴ kg (1.00 Earth masses)"' in center
+
+
+def test_unknown_radius_and_mass_show_a_dash():
+    planet = dict(_planet(1, 10, AU_KM, 0.0, radius_km=None), mass_kg=None)
+    html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [planet], [])
+    attrs = _marker_attrs(html, "planet", 1)
+    assert attrs["data-radius"] == attrs["data-mass"] == "–"

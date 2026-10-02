@@ -12,36 +12,13 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391).
+Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405).
 
 ## Threads
 
 Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
-
-### Binary pairs and single-system forcing
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. Root cause: _db.reserve_system_names counts a name redrawn in the same pass against a later row; fix by computing name keys once per pass (also 1.7x faster on dense sectors). After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
-
-### Galaxy Map follow-ups
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
-| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
-| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
-| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) |  | Moved to phase 0: the arc highlight exists (MAP.85, PR #369); check pick mode lights it, fix if not. The highlight is MAP.85's arc highlight. |
-
-### System Map
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) |  | lib/systemmap.py. |
-| MAP.88 | Parts of a star system run off the edge of the System Map (bug) | MAP.57 | Fit the whole scene; same file as MAP.57 and MAP.89. |
-| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | MAP.88 | Boss 04:29Z. showInfo in systemmap.js and the marker attributes in lib/systemmap.py; same files as MAP.57/MAP.88. |
 
 ### Galaxy Map drill-down
 
@@ -122,16 +99,17 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
+| TEST.87 | The two-process id-block test times out under full parallel load (bug) |  | test_db_id_blocks_edges.py; _queue.Empty under -n auto, passes alone 3/3. Same path as TEST.81. |
 
-At most two build threads run at once (Boss 02:51Z). The Galaxy Map
-follow-ups lane is in progress and the binary pairs lane is running;
-then the lanes start in the order above as a slot frees: System Map,
-Galaxy Map drill-down (after the follow-ups merge, same files),
-Generation bugs, Sector stats and colors (MAP.80 and MAP.86 after the
-drill-down merges), Routing groundwork, Sector and system pages
-(text labels with an icon hook if UX.28's icon list is not approved
-yet), Small page bugs, and Ops and flakes last. NAV.7 and DB.8 open
-phase 1.
+At most two build threads run at once (Boss 02:51Z). Done lanes:
+Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
+#395, #399), Binary pairs (PRs #393, #398, #403) and System Map (PR
+#405). Galaxy Map drill-down is running. Then the lanes start in the
+order above as a slot frees: Generation bugs, Sector stats and colors (MAP.80 and
+MAP.86 after the drill-down merges), Routing groundwork, Sector and
+system pages (text labels with an icon hook if UX.28's icon list is
+not approved yet), Small page bugs, and Ops and flakes last. NAV.7
+and DB.8 open phase 1.
 
 ## Open questions for Boss
 
