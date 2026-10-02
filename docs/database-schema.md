@@ -141,7 +141,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `50`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `51`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -403,7 +403,7 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v49_to_v50`. `migrate_database`
+version, through `_migrate_v50_to_v51`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A SQLite database from before
@@ -606,6 +606,12 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
 truncates it with `bright_stars`. `_migrate_v48_to_v49` creates it empty.
+
+**The galaxy seed (v51).** `_migrate_v50_to_v51` adds
+`galaxy_shape.galaxy_seed` (`BINARY(16)`: half the bytes of a
+32-character hex string and no letter case to normalize), NULL on an
+existing galaxy, which has no seed and can't be given one: GEN.39 starts
+from a wiped galaxy.
 
 **Matching a new database (v50).** `_migrate_v49_to_v50` adds
 `system_configs.comets` and `.wide_binary`, and brings a database
@@ -855,7 +861,7 @@ Galaxy schema:
 
 | Item | Phase | Change |
 |---|---|---|
-| DB.6 | 0 | `galaxy_shape` gains the galaxy's 128-bit seed (`BINARY(16)`, written once when the galaxy is first planned, shown as 32 hex digits) and the version that made it: the 22-hex-digit version key, the full MAJOR.REVISION.BUILD string, the Python version and the platform. A new `generation_runs` table holds one row per run that changes the galaxy: command and options, version, start and end times, outcome. The bright-star scatter's seed (`bright_star_seed`) is then derived from the galaxy seed (GEN.39). No migration of old galaxies: GEN.39 starts from a wiped galaxy. |
+| DB.6 | 0 | `galaxy_shape` gains, next to the galaxy seed (v51), the version that made the galaxy: the 22-hex-digit version key, the full MAJOR.REVISION.BUILD string, the Python version and the platform. A new `generation_runs` table holds one row per run that changes the galaxy: command and options, version, start and end times, outcome. No migration of old galaxies: GEN.39 starts from a wiped galaxy. |
 | GEN.44, PERF.11 | 1 | One per-sector stats table keyed by sector address (an unfilled sector has no `sectors` row): the backfill level (-1 never backfilled, the dimmest L_sun reached, 0 fully generated), expected and actual density, and the galaxy-wide expected-against-actual decaying average. MAP.86's per-sector colour, saturation and lightness go in the same table. |
 | DB.7 | 1 | Each `sectors` row records the version key and full version string that generated it. |
 | DB.9 | 1 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
@@ -944,7 +950,8 @@ billions of candidates).
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
 | `outer_ring_index` | INT | NOT NULL | The last ring with any qualifying content — this galaxy's real edge, found by `generate.py plan` (the plane's layer reaches farthest), not an arbitrary radius. Named `outer_shell_index` before v32. |
 | `bright_star_min_luminosity_sol` | DOUBLE | nullable | Added in v43. The luminosity threshold the bright-star scatter used (see `bright_stars` below). A sector fill reads this, not the current constant. NULL until a scatter has run. |
-| `bright_star_seed` | BIGINT UNSIGNED | nullable | Added in v43. The scatter's random seed. |
+| `bright_star_seed` | BIGINT UNSIGNED | nullable | Added in v43. The scatter's seed: since v51 the top 63 bits of the galaxy seed's unit seed `bright-stars:scatter` (GEN.39). |
+| `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`generate.py plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
 
 ### `galaxy_layer`
 

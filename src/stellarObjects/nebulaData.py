@@ -21,7 +21,7 @@ from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, reseed_rng)
+                    generate_phoneme_salad_name)
 
 
 NEBULA_CLASS_LETTERS = tuple(
@@ -176,7 +176,6 @@ class Nebula:
             nebula_class (str, optional): An explicit class letter A-Q.
                 Drawn by frequency if omitted.
         """
-        reseed_rng()
         self.system_config = system_config
         # A draft name: `_db.insert_nebula` reserves it through the
         # system-name registry (v40), which may decorate it.

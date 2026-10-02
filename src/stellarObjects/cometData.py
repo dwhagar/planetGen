@@ -46,7 +46,6 @@ from .roguePlanetData import format_comet_composition_summary
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (
     format_distance_au, format_period_years, format_speed_kms, generate_phoneme_salad_name, minimum_update_interval_years,
-    reseed_rng,
 )
 
 PERIOD_CLASS_LABELS = {
@@ -201,7 +200,6 @@ class Comet:
                 `"parabolic"` rather than rolling
                 `program_constants.COMET_PARABOLIC_CHANCE`.
         """
-        reseed_rng()
         self.system_config = system_config
         # A placeholder: `_db.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).

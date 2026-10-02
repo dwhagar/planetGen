@@ -68,14 +68,11 @@ other words, real stars are spaced, on average, almost exactly as close as
 their mutual gravity allows without one's Oort cloud bleeding into the
 other's -- and this module's default placement reproduces that.
 
-Position sampling uses `secrets.SystemRandom`, a `random.Random` subclass
-backed by the OS's own CSPRNG (`os.urandom`) rather than the deterministic,
-seedable Mersenne Twister behind the plain `random` module. It cannot be
-seeded to reproduce a past run -- there is no "true random" seed to save --
-and it is a separate generator entirely, so sector placement is never
-accidentally made predictable by code elsewhere reseeding the global
-`random` module (as the rest of this package's star/planet generation does;
-see `systemGen.main`).
+Position sampling draws through `_rng`, which reads the module-level
+`random` stream. A galaxy sector runs on its own seed, derived from the
+galaxy's 128-bit seed and the sector's address (GEN.39,
+`galaxySeed.seeded`), so the same seed places the same stars whatever
+order sectors run in and however many workers run them.
 
 Distances
 ---------
@@ -171,10 +168,8 @@ star types, forced features, names, orbit counts, and so on), and
 `generated`, the full object graph itself (`StarSystem.to_dict()`,
 Phase 1's serialization). `from_dict` prefers `generated` when present,
 giving an EXACT, byte-for-byte reload of the original system -- not a
-fresh roll -- since a fair amount of this package's generation (planet
-class rolls, moon coin-flips, name generation, flavor text) is drawn from
-the `secrets` module specifically because it should be unpredictable, so
-there's no seed that could play it back exactly any other way.
+fresh roll -- a sector's own seed (GEN.39) plays it back only on the
+release that made it, and only as part of its galaxy.
 
 A file written before this addition (or a hand-authored one supplying only
 `config`) has no `generated` key, so `from_dict` falls back to the
@@ -188,7 +183,7 @@ saved sector.
 
 import json
 import math
-import secrets
+import random
 
 from . import log, physical_constants, program_constants
 from .asteroidFieldData import AsteroidField
@@ -200,10 +195,34 @@ from .roguePlanetData import InterstellarComet, RoguePlanet
 from .supernovaRemnantData import SupernovaRemnant
 from .systemData import StarSystem
 
-# A CSPRNG-backed generator (os.urandom under the hood), used for every
-# position placed in a sector instead of the deterministic, seedable `random`
-# module -- see "Position sampling" in the module docstring.
-_rng = secrets.SystemRandom()
+class _GlobalStream(random.Random):
+    """
+    A `random.Random` whose every draw comes from the module-level `random`
+    stream (only `random()` and `getrandbits()`; every other method is
+    built on those two, as for `SystemRandom`), so a sector's positions
+    follow the sector's own seed (GEN.39). A separate object still, so a
+    test can pin sector placement alone by patching its `random`/
+    `getrandbits`.
+    """
+
+    def seed(self, *args, **kwargs):
+        """Does nothing: the stream is the module's, seeded per unit."""
+
+    def random(self):
+        return random.random()
+
+    def getrandbits(self, k):
+        return random.getrandbits(k)
+
+    def getstate(self):
+        raise NotImplementedError("_GlobalStream has no state of its own; see random.getstate()")
+
+    setstate = getstate
+
+
+# Used for every position placed in a sector -- see "Position sampling" in
+# the module docstring.
+_rng = _GlobalStream()
 
 _PHENOMENON_CLASSES_BY_TYPE = {
     "black-hole": BlackHole,
@@ -335,9 +354,8 @@ def _sample_poisson_count(mean, rng=_rng):
     using only uniform draws from `rng` -- Knuth's simple multiplicative
     algorithm: repeatedly multiply `rng.random()` draws together until the
     running product drops below `exp(-mean)`, counting how many draws that
-    took. This is exact (not an approximation), and it stays on this
-    module's own `_rng` (true OS entropy, not the seedable global `random`
-    module) rather than pulling in `numpy.random.poisson`, which would add a
+    took. This is exact (not an approximation), and it draws from
+    this module's `_rng` rather than pulling in `numpy.random.poisson`, which would add a
     new dependency this project doesn't otherwise have.
 
     This runs in O(mean) draws, so it's only efficient for small means. The

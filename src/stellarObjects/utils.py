@@ -14,7 +14,6 @@ import functools
 import inspect
 import math
 import random
-import secrets
 
 from .config import SystemConfig
 from .names import (
@@ -78,16 +77,6 @@ def finite_domain(*, allow_inf=(), clamped=()):
         return wrapper
 
     return decorate
-
-
-def reseed_rng():
-    """
-    Re-seeds the `random` module with a high-entropy seed from `secrets`.
-
-    This is called at the start of most generation methods to avoid
-    correlated/repeating sequences across successive calls.
-    """
-    random.seed(secrets.randbits(128))
 
 
 def get_star_spectral_class(star):
@@ -797,7 +786,6 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     Returns:
         tuple: A tuple containing the volume in km³ and the mass in kg.
     """
-    reseed_rng()
     if object_density is None:
         min_density, max_density = planet_density[planet_classes[object_class]['type']]
         p_density = random.uniform(min_density, max_density)
@@ -1745,9 +1733,8 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
             case a whole generation run should fail loudly and immediately
             rather than hang with no explanation.
     """
-    reseed_rng()
     for _attempt in range(MAX_NAME_GENERATION_ATTEMPTS):
-        name = secrets.choice(name_list)
+        name = random.choice(name_list)
 
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
@@ -1758,11 +1745,11 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
             syllables = syllables[:keep]
 
         if random.random() < UNIVERSAL_PHONEME_CHANCE:
-            syllables.insert(random.randint(0, len(syllables)), secrets.choice(UNIVERSAL_PHONEMES))
+            syllables.insert(random.randint(0, len(syllables)), random.choice(UNIVERSAL_PHONEMES))
 
         name = "".join(syllables)
 
-        prefix = secrets.choice(prefix_list)
+        prefix = random.choice(prefix_list)
         if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
             name = prefix + name[1:]
         elif prefix[-1] not in VOWELS and name[0].lower() not in VOWELS:
@@ -1773,7 +1760,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
         else:
             name = prefix + name
 
-        suffix = secrets.choice(suffix_list)
+        suffix = random.choice(suffix_list)
         if name[-1] in VOWELS and suffix[0].lower() in VOWELS:
             name = name + suffix[1:]
         elif name[-1] not in VOWELS and suffix[0].lower() not in VOWELS:

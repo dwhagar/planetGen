@@ -19,12 +19,11 @@ and moon in a system after all of them have been generated.
 import math
 import random
 import re
-import secrets
 
 from . import log, physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
-                    finite_domain, orbital_position_au, reseed_rng, sample_bounded_bell,
+                    finite_domain, orbital_position_au, sample_bounded_bell,
                     sample_power_law)
 
 
@@ -335,7 +334,6 @@ def generate_planet_properties(planet, zone_override=None):
                                        set the planet's zone, overriding the
                                        calculation based on distance.
     """
-    reseed_rng()
     # Determine the planet's zone (hot, ecosphere, or cold)
     inner_bound, outer_bound = planet.habitable_zone
     if planet.distance < inner_bound:
@@ -382,7 +380,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
-        planet.planet_class = secrets.choice(possible_classes)
+        planet.planet_class = random.choice(possible_classes)
         _validate_radius(planet)
 
     elif planet.planet_class is None and planet.radius is None and planet.mass is not None:
@@ -393,7 +391,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
-        planet.planet_class = secrets.choice(possible_classes)
+        planet.planet_class = random.choice(possible_classes)
         _validate_mass(planet)
         # Everything downstream needs a radius, so draw one for the class,
         # the same as the class+mass branch below.
@@ -426,7 +424,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
-        planet.planet_class = secrets.choice(possible_classes)
+        planet.planet_class = random.choice(possible_classes)
         _validate_radius(planet)
         _validate_mass(planet)
 
@@ -559,7 +557,6 @@ def calculate_surface_gravity(planet):
     Raises:
         ValueError: If the computed gravity is zero or negative.
     """
-    reseed_rng()
     radius_meters = planet.radius * 1000
     surface_gravity = (physical_constants.G * planet.mass) / (radius_meters ** 2)
     surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
@@ -619,7 +616,6 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                                              distance, used for special cases
                                              like moons.
     """
-    reseed_rng()
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
     orbital_radius_km = distance * physical_constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
@@ -809,7 +805,6 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
                                  the same name, which this is threaded
                                  straight through from).
     """
-    reseed_rng()
     inclination_max = (
         physical_constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
         else physical_constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
@@ -1094,7 +1089,6 @@ def generate_moons(planet, moon_count=None):
             if the planet doesn't have room for `moon_count` moons, fewer
             than requested may be generated.
     """
-    reseed_rng()
     if moon_count == 0:
         return
     # A gas giant placed in 'e' with HABITABLE_WORLD=False must not roll a

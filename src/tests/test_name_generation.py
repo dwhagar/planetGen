@@ -16,7 +16,7 @@ This was rare enough (needs a specific base name, a specific phoneme, and a
 specific shuffle outcome to all coincide) that a plain sweep of a few
 thousand calls usually misses it, so this test pins down the exact
 previously-crashing scenario deterministically via monkeypatched
-random/secrets calls, in addition to a large-iteration sweep as a
+random calls, in addition to a large-iteration sweep as a
 belt-and-suspenders check.
 
 Run with: pytest tests/test_name_generation.py
@@ -57,7 +57,7 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
     so the fully-assembled name also clears `is_name_valid`'s consonant-run
     check (added after this test was first written -- "Wald" + "ka..."
     produces the "ldk" 3-consonant run `is_name_valid` now correctly
-    rejects). Since every random/secrets call here is pinned to a fixed
+    rejects). Since every random call here is pinned to a fixed
     return value, a rejected candidate would retry the exact same candidate
     forever rather than eventually drawing a different one -- an earlier
     version of this fix that kept "Wald" hung indefinitely instead of
@@ -67,7 +67,7 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
     """
     choice_calls = {"n": 0}
 
-    def fake_secrets_choice(seq):
+    def fake_choice(seq):
         choice_calls["n"] += 1
         seq = list(seq)
         if seq == PLANET_NAMES:
@@ -99,7 +99,7 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
         # landing the two apostrophes adjacent once joined.
         return 2
 
-    monkeypatch.setattr("stellarObjects.utils.secrets.choice", fake_secrets_choice)
+    monkeypatch.setattr("stellarObjects.utils.random.choice", fake_choice)
     monkeypatch.setattr("stellarObjects.utils.random.random", fake_random_random)
     monkeypatch.setattr("stellarObjects.utils.random.shuffle", fake_shuffle)
     monkeypatch.setattr("stellarObjects.utils.random.randint", fake_randint)
@@ -115,11 +115,9 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
 ])
 def test_generate_phoneme_salad_name_sweep_does_not_crash(name_list, prefixes, suffixes):
     """
-    Fallback sweep: the adjacency that crashes generation depends on
-    unseedable `secrets` rolls (base name, phoneme, prefix, suffix) as well
-    as seedable `random` rolls (shuffle order, splice position), so it can't
-    be pinned to a single deterministic seed the way the test above does.
-    Running many iterations makes it very likely to hit the same class of
+    Fallback sweep over many draws (base name, phoneme, prefix, suffix,
+    shuffle order, splice position), beside the one pinned case above:
+    running many iterations makes it very likely to hit the same class of
     bug again if a future change reintroduces it.
     """
     for _ in range(20000):

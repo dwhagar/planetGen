@@ -185,12 +185,11 @@ def test_expected_system_count_matches_density_times_volume():
     assert 1 < expected < 10
 
 
-def test_placement_uses_true_randomness_independent_of_global_random_seed():
+def test_placement_follows_the_seeded_random_stream():
     """
-    Regression guard: sector placement must draw from `secrets.SystemRandom`
-    (real OS entropy), not the deterministic, seedable global `random`
-    module, so reseeding `random` elsewhere (as star/planet generation does)
-    can never make sector layouts predictable or repeat a past run.
+    GEN.39: sector placement draws from the module-level `random` stream,
+    which a galaxy sector seeds from its own seed, so the same seed places
+    the same system at the same point.
     """
     random.seed(42)
     sector_a = SpaceSector("Repeat Sector", edge_ly=1000.0)
@@ -202,7 +201,7 @@ def test_placement_uses_true_randomness_independent_of_global_random_seed():
     system_b, _ = make_system()
     entry_b = sector_b.add_system(system_b)
 
-    assert entry_a.position != entry_b.position
+    assert entry_a.position == entry_b.position
 
 
 def test_distance_between_static_method_matches_module_function():
@@ -284,10 +283,8 @@ def test_reload_with_generated_key_reproduces_the_exact_system():
 
 def test_reload_without_generated_key_falls_back_to_recipe_regeneration():
     """
-    Regression guard for the (false) assumption that a stored seed could make
-    reload byte-identical: much of this package's generation (planet class,
-    moons, names, flavor text) draws from `secrets`, a CSPRNG that cannot be
-    seeded or replayed. With no `generated` key present (an older save file,
+    Reload never replays a seed: a seed reproduces a system only as part of
+    its galaxy, on the release that made it (GEN.39). With no `generated` key present (an older save file,
     or one written without Phase 1.5's addition), reload falls back to
     rebuilding a system from the same recipe (same star type, same forced
     habitable world) -- not the same system come back, so its fine details

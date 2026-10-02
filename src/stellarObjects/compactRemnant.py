@@ -47,7 +47,7 @@ from .serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
                     format_duration_seconds, format_galactic_orbit, format_length_km, format_relative_to_sol,
-                    generate_galactic_orbit_fields, properties_to_string, reseed_rng)
+                    generate_galactic_orbit_fields, properties_to_string)
 
 
 def _log_uniform(low, high):
@@ -105,7 +105,6 @@ class CompactRemnant(Star):
         Returns:
             tuple: `(age_gy, lifespan_gy)`.
         """
-        reseed_rng()
         age = random.uniform(*program_constants.COMPACT_REMNANT_AGE_RANGE_GY)
         return age, float('inf')
 
@@ -214,7 +213,6 @@ class BlackHole(CompactRemnant):
                 with `BLACK_HOLE_INTERMEDIATE_MASS_CHANCE`.
         """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
-        reseed_rng()
 
         if mass_class not in (None, "supermassive"):
             raise ValueError(f"mass_class must be None or 'supermassive', got {mass_class!r}")
@@ -411,7 +409,6 @@ class NeutronStar(CompactRemnant):
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
                  galactic_orbital_phase_deg=None):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
-        reseed_rng()
 
         self.mass_solar = random.uniform(*program_constants.NEUTRON_STAR_MASS_RANGE_SOLAR)
         self.mass = self.mass_solar * physical_constants.SOLAR_MASS_TO_KG

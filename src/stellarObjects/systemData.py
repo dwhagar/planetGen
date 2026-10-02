@@ -1158,12 +1158,10 @@ class StarSystem:
         Reconstructs a `StarSystem` from a dict in the shape `to_dict()`
         produces, without re-running any generation (`__init__` is bypassed
         via `object.__new__`) -- this is a pure, faithful replay of
-        already-decided data, not a new roll. There is deliberately no
-        seed-based replay anywhere in this design: generation mixes the
-        unseedable `secrets` module with the seedable `random` module (see
-        `spaceSector.py`'s own module docstring), so a seed alone could
-        never reproduce a system -- the actual decided values are stored
-        and read back directly instead.
+        already-decided data, not a new roll. A seed reproduces a system
+        only as part of its galaxy and on the release that made it
+        (GEN.39), so the actual decided values are stored and read back
+        directly instead.
 
         This is the single place that resolves both shared back-references
         once and re-attaches the same instances everywhere: `system_config`

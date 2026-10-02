@@ -20,8 +20,9 @@
 
 `test_fuzz_sector_placement.py` already fuzzes random placement, growth
 and the cube's boundary; this file pins the exact edges. Placement draws
-from `spaceSector._rng` (OS entropy), so every test that samples
-replaces it with a seeded `random.Random` or a scripted sampler.
+from `spaceSector._rng` (the module-level `random` stream), and every
+test that samples replaces it with a seeded `random.Random` or a scripted
+sampler.
 """
 
 import contextlib

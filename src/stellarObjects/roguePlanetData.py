@@ -28,7 +28,7 @@ from . import log, physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
                     generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, reseed_rng, sample_power_law)
+                    generate_phoneme_salad_name, sample_power_law)
 
 
 def format_comet_composition_summary(composition):
@@ -198,7 +198,6 @@ class RoguePlanet:
                 asked for explicitly (its own rate,
                 `PHENOMENON_DENSITY_PC3["brown-dwarf"]`).
         """
-        reseed_rng()
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 
@@ -464,7 +463,6 @@ class InterstellarComet:
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
         """
-        reseed_rng()
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
 

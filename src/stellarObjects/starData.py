@@ -31,7 +31,7 @@ from .utils import (format_age_string, format_number, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,
-                    finite_domain, properties_to_string, reseed_rng)
+                    finite_domain, properties_to_string)
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -327,7 +327,6 @@ class Star:
                 - lifespan (float): The total expected lifespan of the star in
                                     billions of years (GY), or `float('inf')` for white dwarfs.
         """
-        reseed_rng()
 
         if self.yerkes_class in ["VII", "D"]:
             # A white dwarf's spectral letter encodes its *current* surface
@@ -550,7 +549,6 @@ class Star:
                 never drops below its present value, since the companion was
                 born at it.
         """
-        reseed_rng()
         original_age = self.age
         if self.phase_end_age_gy == float('inf'):
             # A population-model white dwarf's age sets its cooling
@@ -1163,7 +1161,6 @@ class Star:
         relationships between their core properties, resulting in astrophysically
         plausible stellar objects.
         """
-        reseed_rng()
         yerkes_lookup = YERKES_CLASS_NAMES
         if initial_mass_sol is not None or (not self.system_config.STAR_TYPE and mass_override is None):
             self._generate_from_population_model(initial_mass_sol, age_gy)

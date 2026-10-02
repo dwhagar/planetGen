@@ -211,11 +211,9 @@ def generate_sample(cls, zone, n, include_moons=True):
     orbiting a freshly-generated host star whose spectral type is drawn
     uniformly from `HOST_STAR_TYPES`.
 
-    Note: `stellarObjects.utils.reseed_rng()` reseeds the global `random`
-    module from `secrets` at the start of most generation calls, so
-    generation here (like everywhere else in this codebase) cannot be made
-    deterministic via a seed -- successive runs of this tool will always
-    see fresh random draws.
+    Draws from the global `random` stream, so seeding it first makes a
+    sample repeatable (GEN.39: generation no longer reseeds itself from
+    `secrets`).
 
     Args:
         cls (str): Planet class code.

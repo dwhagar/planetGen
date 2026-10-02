@@ -18,12 +18,9 @@ What this adds over the seeded `test_bughunt_*.py` files and
   `ABSOLUTE_MAX_SYSTEM_OBJECTS`, every tri-state flag on/off/None together,
   hand-written `SLOTS` lists, hostile system names) instead of a fixed
   list, and shrink to a minimal failing config;
-- generation is made fully reproducible: besides the global `random`
-  module, generation draws from `secrets` (`utils.reseed_rng`,
-  `planetData`/`planetLife`/`planetPhysics` class/flavor picks), so
-  `_deterministic_entropy` routes `secrets.randbits`/`randbelow`/`choice`
-  through a `random.Random` seeded from the hypothesis-drawn seed -- a
-  failing example replays exactly;
+- generation is made fully reproducible: it draws only from the global
+  `random` module (GEN.39), which `_deterministic_entropy` seeds from the
+  hypothesis-drawn seed -- a failing example replays exactly;
 - the serialized tree is walked for every numeric leaf (not a hand-picked
   attribute list) and must survive strict JSON (`allow_nan=False`) and a
   JSON -> `from_dict` -> `to_dict` round trip unchanged;
@@ -529,8 +526,8 @@ def test_star_type_with_trailing_garbage_is_rejected(star_type):
 @settings(max_examples=scaled(20))
 @given(seed=SEEDS)
 def test_generation_is_reproducible_under_deterministic_entropy(seed):
-    """Guards this file's own premise: with `secrets` routed through a
-    seeded RNG, the same seed must give the byte-identical system -- if a
+    """Guards this file's own premise: with the `random` stream seeded,
+    the same seed must give the byte-identical system -- if a
     new entropy source sneaks in, every shrunk failure above would stop
     reproducing."""
     cfg_a, cfg_b = SystemConfig(), SystemConfig()

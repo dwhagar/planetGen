@@ -44,7 +44,6 @@ from hypothesis import strategies as st
 import generate
 from stellarObjects.starData import STAR_TYPE_PATTERN
 from stellarObjects import _db, generationLimits, log, program_constants
-from stellarObjects import spaceSector as ss
 from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
 from stellarObjects.utils import ly_to_pc
@@ -81,15 +80,12 @@ def _time_limit(seconds):
 
 @contextlib.contextmanager
 def _deterministic(seed):
-    """`main()` seeds `random` from `secrets.randbits`, generation draws from
-    `secrets` directly, and sector placement from `spaceSector._rng` --
-    route all three through one seeded RNG."""
+    """`main()` seeds `random` from `secrets.randbits`, a new galaxy's seed
+    comes from `secrets.token_bytes`, and generation draws from `random`
+    or the galaxy seed (GEN.39): pin both."""
     rng = random.Random(seed)
     with mock.patch.object(secrets, "randbits", rng.getrandbits), \
-            mock.patch.object(secrets, "randbelow", rng.randrange), \
-            mock.patch.object(secrets, "choice", rng.choice), \
-            mock.patch.object(ss._rng, "random", rng.random), \
-            mock.patch.object(ss._rng, "getrandbits", rng.getrandbits):
+            mock.patch.object(secrets, "token_bytes", lambda n: rng.getrandbits(8 * n).to_bytes(n, "big")):
         yield
 
 

@@ -91,8 +91,8 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, generationLimits, generationStats, log, mathCheck, physical_constants, population,
-    program_constants, progressFile, progressRate, workQueue,
+    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, log, mathCheck, physical_constants,
+    population, program_constants, progressFile, progressRate, workQueue,
 )
 from stellarObjects._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -2153,18 +2153,32 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     cell = SectorCell.for_ring(ring_index, pc_to_ly(edge_pc))
 
     fill = _fill_context(args, address, position_pc)
-    _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill)
-    if address == NUCLEUS_ADDRESS:
-        add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
-
     galaxy_position = {
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
         "galactic_radius_pc": radius_pc,
         "ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": slot_index,
     }
-    sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args), galaxy_position=galaxy_position)
+    # GEN.39: every draw for this sector, its save included, comes from
+    # its own seed, so the run's order and worker count don't matter.
+    with galaxySeed.seeded(_galaxy_seed(args), "sector", address):
+        _sector_name, sector = generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell,
+                                               fill=fill)
+        if address == NUCLEUS_ADDRESS:
+            add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
+        sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args),
+                                    galaxy_position=galaxy_position)
     _count_sector(sector)
     return sector_id, sector.name, sector
+
+
+def _galaxy_seed(args):
+    """The galaxy's stored 16-byte seed (GEN.39), or `None` when it has
+    none (never planned, or planned before schema v51)."""
+    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    try:
+        return _db.get_galaxy_seed(conn)
+    finally:
+        conn.close()
 
 
 def _default_generation_args(config=None):
@@ -3286,6 +3300,14 @@ def _run_galaxy_mode(args, edge_pc, progress):
 # 4. Galaxy density skeleton
 # ===========================================================================
 
+def _galaxy_seed_arg(text):
+    """`--seed`'s type: 32 hex digits, as the galaxy's 16-byte seed."""
+    try:
+        return galaxySeed.parse_seed(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc)) from None
+
+
 def add_plan_arguments(parser):
     """
     Adds every option the `plan` subcommand accepts (besides `--version`)
@@ -3315,6 +3337,10 @@ def add_plan_arguments(parser):
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
                                   "Defaults to build_galaxy_shape's own default (2.82x disk scale length).")
 
+    parser.add_argument('--seed', type=_galaxy_seed_arg, default=None, metavar="HEX",
+                        help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "
+                             "on the same PlanetGen release. Default: the seed already stored, or one drawn at "
+                             "random for a new galaxy. Changing it needs a galaxy with no sectors.")
     parser.add_argument('--max-ring', type=int, default=DEFAULT_MAX_RING,
                         help=f"Hard cap on how far out a layer is scanned. Default: {DEFAULT_MAX_RING}.")
 
@@ -3453,17 +3479,31 @@ def build_skeleton(args):
     elapsed = time.perf_counter() - t0
 
     mysql_config = _db.mysql_config_from_args(args)
-    # A new outline invalidates every pre-placed bright star (schema v43).
+    requested_seed = getattr(args, "seed", None)
     conn = _db.get_connection(mysql_config)
     try:
+        stored_seed = _db.get_galaxy_seed(conn)
+        if (requested_seed is not None and stored_seed is not None and requested_seed != stored_seed
+                and _db.has_galaxy_sectors(conn)):
+            log.error(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
+                      f"a different --seed needs a wiped galaxy.")
+            raise SystemExit(1)
+        # A new outline invalidates every pre-placed bright star (schema v43).
         _db.clear_bright_stars(conn)
     finally:
         conn.close()
     _db.replace_galaxy_layers(extents, config=mysql_config)
-    _db.save_galaxy_shape(
+    galaxy_seed = _db.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_ring_index=outer_ring_index,
-        expected_system_count_at_density_1=e_value, config=mysql_config,
+        expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
     )
+    if requested_seed is not None:
+        source = "from --seed"
+    elif stored_seed is not None:
+        source = "kept from the earlier plan"
+    else:
+        source = "drawn at random"
+    log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
 
     return {
         "outer_ring_index": outer_ring_index,
@@ -3499,7 +3539,7 @@ def scatter_bright_stars(args):
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
-        seed = random.SystemRandom().getrandbits(63)
+        seed = _bright_star_seed(skeleton, "scatter")
         _db.clear_bright_stars(conn)
 
         t0 = time.perf_counter()
@@ -3517,6 +3557,20 @@ def scatter_bright_stars(args):
     )
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _bright_star_seed(skeleton, address):
+    """
+    The 63-bit seed of a bright-star scatter (`"scatter"`) or band, which
+    its layers and the backfill's blocks derive their own streams from:
+    the top 63 bits of the unit seed `bright-stars:<address>` (GEN.39),
+    since `galaxy_shape.bright_star_seed` is a `BIGINT UNSIGNED`. A galaxy
+    with no seed (planned before schema v51) draws one from the run's
+    `random` stream.
+    """
+    if skeleton.galaxy_seed is None:
+        return random.getrandbits(63)
+    return galaxySeed.short_seed(skeleton.galaxy_seed, "bright-stars", address)
 
 
 class _LayerTracker:
@@ -3778,7 +3832,7 @@ def add_bright_star_band(args):
         conn.commit()
         if stale:
             log.normal(f"Removed {stale:,} bright stars an unfinished earlier run left below {current:g} L_sun.")
-        seed = random.SystemRandom().getrandbits(63)
+        seed = _bright_star_seed(skeleton, f"band/{target:g}-{current:g}")
         log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
                    + (f", leaving out {len(filled):,} filled sectors" if filled else "")
                    + (f" and {len(blocks):,} backfilled sector blocks" if blocks else "") + ".")
@@ -4315,8 +4369,8 @@ def main():
 
     seed = secrets.randbits(128)
     random.seed(seed)
-    log.debug(f"Seeded the random number generator with {seed} (cryptographically random; no --seed "
-              f"option exists to reproduce this run).")
+    log.debug(f"Seeded the run's random number generator with {seed}; galaxy sectors and bright stars draw "
+              f"from the galaxy's own seed instead (GEN.39).")
 
     # TEST.68: a bulk run checks the math first and writes nothing at all
     # (not even the activity log's start line) when it fails.

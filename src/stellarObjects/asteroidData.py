@@ -22,7 +22,7 @@ import random
 from .config import SystemConfig
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_au, reseed_rng
+from .utils import format_distance_au
 
 
 def generate_asteroid_composition():
@@ -129,7 +129,6 @@ class AsteroidBelt:
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
         """
-        reseed_rng()
         self.system_config = system_config # Store system_config
         self.distance = distance
         self.lower_limit = lower_limit

@@ -61,7 +61,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, keplerMotion, log, physical_constants, program_constants
+from . import activitylog, galaxySeed, keplerMotion, log, physical_constants, program_constants
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
@@ -96,7 +96,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 50
+SCHEMA_VERSION = 51
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -4701,12 +4701,13 @@ def database_now(conn):
 
 def sector_centers_since(conn, since):
     """The `(x, y, z)` galaxy-frame centers, parsecs, of every galaxy
-    sector created at or after `since` (`database_now`), oldest first."""
+    sector created at or after `since` (`database_now`), in address order:
+    not save order, which the worker count changes (GEN.39)."""
     return [
         (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
         for row in conn.execute(
-            "SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors"
-            " WHERE created_at >= ? AND ring_index IS NOT NULL ORDER BY id", (since,)
+            "SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE created_at >= ?"
+            " AND ring_index IS NOT NULL ORDER BY ring_index, layer_index, ring_slot_index", (since,)
         ).fetchall()
     ]
 
@@ -5230,16 +5231,18 @@ def get_sector_id_at(conn, ring_index, layer_index, ring_slot_index):
 
 GalaxySkeletonInfo = namedtuple(
     "GalaxySkeletonInfo",
-    ["shape", "edge_pc", "outer_ring_index", "expected_system_count_at_density_1"],
+    ["shape", "edge_pc", "outer_ring_index", "expected_system_count_at_density_1", "galaxy_seed"],
+    defaults=(None,),
 )
 """The galaxy's stored skeleton -- everything needed to recompute any
 sector's exact position/density on demand (see schema.sql's "v8" header
-note). `shape` is a `galaxyDensity.GalaxyShape`; the other three fields
-are `galaxy_shape`'s own remaining columns."""
+note). `shape` is a `galaxyDensity.GalaxyShape`; the other fields are
+`galaxy_shape`'s own remaining columns, `galaxy_seed` (v51, GEN.39) the
+16-byte seed or `None` for a galaxy planned before it."""
 
 
 def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
-                       expected_system_count_at_density_1, config=None):
+                       expected_system_count_at_density_1, config=None, galaxy_seed=None):
     """
     Replaces the galaxy's singleton `galaxy_shape` row -- there is exactly
     one galaxy, so this always overwrites whatever was there before rather
@@ -5256,10 +5259,18 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
             `galaxySkeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        galaxy_seed (bytes, optional): The galaxy's 16-byte seed (GEN.39).
+            `None` keeps the one stored, or draws one
+            (`galaxySeed.new_seed`) when there is none.
+
+    Returns:
+        bytes: The galaxy seed now stored.
     """
     conn = get_connection(config)
     try:
         with conn:
+            if galaxy_seed is None:
+                galaxy_seed = get_galaxy_seed(conn) or galaxySeed.new_seed()
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -5267,8 +5278,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
                     pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_ring_index
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    expected_system_count_at_density_1, outer_ring_index, galaxy_seed
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -5284,18 +5295,34 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     expected_system_count_at_density_1 = VALUES(expected_system_count_at_density_1),
                     outer_ring_index = VALUES(outer_ring_index),
                     bright_star_min_luminosity_sol = NULL,
-                    bright_star_seed = NULL
+                    bright_star_seed = NULL,
+                    galaxy_seed = VALUES(galaxy_seed)
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
                     shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
                     shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_ring_index,
+                    expected_system_count_at_density_1, outer_ring_index, bytes(galaxy_seed),
                 ),
             )
     finally:
         conn.close()
+    return bytes(galaxy_seed)
+
+
+def has_galaxy_sectors(conn):
+    """Whether any sector has been placed in the galaxy grid."""
+    return conn.execute("SELECT 1 FROM sectors WHERE ring_index IS NOT NULL LIMIT 1").fetchone() is not None
+
+
+def get_galaxy_seed(conn):
+    """The galaxy's 16-byte seed (v51, GEN.39), or `None` when it has
+    never been planned (or was planned before v51)."""
+    row = conn.execute("SELECT galaxy_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row["galaxy_seed"] is None:
+        return None
+    return bytes(row["galaxy_seed"])
 
 
 def get_galaxy_shape(conn):
@@ -5315,7 +5342,7 @@ def get_galaxy_shape(conn):
         SELECT disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
                bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,
                spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm,
-               edge_pc, expected_system_count_at_density_1, outer_ring_index
+               edge_pc, expected_system_count_at_density_1, outer_ring_index, galaxy_seed
         FROM galaxy_shape WHERE id = 1
         """
     ).fetchone()
@@ -5337,6 +5364,7 @@ def get_galaxy_shape(conn):
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_ring_index=row["outer_ring_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
+        galaxy_seed=None if row["galaxy_seed"] is None else bytes(row["galaxy_seed"]),
     )
 
 
@@ -5520,6 +5548,11 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
                               lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position))
 
 
+_RETRY_JITTER = random.Random()
+"""The retry pause's own stream, so waiting never moves the generation's
+`random` stream (GEN.39)."""
+
+
 def _save_with_retries(config, names, insert):
     """
     Runs `insert(conn)` in one READ COMMITTED transaction and returns its
@@ -5535,10 +5568,14 @@ def _save_with_retries(config, names, insert):
     that writer's new system to rename it "Alpha ..." (a REPEATABLE READ
     snapshot taken before the wait doesn't).
     """
+    # A retry draws what the first try drew (GEN.39): the sector's numbers
+    # can't depend on whether another worker's save got in its way.
+    state = random.getstate()
     for attempt in range(1, SECTOR_SAVE_ATTEMPTS + 1):
         conn = get_connection(config)
         try:
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            random.setstate(state)
             with conn:
                 return insert(conn)
         except Exception as exc:
@@ -5550,7 +5587,7 @@ def _save_with_retries(config, names, insert):
                 raise
             log.debug(f"Save hit MySQL error {exc.args[0]} ({exc.args[1] if len(exc.args) > 1 else ''}); "
                       f"retrying ({attempt}/{SECTOR_SAVE_ATTEMPTS - 1}).")
-            time.sleep(random.uniform(0.05, 0.25) * attempt)
+            time.sleep(_RETRY_JITTER.uniform(0.05, 0.25) * attempt)
         finally:
             conn.close()
 
@@ -8476,6 +8513,20 @@ def _migrate_v49_to_v50(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (50)")
 
 
+def _migrate_v50_to_v51(conn):
+    """
+    Adds `galaxy_shape.galaxy_seed` (GEN.39) -- see `schema.sql`'s "v51"
+    header note. Left NULL: a galaxy planned before has no seed, and its
+    sectors can't be given one after the fact.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "galaxy_shape", "galaxy_seed"):
+        conn.execute("ALTER TABLE galaxy_shape ADD COLUMN galaxy_seed BINARY(16)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (51)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -8585,6 +8636,7 @@ def _migration_steps():
         (48, _migrate_v47_to_v48),
         (49, _migrate_v48_to_v49),
         (50, _migrate_v49_to_v50),
+        (51, _migrate_v50_to_v51),
     ]
 
 
