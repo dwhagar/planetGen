@@ -812,3 +812,54 @@ def test_galaxy_phone_steps_button_between_back_and_forward(page, map_site):
     page.set_viewport_size({"width": 1280, "height": 900})
     page.wait_for_timeout(200)
     assert not steps.is_visible() and page.evaluate(CRUMB_LINE)["visible"]
+
+
+# --- NAV.31: hover lights every choice while picking a course -------------------------
+
+CHOICE_SCAN = """() => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    const box = canvas.getBoundingClientRect();
+    const seen = new Set();
+    for (let j = 2; j < 22; j++) {
+        for (let i = 2; i < 22; i++) {
+            canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: box.left + (i / 24) * box.width,
+                clientY: box.top + (j / 24) * box.height, bubbles: true, pointerType: "mouse"}));
+            if (!tip.hidden) seen.add(tip.textContent.replace(/ \\(nothing generated here to pick\\)$/, ""));
+        }
+    }
+    return Array.from(seen).sort();
+}"""
+
+
+def _choices_seen(page):
+    seen = page.evaluate(CHOICE_SCAN)
+    for _ in range(HOVER_RETRIES):  # the map ignores the pointer during a flight
+        if seen:
+            break
+        page.wait_for_timeout(250)
+        seen = page.evaluate(CHOICE_SCAN)
+    return seen
+
+
+def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_site):
+    """NAV.31: picking a NAV end, hovering lights the arc (and at each
+    later stage the choice) under the pointer just as outside pick mode,
+    generated or not; only an empty one can't be taken."""
+    _open_galaxy(page, map_site)
+    _click_choice(page, GENERATED_CHOICE)
+    stages = ["", "?" + _query(page)]
+    for query in stages:
+        _open_galaxy(page, map_site, query)
+        browsing = _choices_seen(page)
+        _open_galaxy(page, map_site, query + ("&" if query else "?") + "pick=to&from=system:701")
+        picking = _choices_seen(page)
+        assert len(browsing) > 1 and picking == browsing, (query, len(picking), len(browsing))
+    # An empty arc lights but a click there stays put.
+    _open_galaxy(page, map_site, "?pick=to&from=system:701")
+    found = _hover_choice(page, r"nothing generated here to pick\)$")
+    assert found, "no empty arc to hover"
+    before = (page.url, _crumbs(page))
+    page.mouse.click(found[0], found[1])
+    _settle(page)
+    assert (page.url, _crumbs(page)) == before

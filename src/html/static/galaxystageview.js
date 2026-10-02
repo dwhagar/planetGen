@@ -629,7 +629,10 @@ export function createStageView(host) {
   }
 
   // The choice under a screen point (an index into display.options), or
-  // -1; while the pick is a slab, the slab of the block under it.
+  // -1; while the pick is a slab, the slab of the block under it. Every
+  // choice lights on hover, with "Generated only" on (always on while
+  // picking a NAV end) too: only taking one needs something generated
+  // (pickable, NAV.31).
   function optionAt(clientX, clientY) {
     // Below the whole galaxy the view is slanted, so the block under the
     // pointer picks its layer too.
@@ -645,7 +648,6 @@ export function createStageView(host) {
       const hit = hits[n];
       const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
       if (!cell) continue;
-      if (generatedOnly && !(cell.filled > 0)) continue;
       return cell.option;
     }
     return -1;
@@ -828,6 +830,10 @@ export function createStageView(host) {
   }
 
   function optionText(index) {
+    return choiceText(index) + (pickable(index) ? "" : " (nothing generated here to pick)");
+  }
+
+  function choiceText(index) {
     const option = display.options[index];
     const data = display.data;
     if (option.blocks.length === 1) return blockText(option.blocks[0], data);

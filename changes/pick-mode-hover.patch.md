@@ -1,0 +1,2 @@
+### Fixed
+- **Hover lights the galaxy's arcs while picking a course (NAV.31).** While choosing a NAV start or destination on the Galaxy Map, hovering now lights and outlines the arc under the pointer, and at every later stage the choice under it, just as when browsing the map. Before, with "Generated only" forced on for the pick, only the few arcs holding generated sectors reacted at all. An arc or block with nothing generated still can't be taken, and its tooltip says so. The same applies whenever "Generated only" is on.
