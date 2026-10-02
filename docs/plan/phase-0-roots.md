@@ -80,8 +80,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run |  | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
-| OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
+| OPS.10 | The galaxy seed and version at the top of every generation log |  | Sub-item of GEN.39. |
 
 ### Database consistency check
 

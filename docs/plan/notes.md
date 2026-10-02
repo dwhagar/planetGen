@@ -166,7 +166,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
 | Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
 | _db.py | API.10 (id blocks), API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347); GEN.46 done (PR #370). |
-| Galaxy schema (schema.sql, v51 today: galaxy_seed, PR #381) | DB.6, DB.7, GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11 | One writer at a time, in this order: DB.6 (phase 0, fresh galaxy), then DB.7, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. DB.8 only reads it. |
+| Galaxy schema (schema.sql, v52 today: version_key and generation_runs, PR #387) | DB.7, GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11 | One writer at a time, in this order (DB.6 done, PR #387): DB.7, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13 (key history), API.9, API.15 (call log), USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
