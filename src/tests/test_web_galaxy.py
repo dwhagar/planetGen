@@ -139,7 +139,7 @@ def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
     assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
     # The Bookmarks menu (MAP.23), for this database's list.
     assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
-    assert f'data-bookmarks-menu data-bookmarks-keys data-bookmark-db="{DB}"' in html
+    assert f'data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{DB}"' in html
     assert 'id="galaxymap3d-canvas"' in html
     assert "3 placed sectors" in html
     # The Galaxy section is current, with a breadcrumb.

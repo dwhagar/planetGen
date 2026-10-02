@@ -109,8 +109,9 @@ def test_sector_map_buttons_change_the_view(page, base_url, sample_params):
     if "toggle-rogue-markers" in actions:
         toggle = page.locator('#starmap-controls [data-action="toggle-rogue-markers"]')
         before = _shot(page, canvas)
+        assert toggle.get_attribute("aria-pressed") == "false", "off by default (MAP.83)"
         toggle.click()
-        assert toggle.get_attribute("aria-pressed") == "false"
+        assert toggle.get_attribute("aria-pressed") == "true"
         assert _shot(page, canvas) != before
 
 
