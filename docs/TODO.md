@@ -105,9 +105,9 @@ goes into a phase's table in the same PR that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15 |
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15, DB.6, OPS.10, OPS.11, GEN.56, GEN.57, GEN.58, TEST.77 |
 | 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
-| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11 |
+| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11, GEN.55, OPS.12, ADM.17, API.16 |
 | 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -1569,8 +1569,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star draws, systems, phenomena, backfill) comes from it, so the order
   sectors run in and the worker count don't matter. Reproducible on the
   same version only: a release that changes generation may change what
-  a seed makes. Seed shape (Boss, 2026-10-02 01:36Z: "I want to use a
-  128bit seed"): one 128-bit galaxy seed stored with the galaxy (a
+  a seed makes. Storage and the log line are DB.6 and OPS.10 below; the
+  end goal, a version and a seed rebuilding the same galaxy, is GEN.55.
+  Seed shape (Boss, 2026-10-02 01:36Z: "I want to use a 128bit seed"): one 128-bit galaxy seed stored with the galaxy (a
   `BINARY(16)` column or a 32-character hex string, since `BIGINT
   UNSIGNED` holds only 64 bits) and shown as 32 hex digits, a new
   `--seed` option on `plan` and new galaxies that accepts it, and each
@@ -1583,6 +1584,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checks that one galaxy seed gives the same sectors at 1, 2 and N
   workers (with TEST.74); and a test checks that two seeds differing
   only in their high 64 bits give different output.
+
+  - [ ] **DB.6 Store the galaxy's 128-bit seed, the version that made it, and every generation run**
+    The storage half of GEN.39. Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
+    the database, and put it in the log at the top of any generation, also
+    populate the TODO upward from here to eventually build a system that a
+    version number and a seed value would reproduce the same galaxy by the
+    end of the phases." Today the
+    only stored seed is the bright-star scatter's 63-bit one
+    (`_db.record_bright_star_scatter`); the run seed in `generate.py`
+    main (`secrets.randbits(128)`) and the work queue's `run_seed` are
+    never stored. Done: a galaxy schema migration adds the galaxy's seed
+    (`BINARY(16)`, written once, when the galaxy is first planned) and the
+    PlanetGen version, Python version and platform that made it, plus a
+    `generation_runs` table with one row per run that changes the
+    galaxy: the command and its options, the version, start and end
+    times, and the outcome. Simplest default: the run history is what
+    makes "replay" possible (OPS.12), since a galaxy is built by a series
+    of commands (plan, sectors, scatter, backfill), not by the seed
+    alone. A test checks the seed reads back bit for bit.
+
+  - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
+    The log half of GEN.39 (Boss: "put it in the log at the top of any
+    generation"). Today `generate.py` main logs "Seeded the random number
+    generator with ... (no --seed option exists to reproduce this run)"
+    at debug level only. Done: every `generate.py` subcommand, every job
+    the web site or API starts, and every work queue run writes one line
+    first, at normal level, to the console, the job log and the debug
+    log: the galaxy seed as 32 hex digits, the PlanetGen version, and the
+    run's command (for example `Galaxy seed 3f2a...c901, PlanetGen
+    7.127.352, run: sector 12 3 0`); a test checks the line is first.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -1769,6 +1800,113 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   but it isn't. Done: the secondary's type comes from its mass, or its
   mass is held to its type's range, and its luminosity follows from the
   mass.
+
+- [ ] **GEN.55 A version number and a seed reproduce the same galaxy (end goal)**
+  Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
+  the database, and put it in the log at the top of any generation, also
+  populate the TODO upward from here to eventually build a system that a
+  version number and a seed value would reproduce the same galaxy by the
+  end of the phases." This item is the
+  chain that gets there; it is done when its last sub-item is. Order:
+  GEN.39 (per-unit seeds, after PERF.21) with DB.6 and OPS.10, then
+  OPS.11 (what "the same galaxy" means and which versions stay
+  reproducible), GEN.56 (every draw seeded), GEN.57 (no dependence on
+  worker count, order or timing), GEN.58 (a galaxy fingerprint) and
+  TEST.77 (the golden-seed test) in phase 1; OPS.12 (the reproduce
+  check), ADM.17 and API.16 (showing the seed and version) in phase 3.
+  Items that draw new randomness later (GEN.47 nebulae, GEN.42 sector
+  weeding, PERF.18 parallel backfill, API.12's download, API.13
+  generation without a database) must use the derived seeds and keep
+  TEST.77 green.
+
+  - [ ] **OPS.11 Define "the same galaxy" and which versions stay reproducible**
+    A short design note (`docs/design/reproducible-galaxies.md`) that
+    the other items build to. Simplest defaults, unless Boss changes
+    them: "the same galaxy" means every generated object has the same
+    address, position, properties and name; database ids, timestamps,
+    population data rebuilt later and admin edits (the edit log keeps
+    those) are not compared. A seed reproduces a galaxy only on the
+    exact PlanetGen version that made it (recorded by DB.6); an older
+    galaxy is reproduced by checking out its version. Python's version
+    and platform are recorded too, and TEST.77 runs on every CI Python
+    leg so any difference between them shows up. A release whose
+    generation output changes says so in its `changes/` note.
+
+  - [ ] **GEN.56 Every random draw in generation comes from the derived seeds**
+    The sweep GEN.39's "no draw uses the operating system's random
+    source" needs; found by reading the code on 2026-10-02.
+    `secrets.choice` and `secrets.randbelow` draw generation choices in
+    `planetPhysics.py` (planet class, 3 places), `planetLife.py` (5),
+    `planetData.py` (moons) and `utils.py` (name syllables, prefixes and
+    suffixes, 5); `spaceSector._rng` is a `secrets.SystemRandom` for
+    every star position; `utils.reseed_rng()` reseeds the global
+    `random` from `secrets` and is called from 13 generator modules
+    (stars, comets, asteroids, nebulae, remnants, quasars, rogue planets
+    and others); the bright-star scatter and band seeds are
+    `random.SystemRandom().getrandbits(63)` (`generate.py`); and the run
+    seed is `secrets.randbits(128)`. Done: each of these draws from a
+    generator seeded from the unit's derived seed and passed in
+    explicitly (not the global `random`); and a test scans the
+    generation modules and fails on `secrets`, `SystemRandom`,
+    `os.urandom`, `uuid4`, `time` or an unseeded `random.seed()` used
+    for a draw, with an allowlist for login, CSRF, API keys and job ids.
+    Prerequisite: GEN.39.
+
+  - [ ] **GEN.57 Generation output doesn't depend on worker count, run order or timing**
+    Seeding every draw (GEN.56) isn't enough when the result depends on
+    what ran first. Known cases: name collisions are resolved by how many
+    names already exist (`resolve_greek_roman_collision(base_name,
+    existing_count)` in `nameUniqueness.py`), so the sector that reserves
+    first gets the plain name; population seeds key on database ids
+    (`random.Random(planet_id)` and `random.Random(species_id * 7919)`
+    in `population.py`), and ids come from per-worker id blocks; and the
+    backfill skips sectors filled by earlier runs. Done: names, seeds and
+    skips key on addresses and the galaxy seed, not on ids or arrival
+    order (for example, collisions resolved in address order); replaying
+    the same run history (DB.6) gives the same galaxy; and a test runs
+    the same commands at 1 and 4 workers and in two sector orders and
+    compares fingerprints (GEN.58). Prerequisites: PERF.21, GEN.39,
+    GEN.56.
+
+  - [ ] **GEN.58 A fingerprint of a galaxy's generated content**
+    A way to tell whether two galaxies are the same in the sense OPS.11
+    defines. Done: `generate.py fingerprint` prints a SHA-256 digest
+    per sector and one for the whole galaxy over the compared content in
+    a fixed order (address order, canonical number formatting), skipping
+    ids, timestamps and edits; the same function backs GEN.57's test,
+    TEST.77 and OPS.12. Prerequisite: OPS.11.
+
+  - [ ] **TEST.77 A golden-seed regression test**
+    Done: a fixed 128-bit seed builds a small galaxy (plan, a few
+    sectors, a scatter and a backfill) at 1 and 4 workers, and its
+    fingerprint (GEN.58) must match the one pinned in
+    `src/tests/golden/` with the version it was made on. When generation
+    output changes, the test fails until the PR updates the pinned
+    fingerprint and its `changes/` note says generation output changed
+    (`bump_version.py --check` checks the two go together). It runs on
+    every CI Python leg. Prerequisites: GEN.57, GEN.58. [generation, infra]
+
+  - [ ] **OPS.12 Check that a version and a seed rebuild the same galaxy**
+    Done: `generate.py reproduce --check` rebuilds the galaxy (or chosen
+    sectors) from its stored seed and run history (DB.6) into a scratch
+    database and compares fingerprints (GEN.58) with the live galaxy,
+    listing any sector that differs; it refuses, naming the version to
+    check out, when the running version isn't the galaxy's. A test runs
+    it on a small galaxy, and on one with a deliberately changed sector.
+    Simplest default: no automatic migration of old galaxies to a new
+    version's output. Prerequisites: DB.6, GEN.57, GEN.58, TEST.77.
+
+  - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
+    Done: the Generate page shows the galaxy seed (32 hex digits, with a
+    copy button), the version that made the galaxy and the run history
+    (DB.6), and the new-galaxy form takes an optional seed (blank means a
+    random one); the admin's System page shows the same for one system.
+    Prerequisite: DB.6.
+
+  - [ ] **API.16 The API reports the galaxy's seed, version and run history**
+    Done: an API route returns the galaxy seed, the version that made it
+    and the run history (DB.6), documented with the API; API.12's
+    download uses the same fields. Prerequisites: DB.6, API.5.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
