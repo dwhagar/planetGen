@@ -34,6 +34,8 @@ from tabledisplay import format_star_radius, to_plain_text
 
 from classref import ROGUE_MASS_CLASS_NAMES
 from stellarObjects import activitylog
+from stellarObjects.asteroidData import format_composition_summary
+from stellarObjects.roguePlanetData import format_comet_composition_summary
 from stellarObjects.program_constants import NEBULA_CLASSES
 from stellarObjects.rogueSurface import SURFACE_REGIME_LABELS
 
@@ -476,6 +478,17 @@ def _optional(fmt):
     return lambda v: fmt(v) if v is not None else None
 
 
+def _field_composition_text(rows):
+    """An asteroid field's composition rows (DB.2) as a phrase: "high
+    concentrations of iron and trace amounts of platinum"."""
+    return format_composition_summary([(row["component"], row["concentration"]) for row in rows]) if rows else None
+
+
+def _comet_composition_text(components):
+    """An interstellar comet's composition rows (DB.2) as a phrase."""
+    return format_comet_composition_summary(components) if components else None
+
+
 _SPEED = ("galactic_orbital_speed_kms", "Galactic Orbital Speed", format_speed_kms)
 _PERIOD = ("galactic_orbital_period_gy", "Galactic Orbital Period", lambda v: format_period_years(v * 1e9))
 
@@ -494,7 +507,7 @@ FIELD_SPECS = {
         ("composition_family", "Composition Family", _title_case),
         ("density", "Density", _title_case),
         ("radius_ly", "Radius", _ly),
-        ("composition_summary", "Composition", str),
+        ("composition", "Composition", _field_composition_text),
         _SPEED, _PERIOD,
     ],
     "black_hole": [
@@ -556,7 +569,7 @@ FIELD_SPECS = {
         ("nucleus_diameter_km", "Nucleus Diameter", _km),
         ("velocity_kms", "Velocity", format_speed_kms),
         ("is_active", "Active", _bool_text),
-        ("composition_summary", "Composition", str),
+        ("composition", "Composition", _comet_composition_text),
         _SPEED, _PERIOD,
     ],
     # No galactic-orbit rows: a quasar sits at the galactic center.

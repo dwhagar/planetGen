@@ -305,7 +305,11 @@ connectivity to that specific schema rather than the default one.
   `formation_cause`, a black hole's `mass_solar`/`spin`/
   `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
   `age_years`), plus `type`, `sector_name` and `nearest` (its three
-  nearest star systems, `{id, name, distance_ly}`) — `queryDb.
+  nearest star systems, `{id, name, distance_ly}`). An asteroid field also
+  has `composition`, its saved composition rows in order as
+  `{component, concentration}` (`concentration` is `high`/`moderate`/
+  `small`/`trace`), and an interstellar comet `composition`, its
+  components in order — `queryDb.
   phenomenon_detail`. `type` is one of `nebula`/`asteroid_field`/
   `black_hole`/`neutron_star`/`supernova_remnant`/`rogue_planet`/
   `interstellar_comet`/`quasar`; an unrecognized type or

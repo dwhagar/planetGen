@@ -232,8 +232,13 @@ def test_reset_accepts_the_typed_name_with_surrounding_whitespace(seeded, monkey
     assert _count(seeded, "star_systems") == 0
 
 
-def test_reset_wipes_content_keeps_migrations_and_restarts_ids(seeded, monkeypatch):
+def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatch):
     versions = _count(seeded, "schema_migrations")
+    conn = _db.get_connection(seeded)
+    try:
+        old_max = conn.execute("SELECT MAX(id) AS m FROM star_systems").fetchone()["m"]
+    finally:
+        conn.close()
     assert _run_main(resetDb, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
     conn = _db.get_connection(seeded)
     try:
@@ -242,11 +247,12 @@ def test_reset_wipes_content_keeps_migrations_and_restarts_ids(seeded, monkeypat
     finally:
         conn.close()
     assert _count(seeded, "schema_migrations") == versions
-    # AUTO_INCREMENT restarts: the next saved system gets id 1.
+    # DB.3: the id counters are kept, so ids carry on past the old ones
+    # (a process still holding an old block can't collide with new ones).
     run_cli("system", mysql_argv(seeded))
     conn = _db.get_connection(seeded)
     try:
-        assert conn.execute("SELECT MIN(id) AS m FROM star_systems").fetchone()["m"] == 1
+        assert conn.execute("SELECT MIN(id) AS m FROM star_systems").fetchone()["m"] > old_max
     finally:
         conn.close()
 

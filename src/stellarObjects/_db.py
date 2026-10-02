@@ -530,8 +530,8 @@ def _insert_shape(sql):
 def forget_id_blocks(key):
     """Drops this process's cached id blocks for one database
     (`MySQLConfig._key()`), so the next id is reserved afresh -- after
-    `resetDb.py` empties the tables and `id_blocks`, or a migration adds
-    `id_blocks`."""
+    `resetDb.py` empties the tables (it keeps `id_blocks`, DB.3), or a
+    migration adds `id_blocks`."""
     with _id_lock:
         for block_key in [k for k in _id_blocks if k[0] == key]:
             del _id_blocks[block_key]
@@ -577,8 +577,7 @@ def _allocate_id(config, table):
 def _reserve_id_block(config, table, size, at_least):
     """Reserves `size` ids for `table` and returns the first. `at_least`
     is past every id this process already handed out for it, which the
-    table's `MAX(id)` can't show while those rows are uncommitted (and
-    `id_blocks` can't, after `resetDb.py` empties it)."""
+    table's `MAX(id)` can't show while those rows are uncommitted."""
     raw = _get_pool(config).connection()
     try:
         cur = raw.cursor()

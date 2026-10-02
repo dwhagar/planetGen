@@ -13,12 +13,16 @@ table `schema.sql` defines except `schema_migrations`, so:
     current DDL version) is untouched, so a later `migrateDb.py` run still
     correctly sees "already current" instead of re-running migrations
     against a wiped-but-still-v22 database.
-  - `TRUNCATE` (unlike `DELETE FROM`) resets every table's own
-    `AUTO_INCREMENT` counter back to 1 -- the new galaxy's first sector/
-    system/star/... row gets id 1 again, not some arbitrarily high number
-    left over from the wiped one.
+  - `id_blocks` (the id counters writers reserve blocks of ids from,
+    PERF.13) is kept too (DB.3). Another process that is still running
+    (the web app, a generation worker) may hold a block of ids it reserved
+    before the reset and go on using it; if the counters restarted at 1,
+    a process starting after the reset would be handed the same ids and
+    one of them would fail on a duplicate primary key. Kept, they carry
+    on past every block ever handed out, so the new galaxy's ids start
+    where the old one's stopped rather than at 1.
   - The table list is discovered live via `SHOW FULL TABLES ... WHERE
-    Table_type = 'BASE TABLE'` (excluding `schema_migrations`), not
+    Table_type = 'BASE TABLE'` (excluding `_EXCLUDED_TABLES`), not
     hand-maintained here -- a future schema change that adds a new content
     table is picked up automatically, and a view (`sector_objects`) is
     never a `BASE TABLE` so it's excluded for free, no special-casing
@@ -56,9 +60,10 @@ from stellarObjects._db import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
 )
 
-_EXCLUDED_TABLES = {"schema_migrations"}
-"""set: Real tables that exist in every fresh database but hold DDL
-bookkeeping, not galaxy content -- never truncated. `sector_objects` (a
+_EXCLUDED_TABLES = {"schema_migrations", "id_blocks"}
+"""set: Real tables that exist in every fresh database but hold
+bookkeeping, not galaxy content -- never truncated (`id_blocks`: see this
+module's docstring, DB.3). `sector_objects` (a
 VIEW) needs no equivalent entry here; `SHOW FULL TABLES ... BASE TABLE`
 already excludes it."""
 
@@ -172,8 +177,8 @@ def reset_database(config, dry_run=False, assume_yes=False):
         finally:
             conn.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
-        # id_blocks was emptied too; this process's cached blocks would
-        # carry on past the old ids.
+        # This process starts fresh blocks (past every old one, since
+        # id_blocks is kept); not needed for safety, just tidy.
         forget_id_blocks(config._key())
 
         print(f"Wiped {len(tables)} table(s) ({total_rows:,} row(s)) from '{config.database}'.")
