@@ -650,16 +650,16 @@ its neighbors' lists; `refresh_nearest_systems` recomputes whole
 sectors. `_migrate_v40_to_v41` adds both and fills them.
 
 **Object IDs (GEN.64).** Every placed interstellar object (a rogue
-planet, standalone black hole or neutron star, nebula, supernova
-remnant (its core is `"<ID> Core"`), quasar, interstellar comet or asteroid field) and
-every star system built around a bright-sweep star is named by its
-64-bit position ID, 16 hex digits, instead of the rules below:
+planet, standalone black hole or neutron star, nebula, supernova remnant
+and its collapsed core, quasar, interstellar comet or asteroid field)
+and every star system built around a bright-sweep star is named by its
+76-bit position ID, 19 hex digits, instead of the rules below:
 `stellarObjects/objectId.py` packs type, distance unit, distance,
-bearing and mark from the galactic center, and `_db._claim_object_ids`
-bumps a clash by one mark step in generation order. These names never go
-through `system_name_registry`. An unplaced object (no galaxy position)
-still follows the rules below, and rows saved before this keep their
-names. See `docs/design/object-ids.md`.
+bearing, mark and a 4-bit collision number from the galactic center,
+and `_db._claim_object_ids` hands out collision numbers in generation
+order. These names never go through `system_name_registry`. A name given
+by hand and an unplaced object still follow the rules below, and rows
+saved before this keep their names. See `docs/design/object-ids.md`.
 
 **Names (v40).** Black holes, neutron stars, nebulae, supernova
 remnants, rogue planets and quasars draw their names through

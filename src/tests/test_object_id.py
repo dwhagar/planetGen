@@ -1,7 +1,7 @@
 # tests/test_object_id.py
 
 """
-GEN.64: the 64-bit position ID (`stellarObjects/objectId.py`) every
+GEN.64: the 76-bit position ID (`stellarObjects/objectId.py`) every
 interstellar object and bright-sweep system is named by, and how a sector
 save claims those IDs (`_db._claim_object_ids`, `insert_sector`).
 
@@ -22,19 +22,20 @@ _POSITION = {"center_x_pc": 8000.0, "center_y_pc": 20.0, "center_z_pc": 5.0, "ga
 
 def test_fields_pack_in_their_bit_ranges():
     name = objectId.format_id(objectId.pack("rogue-planet", (8000.0, 20.0, 5.0)))
-    assert len(name) == 16 and name == name.upper()
+    assert len(name) == 19 and name == name.upper()
     fields = objectId.parse_id(name)
     assert fields["kind"] == "rogue-planet" and fields["unit"] == "pc" and fields["distance"] == 8000
     course = course_between((0.0, 0.0, 0.0), (8000.0, 20.0, 5.0))
-    assert fields["bearing_deg"] == pytest.approx(course.bearing_deg, abs=360 / 2 ** 20)
-    assert fields["mark_deg"] == pytest.approx(course.mark_deg, abs=360 / 2 ** 20)
-    assert int(name, 16) >> 60 == objectId.KIND_CODES["rogue-planet"]
+    assert fields["bearing_deg"] == pytest.approx(course.bearing_deg, abs=360 / 2 ** 22)
+    assert fields["mark_deg"] == pytest.approx(course.mark_deg, abs=360 / 2 ** 22)
+    assert int(name, 16) >> 70 == objectId.KIND_CODES["rogue-planet"]
+    assert fields["collision"] == 0 and int(name, 16) & 0xF == 0
 
 
 @pytest.mark.parametrize("distance_pc, unit, value", [
-    (0.0, "mpc", 0), (12.5, "mpc", 12500), (131.071, "mpc", 131071), (500.0, "cpc", 50000),
-    (1310.71, "cpc", 131071), (8000.4, "pc", 8000), (250_000.0, "kpc", 250), (3e9, "Mpc", 3000),
-    (1.3e14, "Gpc", 130000),
+    (0.0, "mpc", 0), (12.5, "mpc", 12500), (524.287, "mpc", 524287), (600.0, "cpc", 60000),
+    (5242.87, "cpc", 524287), (8000.4, "pc", 8000), (600_000.0, "kpc", 600), (3e9, "Mpc", 3000),
+    (5e14, "Gpc", 500000),
 ])
 def test_distance_takes_the_smallest_unit_it_fits(distance_pc, unit, value):
     fields = objectId.parse_id(objectId.format_id(objectId.pack("nebula", (distance_pc, 0.0, 0.0))))
@@ -44,23 +45,33 @@ def test_distance_takes_the_smallest_unit_it_fits(distance_pc, unit, value):
 def test_kind_sets_the_type_bits_only():
     position = (100.0, -40.0, 3.0)
     ids = {kind: objectId.pack(kind, position) for kind in objectId.KIND_CODES}
-    low = {object_id & ((1 << 60) - 1) for object_id in ids.values()}
+    low = {object_id & ((1 << 70) - 1) for object_id in ids.values()}
     assert len(low) == 1 and len(set(ids.values())) == len(objectId.KIND_CODES)
 
 
 def test_unknown_kind_and_bad_names_are_refused():
     with pytest.raises(ValueError):
         objectId.pack("star-system", (1.0, 0.0, 0.0))
-    for name in ("Vestara", "140AF0FEC9CFFFB", "0000000000000000", "G40AF0FEC9CFFFB8", "1E0AF0FEC9CFFFB8"):
+    good = objectId.format_id(objectId.pack("rogue-planet", (8000.0, 20.0, 5.0)))
+    bad_unit = objectId.format_id((objectId.KIND_CODES["nebula"] << 70) | (7 << 67))
+    for name in ("Vestara", good[:-1], "0" * 17, "G" + good[1:], bad_unit, "F" + good[1:]):
         assert not objectId.is_object_id(name)
-    assert objectId.is_object_id("140af0fec9cffFB8")
+    assert objectId.is_object_id(good.lower())
 
 
-def test_bump_moves_one_mark_step_and_wraps_inside_the_mark_field():
+def test_bump_counts_sixteen_collisions_then_moves_one_mark_step():
     object_id = objectId.pack("rogue-planet", (8000.0, 20.0, 5.0))
-    assert objectId.bump(object_id) == object_id + 1 or object_id & 0xFFFFF == 0xFFFFF
-    top = (object_id | 0xFFFFF)
-    assert objectId.bump(top) == top & ~0xFFFFF
+    seen = [object_id]
+    for _ in range(16):
+        seen.append(objectId.bump(seen[-1]))
+    assert [objectId.collision(i) for i in seen] == list(range(16)) + [0]
+    assert seen[15] == object_id + 15
+    fields, next_step = (objectId.parse_id(objectId.format_id(i)) for i in (object_id, seen[16]))
+    assert next_step["mark_deg"] == pytest.approx(fields["mark_deg"] + 360 / 2 ** 22)
+    assert ({k: v for k, v in next_step.items() if k != "mark_deg"}
+            == {k: v for k, v in fields.items() if k != "mark_deg"})
+    mark_and_collision = (((1 << 22) - 1) << 4) | 0xF
+    assert objectId.bump(object_id | mark_and_collision) == object_id & ~mark_and_collision
 
 
 def test_same_point_ids_are_bumped_in_generation_order(mysql_config):
@@ -129,7 +140,7 @@ def test_a_placed_sector_names_its_phenomena_by_id(mysql_config):
     assert stored == sorted(names) and registry == 0
 
 
-def test_a_remnant_core_follows_its_remnant_id(mysql_config):
+def test_a_remnant_core_gets_its_own_core_id(mysql_config):
     from stellarObjects.supernovaRemnantData import SupernovaRemnant
     for _ in range(200):
         remnant = SupernovaRemnant(SystemConfig())
@@ -141,5 +152,6 @@ def test_a_remnant_core_follows_its_remnant_id(mysql_config):
     sector = SpaceSector("Halfway Sector", edge_ly=11.5)
     sector.add_phenomenon(remnant, "supernova-remnant", position=(1.0, 2.5, 1.0))
     _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
-    assert objectId.is_object_id(remnant.name)
-    assert remnant.compact_remnant.name == f"{remnant.name} Core"
+    assert objectId.parse_id(remnant.name)["kind"] == "supernova-remnant"
+    core = objectId.parse_id(remnant.compact_remnant.name)
+    assert core["kind"] in ("black-hole-core", "neutron-star-core")

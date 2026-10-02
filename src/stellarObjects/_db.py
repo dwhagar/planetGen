@@ -2274,6 +2274,8 @@ OBJECT_ID_TABLES = {
     "comet": "interstellar_comets",
     "asteroid-field": "asteroid_fields",
     "bright-star": "star_systems",
+    "black-hole-core": "black_holes",
+    "neutron-star-core": "neutron_stars",
 }
 """dict: `objectId.KIND_CODES` kind -> the table its objects (and their
 ID names) live in."""
@@ -2293,6 +2295,17 @@ def _named_by_object_id(conn, obj, kind, placement):
     return False
 
 
+def _take_core_id(conn, core, kind, placement):
+    """Names a placed supernova remnant core by its own object ID
+    (GEN.64), or takes the one `insert_sector` claimed for it. An
+    unplaced core keeps `"<remnant> Core"`."""
+    prereserved = getattr(conn, "prereserved_names", None)
+    if prereserved is not None and id(core) in prereserved:
+        prereserved.pop(id(core))
+    elif _placed(placement):
+        _claim_object_ids(conn, [(core, kind, _placement_center(placement))])
+
+
 def _placed(placement):
     """Whether `placement` gives a galaxy-frame center."""
     return bool(placement) and placement.get("center_x_pc") is not None
@@ -2308,8 +2321,9 @@ def _claim_object_ids(conn, items):
     Names each object by its 64-bit object ID (GEN.64, `objectId`):
     `items` is `(obj, kind, center_pc)` triples, in generation order. An
     ID already held -- by an earlier item here, or by a stored row of the
-    same table -- is bumped (`objectId.bump`) until it is free, so the
-    first object in generation order keeps the plain ID. Sets each
+    same table -- takes the next collision number (`objectId.bump`) until
+    it is free, so the
+    first object in generation order keeps collision number 0. Sets each
     `obj.name`, and when `insert_sector` holds a reservation map
     (`prereserved_names`), records each object there as needing no
     registry entry.
@@ -2333,9 +2347,6 @@ def _claim_object_ids(conn, items):
                 object_id = objectId.bump(object_id)
                 name = objectId.format_id(object_id)
             taken.add(name)
-            core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
-            if core is not None and core.name == f"{obj.name} Core":
-                core.name = f"{name} Core"  # the core follows its remnant
             obj.name = name
             if prereserved is not None:
                 prereserved[id(obj)] = (None, None)
@@ -2720,9 +2731,9 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
         register_name (bool): Reserve the name through
             `system_name_registry` (v40). Skipped for an anchored black
             hole (its system holds the name) and a supernova remnant's
-            core (`insert_supernova_remnant` passes `False`), which is
-            named `"<remnant> Core"`. A placed one that registers is named
-            by its object ID instead (GEN.64).
+            core (`insert_supernova_remnant` passes `False`). A placed
+            one is named by its object ID instead (GEN.64), a core by its
+            own core-type ID; an unplaced core keeps `"<remnant> Core"`.
 
     Returns:
         int: The new `black_holes.id`.
@@ -2730,6 +2741,8 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
     name_base = None
     if register_name and star_id is None:
         name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole, "black-hole", placement)
+    elif star_id is None:
+        _take_core_id(conn, black_hole, "black-hole-core", placement)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             black_hole.galactic_orbital_speed_kms, black_hole.galactic_orbital_period_gy,
@@ -2789,6 +2802,8 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     name_base = None
     if register_name and star_id is None:
         name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star, "neutron-star", placement)
+    elif star_id is None:
+        _take_core_id(conn, neutron_star, "neutron-star-core", placement)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             neutron_star.galactic_orbital_speed_kms, neutron_star.galactic_orbital_period_gy,
@@ -5039,11 +5054,26 @@ def _sector_object_ids(sector, galaxy_position):
         else:
             center = _placement_center(_galaxy_placement_from_sector_offset(galaxy_position, entry.position))
         items.append((entry.phenomenon, entry.phenomenon_type, center))
+        core_item = _remnant_core_item(entry.phenomenon, center)
+        if core_item is not None:
+            items.append(core_item)
     for entry in sector.entries:
         if getattr(entry, "bright_star_id", None) is not None:
             center = _placement_center(_galaxy_placement_from_sector_offset(galaxy_position, entry.position))
             items.append((entry.star_system, "bright-star", center))
     return items
+
+
+def _remnant_core_item(remnant, remnant_center_pc):
+    """`(core, kind, center_pc)` for a supernova remnant's collapsed core
+    (GEN.64: it has its own object ID), at the remnant's center moved by
+    the core's birth kick, or `None` when there's no core."""
+    core = getattr(remnant, "compact_remnant", None) if isinstance(remnant, SupernovaRemnant) else None
+    if core is None:
+        return None
+    kind = "black-hole-core" if isinstance(core, BlackHole) else "neutron-star-core"
+    offset_ly = getattr(remnant, "compact_offset_ly", None) or (0.0, 0.0, 0.0)
+    return core, kind, tuple(remnant_center_pc[i] + ly_to_pc(offset_ly[i]) for i in range(3))
 
 
 def _phenomenon_registers_name(phenomenon):
