@@ -111,9 +111,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91, NAV.40, NAV.41, UX.36, MAP.92, MAP.93, MAP.94, MAP.95 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63, NAV.42, NAV.43, NAV.44 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | GEN.62, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
@@ -228,6 +228,7 @@ with `clamp()`.
   strict xfail in `test_web_browser_maps.py` (fix it and drop the
   xfail), and the overlap check found no overlapping controls on the
   pages as they were then.
+  The nebula "-" no-op is split out as UX.38 (phase 0).
   Order (pre-planning thread): run it after MAP.55 and MAP.60, which
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
@@ -397,6 +398,9 @@ with `clamp()`.
   or gas giant, interstellar comet type, nebula class, remnant type,
   black hole and neutron star kinds), on both the Search page and the
   `/phenomena` list, through the API, with the counts per option.
+  The filter options are built from each kind's class list, so classes
+  GEN.28 adds later appear on their own; only GEN.47 (nebulae that
+  exist) has to land first.
 
 - [ ] **UX.34 The sector summary calls white dwarfs "B-type" and "A-type" systems (bug)**
   Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The "Systems: 4 B-type, ..." line in `generate.py`
@@ -459,6 +463,16 @@ with `clamp()`.
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
   action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.93,
   MAP.94, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
+
+- [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
+  Split out of UX.21 (replan, 2026-10-02), its one known dead control:
+  on the nebula and supernova remnant diagrams, anything about half a
+  light-year across or larger opens already at the 1 ly zoom-out limit
+  (`lib/phenomenonmap.py` lines 53 and 127, the clamp in
+  `static/mapzoom.js`), so "-" has nowhere to go. TEST.55 pins it with a
+  strict xfail in `test_web_browser_maps.py`. Done: the diagram opens
+  with room to zoom out (or the "-" button is disabled at the limit,
+  with its hint text), the xfail is dropped and the test passes.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -756,6 +770,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and then add the to-do items to make it happen."
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ghost is the rest of
   the picked arc.
+  Its ghost keeps MAP.77's rule (slab outlines only), and MAP.77 lands
+  first (phase 0). Prerequisites: MAP.53, MAP.54, MAP.75, MAP.77.
 
   Why it looks like a wedge today: once a slab is picked, only that
   slab's blocks are drawn (`galaxystageview.js`). A slab is a thin
@@ -948,6 +964,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the arc view draws only the
   slab boundaries; nothing is outlined on the whole galaxy except the
   hovered arc and its neighbors.
+  Replan (2026-10-02): it no longer waits for MAP.59; drawing slab lines
+  only needs no ghost, so it lands in phase 0 and MAP.59 (later) keeps
+  its rule.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.78 Zooming into a wedge must show the whole wedge at every drill-down level (bug)**
@@ -1348,6 +1367,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   later stage's hover highlight works too. Ties in with NAV.32.
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the hover highlight on the
   navigation screens is the arc highlight of MAP.85.
+  Replan (2026-10-02): it needs no shared pick mode (NAV.15);
+  course-pick mode lights the arc highlight PR #369 built. That
+  highlight may already work there: check first, and close it with a
+  test if so.
 
 - [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
@@ -1642,6 +1665,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   still expect those letters. Evidence: the planet class gap report
   (link in GEN.27).
   GEN.27 and GEN.29 follow GEN.28.
+  Class S comes first, built with GEN.38 in phase 0 as this item's first
+  one-class PR; the other six classes follow in phase 1.
 
   - [ ] **GEN.33 One class per PR, each with its tests**
     Suggested split: R and S (the commonest missing types) first; then
@@ -1664,8 +1689,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the GEN.8/GEN.26 thread report (PR #263): Class C's size range
   tops out at 10,000 km and no other rogue-eligible rocky class exists,
   so bigger rocky rogues are classed C anyway. Done: they get a class
-  that fits their size. May be solved by GEN.28's S class (rocky
-  super-Earth) if S is rogue-eligible.
+  that fits their size. Default (replan 2026-10-02): class S (rocky
+  super-Earth, rogue-eligible) is built here as GEN.28's first
+  one-class PR, so it does not wait for GEN.33; GEN.28's other six
+  classes follow in phase 1.
 
 - [ ] **GEN.60 Rogue gas giants get a Jupiter-sized radius at every mass (bug)**
   Found by the Physics bugs thread (PR #350, 2026-10-02): a rogue gas
@@ -1708,20 +1735,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   salad (a test over many draws shows the weighted sounds well above
   their share in ordinary names), planets follow the rule above, and a
   test over generated wide binaries checks the names.
-
-- [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
-  The log half of GEN.39 (Boss: "put it in the log at the top of any
-  generation"). Today `generate.py` main logs "Seeded the random number
-  generator with ... (no --seed option exists to reproduce this run)"
-  at debug level only. Done: every `generate.py` subcommand, every job
-  the web site or API starts, and every work queue run writes one line
-  first, at normal level, to the console, the job log and the debug
-  log: the galaxy seed as 32 hex digits, the PlanetGen version with DB.6's
-  22-digit key (`versionKey.version_key`; DB.6 done, PR #387), and
-  the run's command (for example `Galaxy seed
-  3f2a...c901, PlanetGen 7.127.352 (0007007F000160030C0300), run:
-  sector 12 3 0`); a test checks the line is first.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of

@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.38 |
+| UX | UX.39 |
 | MAP | MAP.96 |
 | NAV | NAV.46 |
 | GEN | GEN.64 |
@@ -651,7 +651,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
-| OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
+| OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | open |
@@ -763,6 +763,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
+| UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

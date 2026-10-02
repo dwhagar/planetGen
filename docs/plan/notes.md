@@ -159,48 +159,49 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Files | Items | Order |
 |---|---|---|
 | stellarObjects/workQueue.py | ADM.15, PERF.18, PERF.19/20 | PERF.21, PERF.22 and TEST.73 done (PR #371). |
-| generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44, GEN.41, GEN.42, GEN.43, PERF.18 | Fixed order GEN.44, GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
-| generate.py: command-line options | GEN.51, GEN.52, GEN.24, API.3 | GEN.51/52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
+| generate.py: bright-star backfill (backfill_bright_stars_around, _backfill_block) | GEN.44 (phase 0), GEN.41, GEN.42, GEN.43, PERF.18 | GEN.44 in phase 0; then GEN.41, then GEN.42 + GEN.43 + PERF.18 in one thread. |
+| generate.py: command-line options | GEN.51 (phase 0), GEN.52, GEN.24, API.3 | GEN.51 in the binary pairs lane after GEN.62; GEN.52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
+| generate.py: sector phenomena (generate_sector_phenomena) | GEN.47 (phase 0) | Generation bugs lane. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
-| systemData.py StarSystem constructor | GEN.52 | GEN.53 and GEN.54 done (PR #367), GEN.49 and GEN.50 done (PR #373). |
-| planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
-| Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
-| _db.py | API.10 (id blocks), API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347); GEN.46 done (PR #370). |
-| Galaxy schema (schema.sql, v52 today: version_key and generation_runs, PR #387) | DB.7, GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11 | One writer at a time, in this order (DB.6 done, PR #387): DB.7, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. DB.8 only reads it. |
-| Control schema (v7 today) | OPS.13 (key history), API.9, API.15 (call log), USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
-| lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
-| sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
-| galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.91, MAP.93, MAP.94, MAP.95 (phase 0), MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
-| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 | In that order (MAP.90 done, PR #365); any payload change bumps the tile cache. |
-| galaxyGeometry.py and galaxyprisms.js | GEN.24 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. MAP.85 done (PR #369). |
-| bookmarks.js | NAV.40 (phase 0), NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. MAP.55 done (PR #369). |
-| static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
-| Generate page (generate.html) | ADM.14, ADM.16, GEN.24 | ADM.14 first. |
-| System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
-| Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 | One thread, in that order. |
+| systemData.py StarSystem constructor | GEN.62, GEN.51 (phase 0), GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50 done (PRs #367, #373). |
+| planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.60, GEN.38 with class S (phase 0), GEN.33/28, GEN.27, GEN.29 | Generation bugs lane first; the classes thread in phase 1. |
+| Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; tell the other generation threads to merge main when it lands. |
+| _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.85 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370). |
+| Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
+| Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
+| lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92 (phase 0), MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.92, then MAP.89 in phase 1. |
+| galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.91, MAP.93, MAP.94, NAV.31, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Galaxy Map follow-ups, then the drill-down lane, then MAP.86 (stats lane), then MAP.95 and phase 2. |
+| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 (phase 0) | In that order; any payload change bumps the tile cache. |
+| bookmarks.js, nav_page.py | NAV.40 (phase 0), NAV.18, USR.7, NAV.19 | NAV.40 in the Galaxy Map follow-ups lane. |
+| sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Later items in the engine thread. |
+| static/mapcore.js and static/mapcontrol.js | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | Built in PR #351; later map items build on them rather than copying helpers. |
+| numberformat.js and stellarObjects/utils.py formatter | UX.36 (phase 0), UX.23, UX.22 (phase 1) | UX.36 first; UX.23's ladder keeps its rule. |
+| lib/navmap.py and nav.html | NAV.41 (phase 0), UX.35, NAV.42, NAV.11 (phase 1) | NAV.41 first. |
+| Generate page (generate.html) | ADM.14 (phase 0), ADM.16, GEN.24 | ADM.14 first. |
+| System page (system.html, lib/systempage.py, system_pages.py) | UX.29, UX.31, UX.27 (phase 0), NAV.8 (1), UX.32, UX.30 (2), MAP.74 (3) | In that order; UX.32 and UX.30 in one thread. |
+| Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 (phase 0) | One lane, in that order. |
+| Search and phenomena list (queryDb search facets, phenomena.html) | UX.33 (phase 0) | After GEN.47. |
 | Navigation (nav_page.py, queryDb.nav_between, navigation.py) | NAV.7, NAV.10, NAV.11, NAV.16, NAV.17 | NAV.7 first; NAV.10 and NAV.16 touch different functions. |
-| Admin edits (editStore.py, adminEdits.py, api/edits.py) and the galaxy settings JSON | ADM.18, GEN.59, GEN.61, OPS.18, ADM.19, DB.10, OPS.12 | ADM.18 writes the file; GEN.59 records deltas in the control database; GEN.61 merges them daily; OPS.18 keeps 18 backups. |
-| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.8, OPS.19, then OPS.13, then OPS.15, then OPS.17 | OPS.7 and OPS.8 one PR, OPS.19 (jobs folder move) in the same lane; OPS.13, OPS.15 and OPS.17 after them, in that order. |
+| Admin edits (editStore.py, adminEdits.py, api/edits.py) and the galaxy settings JSON | ADM.18, GEN.59, GEN.61, OPS.18, ADM.19, DB.10, OPS.12 | ADM.18 writes the file; GEN.59 records deltas; GEN.61 merges them daily; OPS.18 keeps 18 backups. |
+| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.19 (phase 0), OPS.8, OPS.13 (1), OPS.15, OPS.17 (2) | OPS.7 then OPS.19 in the ops lane; OPS.8 rides with OPS.13; then OPS.15 and OPS.17. |
 
 ## Near-cycles and how they are broken
 
-- **GEN.39 and PERF.21** (both done, PRs #371 and #381): Each said it touches the other's tests ("whichever lands second keeps both working"). Broken by putting PERF.21 first: its tests get fault injection that works across processes instead of leaning on the seeded single-process stream, then GEN.39 makes per-sector draws reproducible at any worker count.
-- **MAP.88 and MAP.89**: Both said "whichever lands second keeps the other". Fixed order: MAP.57, MAP.88, then MAP.89, one thread.
-- **MAP.85 and MAP.86**: MAP.85 removes the lines and relies on color to show structure; MAP.86 is that color. Boss moved MAP.85 to phase 0 (01:46Z); MAP.86 follows next in phase 1, with MAP.86's data side (stored per-sector color, tile field) able to land first.
-- **MAP.61 and the Galaxy Map items**: MAP.61 is both before and after MAP.52 to MAP.60. Split as its text says: MAP.63 and MAP.64 in phase 0, MAP.65 to MAP.68 after the selection rewrite.
-- **NAV.3 and MAP.61**: The picker needs the engine and the engine's panel carries the picker's buttons. Split: NAV.13/NAV.14 (no engine) in phase 1, pick mode (NAV.15) on MAP.65's panel layer in phase 2, NAV.32 at the end.
-- **API.6 and USR.2**: Settled by Boss: keys belong to accounts, so API.6 moved to phase 3+ after USR.2.
-- **NAV.4 and USR.1**: Already resolved by the per-browser default: NAV.4 in phase 2, NAV.19 moves courses into accounts in phase 3+.
+- **MAP.77 and MAP.59**: MAP.77 waited on MAP.59's wire ghost, which waits on the mini map (MAP.75). Broken by dropping that dependency: MAP.77 (slab lines only while picking slabs) lands in phase 0, and MAP.59's ghost keeps the rule (outlines only, never blocks).
+- **GEN.38 and GEN.28**: GEN.38's fix is class S; GEN.28 is all seven classes. Broken by building class S with GEN.38 in phase 0, as GEN.28's first one-class PR (GEN.33's rule); GEN.28 then depends on GEN.38.
+- **GEN.48 and its subitems**: The parent bug closes with GEN.51 (phase 0) and the prevalence controls (phase 1), so it stays in phase 1.
+- **MAP.88 and MAP.89**: Both said "whichever lands second keeps the other". Fixed order: MAP.57, MAP.88, MAP.92, then MAP.89, one thread.
+- **MAP.61 and the Galaxy Map items**: Split as its text says: MAP.63 and MAP.64 done (PR #351), MAP.65 to MAP.68 after the drill-down fixes.
+- **NAV.3 and MAP.61**: NAV.13 and NAV.14 (no engine) in phase 1, pick mode (NAV.15) on MAP.65 in phase 2, NAV.32 at the end.
+- **API.6 and USR.2**: Settled by Boss: keys belong to accounts, so API.6 is in phase 3+ after USR.2.
+- **NAV.4 and USR.1**: Per-browser saved courses in phase 2; NAV.19 moves them into accounts in phase 3+.
 
 ## Judgment calls
 
-- **Galaxy Map drill-down bugs not in phase 0**: MAP.52, MAP.53, MAP.54, MAP.56, MAP.77 and MAP.78 are bugs, but MAP.85's arc pick replaces the code they live in, so fixing them first would be thrown away. Their root is MAP.63/MAP.64 (phase 0) and MAP.85 (phase 1).
-- **MAP.80 moved up to phase 1**: The old plan put it at the end of the selection chain. The thinning lives in the tile listing and the star points, not the pick code, so it can go right after MAP.90 and MAP.87.
-- **Sector Map rogue fixes and NAV.30 in phase 0** (done, PR #351): MAP.82, MAP.83, MAP.84 and NAV.30 are small fixes in today's sectormap.js and galaxymap3d.js. Fixing them before MAP.63 moves the code, with TEST.70 pinning them, keeps them fixed through the engine work. Alternative: build them on the engine in phase 2.
-- **MAP.79's toggles in phase 2**: The dimming part is phase 0 (MAP.82 to MAP.84); the per-kind show/hide buttons go on the shared control set (MAP.65).
-- **UX.25, UX.26, UX.27, UX.31 in phase 1**: They are bugs but use UX.28's icons, which Boss approves first. They could ship in phase 0 with text buttons and get icons later.
-- **GEN.45 in phase 0**: The old plan had it after GEN.28. It only changes the rogue mass bins, and GEN.38's class choice follows from the masses, so it sits at the root. Done in PR #350, reading M^-0.65 per log mass (per unit mass gave 87% gas giants).
-- **GEN.32 in the parallel thread** (done, PR #371): It shares the scatter functions with PERF.23. It could instead wait for GEN.44 and use per-sector levels to skip finished work.
-- **UX.21 last**: A bug, but a final pass over finished pages. Its one known dead control (the nebula "-" button at the 1 ly limit) could be split out into phase 0.
-- **OPS.8 in phase 0**: Not a bug, but the same two files as OPS.7, so it rides in the same PR.
-- **Accounts, view and GEN.9 in phase 3+**: Nothing blocks them; they are late by priority. VIEW.4 and GEN.9 float and can start any time. If a second galaxy is likely, GEN.9's plan before phase 2's schema work would say whether those migrations add a galaxy id.
+- **Strict phase 0**: Phase 0 now holds 46 bugs and 8 other items. Each of the 8 is groundwork a phase 0 bug needs: GEN.51 (the fix half of GEN.48), MAP.91 (the slab hover MAP.56 builds on), MAP.76 (half of MAP.54), GEN.44, PERF.11 and PERF.1 (MAP.86's table), TEST.79 (pins NAV.34) and UX.28 (icons for UX.25 to UX.27).
+- **NAV.31 may already be fixed**: PR #369's arc highlight may already show in course-pick mode. The Galaxy Map follow-ups lane checks it first and closes it with a test if so.
+- **NAV.29 and NAV.33 stay in phase 2**: They could be patched on today's Galaxy Map pick mode in phase 0, but NAV.13 and NAV.15 rewrite that flow, so the patch would be thrown away.
+- **MAP.79 stays in phase 2**: Its toggles belong on the shared control set (MAP.65).
+- **UX.33 in phase 0**: It reads more like a feature, but it is labeled a bug, and nothing that is still open blocks it.
+- **MAP.95 in phase 1**: It is tiny and shares files with MAP.94, so the follow-ups lane could carry it. It goes first in phase 1 instead.
+- **Accounts, view and GEN.9 in phase 3+**: Unchanged: nothing blocks them, and they are late by priority.

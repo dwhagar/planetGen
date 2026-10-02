@@ -1,4 +1,4 @@
-# Phase 0: Roots: bugs and groundwork
+# Phase 0: Roots: bugs and the groundwork they need
 
 Rebuilt on 2026-10-02 from the dependency report (every open item, its
 prerequisites and the files it shares), with Boss's decisions of that
@@ -12,13 +12,30 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350).
+Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391).
 
 ## Threads
 
 Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
+
+### Binary pairs and single-system forcing
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) |  | Boss 04:03Z: wide pairs "Blue Green"/"Blue Red", companion word from small/child sounds, planets Blue I / Red I. Replaces the 03:38Z A/B rule. |
+| GEN.51 | Forcing options only for single-system generation |  | Moved to phase 0: the fix half of the GEN.48 bug (forcing stops applying to sector and galaxy runs); prevalence controls stay in phase 1. generate.py sector/galaxy argument parsing. |
+
+### Galaxy Map follow-ups
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
+| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
+| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
+| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
+| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) |  | Moved to phase 0: the arc highlight exists (MAP.85, PR #369); check pick mode lights it, fix if not. The highlight is MAP.85's arc highlight. |
 
 ### System Map
 
@@ -28,46 +45,34 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | MAP.57 | Fit the whole scene; same file as MAP.57 and MAP.89. |
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | MAP.88 | Boss 04:29Z. showInfo in systemmap.js and the marker attributes in lib/systemmap.py; same files as MAP.57/MAP.88. |
 
-### Object references
+### Galaxy Map drill-down
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.7 | One reference for every object, with its parents |  | Root of the picker, saved courses, the 3D system view and account bookmarks. |
+| MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) |  | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Arc, slab, segment ladder in galaxystages.js. |
+| MAP.76 | Leader-line layout | MAP.56 | Moved to phase 0 as groundwork: the layout half of MAP.54, same PR. Layout half of MAP.54; same PR. |
+| MAP.54 | Slab leader lines instead of the slab slider (bug) | MAP.56, MAP.76 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. |
+| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) |  | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Rotation and fit on MAP.64's controller. |
+| MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | MAP.53 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. The fit itself; with MAP.53. |
+| MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | MAP.56 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Which lines show at each level, once the ladder and ghost exist. Dependency on MAP.59 dropped: slab-only lines need no ghost; MAP.59 keeps this rule instead. |
 
-### Ops and flakes
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) |  | _db.add_mysql_connection_args. |
-| OPS.7 | Update asks to fill a wiped database with population data (bug) |  | update.sh / update.ps1; one PR with OPS.8. |
-| OPS.8 | Update reloads Apache itself when run as root | OPS.7 | Not a bug, but the same files as OPS.7, so it rides along. |
-| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  |  |
-| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) |  |  |
-| TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
-| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
-| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
-| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
-| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
-| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) |  | nameUniqueness.py:137; related to GEN.44 bands and GEN.57 names. |
-| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
-| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
-| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
-| API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
-| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
-| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) |  | jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
-
-### Page groundwork and small page bugs
+### Generation bugs
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.28 | Investigate icons instead of words on buttons |  | Survey and icon sprite; UX.25, UX.26 and UX.27 use its icons; MAP.55 (done, PR #369) left text labels with an icon hook. |
-| UX.23 | A shared unit-ladder module |  | Shared unit ladder; UX.22 then UX.30 build on it. |
-| UX.2 | Menus sized to what they hold (bug) |  | style.css menus; independent. |
-| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
-| UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
-| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
-| NAV.41 | The NAV page's course map is too small to read (bug) |  | Boss 04:19Z. navmap.py 360-unit square at 22rem, 9px labels; widen and enlarge. |
-| UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
+| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) |  | Moved to phase 0: a bug with nothing ahead of it. From the Physics bugs thread (PR #350): use GEN.34's giant mass-radius relation in roguePlanetData.py. |
+| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) |  | Moved to phase 0 with its groundwork: class S (rocky super-Earth, rogue-eligible) is built here as GEN.28's first class PR. Probably solved by a rogue-eligible S class. |
+| GEN.47 | Nebulae almost never appear (bug) |  | Moved to phase 0: a bug whose prerequisite (GEN.39 per-region seeds) is done. Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
+
+### Sector stats and colors
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v53 (one writer at a time; v52 is DB.6's version key and run history). Backfill code shared with PERF.18 and GEN.42. |
+| PERF.11 | Store each sector's expected and actual density | GEN.44 | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
+| PERF.1 | Generation at scale | PERF.11 | Moved to phase 0 as groundwork for the MAP.86 bug (Boss: MAP.86's color goes in the shared per-sector stats table). Parent; only PERF.11 is open under it. |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Moved to phase 0: a bug with nothing ahead of it; tile listing, before MAP.86 in the same tile files. Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | PERF.11 | Moved to phase 0 with its groundwork GEN.44 and PERF.11. Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
 
 ### Routing groundwork
 
@@ -76,43 +81,62 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.79 | Route edge cases, written before NAV.12 |  | Cases from the hop-length study's report. |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | navGraph.build_knn_adjacency; needed before NAV.12. |
 
-### Parallel path (top priority)
+### Sector and system pages
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.10 | The galaxy seed and version at the top of every generation log |  | Sub-item of GEN.39. |
+| UX.28 | Investigate icons instead of words on buttons |  | Survey and icon sprite; UX.25, UX.26 and UX.27 use its icons; MAP.55 (done, PR #369) left text labels with an icon hook. |
+| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
+| UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
+| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | UX.24, UX.28 | Moved to phase 0: bugs whose groundwork (UX.24, UX.28) is in phase 0. Same sector table as UX.24. |
+| UX.26 | Edit and admin actions as a button that opens a menu (bug) | UX.28, UX.25 | Moved to phase 0: bugs whose groundwork (UX.24, UX.28) is in phase 0. Sector page admin panel and edit_controls.html. |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | UX.26 | Moved to phase 0: bugs whose groundwork (UX.24, UX.28) is in phase 0. system.html edit panel (_edit_rows in system_pages.py). |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | UX.28 | Moved to phase 0: bugs whose groundwork (UX.24, UX.28) is in phase 0. system.html subhead; shares wording with NAV.29. |
 
-### Database consistency check
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
-
-### Binary pairs and single-system forcing
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) |  | Boss 04:03Z: wide pairs "Blue Green"/"Blue Red", companion word from small/child sounds, planets Blue I / Red I. Replaces the 03:38Z A/B rule. |
-
-### Galaxy map picker and arc
+### Small page bugs
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube |  | Follow-up to PR #369 (Boss 03:52Z): applyHover in galaxystageview.js lights the whole slab; MAP.56, MAP.54 and MAP.77 keep it. |
-| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
-| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
-| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
-| MAP.95 | A "Forward to current" button next to the map's Back and Forward |  | Boss 04:29Z. Jumps to maxIndex of the map history (MAP.26). |
+| UX.2 | Menus sized to what they hold (bug) |  | style.css menus; independent. |
+| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
+| NAV.41 | The NAV page's course map is too small to read (bug) |  | Boss 04:19Z. navmap.py 360-unit square at 22rem, 9px labels; widen and enlarge. |
+| UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
+| UX.33 | Filter phenomena by their classes and types (bug) | GEN.47 | Moved to phase 0: filters are built from the class lists, so new classes (GEN.28) appear on their own; after GEN.47 so nebula classes exist. Filters over class lists that GEN.28 and GEN.47 change. |
+| UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) |  | Split out of UX.21 (its known dead control): lib/phenomenonmap.py lines 53 and 127, the mapzoom.js clamp; strict xfail in test_web_browser_maps.py. |
 
-The parallel path thread starts first (Boss: top priority). The map
-groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
-MAP.60 onward can be a second thread once MAP.64 merges, since they
-share files. MAP.55 uses UX.28's icons; if UX.28 isn't done, MAP.55
-ships with text labels and gets icons later. Until MAP.86 (phase 1)
-lands, the arc pick keeps today's block shading. Arc size: about 40
-degrees of bearing by a third of the disk radius (about 27 arcs). At
-most 4 build threads run at once (Boss).
+### Ops and flakes
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) |  | _db.add_mysql_connection_args. |
+| OPS.7 | Update asks to fill a wiped database with population data (bug) |  | update.sh / update.ps1; one PR with OPS.8. |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) |  | jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
+| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
+| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
+| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  |  |
+| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) |  |  |
+| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
+| TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
+| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
+| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
+| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
+| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
+| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) |  | nameUniqueness.py:137; related to GEN.44 bands and GEN.57 names. |
+| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
+
+At most two build threads run at once (Boss 02:51Z). The Galaxy Map
+follow-ups lane is in progress and the binary pairs lane is running;
+then the lanes start in the order above as a slot frees: System Map,
+Galaxy Map drill-down (after the follow-ups merge, same files),
+Generation bugs, Sector stats and colors (MAP.80 and MAP.86 after the
+drill-down merges), Routing groundwork, Sector and system pages
+(text labels with an icon hook if UX.28's icon list is not approved
+yet), Small page bugs, and Ops and flakes last. NAV.7 and DB.8 open
+phase 1.
 
 ## Open questions for Boss
 
-None.
+- MAP.56: Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug), see its entry in TODO.md.
+- MAP.54: Slab leader lines instead of the slab slider (bug), see its entry in TODO.md.
+- MAP.53: Rotate a zoomed-in wedge, and zoom it to fit the window (bug), see its entry in TODO.md.
+- PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
