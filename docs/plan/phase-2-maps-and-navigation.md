@@ -85,15 +85,16 @@ URL scheme), then MAP.68 removes the old Sector Map code.
 | MAP.83 (new) | The "Mark rogue planets" button shows when it is on (bug) | MAP.79 |
 | MAP.84 (new) | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | MAP.79 |
 | MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) |  |
-| MAP.87 (new) | Stars on the Sector Map need to be brighter, most of all the dim ones (bug) |  |
+| MAP.87 (new) | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) |  |
 
 MAP.79's per-kind toggles and dimming, with its three rogue planet
 subitems (dim when unmarked, the Mark button's highlight, size and
 clickability when marked). They touch `sectormap.js` and
 `lib/starmap.py`; if MAP.61 is under way, build them on the shared
 engine. MAP.81 (bookmark keys) needs Boss's pick of keys. MAP.87 (brighter dim
-stars) changes only `_star_light` in `lib/starmap.py` and can go any
-time.
+stars) is one brightness curve shared by `_star_light` in
+`lib/starmap.py` and the Galaxy Map's star points in `galaxymap3d.js`;
+it can go any time.
 
 ### 3D system view
 
