@@ -49,8 +49,8 @@ from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects.brightStars import MPC_PER_PC
 from stellarObjects._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
-    galaxy_to_local_pc, neighbor_addresses, provisional_sector_designation, ring_sector_count, sector_cell_vertices_pc,
-    sector_position_pc,
+    galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
+    ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
 from stellarObjects.spaceSector import classify_octant
 from stellarObjects.galaxyViewport import (
@@ -2471,10 +2471,10 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
     corners_r = [math.hypot(x, y) for x in (lo[0], hi[0]) for y in (lo[1], hi[1])]
     near_x = min(max(0.0, lo[0]), hi[0])
     near_y = min(max(0.0, lo[1]), hi[1])
-    ring_lo = int(math.floor(math.hypot(near_x, near_y) / edge_pc))
-    ring_hi = int(math.floor(max(corners_r) / edge_pc))
-    layer_lo = int(math.floor(lo[2] / edge_pc + 0.5))
-    layer_hi = int(math.floor(hi[2] / edge_pc + 0.5))
+    ring_lo = ring_index_at(math.hypot(near_x, near_y), edge_pc)
+    ring_hi = ring_index_at(max(corners_r), edge_pc)
+    layer_lo = layer_index_at(lo[2], edge_pc)
+    layer_hi = layer_index_at(hi[2], edge_pc)
     columns = {
         row["ring_index"]: (row["layer_index_min"], row["layer_index_max"])
         for row in conn.execute(

@@ -159,24 +159,42 @@ def test_seam_points_on_every_layer_face_keep_their_slot():
 
 
 def test_one_ulp_under_a_layers_top_face_is_still_that_layer():
-    """Every layer but the plane keeps a point one ulp under its top face
-    (the plane's own case is the xfail below)."""
+    """Every layer keeps a point one ulp under its top face, the plane's
+    layer 0 included (GEN.31: `z / edge + 0.5` used to round up there)."""
     r = ring_radius_pc(5, EDGE)
-    for layer in list(range(-400, 0)) + list(range(1, 400)):
+    for layer in range(-400, 400):
         bottom, top = layer_bounds_pc(layer, EDGE)
         z = math.nextafter(top, -math.inf)
         assert sector_address_at((r, 0.0, z), EDGE)[1] == layer, layer
+        assert sector_address_at((r, 0.0, bottom), EDGE)[1] == layer, layer
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "sector_address_at computes floor(z / edge + 0.5); at z = nextafter(2.0, -inf), one ulp under "
-    "layer 0's top face on the 4 pc grid, z / 4 + 0.5 rounds up to exactly 1.0, so the point gets "
-    "layer 1 although layer_bounds_pc(0) is [-2, 2). Layer 0 is the only layer within +-400 this "
-    "hits. galaxyprisms.js mirrors the same formula, so both are left as is."))
 def test_one_ulp_under_the_planes_top_face_is_still_layer_zero():
     _bottom, top = layer_bounds_pc(0, EDGE)
     z = math.nextafter(top, -math.inf)
     assert sector_address_at((ring_radius_pc(5, EDGE), 0.0, z), EDGE)[1] == 0
+
+
+def test_points_one_ulp_inside_every_face_stay_in_their_cell():
+    """Rings and slots too: one ulp inside either face of a cell, and the
+    face itself, give the cell whose own bounds hold the point."""
+    for edge in (EDGE, 3.0, 0.7):
+        for ring in (0, 1, 2, 5, 37, 400, 3855):
+            inner, outer = ring_bounds_pc(ring, edge)
+            for r in (inner, math.nextafter(outer, 0.0)):
+                if r == 0.0:
+                    continue
+                assert sector_address_at((r, 0.0, 0.0), edge)[0] == ring, (edge, ring, r)
+            n = ring_sector_count(ring)
+            r = ring_radius_pc(ring, edge)
+            for slot in (0, 1, n // 2, n - 1):
+                start, end = slot_angle_bounds(ring, slot)
+                for theta in (start, math.nextafter(end, 0.0)):
+                    x, y = r * math.cos(theta), r * math.sin(theta)
+                    got_ring, _layer, got_slot = sector_address_at((x, y, 0.0), edge)
+                    low, high = slot_angle_bounds(got_ring, got_slot)
+                    back = math.atan2(y, x) % (2 * math.pi)
+                    assert low <= back < high or got_slot == n - 1, (edge, ring, slot, back, got_slot)
 
 
 # ---------------------------------------------------------------------------
