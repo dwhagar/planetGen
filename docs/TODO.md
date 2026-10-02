@@ -1585,6 +1585,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     migration. Default: MAP.86's per-sector color, saturation and
     lightness go in the same table. No migration of existing galaxies (GEN.39 starts fresh).
     GEN.40 to GEN.43 and PERF.18 use it to skip work.
+    Decided (Boss, 2026-10-02 03:25Z, written against GEN.32, which was
+    already merged in PR #371): "we want to make sure it only clears
+    sectors that have a star present and the least solar lum value is
+    value says it hasn't been touched (-1) which would indicate a failed
+    run and the sector would need to be wiped and redone but we want to
+    dynamically per scatter for a sector say, ok -- if it has been
+    touched we do the whole range down to x sol lum, but if we did 1000
+    last time and we want 500 now just generate the stars between 500
+    and 1000 sol lum. This way we just add what a sector needs to bring
+    it up tot he requseted level of stars." So the same per-sector level
+    drives the bright-star scatter bands as well as the backfill: a
+    sector still at -1 is untouched and gets the whole range down to the
+    requested floor; a sector at -1 that already holds stars is a failed
+    run, so its stars are wiped and it is redone (only sectors with a
+    star present are cleared); a sector already at a level draws only
+    the stars between the new floor and its stored level (stored 1000
+    L_sun, requested 500: only the stars from 500 to 1000 L_sun), then
+    stores the new floor. Default: the level is written in the same
+    transaction as the sector's new stars, so a crash leaves -1 (wipe
+    and redo) or the old level (redo only the new range), never a level
+    the stars don't match. Done also covers: a test that a band run at
+    1000 then at 500 L_sun gives the same stars as one run at 500
+    (GEN.57), and a test that a sector with stars at -1 is wiped and
+    redone.
 
 - [ ] **GEN.47 Nebulae almost never appear (bug)**
   Boss (2026-10-01 23:53Z): "No nebulae are being created at all."
@@ -1746,6 +1770,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     nearest-system links are rebuilt from content, so they are left out
     of the comparison; and a test generates the same sectors at 1 and 4
     workers and in two orders and compares fingerprints (GEN.58).
+    GEN.44's per-sector luminosity levels (Boss, 2026-10-02 03:25Z) let
+    a sector be filled in steps (down to 1000 L_sun, later down to 500);
+    the stars drawn between two floors must not depend on which steps
+    ran, so draws key on the sector and the luminosity range, not on the
+    order of runs.
     Prerequisites: GEN.39, GEN.56, GEN.44.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -2066,7 +2095,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     with these numbers, and PERF.3, PERF.5 and PERF.9 use the
     expected-versus-actual ratio to correct their estimates. Decided
     (Boss, 2026-10-02 01:46Z): one per-sector stats table shared with
-    GEN.44's backfill level, built with it; no backfill of
+    GEN.44's backfill level (which, since Boss's 03:25Z rule, also
+    drives the scatter bands), built with it; no backfill of
     existing sectors (GEN.39 starts fresh). Open questions: whether
     "actual" counts systems, stars, or both; what the decaying average
     is taken over (the ratio per density bucket, so it ties in with
