@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -1487,56 +1487,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     stars, including in low-density regions, match the backfill without
     the pass.
 
-  - [ ] **GEN.44 Store each sector's backfill level so finished sectors drop out of any backfill**
-    Boss (2026-10-01 23:53Z): "stores every sector it's backfill level
-    from -1 (infinite, no backfill), and if it has been back-filled but
-    is not generated entirely it will store the lowest solar lum value
-    it was backfilled to. If it is totally generated it stores a 0.,
-    this way we can eliminate sectors from any backfill dynamically".
-    Today the backfill's depth is kept per 3x3x3 block, not per sector
-    (`bright_star_blocks.min_luminosity_sol`, schema v49, read and set
-    by `_backfill_block` in `generate.py`), and a sector counts as
-    generated only because its `sectors` row exists. Done: every sector
-    address has a backfill level: -1 never backfilled, a positive
-    number for the dimmest luminosity (L_sun) it was backfilled down to,
-    0 once it is fully generated. A backfill at a given floor skips
-    every sector at 0 or already at or below that floor, and sets the
-    level of each sector it draws. Since unfilled sectors have no
-    `sectors` row, the level lives in its own table keyed by
-    (ring, layer, slot), or replaces `bright_star_blocks` (a schema
-    migration, its row in `database-schema.md`). Decided (Boss,
-    2026-10-02 01:46Z): "gen.44/perf.11 is one shared per sector stats
-    table", so the level lives in the same per-sector stats table as
-    PERF.11's densities, keyed by sector address (ring, layer, slot), so
-    unfilled sectors have rows for their backfill level, built in one
-    migration. Default: MAP.86's per-sector color, saturation and
-    lightness go in the same table. No migration of existing galaxies (GEN.39 starts fresh).
-    GEN.40 to GEN.43 and PERF.18 use it to skip work.
-    Decided (Boss, 2026-10-02 03:25Z, written against GEN.32, which was
-    already merged in PR #371): "we want to make sure it only clears
-    sectors that have a star present and the least solar lum value is
-    value says it hasn't been touched (-1) which would indicate a failed
-    run and the sector would need to be wiped and redone but we want to
-    dynamically per scatter for a sector say, ok -- if it has been
-    touched we do the whole range down to x sol lum, but if we did 1000
-    last time and we want 500 now just generate the stars between 500
-    and 1000 sol lum. This way we just add what a sector needs to bring
-    it up tot he requseted level of stars." So the same per-sector level
-    drives the bright-star scatter bands as well as the backfill: a
-    sector still at -1 is untouched and gets the whole range down to the
-    requested floor; a sector at -1 that already holds stars is a failed
-    run, so its stars are wiped and it is redone (only sectors with a
-    star present are cleared); a sector already at a level draws only
-    the stars between the new floor and its stored level (stored 1000
-    L_sun, requested 500: only the stars from 500 to 1000 L_sun), then
-    stores the new floor. Default: the level is written in the same
-    transaction as the sector's new stars, so a crash leaves -1 (wipe
-    and redo) or the old level (redo only the new range), never a level
-    the stars don't match. Done also covers: a test that a band run at
-    1000 then at 500 L_sun gives the same stars as one run at 500
-    (GEN.57), and a test that a sector with stars at -1 is wiped and
-    redone.
-
 - [ ] **GEN.48 Forcing options are impractical for whole sectors; replace them with prevalence controls (bug)**
   Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss (2026-10-02): "the forcing options are impractical
   for an entire sector, so those options only apply to generating a star
@@ -1660,7 +1610,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (`_db._claim_object_ids`) checks rows already stored, so when one ID
     cell holds objects from two sectors, the counter depends on which
     sector saved first; this item keys it on the lower address too.
-    Prerequisites: GEN.56, GEN.44.
+    GEN.44 (done, PR #425) made per-sector backfill draws exact: a sector
+    taken down to 500 L_sun in two steps gets the same stars as in one.
+    The galaxy-wide layer scatter is not split by band, because that was
+    5x slower (8.8 s against 1.7 s a layer), so a galaxy-wide
+    `--bright-stars-down-to` band is statistically equal to one deep
+    scatter but not star for star. Open question for Boss: is that good
+    enough, or must the layer scatter be star-identical too (at that
+    cost)? Default: statistically equal.
+    Prerequisite: GEN.56.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.63 Planet names are unique within a sector**
@@ -1991,39 +1949,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
-- [ ] **PERF.1 Generation at scale**
-  Boss's notes of 2026-10-01 on bulk generation: estimates before it
-  starts, progress while it runs, speed records, and parallel work. The
-  code is mostly `generate.py`, `web/generate_page.py`, `web/jobs.py` and
-  `stellarObjects/brightStars.py`.
-
-  - [ ] **PERF.11 Store each sector's expected and actual density**
-    Boss
-    (2026-10-01): "add stats for each sector's density expected and
-    actual in the database in a way that can be easily accessed. Both of
-    these will be continued to be refined and calculated as long as the
-    galaxy is in existence but as a decaying average." Today `sectors`
-    stores only a sector's address and center; its expected density is
-    worked out on demand from the galaxy skeleton (`relative_density`
-    times `galaxy_layer`'s `expected_system_count_at_density_1`), and
-    its actual density means counting its systems. Done: every sector
-    has its expected density and its actual density (systems, and stars,
-    found when filled) stored where a query can read them directly, as
-    columns on `sectors` or a sector-stats table, readable by
-    `queryDb`, `adminStats` and the API; the galaxy-wide comparison of
-    expected against actual is kept as a decaying average and updated
-    after every fill. PERF.10 places each sector in its density bucket
-    with these numbers, and PERF.3, PERF.5 and PERF.9 use the
-    expected-versus-actual ratio to correct their estimates. Decided
-    (Boss, 2026-10-02 01:46Z): one per-sector stats table shared with
-    GEN.44's backfill level (which, since Boss's 03:25Z rule, also
-    drives the scatter bands), built with it; no backfill of
-    existing sectors (GEN.39 starts fresh). Open questions: whether
-    "actual" counts systems, stars, or both; what the decaying average
-    is taken over (the ratio per density bucket, so it ties in with
-    PERF.10, or one galaxy-wide figure); and what happens to the stats when a sector is regenerated
-    (ADM.8) or the galaxy is reset.
-
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
   Boss (2026-10-01 22:13Z): "make the GEN.30 backfill parallelized and
   use the work queue." Today `backfill_bright_stars_around`
@@ -2117,7 +2042,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     repair.
   - A test damages rows in a copy of a small galaxy, repairs them, and
     gets a passing check.
-  Prerequisites: DB.8, GEN.57, GEN.44, GEN.58, OPS.14.
+  Prerequisites: DB.8, GEN.57, GEN.58, OPS.14.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
@@ -2382,7 +2307,10 @@ clears each one.
 - [ ] **TEST.71 Intermittent failure in the admin planet-regenerate test (bug)**
   `test_admin_edits.py::test_system_page_regenerates_a_planet` fails
   about 1 run in 12 on main (seen by the TODO thread while testing
-  GEN.30, PRs #295 and #296, 2026-10-01). Done: the failing case is
+  GEN.30, PRs #295 and #296, 2026-10-01). Likely cause (seen again in
+  the PR #425 run, passed on rerun): the random planet name can hold an
+  apostrophe (`Ilq'Ot`), which the page HTML-escapes, so the test's
+  plain-text match misses it. Done: the failing case is
   found (loop the test over seeds or runs), the cause is fixed in the
   test or in the code it found, and the test passes on every run tried.
   [infra, ADM]

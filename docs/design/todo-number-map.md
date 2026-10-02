@@ -482,7 +482,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
-| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | done, PR #425 |
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
 | GEN.47 | Nebulae almost never appear (bug) | none | done, PR #419 |
@@ -669,7 +669,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
-| PERF.1 | Generation at scale | none | open |
+| PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
 | PERF.4 | Second progress bar for slow plan layers | 88 (2026-10-01 03:26Z to 05:29Z) | done, PR #258 |
@@ -679,7 +679,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.8 | Parallel background work queue in the API | 92 (2026-10-01 03:46Z to 05:29Z) | done, PR #225 and #227 |
 | PERF.9 | Weight the bright-star ETA by the shape of the galaxy | 93 (2026-10-01 04:50Z to 05:29Z) | done, PR #258 |
 | PERF.10 | Record generation speed across a log scale of densities | 94 (2026-10-01 04:58Z to 05:29Z) | done, PR #238 |
-| PERF.11 | Store each sector's expected and actual density | 95 (2026-10-01 04:58Z to 05:29Z) | open |
+| PERF.11 | Store each sector's expected and actual density | 95 (2026-10-01 04:58Z to 05:29Z) | done, PR #425 |
 | PERF.12 | Check the schema once per process during generation | none | done, PR #222 |
 | PERF.13 | Write each sector in batches | none | done, PR #222 |
 | PERF.14 | Reserve a sector's names in bulk, safe with several writers at once | none | done, PR #222 |
