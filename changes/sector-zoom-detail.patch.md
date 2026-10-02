@@ -1,2 +1,0 @@
-### Fixed
-- **The Galaxy Map shows every star of a sector it is zoomed to, and its black holes, neutron stars and quasars (MAP.80).** Zoomed in to about a sector, the map also fetches the finest (16 pc) tiles around it, which list every generated star, so the sector is no longer thinned to its brightest stars. Tiles of 64 pc and finer now list the placed black holes, neutron stars (pulsars) and quasars (`points` in `GET /api/galaxy/tiles`). The map draws them among the stars in their own colors (violet, mint green and pink), and a click names one and links to its page.
