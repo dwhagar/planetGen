@@ -105,7 +105,7 @@ goes into a phase's table in the same PR that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73 |
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73 |
 | 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
 | 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11 |
 | 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9 |
@@ -530,6 +530,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Map's SVG. Done: such a body is left out or drawn at a safe place
   with a note, the SVG never holds NaN or inf, and the strict xfail
   test for it passes.
+
+- [ ] **MAP.88 Parts of a star system run off the edge of the System Map (bug)**
+  Boss (2026-10-02 00:49Z): "sometimes the star systems go off the edge
+  for planets and such, the window should be scaled down so that we
+  don't run any part of the star system past the outer edge of the
+  viewing space." Today the System Map (`lib/systemmap.py`) draws into a
+  fixed 700 px square viewBox: each body's distance from its anchor is
+  log-scaled out to `_MIN_RADIUS_PX + _RADIUS_SPREAD_PX` (335 px from the
+  center), then moons are placed around their planets, belts get a band,
+  and `_relax_markers` pushes crowded markers apart, all of which can
+  carry an outer planet, its moons or its marker past the frame; only
+  the labels are slid back inside it (MAP.50). Done: after everything is
+  placed, the map works out the drawn extent of every star, planet,
+  moon, belt, facility and marker (with its radius) and scales the
+  whole scene down to fit the frame with a small margin, so nothing
+  ever runs past the edge, with a test over many generated systems that
+  every drawn element sits inside the viewBox. Separate from the orbit
+  spacing study (the "Orbit spacing options" thread), which may change
+  how the same map spaces orbits; whichever lands second keeps this
+  fit.
 
 - [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
   Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
