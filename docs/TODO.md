@@ -111,8 +111,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.13, OPS.14 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.13, OPS.14, DB.9, ADM.18 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, GEN.59 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -1944,8 +1944,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     draw seeded), GEN.57 (a sector's contents depend only on the seed,
     the version and its address), DB.7 (the version kept with each
     sector), GEN.58 (a fingerprint), TEST.77 (the golden-galaxy
-    test), OPS.13 (each update records the key, keeping the last 10)
-    and OPS.14 (a warning when the running key differs from the
+    test), ADM.18 (the creation settings as a JSON file), OPS.13 (each
+    update records the key, keeping the last 10) and OPS.14 (a warning when the running key differs from the
     galaxy's). GEN.47's nebula field uses the derived seeds.
   - Phase 2: PERF.18 and GEN.42 give the one-process stars for one
     seed (already in their Done text); API.16 and ADM.17 show the seed
@@ -2108,8 +2108,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     a deliberately changed sector. Simplest default: no automatic
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
-    warns when they differ. Prerequisites: DB.6, DB.7, GEN.57, GEN.58,
-    TEST.77, GEN.59, OPS.14.
+    warns when they differ. It reads the galaxy's settings from ADM.18's
+    JSON file. Prerequisites: DB.6, DB.7, GEN.57, GEN.58, TEST.77,
+    GEN.59, OPS.14, ADM.18.
 
   - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
     Done: the Generate page shows the galaxy seed (32 hex digits, with a
@@ -2117,6 +2118,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (DB.6), and the new-galaxy form takes an optional seed (blank means a
     random one); the admin's System page shows the same for one system.
     Prerequisite: DB.6.
+
+  - [ ] **ADM.18 The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard**
+    Boss (2026-10-02 02:13Z): "Inject into Phase 1 that the system
+    should also take all the variables that were set at galaxy creation
+    time and when the galaxy is created generate a backup file with all
+    the settings in JSON format with the seed and version data. The file
+    will be downloadable as a json file from the Admin dashboard at any
+    time and a backup is made if the file ever has to be changed." Done:
+    when a galaxy is created, every creation setting is written to a
+    JSON file: all `plan` and new-galaxy options, defaults included
+    (disk scale length and height, bulge radius, max ring, bright-star
+    floor, prevalence settings and the rest), the 128-bit seed, DB.6's
+    22-digit version key with its parts spelled out, and the corpus and
+    lock hashes (OPS.13). It lives in the site's data directory (path in
+    `config.json`). The Admin dashboard offers it as a `.json` download
+    at any time, with the control database's key history (the last 10
+    updates, OPS.13) included. Whenever the file has to change (a
+    setting change, a dimmer bright-star layer added), the old copy is
+    kept as a dated backup first. OPS.12 can rebuild from this file and
+    the seed. A test creates a small galaxy, downloads the file and
+    checks the settings, seed and key, then changes a setting and checks
+    the backup exists. Prerequisites: DB.6, DB.7, OPS.13.
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
@@ -2278,6 +2301,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
+
+- [ ] **DB.8 Check a galaxy database and say whether it is damaged**
+  Boss (2026-10-02 02:13Z): "add to TODO and inject into Phase 0 build DB
+  consistency checking so that we can check a DB and tell if it's been
+  damaged, then Phase 1 inject a DB repair using parity data stored in a
+  file." Done: `generate.py check-db`, and a button on the Admin
+  dashboard that runs it as a job, check the galaxy and control
+  databases without changing anything. The checks:
+  - Schema: tables, columns and indexes match the recorded migration
+    level (sharing DB.4's shape detection).
+  - Orphans: no planet without its system, moon without its planet,
+    system without its sector, composition row without its field or
+    comet, and so on.
+  - Ids: every row id sits below `id_blocks`' next ids (the DB.3 case),
+    and no blocks overlap.
+  - Names: the name registries match the names in use.
+  - Values: every sector address is inside the galaxy's bounds, no
+    value is NaN or infinite, and every system passes
+    `validation.check_star_system`.
+  - Counts: the per-sector stats table agrees with the rows, once GEN.44
+    and PERF.11 exist; the version keys are present and well formed,
+    once DB.6 and DB.7 exist.
+  The report lists each problem with the rows involved and ends with a
+  pass or fail line per check; the exit code is non-zero when damage is
+  found. `--sector` and `--region` limit it to part of the galaxy. A test
+  damages a copy of a small galaxy in each of these ways and checks the
+  matching problem is reported, and an undamaged one passes.
+
+- [ ] **DB.9 Repair a damaged galaxy database from a parity file**
+  Boss (same message): "then Phase 1 inject a DB repair using parity
+  data stored in a file." Done:
+  - Every sector gets a content checksum, the canonical hash of GEN.58's
+    fingerprint.
+  - A parity file kept outside the database (path in `config.json`)
+    holds Reed-Solomon parity over groups of sector exports, so any one
+    damaged sector per group can be rebuilt; the group size sets the
+    overhead. It is updated whenever sectors are saved or edited, and
+    carries its own checksum so damage to it is caught too.
+  - `generate.py repair-db` uses DB.8's check to find damaged sectors
+    and rebuilds each from the parity file. Where parity can't, and the
+    galaxy's seed and version key match the running code (OPS.14), it
+    regenerates the sector from its seed and replays its edits from the
+    edit log. It re-runs the check and lists anything it could not
+    repair.
+  - A test damages rows in a copy of a small galaxy, repairs them, and
+    gets a passing check.
+  Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
 
 ## API: The JSON API
 
