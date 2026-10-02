@@ -114,7 +114,7 @@ that files it.
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -1899,8 +1899,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     schedule) merges pending admin changes into a new JSON file
     (GEN.61) and keeps 18 backups (OPS.18, listed by ADM.19).
   - Phase 3: API.17 makes remote generation reproduce the server's;
-    DB.10 repairs from the newest JSON plus pending deltas (low
-    priority, Boss 02:31Z).
+    DB.10 repairs from the newest JSON plus pending deltas; ADM.20 adds
+    a "merge now" button (low priority).
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
@@ -2095,9 +2095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the JSON file's net changes, regeneration seeds and epoch, as it is
     now. It reads the newest JSON file plus any pending deltas still in
     the control database (GEN.59), or rebuilds from any of the 18
-    backups kept by OPS.18 (`--as-of DATE` picks one). The pending
-    deltas and `--as-of` parts are low priority (Boss, 2026-10-02
-    02:31Z) and can ship after the rest. A test runs it on a small galaxy, and on one with
+    backups kept by OPS.18 (`--as-of DATE` picks one). A test runs it on a small galaxy, and on one with
     a deliberately changed sector. Simplest default: no automatic
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
@@ -2160,6 +2158,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     current one (ADM.18). Admin only. A test checks the list matches
     the files on disk and a download returns the file. Prerequisites:
     ADM.18, OPS.18.
+
+  - [ ] **ADM.20 A "merge now" button on the Admin dashboard (low priority)**
+    Boss (2026-10-02 02:31Z), on an on-demand merge button: "Let's put
+    that part of Phase 3, low priority." Done: an admin-only button on
+    the Admin dashboard runs the delta merge (GEN.61) now, under the
+    same lock and rules as the daily run (OPS.16), and writes a new
+    seed-key-date-time JSON file. That file counts toward the day's
+    daily slot in OPS.18's rotation. If the daily run holds the lock,
+    the button says so and does nothing. A test presses it with pending
+    deltas and checks the new file and the cleared rows. Prerequisites:
+    OPS.16, GEN.61, OPS.18.
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
@@ -2424,9 +2433,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     gets a passing check.
   Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
 
-- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas (low priority)**
-  From Boss's 02:28Z daily-merge rule (GEN.61). Low priority (Boss,
-  2026-10-02 02:31Z: "Let's put that part of Phase 3, low priority"). Done: DB.9's repair,
+- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
+  From Boss's 02:28Z daily-merge rule (GEN.61). Done: DB.9's repair,
   where it regenerates a sector from its seed, applies the newest JSON
   file's diff and epoch plus any pending deltas still in the control
   database, so admin changes since the last daily run survive a repair.
