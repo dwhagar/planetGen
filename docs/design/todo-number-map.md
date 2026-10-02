@@ -639,7 +639,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | open |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |

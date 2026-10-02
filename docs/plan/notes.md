@@ -66,8 +66,9 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   sectors appear for the next pick. Note the word: "arc" was MAP.19's
   name for one cell of the old 3x3 region pick
   ([galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md));
-  it now means this first pick, and the design doc needs the same
-  change when MAP.85 is built.
+  it now means this first pick; the design doc's section 15 ("Planned:
+  the arc pick", PR #362) describes it, and is rewritten as the current
+  design when MAP.85 ships.
 - **Sector colors (MAP.86).** The notes' starting values:
 
   | State | Opacity | Saturation | Hue from |
