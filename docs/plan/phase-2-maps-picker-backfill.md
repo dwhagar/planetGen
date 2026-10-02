@@ -50,6 +50,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | NAV.15 |  |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | NAV.15 | The highlight is MAP.85's arc highlight. |
 | NAV.16 | NAV endpoints can be any object | NAV.7 | navigation.py legs, nav_page.py endpoints. |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44, MAP.65, NAV.15 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
 
 ### Courses
 

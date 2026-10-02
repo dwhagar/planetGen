@@ -140,6 +140,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.44, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
+### Nearby search
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| NAV.43 | Find everything within a distance of a place: the query and the API | NAV.7 | Boss 04:39Z. Replaces systems_within_radius (one sector, systems only); enumerate_sectors_within_radius then per-sector reads; open questions: max distance, ungenerated sectors, generated only. |
+| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | NAV.43 | Boss 04:39Z. Page with place picker, distance in pc, kind filters, 50-row pages. |
+
 ## Open questions for Boss
 
 - PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
@@ -149,3 +156,4 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.
+- NAV.43: Find everything within a distance of a place: the query and the API, see its entry in TODO.md.
