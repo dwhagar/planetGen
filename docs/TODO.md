@@ -872,7 +872,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   focus), the help text says which, and a test pins it. Open question:
   which keys does Boss want?
 
-- [ ] **MAP.87 Stars on the Sector Map need to be brighter, most of all the dim ones (bug)**
+- [ ] **MAP.87 Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug)**
   Boss (2026-10-02 00:42Z): "ALL stars need to become about 4 times as
   bright in the sector maps but it's bright enough in the large galactic
   map so scale so that the dimmest red dwarf stars are 4 times as bright
@@ -882,12 +882,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `_star_light` in `lib/starmap.py` (MAP.15): luminosity mapped on a log
   scale from 1e-4 to 1e6 L_sun onto the halo's size (13 to 40 px), its
   strength (`_LIGHT_GLOW`, 0.55 to 0.85) and the core's opacity
-  (`_LIGHT_BRIGHT`, 0.9 to 1.0), drawn by `sectormap.js`. Done: display
-  only, on the Sector Map only (the Galaxy Map is unchanged): the
-  dimmest red dwarfs look about four times as bright as now, the boost
-  shrinks smoothly with luminosity, and stars of about 1000 L_sun and
-  up look as they do now; nothing stored changes. Before and after
-  screenshots of a busy sector in both themes go with the PR.
+  (`_LIGHT_BRIGHT`, 0.9 to 1.0), drawn by `sectormap.js`; the Galaxy
+  Map's stars use the same log range (`STAR_LOG_LUMINOSITY` in
+  `galaxymap3d.js`). Boss (00:43Z): "Adjust TODO above to also use the
+  same logic in the galactic map, on 2nd though". Done: display only,
+  on both the Sector Map and the Galaxy Map, through one shared
+  brightness curve (in Python with its JavaScript twin, or computed
+  once and sent with the star data): the dimmest red dwarfs look about
+  four times as bright as now, the boost shrinks smoothly with
+  luminosity, and stars of about 1000 L_sun and up look as they do now;
+  nothing stored changes. Before and after screenshots of a busy sector
+  and of a zoomed Galaxy Map view, in both themes, go with the PR.
 
 - [ ] **MAP.85 The galaxy pick is an arc, on a 3D galaxy with no sector lines**
   Boss (2026-10-01 23:53Z): "Redo the galactic selection, so that the
