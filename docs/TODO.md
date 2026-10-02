@@ -1573,11 +1573,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   128bit seed"): one 128-bit galaxy seed stored with the galaxy (a
   `BINARY(16)` column or a 32-character hex string, since `BIGINT
   UNSIGNED` holds only 64 bits) and shown as 32 hex digits, a new
-  `--seed` option on `plan` and new galaxies that accepts it, and each sector, layer and
-  backfill block seeded from the galaxy seed plus its address. Builds
-  after PERF.21, in the parallel path thread. Done: no generation draw uses the operating system's random
-  source, and a test checks that one galaxy seed gives the same sectors
-  at 1, 2 and N workers (with TEST.74).
+  `--seed` option on `plan` and new galaxies that accepts it, and each
+  sector, layer and backfill block seeded from the galaxy seed plus its
+  address. Each unit's seed is a SHA-256 hash of the full 128-bit seed
+  plus the unit's address, and the bright-star scatter's own 63-bit seed
+  is derived from the 128-bit galaxy seed too, so no step throws bits
+  away. Builds after PERF.21, in the parallel path thread. Done: no
+  generation draw uses the operating system's random source; a test
+  checks that one galaxy seed gives the same sectors at 1, 2 and N
+  workers (with TEST.74); and a test checks that two seeds differing
+  only in their high 64 bits give different output.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
