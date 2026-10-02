@@ -1470,7 +1470,11 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     Returns:
         dict: Every column of the phenomenon's own row, plus `type`,
             `sector_name` (`None` if it has no `sector_id`) and `nearest`
-            (its stored nearest star systems, see `nearest_systems`).
+            (its stored nearest star systems, see `nearest_systems`). An
+            asteroid field also gets `composition` (`[{"component",
+            "concentration"}]`, from `asteroid_field_composition`) and an
+            interstellar comet `composition` (its components, from
+            `interstellar_comet_composition`), in their saved order.
 
     Raises:
         ValueError: If `phenomenon_type` isn't a recognized type, or no
@@ -1495,6 +1499,22 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     detail = dict(row)
     detail["type"] = phenomenon_type
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
+    # DB.2: the composition rows saved beside an asteroid field or an
+    # interstellar comet, in their saved order (`composition_summary` is
+    # the same list written out as a phrase).
+    if table == "asteroid_fields":
+        detail["composition"] = [
+            {"component": comp["component"], "concentration": comp["concentration"]}
+            for comp in conn.execute(
+                "SELECT component, concentration FROM asteroid_field_composition"
+                " WHERE field_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
+        ]
+    elif table == "interstellar_comets":
+        detail["composition"] = [
+            comp["component"] for comp in conn.execute(
+                "SELECT component FROM interstellar_comet_composition"
+                " WHERE comet_id = ? ORDER BY position", (phenomenon_id,)).fetchall()
+        ]
     return detail
 
 
