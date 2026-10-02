@@ -158,7 +158,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | generate.py: command-line options | GEN.51, GEN.52, GEN.24, API.3 | GEN.51/52 before GEN.24's new mode; API.3's remote mode mirrors the final options. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
 | systemData.py StarSystem constructor | GEN.53, GEN.54, GEN.49, GEN.50, then GEN.52 | One thread in phase 0 (D); GEN.52 after it. |
-| planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.25, GEN.36, GEN.35, GEN.34, GEN.37, then GEN.33/28, GEN.27, GEN.38, GEN.29 | Physics bugs thread (phase 0, C), then the classes thread. |
+| planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
 | Random draws in every generator file | GEN.39 (if Boss says yes) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
 | _db.py | API.10 (id blocks), GEN.46 then API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347). |
 | Galaxy schema (schema.sql, v50 today) | GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11, GEN.46 (if names are migrated) | One writer at a time, in this order: GEN.44, PERF.11 with MAP.86, NAV.10, API.11. |
@@ -193,7 +193,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 - **Sector Map rogue fixes and NAV.30 in phase 0**: MAP.82, MAP.83, MAP.84 and NAV.30 are small fixes in today's sectormap.js and galaxymap3d.js. Fixing them before MAP.63 moves the code, with TEST.70 pinning them, keeps them fixed through the engine work. Alternative: build them on the engine in phase 2.
 - **MAP.79's toggles in phase 2**: The dimming part is phase 0 (MAP.82 to MAP.84); the per-kind show/hide buttons go on the shared control set (MAP.65).
 - **UX.25, UX.26, UX.27, UX.31 in phase 1**: They are bugs but use UX.28's icons, which Boss approves first. They could ship in phase 0 with text buttons and get icons later.
-- **GEN.45 in phase 0**: The old plan had it after GEN.28. It only changes the rogue mass bins, and GEN.38's class choice follows from the masses, so it sits at the root.
+- **GEN.45 in phase 0**: The old plan had it after GEN.28. It only changes the rogue mass bins, and GEN.38's class choice follows from the masses, so it sits at the root. Done in PR #350, reading M^-0.65 per log mass (per unit mass gave 87% gas giants).
 - **GEN.32 in the parallel thread**: It shares the scatter functions with PERF.23. It could instead wait for GEN.44 and use per-sector levels to skip finished work.
 - **UX.21 last**: A bug, but a final pass over finished pages. Its one known dead control (the nebula "-" button at the 1 ly limit) could be split out into phase 0.
 - **OPS.8 in phase 0**: Not a bug, but the same two files as OPS.7, so it rides in the same PR.

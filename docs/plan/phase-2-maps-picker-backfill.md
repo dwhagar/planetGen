@@ -68,7 +68,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.38, GEN.34, GEN.37 | Bug, but by definition a sweep after the new classes; it can't go earlier. |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.38 | Bug, but by definition a sweep after the new classes; it can't go earlier. |
 
 ### Pages
 

@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.36 |
 | MAP | MAP.91 |
 | NAV | NAV.40 |
-| GEN | GEN.60 |
+| GEN | GEN.61 |
 | PERF | PERF.24 |
 | DB | DB.10 |
 | API | API.18 |
@@ -460,7 +460,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v49, PR #226) |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
-| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
+| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
@@ -469,10 +469,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | GEN.33 | One class per PR, each with its tests | none | open |
-| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | open |
-| GEN.35 | Rocky planets only ever get Class D moons (bug) | none | open |
-| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | open |
-| GEN.37 | 97% of planets land in the cold zone (bug) | none | open |
+| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | done, PR #350 |
+| GEN.35 | Rocky planets only ever get Class D moons (bug) | none | done, PR #350 |
+| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | done, PR #350 |
+| GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | open |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
@@ -480,7 +480,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
-| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | open |
+| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | open |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
@@ -495,6 +495,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | GEN.59 | Edits and time evolution recorded as layers on top of the seed | none | open |
+| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

@@ -111,8 +111,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.13, OPS.14, DB.9, ADM.18 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, GEN.59 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -1506,16 +1506,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - Fill from ring 0 outward, so a run that stops early (or hits
     `--limit`) still leaves a solid disc around the nucleus.
 
-- [ ] **GEN.25 A moon reclassified after its planet moves can be too large for its planet (bug)**
-  Found by the ADM.1 thread with ADM.5's validator (PR #235):
-  `stellarObjects/validation.check_star_system` reports "moon too large
-  for its planet" on about 3 of 1,000 generated systems with moons.
-  Start in `validation.reconcile_moved_planet` and
-  `planetPhysics.reconcile_zone_and_class`, which re-roll a moon's
-  class without checking `max_moon_radius_km` (planet radius /
-  10^(1/3)) or mass <= planet mass / 10. Done: 1,000 generated systems
-  pass `check_star_system` with no moon-size problems.
-
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
   appears in the habitable zone and adjust so that it fits there." P is
@@ -1597,46 +1587,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over cleanly), never the same stars twice, and the strict xfail test
   for it passes.
 
-- [ ] **GEN.34 Gas and ice giants come out too light, so there are no super-Jupiters (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
-  (2026-10-01); the thread held its physics fixes back because Boss
-  hadn't approved them. Not re-measured on current main. The median bulk density of generated giants is about
-  0.25 g/cm³, against 0.69 to 1.64 for real gas and ice giants, so
-  massive giants (super-Jupiters) never appear. Done: giant masses and
-  radii give real densities, super-Jupiters occur, and a test checks the
-  density range over many seeds. Ties in with GEN.28 and GEN.29.
-
-- [ ] **GEN.35 Rocky planets only ever get Class D moons (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
-  (2026-10-01); the thread held its physics fixes back because Boss
-  hadn't approved them. Not re-measured on current main. `generate_moons` applies its moon size rule across the whole
-  size range, so a rocky planet's moons all come out Class D. Done:
-  rocky planets get the moon classes their size and zone allow, with a
-  test over many seeds.
-
-- [ ] **GEN.36 Moon regeneration can produce gas-giant or blacklisted moon classes (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
-  (2026-10-01); the thread held its physics fixes back because Boss
-  hadn't approved them. Not re-measured on current main. `reconcile_zone_and_class` can regenerate a moon as a gas
-  giant or as a class moons are never meant to have. Related to GEN.25
-  (a reclassified moon too large for its planet), but a different
-  failure. Done: a regenerated moon only ever gets a moon-eligible
-  class, with a test.
-
-- [ ] **GEN.37 97% of planets land in the cold zone (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), from the planet class gap report
-  (2026-10-01); the thread held its physics fixes back because Boss
-  hadn't approved them. Not re-measured on current main. Nearly every generated planet is in the cold zone, so hot
-  and temperate planets are rare. Done: the zone mix is measured on
-  current main, the orbit or zone placement is fixed to give a
-  plausible spread, and a test checks the share over many seeds.
-
 - [ ] **GEN.38 Rocky rogue planets over 10,000 km are still classed C (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the GEN.8/GEN.26 thread report (PR #263): Class C's size range
   tops out at 10,000 km and no other rogue-eligible rocky class exists,
   so bigger rocky rogues are classed C anyway. Done: they get a class
   that fits their size. May be solved by GEN.28's S class (rocky
   super-Earth) if S is rogue-eligible.
+
+- [ ] **GEN.60 Rogue gas giants get a Jupiter-sized radius at every mass (bug)**
+  Found by the Physics bugs thread (PR #350, 2026-10-02): a rogue gas
+  giant's radius doesn't follow its mass, so a 0.05 Jupiter-mass rogue
+  is as big as a 10 Jupiter-mass one. GEN.34 gave bound giants a real
+  mass-radius relation. Done: rogue gas giants (`roguePlanetData.py`)
+  use the same giant mass-radius relation as bound giants, and a test
+  checks radius and density over the rogue mass range.
 
 - [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
@@ -1722,7 +1686,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (OPS.13) and the check (OPS.14) agree. The other inputs that matter,
     the SHA-256 of nltk's `words` corpus files (downloaded apart from the
     pinned package), of `offensive_words.txt` and any name lists, and of
-    `requirements.lock`, go in each history row (OPS.13), not in the key.
+    `requirements.lock`, go in each history row (OPS.13), not in the key;
+    the word list itself goes in ADM.18's JSON file.
     No numpy or other numeric library is used, so the math library risk
     is covered by the OS, architecture and Python parts.
 
@@ -1804,24 +1769,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     lightness go in the same table. No migration of existing galaxies (GEN.39 starts fresh).
     GEN.40 to GEN.43 and PERF.18 use it to skip work.
 
-- [ ] **GEN.45 Check the rogue planet mix of terrestrial and gas giants (bug)**
-  Boss (2026-10-01 23:53Z): "investigate probability for a gas giant
-  rogue planet vs terrestrial, verify we are actually seeing the
-  results we expect." Today `roguePlanetData.py` picks a mass bin by
-  weight (`ROGUE_PLANET_MASS_BINS`: terrestrial 0.1-2 Earth masses
-  weight 5, sub-Neptune 2-20 weight 1, Saturn and Jupiter bins 0.25
-  each), draws a log-uniform mass in it, and calls anything at or over
-  0.05 Jupiter masses (about 16 Earth masses) a gas giant: about 91%
-  terrestrial and 9% gas giants by arithmetic. The only test
-  (`test_rogue_planets_are_mostly_terrestrial`) checks the terrestrial
-  bin's share, not the terrestrial/gas split. Done: the split is
-  measured over a large sample and compared with the expected one
-  (microlensing surveys: free-floating planets are mostly Earth-mass to
-  Neptune-mass, Jupiter-mass ones rarer); if they differ the weights
-  are fixed; a test pins the split. Boss's research notes propose a
-  power-law mass function, dN/dM proportional to M^-0.65 from 0.01
-  Earth masses to 13 Jupiter masses, as the reference to check against.
-
 - [ ] **GEN.46 Star system names of at most two words (bug)**
   Boss (2026-10-01 23:53Z): "Name generation should not produce star
   names that are more than 2 words long. This keeps planet names from
@@ -1881,6 +1828,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Done: for a single system, a forced option the star can't meet is
     refused up front (as `-large_star +habitable_world +asteroid_belt`
     already is) or fails with a clear error; it never saves silently.
+    Note: GEN.37 (PR #350) changed planet placement (the first slot
+    scales with the habitable zone, slots are spaced geometrically and
+    stop at the disk edge), so re-measure which stars can meet
+    `+habitable_world` on current main first.
 
   - [ ] **GEN.50 `-planets +asteroid_belt` still makes an asteroid belt (bug)**
     `-planets` is documented as "skips the planet generation process
@@ -1962,9 +1913,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     A short design note (`docs/design/reproducible-galaxies.md`) that
     the other items build to. Simplest defaults, unless Boss changes
     them: "the same galaxy" means every generated object has the same
-    address, position, properties and name; database ids, timestamps,
-    population data rebuilt later and admin edits (the edit log keeps
-    those) are not compared. A seed reproduces a galaxy only on the
+    address, position, properties and name; database ids, timestamps
+    and population data rebuilt later are not compared. Admin edits and
+    regenerations are compared after replaying ADM.18's JSON file
+    (GEN.59): its net changes per object and the seeds of regenerated
+    things. A seed reproduces a galaxy only on the
     exact PlanetGen version that made it (recorded by DB.6); an older
     galaxy is reproduced by checking out its version. Python's version,
     the OS and the architecture are part of DB.6's key, and TEST.77 runs on every CI Python
@@ -2082,7 +2035,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     defines. Done: `generate.py fingerprint` (for the galaxy or a region)
     prints a canonical SHA-256 digest per sector and one for the region over the compared content in
     a fixed order (address order, canonical number formatting), skipping
-    ids, timestamps and edits; the same function backs GEN.57's test,
+    ids and timestamps, either as first generated or with the JSON
+    file's edits and regenerations applied (GEN.59); the same function backs GEN.57's test,
     TEST.77 and OPS.12. Prerequisite: OPS.11.
 
   - [ ] **TEST.77 A golden-seed regression test**
@@ -2104,7 +2058,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     one, listing any sector that differs; it refuses, naming the version
     to check out, when the running release isn't Y. Without the edit and
     epoch layers (GEN.59) it rebuilds the galaxy as first generated; with
-    them, as it is now. A test runs it on a small galaxy, and on one with
+    the JSON file's net changes and regeneration seeds, as it is now. A test runs it on a small galaxy, and on one with
     a deliberately changed sector. Simplest default: no automatic
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
@@ -2137,9 +2091,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     updates, OPS.13) included. Whenever the file has to change (a
     setting change, a dimmer bright-star layer added), the old copy is
     kept as a dated backup first. OPS.12 can rebuild from this file and
-    the seed. A test creates a small galaxy, downloads the file and
-    checks the settings, seed and key, then changes a setting and checks
-    the backup exists. Prerequisites: DB.6, DB.7, OPS.13.
+    the seed. The file also carries the word list itself (Boss,
+    2026-10-02 02:20Z: "The wordlist will also be in the JSON file"):
+    the nltk `words` corpus as used, `offensive_words.txt` and any name
+    lists, with their hashes kept for OPS.14's check. The word list adds
+    a few megabytes. This supersedes keeping only a hash of the corpus.
+    GEN.59 adds its sections: net admin changes per object and the seeds
+    of regenerated things. The file holds only what is needed to
+    reproduce the identical database. A test creates a small galaxy,
+    downloads the file and checks the settings, seed, key and word list,
+    then changes a setting and checks the backup exists. Prerequisites:
+    DB.6, DB.7, OPS.13.
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
@@ -2158,13 +2120,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     What sits on top of generation is recorded separately so it can be
     replayed: admin edits, overrides and regenerations (`editStore.py`,
     the edit log) and time evolution (`updateOrbits.py`, the correlative
-    update) are logged as ordered layers with the release that applied
-    them. Done: "seed + version" rebuilds a galaxy as first generated,
-    and "seed + version + edit log + epoch" rebuilds it as it is now;
-    a regeneration draws from SHA-256(sector seed || edit number), not
-    `random.seed()` (today in `api/edits.py`), so replaying the edit log
-    replays it. Prerequisites: GEN.56,
-    GEN.58.
+    update). Boss (2026-10-02 02:20Z): "Now track changes from original
+    to new (skipping everything inbetween) made through the admin
+    system, regenerate will generate a new seed for that specific
+    whatever it is beingr regenerated and store that in the JSON storing
+    only as mcuh as is required in the JSON to reproduce the identical
+    data in the databse." Done:
+    - Admin edits go into ADM.18's JSON file as net changes per object:
+      for each changed field, its original generated value and its
+      current value, with every edit in between dropped. An edit back to
+      the original removes the entry. The edit log in the database is
+      unchanged.
+    - A regenerate of anything (a sector, a system, an object) draws a
+      new 128-bit seed for that thing and stores its address and that
+      seed in the JSON file; replaying uses the stored seed. This
+      replaces the earlier SHA-256(sector seed || edit number) idea and
+      today's `random.seed()` in `api/edits.py`. A regenerate drops the
+      net changes recorded for what it replaced; later edits are
+      recorded against the regenerated values.
+    - Time evolution records only the epoch it has reached.
+    - The JSON holds only what is needed to reproduce the identical
+      database: nothing the seeds already produce.
+    "Seed + version" rebuilds a galaxy as first generated, and the seed,
+    version and JSON file rebuild it as it is now. A test edits a field
+    twice, regenerates a system, and rebuilds a copy from the JSON that
+    matches the live galaxy by fingerprint (GEN.58). Prerequisites:
+    GEN.56, GEN.58, ADM.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

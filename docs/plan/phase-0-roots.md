@@ -35,24 +35,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
 | OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
-### Physics bugs
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) |  | Giant masses and radii; fix before new classes (GEN.28) are tuned against them. |
-| GEN.35 | Rocky planets only ever get Class D moons (bug) |  | generate_moons in planetPhysics.py. |
-| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) |  | reconcile_zone_and_class in planetPhysics.py; one PR with GEN.25. |
-| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | GEN.36 | Same function as GEN.36 (moon re-roll without the size check). |
-| GEN.37 | 97% of planets land in the cold zone (bug) |  | Zone placement; changes which systems can meet +habitable_world (GEN.49) and where P sits (GEN.27). |
-| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) |  | Rogue mass bins only (roguePlanetData.py); GEN.38's class choice follows from the mass mix. Judgment: plan had it after GEN.28. |
-
 ### Binary pairs and single-system forcing
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.53 | The two stars of a binary don't share one age (bug) |  | StarSystem constructor in systemData.py (secondary made around line 270). |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | GEN.53 | Same lines as GEN.53; one PR. |
-| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | GEN.54 | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. |
+| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | GEN.54 | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.49 | Same forcing code; rejected for single systems. |
 
 ### Galaxy geometry and names

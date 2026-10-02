@@ -80,7 +80,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.59 | Edits and time evolution recorded as layers on top of the seed | GEN.56, GEN.58 |  |
+| GEN.59 | Edits and time evolution recorded as layers on top of the seed | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net admin changes per object and per-thing regeneration seeds in ADM.18's JSON. |
 
 ## Open questions for Boss
 
