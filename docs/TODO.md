@@ -111,10 +111,10 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, GEN.59 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -1443,9 +1443,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   passes through, in `galaxyGeometry.py` with a JavaScript twin
   (`galaxyprisms.js`) and tests that the two agree. NAV.12 uses it for
   the unknown-space flag, and NAV.25 later for obstacles. Done: the
-  helper, exact at sector faces and edges (after GEN.31 fixes the
-  layer boundary), with tests along an axis, diagonally, through the
-  core and out into the halo. Prerequisite: GEN.31.
+  helper, exact at sector faces and edges (GEN.31 fixed the layer
+  boundary in PR #353), with tests along an axis, diagonally, through
+  the core and out into the halo.
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
@@ -1570,14 +1570,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated (weight 0.0001, and orbits are circular); V's composition
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
-
-- [ ] **GEN.31 A point just under layer 0's top face lands in layer 1 (bug)**
-  Found by the generation tests (TEST.4-36 work, 2026-10-01): a point
-  one float step below layer 0's top face is put in layer 1, both in
-  the Python grid code (`galaxyGeometry`, `sector_address_at`) and in
-  the map's `galaxyprisms.js`. Done: a point inside a layer's own
-  height range always maps to that layer, in Python and JavaScript
-  alike, and the strict xfail test for it passes. [MAP]
 
 - [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
   Found by the generation tests (2026-10-01): if `generate.py plan
@@ -1895,16 +1887,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     draw seeded), GEN.57 (a sector's contents depend only on the seed,
     the version and its address), DB.7 (the version kept with each
     sector), GEN.58 (a fingerprint), TEST.77 (the golden-galaxy
-    test), ADM.18 (the creation settings as a JSON file), OPS.13 (each
+    test), ADM.18 (the creation settings as a JSON file), GEN.59 (admin
+    changes as a net difference in that file), OPS.13 (each
     update records the key, keeping the last 10) and OPS.14 (a warning when the running key differs from the
     galaxy's). GEN.47's nebula field uses the derived seeds.
   - Phase 2: PERF.18 and GEN.42 give the one-process stars for one
     seed (already in their Done text); API.16 and ADM.17 show the seed
     and version; OPS.15 has each update say whether it changes
     generated output.
-  - Phase 3: API.17 makes remote generation reproduce the server's;
-    GEN.59 records edits and time evolution as layers on top of the
-    seed.
+  - Phase 3: API.17 makes remote generation reproduce the server's.
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
@@ -2079,29 +2070,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     time and when the galaxy is created generate a backup file with all
     the settings in JSON format with the seed and version data. The file
     will be downloadable as a json file from the Admin dashboard at any
-    time and a backup is made if the file ever has to be changed." Done:
-    when a galaxy is created, every creation setting is written to a
-    JSON file: all `plan` and new-galaxy options, defaults included
-    (disk scale length and height, bulge radius, max ring, bright-star
-    floor, prevalence settings and the rest), the 128-bit seed, DB.6's
-    22-digit version key with its parts spelled out, and the corpus and
-    lock hashes (OPS.13). It lives in the site's data directory (path in
-    `config.json`). The Admin dashboard offers it as a `.json` download
-    at any time, with the control database's key history (the last 10
-    updates, OPS.13) included. Whenever the file has to change (a
-    setting change, a dimmer bright-star layer added), the old copy is
-    kept as a dated backup first. OPS.12 can rebuild from this file and
-    the seed. The file also carries the word list itself (Boss,
-    2026-10-02 02:20Z: "The wordlist will also be in the JSON file"):
-    the nltk `words` corpus as used, `offensive_words.txt` and any name
-    lists, with their hashes kept for OPS.14's check. The word list adds
-    a few megabytes. This supersedes keeping only a hash of the corpus.
-    GEN.59 adds its sections: net admin changes per object and the seeds
-    of regenerated things. The file holds only what is needed to
-    reproduce the identical database. A test creates a small galaxy,
-    downloads the file and checks the settings, seed, key and word list,
-    then changes a setting and checks the backup exists. Prerequisites:
-    DB.6, DB.7, OPS.13.
+    time and a backup is made if the file ever has to be changed." Then
+    (02:20Z): "The wordlist will also be in the JSON file", and (02:21Z):
+    "JSON file name will be seed-version-date-time". Done:
+    - When a galaxy is created, a JSON file is written holding only what
+      reproduction needs: every creation setting (all `plan` and
+      new-galaxy options, defaults included: disk scale length and
+      height, bulge radius, max ring, bright-star floor, prevalence
+      settings and the rest), the 128-bit seed, DB.6's 22-digit version
+      key with its parts spelled out, the corpus and lock hashes
+      (OPS.13), the word list, and GEN.59's regenerate seeds and net
+      diff.
+    - The word list is the filtered list the name generator actually
+      uses (from nltk's `words` corpus, about 2.5 MB raw, after
+      `offensive_words.txt` and any name lists are applied), stored
+      gzip-compressed and base64-encoded with its SHA-256. A rebuild
+      reads names from this list. This supersedes keeping only a hash of
+      the corpus; the hashes stay for OPS.14's check.
+    - The file name is `<32-hex seed>-<22-hex version key>-<YYYYMMDD>-<HHMMSS>Z.json`
+      in UTC, with no colons so it is valid on Windows, for example
+      `9F3A07C2E81B44D5A1C06E7B3D2F9081-0007007F000160030C0300-20261002-022133Z.json`.
+      It lives in the site's data directory (path in `config.json`).
+    - Whenever the file has to change (a setting change, a dimmer
+      bright-star layer added, an admin change that alters GEN.59's
+      diff), the old file is kept as the dated backup and the new one is
+      written under the new date-time, so the newest file is the current
+      one.
+    - The Admin dashboard offers the current file as a `.json` download
+      at any time, with the control database's key history (the last 10
+      updates, OPS.13) alongside it.
+    OPS.12 rebuilds from this file. A test creates a small galaxy,
+    downloads the file and checks the name, settings, seed, key and word
+    list, then changes a setting and checks both files exist.
+    Prerequisites: DB.6, DB.7, OPS.13.
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
@@ -2116,36 +2117,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the server and comparing. Prerequisites: API.12, API.13, GEN.57,
     GEN.58.
 
-  - [ ] **GEN.59 Edits and time evolution recorded as layers on top of the seed**
-    What sits on top of generation is recorded separately so it can be
-    replayed: admin edits, overrides and regenerations (`editStore.py`,
-    the edit log) and time evolution (`updateOrbits.py`, the correlative
-    update). Boss (2026-10-02 02:20Z): "Now track changes from original
-    to new (skipping everything inbetween) made through the admin
-    system, regenerate will generate a new seed for that specific
-    whatever it is beingr regenerated and store that in the JSON storing
-    only as mcuh as is required in the JSON to reproduce the identical
-    data in the databse." Done:
-    - Admin edits go into ADM.18's JSON file as net changes per object:
-      for each changed field, its original generated value and its
-      current value, with every edit in between dropped. An edit back to
-      the original removes the entry. The edit log in the database is
-      unchanged.
-    - A regenerate of anything (a sector, a system, an object) draws a
-      new 128-bit seed for that thing and stores its address and that
-      seed in the JSON file; replaying uses the stored seed. This
-      replaces the earlier SHA-256(sector seed || edit number) idea and
-      today's `random.seed()` in `api/edits.py`. A regenerate drops the
-      net changes recorded for what it replaced; later edits are
-      recorded against the regenerated values.
-    - Time evolution records only the epoch it has reached.
-    - The JSON holds only what is needed to reproduce the identical
-      database: nothing the seeds already produce.
-    "Seed + version" rebuilds a galaxy as first generated, and the seed,
-    version and JSON file rebuild it as it is now. A test edits a field
-    twice, regenerates a system, and rebuilds a copy from the JSON that
-    matches the live galaxy by fingerprint (GEN.58). Prerequisites:
-    GEN.56, GEN.58, ADM.18.
+  - [ ] **GEN.59 Admin changes stored as a net difference from the generated galaxy**
+    Boss (2026-10-02 02:20Z): "Now track changes from original to new
+    (skipping everything inbetween) made through the admin system,
+    regenerate will generate a new seed for that specific whatever it is
+    beingr regenerated and store that in the JSON storing only as mcuh
+    as is required in the JSON to reproduce the identical data in the
+    databse." Admin changes are stored in ADM.18's JSON file as a net
+    difference from what seed + key would produce, not as a history.
+    Done:
+    - For each changed object the JSON keeps only its final state:
+      changed fields with their current values, and deleted objects as
+      tombstones.
+    - A regenerate draws a fresh random 128-bit seed for that object,
+      which replaces its derived seed, and stores it; edits made after
+      the regenerate are recorded on top. A regenerate clears earlier
+      entries for that object and its children. This replaces the
+      SHA-256(sector seed || edit number) idea and today's
+      `random.seed()` in `api/edits.py`.
+    - An edit that puts a value back to the original drops its entry.
+    - Objects are named by a stable address path (sector ring, layer
+      and slot, then system, body and moon by generated index), never by
+      database id, through a small stable-path helper (it may share
+      NAV.7's reference work but must not use row ids).
+    - Time evolution (`updateOrbits.py`) records only the epoch reached.
+    - Every admin change that alters the diff rewrites the JSON file,
+      the old one kept as the dated backup (ADM.18).
+    Rebuild = seed + key + this diff: "seed + key" gives the galaxy as
+    first generated, and adding the diff gives it as it is now. A test
+    edits, regenerates and deletes objects, rebuilds a fresh database
+    from seed + key + JSON, and gets the same content by fingerprint
+    (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
+    (`adminEdits.py`, `editStore.py`). Prerequisites: GEN.39, GEN.56,
+    GEN.58, ADM.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

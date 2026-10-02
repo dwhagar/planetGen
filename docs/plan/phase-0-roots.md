@@ -48,10 +48,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) |  | galaxyGeometry.py and galaxyprisms.js; GEN.24 and MAP.85's picking use the layer test. |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) |  | galaxyViewport.py and lib/galaxymap3d.py, the tile-level code MAP.80 also changes. |
 | GEN.46 | Star system names of at most two words (bug) |  | nameUniqueness.py and _db.py name reservation; API.12 downloads the name state, so settle names first. Open question: rename existing names? |
-| NAV.38 | Every sector a straight line passes through | GEN.31 | galaxyGeometry.py with a JS twin, after GEN.31 (same file). |
+| NAV.38 | Every sector a straight line passes through |  | galaxyGeometry.py with a JS twin, after GEN.31 (same file). |
 
 ### Map groundwork
 
@@ -68,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.64 | One camera and input controller | MAP.63, MAP.81 | One controller with zoom policies; MAP.53, MAP.58, MAP.75, MAP.73 build on it. |
 | MAP.60 | Galaxy Map scale readout: one scale line | MAP.64 | Start of the one ordered Galaxy Map thread. |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | MAP.60, UX.28, MAP.81 | Menu button and bookmark button; icons from UX.28, keys from MAP.81. |
-| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | MAP.55, MAP.64, GEN.31 | Moved to phase 0 by Boss (01:46Z). Root of the new selection: every later Galaxy Map pick item is rewritten around it. Arc size default: about 40 degrees by a third of the radius. Ships with today's block shading until MAP.86 lands. |
+| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | MAP.55, MAP.64 | Moved to phase 0 by Boss (01:46Z). Root of the new selection: every later Galaxy Map pick item is rewritten around it. Arc size default: about 40 degrees by a third of the radius. Ships with today's block shading until MAP.86 lands. |
 | MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | MAP.85 | Bug, but its code is replaced by MAP.85; its width and snapping carry into the arc. Same PR as MAP.85. |
 
 ### System Map

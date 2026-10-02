@@ -167,7 +167,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | sectormap.js and lib/starmap.py | MAP.87, MAP.82, MAP.83, MAP.84, NAV.30, MAP.63, MAP.64, MAP.65, MAP.79, NAV.29, MAP.68 | Small fixes, then the extraction, in the phase 0 map thread (F); later items in the engine thread. |
 | galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.87, NAV.30, MAP.63, MAP.64, MAP.60, MAP.55, MAP.85, MAP.52, MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread across phases 1 and 2. |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.90, MAP.80, MAP.86 | In that order; any payload change bumps the tile cache. |
-| galaxyGeometry.py and galaxyprisms.js | GEN.31, GEN.24, MAP.85 | GEN.31 first. |
+| galaxyGeometry.py and galaxyprisms.js | GEN.24, MAP.85, NAV.38 | GEN.31 done (PR #353). |
 | bookmarks.js | MAP.81, MAP.55, NAV.18, USR.7, NAV.19 | MAP.81's key choice first. |
 | Generate page (generate.html) | ADM.14, ADM.16, GEN.24 | ADM.14 first. |
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
