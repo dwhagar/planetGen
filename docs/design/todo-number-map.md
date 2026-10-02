@@ -13,18 +13,18 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.35 |
+| UX | UX.36 |
 | MAP | MAP.91 |
-| NAV | NAV.34 |
-| GEN | GEN.55 |
+| NAV | NAV.40 |
+| GEN | GEN.61 |
 | PERF | PERF.24 |
-| DB | DB.6 |
-| API | API.15 |
-| ADM | ADM.17 |
+| DB | DB.10 |
+| API | API.18 |
+| ADM | ADM.19 |
 | SEC | SEC.29 |
-| TEST | TEST.77 |
+| TEST | TEST.80 |
 | USR | USR.8 |
-| OPS | OPS.10 |
+| OPS | OPS.16 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -405,12 +405,14 @@ Parents marked "new parent" had no old number of their own.
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | open |
+| ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
 | API.4 | API compatibility data in the docs | none | open |
 | API.5 | API version and compatibility checking | none | open |
-| API.6 | Admin-created user-level API keys that can read but not upload | none | open |
+| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
 | API.7 | Investigate and plan upload limits | none | open |
 | API.8 | Verify uploaded data before it is finalized | none | open |
 | API.9 | Key scopes | none | open |
@@ -419,11 +421,18 @@ Parents marked "new parent" had no old number of their own.
 | API.12 | The download: seed, skeleton and name state | none | open |
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
+| API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
+| API.16 | The API reports the galaxy's seed, version and run history | none | open |
+| API.17 | Remote generation reproduces what the server would make | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
-| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
-| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
-| DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | open |
-| DB.5 | Several first connections to an empty database race to create the schema (bug) | none | open |
+| DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
+| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
+| DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | done, PR #342 |
+| DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
+| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
+| DB.8 | Check a galaxy database and say whether it is damaged | none | open |
+| DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -451,19 +460,19 @@ Parents marked "new parent" had no old number of their own.
 | GEN.22 | Pre-place bright stars at plan time | 56 (2026-09-30 23:48Z to 2026-10-01 02:41Z) | done in 7.38.0, PR #159 (uncertain, see note 2) |
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v49, PR #226) |
 | GEN.24 | Generate the galactic core on layer 0 | none | open |
-| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | open |
+| GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
-| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
+| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | done, PR #353 |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | GEN.33 | One class per PR, each with its tests | none | open |
-| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | open |
-| GEN.35 | Rocky planets only ever get Class D moons (bug) | none | open |
-| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | open |
-| GEN.37 | 97% of planets land in the cold zone (bug) | none | open |
+| GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | done, PR #350 |
+| GEN.35 | Rocky planets only ever get Class D moons (bug) | none | done, PR #350 |
+| GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | done, PR #350 |
+| GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | open |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
@@ -471,7 +480,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
-| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | open |
+| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | open |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
@@ -481,6 +490,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
+| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
+| GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
+| GEN.58 | A fingerprint of a galaxy's generated content | none | open |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
+| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -582,7 +597,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
-| NAV.12 | A maximum hop length (open question) | none | open |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
 | NAV.14 | One breadcrumb for every level | none | open |
 | NAV.15 | Pick mode everywhere | none | open |
@@ -604,6 +619,12 @@ Parents marked "new parent" had no old number of their own.
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
+| NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
+| NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
+| NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
+| NAV.38 | Every sector a straight line passes through | none | open |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -613,6 +634,12 @@ Parents marked "new parent" had no old number of their own.
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
+| OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
+| OPS.13 | Every update records the version key, keeping the last 10 | none | open |
+| OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
+| OPS.15 | Each update says whether it changes generated output | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -712,6 +739,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
+| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -879,6 +907,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.74 | Generation tests at more than one worker | none | open |
 | TEST.75 | Tests for forcing and prevalence | none | open |
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | open |
+| TEST.77 | A golden-seed regression test | none | open |
+| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
+| TEST.79 | Route edge cases, written before NAV.12 | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

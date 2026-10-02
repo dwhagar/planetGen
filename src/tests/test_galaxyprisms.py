@@ -290,6 +290,57 @@ console.log(JSON.stringify(pts.map(p => {{
         assert provisional_sector_designation(*address)
 
 
+def test_js_grid_matches_python_one_ulp_inside_every_face():
+    """GEN.31: a point one ulp under a layer's top face (layer 0's above
+    all), or just inside a ring's face, gets the same cell in JavaScript
+    as in Python. Slots rest on atan2, which node and libm may round an
+    ulp apart, so right at a slot face each language is checked against
+    its own angle bounds instead."""
+    from stellarObjects.galaxyGeometry import (
+        layer_bounds_pc, ring_bounds_pc, ring_radius_pc, sector_address_at, slot_angle_bounds,
+    )
+
+    points = []
+    r = ring_radius_pc(5, EDGE_PC)
+    for layer in (-3, -1, 0, 1, 2, 317):
+        bottom, top = layer_bounds_pc(layer, EDGE_PC)
+        points += [(r, 0.0, bottom), (r, 0.0, math.nextafter(top, -math.inf)), (r, 0.0, top)]
+    for ring in (1, 2, 37, 3855):
+        inner, outer = ring_bounds_pc(ring, EDGE_PC)
+        points += [(inner, 0.0, 0.0), (math.nextafter(outer, 0.0), 0.0, 0.0), (0.0, inner, -2.0)]
+    got = _run(f"""
+const pts = {json.dumps(points)};
+console.log(JSON.stringify(pts.map(p => P.sectorAddressAt(...p, {EDGE_PC}))));
+""")
+    for point, entry in zip(points, got):
+        assert (entry["ring"], entry["layer"], entry["slot"]) == sector_address_at(point, EDGE_PC), point
+    _bottom, top = layer_bounds_pc(0, EDGE_PC)
+    assert sector_address_at((r, 0.0, math.nextafter(top, -math.inf)), EDGE_PC)[1] == 0
+
+    faces = []
+    for ring in (1, 2, 37, 3855):
+        rr = ring_radius_pc(ring, EDGE_PC)
+        for slot in (0, 1, 5):
+            start, end = slot_angle_bounds(ring, slot)
+            for theta in (start, math.nextafter(end, 0.0)):
+                faces.append((rr * math.cos(theta), rr * math.sin(theta), 0.0))
+    held = _run(f"""
+const pts = {json.dumps(faces)};
+console.log(JSON.stringify(pts.map(p => {{
+  const a = P.sectorAddressAt(...p, {EDGE_PC});
+  const b = P.sectorCellBounds(a.ring, a.layer, a.slot, {EDGE_PC});
+  let t = Math.atan2(p[1], p[0]);
+  if (t < 0) t += 2 * Math.PI;
+  return b.t0 <= t && t < b.t1;
+}})));
+""")
+    assert all(held)
+    for point in faces:
+        ring, _layer, slot = sector_address_at(point, EDGE_PC)
+        low, high = slot_angle_bounds(ring, slot)
+        assert low <= math.atan2(point[1], point[0]) % (2 * math.pi) < high
+
+
 def test_blocks_skip_empty_space():
     out = _run(f"""
 const blocks = P.blocksInView([8000, 0, 3000], 1000, 27, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map(), {{surfaceOnly: false}});

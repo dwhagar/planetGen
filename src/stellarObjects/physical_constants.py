@@ -156,30 +156,21 @@ ATMOSPHERIC_MOLAR_DENSITY = {
     "g": (0.00207, 0.00266),   # Gas Giant: Range from Saturn to Neptune's real mean molar mass (~2.07-2.66 g/mol)
 }
 
-# Bulk density of a gas giant's light, puffy H/He envelope, in g/cm^3 -- used
-# only by planetPhysics.generate_planet_properties' core/envelope density
-# blend (and its mirror, plausibility.theoretical_gravity_bounds_g), NOT the
-# same quantity as ATMOSPHERE_DENSITY["g"] above (that one feeds the
-# atmospheric-pressure/scale-height calculation, a different physical layer).
-# Deliberately a separate constant: ATMOSPHERE_DENSITY["g"]'s values are
-# kg/m^3 gas densities at the 1-bar reference level (~0.16-0.45), two to
-# three orders of magnitude smaller than a g/cm^3 bulk density -- reusing
-# them directly as a kg/m^3 input to the density blend (which divides by
-# 1000 to convert to g/cm^3, correct for the "t" case but not this one)
-# would understate the envelope density by ~1000x, which the harmonic-mean
-# blend below is
-# highly sensitive to (the smaller of the two blended densities dominates
-# the result almost regardless of mass fraction) -- collapsing every gas
-# giant's overall density to a near-zero, physically meaningless value
-# regardless of PLANET_CLASSES' own (or a class's density_range override's)
-# core density. Range grounded in real measured "puffy" gas giants: WASP-193b
-# (~0.06 g/cm^3, the lowest confirmed bulk density known) up through a
-# representative light-envelope ceiling comfortably below Saturn's own real
-# 0.69 g/cm^3 (the lightest actual solar-system planet), so the envelope
-# term stays legitimately the *lighter* of the two blended components
-# without collapsing the result the way the old ~0.0007-0.0013 g/cm^3 draw
-# did.
-GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
+# Giant-planet mass-radius relation (GEN.34), the shape of Chen & Kipping
+# (2017, ApJ 834:17): below about 0.4 Jupiter masses a volatile-rich giant
+# grows as R ~ M^0.52 (their "Neptunian" regime, anchored here on Saturn);
+# above it electron degeneracy holds the radius nearly flat, R ~ M^-0.04
+# (their "Jovian" regime, anchored on Jupiter), up to the deuterium-burning
+# limit. The two meet at about 140 Earth masses. This gives Neptune ~1.6,
+# Saturn ~0.7, Jupiter ~1.3 and a 10 Jupiter-mass super-Jupiter ~16 g/cm^3,
+# where drawing a radius and a density separately (the old way) gave a
+# median of 0.25 g/cm^3 and no super-Jupiters at all. Each anchor is
+# (mass in Earth masses, radius in Earth radii, exponent); the scatter is
+# the relation's intrinsic fractional spread in radius at fixed mass
+# (theirs is about 15% and 7%; tightened a little here), cut at 3 sigma.
+GIANT_NEPTUNIAN_MASS_RADIUS = (95.16, 9.449, 0.519)
+GIANT_JOVIAN_MASS_RADIUS = (317.8, 11.21, -0.04)
+GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 
 # n=1 polytrope (Lane-Emden) central-pressure formula for gas giants, used
 # by planetData's flavor text as a genuinely-derived interior estimate
