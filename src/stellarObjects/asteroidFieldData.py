@@ -141,6 +141,7 @@ class AsteroidField:
         # A placeholder: `_db.insert_asteroid_field` replaces it with the
         # field's designation (`asteroid_field_designation`, v40).
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.density = random.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")

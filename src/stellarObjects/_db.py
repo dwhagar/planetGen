@@ -62,7 +62,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, galaxySeed, keplerMotion, log, physical_constants, program_constants, versionKey
+from . import activitylog, galaxySeed, keplerMotion, log, objectId, physical_constants, program_constants, versionKey
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
@@ -2218,6 +2218,8 @@ def confirm_object_name(conn, base_name, table, object_id, diminutive_index):
 
 
 def _confirm_name(conn, confirmation):
+    if confirmation[0] is None:
+        return  # named by its object ID (GEN.64): nothing to register
     deferred = getattr(conn, "deferred_name_confirmations", None)
     if deferred is not None:
         deferred.append(confirmation)
@@ -2238,10 +2240,110 @@ def _take_name(conn, obj):
     return base, diminutive_index
 
 
-def _reserve_phenomenon_name(conn, obj):
-    """Reserves `obj.name` (`_take_name`) and returns `(base_name,
-    diminutive_index)` for `confirm_object_name`."""
+def _reserve_phenomenon_name(conn, obj, kind=None, placement=None):
+    """
+    Names a phenomenon and returns `(base_name, diminutive_index)` for
+    `confirm_object_name`. A placed one (`placement` with a center) is
+    named by its object ID (GEN.64, `_claim_object_ids`), or takes the ID
+    `insert_sector` already claimed for it, and returns `(None, None)`:
+    nothing to register. An unplaced one, or one whose name was given by
+    hand (`name_given`), reserves its name (`_take_name`) as before.
+    """
+    prereserved = getattr(conn, "prereserved_names", None)
+    if prereserved is not None and id(obj) in prereserved:
+        return prereserved.pop(id(obj))
+    if kind is not None and _placed(placement) and not getattr(obj, "name_given", False):
+        _claim_object_ids(conn, [(obj, kind, _placement_center(placement))])
+        return None, None
     return _take_name(conn, obj)
+
+
+OBJECT_ID_TABLES = {
+    "rogue-planet": "rogue_planets",
+    "black-hole": "black_holes",
+    "neutron-star": "neutron_stars",
+    "nebula": "nebulae",
+    "supernova-remnant": "supernova_remnants",
+    "quasar": "quasars",
+    "comet": "interstellar_comets",
+    "asteroid-field": "asteroid_fields",
+    "bright-star": "star_systems",
+}
+"""dict: `objectId.KIND_CODES` kind -> the table its objects (and their
+ID names) live in."""
+
+
+def _named_by_object_id(conn, obj, kind, placement):
+    """Names a placed comet or asteroid field by its object ID (GEN.64),
+    or takes the one `insert_sector` claimed for it. `False` for an
+    unplaced one, which keeps its designation."""
+    prereserved = getattr(conn, "prereserved_names", None)
+    if prereserved is not None and id(obj) in prereserved:
+        prereserved.pop(id(obj))
+        return True
+    if _placed(placement):
+        _claim_object_ids(conn, [(obj, kind, _placement_center(placement))])
+        return True
+    return False
+
+
+def _placed(placement):
+    """Whether `placement` gives a galaxy-frame center."""
+    return bool(placement) and placement.get("center_x_pc") is not None
+
+
+def _placement_center(placement):
+    """`placement`'s `(x, y, z)` center in parsecs."""
+    return tuple(placement[f"center_{axis}_pc"] for axis in "xyz")
+
+
+def _claim_object_ids(conn, items):
+    """
+    Names each object by its 64-bit object ID (GEN.64, `objectId`):
+    `items` is `(obj, kind, center_pc)` triples, in generation order. An
+    ID already held -- by an earlier item here, or by a stored row of the
+    same table -- is bumped (`objectId.bump`) until it is free, so the
+    first object in generation order keeps the plain ID. Sets each
+    `obj.name`, and when `insert_sector` holds a reservation map
+    (`prereserved_names`), records each object there as needing no
+    registry entry.
+    """
+    by_table = {}
+    for obj, kind, center in items:
+        by_table.setdefault(OBJECT_ID_TABLES[kind], []).append((obj, objectId.pack(kind, center)))
+    prereserved = getattr(conn, "prereserved_names", None)
+    for table, entries in by_table.items():
+        checked = {objectId.format_id(object_id) for _obj, object_id in entries}
+        stored = _stored_names(conn, table, sorted(checked))
+        taken = set()
+        for obj, object_id in entries:
+            name = objectId.format_id(object_id)
+            while True:
+                if name not in checked:  # a bumped ID: ask about it too
+                    checked.add(name)
+                    stored |= _stored_names(conn, table, [name])
+                if name not in taken and name not in stored:
+                    break
+                object_id = objectId.bump(object_id)
+                name = objectId.format_id(object_id)
+            taken.add(name)
+            core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
+            if core is not None and core.name == f"{obj.name} Core":
+                core.name = f"{name} Core"  # the core follows its remnant
+            obj.name = name
+            if prereserved is not None:
+                prereserved[id(obj)] = (None, None)
+
+
+def _stored_names(conn, table, names):
+    """The `names` (upper-cased) `table` already has a row for."""
+    found = set()
+    for first in range(0, len(names), _NAME_BATCH):
+        chunk = names[first:first + _NAME_BATCH]
+        found.update(row["name"].upper() for row in conn.execute(
+            f"SELECT name FROM {table} WHERE name IN ({', '.join('?' * len(chunk))})", tuple(chunk),
+        ).fetchall())
+    return found
 
 
 def insert_star(conn, star, star_system_id, role) -> int:
@@ -2612,14 +2714,16 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
         register_name (bool): Reserve the name through
             `system_name_registry` (v40). Skipped for an anchored black
             hole (its system holds the name) and a supernova remnant's
-            core (`insert_supernova_remnant` passes `False`).
+            core (`insert_supernova_remnant` passes `False`), which is
+            named `"<remnant> Core"`. A placed one that registers is named
+            by its object ID instead (GEN.64).
 
     Returns:
         int: The new `black_holes.id`.
     """
-    registered = register_name and star_id is None
-    if registered:
-        name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole)
+    name_base = None
+    if register_name and star_id is None:
+        name_base, diminutive_index = _reserve_phenomenon_name(conn, black_hole, "black-hole", placement)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             black_hole.galactic_orbital_speed_kms, black_hole.galactic_orbital_period_gy,
@@ -2647,7 +2751,7 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
-    if registered:
+    if name_base is not None:
         confirm_object_name(conn, name_base, "black_holes", cur.lastrowid, diminutive_index)
     return cur.lastrowid
 
@@ -2676,9 +2780,9 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
     Returns:
         int: The new `neutron_stars.id`.
     """
-    registered = register_name and star_id is None
-    if registered:
-        name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star)
+    name_base = None
+    if register_name and star_id is None:
+        name_base, diminutive_index = _reserve_phenomenon_name(conn, neutron_star, "neutron-star", placement)
     galactic_fields = (
         (None, None, None, None) if star_id is not None else (
             neutron_star.galactic_orbital_speed_kms, neutron_star.galactic_orbital_period_gy,
@@ -2706,7 +2810,7 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
         ),
     )
-    if registered:
+    if name_base is not None:
         confirm_object_name(conn, name_base, "neutron_stars", cur.lastrowid, diminutive_index)
     return cur.lastrowid
 
@@ -2731,7 +2835,7 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `nebulae.id`.
     """
-    name_base, diminutive_index = _reserve_phenomenon_name(conn, nebula)
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, nebula, "nebula", placement)
     placement = placement or {}
     cur = conn.execute(
         """
@@ -2793,7 +2897,7 @@ def insert_supernova_remnant(conn, remnant: SupernovaRemnant, sector_id=None, pl
         int: The new `supernova_remnants.id`.
     """
     old_name = remnant.name
-    name_base, diminutive_index = _reserve_phenomenon_name(conn, remnant)
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, remnant, "supernova-remnant", placement)
     core = remnant.compact_remnant
     if core is not None and core.name == f"{old_name} Core":
         core.name = f"{remnant.name} Core"
@@ -2865,7 +2969,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
     Returns:
         int: The new `rogue_planets.id`.
     """
-    name_base, diminutive_index = _reserve_phenomenon_name(conn, planet)
+    name_base, diminutive_index = _reserve_phenomenon_name(conn, planet, "rogue-planet", placement)
     cur = conn.execute(
         f"""
         INSERT INTO rogue_planets (
@@ -2936,9 +3040,10 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
     Returns:
         int: The new `interstellar_comets.id`.
     """
-    comet.name = interstellar_comet_designation(
-        sector_code(conn, sector_id), _next_in_sector(conn, "interstellar_comets", sector_id),
-    )
+    if not _named_by_object_id(conn, comet, "comet", placement):
+        comet.name = interstellar_comet_designation(
+            sector_code(conn, sector_id), _next_in_sector(conn, "interstellar_comets", sector_id),
+        )
     cur = conn.execute(
         """
         INSERT INTO interstellar_comets (
@@ -2988,9 +3093,10 @@ def insert_asteroid_field(conn, field: AsteroidField, sector_id=None, placement=
     Returns:
         int: The new `asteroid_fields.id`.
     """
-    field.name = asteroid_field_designation(
-        field.field_class, sector_code(conn, sector_id), _next_in_sector(conn, "asteroid_fields", sector_id),
-    )
+    if not _named_by_object_id(conn, field, "asteroid-field", placement):
+        field.name = asteroid_field_designation(
+            field.field_class, sector_code(conn, sector_id), _next_in_sector(conn, "asteroid_fields", sector_id),
+        )
     placement = placement or {}
     cur = conn.execute(
         """
@@ -3050,7 +3156,8 @@ def insert_quasar(conn, quasar: Quasar, sector_id=None, placement=None) -> int:
     Returns:
         int: The new `quasars.id`.
     """
-    name_base, diminutive_index = _reserve_phenomenon_name(conn, quasar)
+    name_base, diminutive_index = _reserve_phenomenon_name(
+        conn, quasar, "quasar", GALACTIC_CENTER_PLACEMENT if placement is not None else None)
     cur = conn.execute(
         """
         INSERT INTO quasars (
@@ -4848,12 +4955,19 @@ def _insert_sector_rows(conn, sector, galaxy_position):
     # its name in one go (PERF.14); the insert functions below take their
     # reservation from `prereserved_names` and leave their registry writes
     # in `deferred_name_confirmations` for one upsert at the end.
-    named = [entry.star_system for entry in sector.entries]
-    named += [entry.phenomenon for entry in sector.phenomena if _phenomenon_registers_name(entry.phenomenon)]
-    reservations = reserve_system_names(conn, [obj.name for obj in named])
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
     try:
+        # Every placed phenomenon and every bright-sweep system is named
+        # by its object ID (GEN.64), claimed here for the whole sector in
+        # generation order; only the rest go through the name registry.
+        by_id = _sector_object_ids(sector, galaxy_position)
+        _claim_object_ids(conn, by_id)
+        claimed = {id(obj) for obj, _kind, _center in by_id}
+        named = [entry.star_system for entry in sector.entries if id(entry.star_system) not in claimed]
+        named += [entry.phenomenon for entry in sector.phenomena
+                  if _phenomenon_registers_name(entry.phenomenon) and id(entry.phenomenon) not in claimed]
+        reservations = reserve_system_names(conn, [obj.name for obj in named])
         for obj, (final, base, diminutive_index) in zip(named, reservations):
             core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
             if core is not None and core.name == f"{obj.name} Core":
@@ -4897,6 +5011,33 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
+
+
+def _sector_object_ids(sector, galaxy_position):
+    """
+    `(obj, kind, center_pc)` for everything in a galaxy-placed sector that
+    is named by its object ID (GEN.64): each phenomenon, then each
+    bright-sweep system (`bright_star_id`). Empty for a sector never
+    placed in the galaxy, whose objects keep their generated names. A
+    registry-named phenomenon whose name was given by hand (`name_given`)
+    keeps it.
+    """
+    if galaxy_position is None:
+        return []
+    items = []
+    for entry in sector.phenomena:
+        if getattr(entry.phenomenon, "name_given", False) and _phenomenon_registers_name(entry.phenomenon):
+            continue  # a name given by hand stays
+        if entry.phenomenon_type == "quasar":
+            center = _placement_center(GALACTIC_CENTER_PLACEMENT)
+        else:
+            center = _placement_center(_galaxy_placement_from_sector_offset(galaxy_position, entry.position))
+        items.append((entry.phenomenon, entry.phenomenon_type, center))
+    for entry in sector.entries:
+        if getattr(entry, "bright_star_id", None) is not None:
+            center = _placement_center(_galaxy_placement_from_sector_offset(galaxy_position, entry.position))
+            items.append((entry.star_system, "bright-star", center))
+    return items
 
 
 def _phenomenon_registers_name(phenomenon):

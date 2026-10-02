@@ -180,6 +180,7 @@ class Nebula:
         # A draft name: `_db.insert_nebula` reserves it through the
         # system-name registry (v40), which may decorate it.
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if nebula_class is not None:
             if nebula_class not in NEBULA_CLASS_LETTERS:

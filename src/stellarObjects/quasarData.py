@@ -83,6 +83,7 @@ class Quasar:
         """
         self.system_config = system_config
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.black_hole_mass_solar = _log_uniform(*program_constants.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
