@@ -90,7 +90,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.62 | Binary star names stay within two words, and a close pair is named A and B (bug) |  | bodyNames.py binary star words. Decided (Boss 03:38Z): wide pairs drop the extra word, close pairs are <name> A / B with planets named for the system. |
+| GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) |  | Boss 04:03Z: wide pairs "Blue Green"/"Blue Red", companion word from small/child sounds, planets Blue I / Red I. Replaces the 03:38Z A/B rule. |
 
 ### Galaxy map picker and arc
 

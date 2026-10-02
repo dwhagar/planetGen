@@ -112,7 +112,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | GEN.39, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
@@ -1414,28 +1414,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
 
-- [ ] **GEN.62 Binary star names stay within two words, and a close pair is named A and B (bug)**
-  Found while retiring GEN.46 (PR #370, 2026-10-02): GEN.46 keeps a
-  star system's name within two words, but a binary's stars put their
-  own generated word after the system name (`bodyNames.py`), so a
-  two-word system gives three-word star names (`Xy Zz Kelmoor`), and a
-  wide pair's planets and moons add their numeral on top
-  (`Xy Zz Kelmoor IIa`). Decided (Boss, 2026-10-02 03:38Z): "If a star
-  ends up with more than 2 names and is part of a binary pair then
-  delete the additional name to keep it at 2", and for a close binary
-  pair "we will go with the star name a / b and have planets just named
-  for star name since there will be only one system." Defaults taken
-  unless Boss corrects them: in a wide pair each star keeps its own
-  word and drops the system name's extra word, so `Xy Zz Kelmoor`
-  becomes `Xy Kelmoor` (its planets `Xy Kelmoor I`); a close pair's
-  system keeps its one name, its stars are `<name> A` and `<name> B`
-  (shown together as `<name> A / B`), and its planets are
-  `<name> <numeral>` with no star letter; the A or B letter, like a
-  planet's numeral, does not count as a word. Only new names follow the
-  rule, as with GEN.46. Done: no new star name in a binary is longer
-  than two words plus its letter, close pairs' stars are A and B of the
-  system name with planets named for the system, and a test over
-  generated wide and close binaries checks both.
+- [ ] **GEN.62 Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug)**
+  Found while retiring GEN.46 (PR #370, 2026-10-02): a binary's stars
+  put their own generated word after the system name (`bodyNames.py`,
+  `generate_star_word`; `systemData.py` lines 482 and 529), so a
+  two-word system gives three-word star names, and planets add their
+  numeral on top (`name_bodies(prefix, ...)`). Boss's first answer
+  (03:38Z: drop the extra word, close pairs A and B) is replaced by his
+  decision of 2026-10-02 04:03Z: "Revert back to the wide binary names
+  the way they were. 2 words, first name the same, and 2nd name
+  different. Pick the 2nd word for the 2nd star from a phoneme salad
+  the involves influence from words that mean small, little, daughter,
+  son, child, etc etc etc so that those phoneme are heavily represented
+  in the case of a wide binary 2nd word name generation. Stars are
+  named Blue Green and Blue Red. Planets around Blue Green are called
+  Blue I, II, III, etc. Planets around Blue Red are called Red I, II,
+  III, etc... Now, we don't care if planet names are duplicated just
+  like there are 100 cities named Paris out there." Rule as read from
+  his example (inferred; Boss to correct): a wide pair's two stars are
+  two words each, the same first word (the system's) and a different
+  second word; the primary's second word is drawn as today, and the
+  companion's from a phoneme salad heavily weighted toward sounds from
+  words meaning small, little, daughter, son, child and the like;
+  planets around the primary are named for the shared first word
+  (`Blue I`, `Blue IIa`), and planets around the companion for the
+  companion's own second word (`Red I`). Planet names may repeat across
+  the galaxy; within one sector GEN.63 keeps them apart. Close pairs
+  are not part of this change: their circumbinary planets keep the
+  system name as today. Only new names follow the rule, as with GEN.46.
+  Done: every new wide binary's stars have two-word names sharing the
+  first word, the companion's second word comes from the weighted
+  salad (a test over many draws shows the weighted sounds well above
+  their share in ordinary names), planets follow the rule above, and a
+  test over generated wide binaries checks the names.
 
 - [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
@@ -1777,6 +1788,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     order of runs.
     Prerequisites: GEN.39, GEN.56, GEN.44.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+
+  - [ ] **GEN.63 Planet names are unique within a sector**
+    Boss (2026-10-02 04:03Z), with GEN.62's binary naming: "we don't
+    care if planet names are duplicated just like there are 100 cities
+    named Paris out there. Add a Phase 1 TODO item though for ensure
+    planet names unique in a single sector." Since GEN.62 names a wide
+    pair's planets for one word of their star's name (`Blue I`, `Red I`),
+    two systems in one sector can produce the same planet name, and
+    today nothing checks planet names (`bodyNames.py` says derived
+    names are unique only because system names are). Done: no two
+    planets, belts or moons in one sector share a name; a clash is
+    resolved by the system with the lower address keeping the name and
+    the other renaming from its own seeded stream (GEN.57's rule, so
+    the result doesn't depend on generation order or worker count); the
+    check reads the sector's existing names, not a running count (see
+    TEST.85's negative collision count in `nameUniqueness.py`); duplicates
+    across sectors stay allowed; and a test generates crowded sectors
+    and checks every name is unique within each. Prerequisites: GEN.62,
+    GEN.57.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
