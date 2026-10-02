@@ -35,13 +35,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; packed hex version. |
 | OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
-### Database fixes
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) |  | id_blocks handling in _db.py; API.10's reservations build on it. |
-| DB.2 | Asteroid field and comet composition rows are written but never read (bug) |  | Open question (read the rows or drop the tables). If dropped it is a galaxy schema migration; if read, UX.30 shows them. |
-
 ### Physics bugs
 
 | ID | Item | Needs | Note |
