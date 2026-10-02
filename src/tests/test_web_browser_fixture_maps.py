@@ -396,9 +396,9 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert crumbs is None and re.search(r"/sector/\d+$", url), f"never opened a sector: {steps[-2:]}"
     assert int(url.rsplit("/", 1)[1]) in {sector[0] for sector in SECTORS}
     for query, _crumbs_seen in steps[1:-1]:
-        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[qrL0-9~,-]+)?", query), query
+        assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[arL0-9.~,-]+)?", query), query
     kinds = " ".join(q for q, _ in steps[:-1])
-    for marker in ("p=q", "L", "r", "at=243.", "at=27.", "at=3."):
+    for marker in ("p=a", "L", "r", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
 
 
@@ -467,7 +467,22 @@ def test_galaxy_map_keys_pick_go_up_and_home(page, map_site):
 
 
 def _galaxy_scale(page):
-    return page.locator("#galaxymap3d-scale").inner_text()
+    """The scale line: its label and its bar's width (a zoom between two
+    nice lengths only changes the bar)."""
+    return page.locator("#galaxymap3d-scale").inner_html()
+
+
+def test_galaxy_map_scale_is_one_line(page, map_site):
+    """MAP.60: just the bar and its length, side by side."""
+    _open_galaxy(page, map_site)
+    scale = page.locator("#galaxymap3d-scale")
+    assert scale.locator(".starmap-scale-bar").count() == 1
+    labels = scale.locator(".starmap-scale-label")
+    assert labels.count() == 1
+    assert re.fullmatch(r"[\d.,]+ sectors? · .+", labels.inner_text()), labels.inner_text()
+    assert "px" not in scale.inner_text() and "block" not in scale.inner_text()
+    bar, label = scale.locator(".starmap-scale-bar").bounding_box(), labels.bounding_box()
+    assert abs((bar["y"] + bar["height"] / 2) - (label["y"] + label["height"] / 2)) < label["height"], "one line"
 
 
 def test_galaxy_map_scale_line_follows_the_zoom_on_a_free_stage(page, map_site):
@@ -475,10 +490,7 @@ def test_galaxy_map_scale_line_follows_the_zoom_on_a_free_stage(page, map_site):
     whole = _galaxy_scale(page)
     assert whole, "the whole galaxy has a scale line"
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
-    for _ in range(6):
-        _click_choice(page, GENERATED_CHOICE)
-        if not reset_view.is_disabled():
-            break
+    _click_choice(page, GENERATED_CHOICE)
     assert not reset_view.is_disabled(), f"no free stage by {_crumbs(page)}"
     stage_scale = _galaxy_scale(page)
     assert stage_scale != whole, "a closer stage has a shorter scale"
@@ -487,6 +499,7 @@ def test_galaxy_map_scale_line_follows_the_zoom_on_a_free_stage(page, map_site):
     page.mouse.wheel(0, -400)
     _settle(page)
     assert _galaxy_scale(page) != stage_scale, "the wheel zooms and the scale follows"
+    page.click('#galaxymap3d-menu summary')
     reset_view.click()
     _settle(page)
     assert _galaxy_scale(page) == stage_scale

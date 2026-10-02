@@ -131,6 +131,8 @@ console.log(JSON.stringify({bad, blocks, sum, total: S.drillBlockTotal(at, outli
 @pytest.mark.parametrize("stage", [
     {"at": None, "picks": []},
     {"at": None, "picks": [{"kind": "quadrant", "n": 1}, {"kind": "layer", "lo": -4, "hi": -2}]},
+    {"at": None, "picks": [{"kind": "arc", "n": 0}]},
+    {"at": None, "picks": [{"kind": "arc", "n": 21}, {"kind": "layer", "lo": 0, "hi": 0}]},
     {"at": {"m": 243, "ring": 1, "wedge": 2, "slab": 0}, "picks": []},
     {"at": {"m": 27, "ring": 14, "wedge": 30, "slab": -1}, "picks": [{"kind": "layer", "lo": 0, "hi": 0},
                                                                      {"kind": "region", "n": 4}]},
@@ -153,7 +155,17 @@ def test_an_older_slab_link_reads_as_a_layer_pick():
     assert out["problem"] is None
 
 
-@pytest.mark.parametrize("query", ["?at=5.1.1.0", "?at=junk", "?slab=x", "?sector=ZZZ", "?p=x9"])
+def test_an_arc_reads_in_a_url_by_its_band_and_bearing():
+    out = _run("""
+console.log(JSON.stringify([S.pickToken({kind: "arc", n: 10}), S.parsePickToken("a1.90"),
+  S.parsePickToken("a0.40"), S.parsePickToken("a0.360")]));
+""")
+    assert out[0] == "a1.90"
+    assert out[1] == {"kind": "arc", "n": 10}
+    assert out[2] is None and out[3] is None
+
+
+@pytest.mark.parametrize("query", ["?at=5.1.1.0", "?at=junk", "?slab=x", "?sector=ZZZ", "?p=x9", "?p=a0.40"])
 def test_malformed_urls_open_the_galaxy_with_a_reason(query):
     out = _run(f"console.log(JSON.stringify(S.parseStageQuery({json.dumps(query)})));")
     assert out["stage"] == {"at": None, "picks": []}
@@ -167,12 +179,17 @@ console.log(JSON.stringify([
   S.resolveStage({at: high, picks: []}, outline, edge).problem,
   S.resolveStage({at: null, picks: [{kind: "quadrant", n: 9}]}, outline, edge).problem,
   S.resolveStage({at: null, picks: [{kind: "quadrant", n: 1}, {kind: "layer", lo: 400, hi: 401}]}, outline, edge).problem,
-  S.resolveStage({at: null, picks: [{kind: "quadrant", n: 1}]}, outline, edge).problem]));
+  S.resolveStage({at: null, picks: [{kind: "quadrant", n: 1}]}, outline, edge).problem,
+  S.resolveStage({at: null, picks: [{kind: "arc", n: 99}]}, outline, edge).problem,
+  S.resolveStage({at: null, picks: [{kind: "arc", n: 1}, {kind: "arc", n: 2}]}, outline, edge).problem]));
 """)
     assert out[0] and "outside" in out[0]
     assert out[1] and "no quadrant" in out[1]
     assert out[2] and "no layer" in out[2]
+    # An older link's quarter still opens.
     assert out[3] is None
+    assert out[4] and "no arc" in out[4]
+    assert out[5] and "no arc" in out[5]
 
 
 def test_a_sector_far_outside_the_galaxy_parses_but_has_no_stage():
@@ -185,41 +202,87 @@ console.log(JSON.stringify({sector: s, stage: s ? S.sectorStage(s.ring, s.layer,
     assert out["stage"] is None
 
 
-def test_the_ladder_is_quarter_then_layer_then_arc():
-    """MAP.17/MAP.19 (Boss's "Layer + arc"): the galaxy offers four
-    quarters, then a layer (at most three choices, lowest first), then an
-    arc of the ring band in view (at most a 3 by 3 grid, sorted into thirds
-    of the view), and the choices together hold every block in view. A
-    choice's bearings reach as far as its blocks do: near the core a wedge
-    is wider than a quarter, and the quarter zooms into that wedge."""
+def test_the_ladder_is_arc_then_layer_then_region():
+    """MAP.85 (and MAP.19's "Layer + arc" below it): the galaxy offers its
+    arcs, each the blocks of one third of the radius whose middles fall in
+    one 45-degree bin, then a layer (at most three choices, lowest
+    first), then a region of the ring band in view (at most a 3 by 3 grid,
+    sorted into thirds of the view), and the choices together hold every
+    block in view. A choice's bearings reach exactly as far as its blocks
+    do."""
     out = _run("""
 const top = S.settleStage({at: null, picks: []}, outline, edge);
-const quarter = S.settleStage({at: null, picks: [top.options[1].pick]}, outline, edge);
-const layer = S.settleStage({at: null, picks: [top.options[1].pick, quarter.options[1].pick]}, outline, edge);
+const pick = top.options.find(o => o.pick.n === S.ARCS_PER_TURN + 2);
+const arc = S.settleStage({at: null, picks: [pick.pick]}, outline, edge);
+const layer = S.settleStage({at: null, picks: [pick.pick, arc.options[1].pick]}, outline, edge);
 const covers = r => r.options.reduce((n, o) => n + o.blocks.length, 0) === r.view.blocks.length;
 const span = r => r.view.a1 - r.view.a0;
 const inside = (o, t) => { const d = ((t - o.a0 + 1e-9) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI); return d <= o.a1 - o.a0 + 2e-9; };
 const holds = o => o.blocks.every(b => inside(o, b.bounds.t0) && inside(o, b.bounds.t1));
 const tight = o => [o.a0, o.a1].every(a => o.blocks.some(b => Math.abs(Math.cos(b.bounds.t0) - Math.cos(a)) + Math.abs(Math.sin(b.bounds.t0) - Math.sin(a)) < 1e-9 || Math.abs(Math.cos(b.bounds.t1) - Math.cos(a)) + Math.abs(Math.sin(b.bounds.t1) - Math.sin(a)) < 1e-9));
+const rings = top.view.blocks.map(b => b.ring).filter((r, n, all) => all.indexOf(r) === n).sort((p, q) => p - q);
+const bandOf = b => Math.floor(rings.indexOf(b.ring) * S.ARC_BANDS / rings.length);
 console.log(JSON.stringify({
   wedges: top.options.concat(layer.options).map(o => holds(o) && tight(o)),
   top: [top.kind, top.options.length, covers(top)],
-  quarter: [quarter.kind, quarter.options.length, covers(quarter), span(quarter)],
-  layers: quarter.options.map(o => [o.pick.lo, o.pick.hi]),
+  oneBand: top.options.map(o => o.blocks.every(b => bandOf(b) === Math.floor(o.pick.n / S.ARCS_PER_TURN))),
+  inBin: top.options.map(o => o.blocks.every(b => Math.floor(((b.bounds.t0 + b.bounds.t1) / 2) / (2 * Math.PI) * S.ARCS_PER_TURN) === o.pick.n % S.ARCS_PER_TURN)),
+  arc: [arc.kind, arc.options.length, covers(arc), span(arc)],
+  layers: arc.options.map(o => [o.pick.lo, o.pick.hi]),
   layer: [layer.kind, layer.options.length, covers(layer), span(layer)],
-  arcs: layer.options.map(o => (o.a1 - o.a0) / span(layer)),
+  regions: layer.options.map(o => (o.a1 - o.a0) / span(layer)),
+  label: S.pickLabel(pick.pick, null, arc.view),
 }));
 """)
-    assert out["top"] == ["quadrant", 4, True]
-    kind, count, covers, quarter_span = out["quarter"]
+    kind, count, covers = out["top"]
+    assert kind == "arc" and covers
+    assert 2 * 8 <= count <= 3 * 8
+    assert all(out["oneBand"]) and all(out["inBin"])
+    kind, count, covers, arc_span = out["arc"]
     assert kind == "layer" and 2 <= count <= 3 and covers
-    assert quarter_span > math.pi / 2
+    # The middle band's sides are wedge lines 45 degrees apart.
+    assert arc_span == pytest.approx(math.pi / 4)
+    assert out["label"] == "Arc 90°–135° (middle)"
     assert all(out["wedges"])
     los = [lo for lo, _hi in out["layers"]]
     assert los == sorted(los)
     kind, count, covers, _span = out["layer"]
     assert kind == "region" and 2 <= count <= 9 and covers
-    assert all(share >= 1 / 3 - 1e-9 for share in out["arcs"])
+    # A third of the view each, give or take a wedge where 8 wedges split
+    # into thirds.
+    assert all(share >= 1 / 4 - 1e-9 for share in out["regions"])
+
+
+def test_an_outline_runs_along_its_blocks_sides_and_closes():
+    """MAP.52: a choice's outline lies on its blocks' own sides (a radial
+    edge at a block's t0 or t1, a circle at a block's r0 or r1), leaves
+    out the sides blocks share, and closes: every corner meets an even
+    number of edges."""
+    out = _run("""
+const top = S.settleStage({at: null, picks: []}, outline, edge);
+const results = top.options.map(o => {
+  const mid = (o.a0 + o.a1) / 2;
+  const e = S.outlineEdges(o.blocks, mid);
+  const wrap = t => mid + ((((t - mid + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI)) - Math.PI;
+  const near = (a, b) => Math.abs(a - b) < 1e-6;
+  const onSide = e.radial.every(r => o.blocks.some(b => (near(wrap(b.bounds.t0), r.t) || near(wrap(b.bounds.t1), r.t))
+    && near(b.bounds.r0, r.r0) && near(b.bounds.r1, r.r1)));
+  const onRing = e.circles.every(c => o.blocks.some(b => near(b.bounds.r0, c.r) || near(b.bounds.r1, c.r)));
+  const ends = new Map();
+  // Every bearing meets at the center.
+  const q = x => String(Math.round(x * 1e6) + 0);
+  const add = (r, t) => { const k = r < 1e-9 ? "center" : q(r / 1e3) + "/" + q(Math.cos(t)) + "/" + q(Math.sin(t)); ends.set(k, (ends.get(k) || 0) + 1); };
+  e.radial.forEach(r => { add(r.r0, r.t); add(r.r1, r.t); });
+  e.circles.forEach(c => { if (c.t1 - c.t0 < 2 * Math.PI - 1e-9) { add(c.r, c.t0); add(c.r, c.t1); } });
+  const closed = Array.from(ends.values()).every(n => n % 2 === 0);
+  return {onSide, onRing, closed, radial: e.radial.length, circles: e.circles.length};
+});
+console.log(JSON.stringify(results));
+""")
+    assert out
+    for result in out:
+        assert result["onSide"] and result["onRing"] and result["closed"], result
+        assert result["circles"] >= 2
 
 
 def test_sector_links_open_the_layer_that_shows_the_sector():
@@ -245,7 +308,7 @@ console.log(JSON.stringify({code, back: S.parseSectorDesignation(code), parsed, 
     assert out["sectors"] and out["holds"]
     crumbs = out["crumbs"]
     assert crumbs[0] == "Galaxy"
-    assert crumbs[1].startswith("Quarter ")
+    assert crumbs[1].startswith("Arc ")
     assert crumbs[-1] == "Layer -20"
 
 

@@ -1,10 +1,10 @@
 // html/static/galaxystageview.js
 //
 // The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
-// sections 4, 5, 8.1 and 10-11), drawn and driven. Always from straight
-// above, with no free camera: the galaxy's quarters, then a layer of the
-// disk (picked from the strip beside the map), then an arc of the ring
-// band in view (clicked on the map), then a layer, an arc, ... down to a
+// sections 4, 5, 8.1 and 10-11), drawn and driven: the whole galaxy in
+// 3D with an arc of it picked on the map (MAP.85), then a layer of the
+// arc (picked from the strip beside the map or on the map), then a
+// region of the ring band in view, then a layer, a region, ... down to a
 // sector. galaxystages.js has the rules; this file has the scene, the
 // camera moves, the breadcrumb, the slab slider, the tooltip, keys,
 // touch, the stage URLs and the map's own Back and Forward.
@@ -23,7 +23,6 @@
 //   bearing labels);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
 //   container ("?at=m.ring.wedge.slab", or "" for the galaxy);
-// - setBlockSize(m): the scale readout's "1 block = m sectors";
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
 //   generated, hint, enter, generate});
@@ -56,21 +55,30 @@ const DRAG_CLICK_PX = 6;
 // 2026-10-01).
 const CUBE_MAX_SECTORS = 27;
 export const ISO_TILT = Math.atan(Math.SQRT2);
-// Below the galaxy and its quarters the view can be turned, moved and
-// zoomed freely (Boss, 2026-10-01): drag turns it, right-drag or
+// Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
+// whole galaxy too since MAP.85): drag turns it, right-drag or
 // Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
-// edge-on; zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit,
-// and the view's middle can't wander more than PAN_REACH fits away.
+// edge-on; zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit
+// (the whole galaxy: GALAXY_MIN_ZOOM, about twice as close, out to its
+// fit and no further, MAP.58), and the view's middle can't wander more
+// than PAN_REACH fits away.
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
 export const MAX_TILT = (80 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const PAN_REACH = 1.5;
+export const GALAXY_MIN_ZOOM = 0.5;
+// The whole galaxy opens tilted this far from straight down, so it reads
+// as a disk with depth (MAP.85).
+export const GALAXY_TILT = (35 * Math.PI) / 180;
 const WHEEL_ZOOM_PER_PX = 0.0025;
-// The zoom policies (mapcontrol.js): a short range around the fit where
-// the view is free, none at the galaxy and its quarters.
+// The zoom policies (mapcontrol.js): a short range around the fit, and
+// on the whole galaxy only closer than its fit.
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
-const FIXED_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_LOCKED);
+const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
+// The arc under the pointer is outlined in full; its neighbors' outlines
+// are this faint (MAP.85).
+const NEIGHBOR_OUTLINE_OPACITY = 0.35;
 const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the tilt from straight down to MAX_TILT ...
@@ -269,15 +277,16 @@ export function createStageView(host) {
     return !!(r && r.kind === "layer" && isSectorView(r) && r.view.blocks.length <= CUBE_MAX_SECTORS);
   }
 
-  // Whether the view can be turned and moved: everywhere below the whole
-  // galaxy and its quarters (no arc picked yet at the galaxy).
+  // Whether the view can be turned and moved: every stage, since the
+  // whole galaxy turns too (MAP.85).
   function isFree(r) {
-    return !!(r && r.stage && (r.stage.at || r.stage.picks.some(function (p) { return p.kind === "region"; })));
+    return !!(r && r.stage);
   }
 
-  // The view's zoom policy: free views zoom within a short range.
+  // The view's zoom policy: a short range round the fit; the whole galaxy
+  // only zooms in from its own.
   function zoomPolicyFor(r) {
-    return isFree(r) ? FREE_VIEW_ZOOM : FIXED_VIEW_ZOOM;
+    return r && r.view && isWholeGalaxy(r) ? GALAXY_ZOOM : FREE_VIEW_ZOOM;
   }
 
   function isWholeGalaxy(r) {
@@ -327,9 +336,12 @@ export function createStageView(host) {
       const built = host.blockScene.buildCells(cells, eye, dim);
       const group = new THREE.Group();
       const meshes = [];
+      // The whole galaxy shows no sector or block lines (MAP.85).
+      const gridEdges = isWholeGalaxy(r) ? 0 : 1;
       [built.solid, built.glass].forEach(function (part, n) {
         if (!part.vertexCount) return;
         const mesh = host.makeBlockMesh(part, n === 1);
+        if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) mesh.material.uniforms.gridEdges.value = gridEdges;
         mesh.userData.cells = built.cells[n];
         mesh.renderOrder = n;
         group.add(mesh);
@@ -384,7 +396,7 @@ export function createStageView(host) {
   }
 
   // The camera for a stage, with the view's middle bearing pointing up
-  // the screen: the whole galaxy from straight above (galactic north up),
+  // the screen: the whole galaxy at GALAXY_TILT (galactic north up),
   // everything below it from the isometric slant, fitted round the
   // blocks: {target, dist, theta, phi}.
   function cameraFor(r) {
@@ -410,7 +422,7 @@ export function createStageView(host) {
     return {
       target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
       dist: (S.FIT_MARGIN * fp.radius) / Math.tan(fovHalf()) + (z1 - z0) / 2,
-      theta: theta, phi: TOP_DOWN_PHI,
+      theta: theta, phi: GALAXY_TILT,
     };
   }
 
@@ -499,7 +511,6 @@ export function createStageView(host) {
     renderTravel();
     hover = null;
     showTooltip("", 0, 0);
-    host.setBlockSize(r.view.blocks.length ? r.view.blocks[0].m : 243);
     loadData(r.stage.at).then(function () {
       if (!active || token !== goToken) return;
       if (animation) finishAnimation();
@@ -640,36 +651,99 @@ export function createStageView(host) {
     return -1;
   }
 
-  let outlineLine = null;
+  let outlineGroup = null;
 
   function clearOutline() {
-    if (outlineLine) {
-      host.scene.remove(outlineLine);
-      outlineLine.geometry.dispose();
-      outlineLine.material.dispose();
-      outlineLine = null;
+    if (outlineGroup) {
+      host.scene.remove(outlineGroup);
+      outlineGroup.children.forEach(function (line) {
+        line.geometry.dispose();
+        line.material.dispose();
+      });
+      outlineGroup = null;
     }
   }
 
-  // An accent outline around a choice's area, seen from above (MAP.18).
-  function outlineSpan(span) {
-    clearOutline();
-    const steps = Math.max(2, Math.ceil((span.t1 - span.t0) / (Math.PI / 90)));
+  // Line pieces [x, y, z] pairs tracing `edges` (galaxystages.outlineEdges)
+  // at height z; with `walls` ({z0, z1}), at both heights and up the side
+  // from z0 to z1 at each corner where a radial edge turns along a circle
+  // (an arc runs the disk's whole height).
+  function edgePoints(edges, z, walls) {
     const points = [];
-    for (let k = 0; k <= steps; k++) {
-      const t = span.t0 + ((span.t1 - span.t0) * k) / steps;
-      points.push(new THREE.Vector3(span.r1 * Math.cos(t), span.r1 * Math.sin(t), span.z1));
+    const at = function (r, t, h) { return new THREE.Vector3(r * Math.cos(t), r * Math.sin(t), h); };
+    const heights = walls ? [walls.z0, walls.z1] : [z];
+    heights.forEach(function (h) {
+      edges.radial.forEach(function (e) { points.push(at(e.r0, e.t, h), at(e.r1, e.t, h)); });
+      edges.circles.forEach(function (e) {
+        const steps = Math.max(1, Math.ceil((e.t1 - e.t0) / (Math.PI / 90)));
+        for (let k = 0; k < steps; k++) {
+          points.push(at(e.r, e.t0 + ((e.t1 - e.t0) * k) / steps, h), at(e.r, e.t0 + ((e.t1 - e.t0) * (k + 1)) / steps, h));
+        }
+      });
+    });
+    if (walls) {
+      // A corner is a radial edge's end no other radial edge carries on
+      // from (a straight side running across a ring boundary has none).
+      const ends = new Map();
+      edges.radial.forEach(function (e) {
+        [e.r0, e.r1].forEach(function (r) {
+          const key = Math.round(r * 1e3) + "/" + Math.round(Math.cos(e.t) * 1e9) + "/" + Math.round(Math.sin(e.t) * 1e9);
+          const end = ends.get(key) || { r: r, t: e.t, n: 0 };
+          end.n += 1;
+          ends.set(key, end);
+        });
+      });
+      ends.forEach(function (end) {
+        if (end.n === 1 && end.r > 0) points.push(at(end.r, end.t, walls.z0), at(end.r, end.t, walls.z1));
+      });
     }
-    for (let k = steps; k >= 0; k--) {
-      const t = span.t0 + ((span.t1 - span.t0) * k) / steps;
-      points.push(new THREE.Vector3(span.r0 * Math.cos(t), span.r0 * Math.sin(t), span.z1));
+    return points;
+  }
+
+  function addOutline(points, opacity) {
+    if (!outlineGroup) {
+      outlineGroup = new THREE.Group();
+      outlineGroup.renderOrder = 6;
+      host.scene.add(outlineGroup);
     }
-    outlineLine = new THREE.LineLoop(
+    const line = new THREE.LineSegments(
       new THREE.BufferGeometry().setFromPoints(points),
-      new THREE.LineBasicMaterial({ color: accent, depthTest: false, transparent: true }),
+      new THREE.LineBasicMaterial({ color: accent, depthTest: false, transparent: true, opacity: opacity }),
     );
-    outlineLine.renderOrder = 6;
-    host.scene.add(outlineLine);
+    line.renderOrder = 6;
+    line.frustumCulled = false;
+    outlineGroup.add(line);
+  }
+
+  // An accent outline around a choice's area along its blocks' own sides
+  // (MAP.18, MAP.52): on top of it, or for an arc of the galaxy round its
+  // whole height, with its neighboring arcs' outlines faint (MAP.85).
+  function outlineOption(index) {
+    clearOutline();
+    const option = display.options[index];
+    const mid = (option.a0 + option.a1) / 2;
+    const span = spanOf(option.blocks, mid);
+    const isArc = option.pick && option.pick.kind === "arc";
+    addOutline(edgePoints(S.outlineEdges(option.blocks, mid), span.z1, isArc ? span : null), 1);
+    if (!isArc) return;
+    neighborArcs(option.pick.n).forEach(function (n) {
+      const other = display.options.find(function (o) { return o.pick && o.pick.kind === "arc" && o.pick.n === n; });
+      if (!other) return;
+      const otherMid = (other.a0 + other.a1) / 2;
+      const otherSpan = spanOf(other.blocks, otherMid);
+      addOutline(edgePoints(S.outlineEdges(other.blocks, otherMid), otherSpan.z1, null), NEIGHBOR_OUTLINE_OPACITY);
+    });
+  }
+
+  // The arcs beside arc n: either side in its band, and in and out.
+  function neighborArcs(n) {
+    const per = S.ARCS_PER_TURN;
+    const band = Math.floor(n / per);
+    const bin = n % per;
+    const out = [band * per + ((bin + 1) % per), band * per + ((bin + per - 1) % per)];
+    if (band > 0) out.push(n - per);
+    if (band < S.ARC_BANDS - 1) out.push(n + per);
+    return out;
   }
 
   function setHover(next) {
@@ -692,13 +766,7 @@ export function createStageView(host) {
     if (!animation) setDisplayFade(display, 1);
     const option = index >= 0 ? display.options[index] : null;
     if (option && (resolved.kind !== "layer" || isCube(resolved))) {
-      const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
-      if (option.blocks.length === 1) {
-        const b = option.blocks[0].bounds;
-        span.t0 = b.t0;
-        span.t1 = b.t1;
-      }
-      outlineSpan(span);
+      outlineOption(index);
     } else {
       clearOutline();
     }
@@ -848,7 +916,7 @@ export function createStageView(host) {
     if (r.kind === "layer") {
       return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the slider beside the map.";
     }
-    if (r.kind === "quadrant") return "Click a quarter of the galaxy to look at it more closely.";
+    if (r.kind === "arc") return "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely.";
     if (isSectorView(r)) {
       return "Click a sector to open it; a sector that isn't generated yet shows where it is"
         + (host.canGenerate ? " and how to generate it." : ".");
@@ -923,8 +991,8 @@ export function createStageView(host) {
     applyView();
   }
 
-  // The wheel zooms where the view is free; at the galaxy and its
-  // quarters it is left to scroll the page. True when it was used.
+  // The wheel zooms within the view's zoom policy (a locked view leaves
+  // it to scroll the page). True when it was used.
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
@@ -958,8 +1026,8 @@ export function createStageView(host) {
   function clickAt(event, type) {
     if (animation) return;
     // Inside a container, a bright star or cloud under the click is shown
-    // rather than the block picked (over the whole galaxy and its
-    // quarters the stars are too thick for that).
+    // rather than the block picked (over the whole galaxy and its arcs
+    // the stars are too thick for that).
     if (stage.at && host.showPointAt && host.showPointAt(event.clientX, event.clientY)) {
       showTooltip("", 0, 0);
       return;
@@ -1422,7 +1490,6 @@ export function createStageView(host) {
     renderCrumbs();
     renderStrip();
     renderTravel();
-    host.setBlockSize(r.view.blocks.length ? r.view.blocks[0].m : 243);
     notice(problem || "");
   }
 
