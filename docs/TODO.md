@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.49, GEN.50, GEN.46, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | GEN.39, GEN.49, GEN.50, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -136,7 +136,7 @@ became these items:
 | 8 | Rogue planets smaller unmarked, bigger and clickable marked | MAP.84 |
 | 9 | System and nav buttons in one row, nav folding into a menu | UX.27 |
 | 10 | Icons instead of words on buttons (investigate) | UX.28 |
-| 11 | Star names at most two words | GEN.46 |
+| 11 | Star names at most two words | GEN.46 (done, PR #370) |
 | 12 | Every comet's type shown with a link | UX.29 |
 | 13 | Planet information without the Markdown render | UX.30 |
 | 14 | System edit as a quick menu, not a long panel | UX.31 |
@@ -1481,14 +1481,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "iron, iridium, tungsten"; L with vegetation at a median 0.02 bar; E
   at 376-414 K, above water's boiling point at 0.6 bar.
 
-- [ ] **GEN.32 Re-running an interrupted bright-star band draws it twice (bug)**
-  Found by the generation tests (2026-10-01): if `generate.py plan
-  --bright-stars-down-to N` stops part way and is run again, the layers
-  it already finished get the band a second time. Done: a re-run adds
-  only the layers the interrupted run didn't finish (or starts the band
-  over cleanly), never the same stars twice, and the strict xfail test
-  for it passes.
-
 - [ ] **GEN.38 Rocky rogue planets over 10,000 km are still classed C (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the GEN.8/GEN.26 thread report (PR #263): Class C's size range
   tops out at 10,000 km and no other rogue-eligible rocky class exists,
@@ -1503,6 +1495,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass-radius relation. Done: rogue gas giants (`roguePlanetData.py`)
   use the same giant mass-radius relation as bound giants, and a test
   checks radius and density over the rogue mass range.
+
+- [ ] **GEN.62 Star names in a binary system can reach three words (bug)**
+  Found while retiring GEN.46 (PR #370, 2026-10-02): GEN.46 keeps a
+  star system's name within two words, but a binary's stars put their
+  own generated word after the system name (`bodyNames.py`), so a
+  two-word system gives three-word star names (`Xy Zz Kelmoor`), and a
+  wide pair's planets and moons add their numeral on top
+  (`Xy Zz Kelmoor IIa`). Boss's reason for GEN.46 was to keep planet
+  names reasonable. Open question: should star names also stay within
+  two words (for example a one-word star word replacing the system's
+  second word, or binaries only around one-word system names), or are
+  three-word binary names acceptable? Done: the rule Boss picks holds
+  for every new star name, and a test over generated binary systems
+  checks it.
 
 - [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
@@ -1674,22 +1680,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     lightness go in the same table. No migration of existing galaxies (GEN.39 starts fresh).
     GEN.40 to GEN.43 and PERF.18 use it to skip work.
 
-- [ ] **GEN.46 Star system names of at most two words (bug)**
-  Boss (2026-10-01 23:53Z): "Name generation should not produce star
-  names that are more than 2 words long. This keeps planet names from
-  getting too long to be reasonable." Today a base name is one word,
-  or two after `split_long_word` (`utils.py`), but the uniqueness
-  decorations add words (`nameUniqueness.py`, applied in `_db.py`): a
-  Greek prefix (3 words), "Alpha <base> <Roman>" (4), a diminutive
-  stacked outside ("Little Alpha Xy Zz IV", 5), and diminutives can
-  stack again. Done: no star system name is longer than two words: a
-  collision is resolved within two words (for example a Greek letter
-  with a one-word base, or a new base name), and a test over many
-  generated and decorated names checks it. Planet and moon names keep
-  their numeral and letter (`bodyNames.py`). Decided (Boss,
-  2026-10-02): only new names follow the rule; existing names stay as
-  they are, with no renaming migration.
-
 - [ ] **GEN.47 Nebulae almost never appear (bug)**
   Boss (2026-10-01 23:53Z): "No nebulae are being created at all."
   Checked in the code: nebulae are generated (`generate_sector_phenomena`
@@ -1836,7 +1826,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     names already exist (`resolve_greek_roman_collision(base_name,
     existing_count)` in `nameUniqueness.py` and the reservation in
     `_db.py`), so the sector that reserves first gets the plain name
-    (settle with GEN.46); population seeds key on database ids
+    (GEN.46, done in PR #370); population seeds key on database ids
     (`random.Random(planet_id)` and `random.Random(species_id * 7919)` in
     `population.py`), and ids come from per-worker id blocks; the
     backfill depends on which sectors are already filled and where the
@@ -1846,12 +1836,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     sectors were generated before it, at any worker count; names, seeds
     and skips key on addresses and the galaxy seed, not on ids or arrival
     order: in a name collision the sector with the lower address keeps
-    the name and the other is renamed from its own seeded stream (with
-    GEN.46);
+    the name and the other is renamed from its own seeded stream;
     nearest-system links are rebuilt from content, so they are left out
     of the comparison; and a test generates the same sectors at 1 and 4
     workers and in two orders and compares fingerprints (GEN.58).
-    Prerequisites: PERF.21, GEN.39, GEN.56, GEN.46, GEN.44.
+    Prerequisites: GEN.39, GEN.56, GEN.44.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
@@ -2221,61 +2210,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   trips. Done: an approved plan, with the build work filed as its own
   items from it.
 
-- [ ] **PERF.21 Generation works with any worker count: the parallel path is built, used and tested (bug)**
-  Top priority, and the first thread of phase 0 (Boss, 2026-10-02). Found by
-  the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss: "We need a working parallel path, we need to make
-  sure the code properly builds and uses the work queue and the worker
-  pool to run no matter how many workers it is given. This is the top
-  priority as it impacts generation performance significantly." Today
-  `src/tests/conftest.py` pins `PLANETGEN_WORKERS=1`. With
-  `PLANETGEN_WORKERS=2` or `4` the same 14 generation tests fail every
-  time: 6 in `test_gen_resume.py`, 4 in `test_gen_bright_scatter_edges.py`,
-  3 in `test_galaxy_gen.py`, and
-  `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-...]`
-  ("Can't pickle local object ...<lambda>"). The tests' monkeypatches
-  never reach the spawned workers, and some tests depend on the seeded
-  single-process stream (GEN.39), so nothing checks the path the server
-  really uses. Done: every galaxy, sector, scatter and backfill mode runs
-  through the work queue and the pool at 1, 2 and N workers; the
-  generation tests run at several worker counts (TEST.74); those 14
-  tests pass at every count, or are rewritten so their fault injection
-  works across processes. Related: TEST.19 (same galaxy at any worker
-  count, done), TEST.73, GEN.39.
-
-  - [ ] **PERF.22 On Python 3.12 a run hangs forever when a worker process dies (bug)**
-    High. After a worker dies (killed or out of memory),
-    `workQueue.WorkQueue._dispatch` calls `ProcessPoolExecutor.submit`. On
-    Python 3.12.3 (Ubuntu 24.04's stock Python) that call sometimes blocks
-    for good on the executor's `_shutdown_lock`
-    (`concurrent/futures/process.py:811`): the run never fails, the lease
-    is never freed, and nothing is logged. Repro: `python3.12 -m pytest -p
-    no:timeout src/tests/test_work_queue_failures.py::test_a_dead_worker_fails_the_run_and_frees_the_lease`
-    hung 4 times in 15 runs; Python 3.11 hung 0 times in 15 (py-spy stack
-    in the bug hunt report). Done: a dead worker fails the run cleanly on
-    Python 3.11 to 3.13, and the test runs on each.
-
-  - [ ] **TEST.74 Generation tests at more than one worker**
-    The test half of PERF.21: a CI leg or a parametrized fixture that runs
-    the generation tests at 1, 2 and 4 workers instead of only the
-    `PLANETGEN_WORKERS=1` that `conftest.py` pins today, with fault
-    injection that reaches the spawned workers. [infra, PERF]
-
-- [ ] **PERF.23 The bright-star progress bar can end at 101% (bug)**
-  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`); Boss asked to file it only if it was a real bug and not
-  just more stars than expected, and it is real. The bar's total is the
-  expected stars per layer and each layer's credit is capped at its own
-  share, so extra stars can't push it past 100%. But
-  `_LayerTracker.layer_progress` in `generate.py` accepts a report for a
-  layer that `layer_done` already credited (reports come through the
-  channel-draining thread), so that layer is counted twice: in 3 of 9
-  runs with 4 workers under load, a late report arrived and the run ended
-  above 100% (for example 101.3% at layer 9); runs with no late report
-  ended at exactly 100%. Repro: `generate.py plan --disk-scale-length-pc
-  150 --disk-scale-height-pc 20 --bulge-scale-radius-pc 15 --max-ring 40
-  --workers 4 --force`, three at once. Done: reports for finished layers
-  are ignored, the displayed and `progress.json` percentage is capped at
-  100 as Boss asked, and a test feeds a late report.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -2603,16 +2537,6 @@ clears each one.
   cause is fixed in the test or in the code it found, and the test
   passes on every run tried. [infra, SEC]
 
-- [ ] **TEST.73 Intermittent failure in the parallel galaxy-run interrupt test (bug)**
-  `test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[2-True]`
-  failed once in a full suite run under load and 1 time in 12 targeted
-  runs, with a job not in state `cancelled` (reported by the parallel,
-  population and navigation tests thread, PR #321, 2026-10-01). It's a
-  timing problem in the parallel (two-worker) path; #321 only changed
-  the one-worker path. Done: the race is found, the cause is fixed in
-  the test or in the work queue's interrupt handling, and the test
-  passes on every run tried. [infra, PERF]
-
 - [ ] **TEST.78 A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug)**
   Reported by the Database thread (PR #342, 2026-10-02):
   `_sector_rows` in `src/tests/test_gen_resume.py` selects
@@ -2635,22 +2559,32 @@ clears each one.
   [web, NAV]
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **TEST.76 A bright-star test breaks on Python 3.9 and 3.10 (bug)**
-  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). `_ScriptedRandom(random.Random)` in
-  `test_gen_bright_scatter_edges.py` passes a list as its first
-  argument; before 3.11 `Random.__new__` seeds with it, so
-  `test_a_zero_weight_bin_is_never_picked_by_float_rounding` fails with
-  `TypeError: unhashable type: 'list'`. `python_requires` is `>= 3.9` and
-  CI has a py3.9 leg. Done: the helper works on Python 3.9 to 3.13.
-  [infra, generation]
+- [ ] **TEST.80 Intermittent failure in the admin change-star test (bug)**
+  `test_admin_edits.py::test_change_star_keeps_classes_and_saves_the_type`
+  failed once under `pytest -n auto` (a planet's class 'J' came back as
+  'L' after a star-type edit) and passed on rerun (seen by the Geometry
+  and names thread, 2026-10-02). Done: the failing case is found (loop
+  the test over seeds or runs), the cause is fixed in the test or in
+  the code it found, and the test passes on every run tried.
+  [infra, ADM]
 
-### Database and migrations
+- [ ] **TEST.81 Two processes reserving id blocks of one table can deadlock (bug)**
+  `test_db_id_blocks_edges.py::test_two_processes_using_up_blocks_of_one_table_never_collide`
+  fails about 2 runs in 12 locally on MariaDB 10.11, at any worker
+  count, with a 1213 deadlock in `_db._reserve_id_block` when two
+  processes reserve blocks of the same table (found by the Parallel
+  path thread, PR #371, 2026-10-02; not fixed there). Done: the cause
+  is found, block reservation retries or orders its locks so two
+  processes never deadlock, and the test passes on every run tried.
+  [infra, DB]
 
-### Generation and the work queue
-
-### Web, API and jobs
-
-### Scripts and ops
+- [ ] **TEST.82 Intermittent failure in the orbit-ceiling trim test (bug)**
+  `test_validation.py::test_trim_to_orbit_ceiling_returns_what_it_removed`
+  returned `[50.0, 6.0]` instead of `[50.0]` once in a full run and
+  passed on rerun (found by the Parallel path thread, PR #371,
+  2026-10-02). Physics area. Done: the failing case is found (loop the
+  test over seeds or runs), the cause is fixed in the test or in the
+  code it found, and the test passes on every run tried. [infra, GEN]
 
 ## USR: User accounts
 

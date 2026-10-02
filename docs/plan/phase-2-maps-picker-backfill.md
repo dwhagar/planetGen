@@ -100,7 +100,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.5 | API version and compatibility checking | API.4 |  |
 | API.10 | Reservations: claimed sectors and id blocks per run | API.9 | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.11 | Staging tables | API.10 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
-| API.12 | The download: seed, skeleton and name state | API.5, GEN.39, GEN.46 | Downloads the seed (what a seed means is GEN.39) and the name state (GEN.46's rules). |
+| API.12 | The download: seed, skeleton and name state | API.5, GEN.39 | Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
 | API.16 | The API reports the galaxy's seed, version and run history | DB.6, API.5 |  |
 
 ### 3D system
