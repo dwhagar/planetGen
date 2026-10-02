@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.24 |
-| MAP | MAP.82 |
+| UX | UX.34 |
+| MAP | MAP.87 |
 | NAV | NAV.34 |
-| GEN | GEN.44 |
+| GEN | GEN.48 |
 | PERF | PERF.21 |
 | DB | DB.6 |
 | API | API.15 |
@@ -469,6 +469,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
+| GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | open |
+| GEN.46 | Star system names of at most two words (bug) | none | open |
+| GEN.47 | Nebulae almost never appear (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -550,6 +554,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
 | MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | open |
+| MAP.82 | Unmarked rogue planets barely visible (bug) | none | open |
+| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | open |
+| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | open |
+| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | open |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -676,6 +685,16 @@ Parents marked "new parent" had no old number of their own.
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
+| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | open |
+| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | open |
+| UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
+| UX.28 | Investigate icons instead of words on buttons | none | open |
+| UX.29 | Every comet in a system shows its type as a link (bug) | none | open |
+| UX.30 | Planet information without the Markdown render | none | open |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
+| UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
+| UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
