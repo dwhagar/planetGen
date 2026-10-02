@@ -97,14 +97,15 @@ def _layers(outer_ring_index, top_layer):
 WIDE_GALAXY_TOP_LAYER = 50
 
 
-def _plan_wide_galaxy(mysql_config):
+def _plan_wide_galaxy(mysql_config, galaxy_seed=None):
     """Seeds a skeleton whose outline (layers +/-50, out to ring 999) holds
     every address these tests generate with an explicit --num-systems --
     generation now refuses any address outside the stored outline."""
-    _seed_skeleton(mysql_config, layers=_layers(999, WIDE_GALAXY_TOP_LAYER))
+    _seed_skeleton(mysql_config, layers=_layers(999, WIDE_GALAXY_TOP_LAYER), galaxy_seed=galaxy_seed)
 
 
-def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_value=1.0, layers=()):
+def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_value=1.0, layers=(),
+                   galaxy_seed=None):
     """
     Directly writes a `galaxy_shape`/`galaxy_layer` skeleton, without
     running `generate.py plan`'s own scan -- these tests exercise
@@ -119,9 +120,12 @@ def _seed_skeleton(mysql_config, shape=_SKELETON_SHAPE, outer_ring_index=999, e_
         e_value (float): `expected_system_count_at_density_1`.
         layers (iterable): `(layer_index, outer_ring_index)` pairs -- see
             `_db.replace_galaxy_layers`.
+        galaxy_seed (bytes, optional): The galaxy's seed; drawn at random
+            by default.
     """
     _db.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_ring_index=outer_ring_index,
-                           expected_system_count_at_density_1=e_value, config=mysql_config)
+                           expected_system_count_at_density_1=e_value, config=mysql_config,
+                           galaxy_seed=galaxy_seed)
     _db.replace_galaxy_layers(list(layers), config=mysql_config)
 
 

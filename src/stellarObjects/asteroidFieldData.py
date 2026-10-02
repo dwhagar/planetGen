@@ -27,7 +27,7 @@ from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name, reseed_rng
+from .utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name
 
 
 AU_PER_LY = 63241.077
@@ -137,7 +137,6 @@ class AsteroidField:
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
         """
-        reseed_rng()
         self.system_config = system_config
         # A placeholder: `_db.insert_asteroid_field` replaces it with the
         # field's designation (`asteroid_field_designation`, v40).

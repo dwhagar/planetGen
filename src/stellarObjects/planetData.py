@@ -22,7 +22,7 @@ defined separately in `asteroidData`.
 """
 
 import math
-import secrets
+import random
 
 from .config import SystemConfig
 from . import physical_constants, planetPhysics, program_constants
@@ -307,7 +307,7 @@ class Planet:
         if not self.is_moon:
             if moon_count is not None:
                 planetPhysics.generate_moons(self, moon_count=moon_count)
-            elif self.system_config.MOONS is not False and (self.system_config.MOONS is True or secrets.randbelow(2) == 1):
+            elif self.system_config.MOONS is not False and (self.system_config.MOONS is True or random.randrange(2) == 1):
                 planetPhysics.generate_moons(self)
 
     def to_dict(self):

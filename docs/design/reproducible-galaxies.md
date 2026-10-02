@@ -76,6 +76,17 @@ GEN.39 builds after PERF.21 in the parallel path thread. Its tests: one
 seed gives the same sectors at 1, 2 and N workers, and two seeds that
 differ only in their high 64 bits give different output.
 
+As built (GEN.39): `stellarObjects/galaxySeed.py` holds the seed helpers.
+A sector fill (its save included) and the bright-star scatter, bands
+and backfill blocks run on their unit seed; the sector seeds the
+module-level `random` stream for the length of the unit
+(`galaxySeed.seeded`, which puts the stream back afterwards) rather than
+passing a `random.Random` down, which is GEN.56's change. `secrets` and
+`SystemRandom` are gone from generation (`utils.reseed_rng` is removed,
+`spaceSector._rng` reads the module stream). A save retried after a
+deadlock replays the same draws. The `phenomenon` and `system` subcommands and the run's own
+choices (a random start's address) still draw from the run's stream.
+
 ## 4. The version key (DB.6, phase 0)
 
 22 uppercase hex digits, no separators:

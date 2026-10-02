@@ -262,7 +262,7 @@ class BinaryStarProxy(Star):
         `_effective_luminosity`, `habitable_zone`, `system_perimeter`,
         `heliosphere_radius`, etc.) are stored exactly as generated rather
         than recomputed from `primary`/`secondary` on load -- they were
-        computed once, at generation time, from whichever `secrets`/`random`
+        computed once, at generation time, from whichever `random`
         rolls happened to occur, and recomputing them later from the
         (faithfully reloaded) constituent stars would only risk drift if
         the derivation formulas ever change between save and load.

@@ -26,7 +26,7 @@ from .nebulaData import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class
 from . import log, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, reseed_rng)
+                    generate_phoneme_salad_name)
 
 
 def remnant_classes_for(progenitor_type, compact_remnant_kind):
@@ -112,7 +112,6 @@ class SupernovaRemnant:
                 embedded `compact_remnant`).
             name (str, optional): An explicit name. Random if omitted.
         """
-        reseed_rng()
         self.system_config = system_config
         # A draft name: `_db.insert_supernova_remnant` reserves it through
         # the system-name registry (v40), and the core follows.

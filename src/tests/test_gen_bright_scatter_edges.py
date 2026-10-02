@@ -22,7 +22,7 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db, brightStars
+from stellarObjects import _db, brightStars, galaxySeed
 from stellarObjects.galaxyDrill import DrillBlock, drill_parent
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
 from stellarObjects import program_constants
@@ -229,14 +229,14 @@ def test_a_backfill_below_every_white_dwarf_writes_nothing(mysql_config):
 
 # --- TEST.25: an interrupted scatter -------------------------------------------
 
-FIXED_SEED = 424242
-
-
-class _FixedSystemRandom:
-    """Stands in for `random.SystemRandom` so a scatter's seed is known."""
-
-    def getrandbits(self, _bits):
-        return FIXED_SEED
+def _scatter_seed(mysql_config, address="scatter"):
+    """The seed a scatter (or band, `band/<floor>-<ceiling>`) of this
+    galaxy draws from: derived from the galaxy's seed (GEN.39)."""
+    conn = _db.get_connection(mysql_config)
+    try:
+        return galaxySeed.short_seed(_db.get_galaxy_seed(conn), "bright-stars", address)
+    finally:
+        conn.close()
 
 
 def _count(mysql_config, sql="SELECT COUNT(*) AS n FROM bright_stars", params=()):
@@ -341,16 +341,16 @@ def test_a_scatter_that_fails_after_two_commits_keeps_them_and_no_seed(mysql_con
 def test_a_re_plan_after_an_interrupted_scatter_holds_exactly_one_scatter(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     _interrupt_after_commits(mysql_config, monkeypatch)
-    monkeypatch.setattr(generate.random, "SystemRandom", _FixedSystemRandom)
     summary = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
 
-    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, FIXED_SEED))
+    seed = _scatter_seed(mysql_config)
+    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed))
     stored = _stored_rows(mysql_config)
     assert summary["total"] == len(expected) == len(stored)
     assert _comparable(stored) == _comparable(expected)
     # Every star once: no two rows share a position.
     assert len({row[3:6] for row in stored}) == len(stored)
-    assert _settings(mysql_config) == (THRESHOLD, FIXED_SEED)
+    assert _settings(mysql_config) == (THRESHOLD, seed)
 
 
 def _leftover_cells(mysql_config):
@@ -498,7 +498,7 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     # GEN.32: the re-run starts the band over, so the layers the first
     # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
-    monkeypatch.setattr(generate.random, "SystemRandom", _FixedSystemRandom)
+    seed = _scatter_seed(mysql_config)
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     first = _count(mysql_config)
     first_rows = _stored_rows(mysql_config)
@@ -507,16 +507,16 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     with pytest.raises(RuntimeError, match="scatter worker died"):
         generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
     undo()
-    assert _settings(mysql_config) == (THRESHOLD, FIXED_SEED)
+    assert _settings(mysql_config) == (THRESHOLD, seed)
     assert _count(mysql_config) > first
 
     band = generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
     assert band is not None
-    assert _settings(mysql_config) == (BAND_FLOOR, FIXED_SEED)
-    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, FIXED_SEED,
+    assert _settings(mysql_config) == (BAND_FLOOR, seed)
+    band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")
+    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
                                         max_luminosity_sol=THRESHOLD))
     stored = _stored_rows(mysql_config)
     assert len(stored) == first + len(expected)
-    # The first scatter's stars and the band's, each once. (Both draws
-    # use FIXED_SEED, so positions can repeat between them: compare rows.)
+    # The first scatter's stars and the band's, each once.
     assert _comparable(stored) == _comparable(first_rows + expected)

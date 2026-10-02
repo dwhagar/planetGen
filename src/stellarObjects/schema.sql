@@ -902,6 +902,15 @@
 --   `nebulae`/`asteroid_fields`' `sector_id` foreign keys, still ON DELETE
 --   CASCADE where v16/v17 made them, as ON DELETE SET NULL.
 --
+-- v51: `galaxy_shape.galaxy_seed`, the galaxy's 128-bit seed (GEN.39,
+--   docs/design/reproducible-galaxies.md): every sector, bright-star
+--   layer and backfill block draws from a seed derived from it and its
+--   address (`galaxySeed.unit_seed`). `BINARY(16)` rather than a
+--   32-character hex string: half the bytes and no case to normalize; it
+--   is shown and typed as 32 hex digits. Written once, when the galaxy is
+--   first planned. `_migrate_v50_to_v51` adds it empty: a galaxy made
+--   before has no seed, and none can be worked out for it.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1070,7 +1079,12 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- scatter used (`bright_stars`); NULL when none has run. A fill reads
     -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
     bright_star_min_luminosity_sol  DOUBLE,
-    bright_star_seed                BIGINT UNSIGNED
+    bright_star_seed                BIGINT UNSIGNED,
+
+    -- v51: the galaxy's 128-bit seed (GEN.39), set by `generate.py plan`
+    -- (`--seed`, or drawn at random) and kept by every later plan.
+    -- NULL only on a galaxy planned before v51.
+    galaxy_seed                     BINARY(16)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per layer that holds content (v33; replaces v32's

@@ -3,9 +3,11 @@
 """
 TEST.19 and TEST.22: parallel generation (`--workers`, PERF.7/PERF.8).
 
-- TEST.19: one run seed gives the same tasks' draws, and the same
-  galaxy sectors, with one worker, two or several -- the one-worker path
-  seeds each task exactly as a worker would.
+- TEST.19: one run seed gives the same tasks' draws with one worker, two
+  or several -- the one-worker path seeds each task exactly as a worker
+  would.
+- GEN.39: one galaxy seed gives the same sectors, contents and all, at
+  any worker count, and every one of its 128 bits counts.
 - TEST.22: every bulk mode (`--shell`, `--block`, `--column`,
   `--center-sector`, random start, `sector --num-sectors N`) on two
   workers counts what it saved and never fills a sector twice.
@@ -22,10 +24,11 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import _db, workQueue
+from stellarObjects import _db, nameUniqueness, workQueue
 from stellarObjects._db import MySQLConfig
 
 from tests.conftest import _test_server_kwargs
+from tests.galaxy_fingerprint import galaxy_rows
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 
 
@@ -148,21 +151,72 @@ def _systems_per_sector(config):
         conn.close()
 
 
-def test_one_two_and_three_workers_fill_the_same_sectors(make_database, monkeypatch):
-    """Sector contents come from the OS's random source by design
-    (`spaceSector`'s `SystemRandom`, `utils.reseed_rng`), so no two runs
-    hold the same stars; what the worker count must not change is which
-    sectors a run fills, how many systems each gets, and what it counts."""
+GALAXY_SEED = bytes.fromhex("0123456789ABCDEF0011223344556677")
+
+
+def _seeded_galaxy(make_database, seed=GALAXY_SEED):
+    config = make_database()
+    _plan_wide_galaxy(config, galaxy_seed=seed)
+    return config
+
+
+@pytest.mark.parametrize("workers", [2, 4])
+def test_one_galaxy_seed_makes_the_same_sectors_at_any_worker_count(make_database, monkeypatch, workers):
+    """GEN.39: each sector draws from its own seed (the galaxy seed and its
+    address), so one worker and several fill the same sectors with the
+    same systems, stars, planets and phenomena, whatever order they ran."""
     results = {}
-    for workers in (1, 2, 3):
-        config = make_database()
-        _plan_wide_galaxy(config)
-        counts = _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(workers)],
+    for count in (1, workers):
+        config = _seeded_galaxy(make_database)
+        counts = _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(count)],
                       config, monkeypatch)
-        results[workers] = _systems_per_sector(config)
-        assert counts["sectors"] == len(results[workers]) == generate.ring_sector_count(1)
-        assert counts["systems"] == sum(results[workers].values())
-    assert results[1] == results[2] == results[3]
+        assert counts["sectors"] == len(_systems_per_sector(config)) == generate.ring_sector_count(1)
+        assert counts["systems"] == sum(_systems_per_sector(config).values())
+        results[count] = galaxy_rows(config)
+    assert results[1]["star_systems"] and results[1]["planets"]
+    assert results[1] == results[workers]
+
+
+def test_galaxy_seeds_differing_only_in_their_high_64_bits_make_different_sectors(make_database, monkeypatch):
+    """GEN.39: every bit of the 128-bit seed counts, not just the low 64."""
+    other = bytes([GALAXY_SEED[0] ^ 0x80]) + GALAXY_SEED[1:]
+    assert other[8:] == GALAXY_SEED[8:]
+    results = []
+    for seed in (GALAXY_SEED, other):
+        config = _seeded_galaxy(make_database, seed)
+        _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", "1"], config, monkeypatch)
+        results.append(galaxy_rows(config))
+    assert results[0]["star_systems"] != results[1]["star_systems"]
+
+
+def _systems_by_sector(config):
+    conn = _db.get_connection(config)
+    try:
+        rows = conn.execute(
+            "SELECT s.ring_index, s.layer_index, s.ring_slot_index, ss.name, ss.position_x_mpc, ss.position_y_mpc,"
+            " ss.position_z_mpc FROM star_systems ss JOIN sectors s ON s.id = ss.sector_id").fetchall()
+    finally:
+        conn.close()
+    by_sector = {}
+    for row in rows:
+        values = tuple(row.values())
+        # Which of two colliding names keeps the plain one depends on what
+        # else is filled (GEN.57, phase 1): compare without it.
+        name = nameUniqueness.strip_decoration(values[3])
+        by_sector.setdefault(values[:3], []).append((name,) + values[4:])
+    return {address: sorted(systems) for address, systems in by_sector.items()}
+
+
+def test_a_sector_comes_out_the_same_whichever_run_fills_it(make_database, monkeypatch):
+    """A sector's seed is its address's, not its place in the run: filled
+    in a run of three or with all of its ring, a sector holds the same."""
+    part = _seeded_galaxy(make_database)
+    _run("galaxy", ["--ring", "1", "--limit", "3", "--num-systems", "4", "--workers", "1"], part, monkeypatch)
+    whole = _seeded_galaxy(make_database)
+    _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", "2"], whole, monkeypatch)
+    some, every = _systems_by_sector(part), _systems_by_sector(whole)
+    assert len(some) == 3
+    assert some == {address: every[address] for address in some}
 
 
 # ---------------------------------------------------------------------------

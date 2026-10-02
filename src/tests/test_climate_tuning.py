@@ -13,8 +13,7 @@ Unlike climate_tuning_cli.py's human-reviewed report, this module DOES
 assert -- but only generously-toleranced bands and relative orderings
 between classes, never tight exact-value checks, since generation is
 inherently stochastic (host star type, and every tuned range, are randomized
-per sample; `stellarObjects.utils.reseed_rng()` reseeds from `secrets` on
-every generation call, so this cannot be made deterministic via a seed).
+per sample, and the samples draw from whatever the `random` stream holds).
 The point is to catch a real regression (e.g. a future edit that
 accidentally collapses two classes back together, or drags Class M's
 pressure back below realistic Earth values) without being brittle against

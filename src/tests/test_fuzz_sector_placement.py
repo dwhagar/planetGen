@@ -21,8 +21,8 @@ tiny stand-ins (`_StubSystem`/`_StubRemnant`) whose radius hypothesis
 picks directly -- thousands of placements per second. The round-trip
 tests use real `StarSystem`s and real phenomena.
 
-Reproducibility: `spaceSector._rng` is a `secrets.SystemRandom` (OS
-entropy, unseedable). `_seeded_sector_rng` shadows its `random`/
+Reproducibility: `spaceSector._rng` reads the module-level `random`
+stream (GEN.39). `_seeded_sector_rng` shadows its `random`/
 `getrandbits` methods on the instance with a seeded `random.Random`'s, so
 `uniform`/`choice`/`random` -- and every helper that captured `_rng` as a
 default argument at import time -- become a pure function of the

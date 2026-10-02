@@ -316,6 +316,20 @@ the galaxy: an address outside it is refused with the reason, and a
 neighborhood near the edge simply leaves out the sectors past it.
 `generate.py galaxy` refuses to run until `generate.py plan` has been run.
 
+**The galaxy seed.** The first `generate.py plan` stores the galaxy's
+128-bit seed, shown as 32 hex digits (`Galaxy seed 3F2A...C901 (drawn at
+random)`). `--seed <32 hex digits>` sets it instead; a later plan keeps
+the stored seed, and a different `--seed` is refused once any sector
+exists. Each sector, the bright-star scatter, each band added with
+`--bright-stars-down-to` and each backfill block draws from its own seed,
+the SHA-256 of the galaxy seed and its address (`sector:12/3/0`), so one
+seed fills a sector the same way at any `--workers` count and in any run
+that reaches it, on the same PlanetGen release. Two systems that draw the
+same name are still told apart in save order, and the bright-star
+backfill still depends on which sectors are filled first (both phase 1,
+GEN.57). Design:
+[`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
+
 After the outline, `generate.py plan` also places every star of 500 solar
 luminosities or more across the whole galaxy, before any sector is
 filled (about 60 million in a Milky Way, roughly 20 minutes of drawing
@@ -409,7 +423,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
-| `generate.py plan --seed <32 hex digits>` | GEN.39, DB.6 | 0 | Set the new galaxy's 128-bit seed; without it one is drawn at random. Stored once, with the version that made the galaxy. |
+| The version that made the galaxy, and every run | DB.6 | 0 | Store the 22-hex-digit version key, the full version, Python version and platform with the galaxy seed, and one `generation_runs` row per run that changes the galaxy. |
 | Seed line at the top of every run | OPS.10 | 0 | Every subcommand, web job and work queue run first writes the galaxy seed, the version with its 22-hex-digit key, and the run's command, at normal level. |
 | `generate.py check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
 | `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
