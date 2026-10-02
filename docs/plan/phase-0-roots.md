@@ -20,14 +20,6 @@ Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
 
-### Parallel path (top priority)
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.39 | The same seed can't reproduce the same galaxy (bug) |  | Decided yes (Boss 01:34-01:46Z): 128-bit seed stored in the database and logged at the top of every run; seed + version (packed in hex) reproduce the galaxy; needs a fresh galaxy. It per-sector seeded draws touch the RNG calls in every generator file, so it lands right after PERF.21 and before GEN.47, GEN.42 and PERF.18, which all need 'same seed, same stars'. |
-| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
-| OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
-
 ### System Map
 
 | ID | Item | Needs | Note |
@@ -56,6 +48,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) |  | nameUniqueness.py:137; related to GEN.44 bands and GEN.57 names. |
+| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
@@ -79,6 +72,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | TEST.79 | Route edge cases, written before NAV.12 |  | Cases from the hop-length study's report. |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | navGraph.build_knn_adjacency; needed before NAV.12. |
+
+### Parallel path (top priority)
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run |  | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
+| OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
 ### Database consistency check
 

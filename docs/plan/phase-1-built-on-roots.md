@@ -45,11 +45,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 | ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
-| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
+| GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill |  | One shared per-sector stats table with PERF.11 (Boss 01:46Z). The level also drives the scatter bands: -1 with stars means a failed run (wipe and redo); otherwise draw only between the new floor and the stored level (Boss 03:25Z). Galaxy schema v52 (one writer at a time; v51 is GEN.39's galaxy_seed). Backfill code shared with PERF.18 and GEN.42. |
 | PERF.11 | Store each sector's expected and actual density | GEN.44 | Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
 | PERF.1 | Generation at scale | PERF.11 | Parent; only PERF.11 is open under it. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | GEN.44 | Investigation; go/no-go for GEN.42. |
-| GEN.47 | Nebulae almost never appear (bug) | GEN.39 | Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
+| GEN.47 | Nebulae almost never appear (bug) |  | Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
 
 ### System Map
 
@@ -122,12 +122,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.56 | Every random draw in generation comes from the derived seeds | GEN.39 | Touches every generator module. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.39, GEN.56, GEN.44 |  |
+| GEN.56 | Every random draw in generation comes from the derived seeds |  | Touches every generator module. |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56, GEN.44 |  |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.39, GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. Moved from phase 3. |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. Moved from phase 3. |
 | OPS.13 | Every update records the version key, keeping the last 10 | DB.6, OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.6, DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.6, DB.7, OPS.13 | Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
@@ -137,7 +137,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.44, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
 ## Open questions for Boss
 
