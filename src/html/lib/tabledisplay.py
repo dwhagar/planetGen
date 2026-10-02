@@ -139,7 +139,9 @@ def format_body_distance(distance_km, is_moon=False):
 
 def _times_reference(ratio):
     """A body's size or mass as a multiple of Earth's or Jupiter's: plain
-    digits from 0.001 up, scientific notation below that."""
+    digits from 0.001 to a million, scientific notation outside that."""
+    if ratio >= 1e6:
+        return to_scientific_notation(_HTML_CONFIG, ratio, 2)
     if ratio >= 100:
         return f"{ratio:,.0f}"
     if ratio >= 1:
