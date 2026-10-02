@@ -768,6 +768,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "xkm": planet.get("position_x_km") or 0.0,
         "ykm": planet.get("position_y_km") or 0.0,
         "radiuskm": planet.get("radius_km"),
+        "note": planet.get("_position_note"),
     }
     if parent_name is not None:
         attrs["parent"] = parent_name
@@ -1144,6 +1145,11 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     )
 
 
+def _star_temp_text(star):
+    temperature_k = star.get("temperature_k")
+    return f"{int(temperature_k)} K" if temperature_k is not None else "\u2013"
+
+
 def _star_label(system, star):
     """A star's shown name: its own (a binary's stars are `<system> <word>`
     -- see `bodyNames.py`), falling back to the system's."""
@@ -1156,7 +1162,7 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
     attrs = {
         "kind": "star", "name": _star_label(system, star),
         "role": "Primary" if is_primary else "Secondary",
-        "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
+        "type": star["star_type"], "temp": _star_temp_text(star),
         "mass": to_plain_text(format_star_mass(star["mass_kg"])),
         "radius": to_plain_text(format_star_radius(star["radius_km"])),
         "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
@@ -1375,7 +1381,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             "kind": "star",
             "name": _star_label(system, star),
             "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
-            "type": star["star_type"], "temp": f'{int(star["temperature_k"])} K',
+            "type": star["star_type"], "temp": _star_temp_text(star),
             "mass": to_plain_text(format_star_mass(star["mass_kg"])),
             "radius": to_plain_text(format_star_radius(star["radius_km"])),
             "lum": to_plain_text(format_star_luminosity(star["luminosity_w"])),
@@ -1488,6 +1494,40 @@ def _render_moon_scene(planet, facilities=None):
     )
 
 
+# MAP.57: a NaN or infinite number from the database never reaches the
+# SVG. Every row is copied with such numbers turned into `None` (which
+# every formatter and placement step already treats as "not recorded");
+# a planet or moon whose position is lost that way but whose orbit
+# distance survives is drawn due east at that distance with a note in its
+# info panel, and one with neither is left out.
+_POSITION_KEYS = ("position_x_km", "position_y_km", "position_z_km")
+_POSITION_NOTE = "Position not recorded: drawn at its orbit distance, due east of what it orbits."
+
+
+def _is_bad_number(value):
+    return isinstance(value, float) and not math.isfinite(value)
+
+
+def _finite_row(row):
+    """A copy of `row` with every NaN or infinite float set to `None`."""
+    return {key: None if _is_bad_number(value) else value for key, value in row.items()}
+
+
+def _finite_body(row):
+    """`_finite_row` for a planet or moon (and its moons), or `None` when
+    it has no usable position or distance left to draw it at."""
+    lost = any(_is_bad_number(row.get(key)) for key in _POSITION_KEYS)
+    body = _finite_row(row)
+    if lost:
+        distance = body.get("distance_km")
+        if not distance or distance <= 0:
+            return None
+        body.update(position_x_km=distance, position_y_km=0.0, position_z_km=0.0, _position_note=_POSITION_NOTE)
+    if body.get("moons"):
+        body["moons"] = [moon for moon in map(_finite_body, body["moons"]) if moon is not None]
+    return body
+
+
 def render_system_map_panel(system, stars, planets, belts, facilities=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
@@ -1523,6 +1563,11 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
     Returns:
         str: A complete `<section class="panel">` block.
     """
+    system = _finite_row(system)
+    stars = [_finite_row(star) for star in stars]
+    planets = [planet for planet in map(_finite_body, planets) if planet is not None]
+    belts = [_finite_row(belt) for belt in belts]
+    facilities = [_finite_row(facility) for facility in facilities] if facilities else facilities
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
         scenes = _render_wide_binary_scenes(system, stars, planets, belts, facilities)

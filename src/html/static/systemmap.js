@@ -497,6 +497,7 @@ function showInfo(el) {
     } else if (el.dataset.moons) {
       addField(dl, "Moons", el.dataset.moons);
     }
+    addField(dl, "Note", el.dataset.note);
   }
   panel.appendChild(dl);
 
