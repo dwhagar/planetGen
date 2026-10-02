@@ -251,6 +251,124 @@ def _settle_index(value, guess, bounds_of):
     return guess
 
 
+def sectors_along_segment(start, end, edge_pc):
+    """
+    Every sector a straight segment passes through, from `start` to `end`
+    (both galaxy-frame `(x, y, z)` parsecs, both ends included), in the
+    order the segment first enters each one (NAV.38).
+
+    The segment is cut at every face it crosses -- the layer planes, the
+    ring cylinders and, inside each ring, the slot half-planes -- and each
+    piece and each crossing point is looked up with `sector_address_at`,
+    so the answer follows the grid's own half-open cells exactly: a
+    segment lying in a layer's top face is in the layer above, one that
+    only touches a cell at a corner or along an edge includes it, and a
+    point where two pieces meet adds the cell that holds it. A sector the
+    segment leaves and enters again (a ring's inner face is concave) is
+    listed once. Cells outside the galaxy are listed like any other; the
+    caller checks them against `GalaxyBounds`. `galaxyprisms.js`'s
+    `sectorsAlongSegment` is the browser twin.
+
+    Args:
+        start (tuple): `(x, y, z)`, parsecs.
+        end (tuple): `(x, y, z)`, parsecs.
+        edge_pc (float): The sector edge length, parsecs.
+
+    Returns:
+        list[tuple]: `(ring_index, layer_index, ring_slot_index)` cells.
+    """
+    x0, y0, z0 = start
+    dx, dy, dz = end[0] - x0, end[1] - y0, end[2] - z0
+
+    def at(t):
+        if t == 1.0:
+            return end
+        return (x0 + t * dx, y0 + t * dy, z0 + t * dz)
+
+    cuts = {0.0, 1.0}
+    # Layer planes z = (j + 1/2) * edge between the two ends.
+    if dz != 0.0:
+        low, high = sorted((z0, end[2]))
+        for j in range(layer_index_at(low, edge_pc), layer_index_at(high, edge_pc) + 1):
+            t = (layer_bounds_pc(j, edge_pc)[1] - z0) / dz
+            if 0.0 < t < 1.0:
+                cuts.add(t)
+    # Ring cylinders r = i * edge: |p0 + t d|^2 = R^2 in the plane.
+    a = dx * dx + dy * dy
+    if a > 0.0:
+        b = x0 * dx + y0 * dy
+        c = x0 * x0 + y0 * y0
+        t_near = min(1.0, max(0.0, -b / a))
+        # The closest approach to the axis is a cut too: a line through
+        # the axis jumps half a turn there without crossing a slot face.
+        if 0.0 < t_near < 1.0:
+            cuts.add(t_near)
+        near = at(t_near)
+        ring_low = ring_index_at(math.sqrt(near[0] ** 2 + near[1] ** 2), edge_pc)
+        ring_high = max(ring_index_at(math.sqrt(c), edge_pc),
+                        ring_index_at(math.sqrt(end[0] ** 2 + end[1] ** 2), edge_pc))
+        for i in range(max(1, ring_low), ring_high + 1):
+            radius = ring_bounds_pc(i, edge_pc)[0]
+            disc = b * b - a * (c - radius * radius)
+            if disc < 0.0:
+                continue
+            root = math.sqrt(disc)
+            for t in ((-b - root) / a, (-b + root) / a):
+                if 0.0 < t < 1.0:
+                    cuts.add(t)
+    # Slot half-planes, ring by ring: a line's polar angle turns one way
+    # only (it is constant on a line through the axis, which crosses no
+    # slot face but at the axis itself), so between two ring cuts the
+    # slots it crosses are a short run from the slot at one end to the
+    # slot at the other.
+    turn = x0 * dy - y0 * dx
+    if turn != 0.0:
+        ordered = sorted(cuts)
+        for ta, tb in zip(ordered, ordered[1:]):
+            ring = sector_address_at(at((ta + tb) / 2), edge_pc)[0]
+            n = ring_sector_count(ring)
+            if n == 1:
+                continue
+            sa = _slot_of_angle(at(ta), n)
+            sb = _slot_of_angle(at(tb), n)
+            first, last = (sa, sb) if turn > 0 else (sb, sa)
+            if last < first:
+                last += n
+            step = 2 * math.pi / n
+            for k in range(first - 1, last + 3):
+                phi = (k % n) * step
+                ux, uy = math.cos(phi), math.sin(phi)
+                denom = ux * dy - uy * dx
+                if denom == 0.0:
+                    continue
+                t = -(ux * y0 - uy * x0) / denom
+                if ta < t < tb:
+                    p = at(t)
+                    if ux * p[0] + uy * p[1] > 0.0:
+                        cuts.add(t)
+    ordered = sorted(cuts)
+    seen = []
+    known = set()
+
+    def visit(point):
+        address = sector_address_at(point, edge_pc)
+        if address not in known:
+            known.add(address)
+            seen.append(address)
+
+    for ta, tb in zip(ordered, ordered[1:]):
+        visit(at(ta))
+        visit(at((ta + tb) / 2))
+    visit(end)
+    return seen
+
+
+def _slot_of_angle(point, n):
+    """The slot of `n` whose angle range holds `point`'s polar angle."""
+    theta = math.atan2(point[1], point[0]) % (2 * math.pi)
+    return min(n - 1, int(theta * n / (2 * math.pi)))
+
+
 def sector_orientation(center_pc):
     """
     A sector's local axes in the galaxy frame, the frame
