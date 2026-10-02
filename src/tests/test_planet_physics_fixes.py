@@ -2,7 +2,8 @@
 Regression tests for the four Track A physics fixes to the planet
 atmosphere/density model (see planetPhysics.py and plausibility.py):
 
-  1. Gas-giant density blend: arithmetic mean -> mass-weighted harmonic mean.
+  1. Gas-giant density: once a core/envelope blend, now set by the giant
+     mass-radius relation (GEN.34).
   2. Greenhouse factor: no longer inverted (rewarding distance from CO2's
      own molar density instead of proximity to it).
   3. Atmospheric pressure: no longer independent of gravity (a gravity-based
@@ -37,65 +38,47 @@ def host_star():
 
 
 # ---------------------------------------------------------------------------
-# Fix 1: gas-giant density blend (mass-weighted harmonic mean)
+# Fix 1: gas-giant density (giant mass-radius relation, GEN.34)
 # ---------------------------------------------------------------------------
 
 GAS_GIANT_CLASS = next(c for c, d in prog_c.PLANET_CLASSES.items() if d["type"] == "g")
 GAS_GIANT_ZONE = next(z for z in "hec" if prog_c.PLANET_CLASSES[GAS_GIANT_CLASS][z])
 
 
-def test_gas_giant_density_blend_matches_hand_computed_harmonic_mean(monkeypatch, host_star):
-    """
-    Drives generate_planet_properties with controlled random draws (core
-    density, atm_density, atm_molar_density, core/atmosphere ratio,
-    envelope density -- in the order they're actually consumed) and checks
-    the resulting planet.density against a hand-computed mass-weighted
-    harmonic mean:
-        1 / (ratio / core_density_gcm3 + (1 - ratio) / envelope_density_gcm3)
-    which is the physically correct way to combine two densities via a mass
-    fraction (unlike the old arithmetic-mean blend it replaces).
-
-    Uses Class I (GAS_GIANT_CLASS resolves to the first type=='g' class,
-    which has no PLANET_CLASSES density_range override -- see
-    generate_planet_properties' `"density_range" not in class_data` guard --
-    so this exercises the blend path, not the direct-density override
-    path covered by test_density_range_override_skips_the_blend below).
-    """
-    core_density_gcm3 = 1.0       # within PLANET_DENSITY["g"] = (0.69, 1.64)
-    atm_density_kgm3 = 1.0        # within ATMOSPHERE_DENSITY["g"] -- feeds
-    # atmospheric_pressure/scale_height only, not this blend (see
-    # physical_constants.GAS_ENVELOPE_BULK_DENSITY's docstring)
-    atm_molar_density = 0.003     # within ATMOSPHERIC_MOLAR_DENSITY["g"]
-    ratio = 0.4                   # within GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
-    envelope_density_gcm3 = 0.15  # within GAS_ENVELOPE_BULK_DENSITY = (0.06, 0.3)
-
-    queued = [core_density_gcm3, atm_density_kgm3, atm_molar_density, ratio, envelope_density_gcm3]
-    real_uniform = planetPhysics.random.uniform
-
-    def fake_uniform(a, b):
-        if queued:
-            return queued.pop(0)
-        return real_uniform(a, b)
-
-    monkeypatch.setattr(planetPhysics.random, "uniform", fake_uniform)
-
+def test_gas_giant_density_is_its_mass_over_its_volume(host_star):
+    """A giant's mass comes from its class's mass range, its radius from the
+    mass-radius relation within 3 sigma of scatter, and its density is
+    whatever the two make (no separately drawn density)."""
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, GAS_GIANT_ZONE)
-    radius = sum(prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]["radius_range"]) / 2
-    planet = Planet(
-        cfg, host_star, host_star.habitable_zone, distance,
-        planet_class=GAS_GIANT_CLASS, radius=radius, zone_override=GAS_GIANT_ZONE,
-        moon_count=0,
-    )
+    low_kg, high_kg = planetPhysics.giant_mass_range_kg(GAS_GIANT_CLASS)
+    for _ in range(50):
+        planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
+                        planet_class=GAS_GIANT_CLASS, zone_override=GAS_GIANT_ZONE, moon_count=0)
+        assert low_kg <= planet.mass <= high_kg
+        volume_m3 = (4 / 3) * math.pi * (planet.radius * 1000) ** 3
+        assert planet.density == pytest.approx(planet.mass / volume_m3 / 1000, rel=1e-9)
+        median_km = planetPhysics.giant_radius_km(planet.mass)
+        sigma = max(pc.GIANT_RADIUS_SCATTER.values())
+        low_r, high_r = prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]["radius_range"]
+        assert max(low_r, median_km * (1 - 3 * sigma)) * (1 - 1e-9) <= planet.radius
+        assert planet.radius <= min(high_r, median_km * (1 + 3 * sigma)) * (1 + 1e-9)
 
-    expected_density = 1 / (ratio / core_density_gcm3 + (1 - ratio) / envelope_density_gcm3)
-    assert planet.density == pytest.approx(expected_density, rel=1e-9)
-    # Sanity: the arithmetic mean the old buggy code used would have given a
-    # very different (and, for this input, much larger) value -- confirming
-    # this test would have failed against the old formula, not just against
-    # a formula that happens to coincide with it for these inputs.
-    old_arithmetic_mean = core_density_gcm3 * ratio + (1 - ratio) * envelope_density_gcm3
-    assert planet.density != pytest.approx(old_arithmetic_mean, rel=1e-6)
+
+def test_giant_with_a_given_mass_keeps_it(host_star):
+    """A caller's mass survives generation: the radius follows from it."""
+    cfg = SystemConfig()
+    mass_kg = 300 * pc.EARTH_MASS_TO_KG
+    planet = Planet(cfg, host_star, host_star.habitable_zone, plausibility.distance_for_zone(host_star, "c"),
+                    planet_class="J", mass=mass_kg, zone_override="c", moon_count=0)
+    assert planet.mass == pytest.approx(mass_kg, rel=1e-9)
+
+
+@pytest.mark.parametrize("mass_earth, radius_earth", [(17.15, 3.88), (95.16, 9.45), (317.8, 11.21)])
+def test_giant_mass_radius_relation_hits_the_solar_system(mass_earth, radius_earth):
+    """Neptune, Saturn and Jupiter land within 10% of their real radii."""
+    radius_km = planetPhysics.giant_radius_km(mass_earth * pc.EARTH_MASS_TO_KG)
+    assert radius_km / pc.EARTH_RADIUS_KM == pytest.approx(radius_earth, rel=0.10)
 
 
 def test_density_range_override_skips_the_blend(monkeypatch, host_star):
@@ -144,48 +127,15 @@ def test_density_range_override_skips_the_blend(monkeypatch, host_star):
     assert planet.density == pytest.approx(core_density_gcm3, rel=1e-9)
 
 
-def test_gas_giant_sampled_densities_are_finite_positive_and_within_theoretical_bounds():
-    """
-    Statistical check across a real generation sample: every gas-giant
-    density produced by the fixed blend is finite, strictly positive, and
-    falls within the analytically-derived corner bounds that
-    plausibility.theoretical_gravity_bounds_g's density sub-computation
-    implies for this class (the same bounds check_hard_invariants uses,
-    computed independently here to double as a cross-check that
-    plausibility.py's lockstep update matches planetPhysics.py's formula).
-
-    An earlier version of this test documented that the blend's envelope
-    term reused `atm_density` (drawn from ATMOSPHERE_DENSITY["g"], which
-    once divided by 1000 for unit conversion is ~1000x lighter than a real
-    gas-giant envelope) -- a scale mismatch that mathematically guaranteed
-    the harmonic mean collapsed to a near-zero, physically meaningless
-    density no matter how dense the core. Fixed by introducing
-    physical_constants.GAS_ENVELOPE_BULK_DENSITY, a separate, correctly
-    g/cm^3-scaled "puffy gas giant" envelope density grounded in real
-    measured values (the lowest known, WASP-193b, is ~0.06 g/cm^3) -- see
-    that constant's own docstring for the full derivation. This test now
-    also implicitly confirms the fixed densities land in a realistic range,
-    not just a self-consistent one.
-    """
+def test_gas_giant_sampled_gravity_is_within_theoretical_bounds():
+    """Statistical check across a real generation sample: every gas giant's
+    density is finite and positive and its gravity sits inside
+    plausibility.theoretical_gravity_bounds_g, which mirrors the relation."""
     records = plausibility.generate_sample(GAS_GIANT_CLASS, GAS_GIANT_ZONE, N_SAMPLE, include_moons=False)
-    densities = [r["density"] for r in records]
-    assert all(math.isfinite(d) and d > 0 for d in densities)
-
-    min_rock, max_rock = pc.PLANET_DENSITY["g"]
-    min_ratio, max_ratio = prog_c.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-    atm_gcm3_range = pc.GAS_ENVELOPE_BULK_DENSITY
-
-    bound_values = []
-    for rock in (min_rock, max_rock):
-        for ratio in (min_ratio, max_ratio):
-            for atm in atm_gcm3_range:
-                bound_values.append(1 / (ratio / rock + (1 - ratio) / atm))
-    lo, hi = min(bound_values), max(bound_values)
-    margin = 0.01
-    for d in densities:
-        assert lo * (1 - margin) <= d <= hi * (1 + margin), (
-            f"density={d} outside theoretical bounds [{lo}, {hi}]"
-        )
+    lo, hi = plausibility.theoretical_gravity_bounds_g(GAS_GIANT_CLASS)
+    for record in records:
+        assert math.isfinite(record["density"]) and record["density"] > 0
+        assert lo * (1 - 1e-6) <= record["gravity"] <= hi * (1 + 1e-6)
 
 
 # ---------------------------------------------------------------------------

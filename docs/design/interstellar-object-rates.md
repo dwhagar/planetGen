@@ -98,25 +98,35 @@ detectable supernova remnants. Intracluster ("hostless") supernovae are
 5-20% of supernovae in rich galaxy clusters; they happen between
 galaxies, so they have no place in one galaxy's generator.
 
-## Rogue planet mass bins (GEN.2)
+## Rogue planet mass bins (GEN.2, GEN.45)
 
 Low-mass rogues dominate: disk scattering ejects small bodies while
-giants stay bound. Draw a bin by its per-star rate, then a mass
-log-uniformly inside it.
+giants stay bound. Draw a bin by its per-star rate, then a mass inside it.
 
-| Bin | Mass | Per star | Source |
+Since GEN.45 both the rates and the draw inside a bin follow one mass
+function, `dN/dlogM ∝ M^-0.65` from 0.1 M⊕ to 13 Mjup (Boss's research of
+2026-10-01), normalized to the same 6.5 rogues per star
+(`ROGUE_PLANET_MASS_FUNCTION_SLOPE`, `ROGUE_PLANET_RATE_PER_STAR`). The
+research writes it `dN/dM ∝ M^-0.65`; read per unit mass, that would make
+about 87% of rogues gas giants, against its own aim of keeping them rare,
+so it is read per logarithm of mass.
+
+| Bin | Mass | Per star | Check against |
 |---|---|---|---|
-| Terrestrial | 0.1-2 M⊕ | 5 (range 2-10) | Johnson et al. 2020; Mróz et al. 2020 (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
-| Sub-Neptune / ice giant | 2-20 M⊕ | 1 (default, not in the research) | Sumi et al. 2023 find Neptune-mass candidates; no rate given |
-| Saturn-class | 20 M⊕-1 Mjup | 0.25 (default, not in the research) | fills the gap between the two constrained bins |
-| Jupiter-mass | 1-13 Mjup | 0.25 (upper limit) | Mróz et al. 2017; replaces Sumi et al. 2011's 1.8 per star |
+| Terrestrial | 0.1-2 M⊕ | 5.6 | 2-10: Johnson et al. 2020; Mróz et al. 2020 (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
+| Sub-Neptune / ice giant | 2-20 M⊕ | 0.72 | Sumi et al. 2023 find Neptune-mass candidates; no rate given |
+| Saturn-class | 20 M⊕-1 Mjup | 0.17 | no rate in the research |
+| Jupiter-mass | 1-13 Mjup | 0.028 | under Mróz et al. 2017's upper limit of 0.25 (replacing Sumi et al. 2011's 1.8) |
 
-Above 13 Mjup is a brown dwarf, its own row in the density table.
+That is about 96% terrestrial and 4% gas giants (past
+`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, about 16 M⊕). The
+hand-set rates before it (5, 1, 0.25 and 0.25 per star, a log-uniform
+mass in each bin) gave 91% and 9%. Above 13 Mjup is a brown dwarf, its
+own row in the density table.
 
-A single power law doesn't fit both ends: `dN/dlogM ∝ M^-0.96` (the
-Sumi 2023 slope) normalized to 0.25 per star above 1 Mjup gives about
-575 per star above 0.1 M⊕, a hundred times the terrestrial estimate.
-Hence the bins.
+A steeper law doesn't fit both ends: `dN/dlogM ∝ M^-0.96` (the Sumi 2023
+slope) normalized to 0.25 per star above 1 Mjup gives about 575 per star
+above 0.1 M⊕, a hundred times the terrestrial estimate.
 
 ## Checks
 
@@ -133,8 +143,8 @@ Hence the bins.
   7e11 pc³ is about 1.5e-9 pc⁻³; the table's 1e-8 implies about 7,000.
   The generator before 7.18.0 used 2,000 galaxy-wide. The code now uses
   1e-8, which counts faint, undetectable remnants too.
-- Terrestrial (0.7 pc⁻³ = 5 per star), Jupiter-mass (0.035 = 0.25 per
-  star), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
+- Terrestrial (0.78 pc⁻³ = 5.6 per star), Jupiter-mass (0.004 = 0.028
+  per star, under the 0.035 limit), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
   stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
   galaxy totals) are self-consistent. The generator uses 0.5% and 0.1%
   instead, the shares the mass-and-age star model leaves behind (star-fix

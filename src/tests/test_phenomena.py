@@ -236,10 +236,11 @@ def test_rogue_planet_mass_and_type_within_configured_ranges():
 
 
 def test_rogue_planets_are_mostly_terrestrial():
-    """Terrestrial rogues outnumber the rest (5 of 6.5 per star)."""
+    """Terrestrial rogues outnumber the rest (about 5.6 of 6.5 per star)."""
     bins = [RoguePlanet(make_config()).mass_bin for _ in range(400)]
     share = bins.count("terrestrial") / len(bins)
-    assert 0.65 < share < 0.88
+    expected = program_constants.ROGUE_PLANET_MASS_BINS["terrestrial"][2] / program_constants.ROGUE_PLANET_RATE_PER_STAR
+    assert abs(share - expected) < 0.08
     assert set(bins) <= set(program_constants.ROGUE_PLANET_MASS_BINS)
 
 

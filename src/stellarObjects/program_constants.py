@@ -23,11 +23,44 @@ from . import physical_constants as _physical_constants
 # the star strips it (planetPhysics.generate_moons' outer limit).
 MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
 
-# The average ratio of a gas giant's core mass to its total mass
-GAS_GIANT_CORE_ATMOSPHERE_RATIO = (0.03, 0.6)
+# Each gas-giant class's mass range in Earth masses (GEN.34): a giant's
+# mass is drawn from it first and its radius follows from the mass-radius
+# relation (physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS). Ice giants
+# (Uranus 14.5, Neptune 17.1); gas giants from 0.1 Jupiter masses to the
+# 13 Jupiter-mass deuterium-burning limit (Saturn 95, Jupiter 318); gas
+# dwarfs from the smallest H/He-envelope planets that fill class T's
+# 15,000 km floor. A class with its own "density_range" (none today) keeps
+# drawing a radius and a density instead.
+GIANT_CLASS_MASS_RANGE_EARTH = {"I": (10.0, 60.0), "J": (30.0, 13 * 317.8), "T": (6.0, 40.0)}
+GIANT_DEFAULT_MASS_RANGE_EARTH = (10.0, 13 * 317.8)
+
+# Giant masses are drawn from dN/dlogM ~ M^-GIANT_MASS_FUNCTION_SLOPE inside
+# their class's range: Cumming et al. (2008, PASP 120:531) measured about
+# 0.31 for radial-velocity giants, so lighter giants are commoner but a
+# third of class J giants are still past a Jupiter mass.
+GIANT_MASS_FUNCTION_SLOPE = 0.31
+
+# A giant drawn around a star is at most this fraction of the star's mass
+# (but never below its class's floor): a disk holds about 1% of its star's
+# mass, so a red dwarf can't build a 10 Jupiter-mass planet (the Sun's
+# limit is about 10 Jupiter masses).
+GIANT_MAX_STAR_MASS_RATIO = 0.01
 
 # --- Star System Generation Parameters ---
 INITIAL_PLANET_DISTANCE_FACTOR = 0.55
+# Where a system's first slot sits, as a fraction of its star's habitable
+# zone inner edge, and how far out each next slot sits, as a ratio of the
+# last one's distance (GEN.37). Adjacent real planets sit at period ratios
+# of about 1.5-2.5 (Kepler multis; the solar system's distance ratios run
+# 1.4-3.4), i.e. distance ratios of about 1.3-1.8, so placement is
+# geometric and scales with the star's light; slots stop at the disk's
+# outer edge (StarSystem._disk_outer_edge_au). Before, the first slot sat
+# at 0.55 AU per solar mass and each next one a fixed number of AU
+# further, which put about 96% of planets in the cold zone; now about 32%
+# are hot, 6% in the ecosphere and 62% cold (the solar system: 25%, 12-25%
+# and 50-62%).
+FIRST_PLANET_HZ_FRACTION_RANGE = (0.05, 0.4)
+PLANET_SPACING_RATIO_RANGE = (1.3, 1.8)
 ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
@@ -1911,26 +1944,46 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # surveys probe.
 # Mass bins (Boss's research, 2026-09-30; docs/design/
 # interstellar-object-rates.md): a rogue planet draws a bin by its
-# per-star rate, then a mass log-uniformly inside it. Low-mass rogues
-# dominate -- disk scattering ejects small bodies while giants stay bound
-# -- and no single power law fits both ends, hence bins.
-#   - terrestrial 0.1-2 Earth masses, 5 per star (2-10; Johnson et al.
-#     2020, AJ 160:123; Mroz et al. 2020, ApJL 903:L11);
-#   - sub-Neptune / ice giant 2-20, 1 per star (a default: Sumi et al.
-#     2023 find Neptune-mass candidates but give no rate);
-#   - Saturn-class 20 Earth masses to 1 Jupiter mass, 0.25 per star (a
-#     default filling the gap);
-#   - Jupiter-mass 1-13 Jupiter masses, 0.25 per star (Mroz et al. 2017,
-#     Nature 548:183, superseding Sumi et al. 2011's 1.8).
+# per-star rate, then a mass inside it. Since GEN.45 the rates and the draw
+# inside a bin both follow one mass function, dN/dlogM ~ M^-0.65 from 0.1
+# Earth masses to 13 Jupiter masses (Boss's research, 2026-10-01, which
+# writes it dN/dM ~ M^-0.65; read per unit mass that would make about 87%
+# of rogues gas giants, against its own aim of keeping them rare, so it is
+# read per logarithm of mass). The total stays 6.5 per star. That gives:
+#   - terrestrial 0.1-2 Earth masses, about 5.6 per star (2-10; Johnson
+#     et al. 2020, AJ 160:123; Mroz et al. 2020, ApJL 903:L11);
+#   - sub-Neptune / ice giant 2-20, about 0.72 per star (Sumi et al. 2023
+#     find Neptune-mass candidates but give no rate);
+#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.18;
+#   - Jupiter-mass 1-13 Jupiter masses, about 0.028 per star (under Mroz
+#     et al. 2017's upper limit of 0.25, Nature 548:183).
+# So about 96% of rogues are terrestrial and 4% gas giants (past
+# ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER). The old hand-set rates
+# (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
+# twice the reference's share of gas giants.
 # Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
-ROGUE_PLANET_MASS_BINS = {
-    "terrestrial": (0.1, 2.0, 5.0),
-    "sub-neptune": (2.0, 20.0, 1.0),
-    "saturn": (20.0, 317.8, 0.25),
-    "jupiter": (317.8, 13 * 317.8, 0.25),
+ROGUE_PLANET_RATE_PER_STAR = 6.5
+ROGUE_PLANET_MASS_FUNCTION_SLOPE = 0.65
+_ROGUE_PLANET_BIN_EDGES_EARTH = {
+    "terrestrial": (0.1, 2.0),
+    "sub-neptune": (2.0, 20.0),
+    "saturn": (20.0, 317.8),
+    "jupiter": (317.8, 13 * 317.8),
 }
+
+
+def _rogue_planet_mass_bins():
+    slope = ROGUE_PLANET_MASS_FUNCTION_SLOPE
+    low_all = min(low for low, _high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
+    high_all = max(high for _low, high in _ROGUE_PLANET_BIN_EDGES_EARTH.values())
+    total = low_all ** -slope - high_all ** -slope
+    return {name: (low, high, ROGUE_PLANET_RATE_PER_STAR * (low ** -slope - high ** -slope) / total)
+            for name, (low, high) in _ROGUE_PLANET_BIN_EDGES_EARTH.items()}
+
+
+ROGUE_PLANET_MASS_BINS = _rogue_planet_mass_bins()
 """dict: bin name -> `(min_mass_earth, max_mass_earth, per_star_rate)`.
-The rates' sum is the rogue-planet rate per star (6.5)."""
+The rates' sum is the rogue-planet rate per star (`ROGUE_PLANET_RATE_PER_STAR`)."""
 
 ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (13.0, 80.0)
 """tuple: A free-floating brown dwarf, between the deuterium-burning
@@ -2452,7 +2505,8 @@ literature), the density every PHENOMENON_DENSITY_PC3 figure is quoted at."""
 
 PHENOMENON_DENSITY_PC3 = {
     # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (6.5) at n_*0.
-    # Terrestrial alone: 0.7 pc^-3 (0.5-1.4), Jupiter-mass 0.035.
+    # Terrestrial alone: about 0.78 pc^-3 (0.5-1.4); Jupiter-mass about
+    # 0.004 (under Mroz et al. 2017's limit of 0.035).
     "rogue-planet": sum(rate for _lo, _hi, rate in ROGUE_PLANET_MASS_BINS.values()) * REFERENCE_STELLAR_DENSITY_PC3,
     # 0.025-0.035 (Kirkpatrick et al. 2021, ApJS 253:7), ~1 per 4.7 stars.
     "brown-dwarf": 0.03,

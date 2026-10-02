@@ -272,15 +272,24 @@ def reconcile_moved_planet(planet, keep_class=False):
         # of stable moon orbits.
         planetPhysics.drop_unstable_moons(planet)
 
+    any_moon_reclassified = False
     for moon in planet.moons:
         moon_reclassified = planetPhysics.reconcile_zone_and_class(
-            moon, planet.mass, distance_override=planet.distance
+            moon, planet.mass, distance_override=planet.distance, parent=planet
         )
+        any_moon_reclassified = any_moon_reclassified or moon_reclassified
         if not moon_reclassified:
             planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
             if reclassified:
                 moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                 planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+
+    if any_moon_reclassified:
+        # A regenerated moon comes out a new size, and so with a new Hill
+        # sphere: re-space the moons outward from it, and lose any that
+        # no longer fit, as a reclassified planet does.
+        stabilize_lunar_system(planet)
+        planetPhysics.drop_unstable_moons(planet)
 
     # v20: planet.reflex_offset_x/y/z (this planet's own wobble from
     # its moons -- see Planet.reflex_offset_x's docstring) depends on

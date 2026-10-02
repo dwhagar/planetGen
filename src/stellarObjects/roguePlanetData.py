@@ -28,7 +28,7 @@ from . import log, physical_constants, planetPhysics, program_constants
 from .serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
                     generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, reseed_rng)
+                    generate_phoneme_salad_name, reseed_rng, sample_power_law)
 
 
 def format_comet_composition_summary(composition):
@@ -213,10 +213,12 @@ class RoguePlanet:
         if mass_bin == "brown-dwarf":
             low, high = (m * physical_constants.JUPITER_MASS_TO_KG
                          for m in program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
+            self.mass_kg = math.exp(random.uniform(math.log(low), math.log(high)))
         else:
+            # The same mass function the bins' rates come from (GEN.45).
             low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[mass_bin]
             low, high = low * physical_constants.EARTH_MASS_TO_KG, high * physical_constants.EARTH_MASS_TO_KG
-        self.mass_kg = math.exp(random.uniform(math.log(low), math.log(high)))
+            self.mass_kg = sample_power_law(low, high, program_constants.ROGUE_PLANET_MASS_FUNCTION_SLOPE)
         mass_jupiter = self.mass_kg / physical_constants.JUPITER_MASS_TO_KG
 
         if mass_bin == "brown-dwarf":
