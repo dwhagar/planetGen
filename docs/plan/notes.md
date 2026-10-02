@@ -170,9 +170,9 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92 (phase 0), MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.92, then MAP.89 in phase 1. |
-| galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.93, MAP.94, NAV.31, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Galaxy Map follow-ups, then the drill-down lane, then MAP.86 (stats lane), then MAP.95 and phase 2. |
+| galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Galaxy Map follow-ups, then the drill-down lane, then MAP.86 (stats lane), then MAP.95 and phase 2. |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 (phase 0) | In that order; any payload change bumps the tile cache. |
-| bookmarks.js, nav_page.py | NAV.40 (phase 0), NAV.18, USR.7, NAV.19 | NAV.40 in the Galaxy Map follow-ups lane. |
+| bookmarks.js, nav_page.py | NAV.18, USR.7, NAV.19 | NAV.40 done (PR #399). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Later items in the engine thread. |
 | static/mapcore.js and static/mapcontrol.js | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | Built in PR #351; later map items build on them rather than copying helpers. |
 | numberformat.js and stellarObjects/utils.py formatter | UX.36 (phase 0), UX.23, UX.22 (phase 1) | UX.36 first; UX.23's ladder keeps its rule. |
@@ -199,7 +199,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 ## Judgment calls
 
 - **Strict phase 0**: Phase 0 now holds 46 bugs and 8 other items. Each of the 8 is groundwork a phase 0 bug needs: GEN.51 (the fix half of GEN.48), MAP.91 (the slab hover MAP.56 builds on), MAP.76 (half of MAP.54), GEN.44, PERF.11 and PERF.1 (MAP.86's table), TEST.79 (pins NAV.34) and UX.28 (icons for UX.25 to UX.27).
-- **NAV.31 may already be fixed**: PR #369's arc highlight may already show in course-pick mode. The Galaxy Map follow-ups lane checks it first and closes it with a test if so.
+- **NAV.31** (done, PR #399): the arc highlight in course-pick mode.
 - **NAV.29 and NAV.33 stay in phase 2**: They could be patched on today's Galaxy Map pick mode in phase 0, but NAV.13 and NAV.15 rewrite that flow, so the patch would be thrown away.
 - **MAP.79 stays in phase 2**: Its toggles belong on the shared control set (MAP.65).
 - **UX.33 in phase 0**: It reads more like a feature, but it is labeled a bug, and nothing that is still open blocks it.

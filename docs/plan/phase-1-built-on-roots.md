@@ -82,7 +82,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.13 | A picker module: select, step out, step in, step sideways | NAV.7 | picker.js; needs no engine. |
-| NAV.14 | One breadcrumb for every level | NAV.13, MAP.93, MAP.94 |  |
+| NAV.14 | One breadcrumb for every level | NAV.13 |  |
 
 ### Routing
 

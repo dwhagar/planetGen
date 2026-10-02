@@ -43,7 +43,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | MAP.68, NAV.15, NAV.29, NAV.31, NAV.33, MAP.79 | Bug, but it is the 'pick mode uses the one engine' end state. |
+| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | MAP.68, NAV.15, NAV.29, NAV.33, MAP.79 | Bug, but it is the 'pick mode uses the one engine' end state. |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.13, NAV.14, NAV.15, NAV.16, NAV.32 | Parent; closes with its subitems. |
 
 ### Courses

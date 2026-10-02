@@ -595,8 +595,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | done, PR #395 |
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | open |
-| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | open |
-| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | open |
+| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
+| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
 | MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
 | MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | open |
 | MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | open |
@@ -630,7 +630,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.28 | Show and save the adjusted course | none | open |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
-| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
+| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
@@ -639,7 +639,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
 | NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
-| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | open |
+| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | open |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |

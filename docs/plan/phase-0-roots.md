@@ -26,15 +26,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) |  | Real bug, not a flake: hit 3+ tests in 2 files (bright-star scatter, galaxy gen; PR #373, PR #393 runs). nameUniqueness.py:137 rejects the -1 count _db.py produced. Root cause: _db.reserve_system_names counts a name redrawn in the same pass against a later row; fix by computing name keys once per pass (also 1.7x faster on dense sectors). After GEN.51 in the naming lane; GEN.57/GEN.63 build on a right count. |
 
-### Galaxy Map follow-ups
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) |  | Boss 04:12Z. bookmarks.js menu and NAV select keep the pick; nav_page.py, galaxymap3d.py, sector.html. |
-| MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) |  | Boss 04:29Z. renderCrumbs and .galaxy-crumbs wrap today; first, "…" menu, last steps. |
-| MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | MAP.93 | Boss 04:29Z. Round menu button between the arrows; Reset (MAP.55) is "go back to start". |
-| NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) |  | Moved to phase 0: the arc highlight exists (MAP.85, PR #369); check pick mode lights it, fix if not. The highlight is MAP.85's arc highlight. |
-
 ### System Map
 
 | ID | Item | Needs | Note |
@@ -123,15 +114,15 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 
-At most two build threads run at once (Boss 02:51Z). The Galaxy Map
-follow-ups lane is in progress and the binary pairs lane is running;
-then the lanes start in the order above as a slot frees: System Map,
-Galaxy Map drill-down (after the follow-ups merge, same files),
-Generation bugs, Sector stats and colors (MAP.80 and MAP.86 after the
-drill-down merges), Routing groundwork, Sector and system pages
-(text labels with an icon hook if UX.28's icon list is not approved
-yet), Small page bugs, and Ops and flakes last. NAV.7 and DB.8 open
-phase 1.
+At most two build threads run at once (Boss 02:51Z). Done lanes:
+Parallel path (PRs #381, #387, #391) and Galaxy Map follow-ups (PRs
+#395, #399); the binary pairs lane has TEST.85 left. Then the lanes
+start in the order above as a slot frees: System Map, Galaxy Map
+drill-down, Generation bugs, Sector stats and colors (MAP.80 and
+MAP.86 after the drill-down merges), Routing groundwork, Sector and
+system pages (text labels with an icon hook if UX.28's icon list is
+not approved yet), Small page bugs, and Ops and flakes last. NAV.7
+and DB.8 open phase 1.
 
 ## Open questions for Boss
 
