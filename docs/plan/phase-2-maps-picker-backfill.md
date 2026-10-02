@@ -78,6 +78,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.32 | Planet rows show the class only, without the type and moon labels | UX.29 | Same rows as UX.30; one thread. |
 | UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.29 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
 | UX.33 | Filter phenomena by their classes and types (bug) | GEN.28, GEN.47 | Filters over class lists that GEN.28 and GEN.47 change. |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.93, MAP.94, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31 | Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
 
 ### Backfill
 

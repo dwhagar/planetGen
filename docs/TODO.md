@@ -113,7 +113,7 @@ that files it.
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91, NAV.40, NAV.41, UX.36, MAP.92, MAP.93, MAP.94, MAP.95 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63, NAV.42, NAV.43, NAV.44 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
@@ -230,6 +230,8 @@ with `clamp()`.
   pages as they were then.
   Order (pre-planning thread): run it after MAP.55 and MAP.60, which
   already remove some dead controls on the Galaxy Map.
+  It also runs after UX.37 (Boss's sweep for redundant and duplicate
+  controls), so this layout pass checks the controls that are kept.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -428,6 +430,35 @@ with `clamp()`.
   rule (scientific from 5 whole digits); both copies change together
   and the shared test covers 6- and 7-digit whole numbers and 4- and
   5-digit decimals. UX.23's unit ladder keeps this rule.
+
+- [ ] **UX.37 A UX sweep: remove redundant and duplicate controls so the interface gets out of the way**
+  Boss (2026-10-02 04:42Z): "Add a UX sweep TODO item, we want to sweep
+  the user interface and get rid of redundancies and duplicate buttons
+  and the like, the main goal is for the Interface to get out of the way
+  but be there when we need it." The principle: the interface gets out
+  of the way but is there when it is needed. Done, in two steps. First,
+  an audit of every public and admin page and every map (Galaxy, Sector,
+  System, phenomenon, NAV) at phone and desktop widths, listing each
+  duplicate button or control (the same action offered twice on one
+  screen, such as a map button that repeats a Menu or breadcrumb entry),
+  each redundant link or panel (the same information or route shown
+  twice), and each control that could move into a menu or appear only
+  when it applies (selection, pick mode, admin). The audit is a list
+  with a proposal per entry (remove, merge, move into a menu, show only
+  when relevant), filed in the project's shared files; Boss reviews it
+  and nothing is removed until he has. Second, the removals and merges
+  he approves, with the hint text and docs that name them, and a browser
+  test per page that the kept controls still work. Related items, linked
+  rather than repeated: UX.21 (overlapping buttons and dead controls) is
+  the final layout pass and runs after this sweep; UX.28 (icons) and
+  UX.2 (menu sizes) set how the kept controls look; MAP.55 (done, PR
+  #369) already folded the Galaxy Map's buttons into one Menu. Why phase
+  2: the sweep audits controls that are still changing, so it waits for
+  the pages and maps they live on to settle: UX.28's icons, the Galaxy
+  Map breadcrumb and history buttons (MAP.93, MAP.94, MAP.95), the NAV
+  page layout (NAV.41), the slab and segment pick (MAP.56), and the page
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.93,
+  MAP.94, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
