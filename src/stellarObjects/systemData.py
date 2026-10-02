@@ -616,6 +616,36 @@ class StarSystem:
         probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
         return random.random() < probability
 
+    @staticmethod
+    def _first_slot_distance_au(habitable_zone):
+        """
+        Where the innermost slot starts (GEN.37): a random fraction
+        (`FIRST_PLANET_HZ_FRACTION_RANGE`) of the habitable zone's inner
+        edge, so it scales with the star's light the way the zone does
+        (about 0.1-0.6 AU for the Sun, a few hundredths of an AU for a
+        red dwarf, where real compact systems like TRAPPIST-1 sit).
+        Scaling by the star's mass instead put a red dwarf's first planet
+        beyond its whole habitable zone, so nearly every planet came out
+        cold.
+        """
+        return habitable_zone[0] * random.uniform(*program_constants.FIRST_PLANET_HZ_FRACTION_RANGE)
+
+    def _disk_outer_edge_au(self, star):
+        """
+        How far out `_generate_planets` places random slots around `star`:
+        its protoplanetary disk's outer edge, the same
+        `DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times the snow line
+        `_estimate_max_objects_from_disk_physics` counts objects out to
+        (GEN.37). Placement is geometric, so without this edge the slot
+        count from that walk ran planets far past the disk (a red dwarf's
+        out to hundreds of times its habitable zone). An evolved star or
+        remnant whose present light puts that edge inside its orbit floor
+        (`_orbit_floor_au`) no longer describes its disk, so it gets no
+        edge.
+        """
+        edge_au = program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au(star.luminosity)
+        return edge_au if edge_au > self._orbit_floor_au(star) else math.inf
+
     def _orbit_floor_au(self, star):
         """
         The innermost stable orbit around `star`, in AU: for a P-type
@@ -704,7 +734,6 @@ class StarSystem:
         """
         planets = []
         system_objects = self.estimate_num_objects(star)
-        star_factor = star.mass / physical_constants.SOLAR_MASS_TO_KG
 
         required_objects = 0
         if apply_guarantees and self.system_config.HABITABLE_WORLD is True:
@@ -716,6 +745,7 @@ class StarSystem:
             system_objects = required_objects
 
         slots = (self.system_config.SLOTS or []) if apply_guarantees else []
+        disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
             belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
@@ -734,12 +764,17 @@ class StarSystem:
 
                 if i > 0:
                     last_planet = planets[i - 1]
-                    random_buffer = random.uniform(0, star_factor)
+                    # Geometric spacing (GEN.37): real neighbors sit a roughly
+                    # constant *ratio* apart, not a constant number of AU, so a
+                    # dim star's planets stay as close-packed as its habitable
+                    # zone is small instead of marching out into the cold.
+                    spacing_ratio = random.uniform(*program_constants.PLANET_SPACING_RATIO_RANGE)
                     if last_planet.body_type == 'a':
-                        estimated_distance = last_planet.upper_limit + random_buffer * 2
+                        estimated_distance = last_planet.upper_limit * spacing_ratio
                         last_asteroid = True
                     else:
-                        estimated_distance = (last_planet.distance + last_planet.min_orbit_distance) + random_buffer
+                        estimated_distance = max(last_planet.distance + last_planet.min_orbit_distance,
+                                                 last_planet.distance * spacing_ratio)
 
                     # Each successive slot's minimum spacing scales with the
                     # previous object's own Hill radius, which itself scales
@@ -760,10 +795,17 @@ class StarSystem:
                     # finite extent would produce.
                     if estimated_distance > orbit_ceiling_au:
                         break
+                    # Nothing forms past the disk's outer edge (GEN.37), but a
+                    # slot a guarantee or SLOTS still needs is placed anyway.
+                    pending = (slot_spec is not None or (apply_guarantees and (
+                        (self.system_config.HABITABLE_WORLD is True and not found_hab)
+                        or (self.system_config.ASTEROID_BELT is True and not found_belt))))
+                    if estimated_distance > disk_edge_au and not pending:
+                        break
                 else:
                     # A close binary's first slot starts no closer than its
                     # circumbinary stability limit (0 for any other star).
-                    estimated_distance = max(program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor,
+                    estimated_distance = max(self._first_slot_distance_au(habitable_zone),
                                              self._orbit_floor_au(star))
 
                 hz = habitable_zone[0] < estimated_distance < habitable_zone[1]
@@ -1618,10 +1660,10 @@ class StarSystem:
         each other, unlike the old log-mass formula, which had no
         relationship to it at all.
 
-        The walk starts at the same inner-edge distance
-        `_generate_planets` itself seeds its first slot at
-        (`program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor`)
-        and steps outward -- at each step, computing the local isolation
+        The walk starts at `program_constants.INITIAL_PLANET_DISTANCE_FACTOR
+        * star_factor` (where `_generate_planets` seeded its first slot
+        before GEN.37 scaled that with the habitable zone instead) and
+        steps outward -- at each step, computing the local isolation
         mass from the disk's surface density there (scaled for this star
         via `utils.disk_surface_density_scale`, boosted beyond the snow
         line via `utils.snow_line_au`), then advancing by that embryo's
