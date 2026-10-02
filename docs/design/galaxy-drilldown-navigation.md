@@ -16,7 +16,7 @@ Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 | Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.21 | 7.58.0, PR #178 |
 | Generate this layer or slab (`generate.py galaxy --block`) | 6 | MAP.20 | not built |
 | NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | this change (the picks earlier) |
-| Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, Ctrl+1-9 | 8.2 | MAP.23 | this change |
+| Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81) | 8.2 | MAP.23 | this change |
 | "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | not built (`?sector=` itself works) |
 
 Later requests changed this design, and the sections below describe the
@@ -544,9 +544,10 @@ Built (MAP.23), with decision 4's default: per browser, no migration.
 - A Bookmarks menu (a `<details>`) sits in the map's controls row and
   opens in the row's flow, a full row wide, so it fits a phone. Each
   entry is a link with Rename (in place: Enter saves, Escape cancels) and
-  Delete; Escape closes the menu. Ctrl+1 to Ctrl+9 open the first nine
-  while the map page has the focus, but not from a text box or select.
-  Browsers that keep Ctrl+digit for switching tabs win over the page.
+  Delete; Escape closes the menu. The keys 1 to 9 open the first nine
+  while the map (its canvas or a control in its panel) has the focus,
+  but not from a text box or select (MAP.81: they were Ctrl+1 to Ctrl+9,
+  which Chrome and Firefox on Windows and Linux keep for switching tabs).
 - The NAV page's Bookmarks select lists system and phenomenon bookmarks
   (section 9). A sector bookmark opens the system picker for that sector.
 - One module, `static/bookmarks.js`, serves the map, the system,

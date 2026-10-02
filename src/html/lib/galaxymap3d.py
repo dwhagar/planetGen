@@ -504,7 +504,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   sectors &middot; the whole galaxy and its quarters are seen from above; below them, drag to turn the view,
   right-drag (or Shift-drag) to move it and scroll or pinch to zoom, and Reset view brings it back &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
   Whole galaxy starts over &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
-  or the selected sector, and Bookmarks (or Ctrl+1 to Ctrl+9) opens one &middot; blocks are colored by predicted density
+  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are colored by predicted density
   (brighter = denser): unfilled space is see-through, and a block with generated sectors is amber, more solid the
   more of them are generated &middot; glowing points are stars, sized by the star, colored by its temperature and
   brighter the more luminous: the brightest (1,000 L&#9737; and up on a new galaxy) everywhere, placed before their sectors are
@@ -548,8 +548,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
   <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false"
           title="Dim every block with no generated sectors">Generated only</button>
-{territory_button}  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys data-bookmark-db="{_escape(db_name)}">
-    <summary class="starmap-btn" title="Places saved with the breadcrumb's &#9734; (Ctrl+1 to Ctrl+9 open the first nine)">Bookmarks</summary>
+{territory_button}  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}">
+    <summary class="starmap-btn" title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
     <div class="bookmarks-panel" data-bookmarks-panel></div>
   </details>
 </div>

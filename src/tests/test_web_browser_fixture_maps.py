@@ -497,14 +497,16 @@ def test_galaxy_map_bookmark_star_saves_the_stage_and_the_menu_opens_it(page, ma
     menu.locator("summary").click()
     links = menu.locator("[data-bookmarks-panel] a")
     assert links.count() == 1
-    assert menu.locator("kbd").first.inner_text() == "Ctrl+1"
+    assert menu.locator("kbd").first.inner_text() == "1"
     links.first.click()
     page.wait_for_load_state("load")
     _settle(page)
     assert _query(page) == stage_query
 
 
-def test_galaxy_map_bookmark_keys_open_the_first_nine(page, map_site):
+def test_galaxy_map_bookmark_keys_are_1_to_9_while_the_map_has_focus(page, map_site):
+    """MAP.81: plain 1 to 9 (Ctrl+1 to 9 are the browser's tab keys),
+    only while the map has focus."""
     _open_galaxy(page, map_site)
     _click_choice(page)
     stage_query = _query(page)
@@ -512,11 +514,21 @@ def test_galaxy_map_bookmark_keys_open_the_first_nine(page, map_site):
     page.click('#galaxymap3d-controls [data-action="reset"]')
     _settle(page)
     page.locator(GALAXY_CANVAS).focus()
-    page.keyboard.press("Control+2")
+    for key in ("Control+1", "2"):
+        page.keyboard.press(key)
+        _settle(page)
+        assert _crumbs(page) == ["Galaxy"], f"{key} does nothing"
+    page.locator("h1").first.evaluate("h => { h.tabIndex = -1; h.focus(); }")
+    page.keyboard.press("1")
     _settle(page)
-    assert _crumbs(page) == ["Galaxy"], "no second bookmark: nothing happens"
+    assert _crumbs(page) == ["Galaxy"], "1 does nothing when the map doesn't have focus"
+    page.locator("#galaxymap3d-address-input").evaluate("i => { i.closest('form').hidden = false; i.focus(); }")
+    page.keyboard.press("1")
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"], "typing 1 in the address box is just typing"
+    page.locator(GALAXY_CANVAS).focus()
     with page.expect_navigation():
-        page.keyboard.press("Control+1")
+        page.keyboard.press("1")
     _settle(page)
     assert _query(page) == stage_query
 
