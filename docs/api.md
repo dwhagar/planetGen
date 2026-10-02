@@ -169,8 +169,8 @@ connectivity to that specific schema rather than the default one.
   (`center_x/y/z_pc`), `galactic_radius_pc`, `ring_index`, and
   `system_count` (`queryDb.galaxy_placed_sectors`) — the data
   the Galaxy Map page (`/galaxy`, `../src/html/web/galaxy_views.py`) plots. Not paginated: bounded by
-  how much of the galaxy has actually been generated (see `TODO.md`'s
-  Phase 4 lazy-generation design), not by the addressable galaxy's own
+  how much of the galaxy has actually been generated (the lazy galaxy-scale generation
+  design, finished in the original roadmap's phase 4), not by the addressable galaxy's own
   scale.
 - `GET /api/galaxy/phenomena` — every galaxy-placed standalone
   phenomenon of all eight types
@@ -625,8 +625,8 @@ status. When a request carries both, the key is what counts.
 ### Pagination
 
 `/api/sectors`, `/api/systems` and `/api/phenomena` return a paginated envelope rather than a
-bare list — this project's own roadmap (`docs/TODO.md`, Phase 4) plans
-galaxy-scale generation, so an unbounded listing endpoint would eventually
+bare list — the galaxy is generated lazily at
+galaxy scale (the original roadmap's phase 4, now done), so an unbounded listing endpoint would eventually
 return an unbounded response:
 
 ```json

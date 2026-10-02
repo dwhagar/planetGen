@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first.
+The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, and the API pieces remote generation needs first.
 
 ## Threads
 
