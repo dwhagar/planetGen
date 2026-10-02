@@ -1322,6 +1322,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (51, _column_marker("galaxy_shape", "galaxy_seed")),
     (50, _column_marker("system_configs", "comets")),
     (49, _table_marker("bright_star_blocks")),
     (48, _column_marker("rogue_planets", "surface_regime")),
@@ -5296,14 +5297,14 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     outer_ring_index = VALUES(outer_ring_index),
                     bright_star_min_luminosity_sol = NULL,
                     bright_star_seed = NULL,
-                    galaxy_seed = VALUES(galaxy_seed)
+                    galaxy_seed = ?
                 """,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
                     shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
                     shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
-                    expected_system_count_at_density_1, outer_ring_index, bytes(galaxy_seed),
+                    expected_system_count_at_density_1, outer_ring_index, bytes(galaxy_seed), bytes(galaxy_seed),
                 ),
             )
     finally:
@@ -5337,15 +5338,9 @@ def get_galaxy_shape(conn):
             been run against this database (the `galaxy_shape` singleton
             row doesn't exist yet).
     """
-    row = conn.execute(
-        """
-        SELECT disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,
-               bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,
-               spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm,
-               edge_pc, expected_system_count_at_density_1, outer_ring_index, galaxy_seed
-        FROM galaxy_shape WHERE id = 1
-        """
-    ).fetchone()
+    # Every column, not a list: older migration steps read the skeleton
+    # before v51 adds `galaxy_seed`.
+    row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
     if row is None:
         return None
 
@@ -5364,7 +5359,7 @@ def get_galaxy_shape(conn):
     return GalaxySkeletonInfo(
         shape=shape, edge_pc=row["edge_pc"], outer_ring_index=row["outer_ring_index"],
         expected_system_count_at_density_1=row["expected_system_count_at_density_1"],
-        galaxy_seed=None if row["galaxy_seed"] is None else bytes(row["galaxy_seed"]),
+        galaxy_seed=None if row.get("galaxy_seed") is None else bytes(row["galaxy_seed"]),
     )
 
 
