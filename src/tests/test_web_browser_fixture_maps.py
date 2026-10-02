@@ -1012,3 +1012,29 @@ def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, 
     # Turned about its middle, the picture may sit off center, but whole.
     _framed(turned, 0.5)
     assert abs(turned["left"] - big["left"]) + abs(turned["top"] - big["top"]) > 2, "Shift and the arrows turn the view"
+
+
+LINES = "() => document.querySelector('#galaxymap3d-canvas').galaxyLines()"
+
+
+def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
+    """MAP.77: while a slab is picked the map draws only the boundaries
+    between slabs, no lines between the blocks inside them; on one slab it
+    draws the divisions between its blocks; the whole galaxy draws none.
+    At every level of the ladder."""
+    _open_galaxy(page, map_site)
+    seen = []
+    for _ in range(12):
+        if not _on_galaxy(page):
+            break
+        lines = page.evaluate(LINES)
+        seen.append(lines)
+        if lines["kind"] == "arc":
+            assert lines == {"blockEdges": 0, "slabLines": 0, "kind": "arc"}
+        elif lines["kind"] == "layer":
+            assert lines["blockEdges"] == 0 and lines["slabLines"] > 0, lines
+        elif lines["kind"] == "segment":
+            assert lines["blockEdges"] == 1 and lines["slabLines"] == 0, lines
+        _click_choice(page, GENERATED_CHOICE)
+    kinds = [s["kind"] for s in seen]
+    assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds

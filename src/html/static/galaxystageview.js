@@ -82,6 +82,8 @@ const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
 // The arc under the pointer is outlined in full; its neighbors' outlines
 // are this faint (MAP.85).
 const NEIGHBOR_OUTLINE_OPACITY = 0.35;
+// The lines between slabs while one is picked (MAP.77).
+const SLAB_LINE_OPACITY = 0.45;
 const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the tilt from straight down to MAX_TILT ...
@@ -324,8 +326,11 @@ export function createStageView(host) {
       const built = host.blockScene.buildCells(cells, eye, dim);
       const group = new THREE.Group();
       const meshes = [];
-      // The whole galaxy shows no sector or block lines (MAP.85).
-      const gridEdges = isWholeGalaxy(r) ? 0 : 1;
+      // The whole galaxy shows no sector or block lines (MAP.85); while a
+      // slab is picked the blocks show none either, only the lines between
+      // slabs below (MAP.77); on one slab, the lines between its blocks,
+      // the segments picked next.
+      const gridEdges = isWholeGalaxy(r) || r.kind === "layer" ? 0 : 1;
       [built.solid, built.glass].forEach(function (part, n) {
         if (!part.vertexCount) return;
         const mesh = host.makeBlockMesh(part, n === 1);
@@ -338,14 +343,40 @@ export function createStageView(host) {
       root.add(group);
       groups.push({ option: option, meshes: meshes, fade: 1 });
     });
+    const lines = r.kind === "layer" ? slabLines(options) : null;
+    if (lines) root.add(lines);
     host.scene.add(root);
     root.updateMatrixWorld(true);
-    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data };
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines };
+  }
+
+  // The boundaries between slabs (MAP.77): each slab's outline along its
+  // blocks' own sides, top and bottom, with its corners joined, and no
+  // lines between the blocks inside it.
+  function slabLines(options) {
+    const points = [];
+    options.forEach(function (option) {
+      const mid = (option.a0 + option.a1) / 2;
+      const span = spanOf(option.blocks, mid);
+      Array.prototype.push.apply(points, edgePoints(S.outlineEdges(option.blocks, mid), span.z1, span));
+    });
+    if (!points.length) return null;
+    const line = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: SLAB_LINE_OPACITY, depthWrite: false }),
+    );
+    line.renderOrder = 3;
+    line.frustumCulled = false;
+    return line;
   }
 
   function disposeDisplay(d) {
     if (!d) return;
     host.scene.remove(d.root);
+    if (d.lines) {
+      d.lines.geometry.dispose();
+      d.lines.material.dispose();
+    }
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         mesh.geometry.dispose();
@@ -356,6 +387,7 @@ export function createStageView(host) {
 
   function setDisplayFade(d, fade) {
     d.fade = fade;
+    if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade;
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         const value = fade * group.fade;
@@ -547,6 +579,21 @@ export function createStageView(host) {
       box.bottom = Math.max(box.bottom, y);
     }
     return box;
+  };
+
+  // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
+  // edges on or off) and {slabLines} (how many line pieces trace the
+  // boundaries between slabs). Read by the browser tests.
+  canvasEl.galaxyLines = function () {
+    if (!display) return null;
+    let blockEdges = 0;
+    display.groups.forEach(function (group) {
+      group.meshes.forEach(function (mesh) {
+        if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) blockEdges = Math.max(blockEdges, mesh.material.uniforms.gridEdges.value);
+      });
+    });
+    const slabLines = display.lines ? display.lines.geometry.getAttribute("position").count / 2 : 0;
+    return { blockEdges: blockEdges, slabLines: slabLines, kind: display.resolved.kind };
   };
 
   // Keeps the view fitted round the stage as it turns or the map changes
