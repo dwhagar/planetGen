@@ -615,3 +615,48 @@ def test_block_scene_without_a_shape_draws_only_filled_blocks():
     cells = _cells(out["solid"], stride) + _cells(out["glass"], stride)
     assert len(cells) == 1
     assert cells[0][3] is None  # no density without a shape (NaN, as JSON null)
+
+
+# --- MAP.86: blocks colored by their sectors' stats ---------------------------
+
+def test_a_filled_sector_is_only_a_little_more_solid_than_unfilled_space():
+    out = _run("""
+const unfilled = {density: 1, filled: 0, total: 1};
+const empty = {density: 1, filled: 1, total: 1, look: {share: 0, color: null, colored: 0}};
+const dense = {density: 1, filled: 1, total: 1, look: {share: 1, color: [1, 0.5, 0], colored: 1}};
+const unknown = {density: 1, filled: 1, total: 1, look: null};
+const block = {density: 1, filled: 10, total: 100, look: {share: 1, color: [1, 0.5, 0], colored: 10}};
+console.log(JSON.stringify({unfilled: B.lookOpacity(unfilled), old: B.blockOpacity(unfilled),
+  empty: B.lookOpacity(empty), dense: B.lookOpacity(dense), unknown: B.lookOpacity(unknown),
+  block: B.lookOpacity(block), steps: [B.FILLED_EMPTY_STEP, B.FILLED_DENSE_STEP]}));
+""")
+    empty_step, dense_step = out["steps"]
+    assert out["unfilled"] == pytest.approx(out["old"])
+    assert out["empty"] == pytest.approx(out["unfilled"] + empty_step)
+    assert out["dense"] == pytest.approx(out["unfilled"] + empty_step + dense_step)
+    assert out["unknown"] == pytest.approx(out["empty"])
+    assert out["dense"] < 0.6
+    # A tenth of a block filled, at the densest: a tenth of the step.
+    assert out["block"] == pytest.approx(out["unfilled"] + 0.1 * (empty_step + dense_step))
+
+
+def test_a_block_averages_its_sectors_colors():
+    out = _run("""
+const unfilled = [0.1, 0.2, 0.4];
+const lin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+console.log(JSON.stringify({
+  none: B.lookColor({filled: 0, total: 9}, unfilled),
+  own: B.lookColor({filled: 1, total: 1, look: {share: 0.5, color: [1, 0.5, 0], colored: 1}}, unfilled),
+  half: B.lookColor({filled: 1, total: 2, look: {share: 0.5, color: [1, 0.5, 0], colored: 1}}, unfilled),
+  empty: B.lookColor({filled: 1, total: 1, look: {share: 0, color: null, colored: 0}}, unfilled),
+  linear: [1, 0.5, 0].map(lin),
+}));
+""")
+    assert out["none"] == [0.1, 0.2, 0.4]
+    assert out["own"] == pytest.approx(out["linear"])
+    assert out["half"] == pytest.approx([(a + b) / 2 for a, b in zip(out["linear"], [0.1, 0.2, 0.4])])
+    # No stars: the unfilled color a shade more saturated (further from
+    # its own grey, same mean).
+    grey = sum([0.1, 0.2, 0.4]) / 3
+    assert sum(out["empty"]) / 3 == pytest.approx(grey)
+    assert out["empty"][2] - grey > 0.4 - grey and out["empty"][0] < 0.1

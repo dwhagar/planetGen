@@ -689,19 +689,18 @@ function initGalaxyMap3d(canvasEl, data) {
   // - solid: blocks whose every sector is generated, opaque;
   // - glass: everything else, translucent (no depth writes), its blocks
   //   sorted back to front from the camera when built. Unfilled space is
-  //   10% to 30% opaque by density, and a block grows more solid with its
-  //   filled share (galaxyblocks.blockOpacity).
+  //   10% to 30% opaque by density, and a filled sector only a little
+  //   more (galaxyblocks.lookOpacity, MAP.86).
   // `fade` scales a mesh's opacity (the drill-down's fades and dimming);
   // `gridEdges` (0 or 1) turns the outlines off, as on the whole galaxy,
   // which shows no sector or block lines (MAP.85).
   // The logdepthbuf chunks match the renderer's logarithmic depth buffer.
-  // Filled blocks (MAP.37: "a much higher contrast"): a saturated amber
-  // over most of the face and on the edges, nothing like the blue-white
-  // density ramp, the same for one generated sector as for many (their
-  // opacity still tells them apart). A deeper shade on the light theme's
-  // pale background.
+  // Filled blocks' edges are a saturated amber (MAP.37: "a much higher
+  // contrast"), a deeper shade on the light theme's pale background.
+  // Their faces take the color of what their sectors hold
+  // (galaxyblocks.lookColor, MAP.86), so no amber over them.
   var FILLED_TINT = new THREE.Color(isLightBackground() ? "#d06a00" : "#ffb02e");
-  var FILLED_FACE_MIX = 0.85;
+  var FILLED_FACE_MIX = 0;
   // How far an unfilled block's edges brighten toward white: the ring,
   // wedge and layer boundaries of the grid, kept faint like the wedge
   // lines (a filled block's amber edges add up to 0.7 more).
