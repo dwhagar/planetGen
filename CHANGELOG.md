@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.169.474] - 2026-10-02
+
+### Changed
+- **Galaxy Map sectors and blocks are colored by what is in them (MAP.86).** A generated sector is now translucent, only a little more solid than unfilled space, in its own color: the hue of its stars' average color, saturated by how full it is (from empty to the densest a sector can be) and lit by its stars' average luminosity against the Sun. A generated sector with no stars is the unfilled color, a shade more saturated and solid. A block or mega block averages the color and opacity of every sector in it, unfilled ones counted as unfilled. Filled blocks keep their amber edges. `GET /api/galaxy/stage` gives each child block, and each listed sector, a `look` (`share`, `color`, `colored`) from the stored sector stats.
+
 ## [7.168.474] - 2026-10-02
 
 ### Fixed
