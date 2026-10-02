@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.37 |
 | MAP | MAP.96 |
-| NAV | NAV.43 |
+| NAV | NAV.46 |
 | GEN | GEN.64 |
 | PERF | PERF.24 |
 | DB | DB.11 |
@@ -639,6 +639,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | open |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | open |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
+| NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
+| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
