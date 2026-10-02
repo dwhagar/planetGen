@@ -18,7 +18,7 @@ CLI scripts) does so safely, same as any other submodule.
 
 import argparse
 
-__version__ = "7.146.467"
+__version__ = "7.147.469"
 
 REPO_URL = "https://github.com/dwhagar/planetGen"
 
