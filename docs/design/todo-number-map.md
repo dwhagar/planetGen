@@ -559,7 +559,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
-| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
+| MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | done, PR #405 |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
@@ -590,11 +590,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
-| MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
+| MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | done, PR #405 |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | done, PR #395 |
-| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | open |
+| MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | done, PR #405 |
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
 | MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |

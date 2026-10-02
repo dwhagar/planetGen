@@ -169,7 +169,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.87, GEN.64 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370). |
 | Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
-| lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92 (phase 0), MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.92, then MAP.89 in phase 1. |
+| lib/systemmap.py and static/systemmap.js | MAP.89, MAP.71 | MAP.57, MAP.88, MAP.92 done (PR #405); MAP.89 next in phase 1. |
 | galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Galaxy Map follow-ups, then the drill-down lane, then MAP.86 (stats lane), then MAP.95 and phase 2. |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 (phase 0) | In that order; any payload change bumps the tile cache. |
 | bookmarks.js, nav_page.py | NAV.18, USR.7, NAV.19 | NAV.40 done (PR #399). |
@@ -190,7 +190,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 - **MAP.77 and MAP.59**: MAP.77 waited on MAP.59's wire ghost, which waits on the mini map (MAP.75). Broken by dropping that dependency: MAP.77 (slab lines only while picking slabs) lands in phase 0, and MAP.59's ghost keeps the rule (outlines only, never blocks).
 - **GEN.38 and GEN.28**: GEN.38's fix is class S; GEN.28 is all seven classes. Broken by building class S with GEN.38 in phase 0, as GEN.28's first one-class PR (GEN.33's rule); GEN.28 then depends on GEN.38.
 - **GEN.48 and its subitems**: The parent bug closes with GEN.51 (done, PR #398) and the prevalence controls (phase 1), so it stays in phase 1.
-- **MAP.88 and MAP.89**: Both said "whichever lands second keeps the other". Fixed order: MAP.57, MAP.88, MAP.92, then MAP.89, one thread.
+- **MAP.88 and MAP.89**: Both said "whichever lands second keeps the other". Fixed order: MAP.57, MAP.88, MAP.92 (done, PR #405), then MAP.89.
 - **MAP.61 and the Galaxy Map items**: Split as its text says: MAP.63 and MAP.64 done (PR #351), MAP.65 to MAP.68 after the drill-down fixes.
 - **NAV.3 and MAP.61**: NAV.13 and NAV.14 (no engine) in phase 1, pick mode (NAV.15) on MAP.65 in phase 2, NAV.32 at the end.
 - **API.6 and USR.2**: Settled by Boss: keys belong to accounts, so API.6 is in phase 3+ after USR.2.

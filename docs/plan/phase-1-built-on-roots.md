@@ -75,7 +75,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | MAP.88 | Same file as MAP.88; also changes systemmap.js kmToPx (MAP.63 touched it too). |
+| MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log |  | Same file as MAP.88 (done, PR #405); also changes systemmap.js kmToPx (MAP.63 touched it too). |
 
 ### Picker
 

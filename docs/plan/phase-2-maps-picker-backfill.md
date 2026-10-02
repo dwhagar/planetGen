@@ -101,7 +101,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.69 | A system scene endpoint with 3D orbits | NAV.7, MAP.57 | Scene endpoint with references. |
+| MAP.69 | A system scene endpoint with 3D orbits | NAV.7 | Scene endpoint with references. |
 | MAP.70 | Positions at any time | MAP.69 | Python twin feeds NAV.27. |
 
 ### Reproducible galaxies
