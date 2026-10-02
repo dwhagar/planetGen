@@ -517,7 +517,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
   <span class="hint">The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or
   pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the
   radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or
-  with the slider to the right of the map, then a block of that slab, and so on down to single sectors &middot; Back and
+  with the buttons beside the map (each with a line to its slab), then a block of that slab, and so on down to single sectors &middot; Back and
   Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and
   Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
   or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are
@@ -543,8 +543,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
-     one; slabs are also picked with the slider beside the map; Escape or Backspace goes one step back out
-     and Home returns to the whole galaxy. Dragging turns the view and the wheel zooms."></canvas>
+     one; slabs are also picked with the buttons beside the map; Escape or Backspace goes one step back out
+     and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 <div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>

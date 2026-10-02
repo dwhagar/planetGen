@@ -2871,54 +2871,85 @@ body.app {
   color: var(--text-muted);
 }
 
-.galaxy-slab-track {
+/* The slab buttons (MAP.54, MAP.76): one per slab, ordered by the
+   slab's height on screen; galaxystageview.js draws a line from each to
+   its slab on the SVG laid over the map's row. */
+.galaxy-slab-buttons {
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-  min-height: 8rem;
-  max-height: 24rem;
-  color: var(--text-muted);
-}
-
-/* A vertical range input: the lowest value at the bottom. */
-.galaxy-slab-slider {
-  flex: 1 1 auto;
-  writing-mode: vertical-lr;
-  direction: rtl;
-  width: 2rem;
-  min-height: 6rem;
+  justify-content: center;
+  gap: 0.3rem;
+  width: 100%;
   margin: 0;
-  accent-color: var(--accent);
-  cursor: pointer;
+  padding: 0;
+  list-style: none;
 }
 
-.galaxy-slab-readout {
+.galaxy-slab-button {
+  position: relative;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 0.2rem;
   width: 100%;
-  margin: 0;
+  padding: 0.25rem 0.4rem;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
 }
 
-.galaxy-slab-bar {
-  height: 0.4rem;
-  border-radius: 3px;
-  background: var(--border);
-  overflow: hidden;
+.galaxy-slab-button:hover,
+.galaxy-slab-button:focus-visible,
+.galaxy-slab-button.is-lit {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 
-.galaxy-slab-bar span {
-  display: block;
-  height: 100%;
-  background: var(--accent);
+.galaxy-slab-button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.galaxy-slab-name {
+  font-weight: 600;
 }
 
 .galaxy-slab-count {
   color: var(--text-muted);
+  font-size: 0.72rem;
   font-variant-numeric: tabular-nums;
+}
+
+.galaxymap3d-panel .galaxy-map-main {
+  position: relative;
+}
+
+/* The leader lines: over the map, under the buttons, never in the way
+   of the pointer. Faint, the lit slab's bright. */
+.galaxy-slab-leaders {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+  color: var(--accent);
+}
+
+.galaxy-slab-leader {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  stroke-opacity: 0.4;
+}
+
+.galaxy-slab-leader.is-lit {
+  stroke-width: 2;
+  stroke-opacity: 1;
 }
 
 @media (max-width: 599px) {
@@ -2926,9 +2957,21 @@ body.app {
     gap: 0.5rem;
   }
 
+  /* On a phone the buttons go in one column below the map, each line
+     leaving its button's right end along a lane of its own. */
+  .galaxymap3d-panel .galaxy-map-main {
+    flex-wrap: wrap;
+  }
+
   .galaxy-slabs {
-    flex-basis: 4rem;
+    flex-basis: 100%;
+    min-height: 0;
+    align-items: flex-start;
     font-size: 0.75rem;
+  }
+
+  .galaxy-slabs .galaxy-slab-buttons {
+    width: 9rem;
   }
 }
 

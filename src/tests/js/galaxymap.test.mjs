@@ -312,12 +312,17 @@ function gridEdges(m) {
   return Array.from(new Set(values));
 }
 
-test("the whole galaxy has no grid lines; an arc's blocks have theirs (MAP.85)", async () => {
+test("the whole galaxy has no grid lines; an arc shows only its slabs' lines (MAP.85, MAP.77)", async () => {
   const m = await start();
   assert.deepEqual(gridEdges(m), [0]);
   await drillOnce(m);
   assert.equal(m.view.stage().picks[0].kind, "arc");
-  assert.deepEqual(gridEdges(m), [1]);
+  // Picking a slab: no lines between the blocks inside the slabs, only
+  // the boundaries between slabs.
+  assert.deepEqual(gridEdges(m), [0]);
+  const lines = m.host.canvasEl.galaxyLines();
+  assert.equal(lines.kind, "layer");
+  assert.ok(lines.slabLines > 0, "the slabs' boundaries are drawn");
 });
 
 test("the whole galaxy turns and zooms in to half its fit, never out past it", async () => {

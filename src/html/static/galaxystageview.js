@@ -3,11 +3,12 @@
 // The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
 // sections 4, 5, 8.1 and 10-11), drawn and driven: the whole galaxy in
 // 3D with an arc of it picked on the map (MAP.85), then a slab of the
-// arc (picked from the strip beside the map or on the map), then a
+// arc (picked with the buttons beside the map or on the map), then a
 // segment of the slab (one block), then a slab and a segment inside that
-// block, ... down to a sector (MAP.56). galaxystages.js has the rules; this file has the scene, the
-// camera moves, the breadcrumb, the slab slider, the tooltip, keys,
-// touch, the stage URLs and the map's own Back and Forward.
+// block, ... down to a sector (MAP.56). galaxystages.js has the rules;
+// this file has the scene, the camera moves, the breadcrumb, the slab
+// buttons and their leader lines, the tooltip, keys, touch, the stage
+// URLs and the map's own Back and Forward.
 // galaxymap3d.js creates it (createStageView), hands it the pointer and
 // key events and calls step() every frame.
 //
@@ -49,7 +50,7 @@ const FADE_IN_MS = 200;
 const DRAG_CLICK_PX = 6;
 // Every view below the whole galaxy opens at an isometric slant (the
 // tilt from straight down, Boss 2026-10-01), so the layers show side by
-// side and can be picked on the map as well as with the slab slider; the small
+// side and can be picked on the map as well as with the slab buttons; the small
 // cube of sectors (a level-3 block, 27 at most) has each sector
 // pickable. Layers and blocks touch: no space between them (Boss,
 // 2026-10-01).
@@ -63,6 +64,8 @@ export const ISO_TILT = Math.atan(Math.SQRT2);
 // fit and no further, MAP.58), and the view's middle can't wander more
 // than PAN_REACH fits away.
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
+// Shift and an arrow key turn the view this far.
+const KEY_TURN = (5 * Math.PI) / 180;
 export const MAX_TILT = (80 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
@@ -79,6 +82,8 @@ const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
 // The arc under the pointer is outlined in full; its neighbors' outlines
 // are this faint (MAP.85).
 const NEIGHBOR_OUTLINE_OPACITY = 0.35;
+// The lines between slabs while one is picked (MAP.77).
+const SLAB_LINE_OPACITY = 0.45;
 const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the tilt from straight down to MAX_TILT ...
@@ -321,8 +326,11 @@ export function createStageView(host) {
       const built = host.blockScene.buildCells(cells, eye, dim);
       const group = new THREE.Group();
       const meshes = [];
-      // The whole galaxy shows no sector or block lines (MAP.85).
-      const gridEdges = isWholeGalaxy(r) ? 0 : 1;
+      // The whole galaxy shows no sector or block lines (MAP.85); while a
+      // slab is picked the blocks show none either, only the lines between
+      // slabs below (MAP.77); on one slab, the lines between its blocks,
+      // the segments picked next.
+      const gridEdges = isWholeGalaxy(r) || r.kind === "layer" ? 0 : 1;
       [built.solid, built.glass].forEach(function (part, n) {
         if (!part.vertexCount) return;
         const mesh = host.makeBlockMesh(part, n === 1);
@@ -335,14 +343,40 @@ export function createStageView(host) {
       root.add(group);
       groups.push({ option: option, meshes: meshes, fade: 1 });
     });
+    const lines = r.kind === "layer" ? slabLines(options) : null;
+    if (lines) root.add(lines);
     host.scene.add(root);
     root.updateMatrixWorld(true);
-    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data };
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines };
+  }
+
+  // The boundaries between slabs (MAP.77): each slab's outline along its
+  // blocks' own sides, top and bottom, with its corners joined, and no
+  // lines between the blocks inside it.
+  function slabLines(options) {
+    const points = [];
+    options.forEach(function (option) {
+      const mid = (option.a0 + option.a1) / 2;
+      const span = spanOf(option.blocks, mid);
+      Array.prototype.push.apply(points, edgePoints(S.outlineEdges(option.blocks, mid), span.z1, span));
+    });
+    if (!points.length) return null;
+    const line = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: SLAB_LINE_OPACITY, depthWrite: false }),
+    );
+    line.renderOrder = 3;
+    line.frustumCulled = false;
+    return line;
   }
 
   function disposeDisplay(d) {
     if (!d) return;
     host.scene.remove(d.root);
+    if (d.lines) {
+      d.lines.geometry.dispose();
+      d.lines.material.dispose();
+    }
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         mesh.geometry.dispose();
@@ -353,6 +387,7 @@ export function createStageView(host) {
 
   function setDisplayFade(d, fade) {
     d.fade = fade;
+    if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade;
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         const value = fade * group.fade;
@@ -380,10 +415,123 @@ export function createStageView(host) {
     return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
   }
 
+  // Points round blocks' bounds, for fitting the view to them: each
+  // block's corners, and along its outer arc every 22.5 degrees, top and
+  // bottom.
+  function boundsPoints(blocks) {
+    const points = [];
+    blocks.forEach(function (block) {
+      const b = block.bounds;
+      const steps = Math.max(1, Math.ceil((b.t1 - b.t0) / (Math.PI / 8)));
+      [b.z0, b.z1].forEach(function (z) {
+        points.push(b.r0 * Math.cos(b.t0), b.r0 * Math.sin(b.t0), z, b.r0 * Math.cos(b.t1), b.r0 * Math.sin(b.t1), z);
+        for (let k = 0; k <= steps; k++) {
+          const t = b.t0 + ((b.t1 - b.t0) * k) / steps;
+          points.push(b.r1 * Math.cos(t), b.r1 * Math.sin(t), z);
+        }
+      });
+    });
+    return points;
+  }
+
+  // The points a stage's view is fitted round, worked out once per stage.
+  const fitPointsCache = new WeakMap();
+  function fitPointsOf(r) {
+    let points = fitPointsCache.get(r);
+    if (!points) {
+      points = boundsPoints(r.view.blocks);
+      fitPointsCache.set(r, points);
+    }
+    return points;
+  }
+
+  const fitBasis = { m: null, x: null, y: null, z: null };
+
+  // The camera distance from `target` along (theta, phi) at which every
+  // point (a flat [x, y, z, ...] list) shows on the map with FIT_MARGIN to
+  // spare, across the map's actual width and height (MAP.53, MAP.78): a
+  // wide map fits a long arc by its width, a tall one by its height, and a
+  // bigger map shows the same fit larger.
+  function fitDistance(points, target, theta, phi) {
+    if (!fitBasis.m) {
+      fitBasis.m = new THREE.Matrix4();
+      fitBasis.x = new THREE.Vector3();
+      fitBasis.y = new THREE.Vector3();
+      fitBasis.z = new THREE.Vector3();
+      fitBasis.eye = new THREE.Vector3();
+      fitBasis.at = new THREE.Vector3();
+    }
+    const sinPhi = Math.sin(phi);
+    fitBasis.at.set(target[0], target[1], target[2]);
+    fitBasis.eye.set(target[0] + sinPhi * Math.cos(theta), target[1] + sinPhi * Math.sin(theta), target[2] + Math.cos(phi));
+    fitBasis.m.lookAt(fitBasis.eye, fitBasis.at, camera.up);
+    fitBasis.m.extractBasis(fitBasis.x, fitBasis.y, fitBasis.z);
+    const X = fitBasis.x;
+    const Y = fitBasis.y;
+    const Z = fitBasis.z;
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
+    const tanH = tanV * aspect;
+    const margin = S.FIT_MARGIN;
+    let dist = 0;
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      const vx = points[k] - target[0];
+      const vy = points[k + 1] - target[1];
+      const vz = points[k + 2] - target[2];
+      const x = vx * X.x + vy * X.y + vz * X.z;
+      const y = vx * Y.x + vy * Y.y + vz * Y.z;
+      const z = vx * Z.x + vy * Z.y + vz * Z.z;
+      dist = Math.max(dist, z + (margin * Math.abs(x)) / tanH, z + (margin * Math.abs(y)) / tanV);
+    }
+    return dist > 0 ? dist : host.galaxyRadius * 2.4;
+  }
+
+  // fitDistance with the target moved (across the screen, three rounds)
+  // so the points sit in the middle of the map: a slanted view sees the
+  // near side of a block bigger than the far side, so the middle of the
+  // blocks isn't the middle of their picture. {target, dist}.
+  function centeredFit(points, target, theta, phi) {
+    let at = target.slice();
+    let dist = fitDistance(points, at, theta, phi);
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
+    const tanH = tanV * aspect;
+    for (let round = 0; round < 3; round++) {
+      const X = fitBasis.x;
+      const Y = fitBasis.y;
+      const Z = fitBasis.z;
+      let x0 = Infinity;
+      let x1 = -Infinity;
+      let y0 = Infinity;
+      let y1 = -Infinity;
+      for (let k = 0; k + 2 < points.length; k += 3) {
+        const vx = points[k] - at[0];
+        const vy = points[k + 1] - at[1];
+        const vz = points[k + 2] - at[2];
+        const depth = dist - (vx * Z.x + vy * Z.y + vz * Z.z);
+        if (depth <= 0) continue;
+        const sx = (vx * X.x + vy * X.y + vz * X.z) / (depth * tanH);
+        const sy = (vx * Y.x + vy * Y.y + vz * Y.z) / (depth * tanV);
+        x0 = Math.min(x0, sx);
+        x1 = Math.max(x1, sx);
+        y0 = Math.min(y0, sy);
+        y1 = Math.max(y1, sy);
+      }
+      if (!(x1 >= x0)) break;
+      const cx = ((x0 + x1) / 2) * dist * tanH;
+      const cy = ((y0 + y1) / 2) * dist * tanV;
+      if (Math.abs(cx) + Math.abs(cy) < 1e-6 * dist) break;
+      at = [at[0] + X.x * cx + Y.x * cy, at[1] + X.y * cx + Y.y * cy, at[2] + X.z * cx + Y.z * cy];
+      dist = fitDistance(points, at, theta, phi);
+    }
+    return { target: at, dist: dist };
+  }
+
   // The camera for a stage, with the view's middle bearing pointing up
   // the screen: the whole galaxy at GALAXY_TILT (galactic north up),
-  // everything below it from the isometric slant, fitted round the
-  // blocks: {target, dist, theta, phi}.
+  // everything below it from the isometric slant, turned about the middle
+  // of what it shows and fitted round its blocks: {target, dist, theta,
+  // phi}.
   function cameraFor(r) {
     const blocks = r.view.blocks;
     if (!blocks.length) {
@@ -397,29 +545,68 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
-    if (!isWholeGalaxy(r)) {
-      return {
-        target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
-        dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),
-        theta: theta, phi: ISO_TILT,
-      };
-    }
-    return {
-      target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
-      dist: (S.FIT_MARGIN * fp.radius) / Math.tan(fovHalf()) + (z1 - z0) / 2,
-      theta: theta, phi: GALAXY_TILT,
-    };
+    const phi = isWholeGalaxy(r) ? GALAXY_TILT : ISO_TILT;
+    const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], theta, phi);
+    return { target: fit.target, dist: fit.dist, theta: theta, phi: phi };
   }
 
   // The view on arrival at camera `to`, keeping `to` as its fit. The
   // target is a copy: a pan moves view.target in place, and the pan's
-  // reach is measured from the fit's.
+  // reach is measured from the fit's. `zoom` is the user's zoom, the
+  // distance over the fit's at the view's own turn.
   function settledView(to) {
-    return Object.assign({}, to, { target: to.target.slice(), fit: to });
+    return Object.assign({}, to, { target: to.target.slice(), fit: to, zoom: 1 });
+  }
+
+  // Where the stage's blocks fall on the map now, in canvas pixels:
+  // {left, top, right, bottom, width, height} (the map's own size). Read
+  // by the browser tests through the canvas.
+  canvasEl.galaxyFrame = function () {
+    if (!resolved || !resolved.view) return null;
+    camera.updateMatrixWorld();
+    const points = fitPointsOf(resolved);
+    const v = new THREE.Vector3();
+    const w = canvasEl.clientWidth;
+    const h = canvasEl.clientHeight;
+    const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity, width: w, height: h };
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      v.set(points[k], points[k + 1], points[k + 2]).project(camera);
+      const x = ((v.x + 1) / 2) * w;
+      const y = ((1 - v.y) / 2) * h;
+      box.left = Math.min(box.left, x);
+      box.right = Math.max(box.right, x);
+      box.top = Math.min(box.top, y);
+      box.bottom = Math.max(box.bottom, y);
+    }
+    return box;
+  };
+
+  // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
+  // edges on or off) and {slabLines} (how many line pieces trace the
+  // boundaries between slabs). Read by the browser tests.
+  canvasEl.galaxyLines = function () {
+    if (!display) return null;
+    let blockEdges = 0;
+    display.groups.forEach(function (group) {
+      group.meshes.forEach(function (mesh) {
+        if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) blockEdges = Math.max(blockEdges, mesh.material.uniforms.gridEdges.value);
+      });
+    });
+    const slabLines = display.lines ? display.lines.geometry.getAttribute("position").count / 2 : 0;
+    return { blockEdges: blockEdges, slabLines: slabLines, kind: display.resolved.kind };
+  };
+
+  // Keeps the view fitted round the stage as it turns or the map changes
+  // size (MAP.78): the distance is the user's zoom times the fit at the
+  // view's own turn.
+  function reframe() {
+    if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
+    view.dist = view.zoom * fitDistance(fitPointsOf(resolved), view.fit.target, view.theta, view.phi);
   }
 
   function applyView() {
     host.setCamera({ target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi });
+    drawLeaders();
   }
 
   function wrapAngle(a) {
@@ -900,17 +1087,17 @@ export function createStageView(host) {
   function hintFor(r) {
     const base = baseHint(r);
     if (!isFree(r)) return base;
-    return (base ? base + " " : "") + "Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom; "
-      + "Reset view brings it back.";
+    return (base ? base + " " : "") + "Drag (or Shift and the arrow keys) to turn the view about its middle, right-drag (or "
+      + "Shift-drag) to move it, scroll or pinch to zoom; Reset view brings it back.";
   }
 
   function baseHint(r) {
     if (!r || !r.kind) return "";
     if (isCube(r)) {
-      return "Click a layer of sectors on the map, or pick one with the slider beside the map, to see just that layer.";
+      return "Click a layer of sectors on the map, or pick one with the buttons beside the map, to see just that layer.";
     }
     if (r.kind === "layer") {
-      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the slider beside the map.";
+      return "Click a " + S.slabNoun(r.stage.at).toLowerCase() + " (a layer of the disk) on the map, or pick one with the buttons beside the map; each button's line points at its slab.";
     }
     if (r.kind === "arc") return "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely.";
     if (isSectorView(r)) {
@@ -956,13 +1143,14 @@ export function createStageView(host) {
   // --- Input -------------------------------------------------------------------
 
   let touchPending = -1;
-  // The camera distance a pinch started from.
-  let pinchDist = 0;
+  // The zoom a pinch started from.
+  let pinchZoom = 1;
 
   // Turns the view (drag) or moves it in the screen's plane (pan).
   function drag(dx, dy, pan) {
     if (!pan) {
       MC.orbitByDrag(view, dx, dy, ROTATE_PER_PX, clampTilt);
+      reframe();
     } else {
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
       const fit = view.fit;
@@ -975,7 +1163,8 @@ export function createStageView(host) {
 
   function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    view.dist = MC.clampDistance(zoomPolicyFor(resolved), view.dist * factor, view.fit.dist);
+    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * factor, 1);
+    reframe();
     applyView();
   }
 
@@ -1045,10 +1234,11 @@ export function createStageView(host) {
     onDrag: function (dx, dy, pan) { if (view && !animation) drag(dx, dy, pan); },
     pinch: {
       canStart: function () { return MC.canZoom(zoomPolicyFor(resolved)) && !!view; },
-      start: function () { pinchDist = view.dist; },
+      start: function () { pinchZoom = view.zoom; },
       move: function (ratio) {
         if (!view || animation) return;
-        view.dist = MC.clampDistance(zoomPolicyFor(resolved), pinchDist * ratio, view.fit.dist);
+        view.zoom = MC.clampDistance(zoomPolicyFor(resolved), pinchZoom * ratio, 1);
+        reframe();
         applyView();
       },
     },
@@ -1086,6 +1276,15 @@ export function createStageView(host) {
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
     event.preventDefault();
+    // Shift and an arrow turn the view about the middle of what it shows
+    // (MAP.53).
+    if (event.shiftKey && key !== "Enter") {
+      if (view && !animation && isFree(resolved) && MC.orbitByKey(view, key, KEY_TURN, clampTilt)) {
+        reframe();
+        applyView();
+      }
+      return;
+    }
     if (animation || !display || !display.options.length) return;
     const options = display.options;
     const current = hover && hover.option != null ? hover.option : -1;
@@ -1127,7 +1326,7 @@ export function createStageView(host) {
     return best;
   }
 
-  // --- Breadcrumb, slab slider, notice ---------------------------------------
+  // --- Breadcrumb, slab buttons, notice --------------------------------------
 
   function notice(text) {
     if (!els.notice) return;
@@ -1321,21 +1520,66 @@ export function createStageView(host) {
     });
   });
 
-  // The slab slider (MAP.17, MAP.30): beside the map, top slab at the
-  // top. While the next pick is a layer it has one step per slab;
-  // dragging (or the arrow keys) fades the other slabs on the map and the
-  // readout under it gives the slab's generated share; letting go, Enter
-  // or Open takes it. Otherwise it says which layers the view holds.
-  function sliderChoices() {
+  // The slab buttons and their leader lines (MAP.54, layout MAP.76):
+  // while the next pick is a slab, one button per slab beside the map
+  // (in one column below it on a phone), each with a line from it to its
+  // slab on the map. The lines are drawn on an SVG over the map's row and
+  // redrawn whenever the view moves (applyView) or the layout changes, so
+  // they always point at their slabs; the buttons are ordered by their
+  // slabs' height on screen, top first, so the lines don't cross. The
+  // lines are faint, and the slab hovered on the map or with its button
+  // (or the focused button) lights its own; clicking a button picks its
+  // slab. A slab off the map ends its line at the map's edge with an
+  // arrow. Otherwise the box says which layers the view holds.
+  const SVG_NS = "http://www.w3.org/2000/svg";
+  // {rows: [{option, item, button, line}], list, svg}, while there are
+  // buttons.
+  let strip = null;
+  let leaderSvg = null;
+
+  function slabChoices() {
     if (!resolved || resolved.kind !== "layer" || !display || display.resolved !== resolved) return null;
     return display.options;
   }
 
-  let stripShow = null;
+  // The SVG the lines are drawn on, over the map's row (created once).
+  function leaderLayer() {
+    const row = els.slabs && els.slabs.parentElement;
+    if (!row) return null;
+    if (!leaderSvg) {
+      leaderSvg = document.createElementNS(SVG_NS, "svg");
+      leaderSvg.setAttribute("class", "galaxy-slab-leaders");
+      leaderSvg.setAttribute("aria-hidden", "true");
+      const defs = document.createElementNS(SVG_NS, "defs");
+      const marker = document.createElementNS(SVG_NS, "marker");
+      marker.setAttribute("id", "galaxy-slab-arrow");
+      marker.setAttribute("viewBox", "0 0 10 10");
+      marker.setAttribute("refX", "9");
+      marker.setAttribute("refY", "5");
+      marker.setAttribute("markerWidth", "7");
+      marker.setAttribute("markerHeight", "7");
+      marker.setAttribute("orient", "auto-start-reverse");
+      const tip = document.createElementNS(SVG_NS, "path");
+      tip.setAttribute("d", "M0,0 L10,5 L0,10 z");
+      tip.setAttribute("fill", "currentColor");
+      marker.appendChild(tip);
+      defs.appendChild(marker);
+      leaderSvg.appendChild(defs);
+      row.appendChild(leaderSvg);
+    }
+    return leaderSvg;
+  }
+
+  function clearLeaders() {
+    if (!leaderSvg) return;
+    Array.from(leaderSvg.querySelectorAll("polyline")).forEach(function (line) { line.remove(); });
+    leaderSvg.hidden = true;
+  }
 
   function renderStrip() {
     const box = els.slabs;
-    stripShow = null;
+    strip = null;
+    clearLeaders();
     if (!box || !resolved || !resolved.view) return;
     box.textContent = "";
     const heading = document.createElement("h3");
@@ -1344,7 +1588,8 @@ export function createStageView(host) {
     const noun = isSectorView(resolved) ? "Layer" : S.slabNoun(stage.at);
     heading.textContent = noun + "s";
     box.appendChild(heading);
-    const choices = sliderChoices();
+    const choices = slabChoices();
+    box.classList.toggle("is-picking", !!(choices && choices.length));
     if (!choices || !choices.length) {
       const slabs = slabsIn(resolved.view.blocks);
       const note = document.createElement("p");
@@ -1359,106 +1604,176 @@ export function createStageView(host) {
       return;
     }
     const data = display.data;
-    const top = document.createElement("span");
-    top.className = "galaxy-slab-end";
-    top.textContent = "Top";
-    const slider = document.createElement("input");
-    slider.type = "range";
-    slider.className = "galaxy-slab-slider";
-    slider.min = "0";
-    slider.max = String(choices.length - 1);
-    slider.step = "1";
-    slider.setAttribute("orient", "vertical");
-    slider.setAttribute("aria-labelledby", heading.id);
-    const bottom = document.createElement("span");
-    bottom.className = "galaxy-slab-end";
-    bottom.textContent = "Bottom";
-    const readout = document.createElement("p");
-    readout.className = "galaxy-slab-readout";
-    readout.setAttribute("aria-live", "polite");
-    const open = document.createElement("button");
-    open.type = "button";
-    open.className = "starmap-btn galaxy-slab-open";
-    open.textContent = "Open";
-    const track = document.createElement("div");
-    track.className = "galaxy-slab-track";
-    track.appendChild(top);
-    track.appendChild(slider);
-    track.appendChild(bottom);
-    box.appendChild(track);
-    box.appendChild(readout);
-    box.appendChild(open);
-
-    function summary(index) {
-      const option = choices[index];
+    const svg = leaderLayer();
+    const list = document.createElement("ol");
+    list.className = "galaxy-slab-buttons";
+    box.appendChild(list);
+    const rows = choices.slice().reverse().map(function (option) {
+      const pick = option.pick;
       const sum = sumOf(option.blocks, data);
-      return { pick: option.pick, sum: sum, takeable: !(generatedOnly && !(sum.generated > 0)) };
-    }
-    function show(index) {
-      const info = summary(index);
-      slider.value = String(index);
-      slider.setAttribute("aria-valuetext", layerText(info.pick) + ", " + S.formatInt(info.sum.generated)
-        + (getOutline().shapeless ? "" : " of " + S.formatInt(info.sum.total)) + " sectors generated");
-      readout.textContent = "";
-      const name = document.createElement("strong");
-      name.textContent = S.pickLabel(info.pick, stage.at, resolved.view);
-      const bar = document.createElement("span");
-      bar.className = "galaxy-slab-bar";
-      const fill = document.createElement("span");
-      fill.style.width = info.sum.total > 0
-        ? Math.max(info.sum.generated > 0 ? 2 : 0, (100 * info.sum.generated) / info.sum.total).toFixed(1) + "%" : "0%";
-      bar.appendChild(fill);
+      const takeable = !(generatedOnly && !(sum.generated > 0));
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "galaxy-slab-button";
+      button.dataset.slab = String(pick.lo);
+      const name = document.createElement("span");
+      name.className = "galaxy-slab-name";
+      name.textContent = S.pickLabel(pick, stage.at, resolved.view);
       const count = document.createElement("span");
       count.className = "galaxy-slab-count";
-      count.textContent = S.formatCount(info.sum.generated) + (info.sum.total > 0 ? " / " + S.formatCount(info.sum.total) : "")
-        + " generated";
-      readout.appendChild(name);
-      readout.appendChild(bar);
-      readout.appendChild(count);
-      open.disabled = !info.takeable;
-      return info;
-    }
-    function preview() {
-      const info = show(Number(slider.value));
-      if (!animation) setHover({ layer: info.pick, sticky: true });
-    }
-    function take() {
-      const info = summary(Number(slider.value));
-      if (!info.takeable || animation) return;
-      go({ at: stage.at, picks: stage.picks.concat([info.pick]) });
-    }
-    let dragging = false;
-    slider.addEventListener("pointerdown", function () { dragging = true; });
-    slider.addEventListener("input", preview);
-    slider.addEventListener("change", function () {
-      if (dragging) take();
-      dragging = false;
-    });
-    slider.addEventListener("keydown", function (event) {
-      if (event.key === "Enter") {
-        event.preventDefault();
-        take();
+      count.textContent = S.formatCount(sum.generated) + (sum.total > 0 ? " / " + S.formatCount(sum.total) : "") + " generated";
+      button.appendChild(name);
+      button.appendChild(count);
+      button.setAttribute("aria-label", layerText(pick) + ", " + S.formatInt(sum.generated)
+        + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated"
+        + (takeable ? "" : " (nothing generated here to pick)"));
+      if (!takeable) button.setAttribute("aria-disabled", "true");
+      const light = function () { if (!animation) setHover({ layer: pick, sticky: true }); };
+      const unlight = function () {
+        if (hover && hover.layer && hover.layer.lo === pick.lo && !list.contains(document.activeElement)) setHover(null);
+      };
+      button.addEventListener("pointerenter", light);
+      button.addEventListener("focus", light);
+      button.addEventListener("pointerleave", unlight);
+      button.addEventListener("blur", function () { setTimeout(unlight, 0); });
+      button.addEventListener("click", function () {
+        if (!takeable || animation) return;
+        go({ at: stage.at, picks: stage.picks.concat([pick]) });
+      });
+      item.appendChild(button);
+      list.appendChild(item);
+      let line = null;
+      if (svg) {
+        line = document.createElementNS(SVG_NS, "polyline");
+        line.setAttribute("class", "galaxy-slab-leader");
+        line.dataset.slab = String(pick.lo);
+        svg.appendChild(line);
       }
+      return { option: option, item: item, button: button, line: line };
     });
-    slider.addEventListener("blur", function () { if (hover && hover.layer && !dragging) setHover(null); });
-    open.addEventListener("click", take);
-    // Starts in the middle of the disk (the plane), or the hovered slab.
-    let start = Math.floor((choices.length - 1) / 2);
-    choices.forEach(function (option, index) {
-      if (option.pick.lo <= 0 && option.pick.hi >= 0) start = index;
-    });
-    stripShow = show;
-    show(start);
+    strip = { rows: rows, list: list, svg: svg };
+    drawLeaders();
+    applyHover();
   }
 
-  // Moves the slider to the slab holding `layer` ({lo, hi}, or null to
-  // leave it where it is), without taking it.
-  function markStripRow(layer) {
-    const choices = sliderChoices();
-    if (!stripShow || !layer || !choices) return;
-    const index = choices.findIndex(function (o) { return o.pick.lo <= layer.lo && o.pick.hi >= layer.hi; });
-    if (index >= 0) stripShow(index);
+  // Where a slab's line ends, in client pixels: the middle of its blocks,
+  // moved toward the camera to the side of the slab facing it (so a slab
+  // under another still gets a line to a part of it that shows), at the
+  // slab's mid height. {x, y, off}: off when that point is not on the map
+  // (then x, y are on its edge).
+  function slabAnchor(blocks, rect) {
+    const fp = S.footprint(blocks);
+    let z0 = Infinity;
+    let z1 = -Infinity;
+    blocks.forEach(function (block) {
+      z0 = Math.min(z0, block.bounds.z0);
+      z1 = Math.max(z1, block.bounds.z1);
+    });
+    const dx = camera.position.x - fp.center[0];
+    const dy = camera.position.y - fp.center[1];
+    const far = Math.hypot(dx, dy);
+    const reach = far > 1e-9 ? Math.min(0.5 * fp.radius, far) / far : 0;
+    const point = new THREE.Vector3(fp.center[0] + dx * reach, fp.center[1] + dy * reach, (z0 + z1) / 2);
+    const ahead = point.clone().applyMatrix4(camera.matrixWorldInverse).z < 0;
+    point.project(camera);
+    let x = rect.left + ((point.x + 1) / 2) * rect.width;
+    let y = rect.top + ((1 - point.y) / 2) * rect.height;
+    if (!ahead) {
+      // Behind the camera: toward the map's bottom edge.
+      x = rect.left + rect.width / 2;
+      y = rect.bottom;
+    }
+    const inset = 3;
+    const cx = Math.max(rect.left + inset, Math.min(rect.right - inset, x));
+    const cy = Math.max(rect.top + inset, Math.min(rect.bottom - inset, y));
+    return { x: cx, y: cy, off: !ahead || cx !== x || cy !== y };
   }
+
+  // Redraws the lines from each button to its slab, reordering the
+  // buttons first if their slabs' order on screen changed.
+  function drawLeaders() {
+    if (!strip || !strip.svg || !view || !active) return;
+    const svg = strip.svg;
+    const row = svg.parentElement;
+    const base = row.getBoundingClientRect();
+    const rect = canvasEl.getBoundingClientRect();
+    if (!rect.width || !rect.height || !base.width) {
+      svg.hidden = true;
+      return;
+    }
+    svg.hidden = false;
+    svg.setAttribute("width", String(base.width));
+    svg.setAttribute("height", String(base.height));
+    svg.setAttribute("viewBox", "0 0 " + base.width + " " + base.height);
+    const rows = strip.rows;
+    const anchors = new Map();
+    rows.forEach(function (r) { anchors.set(r, slabAnchor(r.option.blocks, rect)); });
+    // Below the map (a phone) the lines run up lanes along the map's right
+    // edge, so they nest: the bottom button's line takes the outer lane
+    // to the highest slab, and the column runs from the lowest slab down.
+    const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
+    const order = rows.slice().sort(function (p, q) {
+      const d = anchors.get(p).y - anchors.get(q).y || q.option.pick.lo - p.option.pick.lo;
+      return below ? -d : d;
+    });
+    const shown = Array.from(strip.list.children);
+    const moved = order.some(function (r, n) { return shown[n] !== r.item; });
+    if (moved && !strip.list.contains(document.activeElement)) {
+      order.forEach(function (r) { strip.list.appendChild(r.item); });
+    }
+    const items = Array.from(strip.list.children);
+    rows.forEach(function (r) {
+      if (!r.line) return;
+      const end = anchors.get(r);
+      const b = r.button.getBoundingClientRect();
+      const points = [];
+      if (below) {
+        // Out of the button's right end to its own lane, up the lane to
+        // the slab's height, then across to the slab.
+        const lane = rect.right - 8 - 7 * (items.length - 1 - items.indexOf(r.item));
+        points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, end.y]);
+      } else {
+        points.push([b.left, b.top + b.height / 2]);
+      }
+      points.push([end.x, end.y]);
+      r.line.setAttribute("points", points.map(function (p) {
+        return (p[0] - base.left).toFixed(1) + "," + (p[1] - base.top).toFixed(1);
+      }).join(" "));
+      if (end.off) r.line.setAttribute("marker-end", "url(#galaxy-slab-arrow)");
+      else r.line.removeAttribute("marker-end");
+      r.line.classList.toggle("is-off", end.off);
+    });
+  }
+
+  // Lights the button and line of the slab holding `layer` ({lo, hi}, or
+  // null for none).
+  function markStripRow(layer) {
+    if (!strip) return;
+    strip.rows.forEach(function (r) {
+      const lit = !!layer && r.option.pick.lo <= layer.lo && r.option.pick.hi >= layer.hi;
+      r.button.classList.toggle("is-lit", lit);
+      if (r.line) r.line.classList.toggle("is-lit", lit);
+    });
+  }
+
+  // A resized map (the window resized or turned) refits the view to its
+  // new size (MAP.53), and the lines follow the layout: the map or the
+  // buttons resized, or the page reflowed.
+  function relayout() {
+    if (active && view && !animation) {
+      reframe();
+      applyView();
+    } else {
+      drawLeaders();
+    }
+  }
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(relayout);
+    observer.observe(canvasEl);
+    if (els.slabs) observer.observe(els.slabs);
+  }
+  window.addEventListener("resize", relayout);
 
   // --- The address bar (section 9.3) -----------------------------------------
 
@@ -1555,6 +1870,8 @@ export function createStageView(host) {
       display = null;
       view = null;
       clearOutline();
+      strip = null;
+      clearLeaders();
       showTooltip("", 0, 0);
       notice("");
       return;

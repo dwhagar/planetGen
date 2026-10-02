@@ -1,0 +1,2 @@
+### Fixed
+- **Every Galaxy Map stage is framed whole and fitted to the map's size (MAP.53, MAP.78).** The galaxy, an arc, a slab or a block now fills the map by its actual width and height, centred on its picture, so a bigger window shows it bigger and nothing is cut off at the edges; the view refits when the window is resized or turned, and stays whole while you turn it. Shift and the arrow keys now turn the view about the middle of what it shows, alongside dragging and a one-finger touch drag.

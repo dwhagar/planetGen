@@ -347,13 +347,19 @@ of a level-3 block.
   Inside a block, a click on a bright star or a small cloud shows it
   instead; over the whole galaxy and its quarters the stars are too
   thick for that.
-- **The slab slider (MAP.30):** while a layer is to be picked, a
-  vertical slider to the right of the map, top slab at the top, with one
-  step per slab of the view (not thirds), and under it the slab's name
-  and a bar of its generated share. Dragging it or its arrow keys dim
-  the other slabs on the map; letting go, Enter or its Open button takes
-  the slab, and hovering a slab on the map moves the slider there. At
-  other stages it says which layers the view holds. Hovering any cube
+- **The slab buttons (MAP.30, now MAP.54 and MAP.76):** while a layer
+  is to be picked, one button per slab to the right of the map (in one
+  column below it on a phone), each with its slab's name and generated
+  count, and a leader line from the button to its slab on the map,
+  redrawn whenever the view turns, zooms, pans or resizes. The buttons
+  are ordered by their slabs' height on screen so the lines don't cross
+  (on a phone the lines run up lanes along the map's right edge, nested,
+  so that column runs from the lowest slab down); a slab off the map
+  gets a line ending in an arrow at the map's edge. Hovering or focusing
+  a button lights its slab and line, clicking it takes the slab, and
+  hovering a slab on the map lights its button and line. The lines are
+  faint until lit. At other stages the box says which layers the view
+  holds. Hovering any cube
   of a slab on the map lights the whole slab and outlines it round its
   full height, at every level including the 3 by 3 by 3 view (MAP.91,
   Boss 2026-10-02). This is the paper's
@@ -758,9 +764,11 @@ onward.
 Boss asked for it on 2026-10-01 (23:53Z) and moved it into phase 0 on
 2026-10-02 (01:46Z); the arc size below is his decision of 01:53Z.
 15.1 and 15.2 are built (PR #369, with MAP.52, MAP.55 and MAP.60) and
-describe the map as it is. Still planned: the zoom lock below the arc
-(MAP.58), the turn about the arc's middle (MAP.53), framing every level
-whole (MAP.78), 15.3 and the colours of 15.4.
+describe the map as it is. 15.3 is built too (MAP.56, MAP.54 with
+MAP.76, MAP.77), and so are the turn about the middle of each view
+(MAP.53) and framing every level whole, fitted to the map's size
+(MAP.78). Still planned: the zoom lock below the arc (MAP.58), the ghost
+of the other slabs (MAP.59) and the colours of 15.4.
 
 > Redo the galactic selection, so that the galaxy map is 3D, we can
 > manipulate it. The user doesn't select an entire wedge, just a large
@@ -809,8 +817,11 @@ below it (MAP.19, section 4) until MAP.56 replaces that.
 - Clicking flies to the arc from the isometric slant, its middle
   bearing up the screen, fitted round its blocks. Its URL token is
   `a<band>.<bearing>` (for example `a1.90`); older links' quarters
-  (`q<n>`) still open. Framing every level whole (MAP.78) and turning
-  about the arc's own middle (MAP.53) are planned.
+  (`q<n>`) still open. Every level is framed whole, fitted to the map's
+  actual width and height and centred on its picture, refitted when the
+  map is resized and while the view turns (MAP.78); the view turns about
+  the middle of what it shows, by drag, a one-finger touch drag, or
+  Shift and the arrow keys (MAP.53).
 
 ### 15.3 Below the arc
 
