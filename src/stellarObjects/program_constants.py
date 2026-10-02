@@ -2596,6 +2596,24 @@ GMC_GAS_DENSITY_EXPONENT = 1.4
 """float: Molecular clouds scale with gas density to this power
 (Schmidt-Kennicutt), for GEN.10."""
 
+NEBULA_FIELD_CELL_PC = 50.0
+"""float: Edge of the galaxy's molecular cloud field cells, parsecs
+(GEN.47, `nebulaField`): each cell draws its own clouds from its own
+seed. About a cloud's own size, so a sector reads a few dozen cells."""
+
+NEBULA_FIELD_ARM_AMPLITUDE = 0.6
+"""float: The molecular gas's arm contrast, `1 + A cos(arm phase)` like
+`STELLAR_POPULATION_ARM_AMPLITUDE`: 0.6 puts four times as much gas on an
+arm's crest as midway between arms (CO arm to interarm contrasts run
+about 2 to 5; Koda et al. 2009, ApJ 700:L132)."""
+
+NEBULA_FIELD_MAX_GAS_FACTOR = 3.0
+"""float: The most molecular gas the cloud field assumes anywhere,
+relative to the solar circle's average (`nebulaField.gas_factor`). The
+young-star tracer climbs twentyfold toward the inner disk; uncapped, the
+inner galaxy would be solid cloud. At 3, an arm crest or the inner disk
+has about a quarter of its volume inside a dark cloud."""
+
 HVS_REFERENCE_RADIUS_PC = 8000.0
 """float: Galactic radius the "hypervelocity-star" density is quoted at."""
 

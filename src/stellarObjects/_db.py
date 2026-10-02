@@ -5028,10 +5028,41 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         # writer at a time does this last step, holding the lock until
         # commit; the slower part above still runs side by side.
         conn.lock_until_commit(_neighbor_lock_name(conn))
+        _insert_field_nebulae(conn, sector, sector_id)
         refresh_containment(conn, [sector_id])
         _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
+
+
+FIELD_NEBULA_MATCH_PC = 1e-6
+"""float: How close a stored nebula's center must be to a field cloud's to
+be that cloud (the field draws the same center every time; this only
+absorbs rounding)."""
+
+
+def _insert_field_nebulae(conn, sector, sector_id):
+    """
+    Stores the galaxy's molecular clouds that reach `sector`
+    (`sector.field_nebulae`, GEN.47) that no earlier sector stored: the
+    first sector saved that a cloud reaches becomes its home sector. Runs
+    under the neighbor lock, so two sectors saved at once can't both store
+    the same cloud. `insert_nebula` names each by its object ID and
+    refreshes containment in every sector it reaches.
+    """
+    for nebula, center in getattr(sector, "field_nebulae", None) or ():
+        x, y, z = center
+        pad = FIELD_NEBULA_MATCH_PC
+        stored = conn.execute(
+            "SELECT id FROM nebulae WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ?"
+            " AND center_z_pc BETWEEN ? AND ? LIMIT 1",
+            (x - pad, x + pad, y - pad, y + pad, z - pad, z + pad),
+        ).fetchone()
+        if stored is not None:
+            continue
+        placement = {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
+                     "galactic_radius_pc": math.sqrt(x * x + y * y + z * z)}
+        insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
 
 
 def _sector_object_ids(sector, galaxy_position):
