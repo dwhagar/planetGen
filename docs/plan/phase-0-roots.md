@@ -36,7 +36,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Moved to phase 0: a bug with nothing ahead of it; tile listing, before MAP.86 in the same tile files. Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) |  | Moved to phase 0 with its groundwork GEN.44 and PERF.11 (done, PR #425). Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
 
 ### Sector and system pages
@@ -92,8 +91,8 @@ Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
 #405), Generation bugs (PRs #415, #419), Routing groundwork (PR
 #427) and Galaxy Map drill-down (PRs #408, #410, #413, #422) apart
-from MAP.101. Sector stats and colors (MAP.80, MAP.86 left; GEN.44,
-PERF.11, PERF.1 done, PR #425) and MAP.101 are running. Then the
+from MAP.101. Sector stats and colors (MAP.86 left; GEN.44,
+PERF.11, PERF.1 done, PR #425; MAP.80, PR #429) and MAP.101 are running. Then the
 lanes start in the order above as a
 slot frees: Sector and
 system pages (text labels with an icon hook if UX.28's icon list is

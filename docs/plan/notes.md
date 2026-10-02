@@ -179,7 +179,7 @@ sample; deleting a sector leaves the average as it is.
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.89, MAP.71 | MAP.57, MAP.88, MAP.92 done (PR #405); MAP.89 next in phase 1. |
 | galaxystageview.js, galaxystages.js, galaxymap3d.js, galaxyblocks.js | MAP.101, MAP.86 (phase 0), MAP.95 (1), MAP.58, MAP.75, MAP.59 (2) | Follow-ups and drill-down lanes done (PRs #395, #399, #408, #410, #413, #422); MAP.86 (stats lane) next, then MAP.95 and phase 2. |
-| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 (phase 0) | In that order; any payload change bumps the tile cache. |
+| Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.86 (phase 0; MAP.80 done, PR #429) | Any payload change bumps the tile cache. |
 | bookmarks.js, nav_page.py | NAV.18, USR.7, NAV.19 | NAV.40 done (PR #399). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Later items in the engine thread. |
 | static/mapcore.js and static/mapcontrol.js | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | Built in PR #351; later map items build on them rather than copying helpers. |
