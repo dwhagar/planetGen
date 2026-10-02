@@ -69,6 +69,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) |  | galaxyGeometry.py and galaxyprisms.js; GEN.24 and MAP.85's picking use the layer test. |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) |  | galaxyViewport.py and lib/galaxymap3d.py, the tile-level code MAP.80 also changes. |
 | GEN.46 | Star system names of at most two words (bug) |  | nameUniqueness.py and _db.py name reservation; API.12 downloads the name state, so settle names first. Open question: rename existing names? |
+| NAV.38 | Every sector a straight line passes through | GEN.31 | galaxyGeometry.py with a JS twin, after GEN.31 (same file). |
 
 ### Map groundwork
 
@@ -126,13 +127,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
 
-### Routing guarantee
+### Routing groundwork
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | First in the routing thread; navGraph.build_knn_adjacency. |
-| NAV.12 | Routes always reach the nearest star they can, across any number of sectors | NAV.34 | Boss 01:53Z game mechanic: phase 0. Replaces the study's no-cap + ship-range recommendation. |
-| NAV.35 | Mark jumps through unknown space in the route | NAV.12 | Unknown space = the hop crosses an ungenerated sector. |
+| TEST.79 | Route edge cases, written before NAV.12 |  | Cases from the hop-length study's report. |
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) |  | navGraph.build_knn_adjacency; needed before NAV.12. |
 
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;

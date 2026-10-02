@@ -15,14 +15,14 @@ release is stamped.
 |---|---|
 | UX | UX.36 |
 | MAP | MAP.91 |
-| NAV | NAV.38 |
+| NAV | NAV.40 |
 | GEN | GEN.60 |
 | PERF | PERF.24 |
 | DB | DB.8 |
 | API | API.18 |
 | ADM | ADM.18 |
 | SEC | SEC.29 |
-| TEST | TEST.79 |
+| TEST | TEST.80 |
 | USR | USR.8 |
 | OPS | OPS.13 |
 | DOC | DOC.4 |
@@ -593,7 +593,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
-| NAV.12 | Routes always reach the nearest star they can, across any number of sectors | none | open |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
 | NAV.14 | One breadcrumb for every level | none | open |
 | NAV.15 | Pick mode everywhere | none | open |
@@ -616,9 +616,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
-| NAV.35 | Mark jumps through unknown space in the route | none | open |
-| NAV.36 | Unknown-space jumps drawn in glowing red | none | open |
-| NAV.37 | An optional ship range for routes (open question) | none | open |
+| NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
+| NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
+| NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
+| NAV.38 | Every sector a straight line passes through | none | open |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -730,7 +732,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
-| UX.35 | The route shown horizontally, wrapping onto several lines on narrow screens | none | open |
+| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | VIEW.1 | View from a planet (new parent) | none | open |
 | VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -900,6 +902,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | open |
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
+| TEST.79 | Route edge cases, written before NAV.12 | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
