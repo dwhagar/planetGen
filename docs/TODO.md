@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -553,7 +553,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to click on a small screen?
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ladder is arc, slab,
   segment, then slab and segment again down to a sector.
-  The slab pick keeps MAP.91's hover: the whole slab is lit and
+  The slab pick keeps MAP.91's hover (done, PR #395): the whole slab is lit and
   outlined on the map, not one cube.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
@@ -583,25 +583,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spacing study (the "Orbit spacing options" thread), which may change
   how the same map spaces orbits; whichever lands second keeps this
   fit.
-
-- [ ] **MAP.91 Hovering the map while picking a slab highlights the whole slab, not one cube**
-  Boss (2026-10-02 03:52Z): "make the interface for the 3x3 zoom levels
-  to not highlight individual cubes for the slabe selection but
-  highlight the whole slab for the slab selection whem mousing over".
-  Checked on main (after MAP.85, PR #369): in the 3 by 3 by 3 view at
-  the bottom of the ladder (`isCube` in `static/galaxystageview.js`)
-  each sector is its own choice, so hovering the map lights and
-  outlines one cube while the strip marks its slab (`applyHover`); in
-  the bigger layer picks the hovered layer stays lit but gets no
-  outline. Done: whenever the next pick is a slab (a layer pick at any
-  level, including the 3 by 3 by 3 view), hovering any cube of a slab
-  on the map lights and outlines that whole slab and fades the others,
-  the same slab the strip row marks, and a click there picks the slab;
-  a single cube is highlighted only when the pick really is one cube
-  (the sector at the end, or MAP.56's segment pick). A browser test
-  covers hover on a slab at each level. MAP.54's slab buttons, MAP.56's
-  ladder and MAP.77's slab-only lines keep this hover.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), sections 5.2 and 15.3
 
 - [ ] **MAP.92 The System Map's side panel leaves out a planet's or moon's radius and mass (bug)**
   Boss (2026-10-02 04:29Z): "Add TODO items for bugfix, planet and moon
@@ -1878,11 +1859,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wide_binary, planets) force every system in a sector or galaxy run,
   which is impractical and on some stars impossible (GEN.49).
 
-  - [ ] **GEN.51 Forcing options only for single-system generation**
-    Remove the `+x`/`-x` options from `generate.py sector` and `galaxy`,
-    keep them on `system` (and the one-off system page). A saved system
-    config or file that still carries them gets a clear message.
-
   - [ ] **GEN.52 Prevalence controls for sector and galaxy runs**
     Each former forcing option gets a prevalence setting: a percentage
     deviation from its normal probability (+50% means 1.5 times the usual
@@ -2796,7 +2772,7 @@ clears each one.
   real bug in the name collision count (`nameUniqueness.py` line 137
   rejects a count `_db.py` produced), not a timing flake, so it moves
   out of the flakes to the Binary pairs and single-system forcing lane,
-  right after GEN.51, which works in the same naming code; GEN.57 and
+  right after GEN.51 (done, PR #398), in the same naming code; GEN.57 and
   GEN.63 (phase 1) build their address-keyed and per-sector name rules
   on a count that is right.
   Root cause (naming-cost analysis thread, 2026-10-02, report

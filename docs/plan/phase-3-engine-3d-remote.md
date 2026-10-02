@@ -67,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.14 | Upload routes, compressed, in batches | API.7, API.11 |  |
 | API.8 | Verify uploaded data before it is finalized | API.11, API.14 |  |
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
-| API.3 | Remote generate: generate on a local machine, upload through the API | GEN.51, GEN.52, API.9, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
+| API.3 | Remote generate: generate on a local machine, upload through the API | GEN.52, API.9, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, GEN.57, GEN.58 |  |
 
 ### Pages
