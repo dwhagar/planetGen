@@ -166,7 +166,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | systemData.py StarSystem constructor | GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50, GEN.62, GEN.51 done (PRs #367, #373, #393, #398). |
 | planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.60, GEN.38 with class S (phase 0), GEN.33/28, GEN.27, GEN.29 | Generation bugs lane first; the classes thread in phase 1. |
 | Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; tell the other generation threads to merge main when it lands. |
-| _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.85, GEN.64 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370). |
+| _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.87, GEN.64 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370). |
 | Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13, API.9, API.15, USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.92 (phase 0), MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.92, then MAP.89 in phase 1. |
