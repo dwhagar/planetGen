@@ -91,7 +91,7 @@ MAP.79's per-kind toggles and dimming, with its three rogue planet
 subitems (dim when unmarked, the Mark button's highlight, size and
 clickability when marked). They touch `sectormap.js` and
 `lib/starmap.py`; if MAP.61 is under way, build them on the shared
-engine. MAP.81 (bookmark keys) needs Boss's pick of keys. MAP.87 (brighter dim
+engine. MAP.81 (bookmark keys) uses plain 1 to 9 while the map has focus. MAP.87 (brighter dim
 stars) is one brightness curve shared by `_star_light` in
 `lib/starmap.py` and the Galaxy Map's star points in `galaxymap3d.js`;
 it can go any time.
@@ -220,5 +220,4 @@ Each thread is briefed with its exact item IDs and takes no others.
   default), the whole center-to-edge wedge, or smaller?
 - MAP.52, MAP.53, MAP.54, MAP.55, MAP.56, MAP.58: the open questions in
   their TODO.md entries.
-- MAP.81: which bookmark keys?
 - NAV.12: the maximum hop length.
