@@ -30,7 +30,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) |  | Boss 08:08Z. slabAnchor in galaxystageview.js ends the line inside the slab; end it on the prism outline nearest the button side. |
+| MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) |  | Boss 08:08Z. slabAnchor in galaxystageview.js ends the line inside the slab; end it on the prism edge nearest the button, at that edge's point nearest the button (Boss 08:35Z). |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) |  | Boss 08:17Z. "#4 Unknown", "#2 < 0.01 % charted", "#6 ≈ 2.43% charted"; drop "generated" and x / total. |
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | MAP.100 | Boss 08:17Z. Two columns, one per side; smaller buttons on small screens; none at all if still too many. Lines still end per MAP.98; replaces the one column under 600 px. |
 
