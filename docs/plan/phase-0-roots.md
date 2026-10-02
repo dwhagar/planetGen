@@ -28,14 +28,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
 | OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
-### Binary pairs and single-system forcing
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.49 | `+habitable_world` silently fails on hot stars (bug) |  | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
-| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.49 | Same forcing code; rejected for single systems. |
-| GEN.62 | Binary star names stay within two words, and a close pair is named A and B (bug) |  | bodyNames.py binary star words. Decided (Boss 03:38Z): wide pairs drop the extra word, close pairs are <name> A / B with planets named for the system. |
-
 ### System Map
 
 | ID | Item | Needs | Note |
@@ -62,6 +54,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
+| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
+| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) |  | nameUniqueness.py:137; related to GEN.44 bands and GEN.57 names. |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
@@ -91,6 +85,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
+
+### Binary pairs and single-system forcing
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.62 | Binary star names stay within two words, and a close pair is named A and B (bug) |  | bodyNames.py binary star words. Decided (Boss 03:38Z): wide pairs drop the extra word, close pairs are <name> A / B with planets named for the system. |
 
 ### Galaxy map picker and arc
 

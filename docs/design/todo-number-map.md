@@ -22,7 +22,7 @@ release is stamped.
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.84 |
+| TEST | TEST.86 |
 | USR | USR.8 |
 | OPS | OPS.20 |
 | DOC | DOC.4 |
@@ -487,8 +487,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
-| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | open |
-| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
+| GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | done, PR #373 |
+| GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | done, PR #373 |
 | GEN.51 | Forcing options only for single-system generation | none | open |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
@@ -924,6 +924,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
+| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
+| TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
