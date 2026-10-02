@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.37 |
+| UX | UX.38 |
 | MAP | MAP.96 |
 | NAV | NAV.46 |
 | GEN | GEN.64 |
@@ -762,6 +762,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
