@@ -490,8 +490,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     territory_button = territory_box = ""
     if territory_path:
         territory_button = (
-            '  <button type="button" class="starmap-btn" data-action="territories" aria-pressed="false"\n'
-            '          title="Show which polity holds what: each one\'s reach and the systems it owns">'
+            '    <button type="button" class="starmap-btn" data-action="territories" data-icon="territories"'
+            ' aria-pressed="false"\n'
+            '            title="Show which polity holds what: each one\'s reach and the systems it owns">'
             'Territories</button>\n')
         territory_box = '<div class="galaxy-territories" id="galaxymap3d-territories" hidden></div>\n'
 
@@ -499,19 +500,18 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>Galaxy Map (3D)</h2>
-  <span class="hint">Click a quarter of the galaxy, then pick a slab (a layer of the disk) with the slider to the
-  right of the map, then click an arc of the ring band in view to zoom into it, and so on (layer, arc, layer, arc) down to single
-  sectors &middot; the whole galaxy and its quarters are seen from above; below them, drag to turn the view,
-  right-drag (or Shift-drag) to move it and scroll or pinch to zoom, and Reset view brings it back &middot; Back and Forward retrace your steps, Up (or Esc) goes one step out,
-  Whole galaxy starts over &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
-  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are colored by predicted density
-  (brighter = denser): unfilled space is see-through, and a block with generated sectors is amber, more solid the
-  more of them are generated &middot; glowing points are stars, sized by the star, colored by its temperature and
-  brighter the more luminous: the brightest (1,000 L&#9737; and up on a new galaxy) everywhere, placed before their sectors are
-  generated, and generated systems' stars fainter and fainter as you zoom in; click one (inside a quarter's block)
-  to see it &middot; wedge lines follow the
-  sector grid's master wedges (3 from the core, doubling outward), the coarsest labelled by bearing (degrees
-  counterclockwise from +X, ring slot 0)</span>
+  <span class="hint">The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or
+  pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the
+  radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or
+  with the slider to the right of the map, then a region, and so on down to single sectors &middot; Back and
+  Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and
+  Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
+  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are
+  colored by predicted density (brighter = denser): unfilled space is see-through, and a block with generated
+  sectors is amber, more solid the more of them are generated &middot; glowing points are stars, sized by the
+  star, colored by its temperature and brighter the more luminous: the brightest (1,000 L&#9737; and up on a new
+  galaxy) everywhere, placed before their sectors are generated, and generated systems' stars fainter and fainter
+  as you zoom in; click one (inside a block) to see it</span>
 </div>
 {pick_banner}{shape_hint}{course_hint}
 <form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
@@ -525,38 +525,45 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 <div class="starmap-layout">
 <div class="galaxy-map-row">
+<div class="galaxy-map-main">
 <div class="starmap-viewport">
 <canvas id="galaxymap3d-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive Galaxy Map. Arrow keys move among the parts you can pick and Enter takes
      one; slabs are also picked with the slider beside the map; Escape or Backspace goes one step back out
-     and Home returns to the whole galaxy. Below the whole galaxy and its quarters, dragging turns the
-     view and the wheel zooms."></canvas>
+     and Home returns to the whole galaxy. Dragging turns the view and the wheel zooms."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 <div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <div class="galaxy-slabs" id="galaxymap3d-slabs" role="group" aria-labelledby="galaxymap3d-slabs-heading"></div>
 </div>
-<div class="starmap-side">
-<div class="starmap-controls" id="galaxymap3d-controls">
-  <button type="button" class="starmap-btn" data-action="back" disabled>Back</button>
-  <button type="button" class="starmap-btn" data-action="forward" disabled>Forward</button>
-  <button type="button" class="starmap-btn" data-action="up" disabled
-          title="One step back out (Esc)">Up</button>
-  <button type="button" class="starmap-btn" data-action="reset" title="Back to the whole galaxy (Home)">Whole galaxy</button>
-  <button type="button" class="starmap-btn" data-action="reset-view" disabled
-          title="Back to this step's own view after turning or moving it">Reset view</button>
-  <button type="button" class="starmap-btn" data-action="wedges" aria-pressed="true">Wedges</button>
-  <button type="button" class="starmap-btn" data-action="generated-only" aria-pressed="false"
-          title="Dim every block with no generated sectors">Generated only</button>
-{territory_button}  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}">
-    <summary class="starmap-btn" title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
-    <div class="bookmarks-panel" data-bookmarks-panel></div>
-  </details>
-</div>
-{territory_box}<aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click a quarter of the galaxy to look at it more closely.</p>
+<aside class="starmap-info" id="galaxymap3d-info">
+<p class="hint">Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely.</p>
 </aside>
 </div>
+<div class="starmap-side">
+<div class="starmap-controls" id="galaxymap3d-controls">
+  <button type="button" class="starmap-btn" data-action="back" data-icon="back" disabled>Back</button>
+  <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
+  <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
+          title="One step back out (Esc)">Up</button>
+  <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
+          title="Back to the whole galaxy (Home)">Reset</button>
+  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}">
+    <summary class="starmap-btn" data-icon="bookmarks"
+             title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
+    <div class="bookmarks-panel" data-bookmarks-panel></div>
+  </details>
+  <details class="galaxy-menu" id="galaxymap3d-menu">
+    <summary class="starmap-btn" data-icon="menu" title="More map controls">Menu</summary>
+    <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
+    <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
+            title="Back to this step's own view after turning, moving or zooming it">Reset view</button>
+    <button type="button" class="starmap-btn" data-action="generated-only" data-icon="generated-only" aria-pressed="false"
+            title="Dim every block with no generated sectors">Generated only</button>
+{territory_button}    </div>
+  </details>
+</div>
+{territory_box}</div>
 </div>
 <script type="application/json" id="galaxymap3d-data">{_json_script(scene_data)}</script>
 </section>

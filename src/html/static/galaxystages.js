@@ -93,12 +93,17 @@ export function drillBlockTotal(block, outline) {
 //
 // A stage is {at, picks}: `at` is the container (null for the galaxy, or a
 // drill block {m, ring, wedge, slab} of 243, 27 or 3 sectors a side) and
-// `picks` what has been picked inside it so far, in order. Every view is
-// from straight above: there is no free camera and nothing turns (Boss,
-// MAP.17). The picks alternate, as Boss laid them out (MAP.19: "quadrant,
-// layer, region, layer, region, ..., layer, sector"):
-// - {kind: "quadrant", n}: the galaxy's first pick, a quarter of the disk
-//   (bearings n*90 to (n+1)*90 degrees);
+// `picks` what has been picked inside it so far, in order. The picks
+// alternate, as Boss laid them out (MAP.19: "arc, layer, region, layer,
+// region, ..., layer, sector"):
+// - {kind: "arc", n}: the galaxy's first pick (MAP.85), a piece of the
+//   disk about 40 degrees of bearing by a third of its radius, the whole
+//   height of the disk: arc n is radial band floor(n / ARCS_PER_TURN)
+//   (inner, middle, outer) and bearing bin n % ARCS_PER_TURN. Its blocks
+//   are the level-243 blocks whose middle bearing falls in the bin, so
+//   its sides run along their wedge lines (MAP.52);
+// - {kind: "quadrant", n}: the galaxy's first pick before MAP.85, a
+//   quarter of the disk; still read from older links, never offered;
 // - {kind: "layer", lo, hi}: the container's child slabs lo to hi -- the
 //   slice; pickOptions offers thirds while more than three are left (the
 //   keyboard and links use these), and the slab slider beside the map
@@ -115,6 +120,14 @@ export function drillBlockTotal(block, outline) {
 // Up to this many slices or arcs per pick (so a pick is at least about a
 // ninth of the view: big targets, MAP.19).
 export const PICK_SPLIT = 3;
+// The galaxy's arcs (MAP.85): this many bearing bins a turn, in
+// ARC_BANDS bands of radius. 8 bins (45 degrees) is the count nearest
+// Boss's 40 degrees whose lines are wedge lines of every level-243 block
+// ring past the core (their wedge counts are multiples of 8), so an arc's
+// sides are straight lines from its inner edge to its outer one.
+export const ARCS_PER_TURN = 8;
+export const ARC_BANDS = 3;
+const ARC_BAND_NAMES = ["inner", "middle", "outer"];
 
 const TWO_PI = 2 * Math.PI;
 const childCache = new WeakMap();
@@ -224,15 +237,15 @@ function containerView(at, outline, edgePc) {
     a0 = b.t0;
     a1 = b.t1;
   }
-  return { at: at, blocks: blocks, a0: a0, a1: a1, hadQuadrant: false };
+  return { at: at, blocks: blocks, a0: a0, a1: a1, hadFirstPick: false };
 }
 
-// What can be picked next in `view` after `picks`: "quadrant", "layer",
+// What can be picked next in `view` after `picks`: "arc", "layer",
 // "region", or null when one block (of one slab) is left.
 export function nextPickKind(view, picks) {
   const slabs = slabsOf(view.blocks).length;
   const columns = columnsOf(view.blocks).size;
-  if (!view.at && !view.hadQuadrant && columns > 1) return "quadrant";
+  if (!view.at && !view.hadFirstPick && columns > 1) return "arc";
   const last = picks.length ? picks[picks.length - 1].kind : null;
   if (last !== "layer" && slabs > 1) return "layer";
   if (columns > 1) return "region";
@@ -267,8 +280,15 @@ export function pickOptions(view, kind) {
   });
   let widest = 0;
   perRing.forEach(function (n) { widest = Math.max(widest, n); });
-  const bands = kind === "quadrant" ? 1 : Math.min(PICK_SPLIT, rings.length);
-  const arcs = kind === "quadrant" ? 4 : Math.min(PICK_SPLIT, widest);
+  let bands = Math.min(PICK_SPLIT, rings.length);
+  let arcs = Math.min(PICK_SPLIT, widest);
+  if (kind === "quadrant") {
+    bands = 1;
+    arcs = 4;
+  } else if (kind === "arc") {
+    bands = Math.min(ARC_BANDS, rings.length);
+    arcs = ARCS_PER_TURN;
+  }
   const span = view.a1 - view.a0;
   const byOption = new Map();
   view.blocks.forEach(function (block) {
@@ -309,6 +329,74 @@ function blockSpan(blocks, mid) {
   return { a0: a0, a1: Math.min(a1, a0 + TWO_PI) };
 }
 
+// The boundary of the area `blocks` cover in the plane, as edges that
+// all lie on the blocks' own sides (so a highlight starts and ends on
+// real wedge lines, MAP.52): {radial: [{t, r0, r1}], circles: [{r, t0,
+// t1}]}, bearings in radians measured within half a turn of `mid`. A
+// side two blocks share is left out: radial edges at the ends of each
+// ring's runs of blocks, and along each ring boundary the bearings
+// covered on one side of it but not the other.
+export function outlineEdges(blocks, mid) {
+  const eps = 1e-9;
+  const rings = new Map();
+  blocks.forEach(function (block) {
+    const b = block.bounds;
+    const key = b.r0 + "/" + b.r1;
+    if (!rings.has(key)) rings.set(key, { r0: b.r0, r1: b.r1, spans: [] });
+    const t0 = mid + ((((b.t0 - mid + Math.PI) % TWO_PI) + TWO_PI) % TWO_PI) - Math.PI;
+    rings.get(key).spans.push([t0, t0 + (b.t1 - b.t0)]);
+  });
+  const radial = [];
+  // Per radius: the bearings covered just inside it and just outside it.
+  const atRadius = new Map();
+  function side(r, which, spans) {
+    if (!atRadius.has(r)) atRadius.set(r, { inside: [], outside: [] });
+    Array.prototype.push.apply(atRadius.get(r)[which], spans);
+  }
+  rings.forEach(function (ring) {
+    const runs = mergeSpans(ring.spans, eps);
+    runs.forEach(function (run) {
+      if (run[1] - run[0] >= TWO_PI - eps) return;
+      radial.push({ t: run[0], r0: ring.r0, r1: ring.r1 });
+      radial.push({ t: run[1], r0: ring.r0, r1: ring.r1 });
+    });
+    side(ring.r1, "inside", runs);
+    side(ring.r0, "outside", runs);
+  });
+  const circles = [];
+  atRadius.forEach(function (sides, r) {
+    if (r <= eps) return;
+    spanXor(mergeSpans(sides.inside, eps), mergeSpans(sides.outside, eps), eps).forEach(function (span) {
+      circles.push({ r: r, t0: span[0], t1: span[1] });
+    });
+  });
+  return { radial: radial, circles: circles };
+}
+
+// [t0, t1] spans joined where they touch or overlap, in order.
+function mergeSpans(spans, eps) {
+  const sorted = spans.slice().sort(function (p, q) { return p[0] - q[0]; });
+  const out = [];
+  sorted.forEach(function (span) {
+    const last = out[out.length - 1];
+    if (last && span[0] <= last[1] + eps) last[1] = Math.max(last[1], span[1]);
+    else out.push([span[0], span[1]]);
+  });
+  return out;
+}
+
+// The bearings in exactly one of two merged span lists, merged.
+function spanXor(a, b, eps) {
+  const cuts = distinct([].concat.apply([], a.concat(b)));
+  const inside = function (list, t) { return list.some(function (s) { return t > s[0] && t < s[1]; }); };
+  const out = [];
+  for (let k = 0; k + 1 < cuts.length; k++) {
+    const t = (cuts[k] + cuts[k + 1]) / 2;
+    if (cuts[k + 1] - cuts[k] > eps && inside(a, t) !== inside(b, t)) out.push([cuts[k], cuts[k + 1]]);
+  }
+  return mergeSpans(out, eps);
+}
+
 // `view` after `pick`, or null when the pick isn't one it could take.
 // A layer pick may name any range of the view's slabs that narrows it
 // (an older ?slab= link names one slab of nine).
@@ -317,17 +405,18 @@ function applyPick(view, pick) {
     const slabs = slabsOf(view.blocks);
     const blocks = view.blocks.filter(function (b) { return b.slab >= pick.lo && b.slab <= pick.hi; });
     if (!(pick.lo <= pick.hi) || slabs.length < 2 || !blocks.length) return null;
-    return { at: view.at, blocks: blocks, a0: view.a0, a1: view.a1, hadQuadrant: view.hadQuadrant };
+    return { at: view.at, blocks: blocks, a0: view.a0, a1: view.a1, hadFirstPick: view.hadFirstPick };
   }
-  if (pick.kind === "quadrant" && (view.at || view.hadQuadrant)) return null;
+  if ((pick.kind === "arc" || pick.kind === "quadrant") && (view.at || view.hadFirstPick)) return null;
   if (pick.kind === "region" && columnsOf(view.blocks).size < 2) return null;
   const option = pickOptions(view, pick.kind).find(function (o) { return o.pick.n === pick.n; });
   if (!option) return null;
-  return { at: view.at, blocks: option.blocks, a0: option.a0, a1: option.a1, hadQuadrant: true };
+  return { at: view.at, blocks: option.blocks, a0: option.a0, a1: option.a1, hadFirstPick: true };
 }
 
 function pickText(pick) {
   if (pick.kind === "layer") return "layer " + (pick.lo === pick.hi ? pick.lo : pick.lo + " to " + pick.hi);
+  if (pick.kind === "arc") return "arc " + pickToken(pick).slice(1);
   return pick.kind + " " + pick.n;
 }
 
@@ -535,15 +624,27 @@ export function parseAddress(text, edgePc) {
 
 // --- URLs ---------------------------------------------------------------------
 
-// A pick as it reads in a URL: "q1" (quadrant), "r4" (region), "L-1"
-// (one slab or layer) or "L-4~-2" (a range of them).
+// A pick as it reads in a URL: "a1.90" (the arc of band 1, the middle
+// third, starting at bearing 90 degrees), "r4" (region), "L-1" (one slab
+// or layer) or "L-4~-2" (a range of them); "q1" (quadrant) from older
+// links.
 export function pickToken(pick) {
   if (pick.kind === "layer") return "L" + pick.lo + (pick.hi === pick.lo ? "" : "~" + pick.hi);
+  if (pick.kind === "arc") {
+    const band = Math.floor(pick.n / ARCS_PER_TURN);
+    return "a" + band + "." + ((pick.n % ARCS_PER_TURN) * 360) / ARCS_PER_TURN;
+  }
   return (pick.kind === "quadrant" ? "q" : "r") + pick.n;
 }
 
 export function parsePickToken(token) {
-  let match = /^([qr])(\d+)$/.exec(token);
+  let match = /^a(\d+)\.(\d+)$/.exec(token);
+  if (match) {
+    const bin = (Number(match[2]) * ARCS_PER_TURN) / 360;
+    if (!Number.isInteger(bin) || bin >= ARCS_PER_TURN) return null;
+    return { kind: "arc", n: Number(match[1]) * ARCS_PER_TURN + bin };
+  }
+  match = /^([qr])(\d+)$/.exec(token);
   if (match) return { kind: match[1] === "q" ? "quadrant" : "region", n: Number(match[2]) };
   match = /^L(-?\d+)(?:~(-?\d+))?$/.exec(token);
   if (match) return { kind: "layer", lo: Number(match[1]), hi: Number(match[2] != null ? match[2] : match[1]) };
@@ -630,9 +731,12 @@ export function slabLayers(at, slab) {
 // Bearings a0 to a1 as "92°–97°" ("92.5°–93.1°" for a narrow arc).
 export function arcLabel(a0, a1) {
   const narrow = ((a1 - a0) * 180) / Math.PI < 10;
+  // A bearing a hair under 0 (a block edge after floating-point sums)
+  // reads 0, not 360.
   const deg = function (rad) {
     const d = (((rad * 180) / Math.PI) % 360 + 360) % 360;
-    return narrow ? d.toFixed(1) : String(Math.round(d) % 360);
+    const text = narrow ? d.toFixed(1) : String(Math.round(d) % 360);
+    return Number(text) >= 360 ? (narrow ? "0.0" : "0") : text;
   };
   const end = a1 - a0 >= TWO_PI - 1e-9 || Number(deg(a1)) === 0 ? "360" : deg(a1);
   return deg(a0) + "°–" + end + "°";
@@ -643,6 +747,10 @@ export function pickLabel(pick, at, view) {
   if (pick.kind === "layer") {
     const noun = slabNoun(at);
     return pick.lo === pick.hi ? noun + " " + pick.lo : noun + "s " + pick.lo + " to " + pick.hi;
+  }
+  if (pick.kind === "arc") {
+    const band = ARC_BAND_NAMES[Math.floor(pick.n / ARCS_PER_TURN)];
+    return "Arc " + arcLabel(view.a0, view.a1) + (band ? " (" + band + ")" : "");
   }
   return (pick.kind === "quadrant" ? "Quarter " : "Arc ") + arcLabel(view.a0, view.a1);
 }

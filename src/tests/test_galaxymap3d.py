@@ -93,12 +93,13 @@ def test_view_radius_bounds_max_is_always_well_past_min():
 def test_panel_includes_the_canvas_and_controls():
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
     assert 'id="galaxymap3d-canvas"' in html
-    # Seen from above only (MAP.17): Back, Forward, Up and Whole galaxy,
-    # no zoom buttons and no free camera.
+    # Back, Forward, Up, Reset and Bookmarks in the row; the rest in the
+    # Menu (MAP.55). No zoom buttons, no Wedges button (MAP.85).
     for action in ("back", "forward", "up", "reset", "reset-view"):
         assert f'data-action="{action}"' in html
-    for gone in ("zoom-in", "zoom-out", "free-look", "slice"):
+    for gone in ("zoom-in", "zoom-out", "free-look", "slice", "wedges"):
         assert f'data-action="{gone}"' not in html
+    assert ">Whole galaxy<" not in html
     assert 'id="galaxymap3d-info"' in html
     # The drill-down's breadcrumb, slab strip, tooltip and toggles.
     for element in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
@@ -106,6 +107,26 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="territories"' in html
     assert 'id="galaxymap3d-territories"' in html
     assert 'data-action="generated-only"' in html
+
+
+def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
+    """MAP.55: Back, Forward, Up, Reset and Bookmarks stay in view; Reset
+    view, Generated only and Territories are in the Menu; every control
+    names its icon for later (UX.28); the info panel sits in the map's
+    row, beside the slab slider."""
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
+    controls = html[html.index('id="galaxymap3d-controls"'):]
+    row, menu = controls.split('id="galaxymap3d-menu"', 1)
+    for action in ("back", "forward", "up", "reset"):
+        assert f'data-action="{action}"' in row
+    assert "data-bookmarks-menu" in row
+    for action in ("reset-view", "generated-only", "territories"):
+        assert f'data-action="{action}"' not in row
+        assert f'data-action="{action}"' in menu
+    for icon in ("back", "forward", "up", "reset", "bookmarks", "menu", "reset-view", "generated-only"):
+        assert f'data-icon="{icon}"' in controls
+    map_row = html[html.index('class="galaxy-map-row"'):html.index('class="starmap-side"')]
+    assert 'id="galaxymap3d-slabs"' in map_row and 'id="galaxymap3d-info"' in map_row
 
 
 def test_panel_leaves_territories_out_when_there_are_none():

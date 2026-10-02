@@ -36,7 +36,7 @@ function makeBlockMesh(part, translucent) {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(part.positions, 3));
   geometry.setIndex(new THREE.BufferAttribute(part.indices, 1));
-  const material = new THREE.ShaderMaterial({ uniforms: { fade: { value: 1 } }, transparent: translucent });
+  const material = new THREE.ShaderMaterial({ uniforms: { fade: { value: 1 }, gridEdges: { value: 1 } }, transparent: translucent });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.frustumCulled = false;
   mesh.userData.part = part;
@@ -101,7 +101,6 @@ function open(href, options) {
         return Promise.reject(err);
       }
     },
-    setBlockSize: (m) => calls.sizes.push(m),
     showBlockInfo: (info) => calls.blockInfo.push(info),
     showPlacedInfo: (entry) => calls.placed.push(entry),
     showCellInfo: (cell) => calls.cells.push(cell),
@@ -150,7 +149,6 @@ function wire(m, extra) {
     stageView: m.view,
     setTerritories() {},
     territoriesWanted: () => false,
-    wedgeGroup: { visible: true },
   }, extra || {});
   G3.wireMapControls(m.els.controls, G3.mapControlHandlers(ctx));
   return ctx;
@@ -230,13 +228,45 @@ test("every control button the panel draws has a handler", () => {
   }
 });
 
+test("the panel has no Wedges or Whole galaxy button (MAP.55, MAP.85)", () => {
+  const actions = F.galaxyControls.public.concat(F.galaxyControls.admin);
+  assert.equal(actions.includes("wedges"), false);
+  for (const action of ["back", "forward", "up", "reset", "reset-view", "generated-only"]) {
+    assert.ok(actions.includes(action), action);
+  }
+});
+
+test("Escape or a press outside closes the controls' Menu", () => {
+  installDom("http://localhost/galaxy");
+  const summary = h("summary", {}, "Menu");
+  const inside = h("button", { "data-action": "reset-view" });
+  const menu = h("details", {}, [summary, h("div", {}, [inside])]);
+  document.body.append(menu);
+  G3.wireMapMenu(menu);
+  menu.open = true;
+  const other = new FakeEvent("keydown", { key: "a", bubbles: true });
+  inside.dispatchEvent(other);
+  assert.equal(menu.open, true);
+  const escape = new FakeEvent("keydown", { key: "Escape", bubbles: true });
+  inside.dispatchEvent(escape);
+  assert.equal(menu.open, false);
+  assert.ok(escape.defaultPrevented);
+  assert.equal(document.activeElement, summary);
+  // A press inside leaves it open; one anywhere else closes it.
+  const outside = h("p");
+  document.body.append(outside);
+  menu.open = true;
+  inside.dispatchEvent(new FakeEvent("pointerdown", { bubbles: true }));
+  assert.equal(menu.open, true);
+  outside.dispatchEvent(new FakeEvent("pointerdown", { bubbles: true }));
+  assert.equal(menu.open, false);
+});
+
 test("the toggle buttons flip aria-pressed and what they control", () => {
   installDom("http://localhost/galaxy");
   const calls = [];
-  const wedgeGroup = { visible: true };
   let wanted = false;
   const controls = h("div", {}, [
-    h("button", { "data-action": "wedges", "aria-pressed": "true" }),
     h("button", { "data-action": "generated-only", "aria-pressed": "false" }),
     h("button", { "data-action": "territories", "aria-pressed": "false" }),
     h("button", { "data-action": "no-such-action" }),
@@ -245,14 +275,8 @@ test("the toggle buttons flip aria-pressed and what they control", () => {
     stageView: { setGeneratedOnly: (on) => calls.push(["generated-only", on]) },
     setTerritories: (on, btn) => { calls.push(["territories", on, btn.dataset.action]); wanted = on; },
     territoriesWanted: () => wanted,
-    wedgeGroup,
   }));
-  const [wedges, only, territories, unknown] = controls.children;
-  wedges.click();
-  assert.equal(wedgeGroup.visible, false);
-  assert.equal(wedges.getAttribute("aria-pressed"), "false");
-  wedges.click();
-  assert.equal(wedgeGroup.visible, true);
+  const [only, territories, unknown] = controls.children;
   only.click();
   assert.equal(only.getAttribute("aria-pressed"), "true");
   only.click();
@@ -271,11 +295,45 @@ test("opens on the whole galaxy with nothing to go back to", async () => {
   assert.equal(button(m, "back").disabled, true);
   assert.equal(button(m, "forward").disabled, true);
   assert.equal(button(m, "up").disabled, true);
-  assert.equal(button(m, "reset-view").disabled, true, "the whole galaxy can't be turned");
+  assert.equal(button(m, "reset-view").disabled, false, "the whole galaxy turns (MAP.85)");
   assert.equal(m.calls.fetches[0], "", "the galaxy's own counts");
   const cam = lastCamera(m);
-  assert.ok(cam.phi < 0.01, "straight from above");
-  assert.equal(m.view.onWheel(new FakeEvent("wheel", { deltaY: 100 })), false, "the wheel scrolls the page");
+  assert.ok(Math.abs(cam.phi - SV.GALAXY_TILT) < 1e-12, "tilted, so the disk reads in 3D");
+});
+
+// Every drawn block mesh's gridEdges uniform.
+function gridEdges(m) {
+  const values = [];
+  m.host.scene.traverse((object) => {
+    if (object.isMesh && object.material.uniforms && object.material.uniforms.gridEdges) {
+      values.push(object.material.uniforms.gridEdges.value);
+    }
+  });
+  return Array.from(new Set(values));
+}
+
+test("the whole galaxy has no grid lines; an arc's blocks have theirs (MAP.85)", async () => {
+  const m = await start();
+  assert.deepEqual(gridEdges(m), [0]);
+  await drillOnce(m);
+  assert.equal(m.view.stage().picks[0].kind, "arc");
+  assert.deepEqual(gridEdges(m), [1]);
+});
+
+test("the whole galaxy turns and zooms in to half its fit, never out past it", async () => {
+  const m = await start();
+  const fit = lastCamera(m);
+  const wheel = (deltaY, deltaMode) => m.view.onWheel(new FakeEvent("wheel", { deltaY, deltaMode: deltaMode || 0 }));
+  assert.equal(wheel(100), true, "the wheel zooms");
+  assert.ok(Math.abs(lastCamera(m).dist - fit.dist) < 1e-9 * fit.dist, "no further out than the fit");
+  for (let n = 0; n < 100; n++) wheel(-3, 1);
+  assert.ok(Math.abs(lastCamera(m).dist - fit.dist * SV.GALAXY_MIN_ZOOM) < 1e-6 * fit.dist, "twice as close at most");
+  m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
+  m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 480, clientY: 260, pointerId: 1, pointerType: "mouse" }));
+  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 480, clientY: 260, pointerId: 1, button: 0, pointerType: "mouse" }));
+  const turned = lastCamera(m);
+  assert.ok(Math.abs(turned.theta - fit.theta) > 0.1 && Math.abs(turned.phi - fit.phi) > 0.05, "dragging turns and tilts it");
+  assert.deepEqual(m.view.stage(), { at: null, picks: [] }, "a drag picks nothing");
 });
 
 test("each step down by keyboard pushes a history entry and a breadcrumb", async () => {
@@ -285,7 +343,10 @@ test("each step down by keyboard pushes a history entry and a breadcrumb", async
     if (!(await drillOnce(m))) break;
     seen.push(m.view.stage());
     assert.equal(m.win.location.search, S.stageQuery(m.view.stage()), "the URL names the stage");
-    assert.deepEqual(crumbLabels(m), expectedCrumbs(m));
+    // A sector picked in a cube of them is selected too, after the stage.
+    const labels = crumbLabels(m);
+    if (labels[labels.length - 1].startsWith("Sector ")) labels.pop();
+    assert.deepEqual(labels, expectedCrumbs(m));
     assert.equal(m.win.history.length, seen.length + 1);
     assert.equal(button(m, "back").disabled, false);
     assert.equal(button(m, "up").disabled, false);
@@ -476,18 +537,11 @@ test("the address bar looks names up: one match flies there, several are listed"
 
 async function freeStage() {
   const m = await start();
-  // A quarter (and a layer of it) is slanted but fixed; the first arc
-  // picked in it is free.
+  // An arc of the galaxy, seen at the isometric slant.
   await drillOnce(m);
-  assert.ok(lastCamera(m).phi > 0.5, "a quarter is seen at a slant");
-  assert.equal(button(m, "reset-view").disabled, true, "a quarter can't be turned");
-  assert.equal(m.view.onWheel(new FakeEvent("wheel", { deltaY: 100 })), false);
-  await drillOnce(m);
-  assert.equal(m.view.stage().picks[1].kind, "layer");
-  assert.equal(button(m, "reset-view").disabled, true);
-  await drillOnce(m);
-  assert.equal(m.view.stage().picks[2].kind, "region");
-  assert.equal(button(m, "reset-view").disabled, false, "an arc can");
+  assert.equal(m.view.stage().picks[0].kind, "arc");
+  assert.ok(Math.abs(lastCamera(m).phi - SV.ISO_TILT) < 1e-12, "an arc is seen at a slant");
+  assert.equal(button(m, "reset-view").disabled, false);
   return m;
 }
 
@@ -588,21 +642,45 @@ function clickAt(m, x, y, pointerType) {
   m.view.onPointerUp(new FakeEvent("pointerup", base));
 }
 
-test("clicking a quarter on the map drills into it", async () => {
+test("clicking an arc on the map drills into it", async () => {
   const m = await start();
-  const spot = pointOver(m, /^Quarter /);
-  assert.ok(spot, "some quarter shows a tooltip under the pointer");
+  const spot = pointOver(m, /^Arc /);
+  assert.ok(spot, "some arc shows a tooltip under the pointer");
   clickAt(m, spot.x, spot.y);
   await arrive(m);
   const stage = m.view.stage();
   assert.equal(stage.picks.length, 1);
-  assert.equal(stage.picks[0].kind, "quadrant");
+  assert.equal(stage.picks[0].kind, "arc");
   assert.ok(spot.text.startsWith(crumbLabels(m)[1]), `${spot.text} vs ${crumbLabels(m)}`);
+  assert.match(m.win.location.search, /^\?p=a[0-2]\.\d+$/, "the URL names the arc by band and bearing");
+});
+
+// The outline lines drawn over the map: [opacity, line count].
+function outlines(m) {
+  const found = [];
+  m.host.scene.traverse((object) => {
+    if (object.isLineSegments) found.push(object.material.opacity);
+  });
+  return found.sort((p, q) => q - p);
+}
+
+test("hovering an arc outlines it, its neighbors faintly, and nothing else (MAP.85)", async () => {
+  const m = await start();
+  assert.deepEqual(outlines(m), [], "nothing is outlined until the pointer is over an arc");
+  const spot = pointOver(m, / \(middle\),/);
+  assert.ok(spot, "a middle arc under the pointer");
+  const lines = outlines(m);
+  assert.equal(lines[0], 1, "the arc itself in full");
+  // Either side in its band, and the arcs in and out of it.
+  assert.equal(lines.length, 5, String(lines));
+  assert.ok(lines.slice(1).every((opacity) => opacity > 0 && opacity < 1), "its neighbors faintly");
+  m.view.onPointerLeave();
+  assert.deepEqual(outlines(m), []);
 });
 
 test("on touch, the first tap highlights and the second takes it", async () => {
   const m = await start();
-  const spot = pointOver(m, /^Quarter /);
+  const spot = pointOver(m, /^Arc /);
   m.view.onPointerLeave();
   clickAt(m, spot.x, spot.y, "touch");
   await arrive(m);

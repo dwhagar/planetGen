@@ -1894,26 +1894,41 @@ code {
 /* MAP.30: the map is 4:3 (wider than tall) and no taller than the window
    under the header; 1:1 on a phone. The slab slider sits to its right in
    a narrow column of fixed width, so the map doesn't move as stages
-   change. */
+   change. MAP.55: the info panel (a picked sector's address and
+   designation) sits beside the slab slider when the row has room for it,
+   and wraps below the map when it hasn't. */
 .galaxymap3d-panel .galaxy-map-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: center;
   gap: 0.75rem;
   min-width: 0;
 }
 
-.galaxymap3d-panel .starmap-viewport {
-  flex: 0 1 auto;
+.galaxymap3d-panel .galaxy-map-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
   min-width: 0;
-  width: min(100%, calc((100vh - 9rem) * 4 / 3));
-  width: min(100%, calc((100svh - 9rem) * 4 / 3));
+  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3 + 7.25rem));
+}
+
+@media (max-width: 599px) {
+  .galaxymap3d-panel .galaxy-map-main {
+    flex-basis: 100%;
+  }
+}
+
+.galaxymap3d-panel .starmap-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
   aspect-ratio: 4 / 3;
 }
 
 @media (max-width: 599px) {
   .galaxymap3d-panel .starmap-viewport {
-    width: min(100%, calc(100svh - 9rem));
     aspect-ratio: 1 / 1;
   }
 }
@@ -1933,8 +1948,69 @@ code {
 }
 
 .galaxymap3d-panel .starmap-info {
-  flex: 1 1 20rem;
+  flex: 1 1 16rem;
   min-width: 0;
+}
+
+/* MAP.60: the Galaxy Map's one scale line wraps on a phone instead of
+   running off the map. */
+#galaxymap3d-scale {
+  max-width: calc(100% - 1.5rem);
+}
+
+#galaxymap3d-scale .starmap-scale-label {
+  white-space: normal;
+}
+
+/* MAP.55: the controls row keeps Back, Forward, Up, Reset and Bookmarks
+   in view; everything else is in the Menu, which drops down over the
+   page under its button, so opening it moves nothing. Each control
+   carries data-icon, for icons in place of the words later (UX.28). */
+.galaxy-menu {
+  position: relative;
+}
+
+.galaxy-menu > summary {
+  list-style: none;
+  display: inline-block;
+}
+
+.galaxy-menu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.galaxy-menu > summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.galaxy-menu[open] > summary {
+  border-color: var(--accent);
+}
+
+.galaxy-menu-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  width: max-content;
+  max-width: calc(100vw - 2rem);
+  margin-top: 0.4rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.galaxy-menu-panel .starmap-btn[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
 }
 
 .galaxymap3d-tooltip {
