@@ -66,6 +66,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) |  | jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
 
 ### Page groundwork and small page bugs
 
