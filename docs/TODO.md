@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | GEN.39, GEN.49, GEN.50, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | GEN.39, GEN.49, GEN.50, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -338,7 +338,10 @@ with `clamp()`.
   (visible tooltip, `aria-label`, 44 px touch target on coarse
   pointers, a text label kept where an icon alone is unclear); Boss
   approves the list, then the changes are filed as their own items or
-  folded into UX.25, UX.26, UX.27 and MAP.55.
+  folded into UX.25, UX.26 and UX.27. MAP.55 (done, PR #369) shipped the
+  Galaxy Map buttons (Back, Forward, Up, Reset, Bookmarks, Menu) as text
+  labels with a hook for icons, so the survey covers them and swapping
+  in icons there is a small follow-up.
 
 - [ ] **UX.29 Every comet in a system shows its type as a link (bug)**
   Boss (2026-10-01 23:53Z): "Comets in a star system some show the type
@@ -414,49 +417,6 @@ with `clamp()`.
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
-- [ ] **MAP.52 Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug)**
-  Boss (2026-10-01 19:35Z): "galaxy map still doesn't highlight
-  correctly. highlights should be tween valid beginning and end points,
-  adjust the quadrant philosophy to selecting a wedge of the galaxy in
-  40 degree arcs and not set, the cursor point will be the center of
-  the arc, so it will always be +/- 20 degrees from the cursor's
-  merdidian snapped to the available meridians from the center that go
-  from the center to the edge." Today the first pick on the Galaxy Map
-  is a fixed quarter of the disk (`galaxystages.js`, `kind:
-  "quadrant"`, four arcs, MAP.19), later picks are fixed regions, and
-  the hover highlight (`galaxystageview.js`) can start or end where no
-  wedge line is. Done: the first pick is a 40-degree wedge centered on
-  the cursor's angle from the galaxy's center, running from the center
-  to the edge, its two sides snapped to the nearest meridians (the
-  wedge lines that run from the center to the edge, MAP.42 to MAP.44);
-  the highlight always starts and ends on such valid lines and follows
-  the cursor as it moves; clicking zooms to that wedge (the wedge zoom
-  of PR #243) with no gaps between blocks (PR #224); the URL and the
-  breadcrumb label name the wedge by its angles rather than "Quarter
-  n". Boss (19:37Z): "Doesn't have to be +/- 20 so long as it fits
-  into the wedge from center (ring 1) to edge." So 40 degrees is the
-  target, not an exact width: the wedge snaps to lines that run all the
-  way from ring 1 to the edge, and may come out a little wider or
-  narrower. Open questions: how snapping works where meridians stop
-  short of ring 1 (the inner rings have fewer slots); do the later
-  picks (regions inside the wedge) follow the same cursor-centered
-  rule?
-  Order (pre-planning thread): These nine all change
-  `galaxystageview.js` and `galaxystages.js`, so they suit one build
-  thread in this order: MAP.60 (scale line) and MAP.55 (buttons into a
-  menu) first (small, and they free space); MAP.52 (the 40-degree
-  wedge); MAP.56 (drop the 3x3 pick); MAP.53 (rotate and fit); MAP.58
-  (zoom limits); MAP.54 (slab buttons and leader lines); MAP.59 (ghost,
-  mini map, header). MAP.57 (System Map NaN) is independent. MAP.61's
-  first two sub-items (shared helpers, one camera controller) should
-  come before or with MAP.53 and MAP.58, which add camera rules.
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the first pick is an arc,
-  not a whole wedge from the center to the edge: the 40-degree width and
-  meridian snapping here still apply to its bearing, and it is also
-  bounded in radius; the highlight shows the arc and its neighbors'
-  boundaries only.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
 - [ ] **MAP.53 Rotate a zoomed-in wedge, and zoom it to fit the window (bug)**
   Boss (2026-10-01 19:40Z): "allow the user to rotate the galaxy wedge
   around once it's zoomed into the wedge and zoom in more based on
@@ -506,26 +466,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     ordering the buttons by the slabs' screen height; a phone layout
     with the buttons in one column below the map. Picks MAP.54's
     defaults for its open questions.
-
-- [ ] **MAP.55 Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing**
-  Boss (2026-10-01 19:44Z): "the button row in the galaxy view should
-  be under a menu except for back, forward, up, and reset. Reset and
-  whole galaxy do the same thing. Remove the wedges button entirely,
-  and bookmarks should be next to the back, forward, up, reset, and
-  bookmarks. Sector sell should go next to the galaxy map if there's
-  room right next to the slab buttons." Today the Galaxy Map's controls
-  (`galaxystageview.js`, `galaxymap3d.js`) are one row of buttons.
-  Done: only back, forward, up, reset and the bookmark button stay in
-  view, in that row; every other control moves into one menu button
-  beside them (keyboard and screen-reader friendly); "Whole galaxy" is
-  removed, since reset does the same; the Wedges button is removed
-  entirely; the "Sector cell" info panel (`#galaxymap3d-info`, showing
-  a picked sector's address and designation) sits beside the map next
-  to the slab buttons (MAP.54) when there is room, and below the map
-  when there isn't. Ties in with UX.21 (overlapping buttons). Open
-  question: what is in the menu and in what order?
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the wedge lines go entirely
-  (no sector lines on the galaxy), as well as the Wedges button.
 
 - [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
   Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
@@ -745,16 +685,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     own renderer (one WebGL context, scissored like the System Map's
     sphere overlay).
 
-- [ ] **MAP.60 Galaxy Map scale readout: one scale line**
-  Boss (2026-10-01 20:50Z): "I want to trim the scale information from
-  the galactic map so that it just has one scale line." Today the
-  readout under the Galaxy Map (`updateScaleBar` in `galaxymap3d.js`,
-  `#galaxymap3d-scale`) stacks three lines: "1 px ≈" (what one screen
-  pixel spans), "1 block =" (the size of one drawn block) and a scale
-  bar of about 70 px with its length. Done: only the scale bar and its
-  length remain, on one line, in the map's chosen units (sectors and pc
-  or ly, as now).
-
 - [ ] **MAP.61 One map engine and control set for the Galaxy Map and the Sector Map**
   Boss (2026-10-01 20:55Z): "unify the sector view with the galactic
   view so it's all the same code and control set, because right now
@@ -919,39 +849,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the Sector Map shows them; the thinning only applies farther out.
   Ties in with MAP.66 (the sector as the drill-down's last stage).
   Boss (21:17Z) confirmed it is a fix: "fix it".
-
-- [ ] **MAP.85 The galaxy pick is an arc, on a 3D galaxy with no sector lines**
-  Boss (2026-10-01 23:53Z): "Redo the galactic selection, so that the
-  galaxy map is 3D, we can manipulate it. The user doesn't select an
-  entire wedge, just a large arc, then zoom in to select slab, and go
-  from there. (edit all other TODO's about galactic interface to match
-  this). Don't show any sector lines at so that the star map really
-  comes through and the spiral pattern. When the user mouses over an
-  arc they can select (each arc goes from top to bottom so slab of that
-  we'll do in the next part) then they can see it's boundaries and the
-  boundaries of the other segments." Today the first pick is a quarter
-  of the disk (MAP.52 would make it a 40-degree wedge from the center to
-  the edge), the map draws the wedge lines of the sector grid with
-  bearing labels (`galaxymap3d.js`, the "Wedges" toggle), and every
-  block is a shaded prism. Done:
-  - The whole-galaxy view is a 3D galaxy the user can turn and tilt
-    (rotation as MAP.53, zoom as MAP.58), drawn as its stars and spiral
-    structure with no sector, block or wedge lines.
-  - The first pick is an arc: a large piece of the disk bounded by
-    bearing and by distance from the center, running the full height of
-    the disk from top to bottom. Hovering shows the arc under the cursor
-    with its boundary, and the boundaries of the neighboring arcs
-    faintly; nothing else is outlined.
-  - Clicking zooms to the arc (fitted to the window, MAP.78), where the
-    user picks a slab (a height band of the arc, MAP.54 and MAP.59),
-    then a segment of the slab (MAP.56), and on down to a sector.
-  Default taken: an arc spans about 40 degrees of bearing (MAP.52's
-  width, snapped to the grid's meridians) and a third of the disk's
-  radius (inner, middle or outer), so the disk has about 27 arcs.
-  Decided (Boss, 2026-10-02 01:53Z): this default. The other
-  galaxy-map items carry an "Arc pick (MAP.85)" note saying how this
-  changes them.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.86 Sector and block colors from what is in them: filled sectors translucent (bug)**
   Boss (2026-10-01 23:53Z): "Filled in sectors should be translucent,
@@ -2585,6 +2482,14 @@ clears each one.
   2026-10-02). Physics area. Done: the failing case is found (loop the
   test over seeds or runs), the cause is fixed in the test or in the
   code it found, and the test passes on every run tried. [infra, GEN]
+
+- [ ] **TEST.83 The sign-in rate-limit test fails under parallel load (bug)**
+  `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone
+  but fails under `pytest -n auto` load, which points at timing (seen
+  by the Galaxy map picker and arc thread, PR #369, 2026-10-02). Done:
+  the failing case is found (loop it under load), the test or the rate
+  limit stops depending on wall-clock speed, and the test passes on
+  every run tried, alone and under `-n auto`. [infra, SEC]
 
 ## USR: User accounts
 

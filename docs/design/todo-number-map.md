@@ -22,7 +22,7 @@ release is stamped.
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.83 |
+| TEST | TEST.84 |
 | USR | USR.8 |
 | OPS | OPS.19 |
 | DOC | DOC.4 |
@@ -552,15 +552,15 @@ Parents marked "new parent" had no old number of their own.
 | MAP.49 | The System Map shows planet orbits inside an asteroid belt (bug) | none | done, PR #204 |
 | MAP.50 | Names run off the edge of the map (bug) | none | done, PR #204 |
 | MAP.51 | No stars drawn in filled sectors past certain zoom levels (bug, under MAP.14) | none | done, PR #214 and #218 |
-| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | open |
+| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | none | done, PR #369 |
 | MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | none | open |
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | none | open |
-| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | open |
+| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | open |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | open |
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
-| MAP.60 | Galaxy Map scale readout: one scale line | none | open |
+| MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
@@ -585,7 +585,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
 | MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
 | MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
-| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | open |
+| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
@@ -921,6 +921,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
+| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

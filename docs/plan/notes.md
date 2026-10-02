@@ -68,7 +68,13 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   ([galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md));
   it now means this first pick; the design doc's section 15 ("Planned:
   the arc pick", PR #362) describes it, and is rewritten as the current
-  design when MAP.85 ships.
+  design now that MAP.85 has shipped. Shipped in PR #369 (MAP.60,
+  MAP.55, MAP.85, MAP.52): arcs are 45 degrees wide (the width nearest
+  40 degrees whose edges fall on wedge lines in every block ring) by a
+  third of the disk radius, 24 arcs in all; the galaxy map is a tilted
+  3D view with no grid lines, a one-line scale, and the buttons Back,
+  Forward, Up, Reset, Bookmarks and Menu, as text labels with a hook
+  for UX.28's icons.
 - **Sector colors (MAP.86).** The notes' starting values:
 
   | State | Opacity | Saturation | Hue from |
@@ -165,11 +171,11 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | Control schema (v7 today) | OPS.13 (key history), API.9, API.15 (call log), USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
-| galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.60, MAP.55, MAP.85, MAP.52, MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. |
+| galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js | MAP.86, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.75, MAP.59, MAP.77, NAV.31 | One ordered Galaxy Map thread: the Galaxy map picker and arc lane (MAP.60, MAP.55, MAP.85, MAP.52) in phase 0, then phases 1 and 2. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Galaxy tiles (queryDb tile listing, lib/galaxymap3d.py, galaxyViewport.py, tile cache) | MAP.80, MAP.86 | In that order (MAP.90 done, PR #365); any payload change bumps the tile cache. |
-| galaxyGeometry.py and galaxyprisms.js | GEN.24, MAP.85 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. |
-| bookmarks.js | MAP.55, NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. |
-| static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.60, MAP.55, MAP.85, MAP.52, MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. |
+| galaxyGeometry.py and galaxyprisms.js | GEN.24 | GEN.31 (PR #353) and NAV.38 (PR #357, sectors_along_segment / sectorsAlongSegment) done. MAP.85 done (PR #369). |
+| bookmarks.js | NAV.18, USR.7, NAV.19 | MAP.81 done (PR #351): plain 1 to 9 keys. MAP.55 done (PR #369). |
+| static/mapcore.js (shared helpers) and static/mapcontrol.js (camera and input controller; zoom policies free, range and locked, MAP.58 uses ZOOM_LOCKED) | MAP.53, MAP.58, MAP.75, MAP.65 to MAP.68, MAP.71 | New in PR #351 (MAP.63, MAP.64); later map items build on them rather than copying helpers. MAP.60, MAP.55, MAP.85, MAP.52 done (PR #369). |
 | Generate page (generate.html) | ADM.14, ADM.16, GEN.24 | ADM.14 first. |
 | System page (system.html, lib/systempage.py, system_pages.py) | UX.29, NAV.8, UX.27, UX.31, UX.32, UX.30, MAP.74 | Roughly in that order; UX.32 and UX.30 in one thread. |
 | Sector page (sector_page.py, sector.html, edit_controls.html) | UX.24, UX.25, UX.26 | One thread, in that order. |

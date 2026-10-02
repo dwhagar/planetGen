@@ -60,6 +60,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
+| TEST.83 | The sign-in rate-limit test fails under parallel load (bug) |  | test_web_admin.py; passes alone, fails under -n auto. |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
@@ -69,21 +70,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.28 | Investigate icons instead of words on buttons |  | Survey and icon sprite; UX.25, UX.26, UX.27 and MAP.55 use its icons. |
+| UX.28 | Investigate icons instead of words on buttons |  | Survey and icon sprite; UX.25, UX.26 and UX.27 use its icons; MAP.55 (done, PR #369) left text labels with an icon hook. |
 | UX.23 | A shared unit-ladder module |  | Shared unit ladder; UX.22 then UX.30 build on it. |
 | UX.2 | Menus sized to what they hold (bug) |  | style.css menus; independent. |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
-
-### Galaxy map picker and arc
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| MAP.60 | Galaxy Map scale readout: one scale line |  | Start of the one ordered Galaxy Map thread. |
-| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | MAP.60, UX.28 | Menu button and bookmark button; icons from UX.28, keys from MAP.81. |
-| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | MAP.55 | Moved to phase 0 by Boss (01:46Z). Root of the new selection: every later Galaxy Map pick item is rewritten around it. Arc size default: about 40 degrees by a third of the radius. Ships with today's block shading until MAP.86 lands. |
-| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | MAP.85 | Bug, but its code is replaced by MAP.85; its width and snapping carry into the arc. Same PR as MAP.85. |
 
 ### Routing groundwork
 
@@ -115,5 +107,4 @@ most 4 build threads run at once (Boss).
 
 ## Open questions for Boss
 
-- MAP.52: Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug), see its entry in TODO.md.
 - GEN.62: Star names in a binary system can reach three words (bug), see its entry in TODO.md.
