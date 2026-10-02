@@ -434,7 +434,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
-| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas (low priority) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |

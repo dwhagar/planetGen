@@ -1899,7 +1899,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     schedule) merges pending admin changes into a new JSON file
     (GEN.61) and keeps 18 backups (OPS.18, listed by ADM.19).
   - Phase 3: API.17 makes remote generation reproduce the server's;
-    DB.10 repairs from the newest JSON plus pending deltas.
+    DB.10 repairs from the newest JSON plus pending deltas (low
+    priority, Boss 02:31Z).
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
@@ -2094,7 +2095,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the JSON file's net changes, regeneration seeds and epoch, as it is
     now. It reads the newest JSON file plus any pending deltas still in
     the control database (GEN.59), or rebuilds from any of the 18
-    backups kept by OPS.18 (`--as-of DATE` picks one). A test runs it on a small galaxy, and on one with
+    backups kept by OPS.18 (`--as-of DATE` picks one). The pending
+    deltas and `--as-of` parts are low priority (Boss, 2026-10-02
+    02:31Z) and can ship after the rest. A test runs it on a small galaxy, and on one with
     a deliberately changed sector. Simplest default: no automatic
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
@@ -2421,8 +2424,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     gets a passing check.
   Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
 
-- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
-  From Boss's 02:28Z daily-merge rule (GEN.61). Done: DB.9's repair,
+- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas (low priority)**
+  From Boss's 02:28Z daily-merge rule (GEN.61). Low priority (Boss,
+  2026-10-02 02:31Z: "Let's put that part of Phase 3, low priority"). Done: DB.9's repair,
   where it regenerates a sector from its seed, applies the newest JSON
   file's diff and epoch plus any pending deltas still in the control
   database, so admin changes since the last daily run survive a repair.
