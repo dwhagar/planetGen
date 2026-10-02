@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, GEN.51, MAP.91, NAV.40, MAP.93, MAP.94, NAV.31, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -490,6 +490,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the 40-degree wedge pick). Boss (19:44Z): "Slabs will rotate
   around their immediate center", so the view turns about the middle
   of what is shown (the wedge, or the slab), not the galaxy's center.
+  How far the view turns (any direction, any amount, Boss 05:12Z) is
+  MAP.96; the camera preset at each zoom step is MAP.97.
   Open question: is the rotation kept in the URL and bookmarks?
   Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the view rotates about the
   picked arc (then the slab), fitted to the window.
@@ -676,6 +678,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   straight to the newest view in that history (`maxIndex`), disabled
   when already there, on desktop and in MAP.94's phone layout. A
   browser test goes in three levels, back two, and forward to current.
+
+- [ ] **MAP.96 The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug)**
+  Boss (2026-10-02 05:12Z): "Add TODO bugfix for phase 0 chain, the user
+  should be able to rotate the contents of the galaxy map any direction
+  any amount, when it zooms to a block it moves as isometric, wen it
+  zooms to a slab it moves to top-down and the other direction as well.
+  The only exception is the galaxy strtas out top-down so we can see the
+  spiral arms." Checked on main: dragging turns the view at every level
+  (`MC.orbitByDrag` in `static/galaxystageview.js`), but `clampTilt`
+  holds the tilt between straight down (`TOP_DOWN_PHI`) and `MAX_TILT`
+  (80 degrees), so the map can never be turned past edge-on or seen from
+  below the plane, and only drag and keys turn it. Done: at every level
+  of the ladder the user can turn the map's contents in any direction by
+  any amount (drag, arrow keys, a one-finger touch drag; full turns in
+  bearing, and tilt through edge-on and under the plane, without the
+  view flipping at the poles, for example a trackball-style turn), about
+  the middle of what is shown (MAP.53's rule); hover, picks and the slab
+  and arc highlights keep working at any angle, because picking already
+  raycasts in 3D; panning and zoom are unchanged; a browser test turns
+  the view past 80 degrees and under the plane and still picks the
+  hovered slab. MAP.53 keeps the fit to the window; this item is the
+  range of the turn. Split from Boss's message: the camera presets per
+  zoom step are MAP.97.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
+
+- [ ] **MAP.97 The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug)**
+  Boss (2026-10-02 05:12Z, with MAP.96): "Add TODO bugfix for phase 0
+  chain, the user should be able to rotate the contents of the galaxy
+  map any direction any amount, when it zooms to a block it moves as
+  isometric, wen it zooms to a slab it moves to top-down and the other
+  direction as well.  The only exception is the galaxy strtas out
+  top-down so we can see the spiral arms." Checked on main: `cameraFor`
+  in `static/galaxystageview.js` opens the whole galaxy at `GALAXY_TILT`
+  (35 degrees, PR #369) and every view below it at the isometric slant
+  (`ISO_TILT`). Done: each zoom step flies the camera to a preset for
+  what it now shows, and zooming back out flies to the preset of the
+  step it returns to: the whole galaxy straight down (top-down), so the
+  spiral arms show (Boss's one exception; this replaces the 35-degree
+  opening tilt); a slab (one layer, after a slab pick on MAP.56's
+  ladder) straight down; a block (a volume of several layers: a picked
+  arc or segment, and the 3 by 3 by 3 cube at the bottom of the ladder)
+  at the isometric slant. The flight animates the tilt with the move, as
+  stage flights do today, and the bearing still faces the picked arc.
+  Open questions for Boss, with the defaults taken: does a manual turn
+  (MAP.96) carry over to the next zoom step? (Default: no, each step's
+  preset takes over, and a turn holds only within the step.) How does
+  the user get back to the preset? (Default: the existing "Reset view"
+  button, which flies to the step's preset.) A browser test checks the
+  tilt at each step going in and coming back out. Prerequisites: MAP.56,
+  MAP.96.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
   Boss (2026-10-02 00:45Z): "investigate different ways to space orbits

@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.39 |
-| MAP | MAP.96 |
+| MAP | MAP.98 |
 | NAV | NAV.46 |
 | GEN | GEN.64 |
 | PERF | PERF.24 |
@@ -597,6 +597,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | open |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | open |
 | MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
+| MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | open |
+| MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |

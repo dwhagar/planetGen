@@ -55,6 +55,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) |  | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Rotation and fit on MAP.64's controller. |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | MAP.53 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. The fit itself; with MAP.53. |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | MAP.56 | Moved to phase 0: MAP.85 (the code that would have replaced it) is done in PR #369, so the bug can be fixed now. Which lines show at each level, once the ladder and ghost exist. Dependency on MAP.59 dropped: slab-only lines need no ghost; MAP.59 keeps this rule instead. |
+| MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | MAP.53 | Boss 05:12Z. clampTilt (TOP_DOWN_PHI to MAX_TILT 80 deg) in galaxystageview.js; turn any way at every level, trackball-style; picks keep working. |
+| MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | MAP.56, MAP.96 | Boss 05:12Z. cameraFor presets: galaxy and slab top-down (replaces GALAXY_TILT 35 deg), block isometric, animated both ways; open questions on carrying a manual turn over and returning to the preset. |
 
 ### Generation bugs
 
@@ -138,4 +140,5 @@ phase 1.
 - MAP.56: Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug), see its entry in TODO.md.
 - MAP.54: Slab leader lines instead of the slab slider (bug), see its entry in TODO.md.
 - MAP.53: Rotate a zoomed-in wedge, and zoom it to fit the window (bug), see its entry in TODO.md.
+- MAP.97: The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug), see its entry in TODO.md.
 - PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
