@@ -1,0 +1,5 @@
+### Fixed
+- **Courses between separately generated areas now find a route (NAV.34).** The NAV route graph links each system to its 6 nearest, so any separately generated area with 7 or more systems used to be an island with no way out, and a course from it to anywhere else said "No route via adjacent systems could be found". The islands are now joined, each to its nearest few islands by the closest pair of systems they have, until the whole graph is one piece, so any two placed endpoints always get a route. Same-sector routes, the hop-length limit and the unknown-space flag are unchanged (NAV.12).
+
+### Added
+- **Route edge-case tests (TEST.79).** Tests for the cases routing must handle, from the hop-length study: an isolated system, empty sectors between the endpoints, the galaxy edge and the halo, a graph in hundreds of pieces, and a same-sector course whose best route leaves the sector. The cases NAV.12 still has to build (the longest hop, the unknown-space flag, same-sector routes leaving the sector) are marked expected to fail.

@@ -202,6 +202,180 @@ def build_knn_adjacency(positions, k):
     return graph
 
 
+def connected_components(graph):
+    """
+    Splits an adjacency graph into its connected pieces ("islands").
+
+    Args:
+        graph (dict): `{id: {neighbor_id: distance}}`, as
+                      `build_knn_adjacency` returns.
+
+    Returns:
+        list[list]: One list of ids per island, largest first (ties keep
+                   the graph's own key order).
+    """
+    seen = set()
+    islands = []
+    for start_id in graph:
+        if start_id in seen:
+            continue
+        seen.add(start_id)
+        island = [start_id]
+        stack = [start_id]
+        while stack:
+            for neighbor_id in graph[stack.pop()]:
+                if neighbor_id not in seen:
+                    seen.add(neighbor_id)
+                    island.append(neighbor_id)
+                    stack.append(neighbor_id)
+        islands.append(island)
+    islands.sort(key=len, reverse=True)
+    return islands
+
+
+class _Island:
+    """One island's systems plus the bounds `join_islands` prunes with --
+    plain data, no behavior of its own."""
+
+    __slots__ = ("ids", "tree", "center", "radius")
+
+    def __init__(self, ids, positions):
+        self.ids = ids
+        points = [positions[system_id] for system_id in ids]
+        self.center = tuple(sum(point[axis] for point in points) / len(points) for axis in range(3))
+        self.radius = max(_distance(self.center, point) for point in points)
+        self.tree = _build_kdtree([(system_id, positions[system_id]) for system_id in ids])
+
+
+def _closest_pair(island_a, island_b, positions):
+    """
+    The closest pair of systems between two islands, exact: every system
+    of the smaller island asks the larger island's k-d tree for its
+    nearest.
+
+    Returns:
+        tuple: `(distance, id_in_a, id_in_b)`.
+    """
+    small, large = (island_a, island_b) if len(island_a.ids) <= len(island_b.ids) else (island_b, island_a)
+    best = None
+    # Nearest the larger island's center first, so a close pair turns up
+    # early; nothing in that island is nearer than its sphere's surface,
+    # so once that surface is past the best pair, the rest can't beat it.
+    for center_distance, system_id in sorted(
+        ((_distance(positions[system_id], large.center), system_id) for system_id in small.ids),
+        key=lambda entry: entry[0],
+    ):
+        if best is not None and center_distance - large.radius >= best[0]:
+            break
+        (distance, other_id), = _knn_query(large.tree, positions[system_id], 1, exclude_id=None)
+        if best is None or distance < best[0]:
+            best = (distance, system_id, other_id)
+    if small is island_a:
+        return best
+    return best[0], best[2], best[1]
+
+
+def join_islands(graph, positions, links):
+    """
+    Joins the islands of a route graph so every system can reach every
+    other (NAV.34).
+
+    A 6-nearest graph splits apart wherever a separately generated area
+    has 7 or more systems: each of its systems' nearest neighbors are all
+    inside it, so it has no edge out, and a course from it to anywhere
+    else finds no route at all (the hop-length study: 2,000 generated
+    sectors over the disk made 714 islands). Here each island is linked
+    to its `links` nearest islands, by one edge between the closest pair
+    of systems the two islands have. Rounds repeat on the islands that
+    are left until one remains; each round links every island to at least
+    its nearest other, so the count drops every round (Boruvka's rule)
+    and the loop always ends with a single connected graph.
+
+    Island distance is pruned with each island's bounding sphere: islands
+    are fetched nearest center first (a k-d tree over the centers) and
+    visited in order of the gap between their spheres, and the search
+    stops once that gap is past the farthest of the `links` closest pairs
+    found so far, so the result is exact.
+
+    Args:
+        graph (dict): The graph to join, modified in place, as
+                      `build_knn_adjacency` returns it.
+        positions (dict): `{id: (x, y, z)}` -- the same positions `graph`
+                          was built from.
+        links (int): How many nearest islands each island is linked to
+                     per round (at least 1 is used).
+
+    Returns:
+        dict: `graph`, for chaining.
+    """
+    links = max(1, links)
+    while True:
+        islands = [_Island(ids, positions) for ids in connected_components(graph)]
+        if len(islands) < 2:
+            return graph
+
+        joined = set()
+        pairs = {}  # (lower index, higher index) -> _closest_pair, each worked out once
+        centers = _build_kdtree([(index, island.center) for index, island in enumerate(islands)])
+        largest_radius = max(island.radius for island in islands)
+
+        def island_distance(index, other_index):
+            key = (min(index, other_index), max(index, other_index))
+            if key not in pairs:
+                pairs[key] = _closest_pair(islands[key[0]], islands[key[1]], positions)
+            distance, low_id, high_id = pairs[key]
+            here_id, there_id = (low_id, high_id) if index < other_index else (high_id, low_id)
+            return distance, here_id, there_id
+
+        for index, island in enumerate(islands):
+            # Fetch islands by center distance, more each pass, until the
+            # ones not fetched yet can't beat the `links` nearest found.
+            fetch = min(len(islands) - 1, 2 * links)
+            while True:
+                fetched = _knn_query(centers, island.center, fetch, exclude_id=index)
+                nearest = []  # (distance, id_here, id_there, other_index), nearest first
+                for gap, other_index in sorted(
+                    (max(0.0, center_distance - island.radius - islands[other_index].radius), other_index)
+                    for center_distance, other_index in fetched
+                ):
+                    if len(nearest) >= links and gap > nearest[-1][0]:
+                        break
+                    nearest.append((*island_distance(index, other_index), other_index))
+                    nearest.sort(key=lambda entry: entry[0])
+                    del nearest[links:]
+                if fetch == len(islands) - 1:
+                    break
+                unfetched_gap = fetched[-1][0] - island.radius - largest_radius
+                if len(nearest) >= links and unfetched_gap > nearest[-1][0]:
+                    break
+                fetch = min(len(islands) - 1, 4 * fetch)
+            for distance, here_id, there_id, other_index in nearest:
+                pair = (min(index, other_index), max(index, other_index))
+                if pair in joined:
+                    continue
+                joined.add(pair)
+                graph[here_id][there_id] = distance
+                graph[there_id][here_id] = distance
+
+
+def build_route_graph(positions, k, island_links):
+    """
+    The route graph NAV searches: each system linked to its `k` nearest
+    (`build_knn_adjacency`), then the islands that leaves joined to their
+    `island_links` nearest islands (`join_islands`), so any two systems in
+    `positions` have a route.
+
+    Args:
+        positions (dict): `{id: (x, y, z)}` for every system to include.
+        k (int): Nearest neighbors per system.
+        island_links (int): Nearest islands each island is linked to.
+
+    Returns:
+        dict: `{id: {neighbor_id: distance}}`, connected.
+    """
+    return join_islands(build_knn_adjacency(positions, k), positions, island_links)
+
+
 def shortest_path(graph, start_id, end_id):
     """
     Finds the shortest path from `start_id` to `end_id` through `graph`
