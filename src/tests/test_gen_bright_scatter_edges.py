@@ -494,25 +494,19 @@ def test_a_fill_after_failed_commits_clears_its_blocks_leftovers(mysql_config, m
 BAND_FLOOR = 300.0
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "TEST.25: add_bright_star_band keeps the band rows a failed run already committed and draws the "
-    "whole band again on the re-run, so the layers that finished the first time hold the band twice"))
 def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkeypatch):
+    # GEN.32: the re-run starts the band over, so the layers the first
+    # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
     monkeypatch.setattr(generate.random, "SystemRandom", _FixedSystemRandom)
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     first = _count(mysql_config)
-    real_layer = brightStars.scatter_layer
-
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index == 1:
-            raise RuntimeError("band worker died")
-        yield from real_layer(shape, layer_index, *args, **kwargs)
-
-    monkeypatch.setattr(brightStars, "scatter_layer", failing_layer)
-    with pytest.raises(RuntimeError, match="band worker died"):
+    first_rows = _stored_rows(mysql_config)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
+                                           "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
+    with pytest.raises(RuntimeError, match="scatter worker died"):
         generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
-    monkeypatch.setattr(brightStars, "scatter_layer", real_layer)
+    undo()
     assert _settings(mysql_config) == (THRESHOLD, FIXED_SEED)
     assert _count(mysql_config) > first
 
@@ -523,4 +517,6 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
                                         max_luminosity_sol=THRESHOLD))
     stored = _stored_rows(mysql_config)
     assert len(stored) == first + len(expected)
-    assert len({row[3:6] for row in stored}) == len(stored)
+    # The first scatter's stars and the band's, each once. (Both draws
+    # use FIXED_SEED, so positions can repeat between them: compare rows.)
+    assert _comparable(stored) == _comparable(first_rows + expected)

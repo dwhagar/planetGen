@@ -4611,6 +4611,38 @@ def bright_star_fill_level(conn, ring_index, layer_index, ring_slot_index):
     return settings[0] if settings else None
 
 
+def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_size=500):
+    """
+    Deletes the unbuilt bright stars below `below_luminosity_w` (the
+    galaxy's star-fill level) outside `keep_addresses`: what a band run
+    (`generate.py plan --bright-stars-down-to`) that stopped part way left
+    in the layers it got through, since the level only moves once a band
+    is whole (GEN.32). Every finished scatter or band is at or above the
+    level, and the stars below it that belong there (a backfilled block's,
+    a filled sector's) are in `keep_addresses` or built.
+
+    Returns:
+        int: Stars deleted.
+    """
+    keep = set(keep_addresses)
+    rows = conn.execute(
+        "SELECT ring_index, layer_index, ring_slot_index FROM bright_stars"
+        " WHERE luminosity_w < ? AND star_system_id IS NULL"
+        " GROUP BY ring_index, layer_index, ring_slot_index", (below_luminosity_w,)).fetchall()
+    cells = [(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in rows]
+    cells = [cell for cell in cells if cell not in keep]
+    deleted = 0
+    for start in range(0, len(cells), batch_size):
+        chunk = cells[start:start + batch_size]
+        placeholders = ", ".join("(?, ?, ?)" for _ in chunk)
+        cur = conn.execute(
+            "DELETE FROM bright_stars WHERE luminosity_w < ? AND star_system_id IS NULL"
+            f" AND (ring_index, layer_index, ring_slot_index) IN ({placeholders})",
+            (below_luminosity_w, *[value for cell in chunk for value in cell]))
+        deleted += cur.rowcount
+    return deleted
+
+
 def insert_bright_stars(conn, rows, batch_size=10000):
     """
     Bulk-writes scattered bright stars (`BRIGHT_STAR_COLUMNS` order) in

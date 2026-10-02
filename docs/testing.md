@@ -25,8 +25,30 @@ Workers never share database state:
   by `conftest.py`, overriding any value in your environment, and dropped
   at the end of the run), so nothing in the suite touches
   `planetgen_control` or a real control schema;
-- generation runs in-process (`PLANETGEN_WORKERS=1`), so a test's
-  patched functions are the ones that run.
+- generation runs in-process (`PLANETGEN_WORKERS=1`) unless you set
+  `PLANETGEN_WORKERS` yourself.
+
+## Generation at several worker counts
+
+A real run hands its sectors and bright-star layers to worker processes.
+CI runs the tests marked `generation` (the files that run `generate.py` or
+the work queue; `conftest.py` adds the marker) again with 2 and 4 workers
+(TEST.74). To do the same locally:
+
+```sh
+PLANETGEN_WORKERS=2 python3 -m pytest -n auto -m generation
+```
+
+`monkeypatch.setattr` only changes the test's own process, never a spawned
+worker. A test that patches something a generation run calls uses
+`tests/worker_patches.py` instead: `patch_everywhere(monkeypatch, module,
+name, "tests.my_test:factory", **params)` patches this process and every
+worker started while the patch is in place (`$PLANETGEN_WORKER_HOOKS`).
+The factory is a module-level function that builds the replacement, and
+shared state such as a call count goes in a file (`worker_patches.bump`).
+With more than one worker, the sectors or layers already handed out when
+a fault hits can still finish, so a test checks "at least" where one
+worker would stop exactly.
 
 `--dist worksteal` (what CI uses) lets idle workers take queued tests from
 busy ones, which helps when a few slow tests land on the same worker.

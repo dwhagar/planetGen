@@ -3771,6 +3771,13 @@ def add_bright_star_band(args):
         skip = set(filled)
         for block in blocks:
             skip.update(_block_addresses(block))
+        # GEN.32: a band run that stopped part way left the band in the
+        # layers it finished; this run draws the whole band again, so it
+        # starts from none of it.
+        stale = _db.delete_unfinished_band(conn, current * physical_constants.SOLAR_LUMINOSITY, skip)
+        conn.commit()
+        if stale:
+            log.normal(f"Removed {stale:,} bright stars an unfinished earlier run left below {current:g} L_sun.")
         seed = random.SystemRandom().getrandbits(63)
         log.normal(f"Adding the bright stars from {target:g} up to {current:g} L_sun"
                    + (f", leaving out {len(filled):,} filled sectors" if filled else "")
