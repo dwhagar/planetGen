@@ -105,7 +105,7 @@ goes into a phase's table in the same PR that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73 |
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9 |
 | 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
 | 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11 |
 | 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9 |
@@ -385,6 +385,12 @@ with `clamp()`.
   or gas giant, interstellar comet type, nebula class, remnant type,
   black hole and neutron star kinds), on both the Search page and the
   `/phenomena` list, through the API, with the counts per option.
+
+- [ ] **UX.34 The sector summary calls white dwarfs "B-type" and "A-type" systems (bug)**
+  Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The "Systems: 4 B-type, ..." line in `generate.py`
+  (around line 1449) groups by spectral letter only; in a 40-sector run,
+  all 4 "B-type" and 6 of 9 "A-type" systems were white dwarfs. Done:
+  white dwarfs (and giants) are counted under their own label.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1038,6 +1044,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   about 0.45. Ties in with MAP.85 (no lines, so color carries the
   structure) and MAP.59 (the ghost).
 
+- [ ] **MAP.90 The tile-level helper crashes on a subnormal view radius (bug)**
+  Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`) (deep fuzz). `galaxyViewport.tile_level_for_view_radius(2.2e-311)`,
+  and its copy in `lib/galaxymap3d.py`, raise `OverflowError` because
+  `log2` is infinite. Not reachable from a request as far as the hunt
+  found (the radius comes from the galaxy shape). Done: it returns the
+  finest level for any tiny positive radius.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
@@ -1670,6 +1683,77 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reflection 10-30 pc, dark 5-25 pc, planetary 0.1-2 pc, remnants
   5-20 pc). Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
+- [ ] **GEN.48 Forcing options are impractical for whole sectors; replace them with prevalence controls (bug)**
+  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss (2026-10-02): "the forcing options are impractical
+  for an entire sector, so those options only apply to generating a star
+  system, a single star system. Replace it with a control for the
+  prevalence of each as a probability adjustment ... as a % deviation
+  from the normal probability. Split that into several TODO's. Log as a
+  bug." The `+x`/`-x` options (habitable_world, asteroid_belt, comets,
+  large_star, moons, max_planets, intelligent_life, binary_system,
+  wide_binary, planets) force every system in a sector or galaxy run,
+  which is impractical and on some stars impossible (GEN.49).
+
+  - [ ] **GEN.49 `+habitable_world` silently fails on hot stars (bug)**
+    After 8 tries (`MAX_SYSTEM_GENERATION_ATTEMPTS`), `StarSystem` keeps a
+    system with no habitable world, exits 0 and saves it. With 40 systems
+    per type it failed for O5V 17/40, B3V 8/40, M2IA 6/40 and A0V 2/40;
+    the CLI `system --star-type O5V +habitable_world` failed 3 times in 6.
+    The debug log shows `Planet generation attempt 8/8: retrying
+    (habitable world required and found: False ...)` and then the save.
+    Done: for a single system, a forced option the star can't meet is
+    refused up front (as `-large_star +habitable_world +asteroid_belt`
+    already is) or fails with a clear error; it never saves silently.
+
+  - [ ] **GEN.50 `-planets +asteroid_belt` still makes an asteroid belt (bug)**
+    `-planets` is documented as "skips the planet generation process
+    entirely" (`config.py`), but `+asteroid_belt` still places a belt (3
+    of 3 CLI runs; deep fuzz `test_random_valid_configs_generate_sane_systems`).
+    Done: contradictory forcing options are rejected for a single system.
+
+  - [ ] **GEN.51 Forcing options only for single-system generation**
+    Remove the `+x`/`-x` options from `generate.py sector` and `galaxy`,
+    keep them on `system` (and the one-off system page). A saved system
+    config or file that still carries them gets a clear message.
+
+  - [ ] **GEN.52 Prevalence controls for sector and galaxy runs**
+    Each former forcing option gets a prevalence setting: a percentage
+    deviation from its normal probability (+50% means 1.5 times the usual
+    chance that a system has comets; -100% means never). It applies to
+    every system the run generates, through the CLI (`--prevalence
+    comets=+50`, or one option per feature) and the stored system config.
+
+  - [ ] **ADM.16 Prevalence controls on the Generate page**
+    The Generate page's sector, galaxy and "around a sector" forms swap
+    their forcing checkboxes for the prevalence fields (GEN.52),
+    defaulting to 0%. The one-off system page keeps forcing.
+
+  - [ ] **TEST.75 Tests for forcing and prevalence**
+    Single systems: every forced option holds or is refused. Sector runs:
+    the measured shares across many seeds move by the requested
+    percentage within a tolerance. [generation]
+
+- [ ] **GEN.53 The two stars of a binary don't share one age (bug)**
+  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). (a) With `--star-type`, the secondary is a new
+  `Star(mass_override=...)` with its own random age: 194 of 200 pairs
+  differed (a G2V of 5.26 Gy next to 9.39 Gy). (b) Population-model pairs
+  start with one age, but `adjust_age_for_planets` then ages each star
+  of a wide pair separately (12 of 60 wide pairs, for example M2V 13.80
+  Gy and M8V 0.45 Gy), and a close pair's adjusted proxy age goes to the
+  primary only (1 of 60). Done: both stars always share one age, checked
+  over many seeds.
+
+- [ ] **GEN.54 A `--star-type` secondary gets a mass that doesn't fit its type (bug)**
+  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The secondary's mass is `primary.mass * uniform(0.1,
+  0.8)`, clamped only to the whole Yerkes-class range, while its
+  temperature and luminosity are still drawn for the requested type: for
+  example a "G2V" of 0.17 Msun and 0.64 Lsun, and 191 of 200 secondaries
+  more than 10% off the mass-luminosity relation. The comment in
+  `systemData.py` says the mass is "clamped into its own class's range",
+  but it isn't. Done: the secondary's type comes from its mass, or its
+  mass is held to its type's range, and its luminosity follows from the
+  mass.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.1 Generation at scale**
@@ -1746,6 +1830,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the API and the queue hand results back and forth with fewer round
   trips. Done: an approved plan, with the build work filed as its own
   items from it.
+
+- [ ] **PERF.21 Generation works with any worker count: the parallel path is built, used and tested (bug)**
+  Top priority, and the first item of phase 1 (Boss, 2026-10-02). Found by
+  the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). Boss: "We need a working parallel path, we need to make
+  sure the code properly builds and uses the work queue and the worker
+  pool to run no matter how many workers it is given. This is the top
+  priority as it impacts generation performance significantly." Today
+  `src/tests/conftest.py` pins `PLANETGEN_WORKERS=1`. With
+  `PLANETGEN_WORKERS=2` or `4` the same 14 generation tests fail every
+  time: 6 in `test_gen_resume.py`, 4 in `test_gen_bright_scatter_edges.py`,
+  3 in `test_galaxy_gen.py`, and
+  `test_fuzz_cli.py::test_galaxy_absurd_radius_is_clean[200.0-...]`
+  ("Can't pickle local object ...<lambda>"). The tests' monkeypatches
+  never reach the spawned workers, and some tests depend on the seeded
+  single-process stream (GEN.39), so nothing checks the path the server
+  really uses. Done: every galaxy, sector, scatter and backfill mode runs
+  through the work queue and the pool at 1, 2 and N workers; the
+  generation tests run at several worker counts (TEST.74); those 14
+  tests pass at every count, or are rewritten so their fault injection
+  works across processes. Related: TEST.19 (same galaxy at any worker
+  count, done), TEST.73, GEN.39.
+
+  - [ ] **PERF.22 On Python 3.12 a run hangs forever when a worker process dies (bug)**
+    High. After a worker dies (killed or out of memory),
+    `workQueue.WorkQueue._dispatch` calls `ProcessPoolExecutor.submit`. On
+    Python 3.12.3 (Ubuntu 24.04's stock Python) that call sometimes blocks
+    for good on the executor's `_shutdown_lock`
+    (`concurrent/futures/process.py:811`): the run never fails, the lease
+    is never freed, and nothing is logged. Repro: `python3.12 -m pytest -p
+    no:timeout src/tests/test_work_queue_failures.py::test_a_dead_worker_fails_the_run_and_frees_the_lease`
+    hung 4 times in 15 runs; Python 3.11 hung 0 times in 15 (py-spy stack
+    in the bug hunt report). Done: a dead worker fails the run cleanly on
+    Python 3.11 to 3.13, and the test runs on each.
+
+  - [ ] **TEST.74 Generation tests at more than one worker**
+    The test half of PERF.21: a CI leg or a parametrized fixture that runs
+    the generation tests at 1, 2 and 4 workers instead of only the
+    `PLANETGEN_WORKERS=1` that `conftest.py` pins today, with fault
+    injection that reaches the spawned workers. [infra, PERF]
+
+- [ ] **PERF.23 The bright-star progress bar can end at 101% (bug)**
+  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`); Boss asked to file it only if it was a real bug and not
+  just more stars than expected, and it is real. The bar's total is the
+  expected stars per layer and each layer's credit is capped at its own
+  share, so extra stars can't push it past 100%. But
+  `_LayerTracker.layer_progress` in `generate.py` accepts a report for a
+  layer that `layer_done` already credited (reports come through the
+  channel-draining thread), so that layer is counted twice: in 3 of 9
+  runs with 4 workers under load, a late report arrived and the run ended
+  above 100% (for example 101.3% at layer 9); runs with no late report
+  ended at exactly 100%. Repro: `generate.py plan --disk-scale-length-pc
+  150 --disk-scale-height-pc 20 --bulge-scale-radius-pc 15 --max-ring 40
+  --workers 4 --force`, three at once. Done: reports for finished layers
+  are ignored, the displayed and `progress.json` percentage is capped at
+  100 as Boss asked, and a test feeds a late report.
 
 ## DB: Database and schema
 
@@ -2040,6 +2179,15 @@ clears each one.
   the test or in the work queue's interrupt handling, and the test
   passes on every run tried. [infra, PERF]
 
+- [ ] **TEST.76 A bright-star test breaks on Python 3.9 and 3.10 (bug)**
+  Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). `_ScriptedRandom(random.Random)` in
+  `test_gen_bright_scatter_edges.py` passes a list as its first
+  argument; before 3.11 `Random.__new__` seeds with it, so
+  `test_a_zero_weight_bin_is_never_picked_by_float_rounding` fails with
+  `TypeError: unhashable type: 'list'`. `python_requires` is `>= 3.9` and
+  CI has a py3.9 leg. Done: the helper works on Python 3.9 to 3.13.
+  [infra, generation]
+
 ### Database and migrations
 
 ### Generation and the work queue
@@ -2209,6 +2357,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   was just enabled) and says so; when not root, or Apache isn't running,
   it prints the command as today. macOS (gunicorn) and Windows stay as
   they are unless Boss asks.
+
+- [ ] **OPS.9 Multi-line messages lose their prefix in the debug log (bug)**
+  Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The sector summary is one log record with embedded
+  newlines, so its "Systems:", "Phenomena:" and "Star density:" lines
+  land in the debug log with no timestamp, process or source. Done: each
+  line is prefixed (or each is logged separately).
 
 ## VIEW: The view from a planet
 
