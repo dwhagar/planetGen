@@ -417,38 +417,85 @@ _LABEL_PUSH_GAP_PX = _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2 + 2.0
 # edge) isn't used.
 _LABEL_EDGE_MARGIN_PX = 3.0
 
+# A scene's drawn area, `(lo, hi)` on both axes: the fixed 700 px frame
+# unless MAP.88's fit (`_fit_bounds`) widened the viewBox around the center
+# so that everything drawn stays inside it.
+_DEFAULT_BOUNDS = (0.0, _VIEW_SIZE_PX)
 
-def _slide_into_view(lo, hi):
-    """How far to move the span `[lo, hi]` to sit inside the viewBox (less
+
+def _slide_into_view(lo, hi, bounds=_DEFAULT_BOUNDS):
+    """How far to move the span `[lo, hi]` to sit inside `bounds` (less
     `_LABEL_EDGE_MARGIN_PX`), 0.0 when it already does."""
-    if lo < _LABEL_EDGE_MARGIN_PX:
-        return _LABEL_EDGE_MARGIN_PX - lo
-    if hi > _VIEW_SIZE_PX - _LABEL_EDGE_MARGIN_PX:
-        return _VIEW_SIZE_PX - _LABEL_EDGE_MARGIN_PX - hi
+    if lo < bounds[0] + _LABEL_EDGE_MARGIN_PX:
+        return bounds[0] + _LABEL_EDGE_MARGIN_PX - lo
+    if hi > bounds[1] - _LABEL_EDGE_MARGIN_PX:
+        return bounds[1] - _LABEL_EDGE_MARGIN_PX - hi
     return 0.0
 
 
-def _edge_anchor(dx):
+def _edge_anchor(dx, bounds=_DEFAULT_BOUNDS):
     """`(x, text_anchor)` pinning a label slid by `dx` against the side
     edge it was slid away from."""
     if dx > 0:
-        return _LABEL_EDGE_MARGIN_PX, "start"
-    return _VIEW_SIZE_PX - _LABEL_EDGE_MARGIN_PX, "end"
+        return bounds[0] + _LABEL_EDGE_MARGIN_PX, "start"
+    return bounds[1] - _LABEL_EDGE_MARGIN_PX, "end"
 
 
-def _fit_label_rect(rect, direction):
+def _fit_label_rect(rect, direction, bounds=_DEFAULT_BOUNDS):
     """`(rect, dx, dy)` with `rect` slid back inside the viewBox along the
     label's own line, or `None` when it crosses an edge across that line."""
     x1, y1, x2, y2 = rect
     if direction in ("below", "above"):
-        dx, dy = _slide_into_view(x1, x2), 0.0
-        if _slide_into_view(y1, y2):
+        dx, dy = _slide_into_view(x1, x2, bounds), 0.0
+        if _slide_into_view(y1, y2, bounds):
             return None
     else:
-        dx, dy = 0.0, _slide_into_view(y1, y2)
-        if _slide_into_view(x1, x2):
+        dx, dy = 0.0, _slide_into_view(y1, y2, bounds)
+        if _slide_into_view(x1, x2, bounds):
             return None
     return (x1 + dx, y1 + dy, x2 + dx, y2 + dy), dx, dy
+
+
+# MAP.88: nothing drawn runs past the frame. Once a scene's markers,
+# orbits, belts and facilities are placed, `_fit_bounds` widens the square
+# viewBox evenly around the center until every one of them (and each
+# star's name below it) sits inside with `_FIT_MARGIN_PX` to spare, which
+# shrinks the whole scene on screen; planet and moon names are then placed
+# inside those bounds. A scene that already fits keeps the 700 px frame.
+_FIT_MARGIN_PX = 6.0
+_STAR_LABEL_DROP_PX = 20.0  # the star name's baseline (r + 15) plus its descenders
+_HALO_EXTRA_PX = 9.0
+_RING_REACH = 1.7  # a gas giant's ring ellipse, `rx` = 1.7 r
+
+
+def _circle_box(cx, cy, r):
+    return (cx - r, cy - r, cx + r, cy + r)
+
+
+def _body_box(cx, cy, r_px, body_type=None, is_self=False):
+    """Everything `_body_marker_svg` draws for a planet or moon but its
+    name: the circle, a gas giant's ring, a moon scene's halo."""
+    reach = r_px * _RING_REACH if body_type == "g" else r_px
+    if is_self:
+        reach = max(reach, r_px + _HALO_EXTRA_PX)
+    return _circle_box(cx, cy, reach)
+
+
+def _star_box(cx, cy, r_px):
+    """A star marker and the name `_star_marker_svg` writes under it
+    (sideways, that name slides back inside like any label)."""
+    return (cx - r_px, cy - r_px, cx + r_px, cy + r_px + _STAR_LABEL_DROP_PX)
+
+
+def _fit_bounds(boxes):
+    """The square `(lo, hi)` around `_CENTER_PX` that holds every
+    `(x1, y1, x2, y2)` in `boxes` with `_FIT_MARGIN_PX` to spare, and
+    never less than the fixed frame."""
+    half = _CENTER_PX
+    for x1, y1, x2, y2 in boxes:
+        half = max(half, _CENTER_PX - x1 + _FIT_MARGIN_PX, x2 - _CENTER_PX + _FIT_MARGIN_PX,
+                   _CENTER_PX - y1 + _FIT_MARGIN_PX, y2 - _CENTER_PX + _FIT_MARGIN_PX)
+    return (_CENTER_PX - half, _CENTER_PX + half)
 
 
 def _label_half_width_px(text):
@@ -465,7 +512,7 @@ def _rects_overlap(a, b):
     return ax1 < bx2 and ax2 > bx1 and ay1 < by2 and ay2 > by1
 
 
-def _star_label_rect(cx, cy, r_px, name):
+def _star_label_rect(cx, cy, r_px, name, bounds=_DEFAULT_BOUNDS):
     """The bounding box `_star_marker_svg` always draws a star's own name
     label in -- unconditionally below the marker, never collision-checked
     the way a planet/moon's own label is (`_label_sides_2d`) since a scene
@@ -476,7 +523,7 @@ def _star_label_rect(cx, cy, r_px, name):
     collide with one)."""
     half_w = _label_half_width_px(name)
     top = cy + r_px + _LABEL_GAP_PX
-    dx = _slide_into_view(cx - half_w, cx + half_w)
+    dx = _slide_into_view(cx - half_w, cx + half_w, bounds)
     return (cx - half_w + dx, top, cx + half_w + dx, top + _LABEL_HALF_HEIGHT_PX * 2)
 
 
@@ -501,7 +548,7 @@ def _label_candidate_rect(cx, cy, marker_r, half_w, direction, gap):
 # (_label_half_width_px), so static/systemmap.js's layoutLabels measures
 # the real text once a scene is shown and nudges or hides any label that
 # still overlaps.
-def _label_sides_2d(entries, seed_rects=None):
+def _label_sides_2d(entries, seed_rects=None, bounds=_DEFAULT_BOUNDS):
     """
     Given `[(cx, cy, marker_r, name), ...]`, returns one
     `{"direction", "rect", "pushed"}` dict (or `None` to skip drawing
@@ -530,6 +577,8 @@ def _label_sides_2d(entries, seed_rects=None):
             rects (e.g. `_star_label_rect`'s) no candidate here may
             collide with, even though they belong to no entry in this
             call.
+        bounds (tuple, optional): The scene's `(lo, hi)` drawn area
+            (`_fit_bounds`) every label must stay inside.
 
     Returns:
         list[dict or None]: One entry per input, in the same order. Each
@@ -549,7 +598,7 @@ def _label_sides_2d(entries, seed_rects=None):
             (True, _LABEL_PUSH_GAP_PX, _LABEL_PUSH_DIRECTIONS),
         ):
             for direction in directions:
-                fitted = _fit_label_rect(_label_candidate_rect(cx, cy, marker_r, half_w, direction, gap), direction)
+                fitted = _fit_label_rect(_label_candidate_rect(cx, cy, marker_r, half_w, direction, gap), direction, bounds)
                 if fitted is None:
                     continue
                 rect, dx, dy = fitted
@@ -609,7 +658,7 @@ def _leader_line_svg(cx, cy, r_px, direction, gap):
 
 def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_class, attrs, is_self=False,
                       label_direction="below", label_pushed=False, show_label=True, has_life=False,
-                      label_shift=(0.0, 0.0)):
+                      label_shift=(0.0, 0.0), bounds=_DEFAULT_BOUNDS):
     """
     Builds one clickable `<g>` for a planet or moon: a filled/stroked
     circle colored by `planet_class` (see `_CLASS_COLORS`), the class
@@ -679,7 +728,7 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
         if label_shift[0]:
             # Slid off a side edge: pin the text to that edge, so the real
             # (unestimated) width still sits right against it.
-            label_x, anchor = _edge_anchor(label_shift[0])
+            label_x, anchor = _edge_anchor(label_shift[0], bounds)
         parts.append(
             f'<text class="sysmap-label" x="{label_x:.1f}" y="{label_y:.1f}" text-anchor="{anchor}">{esc(label_text)}</text>'
         )
@@ -691,7 +740,7 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
     )
 
 
-def _star_marker_svg(cx, cy, r_px, star, attrs):
+def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
     fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     name = attrs.get("name", "star")
     # Handed to the client as `data-color` too (like a planet/moon's own
@@ -702,8 +751,8 @@ def _star_marker_svg(cx, cy, r_px, star, attrs):
     star_attrs["color"] = fill
     half_w = _label_half_width_px(name)
     label_x, anchor = cx, "middle"
-    if _slide_into_view(cx - half_w, cx + half_w):
-        label_x, anchor = _edge_anchor(_slide_into_view(cx - half_w, cx + half_w))
+    if _slide_into_view(cx - half_w, cx + half_w, bounds):
+        label_x, anchor = _edge_anchor(_slide_into_view(cx - half_w, cx + half_w, bounds), bounds)
     return (
         f'<g class="sysmap-body sysmap-star" tabindex="0" role="button"{_data_attrs(star_attrs)} '
         f'aria-label="{esc(name)}">'
@@ -897,9 +946,10 @@ def _facilities_svg(facilities, hosts, scale):
         scale (tuple): The scene's `(lo_km, hi_km)`.
 
     Returns:
-        tuple[str, str]: `(orbit lines, markers)`.
+        tuple[str, str, list]: `(orbit lines, markers, boxes)`, `boxes`
+            the drawn extent of each (`_fit_bounds`).
     """
-    orbits, markers = [], []
+    orbits, markers, boxes = [], [], []
     for facility in facilities or ():
         host = hosts.get((facility["host_type"], facility["host_id"]))
         if host is None:
@@ -912,12 +962,15 @@ def _facilities_svg(facilities, hosts, scale):
         elif centered:
             radius_px = max(_radial_px(facility["orbit_distance_km"], *scale), r_px + _FACILITY_HOST_GAP_PX)
             orbits.append(_facility_orbit_svg(cx, cy, radius_px))
+            boxes.append(_circle_box(cx, cy, radius_px))
         else:
             radius_px = r_px + _FACILITY_HOST_GAP_PX
             orbits.append(_facility_orbit_svg(cx, cy, radius_px))
+            boxes.append(_circle_box(cx, cy, radius_px))
         fx, fy = _facility_point(cx, cy, radius_px, facility)
         markers.append(_facility_marker_svg(fx, fy, facility))
-    return "".join(orbits), "".join(markers)
+        boxes.append(_circle_box(fx, fy, _FACILITY_HALF_PX))
+    return "".join(orbits), "".join(markers), boxes
 
 
 def _binary_star_positions_km(system, stars):
@@ -955,7 +1008,7 @@ def _binary_star_positions_km(system, stars):
     }
 
 
-def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None):
+def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None, bounds=_DEFAULT_BOUNDS):
     """
     Wraps a scene's own orbit-line markup and body-marker markup as TWO
     sibling `<svg data-scene="...">` elements sharing the same
@@ -1001,6 +1054,8 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
             `data-lokm`/`data-hikm` (with `data-cpx`, the scene's center)
             so `static/systemmap.js` can draw a measured route with the
             same log scale the markers were placed with.
+        bounds (tuple, optional): The scene's `(lo, hi)` drawn area
+            (`_fit_bounds`), which becomes both `<svg>`s' viewBox.
 
     Returns:
         str: Two concatenated sibling `<svg>` elements.
@@ -1010,7 +1065,8 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
         scale_attrs = (f' data-lokm="{scale[0]:.6g}" data-hikm="{scale[1]:.6g}" data-cpx="{_CENTER_PX:.1f}"'
                        f' data-minpx="{_MIN_RADIUS_PX:.1f}" data-spreadpx="{_RADIUS_SPREAD_PX:.1f}"')
     hidden_class = " sysmap-hidden" if hidden else ""
-    view_box = f'viewBox="0 0 {_VIEW_SIZE_PX:.0f} {_VIEW_SIZE_PX:.0f}"'
+    lo, size = round(bounds[0], 1), round(bounds[1] - bounds[0], 1)
+    view_box = f'viewBox="{lo:g} {lo:g} {size:g} {size:g}"'
     orbits_svg = (
         f'<svg class="sysmap-svg sysmap-orbits-layer{hidden_class}" data-scene="{esc(scene_id)}" '
         f'{view_box} aria-hidden="true">{orbits_inner}</svg>'
@@ -1064,7 +1120,8 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             of this scene's own bodies already are from each other.
             `label_rect` (a `_star_label_rect`) is optional within this
             dict -- omitted when the obstacle has no label of its own to
-            avoid.
+            avoid. `box` (also optional) is the drawn extent the scene's
+            fit (`_fit_bounds`) must keep inside the frame.
         facilities (list[dict], optional): The system's facilities; those
             on this star, its planets and its belts are drawn
             (`_facilities_svg`).
@@ -1095,10 +1152,14 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             "r": extra_obstacle["r"], "fixed": True,
         })
     orbit_radii = []
+    boxes = [_star_box(_CENTER_PX, _CENTER_PX, star_r)]
+    if extra_obstacle is not None and extra_obstacle.get("box"):
+        boxes.append(extra_obstacle["box"])
     for planet in planets:
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
         r_px = _radial_px(_orbit_radius_km(planet), lo, hi)
         orbit_radii.append(r_px)
+        boxes.append(_circle_box(_CENTER_PX, _CENTER_PX, r_px))
         cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx_km, ly_km)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
@@ -1106,19 +1167,22 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     for belt in belts:
         r_px, band_px = _belt_band(belt, lo, hi, orbit_radii)
         belt_svgs.append(_belt_ring_svg(_CENTER_PX, _CENTER_PX, r_px, band_px, belt))
+        boxes.append(_circle_box(_CENTER_PX, _CENTER_PX, r_px + band_px / 2))
         facility_hosts[("asteroid_belt", belt["id"])] = (_CENTER_PX, _CENTER_PX, r_px, False)
 
     _relax_markers(markers, _MARKER_GAP_PX)
     planet_markers = [m for m in markers if m["type"] == "planet"]
     for marker in planet_markers:
         facility_hosts[("planet", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
-    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
+        boxes.append(_body_box(marker["cx"], marker["cy"], marker["r"], marker["row"]["body_type"]))
+    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, (lo, hi))
+    bounds = _fit_bounds(boxes + facility_boxes)
 
-    star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs)
+    star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs, bounds)
 
     seed_rects = [extra_obstacle["label_rect"]] if extra_obstacle and extra_obstacle.get("label_rect") else None
     placements = _label_sides_2d(
-        [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects,
+        [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects, bounds=bounds,
     )
     body_svgs = []
     for marker, placement in zip(planet_markers, placements):
@@ -1133,6 +1197,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
+            bounds=bounds,
         ))
 
     return _scene_svg_pair(
@@ -1141,7 +1206,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svg/body_svgs) had.
         f'{"".join(belt_svgs)}{star_svg}{"".join(body_svgs)}{extra_svg}{facility_markers}',
-        scale=(lo, hi),
+        scale=(lo, hi), bounds=bounds,
     )
 
 
@@ -1254,6 +1319,7 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
         # "Esarer B"'s own name underneath it.
         "r": companion_r + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2,
         "label_rect": _star_label_rect(companion_cx, companion_cy, companion_r, companion_attrs["name"]),
+        "box": _star_box(companion_cx, companion_cy, companion_r),
     }
 
     primary_scene = _star_scene_svg(
@@ -1338,11 +1404,13 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     belt_svgs = []
     markers = list(star_markers)
     orbit_radii = {}  # anchor -> drawn orbit radii around it
+    boxes = [_star_box(m["cx"], m["cy"], m["r"]) for m in star_markers]
     for planet in planets:
         ax_px, ay_px = anchor_px(planet.get("star_id"))
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
         r_px = _radial_px(_orbit_radius_km(planet), lo, hi)
         orbit_radii.setdefault((ax_px, ay_px), []).append(r_px)
+        boxes.append(_circle_box(ax_px, ay_px, r_px))
         cx, cy = _polar_to_px(ax_px, ay_px, r_px, lx_km, ly_km)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{ax_px:.1f}" cy="{ay_px:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "planet", "cx": cx, "cy": cy, "r": _planet_radius_px(planet["radius_km"]), "row": planet})
@@ -1352,6 +1420,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
         ax_px, ay_px = anchor_px(belt.get("star_id"))
         r_px, band_px = _belt_band(belt, lo, hi, orbit_radii.get((ax_px, ay_px), ()))
         belt_svgs.append(_belt_ring_svg(ax_px, ay_px, r_px, band_px, belt))
+        boxes.append(_circle_box(ax_px, ay_px, r_px + band_px / 2))
         facility_hosts[("asteroid_belt", belt["id"])] = (ax_px, ay_px, r_px, False)
 
     _relax_markers(markers, _MARKER_GAP_PX)
@@ -1366,7 +1435,9 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             facility_hosts[("star", marker["star"]["id"])] = host
         else:
             facility_hosts[("planet", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
-    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
+            boxes.append(_body_box(marker["cx"], marker["cy"], marker["r"], marker["row"]["body_type"]))
+    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, (lo, hi))
+    bounds = _fit_bounds(boxes + facility_boxes)
 
     star_svgs = []
     planet_markers = []
@@ -1392,9 +1463,10 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             # drawn `cx`/`cy` -- same reasoning as `_planet_attrs`'s
             # identical `xkm`/`ykm`.
             "xkm": sx, "ykm": sy,
-        }))
+        }, bounds))
 
-    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers])
+    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
+                                 bounds=bounds)
     body_svgs = []
     for marker, placement in zip(planet_markers, placements):
         row = marker["row"]
@@ -1408,6 +1480,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
+            bounds=bounds,
         ))
 
     return _scene_svg_pair(
@@ -1416,7 +1489,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
         f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{facility_markers}',
-        scale=(lo, hi),
+        scale=(lo, hi), bounds=bounds,
     )
 
 
@@ -1433,6 +1506,7 @@ def _render_moon_scene(planet, facilities=None):
     lo, hi = _radial_scale_bounds(local_r_list)
 
     orbit_paths = []
+    orbit_radii = []
     # The drilled-into planet itself acts as a fixed obstacle here (same
     # `fixed` treatment `_render_system_scene` gives its own star(s)) --
     # `_CENTER_PLANET_R` (36px) is large enough to otherwise swallow a
@@ -1442,6 +1516,7 @@ def _render_moon_scene(planet, facilities=None):
     for moon in moons:
         lx, ly = moon.get("position_x_km") or 0.0, moon.get("position_y_km") or 0.0
         r_px = _radial_px(math.hypot(lx, ly), lo, hi)
+        orbit_radii.append(r_px)
         cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx, ly)
         orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
         markers.append({"type": "moon", "cx": cx, "cy": cy, "r": _moon_radius_px(moon["radius_km"]), "row": moon})
@@ -1449,9 +1524,13 @@ def _render_moon_scene(planet, facilities=None):
     _relax_markers(markers, _MARKER_GAP_PX)
     markers = [m for m in markers if m["type"] == "moon"]
     facility_hosts = {("planet", planet["id"]): (_CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, True)}
+    boxes = [_body_box(_CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["body_type"], is_self=True)]
+    boxes.extend(_circle_box(_CENTER_PX, _CENTER_PX, r_px) for r_px in orbit_radii)
     for marker in markers:
         facility_hosts[("moon", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
-    facility_orbits, facility_markers = _facilities_svg(facilities, facility_hosts, (lo, hi))
+        boxes.append(_body_box(marker["cx"], marker["cy"], marker["r"], marker["row"]["body_type"]))
+    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, (lo, hi))
+    bounds = _fit_bounds(boxes + facility_boxes)
 
     center_svg = _body_marker_svg(
         _CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["planet_class"], planet["body_type"], planet["name"],
@@ -1459,10 +1538,10 @@ def _render_moon_scene(planet, facilities=None):
         # xkm/ykm are relative to it, so a measurement needs (0, 0) here,
         # not its position around the star.
         "sysmap-planet", dict(_planet_attrs(planet), xkm=0.0, ykm=0.0), is_self=True,
-        has_life=bool(planet.get("life_chemical")),
+        has_life=bool(planet.get("life_chemical")), bounds=bounds,
     )
 
-    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers])
+    placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in markers], bounds=bounds)
     body_svgs = []
     for marker, placement in zip(markers, placements):
         row = marker["row"]
@@ -1475,6 +1554,7 @@ def _render_moon_scene(planet, facilities=None):
             label_shift=(placement["shift"] if placement else (0.0, 0.0)),
             show_label=(placement is not None),
             has_life=bool(row.get("life_chemical")),
+            bounds=bounds,
         ))
 
     # A moon scene starts hidden -- `static/systemmap.js` reveals it on
@@ -1490,7 +1570,7 @@ def _render_moon_scene(planet, facilities=None):
         f'planet-{planet["id"]}', f'Moons of {planet["name"]}', True,
         "".join(orbit_paths) + facility_orbits,
         f'{center_svg}{"".join(body_svgs)}{facility_markers}',
-        scale=(lo, hi),
+        scale=(lo, hi), bounds=bounds,
     )
 
 
