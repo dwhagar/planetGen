@@ -90,6 +90,7 @@ time of writing), one writer at a time.
 | TEST.70 | Tests for the map JavaScript |  |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) |  |
 | MAP.88 (new) | Parts of a star system run off the edge of the System Map (bug) |  |
+| MAP.89 (new) | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log |  |
 
 MAP.63 (shared helpers in `static/mapcore.js`) and MAP.64 (one camera
 and input controller) change no behavior and must land before the
@@ -98,7 +99,9 @@ reference for every object, with its parents) is what the picker and
 courses of phase 2 build on, with NAV.8 and NAV.9. TEST.70 (tests for
 the map JavaScript) should exist before the map rewrite starts, and
 MAP.66 and MAP.68 need it. MAP.57 and MAP.88 are small independent
-fixes to the System Map (`lib/systemmap.py`), one PR.
+fixes to the System Map (`lib/systemmap.py`), one PR; MAP.89 (fitted
+orbit spacing, from the orbit spacing study) changes the same file's
+scale, so it goes in the same thread, after them.
 
 ### Operations and test fixes
 
@@ -171,7 +174,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 3. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
    GEN.46 and GEN.39 (after Boss answers) alongside.
 4. Database: DB.2 to DB.5.
-5. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88.
+5. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
 6. Object references: NAV.7, NAV.8, NAV.9.
 7. Ops and flakes: OPS.6 to OPS.8, TEST.71 to TEST.73.
 
