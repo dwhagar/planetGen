@@ -58,51 +58,16 @@ const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
+const {
+  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
+  niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
+} = await import(`./mapcore.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
 
-function readSceneData() {
-  if (!dataEl) {
-    return null;
-  }
-  try {
-    return JSON.parse(dataEl.textContent);
-  } catch (err) {
-    return null;
-  }
-}
-
-var sceneData = readSceneData();
-
-function cssVar(name, fallback) {
-  var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return value || fallback;
-}
-
-// Whether the map's background (--bg-subtle, the light or dark theme) is
-// light, from its computed color.
-function isLightBackground() {
-  var probe = document.createElement("span");
-  probe.style.color = cssVar("--bg-subtle", "#000");
-  document.body.appendChild(probe);
-  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
-  probe.remove();
-  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
-}
-
-function addField(dl, label, value) {
-  if (!value && value !== 0) {
-    return;
-  }
-  var dt = document.createElement("dt");
-  dt.textContent = label;
-  var dd = document.createElement("dd");
-  dd.textContent = value;
-  dl.appendChild(dt);
-  dl.appendChild(dd);
-}
+var sceneData = readSceneData(dataEl);
 
 // A plain <a href> link (GET, bookmarkable, opens in a new tab).
 function pageLink(href, label) {
@@ -120,9 +85,7 @@ function sectorUrl(id) {
   return String(sceneData.sectorUrl || "").replace("{id}", encodeURIComponent(id));
 }
 
-export function formatAddress(ringIndex, layerIndex, slotIndex) {
-  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
-}
+export { formatAddress };
 
 // The map's control buttons (lib/galaxymap3d.py's panel), by their
 // data-action: what each does, given the map's own parts in `ctx`
@@ -533,22 +496,6 @@ function makeLabelTexture(text, color) {
   return texture;
 }
 
-function makeRingTexture(color) {
-  var size = 64;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var r = size / 2;
-  ctx.beginPath();
-  ctx.arc(r, r, r - 4, 0, Math.PI * 2);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = color;
-  ctx.stroke();
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 // --- Filled-sector colors ---------------------------------------------
 //
 // Unlike lib/starmap.py (size/color baked server-side, once), these run
@@ -955,8 +902,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // pixel (setPixelRatio) for sharpness only, and the bright stars' sizes
   // are CSS pixels too (scaled by pixelRatio in their shader).
   function pcPerPixelAtTarget(radius) {
-    var heightPx = canvasEl.clientHeight || 1;
-    return ((radius || orbit.radius) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
+    return worldUnitsPerPixel(camera, radius || orbit.radius, canvasEl.clientHeight);
   }
 
   // --- Blocks ------------------------------------------------------------------
@@ -1600,30 +1546,12 @@ function initGalaxyMap3d(canvasEl, data) {
   // The star whose center is nearest a screen point, within
   // STAR_PICK_PX, or null.
   function starAtClientPoint(clientX, clientY) {
-    var rect = canvasEl.getBoundingClientRect();
-    if (!starList.length || !rect.width || !rect.height) {
-      return null;
-    }
-    var projected = new THREE.Vector3();
-    var best = null;
-    var bestPx = STAR_PICK_PX;
-    starList.forEach(function (star) {
-      if (!inWedgeClip(star.x, star.y, star.z)) {
-        return;
-      }
-      projected.set(star.x, star.y, star.z).project(camera);
-      if (projected.z < -1 || projected.z > 1) {
-        return;
-      }
-      var px = Math.hypot(
-        rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
-        rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
-      if (px <= bestPx) {
-        best = star;
-        bestPx = px;
-      }
+    var found = nearestOnScreen(starList, camera, canvasEl.getBoundingClientRect(), clientX, clientY, {
+      reach: function () { return STAR_PICK_PX; },
+      accept: function (star) { return inWedgeClip(star.x, star.y, star.z); },
+      lastWins: true,
     });
-    return best;
+    return found ? found.entry : null;
   }
 
   // --- Drawing from tiles --------------------------------------------------
@@ -2247,20 +2175,6 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var scaleEl = document.getElementById("galaxymap3d-scale");
 
-  function niceScaleValue(raw) {
-    if (!isFinite(raw) || raw <= 0) {
-      return 0;
-    }
-    var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
-    var mantissa = raw / magnitude;
-    var niceMantissa;
-    if (mantissa < 1.5) niceMantissa = 1;
-    else if (mantissa < 3.5) niceMantissa = 2;
-    else if (mantissa < 7.5) niceMantissa = 5;
-    else niceMantissa = 10;
-    return niceMantissa * magnitude;
-  }
-
   // Up to 3 significant figures, grouped: 0.0512, 3.4, 1,280.
   function formatCount(value) {
     if (!(value > 0)) return "0";
@@ -2325,20 +2239,10 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Resize/render loop ----------------------------------------------
 
-  function resize() {
-    var width = canvasEl.clientWidth || 1;
-    var height = canvasEl.clientHeight || 1;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+  watchResize(viewport, function () {
+    fitRendererToCanvas(renderer, camera, canvasEl);
     updateScaleBar();
-  }
-
-  if (typeof ResizeObserver !== "undefined" && viewport) {
-    new ResizeObserver(resize).observe(viewport);
-  }
-  resize();
-  window.addEventListener("resize", resize);
+  });
 
   // NAV's "Pick on Galaxy Map": endpoints live only in generated
   // sectors, so "Generated only" stays on (design doc section 9).

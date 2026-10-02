@@ -41,50 +41,15 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const {
+  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
+  niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
+} = await import(`./mapcore.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
 
-function readSceneData() {
-  if (!dataEl) {
-    return null;
-  }
-  try {
-    return JSON.parse(dataEl.textContent);
-  } catch (err) {
-    return null;
-  }
-}
-
-var sceneData = readSceneData();
-
-function cssVar(name, fallback) {
-  var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return value || fallback;
-}
-
-// Whether the map's background (--bg-subtle, the light or dark theme) is
-// light, from its computed color (same test as static/galaxymap3d.js's).
-function isLightBackground() {
-  var probe = document.createElement("span");
-  probe.style.color = cssVar("--bg-subtle", "#000");
-  document.body.appendChild(probe);
-  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
-  probe.remove();
-  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
-}
-
-function addField(dl, label, value) {
-  if (!value) {
-    return;
-  }
-  var dt = document.createElement("dt");
-  dt.textContent = label;
-  var dd = document.createElement("dd");
-  dd.textContent = value;
-  dl.appendChild(dt);
-  dl.appendChild(dd);
-}
+var sceneData = readSceneData(dataEl);
 
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
@@ -166,20 +131,6 @@ function appendNavActions(panel, entry) {
   panel.appendChild(links);
 }
 
-// A neighboring sector's own address -- shared display convention with
-// `static/galaxymap3d.js`'s identically-named helpers for its own
-// "planned" (not-yet-generated) sector addresses, since this is the same
-// underlying concept one level in: a `(ring_index, layer_index, ring_slot_index)`
-// address, generated or not.
-function formatAddress(ringIndex, layerIndex, slotIndex) {
-  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
-}
-
-
-// A neighboring sector that already exists just links straight to it
-// (same as a star/cloud entry); one that doesn't yet shows its address
-// and designation, plus, for a logged-in admin (`sceneData.generate`, set
-// by lib/starmap.py only then), the Generate buttons.
 function showNeighborInfo(panel, entry) {
   var heading = document.createElement("h3");
   heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
@@ -225,22 +176,6 @@ function navLink(entry, label) {
 // shared texture atlas/instancing here because there's no need for one
 // at this scale, the same reasoning this file already applied to its old
 // sprite textures.
-
-function makeRingTexture(color) {
-  var size = 64;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var r = size / 2;
-  ctx.beginPath();
-  ctx.arc(r, r, r - 4, 0, Math.PI * 2);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = color;
-  ctx.stroke();
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
 
 // A neighboring-sector indicator's own small filled dot -- same recipe
 // `static/galaxymap3d.js`'s own `makeDotTexture` uses for its "placed"/
@@ -1148,31 +1083,20 @@ export function initStarmap(canvasEl, data, options) {
   // (distance from the camera, in world units), or null -- picked on
   // screen like static/galaxymap3d.js's stars, since a point is a fixed
   // number of pixels across whatever its distance.
-  var projected = new THREE.Vector3();
   function pointAtClientPoint(clientX, clientY, rect) {
-    var best = null;
-    var bestPx = Infinity;
     var growth = pointSizeScale();
-    pointEntries.forEach(function (entry) {
-      projected.set(entry.x, entry.y, entry.z).project(camera);
-      if (projected.z < -1 || projected.z > 1) {
-        return;
-      }
-      var px = Math.hypot(
-        rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
-        rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
-      var reach = entry.kind === "roguePlanet"
-        ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
-        : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
-      if (px <= reach && px < bestPx) {
-        best = entry;
-        bestPx = px;
-      }
+    var found = nearestOnScreen(pointEntries, camera, rect, clientX, clientY, {
+      reach: function (entry) {
+        return entry.kind === "roguePlanet"
+          ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
+          : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
+      },
     });
-    if (!best) {
+    if (!found) {
       return null;
     }
-    return { entry: best, distance: camera.position.distanceTo(projected.set(best.x, best.y, best.z)) };
+    var best = found.entry;
+    return { entry: best, distance: camera.position.distanceTo(new THREE.Vector3(best.x, best.y, best.z)) };
   }
 
   canvasEl.addEventListener("click", function (event) {
@@ -1235,23 +1159,6 @@ export function initStarmap(canvasEl, data, options) {
   var lyPerWorldUnit = data.lyPerPxAtZoom1 || 0;
   var SCALE_BAR_TARGET_PX = 70;
 
-  // Snaps an arbitrary positive value to the nearest "nice" 1/2/5 * 10^n
-  // -- the standard map-scale-bar convention, so the label reads "5 ly"
-  // or "20 ly" rather than an ugly "6.283 ly".
-  function niceScaleValue(raw) {
-    if (!isFinite(raw) || raw <= 0) {
-      return 0;
-    }
-    var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
-    var mantissa = raw / magnitude;
-    var niceMantissa;
-    if (mantissa < 1.5) niceMantissa = 1;
-    else if (mantissa < 3.5) niceMantissa = 2;
-    else if (mantissa < 7.5) niceMantissa = 5;
-    else niceMantissa = 10;
-    return niceMantissa * magnitude;
-  }
-
   // Unlike the old CSS version (a fixed 320px scene scaled by a flat CSS
   // `zoom` factor, so ly-per-pixel was that one ratio divided by `zoom`),
   // a real perspective camera's screen-pixels-per-world-unit depends on
@@ -1259,9 +1166,7 @@ export function initStarmap(canvasEl, data, options) {
   // panel is a responsive `min(100%, 22rem)` box, not a fixed 320px one)
   // -- so this recomputes it from first principles every time instead.
   function worldUnitsPerScreenPixel() {
-    var fovRad = THREE.MathUtils.degToRad(camera.fov);
-    var heightPx = canvasEl.clientHeight || 1;
-    return (2 * spherical.radius * Math.tan(fovRad / 2)) / heightPx;
+    return worldUnitsPerPixel(camera, spherical.radius, canvasEl.clientHeight);
   }
 
   function updateScaleBar() {
@@ -1279,20 +1184,10 @@ export function initStarmap(canvasEl, data, options) {
 
   // --- Resize/render loop ----------------------------------------------
 
-  function resize() {
-    var width = canvasEl.clientWidth || 1;
-    var height = canvasEl.clientHeight || 1;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+  watchResize(viewport, function () {
+    fitRendererToCanvas(renderer, camera, canvasEl);
     updateScaleBar();
-  }
-
-  if (typeof ResizeObserver !== "undefined" && viewport) {
-    new ResizeObserver(resize).observe(viewport);
-  }
-  resize();
-  window.addEventListener("resize", resize);
+  });
 
   (function animate() {
     requestAnimationFrame(animate);
