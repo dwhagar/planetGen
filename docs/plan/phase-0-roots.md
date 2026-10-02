@@ -24,14 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) |  | Same test file as 4 of PERF.21's 14 failures; fix first so the multi-worker run is clean on the py3.9 CI leg. |
-| TEST.74 | Generation tests at more than one worker | TEST.76 | Lands first in the thread: shows what PERF.21 must fix. Fresh test databases at N workers hit DB.5's schema race. |
-| PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) |  | workQueue._dispatch; same code as PERF.21. |
-| PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | TEST.74, PERF.22 | TOP PRIORITY (Boss). Rewrite fault injection so it reaches spawned workers instead of relying on the seeded single-process stream. |
-| TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | TEST.74 | Race in the parallel interrupt path of workQueue.py; same thread. |
-| PERF.23 | The bright-star progress bar can end at 101% (bug) |  | _LayerTracker in generate.py, same parallel scatter code. |
-| GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | PERF.23 | Same scatter functions (_scatter_layers, add_bright_star_band) as PERF.23. Judgment: could instead ride GEN.44's per-sector levels. |
-| GEN.39 | The same seed can't reproduce the same galaxy (bug) | PERF.21 | Decided yes (Boss 01:34-01:46Z): 128-bit seed stored in the database and logged at the top of every run; seed + version (packed in hex) reproduce the galaxy; needs a fresh galaxy. It per-sector seeded draws touch the RNG calls in every generator file, so it lands right after PERF.21 and before GEN.47, GEN.42 and PERF.18, which all need 'same seed, same stars'. |
+| GEN.39 | The same seed can't reproduce the same galaxy (bug) |  | Decided yes (Boss 01:34-01:46Z): 128-bit seed stored in the database and logged at the top of every run; seed + version (packed in hex) reproduce the galaxy; needs a fresh galaxy. It per-sector seeded draws touch the RNG calls in every generator file, so it lands right after PERF.21 and before GEN.47, GEN.42 and PERF.18, which all need 'same seed, same stars'. |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | GEN.39 | Sub-item of GEN.39; fresh galaxy; 22-hex-digit version and environment key (Boss 02:08Z). |
 | OPS.10 | The galaxy seed and version at the top of every generation log | DB.6 | Sub-item of GEN.39. |
 
@@ -41,12 +34,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) |  | Same constructor (the 8-attempt loop around line 353). Soft link: GEN.37 changes which stars can satisfy it. GEN.37 (PR #350) changed planet placement: re-measure first. |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | GEN.49 | Same forcing code; rejected for single systems. |
-
-### Galaxy geometry and names
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.46 | Star system names of at most two words (bug) |  | nameUniqueness.py and _db.py name reservation; API.12 downloads the name state, so settle names first. Decided: only new names follow the rule. |
 
 ### System Map
 
@@ -70,6 +57,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.8 | Update reloads Apache itself when run as root | OPS.7 | Not a bug, but the same files as OPS.7, so it rides along. |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  |  |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) |  |  |
+| TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
+| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
+| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Same summary record. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
@@ -108,6 +98,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 
+### Galaxy geometry and names
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| GEN.62 | Star names in a binary system can reach three words (bug) |  | bodyNames.py binary star words. Open question for Boss: should star names also stay within two words? |
+
 The parallel path thread starts first (Boss: top priority). The map
 groundwork thread runs to MAP.85 (the arc pick) and MAP.52 in one PR;
 MAP.60 onward can be a second thread once MAP.64 merges, since they
@@ -120,3 +116,4 @@ most 4 build threads run at once (Boss).
 ## Open questions for Boss
 
 - MAP.52: Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug), see its entry in TODO.md.
+- GEN.62: Star names in a binary system can reach three words (bug), see its entry in TODO.md.

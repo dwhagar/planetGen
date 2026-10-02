@@ -63,7 +63,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.13 | Generation without a database | API.12, PERF.21 | Local generation with all workers. |
+| API.13 | Generation without a database | API.12 | Local generation with all workers. |
 | API.14 | Upload routes, compressed, in batches | API.7, API.11 |  |
 | API.8 | Verify uploaded data before it is finalized | API.11, API.14 |  |
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
