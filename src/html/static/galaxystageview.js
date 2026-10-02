@@ -29,8 +29,8 @@
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
 //   generated, hint, enter, generate});
-// - showPointAt(clientX, clientY): shows a bright star or cloud under a
-//   click, true when there was one;
+// - showPointAt(clientX, clientY): shows a cloud under a click (never a
+//   star, MAP.101), true when there was one;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
@@ -1250,9 +1250,9 @@ export function createStageView(host) {
 
   function clickAt(event, type) {
     if (animation) return;
-    // Inside a container, a bright star or cloud under the click is shown
-    // rather than the block picked (over the whole galaxy and its arcs
-    // the stars are too thick for that).
+    // Inside a container, a small cloud under the click is shown rather
+    // than the block picked. Stars never take the click (MAP.101): in a
+    // dense sector they would hide it.
     if (stage.at && host.showPointAt && host.showPointAt(event.clientX, event.clientY)) {
       showTooltip("", 0, 0);
       return;

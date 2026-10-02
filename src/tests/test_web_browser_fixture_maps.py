@@ -648,26 +648,35 @@ def test_sector_map_pick_mode_offers_only_the_pick_button(page, map_site):
     assert len(links) == 1 and "View" not in links[0], links
 
 
-def _click_a_galaxy_star(page):
-    url = page.url
-    for x, y in _bright_spots(page, GALAXY_CANVAS, limit=40, white=True):
-        page.mouse.click(x, y)
+def _click_galaxy_stars(page, count=5):
+    """Clicks the brightest points of light on the Galaxy Map, each on a
+    freshly settled view; the info panel's heading after each click."""
+    headings = []
+    for _ in range(count):
+        spots = _bright_spots(page, GALAXY_CANVAS, limit=1, white=True)
+        assert spots, "no stars drawn to click"
+        page.mouse.click(*spots[0])
+        page.wait_for_timeout(500)
+        _settle(page)
         heading = page.locator("#galaxymap3d-info h3")
-        if heading.count() and heading.inner_text() == "Bright star":
-            return
-        if page.url != url:  # missed, and took a block instead
-            page.go_back()
-            _settle(page)
-    pytest.fail("no click on the Galaxy Map picked a star")
+        headings.append(heading.inner_text() if heading.count() else None)
+    return headings
 
 
-@pytest.mark.parametrize("pick", [False, True])
-def test_galaxy_map_star_links_to_its_system_except_while_picking(page, map_site, pick):
-    _open_galaxy(page, map_site, "?at=27.27.0.0" + ("&pick=to" if pick else ""))
+def test_galaxy_map_stars_never_take_the_click(page, map_site):
+    """MAP.101: in a block thick with stars (the fixture's star field),
+    a click on a star picks the slab, then the sector, under it, as if
+    the star weren't there; no star panel ever opens."""
+    _open_galaxy(page, map_site, "?at=3.250.0.0")
     page.wait_for_timeout(1000)
-    _click_a_galaxy_star(page)
-    links = page.locator("#galaxymap3d-info a", has_text="View system")
-    assert links.count() == (0 if pick else 1)
+    assert "p" not in parse_qs(_query(page))
+    first = _click_galaxy_stars(page, count=1)
+    slab = parse_qs(_query(page)).get("p", [""])[0]
+    assert slab.startswith("L"), f"the click on a star picked its slab, not {first}"
+    later = _click_galaxy_stars(page, count=3)
+    assert "Bright star" not in first + later, first + later
+    assert later[0] == "Sector cell", later
+    assert page.locator("#galaxymap3d-info", has_text="Address").count() == 1
 
 
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------
