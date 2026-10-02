@@ -23,9 +23,14 @@
 //   open, rename and delete; with data-bookmarks-keys="<map's id>", the
 //   keys 1 to 9 open the first nine while that map (the element with that
 //   id, the canvas or anything in it) has focus (MAP.81: Ctrl+1 to 9 are
-//   the browser's own tab keys on Windows and Linux).
+//   the browser's own tab keys on Windows and Linux). The sector page
+//   has one too while a NAV start or destination is being picked.
 // - [data-bookmarks-nav]: the NAV page's Bookmarks select (a form), for
-//   the endpoint in data-pick, keeping data-keep-name=data-keep-value.
+//   the endpoint in data-pick, keeping data-keep-name=data-keep-value;
+//   [data-bookmarks-nav-group] around some is hidden while all are.
+// While a NAV start or destination is being picked, a menu or select
+// carries the pick (data-pick, data-keep-name, data-keep-value,
+// data-nav-url, pickOf) and every bookmark keeps it (NAV.40, pickUrlOf).
 // The database comes from the first element's data-bookmark-db. The
 // Galaxy Map's breadcrumb ☆ (galaxystageview.js) uses toggleButton.
 
@@ -138,6 +143,46 @@ export function urlOf(entry) {
   return null;
 }
 
+// The NAV pick an element carries ({pick, keepName, keepValue, navUrl}:
+// the endpoint being chosen, "from" or "to", and the other one already
+// chosen), or null outside pick mode.
+export function pickOf(element) {
+  const pick = element ? element.getAttribute("data-pick") : null;
+  if (pick !== "from" && pick !== "to") return null;
+  return {
+    pick: pick,
+    keepName: element.getAttribute("data-keep-name") || (pick === "from" ? "to" : "from"),
+    keepValue: element.getAttribute("data-keep-value") || "",
+    navUrl: element.getAttribute("data-nav-url") || "/nav",
+  };
+}
+
+// `url` (a path and query) with `params` ([[name, value]]) set in its
+// query, replacing any of the same names.
+function withParams(url, params) {
+  const parsed = new URL(url, window.location.href);
+  params.forEach(function (p) { parsed.searchParams.delete(p[0]); });
+  params.forEach(function (p) { if (p[1]) parsed.searchParams.append(p[0], p[1]); });
+  return parsed.pathname + parsed.search.replace(/%3A/gi, ":") + parsed.hash;
+}
+
+// The page a bookmark opens while `pick` (pickOf) is being chosen,
+// keeping the other endpoint (NAV.40): a system or phenomenon is taken as
+// that endpoint on the NAV page; a sector page, the Galaxy Map at a
+// sector or a saved map view opens in pick mode. Without a pick, urlOf.
+export function pickUrlOf(entry, pick) {
+  if (!pick) return urlOf(entry);
+  if (entry.kind !== "stage" && entry.kind !== "sector" && ENDPOINT_RE.test(entry.value)) {
+    const ends = [[pick.pick, entry.value], [pick.keepName, pick.keepValue]];
+    // The order nav_page.nav_url writes: from, then to.
+    if (pick.pick === "to") ends.reverse();
+    return withParams(pick.navUrl, ends);
+  }
+  const url = urlOf(entry);
+  if (!url) return null;
+  return withParams(url, [["pick", pick.pick], ["from", null], ["to", null], [pick.keepName, pick.keepValue]]);
+}
+
 export function kindLabel(kind) {
   if (kind === "stage") return "Map view";
   if (kind === "sector") return "Sector";
@@ -215,11 +260,12 @@ function renderMenu(menu) {
     return;
   }
   const keys = menu.hasAttribute("data-bookmarks-keys");
+  const pick = pickOf(menu);
   const ul = el("ul", "bookmarks-list");
   entries.forEach(function (entry, n) {
     const li = el("li", "bookmarks-item");
     const link = el("a", "bookmarks-open");
-    const url = urlOf(entry);
+    const url = pickUrlOf(entry, pick);
     if (url) link.href = url;
     link.appendChild(el("span", "bookmarks-name", entry.name));
     const meta = el("span", "bookmarks-kind", kindLabel(entry.kind));
@@ -329,7 +375,7 @@ function wireMenu(menu) {
       if (!event.target || !event.target.nodeType || !scope.contains(event.target)) return;
       const n = /^[1-9]$/.test(event.key) ? Number(event.key) : 0;
       const entry = n ? read()[n - 1] : null;
-      const url = entry ? urlOf(entry) : null;
+      const url = entry ? pickUrlOf(entry, pickOf(menu)) : null;
       if (!url) return;
       event.preventDefault();
       window.location.assign(url);
@@ -339,8 +385,9 @@ function wireMenu(menu) {
 
 // --- The NAV page's Bookmarks select ----------------------------------------------
 
-// The systems and phenomena (an endpoint each) and the generated sectors
-// (their system picker), leaving out the endpoint already chosen.
+// The systems and phenomena (an endpoint each), the generated sectors
+// (their system picker) and the saved map views (the Galaxy Map there,
+// in pick mode), leaving out the endpoint already chosen.
 function renderNavSelect(form) {
   const select = form.querySelector("select");
   if (!select) return;
@@ -348,20 +395,25 @@ function renderNavSelect(form) {
   const entries = read();
   const places = entries.filter(function (e) { return e.kind !== "stage" && e.kind !== "sector" && ENDPOINT_RE.test(e.value) && e.value !== keep; });
   const sectors = entries.filter(function (e) { return e.kind === "sector" && Number.isInteger(e.sectorId); });
+  const views = entries.filter(function (e) { return e.kind === "stage"; });
   select.textContent = "";
   [["Systems and phenomena", places, function (e) { return e.value; }],
-    ["Sectors (then choose a system)", sectors, function (e) { return "sector:" + e.sectorId; }]].forEach(function (group) {
+    ["Sectors (then choose a system)", sectors, function (e) { return "sector:" + e.sectorId; }],
+    ["Map views (then pick on the Galaxy Map)", views, function (e) { return "view:" + e.value; }]].forEach(function (group) {
     if (!group[1].length) return;
     const optgroup = el("optgroup");
     optgroup.label = group[0];
     group[1].forEach(function (entry) {
-      const option = el("option", null, entry.name + (entry.kind === "system" || entry.kind === "sector" ? "" : " (" + kindLabel(entry.kind) + ")"));
+      const plain = entry.kind === "system" || entry.kind === "sector" || entry.kind === "stage";
+      const option = el("option", null, entry.name + (plain ? "" : " (" + kindLabel(entry.kind) + ")"));
       option.value = group[2](entry);
       optgroup.appendChild(option);
     });
     select.appendChild(optgroup);
   });
-  form.hidden = !(places.length || sectors.length);
+  form.hidden = !(places.length || sectors.length || views.length);
+  const group = form.closest("[data-bookmarks-nav-group]");
+  if (group) group.hidden = !Array.prototype.some.call(group.querySelectorAll("[data-bookmarks-nav]"), function (f) { return !f.hidden; });
 }
 
 function wireNavSelect(form) {
@@ -371,6 +423,10 @@ function wireNavSelect(form) {
     event.preventDefault();
     const chosen = form.querySelector("select").value;
     if (!chosen) return;
+    if (chosen.indexOf("view:") === 0) {
+      window.location.assign(pickUrlOf({ kind: "stage", value: chosen.slice("view:".length) }, pickOf(form)));
+      return;
+    }
     const pick = form.getAttribute("data-pick") === "to" ? "to" : "from";
     const params = [];
     const keepName = form.getAttribute("data-keep-name");

@@ -458,3 +458,72 @@ def test_galaxy_map_buttons(page, base_url):
     _wait_settled(page)
     assert _crumbs(page) == ["Galaxy"]
     assert not controls.locator('[data-action="forward"]').is_disabled()
+
+
+# --- NAV.40: picking a course end from a bookmark ---------------------------------
+
+def _seed_bookmarks(page, entries):
+    page.evaluate("""(entries) => {
+        const db = document.querySelector("[data-bookmark-db]").getAttribute("data-bookmark-db");
+        localStorage.setItem("planetgen.bookmarks." + db, JSON.stringify(entries));
+    }""", entries)
+
+
+def _course_ends(page):
+    params = parse_qs(_query(page))
+    return params.get("from", [None])[0], params.get("to", [None])[0]
+
+
+def test_nav_ends_picked_from_bookmarks_on_every_page(page, base_url, sample_params):
+    """NAV.40: while picking a start or destination, a bookmark on the NAV
+    page, the Galaxy Map or the sector page sets that end and keeps the
+    other; on the course page a bookmark replaces either end."""
+    start, dest = f"system:{sample_params['from_id']}", f"system:{sample_params['to_id']}"
+    assert start != dest
+    systems = page.request.get(f"{base_url}/api/systems?sector_id={sample_params['sector_id']}&limit=100").json()["items"]
+    other = next(f"system:{s['id']}" for s in systems if f"system:{s['id']}" not in (start, dest))
+    entries = [
+        {"name": "Bookmarked destination", "kind": "system", "value": dest, "url": f"/system/{sample_params['to_id']}", "created": 1},
+        {"name": "Bookmarked other", "kind": "system", "value": other, "url": "/system/" + other.split(":")[1], "created": 2},
+    ]
+    _open(page, f"{base_url}/nav?from={start}", "body")
+    _seed_bookmarks(page, entries)
+
+    # The NAV page's destination step.
+    _open(page, f"{base_url}/nav?from={start}", "form[data-bookmarks-nav]")
+    form = page.locator("form[data-bookmarks-nav]")
+    form.locator("select").select_option(dest)
+    with page.expect_navigation():
+        form.locator("button[type=submit]").click()
+    assert _course_ends(page) == (start, dest)
+    assert page.locator("#course-heading").count() == 1
+
+    # The course page: a bookmark as the new start, then the new
+    # destination, each keeping the other end.
+    group = page.locator("[data-bookmarks-nav-group]")
+    assert group.is_visible()
+    new_start = group.locator("form[data-pick=from]")
+    new_start.locator("select").select_option(other)
+    with page.expect_navigation():
+        new_start.locator("button[type=submit]").click()
+    assert _course_ends(page) == (other, dest)
+    new_dest = page.locator("[data-bookmarks-nav-group] form[data-pick=to]")
+    assert new_dest.locator(f"option[value='{other}']").count() == 0, "not the start already chosen"
+    new_dest.locator("select").select_option(dest)
+    with page.expect_navigation():
+        new_dest.locator("button[type=submit]").click()
+    assert _course_ends(page) == (other, dest)
+
+    # The Galaxy Map's menu while picking a destination.
+    _open(page, f"{base_url}/galaxy?pick=to&from={start}", "#galaxymap3d-canvas")
+    page.locator("[data-bookmarks-menu] summary").click()
+    with page.expect_navigation():
+        page.locator("[data-bookmarks-panel] a", has_text="Bookmarked destination").click()
+    assert _course_ends(page) == (start, dest)
+
+    # The sector page's menu while picking a destination.
+    _open(page, f"{base_url}/sector/{sample_params['sector_id']}?pick=to&from={start}", "#starmap-canvas")
+    page.locator(".pick-bookmarks summary").click()
+    with page.expect_navigation():
+        page.locator(".pick-bookmarks a", has_text="Bookmarked destination").click()
+    assert _course_ends(page) == (start, dest)

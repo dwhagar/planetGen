@@ -3231,3 +3231,9 @@ body.app {
 .badge.job-cancelled {
   border-style: dashed;
 }
+
+/* The sector page's Bookmarks menu while a NAV end is being picked
+   (NAV.40): under the pick banner. */
+.pick-bookmarks {
+  margin: 0 0 1rem;
+}

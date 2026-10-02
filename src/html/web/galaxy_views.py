@@ -18,7 +18,6 @@ own copy in `localStorage`, keyed as before, so a visitor's cached tiles
 survive the move.
 """
 
-from urllib.parse import urlencode
 
 from flask import jsonify, request, url_for
 
@@ -117,19 +116,13 @@ def _pick_from_args():
     """
     The NAV page's "Pick on Galaxy Map" (`?pick=from&to=...` or
     `?pick=to&from=...`, design doc section 9): the Sector Map's own pick
-    mode (`sector_page._pick_mode`) plus `query`, the `?pick=...` a
-    sector link carries so the pick continues on that sector's page.
-    `None` outside pick mode.
+    mode (`sector_page._pick_mode`), whose `query` a sector link carries
+    so the pick continues on that sector's page. `None` outside pick
+    mode.
     """
     from .sector_page import _pick_mode  # a page module like this one; imported where used
 
-    pick = _pick_mode(request.args)
-    if pick is None:
-        return None
-    params = {"pick": pick["pick"]}
-    if pick["other"]:
-        params["to" if pick["pick"] == "from" else "from"] = pick["other"]
-    return dict(pick, query="?" + urlencode(params, safe=":"))
+    return _pick_mode(request.args)
 
 
 def _has_territories(db):

@@ -32,6 +32,7 @@ an unknown `action`, just redirects back to the page.
 
 import math
 import re
+from urllib.parse import urlencode
 
 from flask import current_app, flash, get_flashed_messages, redirect, request, url_for
 
@@ -361,12 +362,17 @@ def _pick_mode(args):
     section 9.1), or `None`.
 
     Returns:
-        dict or None: `{"pick", "other", "banner", "label", "cancel"}`:
-            which endpoint is being chosen, the other endpoint already
-            chosen (an `endpoint()` string, or `None`), the banner text,
-            the button label, and the Cancel URL (`/nav` with the other
-            endpoint kept). A bad `pick` or other endpoint drops pick
-            mode rather than failing the page.
+        dict or None: `{"pick", "other", "banner", "label", "cancel",
+            "query", "keep_name", "keep_value", "nav_url"}`: which
+            endpoint is being chosen, the other endpoint already chosen
+            (an `endpoint()` string, or `None`), the banner text, the
+            button label, the Cancel URL (`/nav` with the other endpoint
+            kept), the `?pick=...` query a link carries so the pick
+            continues on the page it opens, and what the page's
+            bookmarks need to keep the pick (NAV.40, `static/bookmarks.js`
+            reads them as `data-pick`, `data-keep-name`,
+            `data-keep-value` and `data-nav-url`). A bad `pick` or other
+            endpoint drops pick mode rather than failing the page.
     """
     from .nav_page import endpoint, nav_url, parse_endpoint  # nav_page imports this module
 
@@ -382,7 +388,12 @@ def _pick_mode(args):
             return None
     banner, label = _PICK_LABELS[pick]
     cancel = nav_url(destination=other) if pick == "from" else nav_url(origin=other)
-    return {"pick": pick, "other": other, "banner": banner, "label": label, "cancel": cancel}
+    params = {"pick": pick}
+    if other:
+        params[other_field] = other
+    return {"pick": pick, "other": other, "banner": banner, "label": label, "cancel": cancel,
+            "query": "?" + urlencode(params, safe=":"), "keep_name": other_field, "keep_value": other or "",
+            "nav_url": nav_url()}
 
 
 def _nav_for(pick):

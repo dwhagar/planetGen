@@ -477,6 +477,12 @@ export function createStageView(host) {
     });
   }
 
+  // A stage's query with the NAV pick kept (host.pickQuery, "?pick=...").
+  function withPick(query) {
+    if (!host.pickQuery) return query;
+    return query ? query + "&" + host.pickQuery.slice(1) : host.pickQuery;
+  }
+
   // Goes to stage `next` (carried on through any choice of one). push:
   // record it in the browser history (default yes).
   function go(next, options) {
@@ -493,7 +499,7 @@ export function createStageView(host) {
       selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
     }
     const token = ++goToken;
-    const query = options.query || S.stageQuery(r.stage);
+    const query = withPick(options.query || S.stageQuery(r.stage));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
       mapIndex += 1;
       maxIndex = mapIndex;

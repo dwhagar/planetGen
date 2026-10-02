@@ -510,7 +510,7 @@ def test_nav_course_and_route(client, fake):
     assert "3 stops, 1.07 pc (3.5 ly) total." in html
     # The NAV map's points are plain links.
     assert '<a class="navmap-point navmap-hop" href="/system/1500">' in html
-    assert "data-nav" not in html
+    assert "data-nav=" not in html
     assert '<a href="/nav?from=system:1002&amp;to=system:1001">Reverse course</a>' in html
 
 
@@ -1020,7 +1020,27 @@ def test_nav_destination_step_has_a_bookmarks_select(client, fake):
     assert ">Use as destination</button>" in form
 
 
-def test_nav_course_has_no_bookmarks_select(client, fake):
+def test_nav_course_offers_bookmarks_for_either_end(client, fake):
+    """NAV.40: once both ends are set, a bookmark can replace either."""
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
-    assert "data-bookmarks-nav" not in html
-    assert "bookmarks.js" not in html
+    assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)
+    group = re.search(r'<section class="panel"[^>]*data-bookmarks-nav-group hidden>.*?</section>', html, re.S)
+    assert group, "the Change an End section, hidden until bookmarks.js fills it"
+    forms = re.findall(r'<form class="search-form nav-bookmarks" data-bookmarks-nav[^>]*>.*?</form>', group.group(0), re.S)
+    assert len(forms) == 2
+    assert 'data-pick="from"' in forms[0] and 'data-keep-name="to"' in forms[0]
+    assert 'data-keep-value="system:1002"' in forms[0] and "New start" in forms[0]
+    assert 'data-pick="to"' in forms[1] and 'data-keep-name="from"' in forms[1]
+    assert 'data-keep-value="system:1001"' in forms[1] and "New destination" in forms[1]
+
+
+def test_sector_pick_mode_has_a_bookmarks_menu_that_keeps_the_pick(client, fake):
+    """NAV.40: the sector page offers bookmarks while picking, carrying
+    the pick for static/bookmarks.js."""
+    html = client.get("/sector/5?pick=to&from=system:1001").get_data(as_text=True)
+    menu = re.search(r'<details class="bookmarks-menu pick-bookmarks"[^>]*>', html, re.S)
+    assert menu
+    for attribute in ('data-bookmarks-menu', 'data-pick="to"', 'data-keep-name="from"',
+                      'data-keep-value="system:1001"', 'data-nav-url="/nav"', f'data-bookmark-db="{DB}"'):
+        assert attribute in menu.group(0)
+    assert "pick-bookmarks" not in client.get("/sector/5").get_data(as_text=True)

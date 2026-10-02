@@ -397,9 +397,12 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         pick (dict or None): The NAV page's pick mode
             (`web/galaxy_views._pick_from_args`): `pick` ("from" or
             "to"), `banner` and `cancel` (the NAV page with the other
-            endpoint kept). It shows a banner, and the page keeps
-            "Generated only" on; the caller adds the pick to
-            `sector_url` so a sector click continues the pick there.
+            endpoint kept), `query` (the `?pick=...` the map keeps on
+            its own URLs) and `keep_name`, `keep_value` and `nav_url`
+            (for the Bookmarks menu, which keeps the pick, NAV.40). It
+            shows a banner, and the page keeps "Generated only" on; the
+            caller adds the pick to `sector_url` so a sector click
+            continues the pick there.
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
@@ -418,6 +421,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "territoryPath": territory_path,
         "course": course,
         "pick": pick["pick"] if pick else None,
+        "pickQuery": pick["query"] if pick else None,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -457,7 +461,14 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     }
 
     pick_banner = ""
+    bookmark_pick = ""
     if pick:
+        # The Bookmarks menu keeps the pick (NAV.40, static/bookmarks.js).
+        bookmark_pick = "".join(
+            f' data-{name}="{_escape(pick[key])}"'
+            for name, key in (("pick", "pick"), ("keep-name", "keep_name"), ("keep-value", "keep_value"),
+                              ("nav-url", "nav_url"))
+        )
         pick_banner = (
             '<p class="pick-banner" role="status"><strong>' + _escape(pick["banner"]) + ":</strong> drill down"
             " to a generated sector and click it, then pick a system or phenomenon there &middot; "
@@ -551,7 +562,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
           title="One step back out (Esc)">Up</button>
   <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
           title="Back to the whole galaxy (Home)">Reset</button>
-  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}">
+  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}"{bookmark_pick}>
     <summary class="starmap-btn" data-icon="bookmarks"
              title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
     <div class="bookmarks-panel" data-bookmarks-panel></div>

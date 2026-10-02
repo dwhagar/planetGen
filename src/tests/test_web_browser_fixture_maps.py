@@ -654,3 +654,68 @@ def test_galaxy_map_star_links_to_its_system_except_while_picking(page, map_site
     links = page.locator("#galaxymap3d-info a", has_text="View system")
     assert links.count() == (0 if pick else 1)
 
+
+# --- NAV.40: bookmarks keep a course pick ---------------------------------------------
+
+SEED_BOOKMARKS = """(entries) => {
+    const db = document.querySelector("[data-bookmark-db]").getAttribute("data-bookmark-db");
+    localStorage.setItem("planetgen.bookmarks." + db, JSON.stringify(entries));
+}"""
+
+PICK_BOOKMARKS = [
+    {"name": "Saved view", "kind": "stage", "value": "/galaxy?at=27.27.0.0", "created": 1},
+    {"name": "Middling Sun", "kind": "system", "value": "system:702", "url": "/system/702", "created": 2},
+    {"name": "Fixture Second", "kind": "sector", "value": "0·0·2", "url": "/sector/8", "sectorId": 8, "created": 3},
+]
+
+
+def _menu_links(page, menu):
+    menu.locator("summary").click()
+    return dict(menu.locator("[data-bookmarks-panel] a").evaluate_all(
+        "els => els.map(a => [a.querySelector('.bookmarks-name').textContent, a.getAttribute('href')])"))
+
+
+def _assert_pick_links(links):
+    assert links["Middling Sun"] == "/nav?from=system:701&to=system:702", links
+    assert links["Fixture Second"] == "/sector/8?pick=to&from=system:701", links
+    view = parse_qs(urlparse(links["Saved view"]).query)
+    assert view == {"at": ["27.27.0.0"], "pick": ["to"], "from": ["system:701"]}, links
+
+
+def test_bookmarks_keep_a_course_pick_on_the_galaxy_map(page, map_site):
+    """NAV.40: while a destination is picked, the Galaxy Map's bookmarks
+    (menu and keys) keep the pick and the start already chosen, and the
+    map's own URLs keep it as it moves."""
+    _open_galaxy(page, map_site, "?pick=to&from=system:701")
+    page.evaluate(SEED_BOOKMARKS, PICK_BOOKMARKS)
+    _open_galaxy(page, map_site, "?pick=to&from=system:701")
+    _assert_pick_links(_menu_links(page, page.locator("[data-bookmarks-menu]")))
+    page.keyboard.press("Escape")
+
+    # Key 1 opens the saved view, still picking.
+    page.locator(GALAXY_CANVAS).focus()
+    with page.expect_navigation():
+        page.keyboard.press("1")
+    _settle(page)
+    params = parse_qs(_query(page))
+    assert params["pick"] == ["to"] and params["from"] == ["system:701"] and params["at"] == ["27.27.0.0"]
+    assert page.locator(".pick-banner").count() == 1
+    # A step on the map keeps the pick in the URL.
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _settle(page)
+    assert "at" not in parse_qs(_query(page)) or parse_qs(_query(page))["at"] != ["27.27.0.0"]
+    params = parse_qs(_query(page))
+    assert params.get("pick") == ["to"] and params.get("from") == ["system:701"], params
+
+
+def test_bookmarks_keep_a_course_pick_on_the_sector_page(page, map_site):
+    """NAV.40: the sector page in pick mode offers bookmarks, each keeping
+    the pick."""
+    _open_sector(page, map_site)
+    page.evaluate(SEED_BOOKMARKS, PICK_BOOKMARKS)
+    _open_sector(page, map_site, "?pick=to&from=system:701")
+    menu = page.locator(".pick-bookmarks[data-bookmarks-menu]")
+    assert menu.count() == 1
+    _assert_pick_links(_menu_links(page, menu))
+    _open_sector(page, map_site)
+    assert page.locator(".pick-bookmarks").count() == 0, "no extra menu outside pick mode"

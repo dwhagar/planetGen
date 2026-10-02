@@ -578,7 +578,18 @@ Built (MAP.23), with decision 4's default: per browser, no migration.
   but not from a text box or select (MAP.81: they were Ctrl+1 to Ctrl+9,
   which Chrome and Firefox on Windows and Linux keep for switching tabs).
 - The NAV page's Bookmarks select lists system and phenomenon bookmarks
-  (section 9). A sector bookmark opens the system picker for that sector.
+  (section 9). A sector bookmark opens the system picker for that sector,
+  and a saved map view opens the Galaxy Map there to pick on. Once both
+  ends are set, the course page offers the same select for a new start
+  or a new destination.
+- Bookmarks keep a course pick (NAV.40): while a start or destination is
+  being chosen, the Galaxy Map's menu and its 1 to 9 keys, and a
+  Bookmarks menu under the sector page's pick banner, carry the pick
+  (`data-pick`, `data-keep-name`, `data-keep-value`, `data-nav-url`). A
+  system or phenomenon bookmark sets that end on the NAV page, and a
+  sector page, a sector on the map or a saved map view opens in pick
+  mode, all keeping the other end. The Galaxy Map keeps the pick on its
+  own stage URLs too.
 - One module, `static/bookmarks.js`, serves the map, the system,
   phenomenon and sector pages and the NAV page; importing it wires
   whatever each page has, with no inline script. The Sector Map's own
