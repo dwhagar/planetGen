@@ -80,7 +80,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.10 | Repair reads the newest settings JSON and the pending deltas | DB.9, GEN.61, OPS.18 | Falls back to the next backup if the newest JSON is damaged. |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas (low priority) | DB.9, GEN.61, OPS.18 | Low priority (Boss 02:31Z). Falls back to the next backup if the newest JSON is damaged. |
 
 ## Open questions for Boss
 
