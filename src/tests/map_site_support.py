@@ -117,6 +117,17 @@ def _star_field():
 
 STAR_FIELD = _star_field()
 
+POINT_FIELD = [
+    {"type": "black_hole", "id": 61, "name": "Fixture Maw", "descriptor": "accreting", "luminosity_sol": 0.02,
+     "x": STAR_FIELD_CENTER_PC[0] - 12.0, "y": 9.0, "z": 0.0},
+    {"type": "neutron_star", "id": 41, "name": "Fixture Pulsar", "descriptor": "millisecond",
+     "luminosity_sol": 0.5, "x": STAR_FIELD_CENTER_PC[0] + 11.0, "y": 3.0, "z": 0.0},
+    {"type": "quasar", "id": 71, "name": "Fixture Beacon", "descriptor": "radio-loud", "luminosity_sol": 3e12,
+     "x": STAR_FIELD_CENTER_PC[0] + 4.0, "y": 14.0, "z": 0.0},
+]
+"""The Galaxy Map's fixture point phenomena (a tile's `points`, MAP.80),
+among the fixture stars."""
+
 
 def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
@@ -218,8 +229,10 @@ class FixtureApi:
             lo, hi = tile_bounds_pc(*parse_tile_key(key))
             stars = [star for star in STAR_FIELD
                      if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
+            points = [point for point in POINT_FIELD
+                      if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
             tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": [], "stars": stars,
-                          "generated": None}
+                          "generated": None, "points": points}
         return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):

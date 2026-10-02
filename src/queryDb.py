@@ -2754,6 +2754,12 @@ GENERATED_STAR_MAX_FLOOR_SOL = 1000.0
 they span a good share of the galaxy, where the pre-placed bright stars
 (`galaxy_bright_stars_in_box`) already show everything that bright."""
 
+GALAXY_TILE_MAX_DETAIL_STARS = 4000
+"""int: Most stars of generated systems a finest tile (`TILE_MAX_LEVEL`,
+16 pc) lists (MAP.80): the map fetches these around a sector it is
+zoomed to, so the sector shows every star it holds. Only a tile deep in
+the bulge holds more, and then its faintest are left out."""
+
 GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET = 1500
 """int: Most generated sectors one tile reads stars from. A coarse tile
 over a large filled region reads an even sample of its sectors (every
@@ -2843,6 +2849,69 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
     } for row in rows]
 
 
+POINT_PHENOMENON_MIN_LEVEL = 10
+"""int: The coarsest tile level (64 pc tiles) that lists the point-like
+phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
+That is the level the map fetches once it is zoomed to a sector, so a
+sector shows every one of them; farther out they would be lost among the
+stars anyway."""
+
+GALAXY_TILE_MAX_POINTS = 200
+"""int: Most point-like phenomena one tile lists, the most luminous
+first. A 64 pc tile holds a handful."""
+
+_POINT_PHENOMENON_TABLES = (
+    ("black_holes", "black_hole", "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)"),
+    ("neutron_stars", "neutron_star", "pulsar_type"),
+    ("quasars", "quasar", "(CASE WHEN is_radio_loud THEN 'radio-loud' ELSE 'radio-quiet' END)"),
+)
+"""tuple: `(table, type_label, descriptor_expr)` for the phenomena the
+Galaxy Map draws as points (the same labels and descriptors as
+`_PHENOMENON_TABLES`)."""
+
+
+def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
+    """
+    The placed black holes, neutron stars and quasars whose center lies
+    in the box `[lo, hi)` (MAP.80), at most `limit`, read by each table's
+    `idx_<table>_center`. One bound to a star system (`star_id`) has no
+    placement of its own and is drawn as that system's star instead.
+
+    Args:
+        conn (stellarObjects._db.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        limit (int): See `GALAXY_TILE_MAX_POINTS`.
+
+    Returns:
+        list[dict]: Most luminous first (ties by type, then id): `type`
+            (`"black_hole"`, `"neutron_star"` or `"quasar"`), `id`,
+            `name`, `descriptor`, `luminosity_sol` and `x`/`y`/`z`
+            (parsecs).
+    """
+    found = []
+    for table, type_label, descriptor_expr in _POINT_PHENOMENON_TABLES:
+        rows = conn.execute(
+            f"""
+            SELECT id, name, {descriptor_expr} AS descriptor, luminosity_w,
+                   center_x_pc, center_y_pc, center_z_pc
+            FROM {table} FORCE INDEX (idx_{table}_center)
+            WHERE center_x_pc >= ? AND center_x_pc < ? AND center_y_pc >= ? AND center_y_pc < ?
+              AND center_z_pc >= ? AND center_z_pc < ?
+            ORDER BY luminosity_w DESC, id
+            LIMIT ?
+            """,
+            (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+        ).fetchall()
+        found += [{
+            "type": type_label, "id": row["id"], "name": row["name"], "descriptor": row["descriptor"],
+            "luminosity_sol": float("%.4g" % (row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY)),
+            "x": round(row["center_x_pc"], 3), "y": round(row["center_y_pc"], 3), "z": round(row["center_z_pc"], 3),
+        } for row in rows]
+    found.sort(key=lambda point: (-point["luminosity_sol"], point["type"], point["id"]))
+    return found[:limit]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -2859,11 +2928,14 @@ def galaxy_tiles(conn, tile_keys):
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
             "filled": {...}, "clouds": [...], "stars": [...],
-            "generated": [...]}}`, see `galaxy_sectors_in_box`,
+            "generated": [...], "points": [...]}}`, see `galaxy_sectors_in_box`,
             `galaxyViewport.planned_slots_in_tile`, `galaxy_filled_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
-            `generated_star_floor_sol`)),
+            `generated_star_floor_sol`, all of them in a finest tile up
+            to `GALAXY_TILE_MAX_DETAIL_STARS`) and
+            `galaxy_point_phenomena_in_box` (tiles of
+            `POINT_PHENOMENON_MIN_LEVEL` and finer)),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
 
@@ -2909,10 +2981,12 @@ def galaxy_tiles(conn, tile_keys):
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count)
+            limit = GALAXY_TILE_MAX_DETAIL_STARS if level >= TILE_MAX_LEVEL else GALAXY_TILE_MAX_GENERATED_STARS
+            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit)
+        points = galaxy_point_phenomena_in_box(conn, lo, hi) if level >= POINT_PHENOMENON_MIN_LEVEL else []
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
-            "generated": generated,
+            "generated": generated, "points": points,
         }
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}

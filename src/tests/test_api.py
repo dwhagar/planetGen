@@ -1035,6 +1035,54 @@ def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
     assert tiles["0/0/0/0"]["generated"] == []
 
 
+def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client, mysql_config, monkeypatch):
+    """MAP.80: a finest tile lists every generated star up to its own,
+    larger cap; tiles from `POINT_PHENOMENON_MIN_LEVEL` in list the black
+    holes, neutron stars and quasars centered in them, brightest first,
+    and coarser tiles none."""
+    import math
+
+    from stellarObjects.compactRemnant import BlackHole, NeutronStar
+    from stellarObjects.config import SystemConfig
+    from stellarObjects.quasarData import Quasar
+
+    _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0, 0.3])
+    sector_id = _sector_ids[0]
+
+    def placement(x):
+        return {"center_x_pc": x, "center_y_pc": 2.0, "center_z_pc": 0.0, "galactic_radius_pc": math.hypot(x, 2.0)}
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            hole = _db.insert_black_hole(conn, BlackHole(SystemConfig()), sector_id=sector_id, placement=placement(1.0))
+            pulsar = _db.insert_neutron_star(conn, NeutronStar(SystemConfig()), sector_id=sector_id,
+                                             placement=placement(3.0))
+            quasar = _db.insert_quasar(conn, Quasar(SystemConfig()), sector_id=sector_id, placement=placement(2.5))
+            # Bound to a system, so not placed on its own.
+            _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+    finally:
+        conn.close()
+
+    finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
+    sector_level = tiles_intersecting_sphere(queryDb.POINT_PHENOMENON_MIN_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
+    coarse = tiles_intersecting_sphere(queryDb.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
+    monkeypatch.setattr(queryDb, "GALAXY_TILE_MAX_GENERATED_STARS", 1)
+    tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{sector_level},{coarse}").get_json()["tiles"]
+    assert [s["id"] for s in tiles[finest]["generated"]] == [star_ids[1], star_ids[2], star_ids[0]]
+    assert len(tiles[sector_level]["generated"]) == 1
+    points = tiles[finest]["points"]
+    assert {(p["type"], p["id"]) for p in points} == {("black_hole", hole), ("neutron_star", pulsar), ("quasar", quasar)}
+    assert [p["luminosity_sol"] for p in points] == sorted((p["luminosity_sol"] for p in points), reverse=True)
+    assert points[0]["type"] == "quasar"
+    by_type = {p["type"]: p for p in points}
+    assert (by_type["neutron_star"]["x"], by_type["neutron_star"]["y"]) == pytest.approx((3.0, 2.0))
+    assert by_type["neutron_star"]["descriptor"] in ("young", "millisecond", "non-pulsing")
+    assert by_type["black_hole"]["name"]
+    assert tiles[sector_level]["points"] == points
+    assert tiles[coarse]["points"] == []
+
+
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
