@@ -82,9 +82,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.42 | A pass that drops sectors from a region by probability | GEN.41, PERF.11, GEN.39 | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
+| GEN.42 | A pass that drops sectors from a region by probability | GEN.41, PERF.11 | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | GEN.42 |  |
-| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | GEN.44, PERF.19, GEN.39 | Same stars as the one-process backfill for one seed needs GEN.39. |
+| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | GEN.44, PERF.19 | Same stars as the one-process backfill for one seed needs GEN.39. |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.41, GEN.42, GEN.43, GEN.44 | Parent; closes with its subitems. |
 
 ### Queue
@@ -100,7 +100,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.5 | API version and compatibility checking | API.4 |  |
 | API.10 | Reservations: claimed sectors and id blocks per run | API.9 | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.11 | Staging tables | API.10 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
-| API.12 | The download: seed, skeleton and name state | API.5, GEN.39 | Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
+| API.12 | The download: seed, skeleton and name state | API.5 | Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
 | API.16 | The API reports the galaxy's seed, version and run history | DB.6, API.5 |  |
 
 ### 3D system

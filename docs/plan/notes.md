@@ -164,9 +164,9 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
 | systemData.py StarSystem constructor | GEN.52 | GEN.53 and GEN.54 done (PR #367), GEN.49 and GEN.50 done (PR #373). |
 | planetPhysics.py (reconcile_zone_and_class, generate_moons) and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.38, GEN.60, GEN.29 | Physics bugs done (PR #350); the classes thread. |
-| Random draws in every generator file | GEN.39, then GEN.56 (decided yes, Boss 01:34Z) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
+| Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; land it right after PERF.21 and tell the other generation threads to merge main. |
 | _db.py | API.10 (id blocks), API.12 (names) | DB.2 to DB.5 done (PR #342, PR #347); GEN.46 done (PR #370). |
-| Galaxy schema (schema.sql, v50 today) | DB.6, DB.7, GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11 | One writer at a time, in this order: DB.6 (phase 0, fresh galaxy), then DB.7, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. DB.8 only reads it. |
+| Galaxy schema (schema.sql, v51 today: galaxy_seed, PR #381) | DB.6, DB.7, GEN.44, PERF.11, MAP.86 (if it adds a column), NAV.10, API.11 | One writer at a time, in this order: DB.6 (phase 0, fresh galaxy), then DB.7, GEN.44, PERF.11 with MAP.86, NAV.10, API.11. DB.8 only reads it. |
 | Control schema (v7 today) | OPS.13 (key history), API.9, API.15 (call log), USR.2, USR.4, USR.7, NAV.19 | One writer at a time; OPS.13 and API.9 first, accounts later. |
 | lib/systemmap.py and static/systemmap.js | MAP.57, MAP.88, MAP.89, MAP.71 | One thread: MAP.57, MAP.88, MAP.89 (the System Map lane, after the Galaxy map picker lane starts); it can use mapcore.js helpers (MAP.63, PR #351). |
 | sectormap.js and lib/starmap.py | MAP.65, MAP.79, NAV.29, MAP.68 | Phase 0 fixes and the extraction done (PR #351); later items in the engine thread. |
@@ -184,7 +184,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 
 ## Near-cycles and how they are broken
 
-- **GEN.39 and PERF.21** (PERF.21 done, PR #371): Each said it touches the other's tests ("whichever lands second keeps both working"). Broken by putting PERF.21 first: its tests get fault injection that works across processes instead of leaning on the seeded single-process stream, then GEN.39 makes per-sector draws reproducible at any worker count.
+- **GEN.39 and PERF.21** (both done, PRs #371 and #381): Each said it touches the other's tests ("whichever lands second keeps both working"). Broken by putting PERF.21 first: its tests get fault injection that works across processes instead of leaning on the seeded single-process stream, then GEN.39 makes per-sector draws reproducible at any worker count.
 - **MAP.88 and MAP.89**: Both said "whichever lands second keeps the other". Fixed order: MAP.57, MAP.88, then MAP.89, one thread.
 - **MAP.85 and MAP.86**: MAP.85 removes the lines and relies on color to show structure; MAP.86 is that color. Boss moved MAP.85 to phase 0 (01:46Z); MAP.86 follows next in phase 1, with MAP.86's data side (stored per-sector color, tile field) able to land first.
 - **MAP.61 and the Galaxy Map items**: MAP.61 is both before and after MAP.52 to MAP.60. Split as its text says: MAP.63 and MAP.64 in phase 0, MAP.65 to MAP.68 after the selection rewrite.

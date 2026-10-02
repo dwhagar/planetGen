@@ -22,7 +22,7 @@ release is stamped.
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.86 |
+| TEST | TEST.87 |
 | USR | USR.8 |
 | OPS | OPS.20 |
 | DOC | DOC.4 |
@@ -477,7 +477,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | done, PR #350 |
 | GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
-| GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | open |
+| GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | done, PR #381 |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
@@ -927,6 +927,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
 | TEST.85 | A bright-star layer test once hit a name collision count of -1 (bug) | none | open |
+| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

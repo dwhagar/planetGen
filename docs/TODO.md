@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | GEN.39, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.85, TEST.86, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8, GEN.62, OPS.19, MAP.91 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60, GEN.63 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -1448,109 +1448,77 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   their share in ordinary names), planets follow the rule above, and a
   test over generated wide binaries checks the names.
 
-- [ ] **GEN.39 The same seed can't reproduce the same galaxy (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), from the parallel, population and navigation tests thread: star
-  positions and star draws use the operating system's random source by
-  design, so even at the same worker count one seed gives a different
-  galaxy each run, and TEST.19 (retired with PR #321) couldn't check
-  its goal of the same sectors at any worker count. Decided (Boss,
-  2026-10-02 01:34Z): "one seed reproduces the same galaxy." Design:
-  each sector gets its own seed, derived from the galaxy seed and the
-  sector's address, and every draw for that sector (star positions,
-  star draws, systems, phenomena, backfill) comes from it, so the order
-  sectors run in and the worker count don't matter. Reproducible on the
-  same version only: a release that changes generation may change what
-  a seed makes. Storage and the log line are DB.6 and OPS.10 below; the
-  end goal, a version and a seed rebuilding the same galaxy, is GEN.55.
-  Seed shape (Boss, 2026-10-02 01:36Z: "I want to use a 128bit seed"): one 128-bit galaxy seed stored with the galaxy (a
-  `BINARY(16)` column or a 32-character hex string, since `BIGINT
-  UNSIGNED` holds only 64 bits) and shown as 32 hex digits, a new
-  `--seed` option on `plan` and new galaxies that accepts it, and each
-  sector, layer and backfill block seeded from the galaxy seed plus its
-  address. Each unit's seed is SHA-256(128-bit galaxy seed || "kind:"
-  address), for example `sector:12/3/0`; the version is not mixed into
-  the hash but stored alongside (DB.6), and the bright-star scatter's own 63-bit seed
-  is derived from the 128-bit galaxy seed too, so no step throws bits
-  away. Builds after PERF.21, in the parallel path thread. Done: no
-  generation draw uses the operating system's random source; a test
-  checks that one galaxy seed gives the same sectors at 1, 2 and N
-  workers (with TEST.74); and a test checks that two seeds differing
-  only in their high 64 bits give different output. Decided (Boss,
-  2026-10-02 01:46Z: "I'm going to nuke the galaxy anyway so let's say
-  GEN.39 requires the galaxy to be nuked and a fresh start"): GEN.39
-  starts from a wiped galaxy, which Boss does himself; no support for an
-  unseeded galaxy and no migration of old galaxies is needed.
+- [ ] **DB.6 Store the galaxy's 128-bit seed, the version that made it, and every generation run**
+  The storage half of GEN.39 (done, PR #381). The seed column is done:
+  PR #381 added `galaxy_shape.galaxy_seed` (`BINARY(16)`, galaxy schema
+  v51); the version key and the `generation_runs` table remain. Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
+  the database, and put it in the log at the top of any generation, also
+  populate the TODO upward from here to eventually build a system that a
+  version number and a seed value would reproduce the same galaxy by the
+  end of the phases." Today the
+  only stored seed is the bright-star scatter's 63-bit one
+  (`_db.record_bright_star_scatter`); the run seed in `generate.py`
+  main (`secrets.randbits(128)`) and the work queue's `run_seed` are
+  never stored. Done: a galaxy schema migration adds the galaxy's seed
+  to `galaxy_shape` (`BINARY(16)`, written once, when the galaxy is
+  first planned, set with `generate.py plan --seed` as 32 hex digits or
+  drawn at random) and the
+  PlanetGen version, Python version and platform that made it, plus a
+  `generation_runs` table with one row per run that changes the
+  galaxy: the command and its options, the version, start and end
+  times, and the outcome. Simplest default: the run history is what
+  makes "replay" possible (OPS.12), since a galaxy is built by a series
+  of commands (plan, sectors, scatter, backfill), not by the seed
+  alone. A test checks the seed reads back bit for bit. No migration of
+  existing galaxies: GEN.39 starts from a wiped galaxy.
+  The version: Boss (2026-10-02 01:46Z): "I would say the version
+  number all added together into a number stored in hex", so the
+  stored version value combines MAJOR, REVISION and BUILD into one
+  number in hex. A plain sum collides (7.127.352 and 7.128.351 both
+  sum to 486), so the default, the collision-free form of "all added
+  together", packs the parts into one number. Decided (Boss,
+  2026-10-02 01:53Z, "you are correct on all points"): the packed form.
+  Widened, with an environment part (Boss, 2026-10-02 02:08Z: "I want
+  2 more hex digits on the build number padding for the version for
+  the seed numbers ... Since library matters too, let's also encode
+  the python version as 3 hex numbers for the version number of
+  python, and a digit for the OS (0 = linux, 1 = windows, 3 = macos)
+  and a digit for architexture (x64 is default so that is 0, but
+  enumerate)"). The key is 22 uppercase hex digits with no separators:
+  - MAJOR 4, REVISION 4, BUILD 6 (Boss's two extra digits).
+  - Python major 2, minor 2, micro 2. One digit each would overflow at
+    Python 3.16, and micro releases already pass 15 (3.8.20).
+  - OS 1: 0 Linux, 1 Windows, 3 macOS (Boss's values), 2 reserved for
+    other Unix and BSD, F unknown.
+  - Architecture 1, from `platform.machine()`: 0 x86-64 (the default),
+    1 ARM64 (Apple Silicon included), 2 32-bit x86, 3 32-bit ARM,
+    4 RISC-V 64, F unknown.
+  So PlanetGen 7.127.352 on Python 3.12.3, Linux, x86-64 is
+  `0007007F000160030C0300`. It is stored with the galaxy (here) and
+  with each sector (DB.7), with the full MAJOR.REVISION.BUILD string,
+  Python version and platform kept next to it. One helper computes it
+  from the running code, so the log line (OPS.10), the update history
+  (OPS.13) and the check (OPS.14) agree. The other inputs that matter,
+  the SHA-256 of nltk's `words` corpus files (downloaded apart from the
+  pinned package), of `offensive_words.txt` and any name lists, and of
+  `requirements.lock`, go in each history row (OPS.13), not in the key;
+  the word list itself goes in ADM.18's JSON file.
+  No numpy or other numeric library is used, so the math library risk
+  is covered by the OS, architecture and Python parts.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-  - [ ] **DB.6 Store the galaxy's 128-bit seed, the version that made it, and every generation run**
-    The storage half of GEN.39. Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
-    the database, and put it in the log at the top of any generation, also
-    populate the TODO upward from here to eventually build a system that a
-    version number and a seed value would reproduce the same galaxy by the
-    end of the phases." Today the
-    only stored seed is the bright-star scatter's 63-bit one
-    (`_db.record_bright_star_scatter`); the run seed in `generate.py`
-    main (`secrets.randbits(128)`) and the work queue's `run_seed` are
-    never stored. Done: a galaxy schema migration adds the galaxy's seed
-    to `galaxy_shape` (`BINARY(16)`, written once, when the galaxy is
-    first planned, set with `generate.py plan --seed` as 32 hex digits or
-    drawn at random) and the
-    PlanetGen version, Python version and platform that made it, plus a
-    `generation_runs` table with one row per run that changes the
-    galaxy: the command and its options, the version, start and end
-    times, and the outcome. Simplest default: the run history is what
-    makes "replay" possible (OPS.12), since a galaxy is built by a series
-    of commands (plan, sectors, scatter, backfill), not by the seed
-    alone. A test checks the seed reads back bit for bit. No migration of
-    existing galaxies: GEN.39 starts from a wiped galaxy.
-    The version: Boss (2026-10-02 01:46Z): "I would say the version
-    number all added together into a number stored in hex", so the
-    stored version value combines MAJOR, REVISION and BUILD into one
-    number in hex. A plain sum collides (7.127.352 and 7.128.351 both
-    sum to 486), so the default, the collision-free form of "all added
-    together", packs the parts into one number. Decided (Boss,
-    2026-10-02 01:53Z, "you are correct on all points"): the packed form.
-    Widened, with an environment part (Boss, 2026-10-02 02:08Z: "I want
-    2 more hex digits on the build number padding for the version for
-    the seed numbers ... Since library matters too, let's also encode
-    the python version as 3 hex numbers for the version number of
-    python, and a digit for the OS (0 = linux, 1 = windows, 3 = macos)
-    and a digit for architexture (x64 is default so that is 0, but
-    enumerate)"). The key is 22 uppercase hex digits with no separators:
-    - MAJOR 4, REVISION 4, BUILD 6 (Boss's two extra digits).
-    - Python major 2, minor 2, micro 2. One digit each would overflow at
-      Python 3.16, and micro releases already pass 15 (3.8.20).
-    - OS 1: 0 Linux, 1 Windows, 3 macOS (Boss's values), 2 reserved for
-      other Unix and BSD, F unknown.
-    - Architecture 1, from `platform.machine()`: 0 x86-64 (the default),
-      1 ARM64 (Apple Silicon included), 2 32-bit x86, 3 32-bit ARM,
-      4 RISC-V 64, F unknown.
-    So PlanetGen 7.127.352 on Python 3.12.3, Linux, x86-64 is
-    `0007007F000160030C0300`. It is stored with the galaxy (here) and
-    with each sector (DB.7), with the full MAJOR.REVISION.BUILD string,
-    Python version and platform kept next to it. One helper computes it
-    from the running code, so the log line (OPS.10), the update history
-    (OPS.13) and the check (OPS.14) agree. The other inputs that matter,
-    the SHA-256 of nltk's `words` corpus files (downloaded apart from the
-    pinned package), of `offensive_words.txt` and any name lists, and of
-    `requirements.lock`, go in each history row (OPS.13), not in the key;
-    the word list itself goes in ADM.18's JSON file.
-    No numpy or other numeric library is used, so the math library risk
-    is covered by the OS, architecture and Python parts.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
-    The log half of GEN.39 (Boss: "put it in the log at the top of any
-    generation"). Today `generate.py` main logs "Seeded the random number
-    generator with ... (no --seed option exists to reproduce this run)"
-    at debug level only. Done: every `generate.py` subcommand, every job
-    the web site or API starts, and every work queue run writes one line
-    first, at normal level, to the console, the job log and the debug
-    log: the galaxy seed as 32 hex digits, the PlanetGen version with DB.6's
-    22-digit key, and the run's command (for example `Galaxy seed
-    3f2a...c901, PlanetGen 7.127.352 (0007007F000160030C0300), run:
-    sector 12 3 0`); a test checks the line is first.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+- [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
+  The log half of GEN.39 (Boss: "put it in the log at the top of any
+  generation"). Today `generate.py` main logs "Seeded the random number
+  generator with ... (no --seed option exists to reproduce this run)"
+  at debug level only. Done: every `generate.py` subcommand, every job
+  the web site or API starts, and every work queue run writes one line
+  first, at normal level, to the console, the job log and the debug
+  log: the galaxy seed as 32 hex digits, the PlanetGen version with DB.6's
+  22-digit key, and the run's command (for example `Galaxy seed
+  3f2a...c901, PlanetGen 7.127.352 (0007007F000160030C0300), run:
+  sector 12 3 0`); a test checks the line is first.
+  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -1757,7 +1725,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     not depend on the iteration order of sets or dicts keyed by strings
     (which follows `PYTHONHASHSEED`) or on locale-dependent sorting; the
     test runs a small generation under two `PYTHONHASHSEED` values and
-    two locales and compares. Prerequisite: GEN.39.
+    two locales and compares. GEN.39 is done (PR #381).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.57 A sector's contents depend only on the seed, the version and its address**
@@ -1786,7 +1754,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the stars drawn between two floors must not depend on which steps
     ran, so draws key on the sector and the luminosity range, not on the
     order of runs.
-    Prerequisites: GEN.39, GEN.56, GEN.44.
+    Prerequisites: GEN.56, GEN.44.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.63 Planet names are unique within a sector**
@@ -2071,8 +2039,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     a fresh database from seed + key + JSON + epoch, and gets the same
     content by fingerprint
     (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
-    (`adminEdits.py`, `editStore.py`). Prerequisites: GEN.39, GEN.56,
-    GEN.58, ADM.18.
+    (`adminEdits.py`, `editStore.py`). Prerequisites: GEN.56, GEN.58,
+    ADM.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.61 The daily merge folds pending admin changes into a new JSON file**
@@ -2226,7 +2194,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     repair.
   - A test damages rows in a copy of a small galaxy, repairs them, and
     gets a passing check.
-  Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
+  Prerequisites: DB.8, GEN.57, GEN.44, GEN.58, OPS.14.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
@@ -2585,6 +2553,14 @@ clears each one.
   collision code. Done: the failing case is found (loop the test under
   `-n auto`), the count can never go below 0, and the test passes on
   every run tried. [infra, GEN]
+
+- [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
+  `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`
+  failed once in a full `pytest -n auto` run and passed 3 of 3 alone
+  (about 22 s each; seen by the Parallel path thread, PR #381,
+  2026-10-02). Done: the failing case is found (loop the test under
+  `-n auto`), the cause is fixed in the test or in the code it found,
+  and the test passes on every run tried. [infra, GEN]
 
 ## USR: User accounts
 
