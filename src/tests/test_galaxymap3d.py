@@ -118,13 +118,14 @@ def test_panel_leaves_territories_out_when_there_are_none():
 
 def test_panel_has_the_bookmarks_menu():
     """MAP.23: a Bookmarks menu in the controls row, for this database's
-    list, with Ctrl+1-9 on, filled by static/bookmarks.js; it takes no
+    list, with its 1-9 keys scoped to the map's panel (MAP.81), filled by static/bookmarks.js; it takes no
     data-action, which galaxymap3d.js's own buttons use."""
     html = render_galaxy_map3d_panel('my"db', None, EDGE_PC, _empty_view())
     controls = re.search(r'<div class="starmap-controls" id="galaxymap3d-controls">(.*?)\n</div>', html, re.S).group(1)
     menu = re.search(r'<details class="bookmarks-menu"([^>]*)>(.*?)</details>', controls, re.S)
     assert menu
-    assert "data-bookmarks-menu" in menu.group(1) and "data-bookmarks-keys" in menu.group(1)
+    assert "data-bookmarks-menu" in menu.group(1) and 'data-bookmarks-keys="map"' in menu.group(1)
+    assert '<section class="panel galaxymap3d-panel" id="map">' in html
     assert 'data-bookmark-db="my&quot;db"' in menu.group(1)
     assert "data-action" not in menu.group(0)
     assert re.search(r'<summary class="starmap-btn"[^>]*>Bookmarks</summary>', menu.group(2))

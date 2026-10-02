@@ -211,7 +211,7 @@ jobs:
         env:
           PLANETGEN_TEST_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
           PLANETGEN_A11Y_SCREENSHOTS: a11y-screenshots
-        run: pytest src/tests/test_web_a11y.py src/tests/test_web_browser_layout.py src/tests/test_web_browser_maps.py -rs -p no:cacheprovider --junitxml=a11y.xml
+        run: pytest src/tests/test_web_a11y.py src/tests/test_web_browser_layout.py src/tests/test_web_browser_maps.py src/tests/test_web_browser_fixture_maps.py -rs -p no:cacheprovider --junitxml=a11y.xml
 
       - name: Upload page screenshots
         if: always()

@@ -67,6 +67,7 @@ def fixtures():
 
     view = {"stamp": "0123456789abcdef", "tiles": {}, "edge_pc": EDGE_PC, "has_shape": True}
     return {
+        "starLight": star_light(),
         "sectorMap": sector_map(),
         "edgePc": EDGE_PC,
         "galaxyRadius": GALAXY_RADIUS_PC,
@@ -77,6 +78,21 @@ def fixtures():
             "admin": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view, generate={"url": "/x"})),
         },
     }
+
+
+def star_light():
+    """MAP.87's brightness boost (`starmap.star_light_boost`) and a
+    10 px, 0.5-strength halo boosted by it (`_boost_light`), from 1e-6 to
+    1e7 L_sun, for static/starlight.js to match."""
+    from starmap import _boost_light, star_light_boost
+
+    rows = []
+    for exponent in range(-60, 71, 3):
+        luminosity = 10 ** (exponent / 10)
+        boost = star_light_boost(luminosity)
+        size, glow = _boost_light(10.0, 0.5, boost)
+        rows.append({"luminositySol": luminosity, "boost": boost, "sizePx": size, "glow": glow})
+    return rows
 
 
 def sector_map():

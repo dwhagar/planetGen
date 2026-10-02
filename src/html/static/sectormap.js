@@ -18,8 +18,9 @@
 // star, accreting black hole), is a point of light (MAP.15): a tiny bright
 // core in a soft halo a fixed number of screen pixels across, the way
 // `static/galaxymap3d.js` draws its bright stars, all in one `THREE.Points`
-// (see "Points of light" below). A phenomenon with no light of its own
-// (quiescent black hole, rogue planet, interstellar comet) or an asteroid
+// (see "Points of light" below). A rogue planet is a faint point in the
+// same set, bigger and ringed once marked (MAP.82 to MAP.84). A phenomenon
+// with no light of its own (quiescent black hole, interstellar comet) or an asteroid
 // field is a textured `THREE.Mesh` sphere with a fresnel glow shell from
 // `./bodyRendering.js`, and a nebula or supernova remnant a see-through
 // volume. Labels and the highlight ring are sprites.
@@ -40,50 +41,16 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
+const {
+  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
+  niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
+} = await import(`./mapcore.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
 
-function readSceneData() {
-  if (!dataEl) {
-    return null;
-  }
-  try {
-    return JSON.parse(dataEl.textContent);
-  } catch (err) {
-    return null;
-  }
-}
-
-var sceneData = readSceneData();
-
-function cssVar(name, fallback) {
-  var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-  return value || fallback;
-}
-
-// Whether the map's background (--bg-subtle, the light or dark theme) is
-// light, from its computed color (same test as static/galaxymap3d.js's).
-function isLightBackground() {
-  var probe = document.createElement("span");
-  probe.style.color = cssVar("--bg-subtle", "#000");
-  document.body.appendChild(probe);
-  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
-  probe.remove();
-  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
-}
-
-function addField(dl, label, value) {
-  if (!value) {
-    return;
-  }
-  var dt = document.createElement("dt");
-  dt.textContent = label;
-  var dd = document.createElement("dd");
-  dd.textContent = value;
-  dl.appendChild(dt);
-  dl.appendChild(dd);
-}
+var sceneData = readSceneData(dataEl);
 
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
@@ -113,7 +80,9 @@ function showObjectInfo(entry) {
     addField(dl, "Distance", entry.distanceText);
     panel.appendChild(dl);
     appendNavActions(panel, entry);
-    panel.appendChild(navLink(entry, "View phenomenon →"));
+    if (!picking(entry)) {
+      panel.appendChild(navLink(entry, "View phenomenon →"));
+    }
     return;
   }
   addField(dl, "Star type", entry.starType);
@@ -122,12 +91,22 @@ function showObjectInfo(entry) {
   addField(dl, "Location", entry.location);
   panel.appendChild(dl);
   appendNavActions(panel, entry);
-  panel.appendChild(navLink(entry, "View system →"));
+  if (!picking(entry)) {
+    panel.appendChild(navLink(entry, "View system →"));
+  }
+}
+
+// Whether the page is choosing a NAV start or destination (NAV's "Pick
+// on map", `entry.nav.pick`): the panel then offers only the pick button,
+// no link that would leave the course being built (NAV.30).
+function picking(entry) {
+  return !!(entry.nav && entry.nav.pick);
 }
 
 // NAV links for a system or phenomenon (`entry.nav`, built by the sector
-// page): in pick mode a "Use as destination" (or start) button that
-// lands on the plotted course, then "Nav from here" and "Nav to here".
+// page): in pick mode only a "Use as destination" (or start) button that
+// lands on the plotted course, otherwise "Nav from here" and "Nav to
+// here".
 function appendNavActions(panel, entry) {
   var nav = entry.nav;
   if (!nav) {
@@ -139,6 +118,7 @@ function appendNavActions(panel, entry) {
     pick.className = "btn starmap-pick";
     pick.textContent = nav.pickLabel;
     panel.appendChild(pick);
+    return;
   }
   var links = document.createElement("p");
   links.className = "page-actions";
@@ -152,20 +132,6 @@ function appendNavActions(panel, entry) {
   panel.appendChild(links);
 }
 
-// A neighboring sector's own address -- shared display convention with
-// `static/galaxymap3d.js`'s identically-named helpers for its own
-// "planned" (not-yet-generated) sector addresses, since this is the same
-// underlying concept one level in: a `(ring_index, layer_index, ring_slot_index)`
-// address, generated or not.
-function formatAddress(ringIndex, layerIndex, slotIndex) {
-  return "ring " + ringIndex + " layer " + layerIndex + " slot " + slotIndex;
-}
-
-
-// A neighboring sector that already exists just links straight to it
-// (same as a star/cloud entry); one that doesn't yet shows its address
-// and designation, plus, for a logged-in admin (`sceneData.generate`, set
-// by lib/starmap.py only then), the Generate buttons.
 function showNeighborInfo(panel, entry) {
   var heading = document.createElement("h3");
   heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
@@ -211,22 +177,6 @@ function navLink(entry, label) {
 // shared texture atlas/instancing here because there's no need for one
 // at this scale, the same reasoning this file already applied to its old
 // sprite textures.
-
-function makeRingTexture(color) {
-  var size = 64;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = canvasEl.height = size;
-  var ctx = canvasEl.getContext("2d");
-  var r = size / 2;
-  ctx.beginPath();
-  ctx.arc(r, r, r - 4, 0, Math.PI * 2);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = color;
-  ctx.stroke();
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
 
 // A neighboring-sector indicator's own small filled dot -- same recipe
 // `static/galaxymap3d.js`'s own `makeDotTexture` uses for its "placed"/
@@ -414,12 +364,16 @@ function glowRecipeForCloud(cloud) {
 // coming from outside rather than belonging to this sector.
 var NEIGHBOR_CLOUD_DIM = 0.4;
 
-// MAP.46: every rogue planet gets a ring that keeps one size on screen
+// MAP.46: a marked rogue planet gets a ring that keeps one size on screen
 // (a fraction of the canvas height) however far out the camera is, so a
 // small dark world stays easy to spot zoomed out. A violet that reads on
 // the light and the dark theme's map background.
 var ROGUE_MARKER_COLOR = "#8f6df2";
 var ROGUE_MARKER_SCREEN_SIZE = 0.03;
+// MAP.84: how near (pixels) a click must land to pick a rogue planet:
+// an unmarked one is a faint speck and only a click right on it takes
+// it; marked, it is a big, easy target.
+var ROGUE_PICK_PX = { unmarked: 3, marked: 14 };
 
 // A real 3D body: a textured core sphere plus a fresnel glow shell
 // (./bodyRendering.js), for every phenomenon that is neither a cloud
@@ -714,6 +668,13 @@ export function initStarmap(canvasEl, data, options) {
   var DRAG_CLICK_THRESHOLD_PX = 4;
   var MIN_POLAR = THREE.MathUtils.degToRad(2);
   var MAX_POLAR = THREE.MathUtils.degToRad(178);
+  // The zoom policy (mapcontrol.js): a short range, zoom MIN_ZOOM to
+  // MAX_ZOOM, as camera distances from the zoom-1 distance.
+  var ZOOM_POLICY = MC.zoomPolicy(MC.ZOOM_RANGE, 1 / MAX_ZOOM, 1 / MIN_ZOOM);
+
+  function clampPolar(phi) {
+    return Math.max(MIN_POLAR, Math.min(MAX_POLAR, phi));
+  }
 
   var defaultZoom = data.defaultZoom > 0 && data.defaultZoom <= 1 ? data.defaultZoom : 1;
   var defaultAzimuth = THREE.MathUtils.degToRad(-32);
@@ -732,7 +693,7 @@ export function initStarmap(canvasEl, data, options) {
   }
 
   function setZoom(zoom) {
-    spherical.radius = referenceDistance / Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+    spherical.radius = MC.clampDistance(ZOOM_POLICY, referenceDistance / Math.max(zoom, 1e-6), referenceDistance);
     applyCamera();
     updateScaleBar();
   }
@@ -811,12 +772,59 @@ export function initStarmap(canvasEl, data, options) {
   }
 
   // Not in interactiveGroup: a click on a marker's empty middle should
-  // still reach whatever is behind it.
+  // still reach whatever is behind it. Rogue planets are points of light
+  // (lib/starmap.py's _ROGUE_LIGHT); "Mark rogue planets" (off by
+  // default) swaps in each one's markedLight and shows these rings.
   var rogueMarkers = new THREE.Group();
+  rogueMarkers.visible = false;
   scene.add(rogueMarkers);
   var rogueMarkerMaterial = null;
+  var roguesMarked = false;
+
+  function setRoguesMarked(marked) {
+    roguesMarked = marked;
+    rogueMarkers.visible = marked;
+    if (!pointsOfLight) {
+      return;
+    }
+    var geometry = pointsOfLight.geometry;
+    pointEntries.forEach(function (entry, i) {
+      if (entry.kind !== "roguePlanet" || !entry.markedLight) {
+        return;
+      }
+      var light = marked ? entry.markedLight : entry.unmarkedLight;
+      var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
+      entry.light = light;
+      var color = new THREE.Color(light.color || "#ffffff");
+      geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
+      geometry.getAttribute("pointSize").array[i] = light.sizePx;
+      geometry.getAttribute("pointCore").array[i] = light.corePx;
+      geometry.getAttribute("pointGlow").array[i] = light.glow * dim;
+      geometry.getAttribute("pointBright").array[i] = light.bright * dim;
+      geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
+    });
+    ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"].forEach(function (name) {
+      geometry.getAttribute(name).needsUpdate = true;
+    });
+    if (highlightedPoint) {
+      updatePointHighlight();
+    }
+  }
 
   (data.clouds || []).forEach(function (cloud) {
+    if (cloud.kind === "roguePlanet") {
+      cloud.unmarkedLight = cloud.light;
+      if (!rogueMarkerMaterial) {
+        rogueMarkerMaterial = new THREE.SpriteMaterial({
+          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
+          sizeAttenuation: false,
+        });
+      }
+      var ring = new THREE.Sprite(rogueMarkerMaterial);
+      ring.position.set(cloud.x, cloud.y, cloud.z);
+      ring.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
+      rogueMarkers.add(ring);
+    }
     if (cloud.light) {
       return;
     }
@@ -841,18 +849,6 @@ export function initStarmap(canvasEl, data, options) {
     interactiveGroup.add(bodies.core);
     scene.add(bodies.glow);
     entryByObject.set(bodies.core, cloud);
-    if (cloud.kind === "roguePlanet") {
-      if (!rogueMarkerMaterial) {
-        rogueMarkerMaterial = new THREE.SpriteMaterial({
-          map: makeRingTexture(ROGUE_MARKER_COLOR), transparent: true, opacity: 0.75, depthWrite: false,
-          sizeAttenuation: false,
-        });
-      }
-      var marker = new THREE.Sprite(rogueMarkerMaterial);
-      marker.position.set(cloud.x, cloud.y, cloud.z);
-      marker.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
-      rogueMarkers.add(marker);
-    }
   });
 
   // Neighboring-sector indicators: a small flat dot at the scene's own
@@ -988,62 +984,6 @@ export function initStarmap(canvasEl, data, options) {
 
   // --- Pointer/keyboard interaction --------------------------------------
 
-  var dragging = false;
-  var dragDistance = 0;
-  var lastClientX = 0;
-  var lastClientY = 0;
-  var suppressNextClick = false;
-
-  canvasEl.addEventListener("pointerdown", function (event) {
-    dragging = true;
-    dragDistance = 0;
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-    try {
-      canvasEl.setPointerCapture(event.pointerId);
-    } catch (err) {
-      // Pointer capture isn't essential -- dragging still works via
-      // ordinary pointermove bubbling if the browser refuses it.
-    }
-  });
-
-  canvasEl.addEventListener("pointermove", function (event) {
-    if (!dragging) {
-      return;
-    }
-    var deltaX = event.clientX - lastClientX;
-    var deltaY = event.clientY - lastClientY;
-    dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-
-    spherical.theta -= deltaX * ROTATE_SENSITIVITY;
-    spherical.phi = Math.max(MIN_POLAR, Math.min(MAX_POLAR, spherical.phi - deltaY * ROTATE_SENSITIVITY));
-    applyCamera();
-    updateScaleBar();
-  });
-
-  function endDrag(event) {
-    dragging = false;
-    if (dragDistance > DRAG_CLICK_THRESHOLD_PX) {
-      suppressNextClick = true;
-      // Safety net: a pointerup isn't always followed by a click (e.g.
-      // pointercancel) -- don't leave this suppressing some unrelated
-      // later click if one never arrives to consume and clear it.
-      setTimeout(function () {
-        suppressNextClick = false;
-      }, 0);
-    }
-    dragDistance = 0;
-    try {
-      canvasEl.releasePointerCapture(event.pointerId);
-    } catch (err) {
-      // Already released/invalid -- nothing to clean up.
-    }
-  }
-  canvasEl.addEventListener("pointerup", endDrag);
-  canvasEl.addEventListener("pointercancel", endDrag);
-
   canvasEl.addEventListener(
     "wheel",
     function (event) {
@@ -1054,15 +994,10 @@ export function initStarmap(canvasEl, data, options) {
   );
 
   canvasEl.addEventListener("keydown", function (event) {
-    var key = event.key;
-    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") {
+    if (!MC.orbitByKey(spherical, event.key, KEY_ROTATE_STEP, clampPolar)) {
       return;
     }
     event.preventDefault();
-    if (key === "ArrowLeft") spherical.theta += KEY_ROTATE_STEP;
-    if (key === "ArrowRight") spherical.theta -= KEY_ROTATE_STEP;
-    if (key === "ArrowUp") spherical.phi = Math.max(MIN_POLAR, spherical.phi - KEY_ROTATE_STEP);
-    if (key === "ArrowDown") spherical.phi = Math.min(MAX_POLAR, spherical.phi + KEY_ROTATE_STEP);
     applyCamera();
     updateScaleBar();
   });
@@ -1095,37 +1030,38 @@ export function initStarmap(canvasEl, data, options) {
   // (distance from the camera, in world units), or null -- picked on
   // screen like static/galaxymap3d.js's stars, since a point is a fixed
   // number of pixels across whatever its distance.
-  var projected = new THREE.Vector3();
   function pointAtClientPoint(clientX, clientY, rect) {
-    var best = null;
-    var bestPx = Infinity;
     var growth = pointSizeScale();
-    pointEntries.forEach(function (entry) {
-      projected.set(entry.x, entry.y, entry.z).project(camera);
-      if (projected.z < -1 || projected.z > 1) {
-        return;
-      }
-      var px = Math.hypot(
-        rect.left + ((projected.x + 1) / 2) * rect.width - clientX,
-        rect.top + ((1 - projected.y) / 2) * rect.height - clientY);
-      var reach = Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
-      if (px <= reach && px < bestPx) {
-        best = entry;
-        bestPx = px;
-      }
+    var found = nearestOnScreen(pointEntries, camera, rect, clientX, clientY, {
+      reach: function (entry) {
+        return entry.kind === "roguePlanet"
+          ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
+          : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
+      },
     });
-    if (!best) {
+    if (!found) {
       return null;
     }
-    return { entry: best, distance: camera.position.distanceTo(projected.set(best.x, best.y, best.z)) };
+    var best = found.entry;
+    return { entry: best, distance: camera.position.distanceTo(new THREE.Vector3(best.x, best.y, best.z)) };
   }
 
-  canvasEl.addEventListener("click", function (event) {
-    if (suppressNextClick) {
-      suppressNextClick = false;
-      return;
-    }
-    selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+  // Any button's drag turns the view from its first move; a click that
+  // travelled no more than DRAG_CLICK_THRESHOLD_PX picks what's under it.
+  MC.createPointerControl(canvasEl, {
+    attach: true,
+    dragClickPx: DRAG_CLICK_THRESHOLD_PX,
+    measure: "path",
+    turnAtOnce: true,
+    onDrag: function (dx, dy) {
+      MC.orbitByDrag(spherical, dx, dy, ROTATE_SENSITIVITY, clampPolar);
+      applyCamera();
+      updateScaleBar();
+    },
+    clickOn: "click",
+    onClick: function (event) {
+      selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+    },
   });
 
   var controlsEl = document.getElementById("starmap-controls");
@@ -1137,10 +1073,13 @@ export function initStarmap(canvasEl, data, options) {
         else if (action === "zoom-out") setZoom(currentZoom() - ZOOM_STEP);
         else if (action === "reset") resetView();
         else if (action === "toggle-rogue-markers") {
-          rogueMarkers.visible = !rogueMarkers.visible;
-          button.setAttribute("aria-pressed", rogueMarkers.visible ? "true" : "false");
+          setRoguesMarked(!roguesMarked);
+          button.setAttribute("aria-pressed", roguesMarked ? "true" : "false");
         }
       });
+      if (button.dataset.action === "toggle-rogue-markers") {
+        setRoguesMarked(button.getAttribute("aria-pressed") === "true");
+      }
     });
   }
 
@@ -1177,23 +1116,6 @@ export function initStarmap(canvasEl, data, options) {
   var lyPerWorldUnit = data.lyPerPxAtZoom1 || 0;
   var SCALE_BAR_TARGET_PX = 70;
 
-  // Snaps an arbitrary positive value to the nearest "nice" 1/2/5 * 10^n
-  // -- the standard map-scale-bar convention, so the label reads "5 ly"
-  // or "20 ly" rather than an ugly "6.283 ly".
-  function niceScaleValue(raw) {
-    if (!isFinite(raw) || raw <= 0) {
-      return 0;
-    }
-    var magnitude = Math.pow(10, Math.floor(Math.log10(raw)));
-    var mantissa = raw / magnitude;
-    var niceMantissa;
-    if (mantissa < 1.5) niceMantissa = 1;
-    else if (mantissa < 3.5) niceMantissa = 2;
-    else if (mantissa < 7.5) niceMantissa = 5;
-    else niceMantissa = 10;
-    return niceMantissa * magnitude;
-  }
-
   // Unlike the old CSS version (a fixed 320px scene scaled by a flat CSS
   // `zoom` factor, so ly-per-pixel was that one ratio divided by `zoom`),
   // a real perspective camera's screen-pixels-per-world-unit depends on
@@ -1201,9 +1123,7 @@ export function initStarmap(canvasEl, data, options) {
   // panel is a responsive `min(100%, 22rem)` box, not a fixed 320px one)
   // -- so this recomputes it from first principles every time instead.
   function worldUnitsPerScreenPixel() {
-    var fovRad = THREE.MathUtils.degToRad(camera.fov);
-    var heightPx = canvasEl.clientHeight || 1;
-    return (2 * spherical.radius * Math.tan(fovRad / 2)) / heightPx;
+    return worldUnitsPerPixel(camera, spherical.radius, canvasEl.clientHeight);
   }
 
   function updateScaleBar() {
@@ -1221,20 +1141,10 @@ export function initStarmap(canvasEl, data, options) {
 
   // --- Resize/render loop ----------------------------------------------
 
-  function resize() {
-    var width = canvasEl.clientWidth || 1;
-    var height = canvasEl.clientHeight || 1;
-    renderer.setSize(width, height, false);
-    camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+  watchResize(viewport, function () {
+    fitRendererToCanvas(renderer, camera, canvasEl);
     updateScaleBar();
-  }
-
-  if (typeof ResizeObserver !== "undefined" && viewport) {
-    new ResizeObserver(resize).observe(viewport);
-  }
-  resize();
-  window.addEventListener("resize", resize);
+  });
 
   (function animate() {
     requestAnimationFrame(animate);
