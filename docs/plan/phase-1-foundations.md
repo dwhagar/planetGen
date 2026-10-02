@@ -122,12 +122,15 @@ rogue classes, settle the mix after them.
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) |  |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) |  |
 | GEN.44 (new) | Store each sector's backfill level so finished sectors drop out of any backfill | GEN.40 |
+| PERF.11 | Store each sector's expected and actual density | PERF.1 |
 | GEN.46 (new) | Star system names of at most two words (bug) |  |
 | GEN.47 (new) | Nebulae almost never appear (bug) |  |
 
 GEN.31 (the layer 0 boundary) before GEN.24 (generate the core on layer
-0). GEN.44 (each sector's backfill level) is this phase's galaxy schema
-change; it replaces or sits beside `bright_star_blocks` and is what
+0). GEN.44 (each sector's backfill level) and PERF.11 (each sector's
+expected and actual density) share one per-sector stats table (Boss,
+2026-10-02), built in one migration; it is this phase's galaxy schema
+change, replaces or sits beside `bright_star_blocks`, and is what
 GEN.40 to GEN.43 and PERF.18 in phase 3 use to skip work, so it should
 land with or before GEN.32 (an interrupted band drawn twice), which
 touches the same backfill code. GEN.46 (two-word names) changes `nameUniqueness.py`
@@ -145,7 +148,7 @@ galaxy-scale placement, not a one-line fix.
 
 Independent bugs. DB.4 and DB.5 both touch schema creation in
 `_db.get_connection`; one PR. Any galaxy schema change in this phase
-(GEN.44) takes the next version after main's (50 at the
+(GEN.44 and PERF.11, then DB.6 and DB.7) takes the next version after main's (50 at the
 time of writing), one writer at a time.
 
 ### Groundwork for phase 2
@@ -254,7 +257,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 2. Planet classes: GEN.28 (as GEN.33's PRs), then GEN.38, GEN.27,
    GEN.29.
 3. Physics bugs: GEN.34, GEN.35, GEN.36, GEN.37, GEN.25, GEN.45.
-4. Galaxy generation: GEN.31, GEN.24, GEN.44, GEN.32, then GEN.47;
+4. Galaxy generation: GEN.31, GEN.24, GEN.44 with PERF.11, GEN.32, then GEN.47;
    GEN.46 alongside.
 5. Database: DB.2 to DB.5.
 6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
@@ -269,4 +272,6 @@ Each thread is briefed with its exact item IDs and takes no others.
 
 ## Open questions for Boss
 
-- GEN.44: a new table per sector address, or rework `bright_star_blocks`?
+- DB.6: the version is stored as MAJOR + REVISION + BUILD in hex (Boss),
+  but a sum isn't unique (7.59.155 and 7.58.156 both give 221). Default:
+  the full version string is stored beside it.
