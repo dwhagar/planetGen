@@ -24,8 +24,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) |  | Moved to phase 0: a bug with nothing ahead of it. From the Physics bugs thread (PR #350): use GEN.34's giant mass-radius relation in roguePlanetData.py. |
-| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) |  | Moved to phase 0 with its groundwork: class S (rocky super-Earth, rogue-eligible) is built here as GEN.28's first class PR. Probably solved by a rogue-eligible S class. |
 | GEN.47 | Nebulae almost never appear (bug) |  | Moved to phase 0: a bug whose prerequisite (GEN.39 per-region seeds) is done. Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
 
 ### Sector stats and colors
@@ -92,7 +90,7 @@ At most two build threads run at once (Boss 02:51Z). Done lanes:
 Parallel path (PRs #381, #387, #391), Galaxy Map follow-ups (PRs
 #395, #399), Binary pairs (PRs #393, #398, #403), System Map (PR
 #405) and Galaxy Map drill-down (PRs #408, #410, #413). Generation
-bugs and Sector stats and colors are running. Then the lanes start
+bugs (GEN.47 left; GEN.60 and GEN.38 done, PR #415) and Sector stats and colors are running. Then the lanes start
 in the order above as a slot frees: Routing groundwork, Sector and
 system pages (text labels with an icon hook if UX.28's icon list is
 not approved yet), Small page bugs, and Ops and flakes last. NAV.7

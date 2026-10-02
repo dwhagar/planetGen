@@ -40,7 +40,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.33 | One class per PR, each with its tests |  | One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
-| GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33, GEN.38 | Class S lands with GEN.38 in phase 0; the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
+| GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Same reconcile/zone code as phase 0's physics fixes. |
 
 ### Prevalence
