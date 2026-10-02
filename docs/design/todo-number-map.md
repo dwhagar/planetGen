@@ -431,7 +431,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
 | DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | done, PR #342 |
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
-| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
+| DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | done, PR #387 |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
