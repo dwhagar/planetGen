@@ -810,6 +810,19 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     return volume_km3, mass
 
 
+def power_law_share(low, high, slope):
+    """The unnormalized weight of [low, high] under dN/dlogM ~ M^-slope
+    (`slope` > 0): `low^-slope - high^-slope`."""
+    return low ** -slope - high ** -slope
+
+
+def sample_power_law(low, high, slope):
+    """A value in [low, high] drawn from dN/dlogM ~ M^-slope (`slope` > 0)
+    by inverting its cumulative distribution: one `random.random()`."""
+    low_term, high_term = low ** -slope, high ** -slope
+    return (low_term + random.random() * (high_term - low_term)) ** (-1 / slope)
+
+
 @finite_domain(clamped=("mode_fraction",))
 def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max_attempts=1000):
     """

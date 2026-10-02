@@ -71,6 +71,7 @@ import statistics
 from collections import defaultdict
 
 from . import physical_constants as pc
+from . import planetPhysics
 from . import program_constants as prog_c
 from .config import SystemConfig
 from .planetData import Planet
@@ -139,21 +140,9 @@ def theoretical_gravity_bounds_g(cls):
     Derivation: `calculate_surface_gravity` computes
     `g = G * mass / radius_m^2`, and `mass = volume(radius) * density`, so
     `g = (4/3) * pi * G * density_kg_m3 * radius_m` -- linear in radius and
-    (for terrestrial classes) linear in density. For gas giants,
-    `generate_planet_properties` blends the core and atmosphere densities via
-    a mass-weighted harmonic mean: `1/density = ratio/rock_density +
-    (1 - ratio) / atm_density` (see planetPhysics.py) -- physically correct
-    for combining two densities via a mass fraction, but NOT multilinear
-    (the ratio and atm_density terms invert `density`, not sum linearly).
-    It is, however, monotonic in each of (rock_density, ratio, atm_density)
-    individually holding the others fixed: `1/density` is a sum of terms
-    each moving monotonically (one increasing, one decreasing) as `ratio`
-    varies, and each of `rock_density`/`atm_density` only ever appears with
-    a fixed-sign coefficient on its own reciprocal. A function monotonic in
-    each variable over a box also has its extrema at the box's corners (same
-    conclusion multilinearity would give, via a different property), so
-    evaluating all corners and taking min/max still gives the exact
-    theoretical range -- no approximation involved.
+    in density, so its extremes are at the corners of the radius and
+    density ranges. A gas giant without its own `density_range` takes its
+    radius from its mass instead (GEN.34; see the branch below).
 
     Returns:
         tuple: (min_gravity_g, max_gravity_g).
@@ -189,21 +178,29 @@ def theoretical_gravity_bounds_g(cls):
         for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
             values.append(gravity_g(radius_m, density_kgm3))
     else:
-        min_rock, max_rock = pc.PLANET_DENSITY["g"]  # g/cm^3
-        min_ratio, max_ratio = prog_c.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-        # Must match planetPhysics.generate_planet_properties' envelope-side
-        # blend input exactly: physical_constants.GAS_ENVELOPE_BULK_DENSITY
-        # (already g/cm^3), not ATMOSPHERE_DENSITY["g"] (a different,
-        # ~1000x-lighter physical layer -- see that constant's docstring).
-        atm_gcm3_range = pc.GAS_ENVELOPE_BULK_DENSITY
-        rock_range = (min_rock, max_rock)
-        ratio_range = (min_ratio, max_ratio)
-        for radius_m, rock_gcm3, ratio, atm_gcm3 in _corners(radii_m, rock_range, ratio_range, atm_gcm3_range):
-            # Mass-weighted harmonic mean -- must match the blend formula in
-            # planetPhysics.generate_planet_properties exactly.
-            density_gcm3 = 1 / (ratio / rock_gcm3 + (1 - ratio) / atm_gcm3)
-            density_kgm3 = density_gcm3 * 1000
-            values.append(gravity_g(radius_m, density_kgm3))
+        # A giant's radius follows its mass (planetPhysics' giant mass-radius
+        # relation, GEN.34): g = G*M/R^2 with R = relation(M) times a
+        # scatter factor within 3 sigma, clamped to the class's radius
+        # range. Between the mass range's ends, the branches' transition
+        # mass and the masses where the scattered radius meets a clamp,
+        # g is a single power of M (monotonic), so its extremes are at
+        # those masses.
+        low_kg, high_kg = planetPhysics.giant_mass_range_kg(cls)
+        sigma = max(pc.GIANT_RADIUS_SCATTER.values())
+        factors = (1 - 3 * sigma, 1 + 3 * sigma)
+        earth_kg, earth_km = pc.EARTH_MASS_TO_KG, pc.EARTH_RADIUS_KM
+        masses = [low_kg, high_kg, planetPhysics.GIANT_TRANSITION_MASS_EARTH * earth_kg]
+        for m0, r0, slope in (pc.GIANT_NEPTUNIAN_MASS_RADIUS, pc.GIANT_JOVIAN_MASS_RADIUS):
+            for factor in factors:
+                for bound_km in (min_r_km, max_r_km):
+                    masses.append(m0 * (bound_km / earth_km / (r0 * factor)) ** (1 / slope) * earth_kg)
+        for mass_kg in masses:
+            if not low_kg <= mass_kg <= high_kg:
+                continue
+            for factor in factors:
+                radius_km = min(max_r_km, max(min_r_km, planetPhysics.giant_radius_km(mass_kg) * factor))
+                radius_m = radius_km * pc.KM_TO_M_FACTOR
+                values.append(pc.G * mass_kg / radius_m ** 2 / pc.EARTH_GRAVITY)
 
     return min(values), max(values)
 

@@ -100,23 +100,17 @@ def regenerate_planet(system, planet, owner):
 
 def moon_classes(planet):
     """The classes a moon of `planet` may roll, as `generate_moons` picks
-    them: terrestrial, not barred from being a moon, valid in the planet's
-    zone, and light and small enough for the planet to hold."""
-    max_mass = planet.mass / 10
-    max_radius = validation.max_moon_radius_km(planet)
-    return [c for c, (_low, high) in planetPhysics.planet_mass_ranges.items()
-            if program_constants.PLANET_CLASSES[c][planet.zone]
-            and program_constants.PLANET_CLASSES[c]["type"] == 't'
-            and c not in program_constants.MOON_BLACKLIST
-            and high <= max_mass
-            and program_constants.PLANET_CLASSES[c]["radius_range"][1] <= max_radius]
+    them (`planetPhysics.moon_class_options`): terrestrial, not barred
+    from being a moon, valid in the planet's zone, and able to fit under
+    the size and mass the planet can hold."""
+    return list(planetPhysics.moon_class_options(planet, planet.zone))
 
 
 def make_moon(planet, distance_au, moon_class):
     """A new moon of `planet` of `moon_class` at `distance_au` from it."""
-    max_radius = validation.max_moon_radius_km(planet)
-    low, high = program_constants.PLANET_CLASSES[moon_class]["radius_range"]
-    radius = planetPhysics._sample_class_radius(moon_class, low, min(high, max_radius))
+    ceiling = planetPhysics.moon_class_options(planet, planet.zone)[moon_class]
+    low = program_constants.PLANET_CLASSES[moon_class]["radius_range"][0]
+    radius = planetPhysics._sample_class_radius(moon_class, low, ceiling)
     return Planet(planet.system_config, planet.star, planet.habitable_zone, distance_au,
                   radius=radius, planet_class=moon_class, zone_override=planet.zone,
                   distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)

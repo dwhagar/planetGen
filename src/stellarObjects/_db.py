@@ -45,6 +45,8 @@ connection pool (`DBUtils.PooledDB`) rather than opening a fresh TCP
 connection per call, per TODO.md's "add real connection pooling" note.
 """
 
+import contextlib
+import hashlib
 import math
 import os
 import random
@@ -538,8 +540,8 @@ def _insert_shape(sql):
 def forget_id_blocks(key):
     """Drops this process's cached id blocks for one database
     (`MySQLConfig._key()`), so the next id is reserved afresh -- after
-    `resetDb.py` empties the tables and `id_blocks`, or a migration adds
-    `id_blocks`."""
+    `resetDb.py` empties the tables (it keeps `id_blocks`, DB.3), or a
+    migration adds `id_blocks`."""
     with _id_lock:
         for block_key in [k for k in _id_blocks if k[0] == key]:
             del _id_blocks[block_key]
@@ -585,8 +587,7 @@ def _allocate_id(config, table):
 def _reserve_id_block(config, table, size, at_least):
     """Reserves `size` ids for `table` and returns the first. `at_least`
     is past every id this process already handed out for it, which the
-    table's `MAX(id)` can't show while those rows are uncommitted (and
-    `id_blocks` can't, after `resetDb.py` empties it)."""
+    table's `MAX(id)` can't show while those rows are uncommitted."""
     raw = _get_pool(config).connection()
     try:
         cur = raw.cursor()
@@ -1220,12 +1221,57 @@ def resolve_database(base_config, name, prefix=None):
     )
 
 
+SCHEMA_LOCK_WAIT_S = 600
+"""int: How long a connection waits for another one to finish creating or
+migrating the same database's schema (`_schema_lock`) before it gives up.
+Creating a new database's schema takes a few seconds; a migration that
+rewrites big tables can take minutes."""
+
+
+@contextlib.contextmanager
+def _schema_lock(conn, what="schema"):
+    """
+    Holds the connected database's schema lock (a MySQL named lock, one per
+    database and per `what`) while schema DDL and its version row are
+    written (DB.5): when several first connections reach an empty database
+    at once, one creates the schema and the others wait, then find it
+    current. Without it each ran `schema.sql` and inserted the baseline
+    `schema_migrations` row, and all but one failed on a duplicate key.
+
+    Held on the session, not the transaction: the DDL commits implicitly.
+
+    Raises:
+        pymysql.err.OperationalError: 1205 when `SCHEMA_LOCK_WAIT_S` passes
+            before the lock is free.
+    """
+    database = conn.execute("SELECT DATABASE() AS db").fetchone()["db"] or ""
+    name = f"planetgen-{what}:" + hashlib.sha256(database.encode("utf-8")).hexdigest()[:32]
+    got = conn.execute("SELECT GET_LOCK(?, ?) AS ok", (name, SCHEMA_LOCK_WAIT_S)).fetchone()["ok"]
+    if got != 1:
+        raise pymysql.err.OperationalError(
+            1205, f"Lock wait timeout exceeded waiting for {database!r}'s {what} lock")
+    # A fresh transaction, so what follows reads what the last holder committed.
+    conn.commit()
+    try:
+        yield
+    finally:
+        try:
+            conn.execute("SELECT RELEASE_LOCK(?)", (name,))
+        except pymysql.err.MySQLError:  # a lost session has already dropped it
+            pass
+
+
 def _ensure_schema(conn):
     """
     Applies `schema.sql` to `conn`, then bootstraps `schema_migrations`
-    (inserting `SCHEMA_VERSION` as the baseline row) if it's empty --
-    idempotent, safe to call on a database that already has some, all, or
-    none of the schema.
+    (inserting the baseline row) if it's empty -- idempotent, safe to call
+    on a database that already has some, all, or none of the schema, and
+    from several connections at once (`_schema_lock`).
+
+    The baseline is `SCHEMA_VERSION` for a new database. An existing one
+    whose `schema_migrations` was emptied or lost gets the version its
+    tables show instead (`detect_schema_version`, DB.4), so
+    `migrate_database` still runs the steps it is missing.
 
     Args:
         conn (Connection): The connection to apply the schema to.
@@ -1234,7 +1280,16 @@ def _ensure_schema(conn):
         SchemaTooNewError: The database is already past `SCHEMA_VERSION`
             (checked before any DDL runs).
     """
-    _refuse_newer(conn, _stored_version(conn, "schema_migrations"), SCHEMA_VERSION)
+    with _schema_lock(conn):
+        _apply_schema(conn)
+
+
+def _apply_schema(conn):
+    """`_ensure_schema`'s work, for a caller already holding the schema
+    lock."""
+    stored = _stored_version(conn, "schema_migrations")
+    _refuse_newer(conn, stored, SCHEMA_VERSION)
+    baseline = SCHEMA_VERSION if stored is not None else detect_schema_version(conn)
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     if conn._config is not None:
@@ -1242,8 +1297,115 @@ def _ensure_schema(conn):
 
     row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
     if row["n"] == 0:
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (SCHEMA_VERSION,))
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (baseline,))
+        if baseline < SCHEMA_VERSION:
+            log.normal(f"Database has no schema version recorded; its tables match v{baseline}, "
+                       f"so that is recorded and migrateDb.py will bring it up to v{SCHEMA_VERSION}.")
+            activitylog.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
+                              version=baseline)
     conn.commit()
+
+
+def _column_marker(table, column):
+    return lambda shape: (table, column) in shape["columns"]
+
+
+def _index_marker(table, index):
+    return lambda shape: (table, index) in shape["indexes"]
+
+
+def _table_marker(table):
+    return lambda shape: table in shape["tables"]
+
+
+_VERSION_MARKERS = (
+    (50, _column_marker("system_configs", "comets")),
+    (49, _table_marker("bright_star_blocks")),
+    (48, _column_marker("rogue_planets", "surface_regime")),
+    (47, _column_marker("rogue_planets", "planet_class")),
+    (46, _index_marker("sectors", "ft_sectors_name")),
+    (45, _table_marker("id_blocks")),
+    (44, _table_marker("species")),
+    (43, _column_marker("galaxy_shape", "bright_star_min_luminosity_sol")),
+    (42, _table_marker("facilities")),
+    (41, _column_marker("asteroid_fields", "quadrant")),
+    (40, _column_marker("system_name_registry", "first_object_table")),
+    (39, _column_marker("asteroid_fields", "inside_nebula_id")),
+    (38, _column_marker("nebulae", "nebula_class")),
+    (37, _column_marker("star_systems", "runaway_class")),
+    (36, _column_marker("black_holes", "mass_class")),
+    # v35 changed no table, only which galaxy sectors exist; v34 and v35
+    # look the same. Read as v35: re-running its step would delete sectors
+    # placed under v35's slot rule, while skipping it at most leaves a v34
+    # database's old-rule sectors in place.
+    (35, lambda shape: "sector_name_registry" in shape["tables"] and "body_name_registry" not in shape["tables"]),
+    (33, _table_marker("galaxy_layer")),
+    (32, _column_marker("sectors", "ring_index")),
+    (31, _table_marker("quasars")),
+    # v30 only cleaned data, so v29 and v30 look the same; v30's step is
+    # safe to repeat, so read them as v29.
+    (29, lambda shape: ("rogue_planets", "center_x_pc") in shape["columns"]
+         and ("star_systems", "wikitext_content") not in shape["columns"]),
+    (28, _column_marker("rogue_planets", "center_x_pc")),
+    (27, _column_marker("sectors", "created_at")),
+    (26, _index_marker("nebulae", "idx_nebulae_center")),
+    (25, _index_marker("sectors", "idx_sectors_center")),
+    (24, _table_marker("sector_name_registry")),
+    (23, _column_marker("sectors", "wiki_url")),
+    (22, _index_marker("planets", "idx_planets_name")),
+    (21, _column_marker("black_holes", "sector_id")),
+    (20, _column_marker("planets", "reflex_offset_x_km")),
+    (19, _table_marker("comets")),
+    (18, _column_marker("nebulae", "center_x_pc")),
+    (17, _column_marker("black_holes", "galactic_orbital_speed_kms")),
+    (16, _table_marker("black_holes")),
+    (15, _column_marker("stars", "wide_binary_a_crit_km")),
+    (14, _column_marker("star_systems", "binary_mutual_position_x_km")),
+    (13, _column_marker("stars", "galactic_orbital_phase_deg")),
+    (12, _column_marker("planets", "min_update_interval_years")),
+    (11, _column_marker("planets", "position_x_km")),
+    (10, _column_marker("stars", "galactic_orbital_speed_kms")),
+    (9, _column_marker("planets", "orbital_inclination_deg")),
+)
+"""tuple: `(version, test)` pairs, newest first, for
+`detect_schema_version`: each test is true of a database's shape from that
+version on (something the version added that no later one removed). Every
+new migration step adds its own row at the top."""
+
+_OLDEST_DETECTED_VERSION = 8
+"""int: What `detect_schema_version` reports for a database that has
+tables but none of `_VERSION_MARKERS` -- the oldest version
+`migrate_database` has steps from."""
+
+
+def detect_schema_version(conn):
+    """
+    The galaxy schema version the connected database's tables show, for a
+    database whose `schema_migrations` is missing or empty (DB.4): the
+    newest version in `_VERSION_MARKERS` whose mark is present, from
+    `information_schema` alone (reads only, before any DDL runs).
+    `SCHEMA_VERSION` for a database with no galaxy tables yet (a new one).
+
+    Returns:
+        int: The version.
+    """
+    tables = {row["t"].lower() for row in conn.execute(
+        "SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE()").fetchall()}
+    if "star_systems" not in tables:
+        return SCHEMA_VERSION
+    shape = {
+        "tables": tables,
+        "columns": {(row["t"].lower(), row["c"].lower()) for row in conn.execute(
+            "SELECT table_name AS t, column_name AS c FROM information_schema.columns"
+            " WHERE table_schema = DATABASE()").fetchall()},
+        "indexes": {(row["t"].lower(), row["i"].lower()) for row in conn.execute(
+            "SELECT DISTINCT table_name AS t, index_name AS i FROM information_schema.statistics"
+            " WHERE table_schema = DATABASE()").fetchall()},
+    }
+    for version, marked in _VERSION_MARKERS:
+        if marked(shape):
+            return version
+    return _OLDEST_DETECTED_VERSION
 
 
 def open_write(config=None):
@@ -1332,6 +1494,12 @@ def _ensure_control_schema(conn):
     Args:
         conn (Connection): The connection to apply the schema to.
     """
+    with _schema_lock(conn, "control"):
+        _apply_control_schema(conn)
+
+
+def _apply_control_schema(conn):
+    """`_ensure_control_schema`'s work, under the control schema's lock."""
     _refuse_newer(conn, _stored_version(conn, "control_schema_migrations"), CONTROL_SCHEMA_VERSION,
                   "control schema")
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
@@ -8387,12 +8555,14 @@ def schema_status(config=None):
     """
     # No DDL here (TEST.62): it "changes nothing", and must work for an
     # account that can only read. A database with no version yet is
-    # created at the current schema by the migration, so nothing is pending.
+    # created at the current schema by the migration, so nothing is
+    # pending -- unless it already has tables, whose shape says which
+    # version it is (DB.4).
     conn = get_connection(config, ensure_schema=False)
     try:
         version = _stored_version(conn, "schema_migrations")
         if version is None:
-            return SCHEMA_VERSION, 0
+            version = detect_schema_version(conn)
         _refuse_newer(conn, version, SCHEMA_VERSION)
         return version, sum(1 for target, _ in _migration_steps() if version < target)
     finally:
@@ -8468,21 +8638,25 @@ def migrate_database(config=None, on_step=None):
     """
     conn = get_connection(config, ensure_schema=False)
     try:
-        # Always, not once per process (PERF.12): a migration is when a
-        # database's missing tables and its baseline version row appear.
-        _ensure_schema(conn)
-        _schema_ensured.add((config or DEFAULT_MYSQL_CONFIG)._key())
-        version = _schema_version(conn)
-        _refuse_newer(conn, version, SCHEMA_VERSION)
-        pending = [(target, step) for target, step in _migration_steps() if version < target]
-        for number, (target, step) in enumerate(pending, start=1):
-            if on_step is not None:
-                on_step(number, len(pending), version, target)
-            step(_MigrationConnection(conn))
-            activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
-                              from_version=version, to_version=target)
-            version = target
-        conn.commit()
+        # The whole migration under the schema lock (DB.5), so a first
+        # connection elsewhere waits for it instead of stamping the
+        # database current halfway through.
+        with _schema_lock(conn):
+            # Always, not once per process (PERF.12): a migration is when a
+            # database's missing tables and its baseline version row appear.
+            _apply_schema(conn)
+            _schema_ensured.add((config or DEFAULT_MYSQL_CONFIG)._key())
+            version = _schema_version(conn)
+            _refuse_newer(conn, version, SCHEMA_VERSION)
+            pending = [(target, step) for target, step in _migration_steps() if version < target]
+            for number, (target, step) in enumerate(pending, start=1):
+                if on_step is not None:
+                    on_step(number, len(pending), version, target)
+                step(_MigrationConnection(conn))
+                activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
+                                  from_version=version, to_version=target)
+                version = target
+            conn.commit()
         return version
     finally:
         conn.close()

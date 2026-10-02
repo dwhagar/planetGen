@@ -205,12 +205,50 @@ def sector_address_at(position, edge_pc):
         tuple: `(ring_index, layer_index, ring_slot_index)`.
     """
     x, y, z = position
-    ring_index = int(math.floor(math.hypot(x, y) / edge_pc))
-    layer_index = int(math.floor(z / edge_pc + 0.5))
+    # sqrt(x*x + y*y) rather than hypot: plain IEEE arithmetic, so the
+    # browser's twin (galaxyprisms.sectorAddressAt) gets the same bits and
+    # the same ring right at a ring face. The slot rests on atan2, which
+    # the two runtimes may round an ulp apart, so the slot is exact against
+    # its own angle bounds in each language but can differ between them
+    # for a point within an ulp of a slot face.
+    ring_index = ring_index_at(math.sqrt(x * x + y * y), edge_pc)
+    layer_index = layer_index_at(z, edge_pc)
     n = ring_sector_count(ring_index)
     theta = math.atan2(y, x) % (2 * math.pi)
     slot_index = min(n - 1, int(theta * n / (2 * math.pi)))
+    if slot_index > 0 and theta < slot_angle_bounds(ring_index, slot_index)[0]:
+        slot_index -= 1
+    elif slot_index < n - 1 and theta >= slot_angle_bounds(ring_index, slot_index)[1]:
+        slot_index += 1
     return ring_index, layer_index, slot_index
+
+
+def ring_index_at(radius_pc, edge_pc):
+    """The ring whose `ring_bounds_pc` range `[inner, outer)` holds a
+    cylindrical radius."""
+    return _settle_index(radius_pc, int(math.floor(radius_pc / edge_pc)), lambda i: ring_bounds_pc(i, edge_pc))
+
+
+def layer_index_at(z_pc, edge_pc):
+    """The layer whose `layer_bounds_pc` range `[bottom, top)` holds a
+    height."""
+    return _settle_index(z_pc, int(math.floor(z_pc / edge_pc + 0.5)), lambda j: layer_bounds_pc(j, edge_pc))
+
+
+def _settle_index(value, guess, bounds_of):
+    """
+    The index whose half-open `[low, high)` range (from `bounds_of`) holds
+    `value`, starting from `guess`. A division-based guess can round one
+    cell off right at a face (GEN.31: `z / edge + 0.5` rounds one ulp
+    under layer 0's top face up to layer 1), so it is checked against the
+    very bounds the rest of the grid uses and moved by one if needed.
+    """
+    low, high = bounds_of(guess)
+    if value < low:
+        return guess - 1
+    if value >= high:
+        return guess + 1
+    return guess
 
 
 def sector_orientation(center_pc):

@@ -109,6 +109,9 @@ def _assert_no_overlap_within(objects):
                 cur.mass, prev.mass, cur.star.mass,
             )
             min_gap = (mutual_radius_m / physical_constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
+            # validation.mutual_min_distance_au clamps kappa (the gap over
+            # the mean distance) at 1.8 for a pair heavy next to its star.
+            min_gap = min(min_gap, 1.8 * (cur.distance + prev.distance) / 2)
 
         # A relative tolerance, not a fixed 1e-9 AU: `min_gap` here and the
         # value `validate_system` actually enforced are the same quantity

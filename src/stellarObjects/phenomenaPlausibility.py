@@ -48,6 +48,7 @@ from .plausibility import iqr_bounds
 from .quasarData import Quasar
 from .roguePlanetData import InterstellarComet, RoguePlanet, rogue_planet_classes
 from .supernovaRemnantData import SupernovaRemnant
+from .utils import power_law_share
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
 """tuple: The eight phenomenon types this module can generate/check --
@@ -71,8 +72,8 @@ shared list, since these seven types share almost no metric names."""
 # Rogue planets have no single configured "chance" for planet_type the way
 # e.g. an accretion disk does -- it falls out of where
 # ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER sits within the
-# ROGUE_PLANET_MASS_BINS draw (a bin by its per-star rate, then a
-# log-uniform mass inside it). Computed here (not hand-picked) so it stays
+# ROGUE_PLANET_MASS_BINS draw (a bin by its per-star rate, then a mass
+# inside it from ROGUE_PLANET_MASS_FUNCTION_SLOPE's power law). Computed here (not hand-picked) so it stays
 # correct if any of those constants ever changes.
 
 _AU_PER_LY = 63241.077
@@ -105,7 +106,8 @@ def _rogue_gas_giant_fraction():
         elif threshold_earth >= high:
             share = 0.0
         else:
-            share = math.log(high / threshold_earth) / math.log(high / low)
+            slope = prog_c.ROGUE_PLANET_MASS_FUNCTION_SLOPE
+            share = power_law_share(threshold_earth, high, slope) / power_law_share(low, high, slope)
         fraction += rate / total * share
     return fraction
 

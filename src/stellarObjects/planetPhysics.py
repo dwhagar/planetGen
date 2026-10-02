@@ -24,7 +24,8 @@ import secrets
 from . import log, physical_constants, program_constants
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
-                    finite_domain, orbital_position_au, reseed_rng, sample_bounded_bell)
+                    finite_domain, orbital_position_au, reseed_rng, sample_bounded_bell,
+                    sample_power_law)
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
@@ -42,6 +43,87 @@ def _sample_class_radius(cls, min_radius, max_radius):
     """
     size_mode = program_constants.PLANET_CLASSES[cls].get("size_mode", 0.5)
     return sample_bounded_bell(min_radius, max_radius, size_mode)
+
+
+def uses_giant_mass_radius(cls):
+    """Whether class `cls` gets its mass and radius from the giant-planet
+    mass-radius relation (GEN.34): every gas-giant class without its own
+    `"density_range"`."""
+    data = program_constants.PLANET_CLASSES[cls]
+    return data["type"] == "g" and "density_range" not in data
+
+
+def giant_mass_range_kg(cls):
+    """Class `cls`'s giant mass range (`GIANT_CLASS_MASS_RANGE_EARTH`), in kg."""
+    low, high = program_constants.GIANT_CLASS_MASS_RANGE_EARTH.get(
+        cls, program_constants.GIANT_DEFAULT_MASS_RANGE_EARTH)
+    return low * physical_constants.EARTH_MASS_TO_KG, high * physical_constants.EARTH_MASS_TO_KG
+
+
+def _giant_transition_earth():
+    """`(mass, radius)` in Earth units where the Neptunian and Jovian
+    branches of the giant mass-radius relation meet."""
+    m_n, r_n, s_n = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
+    m_j, r_j, s_j = physical_constants.GIANT_JOVIAN_MASS_RADIUS
+    # r_n * (M/m_n)^s_n == r_j * (M/m_j)^s_j, solved in log space.
+    log_m = (math.log(r_j / r_n) + s_n * math.log(m_n) - s_j * math.log(m_j)) / (s_n - s_j)
+    mass = math.exp(log_m)
+    return mass, r_n * (mass / m_n) ** s_n
+
+
+GIANT_TRANSITION_MASS_EARTH, GIANT_TRANSITION_RADIUS_EARTH = _giant_transition_earth()
+
+
+def giant_regime(mass_kg):
+    """`"neptunian"` below the relation's transition mass, else `"jovian"`."""
+    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
+    return "neptunian" if mass_earth < GIANT_TRANSITION_MASS_EARTH else "jovian"
+
+
+def giant_radius_km(mass_kg):
+    """The giant mass-radius relation's median radius (km) for `mass_kg`
+    (`physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS`), with no scatter."""
+    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
+    if giant_regime(mass_kg) == "neptunian":
+        m0, r0, slope = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
+    else:
+        m0, r0, slope = physical_constants.GIANT_JOVIAN_MASS_RADIUS
+    return r0 * (mass_earth / m0) ** slope * physical_constants.EARTH_RADIUS_KM
+
+
+def _sample_giant_mass_kg(low_kg, high_kg):
+    """A giant's mass in [low_kg, high_kg], from dN/dlogM ~
+    M^-GIANT_MASS_FUNCTION_SLOPE."""
+    return sample_power_law(low_kg, high_kg, program_constants.GIANT_MASS_FUNCTION_SLOPE)
+
+
+def _sample_giant_radius_km(cls, mass_kg):
+    """`giant_radius_km(mass_kg)` with the relation's own scatter
+    (`GIANT_RADIUS_SCATTER`, cut at 3 sigma), kept inside class `cls`'s
+    radius range."""
+    sigma = physical_constants.GIANT_RADIUS_SCATTER[giant_regime(mass_kg)]
+    factor = 1 + max(-3.0, min(3.0, random.gauss(0.0, 1.0))) * sigma
+    low, high = program_constants.PLANET_CLASSES[cls]["radius_range"]
+    return min(high, max(low, giant_radius_km(mass_kg) * factor))
+
+
+def _giant_mass_for_radius_kg(cls, radius_km):
+    """
+    A mass (kg) for a giant of class `cls` whose radius was fixed first (a
+    caller's radius): the Neptunian branch's inverse below the transition
+    radius, else a draw from the class's masses past the transition (the
+    Jovian branch is nearly flat, so radius barely constrains mass there).
+    Always inside the class's mass range.
+    """
+    low_kg, high_kg = giant_mass_range_kg(cls)
+    transition_kg = GIANT_TRANSITION_MASS_EARTH * physical_constants.EARTH_MASS_TO_KG
+    radius_earth = radius_km / physical_constants.EARTH_RADIUS_KM
+    if radius_earth < GIANT_TRANSITION_RADIUS_EARTH or high_kg <= transition_kg:
+        m0, r0, slope = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
+        mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * physical_constants.EARTH_MASS_TO_KG
+    else:
+        mass_kg = _sample_giant_mass_kg(max(low_kg, transition_kg), high_kg)
+    return min(high_kg, max(low_kg, mass_kg))
 
 
 def get_planet_mass_ranges():
@@ -78,21 +160,11 @@ def get_planet_mass_ranges():
         min_density *= 1000
         max_density *= 1000
 
-        if planet_type == "t":  # Terrestrial planet
+        if uses_giant_mass_radius(planet_class):
+            min_mass, max_mass = giant_mass_range_kg(planet_class)
+        else:  # Terrestrial, or a gas giant with its own density_range
             min_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density
             max_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density
-        else:  # Gas giant
-            min_atm_density, max_atm_density = physical_constants.ATMOSPHERE_DENSITY[planet_type]
-            min_core_ratio, max_core_ratio = program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO
-
-            min_core_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_density * min_core_ratio
-            max_core_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_density * max_core_ratio
-
-            min_atm_mass = (4 / 3) * math.pi * (min_radius ** 3) * min_atm_density * (1 - min_core_ratio)
-            max_atm_mass = (4 / 3) * math.pi * (max_radius ** 3) * max_atm_density * (1 - max_core_ratio)
-
-            min_mass = min_core_mass + min_atm_mass
-            max_mass = max_core_mass + max_atm_mass
 
         mass_ranges[planet_class] = (min_mass, max_mass)
     return mass_ranges
@@ -282,6 +354,9 @@ def generate_planet_properties(planet, zone_override=None):
     # the inputs provided. It can generate a fully random planet, or generate
     # properties based on a given class, radius, or mass.
 
+    radius_given = planet.radius is not None
+    mass_given = planet.mass is not None
+
     if planet.planet_class is None and planet.radius is None and planet.mass is None:
         # Fully random generation
         valid_classes = [c for c, data in program_constants.PLANET_CLASSES.items() if data[zone]]
@@ -388,13 +463,16 @@ def generate_planet_properties(planet, zone_override=None):
         planet.description = re.sub(r'\bplanet\b', 'moon', planet.description)
     planet.body_type = class_data["type"]
 
-    # Class-specific density range if declared (e.g. a brown-dwarf-like
-    # sub-stellar class -- see get_planet_mass_ranges above and
-    # program_constants.PLANET_CLASSES), else the default range shared by
-    # every other class of this body type.
-    default_density = physical_constants.PLANET_DENSITY[planet.body_type]
-    min_density, max_density = class_data.get("density_range", default_density)
-    planet.density = random.uniform(min_density, max_density)
+    if uses_giant_mass_radius(planet.planet_class):
+        _apply_giant_mass_and_radius(planet, radius_given, mass_given)
+    else:
+        # Class-specific density range if declared (e.g. a brown-dwarf-like
+        # sub-stellar class -- see get_planet_mass_ranges above and
+        # program_constants.PLANET_CLASSES), else the default range shared by
+        # every other class of this body type.
+        default_density = physical_constants.PLANET_DENSITY[planet.body_type]
+        min_density, max_density = class_data.get("density_range", default_density)
+        planet.density = random.uniform(min_density, max_density)
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"
@@ -422,45 +500,36 @@ def generate_planet_properties(planet, zone_override=None):
         min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
         planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-    if planet.body_type == 'g' and "density_range" not in class_data:
-        # Core/envelope density blend -- for ORDINARY gas giants only (no
-        # class-specific density_range declared). A class that declares its
-        # own density_range (e.g. a brown-dwarf-like sub-stellar class, see
-        # program_constants.PLANET_CLASSES) skips this blend entirely and
-        # keeps the density already drawn above as final: real brown dwarfs
-        # don't have a meaningfully separate light envelope over a denser
-        # core the way an ordinary gas giant does -- electron degeneracy
-        # pressure keeps the whole body close to uniformly dense throughout,
-        # so blending toward a light "puffy" envelope value here would just
-        # dilute the real, elevated density_range right back down (the
-        # blend is a harmonic mean, dominated by whichever term is smaller
-        # almost regardless of mass fraction).
-        core_to_atmosphere_ratio = random.uniform(*program_constants.GAS_GIANT_CORE_ATMOSPHERE_RATIO)
-        # core_to_atmosphere_ratio is a MASS fraction (core mass / total
-        # mass), not a volume/density-averaging weight. The physically
-        # correct way to combine the core and atmosphere densities via a
-        # mass fraction is the mass-weighted harmonic mean (1/density_total
-        # = mass_fraction/density_a + (1-mass_fraction)/density_b) -- an
-        # arithmetic mean of the two densities (the previous formula) has no
-        # physical basis and let atmosphere-heavy blends drag the whole
-        # planet's density down far below either component's own range.
-        # The envelope side of the blend uses physical_constants.
-        # GAS_ENVELOPE_BULK_DENSITY (a real, g/cm^3-scale "puffy gas giant"
-        # bulk density), NOT planet.atm_density -- that value is ~1000x
-        # lighter (it's the thin surface/pressure-layer density used by
-        # calculate_atmospheric_conditions, a different physical layer), and
-        # a harmonic mean is dominated by whichever term is smaller almost
-        # regardless of mass fraction, so using it here collapsed every gas
-        # giant's density to a near-zero, physically meaningless value no
-        # matter how dense its core (see GAS_ENVELOPE_BULK_DENSITY's
-        # docstring for the real-world numbers this replaced it with).
-        envelope_density_gcm3 = random.uniform(*physical_constants.GAS_ENVELOPE_BULK_DENSITY)
-        planet.density = 1 / (core_to_atmosphere_ratio / planet.density + (1 - core_to_atmosphere_ratio) / envelope_density_gcm3)
-
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
                                               planet.density)
 
     update_hill_sphere(planet)
+
+
+def _apply_giant_mass_and_radius(planet, radius_given, mass_given):
+    """
+    Sets a gas giant's mass, radius and density from the giant mass-radius
+    relation (GEN.34) instead of a radius and a density drawn apart: with
+    neither given, a mass from the class's mass function (at most
+    `GIANT_MAX_STAR_MASS_RATIO` of its star's mass) and a radius from the
+    relation; with only a mass, the relation's radius for it; with only
+    a radius, the relation's mass for it (`_giant_mass_for_radius_kg`);
+    with both, those two. The density is whatever the mass and radius make,
+    so `calculate_object_mass` gives the same mass back.
+    """
+    if not mass_given:
+        if radius_given:
+            planet.mass = _giant_mass_for_radius_kg(planet.planet_class, planet.radius)
+        else:
+            low_kg, high_kg = giant_mass_range_kg(planet.planet_class)
+            star_mass = getattr(getattr(planet, "star", None), "mass", None)
+            if star_mass:
+                high_kg = max(low_kg, min(high_kg, program_constants.GIANT_MAX_STAR_MASS_RATIO * star_mass))
+            planet.mass = _sample_giant_mass_kg(low_kg, high_kg)
+    if not radius_given:
+        planet.radius = _sample_giant_radius_km(planet.planet_class, planet.mass)
+    volume_m3 = (4 / 3) * math.pi * (planet.radius * physical_constants.KM_TO_M_FACTOR) ** 3
+    planet.density = planet.mass / volume_m3 / 1000  # g/cm^3
 
 
 def update_hill_sphere(planet):
@@ -814,7 +883,7 @@ def update_orbital_position(planet):
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 
-def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
+def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, parent=None):
     """
     Re-derives `planet`'s zone from its *current* orbital distance and, if
     the class it already has isn't valid there, regenerates its class and
@@ -856,6 +925,10 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
                                               moon always passes its
                                               parent's (corrected)
                                               `distance` here instead.
+        parent (Planet, optional): A moon's planet. A regenerated moon
+            only gets a class and size a moon of it may have
+            (`choose_moon_class_and_radius`; GEN.25, GEN.36), never a gas
+            giant, a blacklisted class or one too large for its planet.
 
     Returns:
         bool: True if the class (and everything derived from it) was
@@ -878,8 +951,16 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
     if not zone_changed or program_constants.PLANET_CLASSES[planet.planet_class][new_zone]:
         return False
 
-    planet.planet_class = None
-    planet.radius = None
+    moon_class = moon_radius = None
+    if parent is not None:
+        moon_class, moon_radius = choose_moon_class_and_radius(parent, new_zone)
+        if moon_class is None:
+            # Unreachable in practice (class D fits any planet, anywhere);
+            # leave the moon for check_lunar_system to report.
+            return False
+
+    planet.planet_class = moon_class
+    planet.radius = moon_radius
     planet.mass = None
     # The caller already decided where this body sits (validate_system
     # pushed it clear of its inner neighbor), so keep that distance:
@@ -890,6 +971,9 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None):
     distance_before = planet.distance
     generate_planet_properties(planet, zone_override=new_zone)
     planet.distance = distance_before
+    # The Hill sphere generate_planet_properties just set is for the
+    # redrawn distance, not this one.
+    update_hill_sphere(planet)
     planet.period = calculate_orbital_period_years(planet.distance, primary_mass_kg)
     calculate_surface_gravity(planet)
     calculate_atmospheric_conditions(planet, distance_override)
@@ -925,20 +1009,70 @@ def drop_unstable_moons(planet):
     Removes the moons of `planet` that no longer fit after its class (and
     so its radius and mass) was regenerated: one orbiting outside
     `moon_orbit_bounds_km`, or one larger than the planet could hold
-    (`planet.radius / 10**(1/3)`). A real planet that lost mass this way
+    (`moon_size_limits`: `planet.radius / 10**(1/3)` and a tenth of its
+    mass). A real planet that lost mass this way
     would lose those moons to the star or to a collision.
 
     Returns:
         int: How many moons were dropped.
     """
     low_km, high_km = moon_orbit_bounds_km(planet)
-    max_moon_radius = planet.radius / (10 ** (1 / 3))
+    max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
             if low_km <= moon.distance * physical_constants.AU_TO_KM <= high_km
-            and moon.radius <= max_moon_radius]
+            and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
     return dropped
+
+
+def moon_size_limits(parent):
+    """The largest moon `parent` can hold: `(radius_km, mass_kg)`, at most
+    `radius / 10**(1/3)` and a tenth of its mass."""
+    return parent.radius / (10 ** (1 / 3)), parent.mass / 10
+
+
+def moon_class_options(parent, zone):
+    """
+    Every class a moon of `parent` may have in `zone`, mapped to the
+    largest radius (km) a moon of that class may be (GEN.35, GEN.36):
+    terrestrial, not in `MOON_BLACKLIST`, valid in `zone`, not a habitable
+    class where `_habitable_classes_barred` says so, and able to fit under
+    `moon_size_limits` at all. The ceiling is the class's own top radius,
+    the largest moon radius, or the radius at which the class's densest
+    rock would pass the mass limit, whichever is least. A class only has
+    to fit at its smallest size, not across its whole range: requiring the
+    whole range left a rocky planet only Class D moons.
+    """
+    max_radius_km, max_mass_kg = moon_size_limits(parent)
+    barred = _habitable_classes_barred(parent, zone)
+    options = {}
+    for cls, data in program_constants.PLANET_CLASSES.items():
+        if (not data[zone] or data["type"] != 't' or cls in program_constants.MOON_BLACKLIST
+                or (barred and cls in program_constants.HABITABLE_PLANET_CLASSES)):
+            continue
+        max_density_kg_m3 = data.get("density_range", physical_constants.PLANET_DENSITY['t'])[1] * 1000
+        mass_radius_km = (max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3) / physical_constants.KM_TO_M_FACTOR
+        ceiling_km = min(data["radius_range"][1], max_radius_km, mass_radius_km)
+        if data["radius_range"][0] <= ceiling_km:
+            options[cls] = ceiling_km
+    return options
+
+
+def choose_moon_class_and_radius(parent, zone):
+    """
+    Draws a moon's class (weighted like any planet's, among
+    `moon_class_options`) and a radius that fits under its ceiling.
+
+    Returns:
+        tuple: `(class, radius_km)`, or `(None, None)` when no class fits.
+    """
+    options = moon_class_options(parent, zone)
+    if not options:
+        return None, None
+    moon_class = _choose_weighted_planet_class(options)
+    low = program_constants.PLANET_CLASSES[moon_class]["radius_range"][0]
+    return moon_class, _sample_class_radius(moon_class, low, options[moon_class])
 
 
 def generate_moons(planet, moon_count=None):
@@ -963,22 +1097,10 @@ def generate_moons(planet, moon_count=None):
     reseed_rng()
     if moon_count == 0:
         return
-    max_moon_mass = planet.mass / 10
-    max_moon_radius = planet.radius / (10 ** (1 / 3))
-    possible_classes = [c for c, data in planet_mass_ranges.items()
-                        if program_constants.PLANET_CLASSES[c][planet.zone] and program_constants.PLANET_CLASSES[c]["type"] == 't' and c not in program_constants.MOON_BLACKLIST
-                        and data[1] <= max_moon_mass and program_constants.PLANET_CLASSES[c]['radius_range'][1] <= max_moon_radius]
-    # Mirrors generate_planet_properties' own "Fully random generation"
-    # habitable-world filtering: a moon is subject to the same
-    # HABITABLE_WORLD=False rule as any other body, but wasn't checked here
-    # -- unreachable in practice until gas giants could be placed in zone
-    # 'e' (see PLANET_CLASSES["J"]'s zone rework), since no non-gas-giant
-    # planet generates moons of its own zone's habitable classes any
-    # differently. A gas giant now placed in 'e' with HABITABLE_WORLD=False
-    # must not roll a habitable-class moon.
-    if _habitable_classes_barred(planet, planet.zone):
-        possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
-    if not possible_classes:
+    # A gas giant placed in 'e' with HABITABLE_WORLD=False must not roll a
+    # habitable-class moon either: moon_class_options applies the same
+    # _habitable_classes_barred rule as generate_planet_properties.
+    if not moon_class_options(planet, planet.zone):
         return
 
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
@@ -992,11 +1114,8 @@ def generate_moons(planet, moon_count=None):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
-        moon_class = _choose_weighted_planet_class(possible_classes)
+        moon_class, moon_radius = choose_moon_class_and_radius(planet, planet.zone)
 
-        radius_limit = program_constants.PLANET_CLASSES[moon_class]['radius_range'][1] if max_moon_radius > \
-                                                                        program_constants.PLANET_CLASSES[moon_class]['radius_range'][
-                                                                            1] else max_moon_radius
         # Log-uniform, not linear-uniform: [total_orbit_distance, high_orbit]
         # can span many orders of magnitude (high_orbit reaches out to about
         # half the planet's own Hill radius, which for a large planet is tens
@@ -1016,13 +1135,6 @@ def generate_moons(planet, moon_count=None):
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(random.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
         moon_distance = moon_distance_km / physical_constants.AU_TO_KM
-        # radius_limit may be narrower than moon_class's own declared
-        # radius_range ceiling (capped by the parent's Hill sphere/mass
-        # above) -- _sample_class_radius's size_mode reading is evaluated
-        # against this actually-available [min, radius_limit] window, not
-        # necessarily the class's full range.
-        moon_radius = _sample_class_radius(moon_class, program_constants.PLANET_CLASSES[moon_class]['radius_range'][0], radius_limit)
-
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)

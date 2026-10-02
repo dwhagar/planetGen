@@ -40,13 +40,14 @@ def cold_distance(star):
     return star.habitable_zone[1] * 3
 
 
-def bare_planet(radius=10000.0, scale_height=None, hill_radius=1e6, moons=()):
+def bare_planet(radius=10000.0, scale_height=None, hill_radius=1e6, moons=(), mass=6e24):
     """A stand-in carrying only what the moon helpers read."""
-    return SimpleNamespace(radius=radius, scale_height=scale_height, hill_radius=hill_radius, moons=list(moons))
+    return SimpleNamespace(radius=radius, scale_height=scale_height, hill_radius=hill_radius, moons=list(moons),
+                           mass=mass)
 
 
-def moon_at(distance_km, radius=100.0):
-    return SimpleNamespace(distance=distance_km / physical_constants.AU_TO_KM, radius=radius)
+def moon_at(distance_km, radius=100.0, mass=1e18):
+    return SimpleNamespace(distance=distance_km / physical_constants.AU_TO_KM, radius=radius, mass=mass)
 
 
 # --- moon_orbit_bounds_km -------------------------------------------------
@@ -132,6 +133,16 @@ def test_drop_removes_a_moon_too_large_for_the_planet():
     fits = moon_at((low + high) / 2, radius=max_radius)
     too_big = moon_at((low + high) / 2, radius=max_radius * 1.01)
     planet.moons[:] = [fits, too_big]
+    assert planetPhysics.drop_unstable_moons(planet) == 1
+    assert planet.moons == [fits]
+
+
+def test_drop_removes_a_moon_too_heavy_for_the_planet():
+    planet = bare_planet(radius=6000.0, hill_radius=1e6, mass=6e24)
+    low, high = planetPhysics.moon_orbit_bounds_km(planet)
+    fits = moon_at((low + high) / 2, mass=6e23)
+    too_heavy = moon_at((low + high) / 2, mass=6.01e23)
+    planet.moons[:] = [fits, too_heavy]
     assert planetPhysics.drop_unstable_moons(planet) == 1
     assert planet.moons == [fits]
 
