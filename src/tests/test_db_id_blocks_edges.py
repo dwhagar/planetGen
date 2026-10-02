@@ -54,7 +54,7 @@ def _ids(config, table):
         conn.close()
 
 
-def test_a_reset_in_the_same_process_restarts_ids_without_collisions(mysql_config, monkeypatch):
+def test_a_reset_in_the_same_process_continues_ids_without_collisions(mysql_config, monkeypatch):
     first_sector = _db.save_sector(_sector("Before Reset", ["Haldor", "Imrith"]), config=mysql_config)
     conn = _db.get_connection(mysql_config)
     try:
@@ -75,11 +75,56 @@ def test_a_reset_in_the_same_process_restarts_ids_without_collisions(mysql_confi
         after = _insert_configs(conn, 3)
     finally:
         conn.close()
-    assert second_sector == 1
-    assert _ids(mysql_config, "star_systems") == [1, 2, 3]
+    # DB.3: id_blocks survives the reset, so new ids start past the first
+    # block of 64 handed out before it, not at 1 again.
+    assert second_sector == 65
+    assert _ids(mysql_config, "star_systems") == [65, 66, 67]
     # The sector's own three configs come first, as they did before the reset.
-    assert after == [4, 5, 6] and before == [3, 4, 5]
-    assert _ids(mysql_config, "system_configs") == [1, 2, 3, 4, 5, 6]
+    assert after == [68, 69, 70] and before == [3, 4, 5]
+    assert _ids(mysql_config, "system_configs") == [65, 66, 67, 68, 69, 70]
+
+
+def _hold_block_then_insert(config, ready, go, out):
+    """A long-lived process (the web app, a worker): reserves a block of
+    `system_configs` ids before the reset, then keeps using it after."""
+    conn = _db.get_connection(config)
+    try:
+        _insert_configs(conn, 1)
+        ready.set()
+        go.wait(60)
+        out.put(_insert_configs(conn, 10))
+    except BaseException as exc:  # noqa: BLE001 - reported to the parent
+        out.put(repr(exc))
+    finally:
+        conn.close()
+
+
+def test_reset_while_another_process_holds_a_block_never_reuses_ids(mysql_config, monkeypatch):
+    """DB.3: a process still holding ids from before a reset and a process
+    started after it never get the same ids."""
+    ctx = multiprocessing.get_context("spawn")
+    ready, go, out = ctx.Event(), ctx.Event(), ctx.Queue()
+    holder = ctx.Process(target=_hold_block_then_insert, args=(mysql_config, ready, go, out))
+    holder.start()
+    try:
+        assert ready.wait(60)
+        monkeypatch.setattr(sys, "argv", ["resetDb.py", *mysql_argv(mysql_config), "--yes"])
+        resetDb.main()
+        # This process plays the one started after the reset.
+        _db.forget_id_blocks(mysql_config._key())
+        conn = _db.get_connection(mysql_config)
+        try:
+            fresh = _insert_configs(conn, 10)
+        finally:
+            conn.close()
+        go.set()
+        held = out.get(timeout=60)
+    finally:
+        go.set()
+        holder.join(60)
+    assert isinstance(held, list), held
+    assert not set(held) & set(fresh)
+    assert sorted(_ids(mysql_config, "system_configs")) == sorted(held + fresh)
 
 
 def test_a_hand_inserted_high_id_is_never_handed_out_again(mysql_config):
