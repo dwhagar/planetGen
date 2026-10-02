@@ -78,6 +78,9 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/html/static/phenomenonrender.js` | Draws `lib/phenomenonrender.py`'s "View" panel with three.js. Served directly, same as `style.css`. |
 | `../src/html/static/generatefolds.js` | The Generate page's folding sections (remembered per browser) and "Around a sector"'s finder: name search through `/galaxy/locate` and the paged list from `/admin/generate/sectors`. Served directly, same as `style.css`. |
 | `../src/html/static/generatejobs.js` | Keeps the Generate page's "Current job" panel live by polling `/admin/generate/status`. Served directly, same as `style.css`. |
+| `../src/html/static/mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share (MAP.63): reading the panel's scene JSON, theme colors, info-panel fields, a sector's address, the highlight ring's texture, the scale bar's nice numbers and screen span, fitting the renderer to its canvas, and picking a point of light on screen. Served directly, same as `style.css`. |
+| `../src/html/static/mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map share (MAP.64): turning and moving an orbit camera, zoom policies (free, a short range, or locked), the wheel, a two-finger pinch, the arrow keys, and telling a drag from a click. Served directly, same as `style.css`. |
+| `../src/html/static/starlight.js` | The brightness boost for faint stars (MAP.87), the Galaxy Map's twin of `lib/starmap.py`'s `star_light_boost`, which sizes the Sector Map's points: up to four times the halo light at the dim end, none from 1000 L☉ up. Served directly, same as `style.css`. |
 | `../src/html/static/distance.js` | The maps' distance formatter, the browser mirror of `stellarObjects.utils.format_distance_m` (km, AU, mpc, ly, pc and up). Served directly, same as `style.css`. |
 | `../src/html/static/numberformat.js` | The browser mirror of `stellarObjects.utils.format_number`: numbers with 5 or more digits before the decimal point show as scientific notation ("1.23 × 10⁶"). Templates use the same rule through the `num()` global. |
 | `../src/html/static/localtime.js` | Rewrites every server-rendered UTC `<time data-local-time>` in the viewer's own time zone. Without script the times stay readable, labelled UTC. Served directly, same as `style.css`. |
@@ -146,8 +149,9 @@ web server can let browsers cache them for a year (see
 every other guide in [`deployment/`](deployment/README.md) sets the same
 rule).
 The ES modules that import siblings (`sectormap.js`, `systemmap.js`,
-`galaxymap3d.js` -> `bodyRendering.js`, `galaxyprisms.js`,
-`galaxyblocks.js`, `vendor/three.module.min.js`) use `await import(...)`
+`galaxymap3d.js`, `galaxystageview.js` -> `mapcore.js`, `mapcontrol.js`,
+`starlight.js`, `bodyRendering.js`,
+`galaxyprisms.js`, `galaxyblocks.js`, `vendor/three.module.min.js`) use `await import(...)`
 with their own `?v=` (from `import.meta.url`), so each module has exactly
 one URL per page and is never loaded twice. The Galaxy Map's worker is
 started from `galaxyblocks.js` with the same `?v=`.

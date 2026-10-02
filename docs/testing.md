@@ -115,7 +115,8 @@ look; update the check only with a source for the new value.
 - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
   `test_bughunt_*`);
 - `browser`: the headless-browser checks (`test_web_a11y.py`,
-  `test_web_browser_layout.py`, `test_web_browser_maps.py`);
+  `test_web_browser_layout.py`, `test_web_browser_maps.py`,
+  `test_web_browser_fixture_maps.py`);
 - `mathcheck`: the math check gate (`test_math_check.py`,
   `test_web_math_check.py`), run first.
 
@@ -185,6 +186,15 @@ than MariaDB, so a query that works locally can still fail there.
   a canvas screenshot that doesn't change is a dead button); the System
   Map's selection and measuring; and the Galaxy Map's drill-down by
   clicks, with Back, Forward and the free camera.
+- **Map behaviour with no database** (`test_web_browser_fixture_maps.py`,
+  TEST.70): the Galaxy Map and the Sector Map served by the real Flask
+  views over fixture data (`map_site_support.py`: a real density shape,
+  a few generated sectors near the core, one sector with stars across the
+  luminosity range, a nebula, a neutron star and rogue planets), so it
+  needs Playwright and Chromium but not MySQL. It pins what the shared
+  map code (MAP.61) will move: picking (a click on a point of light, a
+  drag that picks nothing), hover, keys, Back and Forward and the URL,
+  bookmarks and their keys, and the scale line.
 - **Page-script tests under node** (`js/*.test.mjs`, run by
   `test_js_unit.py`, skipped without node): `js/fakedom.mjs` is a small
   stand-in for the browser's DOM (elements, selectors, events, fake

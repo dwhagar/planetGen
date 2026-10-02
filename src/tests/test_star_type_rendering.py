@@ -57,7 +57,7 @@ def _light(luminosity_sol, radius_sol, temperature_k=5778.0):
 
 def test_star_light_shows_luminosity_as_a_point_with_a_halo():
     """MAP.15: every star is a point of light a few pixels across: the
-    core grows with the star's radius, the halo's width and strength with
+    core grows with the star's radius, the halo's width and light with
     its luminosity, and both stay within the Galaxy Map's own ranges."""
     white_dwarf = _light(0.001, 0.01, 9000.0)
     sun = _light(1.0, 1.0)
@@ -66,8 +66,15 @@ def test_star_light_shows_luminosity_as_a_point_with_a_halo():
     sizes = [star["sizePx"] for star in (white_dwarf, sun, giant, supergiant)]
     assert sizes == sorted(sizes) and len(set(sizes)) == 4
     assert supergiant["sizePx"] >= 3 * supergiant["corePx"]
-    assert white_dwarf["sizePx"] == pytest.approx(starmap._LIGHT_SIZE_PX[0], abs=0.5)
-    assert supergiant["glow"] > sun["glow"] > white_dwarf["glow"]
+    # The faint end is drawn brighter (MAP.87): the base halo widened by
+    # the boost's fourth root.
+    boost = starmap.star_light_boost(0.001)
+    assert white_dwarf["sizePx"] == pytest.approx(starmap._LIGHT_SIZE_PX[0] * boost ** 0.25, abs=0.5)
+
+    def halo_light(star):
+        return star["glow"] * star["sizePx"] ** 2
+
+    assert halo_light(supergiant) > halo_light(sun) > halo_light(white_dwarf)
     assert supergiant["corePx"] > sun["corePx"] > white_dwarf["corePx"]
     # A hypergiant's halo and core are capped.
     hyper = _light(1e7, 1500.0)

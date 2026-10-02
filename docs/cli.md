@@ -207,7 +207,10 @@ of ring 2000 took 16.5 s on one worker and 9.8 s on the default two.
 `generate.py plan` draws its bright stars the same way, one layer of the
 galaxy per task, densest layers first (`--workers` works there too).
 Each layer draws from its own random stream, so the same seed places the
-same stars on any number of workers.
+same stars on any number of workers. That seed is drawn at random and
+stored (`galaxy_shape.bright_star_seed`); there is no `--seed` option
+yet, and the rest of generation is not reproducible yet (GEN.39, see
+[Planned commands](#planned-commands)).
 
 Every progress bar shows the time elapsed and the time remaining until
 it's done. The remaining time comes from a decaying average of how many
@@ -394,3 +397,25 @@ Map's Territories overlay until it has made something to show
 (`GET /api/population`). The `--mysql-*`, `--debug` and `--quiet`
 options work as on the other subcommands. Design and decisions:
 [`design/population-and-politics.md`](design/population-and-politics.md).
+
+## Planned commands
+
+Not built yet. Each names its TODO item and phase; the design is in
+[`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
+
+| Command or option | Item | Phase | What it will do |
+|---|---|---|---|
+| `generate.py plan --seed <32 hex digits>` | GEN.39, DB.6 | 0 | Set the new galaxy's 128-bit seed; without it one is drawn at random. Stored once, with the version that made the galaxy. |
+| Seed line at the top of every run | OPS.10 | 0 | Every subcommand, web job and work queue run first writes the galaxy seed, the version with its 22-hex-digit key, and the run's command, at normal level. |
+| `generate.py check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
+| `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
+| Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
+| `generate.py repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
+| `generate.py reproduce --seed X --version Y` | OPS.12 | 3+ | Rebuild a galaxy or region into a fresh database from the seed, the run history and the settings file, and compare fingerprints. |
+
+Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`
+(Linux and macOS) and `scripts/maintenance.ps1` (Windows), set up as a
+scheduled job by install and update (OPS.16, OPS.17): the positional
+update (`updateOrbits.py`), then the day's admin changes folded into a
+new settings file (GEN.61), then the backups rotated to 18 kept files,
+7 daily, 4 weekly, 6 monthly and 1 yearly (OPS.18).

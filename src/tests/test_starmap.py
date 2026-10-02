@@ -151,9 +151,12 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
         assert star["light"]["corePx"] <= 5
         assert star["light"]["sizePx"] <= 40
         assert star["light"]["sizePx"] >= 2 * star["light"]["corePx"] + 2
-    assert big["light"]["sizePx"] > 2 * small["light"]["sizePx"]
+    # (A Sun's halo is a little wider since MAP.87 drew the faint end
+    # brighter.)
+    assert big["light"]["sizePx"] > 1.6 * small["light"]["sizePx"]
     assert big["light"]["corePx"] > small["light"]["corePx"]
-    assert big["light"]["glow"] > small["light"]["glow"]
+    # The halo's light (strength over its area).
+    assert big["light"]["glow"] * big["light"]["sizePx"] ** 2 > 2 * small["light"]["glow"] * small["light"]["sizePx"] ** 2
     assert big["light"]["bright"] > small["light"]["bright"]
     # A 3600 K supergiant is orange-red: more red than blue.
     color = big["light"]["color"]
@@ -165,7 +168,7 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
     ("neutron_star", "pulsar", True),
     ("black_hole", "accreting", True),
     ("black_hole", "quiescent", False),
-    ("rogue_planet", "terrestrial", False),
+    ("rogue_planet", "terrestrial", True),
     ("interstellar_comet", "icy", False),
     ("nebula", "emission", False),
     ("supernova_remnant", "shell", False),
@@ -173,9 +176,9 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
 ])
 def test_only_light_giving_phenomena_are_points_of_light(type_, descriptor, lit):
     """MAP.15: quasars, neutron stars and accreting black holes are drawn
-    as points of light; a quiescent black hole, a rogue planet (MAP.46
-    keeps it ringed) and an interstellar comet keep their spheres, and
-    clouds stay clouds."""
+    as points of light, and so is a rogue planet, faintly (MAP.82); a
+    quiescent black hole and an interstellar comet keep their spheres,
+    and clouds stay clouds."""
     phenomenon = _phenomenon(type_=type_, descriptor=descriptor)
     scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon]))
     cloud = scene["clouds"][0]
@@ -471,3 +474,127 @@ def test_render_map_panel_links_are_plain_hrefs():
     assert '<li><a href="/system?system_id=1">Test System</a></li>' in html
     assert '<a href="/phenomenon?phenomenon_id=7&amp;phenomenon_type=nebula">Veil &amp; &lt;Co&gt;</a>' in html
     assert "<form" not in html and "data-nav" not in html
+
+
+# --- MAP.87: the faint end drawn brighter ---------------------------------------------
+
+def _light_for(luminosity_solar, radius_solar=1.0, temperature_k=5772.0):
+    import starmap
+
+    return starmap._star_light(luminosity_solar * starmap.SOLAR_LUMINOSITY, radius_solar * 696000.0, temperature_k)
+
+
+def _unboosted(luminosity_solar, radius_solar=1.0):
+    """`_star_light`'s sizes before MAP.87 (no boost)."""
+    import starmap
+
+    share = starmap._log_share(luminosity_solar, starmap._LIGHT_LOG_LUMINOSITY)
+    core = starmap._lerp(starmap._LIGHT_CORE_PX, starmap._log_share(radius_solar, starmap._LIGHT_LOG_RADIUS))
+    return {
+        "sizePx": round(max(starmap._lerp(starmap._LIGHT_SIZE_PX, share * share), 2 * core + 2), 2),
+        "glow": round(starmap._lerp(starmap._LIGHT_GLOW, share), 3),
+        "bright": round(starmap._lerp(starmap._LIGHT_BRIGHT, share), 3),
+    }
+
+
+def test_light_boost_is_four_at_the_dim_end_and_none_from_1000_suns():
+    from starmap import star_light_boost
+
+    assert star_light_boost(1e-4) == pytest.approx(4.0)
+    assert star_light_boost(1e-6) == pytest.approx(4.0)
+    assert star_light_boost(1000.0) == pytest.approx(1.0)
+    assert star_light_boost(1e6) == pytest.approx(1.0)
+    assert star_light_boost(None) == 1.0 and star_light_boost(0.0) == 1.0
+
+
+def test_light_boost_tapers_without_a_jump():
+    from starmap import star_light_boost
+
+    luminosities = [10 ** (e / 20) for e in range(-100, 81)]
+    boosts = [star_light_boost(lum) for lum in luminosities]
+    assert all(a >= b for a, b in zip(boosts, boosts[1:])), "brighter stars never get more boost"
+    assert max(a - b for a, b in zip(boosts, boosts[1:])) < 0.1, "no jump anywhere"
+    assert star_light_boost(1.0) == pytest.approx(2.2, abs=0.05)
+
+
+def test_a_brighter_star_is_never_drawn_fainter():
+    """The halo's light (strength x area) never falls as luminosity
+    rises, on the Sector Map and with the Galaxy Map's own ranges
+    (galaxymap3d.js's STAR_MIN_PX..STAR_MAX_PX and STAR_GLOW)."""
+    import starmap
+
+    def galaxy_light(lum):
+        share = starmap._log_share(lum, (-4.0, 6.0))
+        size, glow = starmap._boost_light(6 + 24 * share * share, 0.2 + 0.4 * share, starmap.star_light_boost(lum))
+        return glow * size * size
+
+    luminosities = [10 ** (e / 50) for e in range(-250, 301)]
+    sector = [_light_for(lum, radius_solar=0.1) for lum in luminosities]
+    sector_light = [light["glow"] * light["sizePx"] ** 2 for light in sector]
+    assert all(b >= a * 0.995 for a, b in zip(sector_light, sector_light[1:]))
+    galaxy = [galaxy_light(lum) for lum in luminosities]
+    assert all(b >= a for a, b in zip(galaxy, galaxy[1:]))
+
+
+@pytest.mark.parametrize("luminosity", [1000.0, 5e4, 1e6])
+def test_stars_of_1000_suns_and_up_look_as_before(luminosity):
+    light = _light_for(luminosity, radius_solar=50.0)
+    expected = _unboosted(luminosity, radius_solar=50.0)
+    for key in ("sizePx", "glow", "bright"):
+        assert light[key] == pytest.approx(expected[key], abs=0.011), key
+
+
+def test_the_dimmest_red_dwarf_gives_four_times_the_light():
+    """Light ~ halo strength x halo area: twice the strength over twice
+    the area; the core is the star's own."""
+    light = _light_for(1e-4, radius_solar=0.1, temperature_k=2600.0)
+    before = _unboosted(1e-4, radius_solar=0.1)
+    assert light["glow"] == pytest.approx(2 * before["glow"], rel=0.01)
+    assert (light["sizePx"] / before["sizePx"]) ** 2 == pytest.approx(2.0, rel=0.02)
+    assert light["glow"] * light["sizePx"] ** 2 == pytest.approx(4 * before["glow"] * before["sizePx"] ** 2, rel=0.03)
+    assert light["bright"] == before["bright"]
+
+
+def test_a_sun_is_boosted_part_way():
+    light = _light_for(1.0)
+    before = _unboosted(1.0)
+    assert light["glow"] / before["glow"] == pytest.approx(2.2 ** 0.5, rel=0.02)
+
+
+# --- MAP.82 to MAP.84: rogue planets ---------------------------------------------------
+
+def _rogue_scene():
+    phenomenon = _phenomenon(type_="rogue_planet", descriptor="terrestrial")
+    html = render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])
+    return html, _scene_data(html)["clouds"][0]
+
+
+def test_an_unmarked_rogue_planet_is_a_faint_speck_with_no_glow():
+    _html, rogue = _rogue_scene()
+    light = rogue["light"]
+    assert light["glow"] == 0
+    assert light["bright"] <= 0.25
+    assert light["corePx"] <= 2 and light["sizePx"] <= 4
+    star = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()]))["stars"][0]["light"]
+    assert light["sizePx"] < star["corePx"] * 2, "smaller than a star"
+
+
+def test_a_marked_rogue_planet_is_bigger_brighter_and_glows():
+    _html, rogue = _rogue_scene()
+    unmarked, marked = rogue["light"], rogue["markedLight"]
+    assert marked["corePx"] >= 3 * unmarked["corePx"]
+    assert marked["bright"] == 1.0 and marked["glow"] > 0.3
+    assert marked["sizePx"] > 4 * unmarked["sizePx"]
+
+
+def test_the_mark_rogue_planets_button_starts_off_and_can_show_it():
+    html, _rogue = _rogue_scene()
+    button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
+    assert 'aria-pressed="false"' in button
+    assert "starmap-toggle" in button
+
+
+def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():
+    css = open(os.path.join(os.path.dirname(__file__), "..", "html", "static", "style.css"), encoding="utf-8").read()
+    rule = re.search(r'\.starmap-toggle\[aria-pressed="true"\]\s*\{([^}]*)\}', css)
+    assert rule and "var(--accent)" in rule.group(1)

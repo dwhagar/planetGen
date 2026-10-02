@@ -380,13 +380,13 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         assert str(system).strip()
 
 
-def test_wide_binary_secondary_ages_independently_of_primarys_planets():
+def test_wide_binary_stars_share_one_age_within_both_lifespans():
     system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=True, MAX_PLANETS=True))
     if system.binary_type != "wide":
         pytest.skip("random draw landed on close binary")
-    # Both stars' ages must stay within their own (possibly different)
-    # lifespans after adjust_age_for_planets ran against each star's own
-    # list independently.
+    # The pair shares one age (GEN.53), and it stays within both stars'
+    # own (possibly different) lifespans.
+    assert system.primary_star.age == system.secondary_star.age
     assert system.primary_star.age <= system.primary_star.lifespan * 1.001
     assert system.secondary_star.age <= system.secondary_star.lifespan * 1.001
 

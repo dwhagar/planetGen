@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.36 |
 | MAP | MAP.91 |
 | NAV | NAV.40 |
-| GEN | GEN.61 |
+| GEN | GEN.62 |
 | PERF | PERF.24 |
-| DB | DB.10 |
+| DB | DB.11 |
 | API | API.18 |
-| ADM | ADM.19 |
+| ADM | ADM.21 |
 | SEC | SEC.29 |
 | TEST | TEST.80 |
 | USR | USR.8 |
-| OPS | OPS.16 |
+| OPS | OPS.19 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -407,9 +407,11 @@ Parents marked "new parent" had no old number of their own.
 | ADM.16 | Prevalence controls on the Generate page | none | open |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
+| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
+| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
-| API.3 | Remote generate: generate locally, upload through the API | none | open |
+| API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
 | API.4 | API compatibility data in the docs | none | open |
 | API.5 | API version and compatibility checking | none | open |
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
@@ -433,6 +435,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -488,14 +491,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
 | GEN.51 | Forcing options only for single-system generation | none | open |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
-| GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
-| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
+| GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
+| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
+| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -558,8 +562,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.60 | Galaxy Map scale readout: one scale line | none | open |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
-| MAP.63 | Shared map helpers in one module | none | open |
-| MAP.64 | One camera and input controller | none | open |
+| MAP.63 | Shared map helpers in one module | none | done, PR #351 |
+| MAP.64 | One camera and input controller | none | done, PR #351 |
 | MAP.65 | One picking, hover and info-panel layer | none | open |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
 | MAP.67 | One URL and history scheme for every level | none | open |
@@ -576,16 +580,16 @@ Parents marked "new parent" had no old number of their own.
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
-| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | open |
-| MAP.82 | Unmarked rogue planets barely visible (bug) | none | open |
-| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | open |
-| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | open |
+| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | done, PR #351 |
+| MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
+| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
+| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | open |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
-| MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | open |
+| MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
-| MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | open |
+| MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -615,7 +619,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
-| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | open |
+| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
@@ -623,7 +627,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
-| NAV.38 | Every sector a straight line passes through | none | open |
+| NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
@@ -635,12 +639,15 @@ Parents marked "new parent" had no old number of their own.
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | open |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
-| PERF.1 | Generation at scale (new parent) | none | open |
+| OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
+| OPS.17 | Install and update set up the daily maintenance schedule | none | open |
+| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
+| PERF.1 | Generation at scale | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
 | PERF.4 | Second progress bar for slow plan layers | 88 (2026-10-01 03:26Z to 05:29Z) | done, PR #258 |
@@ -697,17 +704,17 @@ Parents marked "new parent" had no old number of their own.
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | done, PR #221 |
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
-| USR.1 | User accounts (new parent) | none | open |
-| USR.2 | Roles: user, admin, Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
-| USR.3 | SMTP settings | 65 (2026-10-01 02:13Z to 05:29Z) | open |
-| USR.4 | Invite-only sign-up | 66 (2026-10-01 02:13Z to 05:29Z) | open |
-| USR.5 | Email loop for passwords | 67 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.1 | User accounts | none | open |
+| USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.4 | Invite-only sign-up by unique link | 66 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.5 | Email loop for setting and resetting passwords | 67 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.6 | Owner transfer | 68 (2026-10-01 02:13Z to 05:29Z) | open |
-| USR.7 | User-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
+| USR.7 | A user-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | open |
-| UX.3 | Warn visitors while a background job changes the galaxy | 87 (2026-10-01 03:26Z to 05:29Z) | open |
+| UX.3 | Warn every visitor while a background job changes the galaxy | 87 (2026-10-01 03:26Z to 05:29Z) | open |
 | UX.4 | Phenomenon pages (new parent) | none | done (UX.17 and UX.18) |
 | UX.5 | Place facilities from the web interface | 31 (2026-09-30 18:14Z); 36 (2026-09-30 18:39Z to 2026-10-01 04:37Z) | done in 7.47.0, PR #167 |
 | UX.6 | Every distance in its most meaningful unit | 1 (2026-09-30 18:14Z to 22:15Z) | done in 7.10.0, PR #122 |
@@ -740,9 +747,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
-| VIEW.1 | View from a planet (new parent) | none | open |
-| VIEW.2 | Starmap seen from a planet | 83 (2026-10-01 02:55Z to 05:29Z) | open |
-| VIEW.3 | Render the view as a PNG with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
+| VIEW.1 | View from a planet | none | open |
+| VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
+| VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
 
 ## Tree IDs to flat IDs
@@ -900,7 +907,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
-| TEST.70 | Tests for the map JavaScript | none | open |
+| TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | open |

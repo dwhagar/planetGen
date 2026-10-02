@@ -25,23 +25,23 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | API.9, USR.2 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
-| USR.2 | Roles: user, admin, Owner |  | Control schema; no blockers, placed late by priority. |
-| USR.3 | SMTP settings | USR.2 |  |
-| USR.4 | Invite-only sign-up | USR.2, USR.3 |  |
-| USR.5 | Email loop for passwords | USR.3 |  |
+| USR.2 | Accounts with roles: user, admin and Owner |  | Control schema; no blockers, placed late by priority. |
+| USR.3 | SMTP settings in the admin config | USR.2 |  |
+| USR.4 | Invite-only sign-up by unique link | USR.2, USR.3 |  |
+| USR.5 | Email loop for setting and resetting passwords | USR.3 |  |
 | USR.6 | Owner transfer | USR.5 |  |
-| USR.7 | User-level interface with bookmarks | USR.2, NAV.7 | Bookmarks of any object use NAV.7 references. |
-| USR.1 | User accounts (new parent) | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
+| USR.7 | A user-level interface with bookmarks | USR.2, NAV.7 | Bookmarks of any object use NAV.7 references. |
+| USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
 
 ### View
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| VIEW.1 | View from a planet (new parent) |  | Research session with Boss. |
+| VIEW.1 | View from a planet |  | Research session with Boss. |
 | VIEW.4 | Constellation names in the name generator |  | Floats: no blockers, can run any time. |
-| VIEW.2 | Starmap seen from a planet | VIEW.1 |  |
-| VIEW.3 | Render the view as a PNG with constellations | VIEW.2, VIEW.4 |  |
+| VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.1 |  |
+| VIEW.3 | Render the view as a PNG, with constellations | VIEW.2, VIEW.4 |  |
 
 ### Galaxies
 
@@ -54,16 +54,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | OPS.12 | Parent of the chain. |
-| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | DB.6, DB.7, GEN.57, GEN.58, TEST.77, GEN.59, OPS.14, ADM.18 | The end state. |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | DB.6, DB.7, GEN.57, GEN.58, TEST.77, GEN.59, OPS.14, ADM.18, GEN.61, OPS.18 | The end state. |
 
 ## Open questions for Boss
 
-- USR.2: Roles: user, admin, Owner, see its entry in TODO.md.
-- USR.3: SMTP settings, see its entry in TODO.md.
-- USR.4: Invite-only sign-up, see its entry in TODO.md.
-- USR.5: Email loop for passwords, see its entry in TODO.md.
+- USR.2: Accounts with roles: user, admin and Owner, see its entry in TODO.md.
+- USR.3: SMTP settings in the admin config, see its entry in TODO.md.
+- USR.4: Invite-only sign-up by unique link, see its entry in TODO.md.
+- USR.5: Email loop for setting and resetting passwords, see its entry in TODO.md.
 - USR.6: Owner transfer, see its entry in TODO.md.
-- USR.7: User-level interface with bookmarks, see its entry in TODO.md.
+- USR.7: A user-level interface with bookmarks, see its entry in TODO.md.
 - VIEW.4: Constellation names in the name generator, see its entry in TODO.md.
-- VIEW.3: Render the view as a PNG with constellations, see its entry in TODO.md.
+- VIEW.3: Render the view as a PNG, with constellations, see its entry in TODO.md.
 - GEN.9: Plan for more than one galaxy in the database, see its entry in TODO.md.

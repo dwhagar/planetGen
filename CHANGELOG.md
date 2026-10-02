@@ -1,5 +1,70 @@
 # Changelog
 
+## [7.134.440] - 2026-10-02
+
+### Added
+
+- `galaxyGeometry.sectors_along_segment` lists every sector a straight
+  segment passes through, in the order the segment enters them, exact at
+  sector faces and edges (NAV.38). Its browser twin is
+  `galaxyprisms.sectorsAlongSegment`, and tests check the two agree.
+  Course planning (NAV.12) uses it to flag hops through unknown space.
+
+## [7.133.440] - 2026-10-02
+
+### Fixed
+- **Faint stars are brighter on the Sector Map and the Galaxy Map (MAP.87).** One shared curve draws the dimmest red dwarfs with four times the halo light, tapering to no change at 1000 L☉ and up, slowly enough that a brighter star is never drawn fainter than a dimmer one (a Sun gets about 2.2 times). Display only: nothing stored changes.
+- **Rogue planets on the Sector Map are faint until marked (MAP.82, MAP.84).** Unmarked, a rogue planet is a dim speck with no glow, smaller than any star and only picked by a click right on it; "Mark rogue planets" makes each one bigger, fully lit, glowing and ringed, with a wide pick reach.
+- **"Mark rogue planets" shows when it is on (MAP.83).** It starts off and stays highlighted while on, in both themes.
+- **No link out of a course being picked (NAV.30).** While choosing a NAV start or destination, the Sector Map's info panel offers only the pick button, and the Galaxy Map's star and cloud panels drop "View system" and "View phenomenon".
+- **Galaxy Map bookmark keys no longer clash with the browser's tab keys (MAP.81).** The first nine bookmarks open with plain 1 to 9 while the map has focus, instead of Ctrl+1 to Ctrl+9.
+
+### Added
+- **Browser tests for the maps that need no database (TEST.70).** `test_web_browser_fixture_maps.py` drives the Galaxy Map and the Sector Map, served by the real Flask views over fixture data, through picking, hover, keys, Back and Forward, URL state, bookmarks and the scale line.
+- **One module for the maps' shared helpers (MAP.63).** `static/mapcore.js` holds what the Galaxy Map, the Sector Map and the System Map each had their own copy of: reading the scene data, theme colors, info-panel fields, the highlight ring, the scale bar's numbers, fitting the canvas and picking a point of light on screen. No visible change.
+- **One camera and input controller for the Galaxy Map and the Sector Map (MAP.64).** `static/mapcontrol.js` turns, moves and zooms both maps, with a zoom policy each view sets (free, a short range, or locked), and tells a drag from a click in one place. No visible change.
+
+## [7.132.433] - 2026-10-02
+
+### Fixed
+
+- A point one float step under layer 0's top face is now in layer 0, not
+  layer 1 (GEN.31). The sector lookup (`galaxyGeometry.sector_address_at`
+  and the Galaxy Map's `sectorAddressAt`) checks its ring, layer and slot
+  against the cell's own bounds, so a point inside a cell's range always
+  maps to that cell, in Python and JavaScript alike. The bright-star box
+  query uses the same lookup.
+
+## [7.131.433] - 2026-10-02
+
+### Fixed
+
+- Planets no longer pile up in the cold zone (GEN.37). The first planet now
+  sits at 5-40% of the habitable zone's inner edge and each next one 1.3-1.8
+  times farther out, stopping at the protoplanetary disk's outer edge, so a
+  red dwarf's planets stay close in. About 30% of planets are now hot, 6% in
+  the ecosphere and 64% cold (it was about 1%, 2% and 96%).
+- Gas and ice giants have real densities, and super-Jupiters occur (GEN.34).
+  A giant's mass is drawn first (dN/dlogM ~ M^-0.31 within its class) and its
+  radius follows the Chen & Kipping (2017) mass-radius relation, so the median
+  giant is about 1.2 g/cm^3 (it was 0.25) and about 8% of giants pass a
+  Jupiter mass. A giant is at most 1% of its star's mass, so red dwarfs don't
+  get super-Jupiters.
+- Rocky planets get the moon classes their size and zone allow, not only
+  Class D (GEN.35): a class only has to fit at its smallest size, and a moon's
+  radius is capped so it stays under the planet's moon size and a tenth of its
+  mass.
+- A moon regenerated after its planet moves only gets a class and size a moon
+  of that planet may have, never a gas giant or a blacklisted class (GEN.36),
+  and is never too large for its planet (GEN.25). Moons are re-spaced after one
+  is regenerated, and a moon heavier than a tenth of its planet is dropped
+  when the planet is reclassified.
+- A planet reclassified after a spacing push keeps the Hill sphere of its real
+  orbit, not of the spot its new class first drew.
+- Rogue planets follow one mass function, dN/dlogM ~ M^-0.65 from 0.1 Earth
+  masses to 13 Jupiter masses (GEN.45): about 96% terrestrial and 4% gas
+  giants (it was 91% and 9%), still 6.5 per star.
+
 ## [7.130.426] - 2026-10-02
 
 ### Fixed

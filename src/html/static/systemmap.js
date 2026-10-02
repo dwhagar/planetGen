@@ -36,18 +36,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./distance.js${VERSION_QUERY}`);
-
-function addField(dl, label, value) {
-  if (!value && value !== 0) {
-    return;
-  }
-  var dt = document.createElement("dt");
-  dt.textContent = label;
-  var dd = document.createElement("dd");
-  dd.textContent = value;
-  dl.appendChild(dt);
-  dl.appendChild(dd);
-}
+const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;

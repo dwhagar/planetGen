@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue.
+Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue.
 
 ## Threads
 
@@ -47,7 +47,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.24 | Generate the galactic core on layer 0 | PERF.21, ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | PERF.21, GEN.32 | One shared per-sector stats table with PERF.11 (Boss 01:46Z). Galaxy schema v51 (one writer at a time). Backfill code shared with PERF.18 and GEN.42. |
 | PERF.11 | Store each sector's expected and actual density | GEN.44 | Same per-sector stats table as GEN.44 (Boss 01:46Z); MAP.86's color goes there too. |
-| PERF.1 | Generation at scale (new parent) | PERF.11 | Parent; only PERF.11 is open under it. |
+| PERF.1 | Generation at scale | PERF.11 | Parent; only PERF.11 is open under it. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | GEN.44 | Investigation; go/no-go for GEN.42. |
 | GEN.47 | Nebulae almost never appear (bug) | PERF.21, GEN.39 | Galaxy-scale nebula field spanning sectors: every worker and every later run must agree where a cloud is, so it needs deterministic per-region draws (GEN.39, or an address hash if GEN.39 is dropped). |
 
@@ -67,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | MAP.90, MAP.87 | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) |  | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
 
 ### References
 
@@ -88,7 +88,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes; queue behind PERF.11. Built with NAV.12 (no hop limit, a route always exists). |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, NAV.38, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps. |
 
@@ -101,7 +101,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | UX.28, UX.25 | Sector page admin panel and edit_controls.html. |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | UX.26 | system.html edit panel (_edit_rows in system_pages.py). |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | UX.28 | system.html subhead; shares wording with NAV.29. |
-| UX.3 | Warn visitors while a background job changes the galaxy | PERF.21, PERF.23 | ETA from progress.json, which PERF.23 caps. |
+| UX.3 | Warn every visitor while a background job changes the galaxy | PERF.21, PERF.23 | ETA from progress.json, which PERF.23 caps. |
 
 ### Queue
 
@@ -116,17 +116,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
-| API.9 | Key scopes |  | Control schema migration (v8). Judgment: if user keys belong to accounts (API.6's open question), USR.2's table design comes first. |
+| API.9 | Key scopes |  | Control schema migration (v8). Decided: user keys belong to accounts, so API.6 waits for USR.2 (phase 3+); API.9's scopes don't. |
 
 ### Reproducible galaxies
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible |  | Design note. |
 | GEN.56 | Every random draw in generation comes from the derived seeds | GEN.39 | Touches every generator module. |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | PERF.21, GEN.39, GEN.56, GEN.46, GEN.44 |  |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.6 |  |
-| GEN.58 | A fingerprint of a galaxy's generated content | OPS.11 | Judgment: phase 1 so the golden test guards later changes. |
+| GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.39, GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. Moved from phase 3. |
 | OPS.13 | Every update records the version key, keeping the last 10 | DB.6, OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
@@ -144,6 +143,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - PERF.11: Store each sector's expected and actual density, see its entry in TODO.md.
 - NAV.8: Pages and anchors for stars, planets, moons and belts, see its entry in TODO.md.
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
-- UX.3: Warn visitors while a background job changes the galaxy, see its entry in TODO.md.
+- UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.

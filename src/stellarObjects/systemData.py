@@ -28,7 +28,7 @@ from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
 from . import log, physical_constants, planetLife, program_constants, validation
 from .planetData import Planet
-from .starData import Star, compressed_heliosphere_radius
+from .starData import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
 from .utils import (
     calculate_reflex_offset,
     format_distance_au,
@@ -261,18 +261,17 @@ class StarSystem:
             original_large_star = self.system_config.LARGE_STAR
             self.system_config.LARGE_STAR = False
 
-            if self.primary_star.initial_mass_sol is not None:
-                # A population-model primary: the secondary is born with it
-                # (same age) at a mass ratio q of its initial mass, and
-                # evolves by the same model -- so its class, luminosity and
-                # temperature follow from its own mass.
-                mass_ratio = random.uniform(*program_constants.BINARY_MASS_RATIO_RANGE)
-                star_kwargs = {"initial_mass_sol": self.primary_star.initial_mass_sol * mass_ratio,
-                               "age_gy": self.primary_star.age}
-            else:
-                # A specified-type primary: the secondary's mass is a
-                # fraction of the primary's, clamped into its own class.
-                star_kwargs = {"mass_override": self.primary_star.mass * random.uniform(0.1, 0.8)}
+            # The secondary is born with the primary (same age, GEN.53) at a
+            # mass ratio q of its initial mass, and evolves by the population
+            # model -- so its class, luminosity and temperature follow from
+            # its own mass (GEN.54). A specified-type primary has no model
+            # initial mass; its present mass stands in for it.
+            mass_ratio = random.uniform(*program_constants.BINARY_MASS_RATIO_RANGE)
+            primary_initial_mass_sol = self.primary_star.initial_mass_sol
+            if primary_initial_mass_sol is None:
+                primary_initial_mass_sol = self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG
+            star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
+                           "age_gy": self.primary_star.age}
             with log.timed_phase("secondary star generation"):
                 # Named properly by assign_names below, once the pair's star words exist.
                 self.secondary_star = Star(self.system_config, name=self.primary_star.name,
@@ -280,17 +279,15 @@ class StarSystem:
                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg,
                                             **star_kwargs)
             self.system_config.LARGE_STAR = original_large_star
-            # A specified-type secondary's mass is clamped into its own class's
-            # range, and a population-model primary may already be a white
-            # dwarf lighter than its companion, so the secondary can come out
-            # heavier. The primary is by definition the heavier star, so swap
-            # the pair's roles then; names come later from assign_names, so
-            # nothing else needs moving.
+            # The primary may already be a white dwarf lighter than its
+            # companion, so the secondary can come out heavier. The primary
+            # is by definition the heavier star, so swap the pair's roles
+            # then; names come later from assign_names, so nothing else
+            # needs moving.
             if self.secondary_star.mass > self.primary_star.mass:
                 log.choice("Binary primary", "swapped",
                            f"secondary {self.secondary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
-                           f"outweighs primary {self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
-                           f"after its class's mass clamp")
+                           f"outweighs primary {self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun")
                 self.primary_star, self.secondary_star = self.secondary_star, self.primary_star
                 self.star = self.primary_star
                 self.stars = [self.primary_star]
@@ -392,9 +389,12 @@ class StarSystem:
                       f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                       f"required and found: {belt_satisfied})")
 
-        self.star.adjust_age_for_planets(self.planets)
+        # A pair's two stars share one age (GEN.53): a close pair's proxy
+        # settles it for both, a wide pair's from both stars' own planets.
         if self.binary_type == "wide":
-            self.secondary_star.adjust_age_for_planets(self.secondary_planets)
+            adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
+        else:
+            self.star.adjust_age_for_planets(self.planets)
 
         # Comets don't participate in the planet-slot retry loop above --
         # see _generate_comets' own docstring for why -- so they're rolled

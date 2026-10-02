@@ -34,7 +34,7 @@ function setUp(data) {
     h("span", { id: "starmap-scale-bar" }), h("span", { id: "starmap-scale-label" }),
   ])]);
   const controls = h("div", { id: "starmap-controls" },
-    F.sectorMap.actions.map((action) => h("button", { type: "button", "data-action": action, "aria-pressed": action === "toggle-rogue-markers" ? "true" : null }, action)));
+    F.sectorMap.actions.map((action) => h("button", { type: "button", "data-action": action, "aria-pressed": action === "toggle-rogue-markers" ? "false" : null }, action)));
   const info = h("div", { id: "starmap-info" });
   const showButtons = h("ul", {}, [
     h("button", { "data-map-target": "nebula:1", hidden: true }, "Show on map"),
@@ -223,17 +223,37 @@ test("Show on map buttons appear only for clouds on the map, and select them", (
   assert.equal(document.activeElement, m.canvasEl, "focus moves to the map");
 });
 
-test("the rogue-planet toggle hides and shows the markers", () => {
+test("the rogue-planet toggle starts off, then marks them: rings, a bigger point, an easier pick", () => {
   const m = setUp();
   const toggle = m.button("toggle-rogue-markers");
   const markers = () => m.renderer.scene.children.filter((o) => o.isGroup && o.children.some((c) => c.isSprite && c.material.sizeAttenuation === false));
+  const points = m.renderer.scene.children.find((o) => o.isPoints);
+  const rogue = m.data.clouds.find((c) => c.kind === "roguePlanet");
+  const index = m.data.stars.length + m.data.clouds.filter((c) => c.light).indexOf(rogue);
+  const size = () => points.geometry.getAttribute("pointSize").array[index];
+  const glow = () => points.geometry.getAttribute("pointGlow").array[index];
   assert.equal(markers().length, 1, "one group of rogue markers");
-  toggle.click();
-  assert.equal(toggle.getAttribute("aria-pressed"), "false");
-  assert.equal(markers()[0].visible, false);
+  assert.equal(markers()[0].visible, false, "off by default");
+  assert.equal(size(), rogue.light.sizePx);
+  assert.equal(glow(), 0, "no glow unmarked");
+
+  // A click a few pixels off an unmarked rogue planet misses it.
+  const at = screenOf(m, rogue.x, rogue.y, rogue.z);
+  m.canvasEl.dispatchEvent(new FakeEvent("click", { clientX: at.x + 7, clientY: at.y }));
+  assert.notEqual((m.info.querySelector("h3") || {}).textContent, rogue.name);
+
   toggle.click();
   assert.equal(toggle.getAttribute("aria-pressed"), "true");
   assert.equal(markers()[0].visible, true);
+  assert.equal(size(), rogue.markedLight.sizePx);
+  assert.ok(glow() > 0, "glows marked");
+  m.canvasEl.dispatchEvent(new FakeEvent("click", { clientX: at.x + 7, clientY: at.y }));
+  assert.equal(m.info.querySelector("h3").textContent, rogue.name, "marked, the same click takes it");
+
+  toggle.click();
+  assert.equal(toggle.getAttribute("aria-pressed"), "false");
+  assert.equal(markers()[0].visible, false);
+  assert.equal(size(), rogue.light.sizePx);
 });
 
 test("the scale bar follows the zoom", () => {

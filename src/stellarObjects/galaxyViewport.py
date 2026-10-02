@@ -315,7 +315,10 @@ def tile_level_for_view_radius(radius_pc):
         return TILE_MAX_LEVEL
     if math.isinf(radius_pc):
         return 0
-    level = math.floor(math.log2(TILE_ROOT_EDGE_PC / radius_pc))
+    ratio = TILE_ROOT_EDGE_PC / radius_pc
+    if math.isinf(ratio):  # a subnormal radius (MAP.90): the finest level
+        return TILE_MAX_LEVEL
+    level = math.floor(math.log2(ratio))
     return max(0, min(TILE_MAX_LEVEL, level))
 
 

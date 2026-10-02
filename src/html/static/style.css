@@ -771,6 +771,15 @@ tbody tr:last-child td {
   border-color: var(--accent);
 }
 
+/* A .starmap-btn that toggles, highlighted while it is on (its
+   aria-pressed, which the map script keeps): the Sector Map's "Mark
+   rogue planets" (MAP.83). */
+.starmap-toggle[aria-pressed="true"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
 .starmap-info {
   background: var(--bg-subtle);
   border: 1px solid var(--border);

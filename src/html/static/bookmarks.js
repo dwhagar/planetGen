@@ -20,8 +20,10 @@
 //   system, phenomenon or sector page, its entry in data-bookmark-kind,
 //   -value, -name, -url and -sector-id. Hidden until wired.
 // - [data-bookmarks-menu]: the Galaxy Map's Bookmarks menu (a <details>):
-//   open, rename and delete; with data-bookmarks-keys, Ctrl+1 to Ctrl+9
-//   open the first nine.
+//   open, rename and delete; with data-bookmarks-keys="<map's id>", the
+//   keys 1 to 9 open the first nine while that map (the element with that
+//   id, the canvas or anything in it) has focus (MAP.81: Ctrl+1 to 9 are
+//   the browser's own tab keys on Windows and Linux).
 // - [data-bookmarks-nav]: the NAV page's Bookmarks select (a form), for
 //   the endpoint in data-pick, keeping data-keep-name=data-keep-value.
 // The database comes from the first element's data-bookmark-db. The
@@ -75,7 +77,7 @@ function indexOf(entries, kind, value) {
 
 // --- The API ---------------------------------------------------------------------
 
-// Every bookmark, oldest first (the order Ctrl+1-9 and the menus use).
+// Every bookmark, oldest first (the order the 1-9 keys and the menus use).
 export function list() {
   return read();
 }
@@ -197,7 +199,7 @@ function el(tag, className, text) {
   return node;
 }
 
-// Fills the menu's panel: each bookmark as a link (with its Ctrl+n key
+// Fills the menu's panel: each bookmark as a link (with its key, 1 to 9,
 // for the first nine), Rename and Delete.
 function renderMenu(menu) {
   const panel = menu.querySelector("[data-bookmarks-panel]");
@@ -221,7 +223,7 @@ function renderMenu(menu) {
     if (url) link.href = url;
     link.appendChild(el("span", "bookmarks-name", entry.name));
     const meta = el("span", "bookmarks-kind", kindLabel(entry.kind));
-    if (keys && n < 9) meta.appendChild(el("kbd", null, "Ctrl+" + (n + 1)));
+    if (keys && n < 9) meta.appendChild(el("kbd", null, String(n + 1)));
     link.appendChild(meta);
     li.appendChild(link);
     const actions = el("span", "bookmarks-actions");
@@ -321,8 +323,10 @@ function wireMenu(menu) {
     if (menu.open && event.composedPath().indexOf(menu) < 0) menu.open = false;
   });
   if (menu.hasAttribute("data-bookmarks-keys")) {
+    const scope = document.getElementById(menu.getAttribute("data-bookmarks-keys")) || menu;
     document.addEventListener("keydown", function (event) {
-      if (!event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || isTextField(event.target)) return;
+      if (event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || isTextField(event.target)) return;
+      if (!event.target || !event.target.nodeType || !scope.contains(event.target)) return;
       const n = /^[1-9]$/.test(event.key) ? Number(event.key) : 0;
       const entry = n ? read()[n - 1] : null;
       const url = entry ? urlOf(entry) : null;

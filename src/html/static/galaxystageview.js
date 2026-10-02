@@ -36,6 +36,8 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 
 const S = await import(`./galaxystages.js${VERSION_QUERY}`);
+const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
+const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 
 // Not quite 0: the camera keeps galactic north as its up vector, which
@@ -65,6 +67,10 @@ export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const PAN_REACH = 1.5;
 const WHEEL_ZOOM_PER_PX = 0.0025;
+// The zoom policies (mapcontrol.js): a short range around the fit where
+// the view is free, none at the galaxy and its quarters.
+const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
+const FIXED_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_LOCKED);
 const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the tilt from straight down to MAX_TILT ...
@@ -75,7 +81,7 @@ export function clampTilt(phi) {
 // ... the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
 // fit ...
 export function clampZoom(dist, fitDist) {
-  return Math.max(fitDist * MIN_ZOOM, Math.min(fitDist * MAX_ZOOM, dist));
+  return MC.clampDistance(FREE_VIEW_ZOOM, dist, fitDist);
 }
 
 // ... and the view's middle no further than `reach` from the fit's
@@ -267,6 +273,11 @@ export function createStageView(host) {
   // galaxy and its quarters (no arc picked yet at the galaxy).
   function isFree(r) {
     return !!(r && r.stage && (r.stage.at || r.stage.picks.some(function (p) { return p.kind === "region"; })));
+  }
+
+  // The view's zoom policy: free views zoom within a short range.
+  function zoomPolicyFor(r) {
+    return isFree(r) ? FREE_VIEW_ZOOM : FIXED_VIEW_ZOOM;
   }
 
   function isWholeGalaxy(r) {
@@ -888,65 +899,35 @@ export function createStageView(host) {
 
   // --- Input -------------------------------------------------------------------
 
-  let pointer = null;
   let touchPending = -1;
-  // Touch points down on the map, for a pinch: id -> {x, y}.
-  const touches = new Map();
-  let pinch = null;
-
-  function onPointerDown(event) {
-    if (event.button !== 0 && event.button !== 2) return;
-    if (event.pointerType === "touch") {
-      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (touches.size === 2 && isFree(resolved) && view) {
-        const p = Array.from(touches.values());
-        pinch = { d: Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1, dist: view.dist };
-        pointer = null;
-        return;
-      }
-    }
-    pointer = {
-      x0: event.clientX, y0: event.clientY, x: event.clientX, y: event.clientY, id: event.pointerId,
-      type: event.pointerType, pan: event.button === 2 || event.shiftKey, dragging: false,
-    };
-    try { canvasEl.setPointerCapture(event.pointerId); } catch (err) { /* not essential */ }
-  }
+  // The camera distance a pinch started from.
+  let pinchDist = 0;
 
   // Turns the view (drag) or moves it in the screen's plane (pan).
   function drag(dx, dy, pan) {
     if (!pan) {
-      view.theta -= dx * ROTATE_PER_PX;
-      view.phi = clampTilt(view.phi - dy * ROTATE_PER_PX);
+      MC.orbitByDrag(view, dx, dy, ROTATE_PER_PX, clampTilt);
     } else {
-      const heightPx = canvasEl.clientHeight || 1;
-      const perPx = (2 * view.dist * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2)) / heightPx;
-      const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
-      const upward = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 1);
+      const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
       const fit = view.fit;
       const reach = PAN_REACH * fit.dist * Math.tan(fovHalf());
-      const t = view.target;
-      t[0] -= (right.x * dx - upward.x * dy) * perPx;
-      t[1] -= (right.y * dx - upward.y * dy) * perPx;
-      t[2] -= (right.z * dx - upward.z * dy) * perPx;
-      clampPan(t, fit.target, reach);
+      MC.panInScreenPlane(THREE, camera, view.target, dx, dy, perPx);
+      clampPan(view.target, fit.target, reach);
     }
     applyView();
   }
 
   function zoomBy(factor) {
-    if (!view || animation || !isFree(resolved)) return;
-    view.dist = clampZoom(view.dist * factor, view.fit.dist);
+    if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
+    view.dist = MC.clampDistance(zoomPolicyFor(resolved), view.dist * factor, view.fit.dist);
     applyView();
   }
 
   // The wheel zooms where the view is free; at the galaxy and its
   // quarters it is left to scroll the page. True when it was used.
   function onWheel(event) {
-    if (!isFree(resolved) || !view) return false;
-    let deltaPx = event.deltaY;
-    if (event.deltaMode === 1) deltaPx *= 33;
-    else if (event.deltaMode === 2) deltaPx *= canvasEl.clientHeight || 400;
-    deltaPx = Math.max(-200, Math.min(200, deltaPx));
+    if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
+    const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
     if (deltaPx) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
     return true;
   }
@@ -962,30 +943,7 @@ export function createStageView(host) {
     });
   }
 
-  function onPointerMove(event) {
-    if (event.pointerType === "touch" && touches.has(event.pointerId)) {
-      touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
-      if (pinch && touches.size === 2 && view && !animation) {
-        const p = Array.from(touches.values());
-        const d = Math.hypot(p[0].x - p[1].x, p[0].y - p[1].y) || 1;
-        view.dist = clampZoom(pinch.dist * (pinch.d / d), view.fit.dist);
-        applyView();
-        return;
-      }
-    }
-    if (pointer && event.pointerId === pointer.id) {
-      const dx = event.clientX - pointer.x;
-      const dy = event.clientY - pointer.y;
-      pointer.x = event.clientX;
-      pointer.y = event.clientY;
-      const moved = Math.abs(event.clientX - pointer.x0) + Math.abs(event.clientY - pointer.y0);
-      if (!pointer.dragging && moved > DRAG_CLICK_PX && isFree(resolved) && view && !animation) {
-        pointer.dragging = true;
-        showTooltip("", 0, 0);
-      }
-      if (pointer.dragging && view && !animation) drag(dx, dy, pointer.pan || event.shiftKey);
-      return;
-    }
+  function hoverAt(event) {
     if (animation || event.pointerType === "touch") return;
     const index = optionAt(event.clientX, event.clientY);
     if (index < 0) {
@@ -997,22 +955,8 @@ export function createStageView(host) {
     showTooltip(optionText(index), event.clientX, event.clientY);
   }
 
-  function onPointerUp(event) {
-    if (event.pointerType === "touch") {
-      touches.delete(event.pointerId);
-      if (pinch) {
-        if (touches.size === 0) pinch = null;
-        pointer = null;
-        return;
-      }
-    }
-    if (!pointer || event.pointerId !== pointer.id) return;
-    const moved = Math.abs(event.clientX - pointer.x0) + Math.abs(event.clientY - pointer.y0);
-    const type = pointer.type;
-    const wasDrag = pointer.dragging || pointer.pan;
-    pointer = null;
-    try { canvasEl.releasePointerCapture(event.pointerId); } catch (err) { /* already released */ }
-    if (wasDrag || moved > DRAG_CLICK_PX || animation || event.button === 2) return;
+  function clickAt(event, type) {
+    if (animation) return;
     // Inside a container, a bright star or cloud under the click is shown
     // rather than the block picked (over the whole galaxy and its
     // quarters the stars are too thick for that).
@@ -1033,6 +977,29 @@ export function createStageView(host) {
     showTooltip("", 0, 0);
     act(index);
   }
+
+  // Drag turns the view, right-drag or Shift-drag moves it, two fingers
+  // zoom it, where the view is free; a press that hardly moves picks.
+  const pointerControl = MC.createPointerControl(canvasEl, {
+    dragClickPx: DRAG_CLICK_PX,
+    buttons: [0, 2],
+    isPan: function (event) { return event.button === 2 || event.shiftKey; },
+    canDrag: function () { return isFree(resolved) && view && !animation; },
+    onDragStart: function () { showTooltip("", 0, 0); },
+    onDrag: function (dx, dy, pan) { if (view && !animation) drag(dx, dy, pan); },
+    pinch: {
+      canStart: function () { return MC.canZoom(zoomPolicyFor(resolved)) && !!view; },
+      start: function () { pinchDist = view.dist; },
+      move: function (ratio) {
+        if (!view || animation) return;
+        view.dist = MC.clampDistance(zoomPolicyFor(resolved), pinchDist * ratio, view.fit.dist);
+        applyView();
+      },
+    },
+    onClick: clickAt,
+    onHover: hoverAt,
+    onLeave: onPointerLeave,
+  });
 
   // Right-drag moves the view, so the map has no context menu where the
   // view is free.
@@ -1490,10 +1457,10 @@ export function createStageView(host) {
     openFromLocation: openFromLocation,
     step: step,
     invalidate: invalidate,
-    onPointerDown: onPointerDown,
-    onPointerMove: onPointerMove,
-    onPointerUp: onPointerUp,
-    onPointerLeave: onPointerLeave,
+    onPointerDown: pointerControl.down,
+    onPointerMove: pointerControl.move,
+    onPointerUp: pointerControl.up,
+    onPointerLeave: pointerControl.leave,
     onKey: onKey,
     onWheel: onWheel,
     resetView: resetView,

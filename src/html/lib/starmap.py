@@ -725,6 +725,48 @@ _LIGHT_BRIGHT = (0.9, 1.0)
 """The core's opacity and how far it whitens, faint star to bright star."""
 
 
+# MAP.87: the dim end of the luminosity range drawn brighter, on the
+# Sector Map here and on the Galaxy Map (`static/starlight.js`, this
+# curve's JavaScript twin; tests/js/starlight.test.mjs checks they agree).
+# Display only: nothing stored changes.
+_BOOST_AT_DIM = 4.0
+"""How many times as bright the dimmest stars are drawn."""
+_BOOST_LOG_LUMINOSITY = (-4.0, 3.0)
+"""log10(L / L_sun) where the boost is `_BOOST_AT_DIM` (1e-4 L_sun and
+fainter) and where it has tapered to none (1000 L_sun and brighter)."""
+
+
+_BOOST_TAPER_POWER = 1.5
+"""The boost's exponent falls as `share ** 1.5` over the log range: flat
+at the dim end, and slow enough that a brighter star never ends up drawn
+fainter than a dimmer one on either map (the halo's own light grows only
+about 5.6 times from 1e-4 to 1000 L_sun on the Sector Map, so a faster
+taper, a smoothstep say, would dip in the middle)."""
+
+
+def star_light_boost(luminosity_solar):
+    """
+    How many times as bright a star's point of light is drawn (MAP.87):
+    `_BOOST_AT_DIM` at the dim end of `_BOOST_LOG_LUMINOSITY`, 1 from its
+    bright end up, tapering in between (`_BOOST_TAPER_POWER`); a Sun gets
+    about 2.2. 1 for a star with no luminosity on record.
+    """
+    if not luminosity_solar or luminosity_solar <= 0:
+        return 1.0
+    lo, hi = _BOOST_LOG_LUMINOSITY
+    share = max(0.0, min(1.0, (math.log10(luminosity_solar) - lo) / (hi - lo)))
+    return _BOOST_AT_DIM ** (1.0 - share ** _BOOST_TAPER_POWER)
+
+
+def _boost_light(size_px, glow, boost):
+    """A point of light drawn `boost` times as bright: its halo's strength
+    and area each grow by sqrt(boost) (its width by boost ** 0.25); the
+    core, sized and lit by the star itself, is left alone. Returns
+    `(size_px, glow)`."""
+    root = math.sqrt(boost)
+    return size_px * math.sqrt(root), glow * root
+
+
 def _log_share(value, value_range):
     """Where `value`'s log10 falls in `value_range`, clamped to 0..1."""
     lo, hi = value_range
@@ -740,8 +782,9 @@ def _star_light(luminosity_w, radius_km, temperature_k):
     """
     A star's point of light (MAP.15), as `sectormap.js` draws it: a core
     sized by the star's radius, a halo whose width and strength grow with
-    its luminosity, the core a little dimmer for a faint star, all in the
-    star's blackbody color (`_kelvin_to_hex`, the same fit the Galaxy
+    its luminosity, the core a little dimmer for a faint star, the faint
+    end drawn brighter (`star_light_boost`, MAP.87), all in the star's
+    blackbody color (`_kelvin_to_hex`, the same fit the Galaxy
     Map's `starColor` uses).
 
     Returns:
@@ -759,11 +802,15 @@ def _star_light(luminosity_w, radius_km, temperature_k):
         radius_solar = luminosity_solar ** 0.35
     lum_share = _log_share(luminosity_solar, _LIGHT_LOG_LUMINOSITY)
     core_px = _lerp(_LIGHT_CORE_PX, _log_share(radius_solar, _LIGHT_LOG_RADIUS))
+    size_px, glow = _boost_light(
+        _lerp(_LIGHT_SIZE_PX, lum_share * lum_share), _lerp(_LIGHT_GLOW, lum_share),
+        star_light_boost(luminosity_solar),
+    )
     return {
         "color": _kelvin_to_hex(temperature_k or 5778.0),
         "corePx": round(core_px, 2),
-        "sizePx": round(max(_lerp(_LIGHT_SIZE_PX, lum_share * lum_share), 2 * core_px + 2), 2),
-        "glow": round(_lerp(_LIGHT_GLOW, lum_share), 3),
+        "sizePx": round(max(size_px, 2 * core_px + 2), 2),
+        "glow": round(glow, 3),
         "bright": round(_lerp(_LIGHT_BRIGHT, lum_share), 3),
     }
 
@@ -772,16 +819,27 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 # rows carry no luminosity): a quasar outshines everything on the map, an
 # accreting black hole is a hot orange point (its disc, not the hole,
 # shines, so its core is not whitened), a neutron star a small blue-white
-# one. A quiescent black hole, a rogue planet and an interstellar comet
-# give off no light of their own and keep their spheres (MAP.46's rogue
-# planet rings with them); nebulae, supernova remnants and asteroid fields
-# stay clouds.
+# one. A quiescent black hole and an interstellar comet give off no light
+# of their own and keep their spheres; a rogue planet is a faint point of
+# its own (`_ROGUE_LIGHT`); nebulae, supernova remnants and asteroid
+# fields stay clouds.
 _PHENOMENON_LIGHTS = {
     "quasar": {"color": "#dfe6ff", "corePx": 5.0, "sizePx": 48.0, "glow": 0.9, "bright": 1.0},
     "blackHoleAccreting": {
         "color": "#ff9d4d", "corePx": 3.0, "sizePx": 28.0, "glow": 0.75, "bright": 0.95, "whiten": 0.0,
     },
     "neutronStar": {"color": "#a9d4ff", "corePx": 2.2, "sizePx": 22.0, "glow": 0.7, "bright": 1.0},
+}
+
+# A rogue planet gives off no light of its own, so unmarked it is a dim,
+# tiny point with no glow, barely noticeable (MAP.82): Boss, "Rogue planet
+# detail is for them to be dim barely noticeable". The "Mark rogue
+# planets" button (off by default, MAP.83) swaps in `_ROGUE_MARKED_LIGHT`:
+# bigger, fully lit and glowing, ringed, and easy to pick (MAP.84; the
+# pick reach is sectormap.js's ROGUE_PICK_PX).
+_ROGUE_LIGHT = {"color": "#a993f0", "corePx": 1.5, "sizePx": 3.5, "glow": 0.0, "bright": 0.2, "whiten": 0.0}
+_ROGUE_MARKED_LIGHT = {
+    "color": "#b59cff", "corePx": 5.0, "sizePx": 18.0, "glow": 0.6, "bright": 1.0, "whiten": 0.3,
 }
 
 
@@ -946,6 +1004,9 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     if light is not None:
         # Drawn as a point of light rather than a sphere (MAP.15).
         data["light"] = dict(light)
+    elif data["kind"] == "roguePlanet":
+        data["light"] = dict(_ROGUE_LIGHT)
+        data["markedLight"] = dict(_ROGUE_MARKED_LIGHT)
     return data
 
 
@@ -1221,12 +1282,12 @@ def render_map_panel(
 
     noscript_html = _noscript_list_html(link_url, systems, phenomena, neighbors)
 
-    # MAP.46: rogue planets are dark and easy to lose, so sectormap.js
-    # rings each one with a marker that keeps its size on screen; this
-    # button turns the markers off and on.
+    # MAP.46, MAP.82 to MAP.84: rogue planets are faint points; this
+    # button (off by default, highlighted while on) marks them: bigger,
+    # brighter, ringed and easy to pick.
     rogue_toggle_html = (
-        '\n  <button type="button" class="starmap-btn" data-action="toggle-rogue-markers" aria-pressed="true">'
-        "Mark rogue planets</button>"
+        '\n  <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers"'
+        ' aria-pressed="false">Mark rogue planets</button>'
         if any(cloud["kind"] == "roguePlanet" for cloud in clouds_data) else ""
     )
 
@@ -1234,7 +1295,7 @@ def render_map_panel(
 <section class="panel">
 <div class="panel-header">
   <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black holes/rogue planets (ringed)/interstellar comets &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
+  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black holes/interstellar comets &middot; faint points &asymp; rogue planets (Mark rogue planets shows them) &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
 </div>
 <div class="starmap-layout">
 <div class="starmap-viewport">
