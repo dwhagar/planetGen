@@ -61,7 +61,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | MAP.85, PERF.11 | Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | PERF.11 | Next after MAP.85: with no lines, color carries the structure. Its color goes in the shared per-sector stats table (GEN.44 + PERF.11). Tile payload change: bump the tile cache. |
 
 ### Galaxy tiles
 
