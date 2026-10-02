@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.161.473] - 2026-10-02
+
+### Fixed
+- **The Galaxy Map turns freely, and each zoom step has its own camera (MAP.96, MAP.97).** Dragging, Shift and the arrow keys, or a one-finger touch drag now turn the map any way by any amount, past edge-on and round under the galactic plane, trackball style, without flipping at the poles; hovering and picking keep working at any angle. Each zoom step flies the camera to a preset for what it shows: the whole galaxy and a slab straight down (so the spiral arms show; this replaces the 35-degree opening tilt), and a block of several slabs (an arc, an entered block, the cube of sectors) at the isometric slant, going in and coming back out. A manual turn holds only within its step, and Reset view flies back to the step's preset.
+
 ## [7.160.473] - 2026-10-02
 
 ### Changed
