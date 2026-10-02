@@ -135,7 +135,7 @@ MAP.70 (positions at any time) first; NAV.27 needs MAP.70.
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.4 |
 | NAV.10 | Routing that scales past a few thousand systems |  |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10 |
-| NAV.12 | A maximum hop length (open question) | NAV.10 |
+| NAV.12 | No hop limit by default: show the longest hop, flag deep-space hops, optional ship range | NAV.10 |
 | NAV.6 | Courses that steer clear of gravity wells |  |
 | NAV.24 | A keep-out radius for every kind of object | NAV.6 |
 | NAV.25 | Find the obstacles along a path | NAV.6 |
@@ -147,7 +147,8 @@ NAV.3 (the shared picker, `picker.js`) with NAV.13 to NAV.16 first, on
 NAV.7's references; the pick-mode bugs NAV.29 to NAV.33 come with
 NAV.15. Then drawing courses (NAV.5, NAV.20 to NAV.23), saving them per
 browser (NAV.4, NAV.17, NAV.18; NAV.19 waits for accounts in phase 4),
-routing at scale (NAV.10 to NAV.12, NAV.12 needs Boss's answer), and
+routing at scale (NAV.10 to NAV.12, on phase 1's NAV.34; NAV.12 was
+settled by the hop-length study: no global cap), and
 courses that bend around gravity wells (NAV.6, NAV.24 to NAV.28).
 
 ### Interface cleanup
@@ -220,4 +221,3 @@ Each thread is briefed with its exact item IDs and takes no others.
   default), the whole center-to-edge wedge, or smaller?
 - MAP.52, MAP.53, MAP.54, MAP.55, MAP.56, MAP.58: the open questions in
   their TODO.md entries.
-- NAV.12: the maximum hop length.

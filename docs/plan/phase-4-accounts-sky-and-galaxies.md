@@ -55,6 +55,18 @@ VIEW.2 and VIEW.3 wait for VIEW.1's research session with Boss. VIEW.4
 
 A planning document only.
 
+### Reproducible galaxies: the end state
+
+| ID | Item | Parent |
+|---|---|---|
+| GEN.55 (new) | A version number and a seed reproduce the same galaxy (end goal) |  |
+| OPS.12 (new) | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | GEN.55 |
+
+OPS.12 needs everything before it in GEN.55's chain (phases 1 to 3)
+and closes GEN.55: `generate.py reproduce --seed X --version Y`
+rebuilds a galaxy or region into a fresh database and checks its
+fingerprint.
+
 ## Research notes
 
 None of Boss's 2026-10-01 notes apply to this phase.
@@ -66,6 +78,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 1. Accounts: USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19.
 2. VIEW.4 any time; VIEW.1 research session, then VIEW.2 and VIEW.3.
 3. GEN.9 plan.
+4. Reproducible galaxies: OPS.12 (closes GEN.55).
 
 ## Open questions for Boss
 

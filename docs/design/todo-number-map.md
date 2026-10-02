@@ -15,11 +15,11 @@ release is stamped.
 |---|---|
 | UX | UX.35 |
 | MAP | MAP.91 |
-| NAV | NAV.34 |
-| GEN | GEN.59 |
+| NAV | NAV.35 |
+| GEN | GEN.60 |
 | PERF | PERF.24 |
-| DB | DB.7 |
-| API | API.17 |
+| DB | DB.8 |
+| API | API.18 |
 | ADM | ADM.18 |
 | SEC | SEC.29 |
 | TEST | TEST.78 |
@@ -422,12 +422,14 @@ Parents marked "new parent" had no old number of their own.
 | API.14 | Upload routes, compressed, in batches | none | open |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
 | API.16 | The API reports the galaxy's seed, version and run history | none | open |
+| API.17 | Remote generation reproduces what the server would make | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |
 | DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | open |
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | open |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | open |
+| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -487,8 +489,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
-| GEN.57 | Generation output doesn't depend on worker count, run order or timing | none | open |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
+| GEN.59 | Edits and time evolution recorded as layers on top of the seed | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -590,7 +593,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
-| NAV.12 | A maximum hop length (open question) | none | open |
+| NAV.12 | No hop limit by default: show the longest hop, flag deep-space hops, optional ship range | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
 | NAV.14 | One breadcrumb for every level | none | open |
 | NAV.15 | Pick mode everywhere | none | open |
@@ -612,6 +615,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
+| NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -623,7 +627,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | open |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | open |
-| OPS.12 | Check that a version and a seed rebuild the same galaxy | none | open |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
 | PERF.1 | Generation at scale (new parent) | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
