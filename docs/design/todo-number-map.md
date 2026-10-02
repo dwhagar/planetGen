@@ -22,7 +22,7 @@ release is stamped.
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.87 |
+| TEST | TEST.88 |
 | USR | USR.9 |
 | OPS | OPS.20 |
 | DOC | DOC.4 |
@@ -943,8 +943,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | TEST.83 | The sign-in rate-limit test fails under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
-| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | open |
+| TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
+| TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

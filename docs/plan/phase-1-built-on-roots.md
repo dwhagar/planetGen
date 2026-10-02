@@ -24,7 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.64 | A 64-bit position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread. 64-bit packed position ID (type 4, unit 3, distance 17, bearing 20, mark 20) as the name; registry path goes away for these objects. Related: TEST.85, GEN.57, GEN.63. |
+| GEN.64 | A 64-bit position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread (still, 06:02Z). 64-bit packed position ID (type 4, unit 3, distance 17, bearing 20, mark 20) as the name; registry path goes away for these objects. Related: TEST.85 (done, PR #403), GEN.57, GEN.63. |
 
 ### References
 
@@ -132,7 +132,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.13 | Every update records the version key, keeping the last 10 | OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.63 | Planet names are unique within a sector | GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; see TEST.85. |
+| GEN.63 | Planet names are unique within a sector | GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; TEST.85 done (PR #403). |
 
 ### Nearby search
 
