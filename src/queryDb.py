@@ -3026,10 +3026,12 @@ def galaxy_stage(conn, at=None):
 
     Returns:
         dict: `at` (the canonical key, or `None`), `child_m`, `children`
-            (`[{ring, wedge, slab, generated}]`, at `child_m = 1` a
+            (`[{ring, wedge, slab, generated, look}]`, at `child_m = 1` a
             sector's `wedge` is its slot and `slab` its layer), and
-            `sectors` (`[{ring, layer, slot, id, name, system_count}]` at
-            `child_m = 1`, else `None`).
+            `sectors` (`[{ring, layer, slot, id, name, system_count,
+            look}]` at `child_m = 1`, else `None`). `look` is what the
+            generated sectors hold, from `sector_stats` (MAP.86,
+            `_stage_look`): `{share, color, colored}`.
 
     Raises:
         ValueError: On a malformed or impossible `at`.
@@ -3038,14 +3040,15 @@ def galaxy_stage(conn, at=None):
         block = None
         child_m = DRILL_TOP
         rows = conn.execute(
-            "SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
-            "FROM sectors WHERE ring_index IS NOT NULL GROUP BY ring_index, slab, ring_slot_index",
+            f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
+            f"FROM ({_stage_sectors_with_stats('ring_index IS NOT NULL')}) placed "
+            "GROUP BY ring_index, slab, ring_slot_index",
             ((DRILL_TOP - 1) // 2, DRILL_TOP),
         ).fetchall()
         counts = {}
         for r in rows:
             top = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * DRILL_TOP, int(r["ring_slot_index"]))[0]
-            counts[top] = counts.get(top, 0) + int(r["n"])
+            _add_stage_sums(counts, top, r)
         return {"at": None, "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
     block = parse_drill_key(at)
@@ -3066,7 +3069,7 @@ def galaxy_stage(conn, at=None):
 
     if child_m == 1:
         rows = conn.execute(
-            f"SELECT id, name, ring_index, layer_index, ring_slot_index FROM sectors WHERE {where} "
+            f"SELECT * FROM ({_stage_sectors_with_stats(where, 'id, name, ')}) placed "
             f"ORDER BY ring_index, layer_index, ring_slot_index",
             layer_params + params,
         ).fetchall()
@@ -3084,28 +3087,82 @@ def galaxy_stage(conn, at=None):
         sectors = [{
             "ring": r["ring_index"], "layer": r["layer_index"], "slot": r["ring_slot_index"],
             "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
+            "look": _stage_look([1, r["fill_share"] or 0.0, r["color_r"] or 0.0, r["color_g"] or 0.0,
+                                 r["color_b"] or 0.0, 0 if r["color_r"] is None else 1]),
         } for r in rows]
-        counts = {DrillBlock(1, s["ring"], s["slot"], s["layer"]): 1 for s in sectors}
+        counts = {}
+        for r, sector in zip(rows, sectors):
+            _add_stage_sums(counts, DrillBlock(1, sector["ring"], sector["slot"], sector["layer"]), {
+                "n": 1, "share_sum": r["fill_share"], "red": r["color_r"], "green": r["color_g"], "blue": r["color_b"],
+                "colored": 0 if r["color_r"] is None else 1,
+            })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors}
 
     child_half = (child_m - 1) // 2
     rows = conn.execute(
-        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, COUNT(*) AS n "
-        f"FROM sectors WHERE {where} GROUP BY ring_index, slab, ring_slot_index",
+        f"SELECT ring_index, FLOOR((layer_index + ?) / ?) AS slab, ring_slot_index, {_STAGE_LOOK_SUMS} "
+        f"FROM ({_stage_sectors_with_stats(where)}) placed GROUP BY ring_index, slab, ring_slot_index",
         [child_half, child_m] + layer_params + params,
     ).fetchall()
     counts = {}
     for r in rows:
         child = drill_chain_of(int(r["ring_index"]), int(r["slab"]) * child_m, int(r["ring_slot_index"]))[level]
-        counts[child] = counts.get(child, 0) + int(r["n"])
+        _add_stage_sums(counts, child, r)
     return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
 
+def _stage_sectors_with_stats(where, extra=""):
+    """The placed sectors matching `where` (on `sectors`' own columns),
+    each with its `sector_stats` look (MAP.86): `fill_share`, `color_r`,
+    `color_g`, `color_b` (NULL without a row or without stars)."""
+    return (
+        f"SELECT {extra}s.ring_index, s.layer_index, s.ring_slot_index, st.fill_share,"
+        " st.color_r, st.color_g, st.color_b"
+        f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
+        " ON st.ring_index = s.ring_index AND st.layer_index = s.layer_index"
+        " AND st.ring_slot_index = s.ring_slot_index"
+    )
+
+
+_STAGE_LOOK_SUMS = (
+    "COUNT(*) AS n, SUM(COALESCE(fill_share, 0)) AS share_sum, SUM(color_r) AS red, SUM(color_g) AS green,"
+    " SUM(color_b) AS blue, SUM(color_r IS NOT NULL) AS colored"
+)
+"""The per-group sums `galaxy_stage` folds into each child's look."""
+
+
+def _add_stage_sums(counts, child, row):
+    """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
+    `[sectors, share sum, red sum, green sum, blue sum, sectors with a
+    color]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0])
+    sums[0] += int(row["n"])
+    sums[1] += float(row["share_sum"] or 0.0)
+    sums[2] += float(row["red"] or 0.0)
+    sums[3] += float(row["green"] or 0.0)
+    sums[4] += float(row["blue"] or 0.0)
+    sums[5] += int(row["colored"] or 0)
+
+
+def _stage_look(sums):
+    """A child's `look` from its sums (MAP.86): `share`, the mean fill
+    share of its generated sectors (0 for one without stats); `color`, the
+    mean sRGB color of those with stars, or `None`; `colored`, how many
+    had one."""
+    n, share, red, green, blue, colored = sums
+    return {
+        "share": round(share / n, 4) if n else 0.0,
+        "color": [round(red / colored, 4), round(green / colored, 4), round(blue / colored, 4)] if colored else None,
+        "colored": colored,
+    }
+
+
 def _stage_children(counts):
-    """`galaxy_stage`'s `children` list from `{DrillBlock: count}`."""
+    """`galaxy_stage`'s `children` list from `{DrillBlock: sums}`
+    (`_add_stage_sums`)."""
     return [
-        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": n}
-        for b, n in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
+        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": sums[0], "look": _stage_look(sums)}
+        for b, sums in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
     ]
 
 

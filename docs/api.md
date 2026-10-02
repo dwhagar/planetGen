@@ -269,13 +269,17 @@ connectivity to that specific schema rather than the default one.
   Galaxy Map's drill-down (`queryDb.galaxy_stage`, design in
   `design/galaxy-drilldown-navigation.md`): how many generated sectors
   each child block of block `at` holds, as `{"at", "child_m", "children":
-  [{"ring", "wedge", "slab", "generated"}], "sectors"}`. Blocks are 243,
+  [{"ring", "wedge", "slab", "generated", "look"}], "sectors"}`. `look`
+  is what the generated sectors hold, from `sector_stats` (MAP.86):
+  `{share, color, colored}`, their mean `fill_share` (0 for one without
+  stats), the mean sRGB `[r, g, b]` of those with stars (`null` if none)
+  and how many had one. Blocks are 243,
   27 and 3 sectors a side (`stellarObjects.galaxyDrill`); with no `at`,
   the children are the galaxy's level-243 blocks. Children with nothing
   generated are left out (the page computes totals itself). At a level-3
   block the children are sectors (`wedge` is the slot, `slab` the layer)
   and `sectors` lists each one as `{ring, layer, slot, id, name,
-  system_count}`; otherwise `sectors` is `null`. A malformed or impossible
+  system_count, look}`; otherwise `sectors` is `null`. A malformed or impossible
   key is a 400.
 - `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
   bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
