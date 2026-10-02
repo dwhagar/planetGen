@@ -90,11 +90,6 @@ NEVER_READ = {
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
-    # Itemized copies of the parent's `composition_summary`, which the
-    # pages show; nothing reads the items back yet.
-    ("asteroid_field_composition", "component"): "itemized summary",
-    ("asteroid_field_composition", "concentration"): "itemized summary",
-    ("interstellar_comet_composition", "component"): "itemized summary",
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
