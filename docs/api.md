@@ -1203,10 +1203,42 @@ front, never in production.
 
 ## Not done yet
 
-See `docs/TODO.md`'s open items, in particular editing individual
-generated bodies (stars/planets/moons/belts) beyond renaming them or
-regenerating the whole system. (`POST /api/systems` can now place a
-system in an existing sector; see "Placing it in a sector" above.) The frontend gap that this
-section used to describe is closed: the pages in `../src/html/web/` (see
-[`html-interface.md`](html-interface.md)) are this API's own server-
-rendered frontend.
+Planned API changes, as of 2026-10-02 (7.132.433). None is built; the
+items and their full text are in `docs/TODO.md`, and the phases in
+`docs/plan/`.
+
+- **Every API call logged (API.15, phase 0).** By default every call is
+  logged with the time, the route, the account that made it (the key's
+  owner for an API key, the signed-in admin for the web site, and `god`
+  for the console), how it came in (API key, web session or console),
+  and the HTTP response code it got back. The log uses HTTP response
+  codes for parity with the web server's own logs. It needs no user
+  accounts: it logs today's admin accounts, and any account once user
+  accounts exist (USR.1). The activity log
+  ([`config.md`](config.md#the-activity-log)) stays as it is.
+- **Routes with no hop limit (NAV.12, phase 1).** `/api/nav` always
+  finds a route between two placed endpoints, a same-sector route may
+  leave the sector, the answer gives the longest hop, and each hop
+  carries a flag saying whether its line crosses unfilled (unknown)
+  sectors. Travel times per hop and for the route follow (NAV.11). See
+  [`design/course-routing.md`](design/course-routing.md).
+- **Key scopes (API.9, phase 1).** API keys get a scope: read, admin or
+  upload.
+- **The galaxy's seed, version and run history (API.16, phase 2).** A
+  route returns the galaxy's 128-bit seed, its 22-hex-digit version key
+  and the run history; API.12's download uses the same fields. See
+  [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
+- **Remote generation (API.3 and its parts, phases 2 and 3).** The
+  download of the seed, skeleton and name state (API.12), run
+  reservations (API.10), staging tables (API.11), compressed batch
+  uploads (API.14) and checks on them (API.8); a remote run with the same
+  seed and release produces what the server would, checked by
+  fingerprint (API.17).
+- **Keys owned by accounts (API.6, phase 3+)**, after user accounts
+  (USR.2).
+
+Editing individual generated bodies (stars, planets, moons, belts)
+beyond renaming them or regenerating the whole system is also still
+open. The pages in `../src/html/web/` (see
+[`html-interface.md`](html-interface.md)) are this API's own
+server-rendered frontend.

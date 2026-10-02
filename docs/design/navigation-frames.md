@@ -9,8 +9,11 @@ Implemented in `stellarObjects/navigation.py`:
 Later releases changed how a course is picked and shown, not the frames:
 the Sector Map's Nav from/to links and pick mode (7.58.0) and the course
 drawn on the Galaxy Map (7.52.0); see `galaxy-drilldown-navigation.md`,
-section 9. UX.13 (a unit ladder for speeds) would change how warp and
-fold speeds are written, not their values.
+section 9. UX.13's unit ladder for speeds (`format_speed_kms`,
+`static/speed.js`, built) changed how warp and fold speeds are written,
+not their values. How a route between two
+systems is found, and the planned change to no hop limit with
+unknown-space jumps flagged, is in [course-routing.md](course-routing.md).
 
 Decisions Boss approved on 2026-09-30:
 
