@@ -93,10 +93,18 @@ Built with NAV.12, which changes the same code.
 
 Travel times for the route itself, per hop (unknown-space jumps
 included) and in total, with the same warp and fold tables as the
-direct distance, follow (NAV.11, phase 1).
+direct distance, follow (NAV.11, phase 1), the total assuming a stop at
+every system on the route (Boss, 2026-10-02 04:19Z).
 
 ## 4. Showing the route
 
+- **A readable course map (NAV.41, phase 0, bug).** The NAV page's map
+  (`lib/navmap.py`) becomes a wide panel across the usable width of the
+  device, with labels at least body-text size, and the route list stays
+  below it (Boss, 2026-10-02 04:19Z).
+- **Course and distance per stop (NAV.42, phase 1).** Each stop shows the
+  course to the next in the existing notation, for example
+  `045 mark 012, 3.2 ly`, worked out in that hop's frame.
 - **Horizontal, wrapping (UX.35, phase 1, alongside NAV.12).** The stops
   run left to right, each a link, with the hop distance between them.
   On phones and narrow panels the strip wraps onto several lines (a
