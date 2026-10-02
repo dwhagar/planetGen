@@ -975,3 +975,40 @@ def test_galaxy_map_slab_lines_on_a_phone_leave_the_buttons_below_the_map(gl_bro
         assert len(lefts) == 1, "one column"
     finally:
         context.close()
+
+
+FRAME = "() => document.querySelector('#galaxymap3d-canvas').galaxyFrame()"
+
+
+def _framed(frame, least=0.75):
+    """The stage's blocks all on the map, and filling much of it one way."""
+    assert frame, "no frame"
+    assert frame["left"] >= -1 and frame["top"] >= -1, frame
+    assert frame["right"] <= frame["width"] + 1 and frame["bottom"] <= frame["height"] + 1, frame
+    fill = max((frame["right"] - frame["left"]) / frame["width"], (frame["bottom"] - frame["top"]) / frame["height"])
+    assert fill >= least, f"the stage fills only {fill:.0%} of the map: {frame}"
+    return fill
+
+
+@pytest.mark.parametrize("query", ["", "?p=a0.180", "?p=a0.180,L0"])
+def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, query):
+    """MAP.53 and MAP.78: every stage (the galaxy, an arc, a slab of it) is
+    framed whole on the map, fitted to the map's own size, so a bigger
+    window shows it bigger; it refits when the window is resized, and
+    stays whole while Shift and the arrow keys turn it about its middle."""
+    _open_galaxy(page, map_site, query)
+    small = page.evaluate(FRAME)
+    _framed(small)
+    page.set_viewport_size({"width": 1700, "height": 1300})
+    page.wait_for_timeout(400)
+    big = page.evaluate(FRAME)
+    _framed(big)
+    assert big["right"] - big["left"] > (small["right"] - small["left"]) * 1.15, (small, big)
+    canvas = page.locator(GALAXY_CANVAS)
+    canvas.focus()
+    for key in ["Shift+ArrowLeft"] * 9 + ["Shift+ArrowDown"] * 4:
+        page.keyboard.press(key)
+    turned = page.evaluate(FRAME)
+    # Turned about its middle, the picture may sit off center, but whole.
+    _framed(turned, 0.5)
+    assert abs(turned["left"] - big["left"]) + abs(turned["top"] - big["top"]) > 2, "Shift and the arrows turn the view"

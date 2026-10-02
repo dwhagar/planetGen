@@ -64,6 +64,8 @@ export const ISO_TILT = Math.atan(Math.SQRT2);
 // fit and no further, MAP.58), and the view's middle can't wander more
 // than PAN_REACH fits away.
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
+// Shift and an arrow key turn the view this far.
+const KEY_TURN = (5 * Math.PI) / 180;
 export const MAX_TILT = (80 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
@@ -381,10 +383,123 @@ export function createStageView(host) {
     return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
   }
 
+  // Points round blocks' bounds, for fitting the view to them: each
+  // block's corners, and along its outer arc every 22.5 degrees, top and
+  // bottom.
+  function boundsPoints(blocks) {
+    const points = [];
+    blocks.forEach(function (block) {
+      const b = block.bounds;
+      const steps = Math.max(1, Math.ceil((b.t1 - b.t0) / (Math.PI / 8)));
+      [b.z0, b.z1].forEach(function (z) {
+        points.push(b.r0 * Math.cos(b.t0), b.r0 * Math.sin(b.t0), z, b.r0 * Math.cos(b.t1), b.r0 * Math.sin(b.t1), z);
+        for (let k = 0; k <= steps; k++) {
+          const t = b.t0 + ((b.t1 - b.t0) * k) / steps;
+          points.push(b.r1 * Math.cos(t), b.r1 * Math.sin(t), z);
+        }
+      });
+    });
+    return points;
+  }
+
+  // The points a stage's view is fitted round, worked out once per stage.
+  const fitPointsCache = new WeakMap();
+  function fitPointsOf(r) {
+    let points = fitPointsCache.get(r);
+    if (!points) {
+      points = boundsPoints(r.view.blocks);
+      fitPointsCache.set(r, points);
+    }
+    return points;
+  }
+
+  const fitBasis = { m: null, x: null, y: null, z: null };
+
+  // The camera distance from `target` along (theta, phi) at which every
+  // point (a flat [x, y, z, ...] list) shows on the map with FIT_MARGIN to
+  // spare, across the map's actual width and height (MAP.53, MAP.78): a
+  // wide map fits a long arc by its width, a tall one by its height, and a
+  // bigger map shows the same fit larger.
+  function fitDistance(points, target, theta, phi) {
+    if (!fitBasis.m) {
+      fitBasis.m = new THREE.Matrix4();
+      fitBasis.x = new THREE.Vector3();
+      fitBasis.y = new THREE.Vector3();
+      fitBasis.z = new THREE.Vector3();
+      fitBasis.eye = new THREE.Vector3();
+      fitBasis.at = new THREE.Vector3();
+    }
+    const sinPhi = Math.sin(phi);
+    fitBasis.at.set(target[0], target[1], target[2]);
+    fitBasis.eye.set(target[0] + sinPhi * Math.cos(theta), target[1] + sinPhi * Math.sin(theta), target[2] + Math.cos(phi));
+    fitBasis.m.lookAt(fitBasis.eye, fitBasis.at, camera.up);
+    fitBasis.m.extractBasis(fitBasis.x, fitBasis.y, fitBasis.z);
+    const X = fitBasis.x;
+    const Y = fitBasis.y;
+    const Z = fitBasis.z;
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
+    const tanH = tanV * aspect;
+    const margin = S.FIT_MARGIN;
+    let dist = 0;
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      const vx = points[k] - target[0];
+      const vy = points[k + 1] - target[1];
+      const vz = points[k + 2] - target[2];
+      const x = vx * X.x + vy * X.y + vz * X.z;
+      const y = vx * Y.x + vy * Y.y + vz * Y.z;
+      const z = vx * Z.x + vy * Z.y + vz * Z.z;
+      dist = Math.max(dist, z + (margin * Math.abs(x)) / tanH, z + (margin * Math.abs(y)) / tanV);
+    }
+    return dist > 0 ? dist : host.galaxyRadius * 2.4;
+  }
+
+  // fitDistance with the target moved (across the screen, three rounds)
+  // so the points sit in the middle of the map: a slanted view sees the
+  // near side of a block bigger than the far side, so the middle of the
+  // blocks isn't the middle of their picture. {target, dist}.
+  function centeredFit(points, target, theta, phi) {
+    let at = target.slice();
+    let dist = fitDistance(points, at, theta, phi);
+    const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
+    const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
+    const tanH = tanV * aspect;
+    for (let round = 0; round < 3; round++) {
+      const X = fitBasis.x;
+      const Y = fitBasis.y;
+      const Z = fitBasis.z;
+      let x0 = Infinity;
+      let x1 = -Infinity;
+      let y0 = Infinity;
+      let y1 = -Infinity;
+      for (let k = 0; k + 2 < points.length; k += 3) {
+        const vx = points[k] - at[0];
+        const vy = points[k + 1] - at[1];
+        const vz = points[k + 2] - at[2];
+        const depth = dist - (vx * Z.x + vy * Z.y + vz * Z.z);
+        if (depth <= 0) continue;
+        const sx = (vx * X.x + vy * X.y + vz * X.z) / (depth * tanH);
+        const sy = (vx * Y.x + vy * Y.y + vz * Y.z) / (depth * tanV);
+        x0 = Math.min(x0, sx);
+        x1 = Math.max(x1, sx);
+        y0 = Math.min(y0, sy);
+        y1 = Math.max(y1, sy);
+      }
+      if (!(x1 >= x0)) break;
+      const cx = ((x0 + x1) / 2) * dist * tanH;
+      const cy = ((y0 + y1) / 2) * dist * tanV;
+      if (Math.abs(cx) + Math.abs(cy) < 1e-6 * dist) break;
+      at = [at[0] + X.x * cx + Y.x * cy, at[1] + X.y * cx + Y.y * cy, at[2] + X.z * cx + Y.z * cy];
+      dist = fitDistance(points, at, theta, phi);
+    }
+    return { target: at, dist: dist };
+  }
+
   // The camera for a stage, with the view's middle bearing pointing up
   // the screen: the whole galaxy at GALAXY_TILT (galactic north up),
-  // everything below it from the isometric slant, fitted round the
-  // blocks: {target, dist, theta, phi}.
+  // everything below it from the isometric slant, turned about the middle
+  // of what it shows and fitted round its blocks: {target, dist, theta,
+  // phi}.
   function cameraFor(r) {
     const blocks = r.view.blocks;
     if (!blocks.length) {
@@ -398,25 +513,48 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
-    if (!isWholeGalaxy(r)) {
-      return {
-        target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
-        dist: (S.FIT_MARGIN * Math.hypot(fp.radius, (z1 - z0) / 2)) / Math.sin(fovHalf()),
-        theta: theta, phi: ISO_TILT,
-      };
-    }
-    return {
-      target: [fp.center[0], fp.center[1], (z0 + z1) / 2],
-      dist: (S.FIT_MARGIN * fp.radius) / Math.tan(fovHalf()) + (z1 - z0) / 2,
-      theta: theta, phi: GALAXY_TILT,
-    };
+    const phi = isWholeGalaxy(r) ? GALAXY_TILT : ISO_TILT;
+    const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], theta, phi);
+    return { target: fit.target, dist: fit.dist, theta: theta, phi: phi };
   }
 
   // The view on arrival at camera `to`, keeping `to` as its fit. The
   // target is a copy: a pan moves view.target in place, and the pan's
-  // reach is measured from the fit's.
+  // reach is measured from the fit's. `zoom` is the user's zoom, the
+  // distance over the fit's at the view's own turn.
   function settledView(to) {
-    return Object.assign({}, to, { target: to.target.slice(), fit: to });
+    return Object.assign({}, to, { target: to.target.slice(), fit: to, zoom: 1 });
+  }
+
+  // Where the stage's blocks fall on the map now, in canvas pixels:
+  // {left, top, right, bottom, width, height} (the map's own size). Read
+  // by the browser tests through the canvas.
+  canvasEl.galaxyFrame = function () {
+    if (!resolved || !resolved.view) return null;
+    camera.updateMatrixWorld();
+    const points = fitPointsOf(resolved);
+    const v = new THREE.Vector3();
+    const w = canvasEl.clientWidth;
+    const h = canvasEl.clientHeight;
+    const box = { left: Infinity, top: Infinity, right: -Infinity, bottom: -Infinity, width: w, height: h };
+    for (let k = 0; k + 2 < points.length; k += 3) {
+      v.set(points[k], points[k + 1], points[k + 2]).project(camera);
+      const x = ((v.x + 1) / 2) * w;
+      const y = ((1 - v.y) / 2) * h;
+      box.left = Math.min(box.left, x);
+      box.right = Math.max(box.right, x);
+      box.top = Math.min(box.top, y);
+      box.bottom = Math.max(box.bottom, y);
+    }
+    return box;
+  };
+
+  // Keeps the view fitted round the stage as it turns or the map changes
+  // size (MAP.78): the distance is the user's zoom times the fit at the
+  // view's own turn.
+  function reframe() {
+    if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
+    view.dist = view.zoom * fitDistance(fitPointsOf(resolved), view.fit.target, view.theta, view.phi);
   }
 
   function applyView() {
@@ -902,8 +1040,8 @@ export function createStageView(host) {
   function hintFor(r) {
     const base = baseHint(r);
     if (!isFree(r)) return base;
-    return (base ? base + " " : "") + "Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom; "
-      + "Reset view brings it back.";
+    return (base ? base + " " : "") + "Drag (or Shift and the arrow keys) to turn the view about its middle, right-drag (or "
+      + "Shift-drag) to move it, scroll or pinch to zoom; Reset view brings it back.";
   }
 
   function baseHint(r) {
@@ -958,13 +1096,14 @@ export function createStageView(host) {
   // --- Input -------------------------------------------------------------------
 
   let touchPending = -1;
-  // The camera distance a pinch started from.
-  let pinchDist = 0;
+  // The zoom a pinch started from.
+  let pinchZoom = 1;
 
   // Turns the view (drag) or moves it in the screen's plane (pan).
   function drag(dx, dy, pan) {
     if (!pan) {
       MC.orbitByDrag(view, dx, dy, ROTATE_PER_PX, clampTilt);
+      reframe();
     } else {
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
       const fit = view.fit;
@@ -977,7 +1116,8 @@ export function createStageView(host) {
 
   function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    view.dist = MC.clampDistance(zoomPolicyFor(resolved), view.dist * factor, view.fit.dist);
+    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * factor, 1);
+    reframe();
     applyView();
   }
 
@@ -1047,10 +1187,11 @@ export function createStageView(host) {
     onDrag: function (dx, dy, pan) { if (view && !animation) drag(dx, dy, pan); },
     pinch: {
       canStart: function () { return MC.canZoom(zoomPolicyFor(resolved)) && !!view; },
-      start: function () { pinchDist = view.dist; },
+      start: function () { pinchZoom = view.zoom; },
       move: function (ratio) {
         if (!view || animation) return;
-        view.dist = MC.clampDistance(zoomPolicyFor(resolved), pinchDist * ratio, view.fit.dist);
+        view.zoom = MC.clampDistance(zoomPolicyFor(resolved), pinchZoom * ratio, 1);
+        reframe();
         applyView();
       },
     },
@@ -1088,6 +1229,15 @@ export function createStageView(host) {
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
     event.preventDefault();
+    // Shift and an arrow turn the view about the middle of what it shows
+    // (MAP.53).
+    if (event.shiftKey && key !== "Enter") {
+      if (view && !animation && isFree(resolved) && MC.orbitByKey(view, key, KEY_TURN, clampTilt)) {
+        reframe();
+        applyView();
+      }
+      return;
+    }
     if (animation || !display || !display.options.length) return;
     const options = display.options;
     const current = hover && hover.option != null ? hover.option : -1;
@@ -1512,8 +1662,13 @@ export function createStageView(host) {
     const rows = strip.rows;
     const anchors = new Map();
     rows.forEach(function (r) { anchors.set(r, slabAnchor(r.option.blocks, rect)); });
+    // Below the map (a phone) the lines run up lanes along the map's right
+    // edge, so they nest: the bottom button's line takes the outer lane
+    // to the highest slab, and the column runs from the lowest slab down.
+    const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
     const order = rows.slice().sort(function (p, q) {
-      return anchors.get(p).y - anchors.get(q).y || q.option.pick.lo - p.option.pick.lo;
+      const d = anchors.get(p).y - anchors.get(q).y || q.option.pick.lo - p.option.pick.lo;
+      return below ? -d : d;
     });
     const shown = Array.from(strip.list.children);
     const moved = order.some(function (r, n) { return shown[n] !== r.item; });
@@ -1526,13 +1681,11 @@ export function createStageView(host) {
       const end = anchors.get(r);
       const b = r.button.getBoundingClientRect();
       const points = [];
-      if (b.top >= rect.bottom - 1) {
-        // Below the map (a phone): out of the button's right end to its
-        // own lane, up the lane to the map's bottom edge, then to the
-        // slab. Higher buttons take the nearer lanes, so no line crosses
-        // another before the map.
-        const lane = b.right + 10 + 7 * items.indexOf(r.item);
-        points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, rect.bottom]);
+      if (below) {
+        // Out of the button's right end to its own lane, up the lane to
+        // the slab's height, then across to the slab.
+        const lane = rect.right - 8 - 7 * (items.length - 1 - items.indexOf(r.item));
+        points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, end.y]);
       } else {
         points.push([b.left, b.top + b.height / 2]);
       }
@@ -1557,14 +1710,23 @@ export function createStageView(host) {
     });
   }
 
-  // The lines follow the layout too: the map or the buttons resized, or
-  // the page reflowed.
-  if (typeof ResizeObserver === "function") {
-    const relayout = new ResizeObserver(function () { drawLeaders(); });
-    relayout.observe(canvasEl);
-    if (els.slabs) relayout.observe(els.slabs);
+  // A resized map (the window resized or turned) refits the view to its
+  // new size (MAP.53), and the lines follow the layout: the map or the
+  // buttons resized, or the page reflowed.
+  function relayout() {
+    if (active && view && !animation) {
+      reframe();
+      applyView();
+    } else {
+      drawLeaders();
+    }
   }
-  window.addEventListener("resize", function () { drawLeaders(); });
+  if (typeof ResizeObserver === "function") {
+    const observer = new ResizeObserver(relayout);
+    observer.observe(canvasEl);
+    if (els.slabs) observer.observe(els.slabs);
+  }
+  window.addEventListener("resize", relayout);
 
   // --- The address bar (section 9.3) -----------------------------------------
 
