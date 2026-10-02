@@ -466,6 +466,49 @@ def test_galaxy_map_keys_pick_go_up_and_home(page, map_site):
     assert _crumbs(page) == ["Galaxy"]
 
 
+SLAB_TIP = r"^(Slab|Layer)s? -?\d+( to -?\d+)?: "
+"""A tooltip naming a whole slab (or a layer of sectors), not one block."""
+
+
+def test_galaxy_map_hover_while_picking_a_slab_lights_the_whole_slab(page, map_site):
+    """MAP.91: whenever the next pick is a slab, at every level and in the
+    3 by 3 by 3 view of sectors too, hovering any cube names (and the
+    slider marks) its whole slab, and a click picks that slab."""
+    _open_galaxy(page, map_site)
+    slab_stages = []
+    for _ in range(16):
+        if not _on_galaxy(page):
+            break
+        if page.locator(".galaxy-slab-slider").count():
+            heading = page.locator("#galaxymap3d-slabs-heading").inner_text()
+            found = _hover_choice(page, GENERATED_CHOICE)
+            assert found, f"no slab to hover at {_crumbs(page)}"
+            text = found[2]
+            assert re.match(SLAB_TIP, text), f"hovering a {heading} pick named {text!r}, not a slab"
+            readout = page.locator(".galaxy-slab-readout strong").inner_text()
+            assert readout == _label_of(text), f"the slider marks {readout!r}, the map {text!r}"
+            # Every cube of the slab names that same slab.
+            names = set()
+            for fx in (0.3, 0.5, 0.7):
+                for fy in (0.3, 0.5, 0.7):
+                    box = page.locator(GALAXY_CANVAS).bounding_box()
+                    page.mouse.move(box["x"] + fx * box["width"], box["y"] + fy * box["height"])
+                    tip = page.locator("#galaxymap3d-tooltip")
+                    if tip.is_visible():
+                        names.add(tip.inner_text())
+            assert all(re.match(SLAB_TIP, name) for name in names), names
+            page.mouse.move(found[0], found[1])
+            slab_stages.append(heading)
+            label = _label_of(text)
+            page.mouse.click(found[0], found[1])
+            _settle(page)
+            assert _crumbs(page)[-1] == label, f"clicking {text!r} led to {_crumbs(page)}"
+            continue
+        _click_choice(page, GENERATED_CHOICE)
+    assert "Layers" in slab_stages, f"never met the 3 by 3 by 3 view of sectors: {slab_stages}"
+    assert any(h != "Layers" for h in slab_stages), f"never met a slab pick of blocks: {slab_stages}"
+
+
 def _galaxy_scale(page):
     """The scale line: its label and its bar's width (a zoom between two
     nice lengths only changes the bar)."""
@@ -610,3 +653,4 @@ def test_galaxy_map_star_links_to_its_system_except_while_picking(page, map_site
     _click_a_galaxy_star(page)
     links = page.locator("#galaxymap3d-info a", has_text="View system")
     assert links.count() == (0 if pick else 1)
+
