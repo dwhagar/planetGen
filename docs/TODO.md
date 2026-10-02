@@ -111,9 +111,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, DB.6, OPS.10, DB.5, DB.4, DB.3, DB.2, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, NAV.34 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.11, NAV.12, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the galaxy seed, the physics and database bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), object references and the small page and ops fixes. | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, DB.3, DB.2, GEN.34, GEN.35, GEN.36, GEN.25, GEN.37, GEN.45, GEN.53, GEN.54, GEN.49, GEN.50, GEN.31, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, NAV.34, DB.6, OPS.10, NAV.12, NAV.35, TEST.78 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, NAV.36, UX.35 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses, the parallel backfill and density pass, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, GEN.59 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
@@ -398,6 +398,16 @@ with `clamp()`.
   (around line 1449) groups by spectral letter only; in a 40-sector run,
   all 4 "B-type" and 6 of 9 "A-type" systems were white dwarfs. Done:
   white dwarfs (and giants) are counted under their own label.
+
+- [ ] **UX.35 The route shown horizontally, wrapping onto several lines on narrow screens**
+  Part of NAV.12 (Boss, 2026-10-02 01:53Z: "display the path
+  horizontally and find a way to split it between multiple lines for
+  mobile or limited displays"). Today the NAV page lists the route's
+  stops down the page. Done: the route reads left to right as stops
+  joined by hops (each hop with its length; unknown-space jumps styled
+  by NAV.36), wrapping onto as many lines as the screen needs, breaking
+  only between stops, never inside a name, at phone width (360 px) and
+  up; screen readers get it as an ordered list. Prerequisite: NAV.12.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1008,9 +1018,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     then a segment of the slab (MAP.56), and on down to a sector.
   Default taken: an arc spans about 40 degrees of bearing (MAP.52's
   width, snapped to the grid's meridians) and a third of the disk's
-  radius (inner, middle or outer), so the disk has about 27 arcs. Open
-  question: is that the arc Boss means, or should an arc run the whole
-  way from the center to the edge (a wedge) or be smaller? The other
+  radius (inner, middle or outer), so the disk has about 27 arcs.
+  Decided (Boss, 2026-10-02 01:53Z): this default. The other
   galaxy-map items carry an "Arc pick (MAP.85)" note saying how this
   changes them.
 
@@ -1312,27 +1321,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (used by NAV.6); and a measured time on a 100,000-sector database.
   Needs a galaxy schema migration for the position indexes. The
   hop-length study measured the full graph rebuild at 16 s for 200,000
-  systems. NAV.34 (joining the graph's islands) comes first.
+  systems. NAV.34 (joining the graph's islands) and NAV.12 (a route
+  always exists) come first, and NAV.10 keeps that guarantee.
 
   - [ ] **NAV.11 Travel times for the system-to-system route too**
     Today warp and fold times are shown only for the direct distance;
     the route shows only its length. Done: the route gets the same warp
     and fold tables, per hop and in total.
-
-  - [ ] **NAV.12 No hop limit by default: show the longest hop, flag deep-space hops, optional ship range**
-    Decided from the hop-length study (2026-10-02; report in the
-    project's shared files under `nav-hop-length/`): keep no global cap,
-    Boss's default. A cap can't help while most of the galaxy is
-    ungenerated (every capped test that crossed ungenerated space failed,
-    at every cap from 5 to 5,000 ly). Done: routes have no global hop
-    limit; the route answer (NAV page and `/api/nav`) shows the longest
-    hop; any hop longer than about 26 ly (two sector edges) is flagged
-    "deep space" on the route list and the NAV map, with its warp and
-    fold times (NAV.11); and an optional "ship range" field, empty by
-    default, limits hops to that length, and when no route fits it names
-    the blocking gap ("no route under 25 ly: the gap from X to Y is
-    3,170 ly"). Needs NAV.34 (islands joined) so a route exists to
-    measure. On-demand generation along a corridor is left for later.
 
 - [ ] **NAV.29 Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug)**
   Boss (2026-10-01 21:15Z): "when navigating the "nav from and have to" buttons take you
@@ -1391,6 +1386,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   find the other end with the same picker, and the course is shown
   once both ends are set. Ties in with NAV.3, NAV.29 and NAV.32.
 
+- [ ] **NAV.12 Routes always reach the nearest star they can, across any number of sectors**
+  Boss (2026-10-02 01:53Z): "routs will always find the nearest star
+  they can even if it crosses sector boundaries even across multiple
+  sectors. This is for a game mechanic I need in place and I also want
+  a jump through unknown space is marked in red and glows to draw
+  attention to it. Also UX change here to display the path
+  horizontally and find a way to split it between multiple lines for
+  mobile or limited displays." This replaces the hop-length study's
+  recommendation (no global cap with an optional ship range): a route
+  is never refused for length. Phase 0, because the game mechanic is
+  needed before other work. Done: every placed system's route links
+  include its nearest stars wherever they are, in any sector and at
+  any distance, and the graph's islands are joined (NAV.34), so any
+  two placed endpoints always have a route, hopping each time to the
+  nearest star it can reach on the way; nothing limits a hop by sector
+  boundaries or by how many sectors it crosses; the route answer (NAV
+  page and `/api/nav`) shows the longest hop; and a test with
+  separated generated areas and a lone far-off system finds a route
+  every time. The pieces: NAV.34 (islands, first), NAV.35 (mark
+  unknown-space jumps), NAV.36 (draw them glowing red), UX.35 (the
+  route shown horizontally, wrapping on narrow screens), and NAV.37
+  (the optional ship range, which conflicts with this and waits for
+  Boss). NAV.10 (routing at scale) keeps this guarantee.
+
 - [ ] **NAV.34 Courses between separately generated areas find no route: the route graph splits into islands (bug)**
   Found by the hop-length study (2026-10-02; report in the project's
   shared files under `nav-hop-length/`). `navGraph.build_knn_adjacency`
@@ -1405,6 +1424,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and gave a cross-galaxy route 1.29 times the direct distance), so two
   placed endpoints always have a route; a test with separated generated
   areas finds one. Lands with or before NAV.10; NAV.12 builds on it.
+
+- [ ] **NAV.35 Mark jumps through unknown space in the route**
+  Part of NAV.12 (Boss: "a jump through unknown space is marked").
+  Default: a hop is an unknown-space jump when its straight line passes
+  through at least one sector that hasn't been generated; this replaces
+  the study's "deep space over 26 ly" rule. Done: the route answer (NAV
+  page and `/api/nav`) marks each unknown-space jump, with its length,
+  the number of unknown sectors it crosses, and its warp and fold times
+  (with NAV.11); a test checks a hop across an ungenerated sector is
+  marked and one inside generated space isn't. Prerequisite: NAV.12.
+
+- [ ] **NAV.36 Unknown-space jumps drawn in glowing red**
+  Boss (2026-10-02 01:53Z): "marked in red and glows to draw attention
+  to it." Done: on the NAV map, and wherever a course is drawn later
+  (NAV.20, NAV.5), an unknown-space jump (NAV.35) is drawn as a red
+  line with a soft glow (respecting reduced-motion: a static glow, no
+  pulse), and its entry in the route list is red with an icon and a
+  text label, so it isn't shown by color alone. Prerequisite: NAV.35.
+
+- [ ] **NAV.37 An optional ship range for routes (open question)**
+  The hop-length study proposed an optional "ship range" field, empty
+  by default, that limits hops and names the blocking gap when no route
+  fits. It conflicts with NAV.12's game mechanic, under which a route
+  always reaches the nearest star it can. Open question for Boss: keep
+  it as an opt-in planning aid (a set range may then find no route), or
+  drop it? Default: not built until Boss says. Prerequisites: NAV.12,
+  NAV.35.
 
 ## GEN: Generation and physics
 
@@ -1652,8 +1698,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     together", packs the parts: MAJOR<<32 | REVISION<<16 | BUILD, shown
     as 12 hex digits (7.127.352 is `0007007F0160`), stored with the
     galaxy (here) and with each sector (DB.7), with the full
-    MAJOR.REVISION.BUILD string kept next to it. Open question for
-    Boss: is the packed form fine, or does he want the plain sum anyway?
+    MAJOR.REVISION.BUILD string kept next to it. Decided (Boss,
+    2026-10-02 01:53Z, "you are correct on all points"): the packed form.
 
   - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
     The log half of GEN.39 (Boss: "put it in the log at the top of any
@@ -2177,27 +2223,6 @@ DB.1 shipped in 7.35.0 (PR #152).
   ids, probably by not restarting ids at 1 after a reset (or by making
   holders drop their blocks), with a test that runs both processes.
 
-- [ ] **DB.4 A database with an emptied schema_migrations table is treated as current (bug)**
-  Found by the Database tests thread (TEST.9, PR #315, 2026-10-01): an
-  old database whose `schema_migrations` table has been emptied is
-  treated as up to date, so its migrations never run. Done: when the
-  table is empty or missing on a database that has tables, the version
-  is detected from the table shape (which tables and columns exist), the
-  needed migrations run, and a test covers it.
-
-- [ ] **DB.5 Several first connections to an empty database race to create the schema (bug)**
-  Found by the parallel, population and navigation tests thread
-  (2026-10-01), which worked around it in its tests: when several
-  connections reach an empty database at once, each runs
-  `_ensure_schema`, and one fails with IntegrityError 1062 "Duplicate
-  entry '49' for key 'PRIMARY'" on `schema_migrations`; in a test run,
-  that connection's teardown then left `DROP DATABASE` hanging. Real
-  runs aren't hit today because the main process creates the schema
-  before workers start. Done: schema creation is safe when several
-  connections start at once (one creates it under a lock, the others
-  wait and then see it current), with a test that opens several first
-  connections together.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -2471,6 +2496,16 @@ clears each one.
   the one-worker path. Done: the race is found, the cause is fixed in
   the test or in the work queue's interrupt handling, and the test
   passes on every run tried. [infra, PERF]
+
+- [ ] **TEST.78 A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug)**
+  Reported by the Database thread (PR #342, 2026-10-02):
+  `_sector_rows` in `src/tests/test_gen_resume.py` selects
+  `s.ring_index`, `layer_index` and `ring_slot_index` with `GROUP BY
+  s.id`, which ONLY_FULL_GROUP_BY rejects on MariaDB 10.11 (error 1055),
+  so `test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards`
+  fails on main there. Done: the query is valid under ONLY_FULL_GROUP_BY
+  on both engines (group by every selected column, or no GROUP BY), and
+  the test passes on MariaDB 10.11 and SQLite. [infra, DB]
 
 - [ ] **TEST.76 A bright-star test breaks on Python 3.9 and 3.10 (bug)**
   Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). `_ScriptedRandom(random.Random)` in

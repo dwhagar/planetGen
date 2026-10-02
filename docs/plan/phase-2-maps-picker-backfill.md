@@ -55,12 +55,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.20 | Draw the direct line and the route apart | NAV.13 |  |
+| NAV.20 | Draw the direct line and the route apart | NAV.13, NAV.36 | Draws unknown-space jumps in glowing red (NAV.36). |
 | NAV.21 | Fit the view to the whole course | MAP.53, MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17, MAP.81 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.24 | A keep-out radius for every kind of object | GEN.47 | Nebula keep-out question needs nebulae that actually exist. |
+| NAV.37 | An optional ship range for routes (open question) | NAV.12, NAV.35 | Conflicts with NAV.12's guarantee; waits for Boss. |
 
 ### Classes
 
@@ -99,7 +100,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.10 | Reservations: claimed sectors and id blocks per run | API.9, DB.3 | Reserved id blocks build on DB.3's id-block fix. |
 | API.11 | Staging tables | API.10 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
 | API.12 | The download: seed, skeleton and name state | API.5, GEN.39, GEN.46 | Downloads the seed (what a seed means is GEN.39) and the name state (GEN.46's rules). |
-| API.16 | The API reports the galaxy's seed, version and run history | DB.6, API.5 | API.12 uses its fields. |
+| API.16 | The API reports the galaxy's seed, version and run history | DB.6, API.5 |  |
 
 ### 3D system
 
@@ -112,7 +113,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.17 | The Generate page shows the galaxy's seed and version | DB.6 | Generate page seed, version and run history. |
+| ADM.17 | The Generate page shows the galaxy's seed and version | DB.6 |  |
 
 ## Open questions for Boss
 
@@ -123,3 +124,4 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.
 - UX.32: Planet rows show the class only, without the type and moon labels, see its entry in TODO.md.
 - UX.30: Planet information without the Markdown render, see its entry in TODO.md.
+- NAV.37: An optional ship range for routes (open question), see its entry in TODO.md.
