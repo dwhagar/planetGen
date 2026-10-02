@@ -589,7 +589,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
 | MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | done, PR #369 |
-| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
+| MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | done, PR #432 |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | done, PR #405 |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |

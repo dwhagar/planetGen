@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), the routing groundwork lane (TEST.79, NAV.34: PR #427), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, MAP.86, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), the routing groundwork lane (TEST.79, NAV.34: PR #427), the sector stats and colors lane (GEN.44, PERF.11, PERF.1, MAP.80, MAP.86: PRs #425, #429, #432), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -126,7 +126,7 @@ became these items:
 
 | # | Boss's item | ID |
 |---|---|---|
-| 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 |
+| 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 (done, PR #425) |
 | 2 | Rogue planets after systems and phenomena; expanded rows span the table | UX.24 |
 | 3 | Rogue planet gas giant vs terrestrial probability | GEN.45 |
 | 4 | Rogue planet octant and a map symbol link | UX.25 |
@@ -142,9 +142,9 @@ became these items:
 | 14 | System edit as a quick menu, not a long panel | UX.31 |
 | 15 | Planet rows show class only | UX.32 |
 | 16 | Filter phenomena by type and class | UX.33 |
-| 17 | No nebulae being created | GEN.47 |
+| 17 | No nebulae being created | GEN.47 (done, PR #419) |
 | 18 | 3D galaxy, arc pick, no sector lines (other galaxy-map items edited to match) | MAP.85 |
-| 19 | Filled sectors translucent, colored by their stars; blocks averaged | MAP.86 |
+| 19 | Filled sectors translucent, colored by their stars; blocks averaged | MAP.86 (done, PR #432) |
 
 Done before this plan: the bug round (MAP.17 to MAP.19, MAP.26, MAP.37,
 MAP.43 to MAP.51, UX.15, UX.16, UX.19, UX.20, ADM.9), login security
@@ -778,43 +778,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dim", so rogue planets are also drawn dim by default (a faint point,
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
-
-- [ ] **MAP.86 Sector and block colors from what is in them: filled sectors translucent (bug)**
-  Boss (2026-10-01 23:53Z): "Filled in sectors should be translucent,
-  just a hair more solid than the unfilled sectors, since they are a
-  different color. Also make the color based on density averaged out
-  with average star color and brightness of the stars within the
-  sector. Then, that color will be averaged with the other sectors in a
-  block (or mega block) to come up with that region's color. The scale
-  is unfilled (color and opacity of an unfilled sector), filled but
-  empty (more opaque and a shade more saturation), then the scale goes
-  from empty to full (max possible density) in saturation and average
-  color of the stars within the sector for hue. Average Luminosity
-  compared to the sun to set the luminosity of the color of the sector.
-  Blocks / Mega Blocks are then set by averaging the color and opacity
-  of every sector in the block." Today (`galaxyblocks.js`,
-  `galaxymap3d.js`) unfilled blocks use a density ramp at opacity 0.1 to
-  0.3; a block with filled sectors is lifted to at least 0.6 opacity,
-  fully opaque when all of it is filled; a one-sector block is colored
-  bronze to gold by density; nothing uses the stars' colors or
-  luminosity. Done:
-  - Unfilled sector: today's unfilled color and opacity.
-  - Filled but empty sector: a little more opaque and a shade more
-    saturated than unfilled, still translucent.
-  - Filled sector with stars: saturation from its star density (empty to
-    the highest possible density), hue from the average color of its
-    stars (by temperature), lightness from their average luminosity
-    compared to the Sun; still translucent, only a little more solid
-    than unfilled.
-  - A block or mega block's color and opacity are the average of its
-    sectors' (unfilled sectors counted as unfilled).
-  - The per-sector color, saturation and lightness are stored or served
-    with the tiles (a new API field, computed when a sector is saved), so
-    the map doesn't need each star.
-  Proposed numbers from Boss's research notes (tune on screen):
-  unfilled opacity about 0.03, filled-empty 0.15, densest filled up to
-  about 0.45. Ties in with MAP.85 (no lines, so color carries the
-  structure) and MAP.59 (the ghost).
 
 - [ ] **MAP.101 Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug)**
   High priority, phase 0. Boss (2026-10-02 08:52Z): "Found a pretty
