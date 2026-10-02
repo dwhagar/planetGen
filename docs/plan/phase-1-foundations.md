@@ -115,7 +115,7 @@ galaxy-scale placement, not a one-line fix.
 
 Independent bugs. DB.4 and DB.5 both touch schema creation in
 `_db.get_connection`; one PR. Any galaxy schema change in this phase
-(GEN.44, possibly DB.2) takes the next version after main's (50 at the
+(GEN.44) takes the next version after main's (50 at the
 time of writing), one writer at a time.
 
 ### Groundwork for phase 2
@@ -157,9 +157,12 @@ scale, so it goes in the same thread, after them.
 | MAP.90 (new) | The tile-level helper crashes on a subnormal view radius (bug) |  |
 | UX.34 (new) | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  |
 | OPS.9 (new) | Multi-line messages lose their prefix in the debug log (bug) |  |
+| API.15 (new) | Log every API call with its user, how it came in, and its HTTP response code |  |
 
 Small and independent (TEST.76, MAP.90, UX.34 and OPS.9 are low-priority
-finds of the debug-mode bug hunt). OPS.7 and OPS.8 both change `update.sh`,
+finds of the debug-mode bug hunt; API.15, the API call log, needs no
+user accounts and logs today's admin accounts and the console user
+"god"). OPS.7 and OPS.8 both change `update.sh`,
 `update.ps1` and `scripts/deploy-common.*`; one PR.
 
 ## Research notes
@@ -224,7 +227,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 6. Map groundwork: MAP.63, MAP.64, TEST.70, MAP.57, MAP.88, MAP.89.
 7. Object references: NAV.7, NAV.8, NAV.9.
 8. Ops and flakes: OPS.6 to OPS.9, TEST.71 to TEST.73, TEST.76,
-   MAP.90, UX.34.
+   MAP.90, UX.34, API.15.
 9. Forcing and prevalence: GEN.49, GEN.50, GEN.51, GEN.52, ADM.16,
    TEST.75 (parent GEN.48).
 10. Binary pairs: GEN.53, GEN.54.
@@ -232,5 +235,4 @@ Each thread is briefed with its exact item IDs and takes no others.
 ## Open questions for Boss
 
 - GEN.39: should a seed reproduce a galaxy?
-- GEN.46: are existing longer names renamed, or only new ones?
 - GEN.44: a new table per sector address, or rework `bright_star_blocks`?

@@ -19,7 +19,7 @@ release is stamped.
 | GEN | GEN.55 |
 | PERF | PERF.24 |
 | DB | DB.6 |
-| API | API.15 |
+| API | API.16 |
 | ADM | ADM.17 |
 | SEC | SEC.29 |
 | TEST | TEST.77 |
@@ -410,7 +410,7 @@ Parents marked "new parent" had no old number of their own.
 | API.3 | Remote generate: generate locally, upload through the API | none | open |
 | API.4 | API compatibility data in the docs | none | open |
 | API.5 | API version and compatibility checking | none | open |
-| API.6 | Admin-created user-level API keys that can read but not upload | none | open |
+| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
 | API.7 | Investigate and plan upload limits | none | open |
 | API.8 | Verify uploaded data before it is finalized | none | open |
 | API.9 | Key scopes | none | open |
@@ -419,6 +419,7 @@ Parents marked "new parent" had no old number of their own.
 | API.12 | The download: seed, skeleton and name state | none | open |
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
+| API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | open |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | open |

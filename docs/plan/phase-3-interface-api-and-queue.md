@@ -61,7 +61,7 @@ PR.
 |---|---|---|
 | API.4 | API compatibility data in the docs |  |
 | API.5 | API version and compatibility checking |  |
-| API.6 | Admin-created user-level API keys that can read but not upload |  |
+| API.6 | User-level API keys, owned by the account that created them, that can read but not upload |  |
 | API.9 | Key scopes | API.3 |
 | API.7 | Investigate and plan upload limits |  |
 | API.3 | Remote generate: generate on a local machine, upload through the API |  |
@@ -74,7 +74,9 @@ PR.
 | ADM.13 | Incomplete uploads page |  |
 
 API.4 (compatibility data) and API.5 (version checking) first, then
-key scopes (API.6, API.9) and upload limits (API.7), then API.3's
+key scopes (API.6, API.9; API.6's link from user-level keys to user
+accounts builds after USR.2, so that part waits for phase 4's accounts)
+and upload limits (API.7), then API.3's
 pieces (reservations, staging tables, the download, generation without
 a database, compressed batch uploads), verification (API.8) and the
 incomplete uploads page (ADM.13).

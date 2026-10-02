@@ -105,7 +105,7 @@ goes into a phase's table in the same PR that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9 |
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15 |
 | 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
 | 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11 |
 | 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9 |
@@ -949,8 +949,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Linux take for switching tabs, so the shortcuts don't work there.
   Done: the bookmark keys use a combination no major browser reserves
   (for example Alt+Shift+1 to 9, or plain 1 to 9 while the map has
-  focus), the help text says which, and a test pins it. Open question:
-  which keys does Boss want?
+  focus), the help text says which, and a test pins it. Decided (Boss,
+  2026-10-02): plain 1 to 9 while the map has focus.
 
 - [ ] **MAP.87 Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug)**
   Boss (2026-10-02 00:42Z): "ALL stars need to become about 4 times as
@@ -1660,8 +1660,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   collision is resolved within two words (for example a Greek letter
   with a one-word base, or a new base name), and a test over many
   generated and decorated names checks it. Planet and moon names keep
-  their numeral and letter (`bodyNames.py`). Open question: do existing
-  longer names get renamed by a migration, or only new ones?
+  their numeral and letter (`bodyNames.py`). Decided (Boss,
+  2026-10-02): only new names follow the rule; existing names stay as
+  they are, with no renaming migration.
 
 - [ ] **GEN.47 Nebulae almost never appear (bug)**
   Boss (2026-10-01 23:53Z): "No nebulae are being created at all."
@@ -1894,9 +1895,10 @@ DB.1 shipped in 7.35.0 (PR #152).
   Found by the Database tests thread (TEST.11, PR #315, 2026-10-01):
   `asteroid_field_composition` and `interstellar_comet_composition` rows
   are saved, but nothing reads them back, so pages show the parent's
-  `composition_summary` instead. Done: either the pages and the API read
-  these rows, or generation stops writing them and a migration drops the
-  tables. Open question: which of the two?
+  `composition_summary` instead. Decided (Boss, 2026-10-02): keep the
+  rows and show them. Done: the asteroid field and interstellar comet
+  pages and their API responses read and show the composition rows, and
+  a test checks a saved composition comes back on both.
 
 - [ ] **DB.3 resetDb while another process holds id blocks can duplicate primary keys (bug)**
   Found by the Database tests thread (PR #315, 2026-10-01): running
@@ -2038,7 +2040,7 @@ DB.1 shipped in 7.35.0 (PR #152).
   generating, not after. Built on API.4's compatibility data. Open
   question: how many older versions the server keeps accepting.
 
-- [ ] **API.6 Admin-created user-level API keys that can read but not upload**
+- [ ] **API.6 User-level API keys, owned by the account that created them, that can read but not upload**
   Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
   create user-level API keys that can access but not upload." Today
   API keys (`admin_api_keys`) belong to admins and carry every admin
@@ -2049,8 +2051,31 @@ DB.1 shipped in 7.35.0 (PR #152).
   every right. Ties in with USR.1 and USR.2 (user accounts and roles)
   and PR #293 (TEST.44), which already answers 403 to
   any API key that makes keys, changes credentials or 2FA, or logs
-  out. Open question: does a user-level key belong to a user account
-  (USR.1) or stand alone until user accounts exist?
+  out. Decided (Boss, 2026-10-02 01:31Z): "all keys are attached to
+  the account that created them". Every API key, admin or user-level,
+  records the account that created it, and requests made with it act as
+  that account. Today that is an admin account; once user accounts exist
+  (USR.1, USR.2) a user's keys belong to that user, so this touches the
+  user account work (USR): the key-to-account link for user accounts
+  builds after USR.2. Logging every call is its own item, API.15,
+  which doesn't wait for user accounts.
+
+- [ ] **API.15 Log every API call with its user, how it came in, and its HTTP response code**
+  Boss (2026-10-02 01:31Z): "all api call logs should log the user that
+  called for it and if it was called through an api key or someone
+  logged into the web site or from the console (console user will just
+  be called god). Standard will have all API calls logged and what
+  response they generated back (use HTTP responses codes and note in
+  documentation that you're using HTTP response codes for parity with
+  web logs)." Done: by default every API call is logged with the time,
+  the route, the account that made it (the key's owner for an API key,
+  the signed-in user for the web site, and "god" for the console), how
+  it came in (API key, web session or console), and the HTTP response
+  code it got back; the API docs say that HTTP response codes are used
+  for parity with the web server's logs; a test makes a call each way
+  and checks the log rows. Needs no user accounts: it logs today's admin
+  accounts (and "god"), so it is placed in phase 1, ahead of API.6; once
+  user accounts exist (USR.1) the logged user can be any account.
 
 - [ ] **API.7 Investigate and plan upload limits**
   Boss (2026-10-01 19:32Z): "upload limits add that as a TODO.md item to
