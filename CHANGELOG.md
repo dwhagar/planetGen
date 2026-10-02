@@ -1,5 +1,14 @@
 # Changelog
 
+## [7.137.440] - 2026-10-02
+
+### Fixed
+
+- The Galaxy Map's tile-level helper (`galaxyViewport.tile_level_for_view_radius`
+  and its copy in `lib/galaxymap3d.py`) no longer crashes with
+  `OverflowError` on a subnormal view radius; any tiny positive radius gets
+  the finest level (MAP.90).
+
 ## [7.136.440] - 2026-10-02
 
 ### Changed
