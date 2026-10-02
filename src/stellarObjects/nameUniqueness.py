@@ -23,6 +23,11 @@ a search of their own.
   "small"/"little" word (`names.DIMINUTIVE_PREFIXES`) prefixed onto its
   name, advancing to the next word in the list on a repeat collision for
   the same base name.
+- A new star system (or uniquely named phenomenon) name stays within
+  `MAX_SYSTEM_NAME_WORDS` (two) words (GEN.46): a one-word base gets the
+  Greek tier and one diminutive, a two-word base no decoration, and
+  anything that would need a third word draws a fresh name instead.
+  Sector names keep every tier.
 `strip_decoration` is the inverse of both -- recovering the
 underlying base name from an already-decorated one, e.g. for the
 one-off backfill script (`src/dedupeNames.py`) to group existing rows.
@@ -39,6 +44,37 @@ from .names import (
     DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES, ROMAN_NUMERALS_BY_VALUE,
 )
 
+MAX_SYSTEM_NAME_WORDS = 2
+"""int: The most words a newly decorated star system (or uniquely named
+phenomenon) name may have (GEN.46, Boss 2026-10-01: "Name generation
+should not produce star names that are more than 2 words long", so that
+planet names built on them stay reasonable). A decoration that would go
+past it is not used: the caller draws a fresh base name instead. Names
+already stored keep whatever they have (Boss, 2026-10-02: no renaming
+migration)."""
+
+
+def word_count(name):
+    """How many space-separated words `name` has."""
+    return len(name.split())
+
+
+def fits_word_limit(name, max_words):
+    """Whether `name` has at most `max_words` words (`None`: no limit)."""
+    return max_words is None or word_count(name) <= max_words
+
+
+def word_limit_for(base_name, max_words=MAX_SYSTEM_NAME_WORDS):
+    """
+    The word limit decorations on `base_name` must keep to: `max_words`
+    for a generated-shape name, `None` (no limit) for a base already
+    longer than that -- a name given by hand ("Lonely Shell Star",
+    `--name`), which keeps the old decorations rather than being swapped
+    for a random one.
+    """
+    return max_words if fits_word_limit(base_name, max_words) else None
+
+
 GREEK_ROMAN_CAPACITY = len(GREEK_LETTERS) + len(ROMAN_NUMERAL_VALUES)
 """int: How many total rows may ever share one base name under
 `resolve_greek_roman_collision` (24 Greek letters + 12 roman-numeral
@@ -49,7 +85,7 @@ _GREEK_PREFIX_TOKENS = set(GREEK_LETTERS)
 _DIMINUTIVE_PREFIX_TOKENS = set(DIMINUTIVE_PREFIXES)
 
 
-def resolve_greek_roman_collision(base_name, existing_count):
+def resolve_greek_roman_collision(base_name, existing_count, max_words=None):
     """
     Same-level collision resolution for two sectors, or two systems,
     that generated the same `base_name` -- see this module's own
@@ -60,6 +96,14 @@ def resolve_greek_roman_collision(base_name, existing_count):
         existing_count (int): How many rows already exist with this base
             name, *before* the row currently being inserted/renamed.
             `0` means no collision at all (this is the first-ever row).
+        max_words (int, optional): The most words the new name, and the
+            existing row's new name when one is renamed, may have
+            (`MAX_SYSTEM_NAME_WORDS` for systems). A decoration that
+            would go past it gives `(None, None)`, as an exhausted base
+            name does: the caller draws a fresh one. So with a limit of
+            2, a one-word base gets the Greek tier only and a two-word
+            base no decoration at all. A base already longer than the
+            limit (given by hand) is decorated as before.
 
     Returns:
         tuple: `(new_name, rename)`.
@@ -78,6 +122,17 @@ def resolve_greek_roman_collision(base_name, existing_count):
                 tier). `None` every other time -- no existing row needs
                 touching, the new row's own decoration is enough.
     """
+    new_name, rename = _greek_roman_collision(base_name, existing_count)
+    if max_words is not None and not fits_word_limit(base_name, max_words):
+        max_words = None  # a hand-given name (`word_limit_for`)
+    if new_name is not None and not (
+        fits_word_limit(new_name, max_words) and (rename is None or fits_word_limit(rename[1], max_words))
+    ):
+        return None, None
+    return new_name, rename
+
+
+def _greek_roman_collision(base_name, existing_count):
     if existing_count < 0:
         raise ValueError(f"existing_count must be >= 0, got {existing_count!r}")
     n_greek = len(GREEK_LETTERS)
@@ -142,6 +197,14 @@ def resolve_diminutive(diminutive_index):
     if next_index >= len(DIMINUTIVE_PREFIXES):
         return None, None
     return DIMINUTIVE_PREFIXES[next_index], next_index
+
+
+def has_diminutive(name):
+    """Whether `name` starts with one of `names.DIMINUTIVE_PREFIXES`: a
+    system name a sector name can never take, since sectors only ever get
+    Greek prefixes."""
+    words = name.split(" ")
+    return bool(words) and words[0] in _DIMINUTIVE_PREFIX_TOKENS
 
 
 def strip_decoration(name):

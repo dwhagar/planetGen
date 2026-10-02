@@ -142,19 +142,22 @@ def test_sectors_whose_systems_share_names_save_at_once(mysql_config):
 # Across levels: the diminutive tier
 # ---------------------------------------------------------------------------
 
-def test_systems_saved_at_once_after_a_sector_fill_the_diminutive_tier(mysql_config):
+def test_systems_saved_at_once_after_a_sector_stay_within_two_words(mysql_config, monkeypatch):
+    """GEN.46: the first system to take a sector's name gets a diminutive
+    ("Little Mervane"); a later one would need a Greek letter as well,
+    three words, so it draws a fresh name instead and the holder keeps
+    its own."""
     _db.save_sector(SpaceSector(name="Mervane"), config=mysql_config)
     count = 6
+    fresh = iter(f"Fresh{n}" for n in range(1000))
+    monkeypatch.setattr(_db, "_regenerate_star_name", lambda: next(fresh))
     _at_once(count, lambda i: _save_in_sector(mysql_config, i, "Mervane"))
     names = _names(mysql_config, "star_systems")
+    assert len(names) == count
     assert "Mervane" not in names
-    # The first holder's "Little" gave way to "Alpha" when the second
-    # arrived (a Greek letter replaces a diminutive); every later system
-    # carries its own diminutive word, none reused, in the list's order.
-    assert "Alpha Mervane" in names
-    decorated = [name.split(" ") for name in names if name != "Alpha Mervane"]
-    assert sorted(words[0] for words in decorated) == sorted(DIMINUTIVE_PREFIXES[1:count])
-    assert sorted(words[1] for words in decorated) == sorted(GREEK_LETTERS[1:count])
+    assert f"{DIMINUTIVE_PREFIXES[0]} Mervane" in names
+    assert sum(name.startswith("Fresh") for name in names) == count - 1
+    assert all(len(name.split(" ")) <= 2 for name in names)
     assert "Mervane" in _names(mysql_config, "sectors")
     _all_unique_names(mysql_config)
 
@@ -165,9 +168,9 @@ def test_sectors_saved_at_once_after_a_system_rename_only_the_system(mysql_confi
     sectors = [name for name in _names(mysql_config, "sectors") if name.endswith("Quessa")]
     assert sorted(sectors) == sorted(f"{letter} Quessa" for letter in GREEK_LETTERS[:WRITERS])
     [system_name] = _names(mysql_config, "star_systems")
-    # One sector base name: the system steps down one diminutive per
-    # sector holder that collided with it.
-    assert system_name.endswith("Quessa") and system_name != "Quessa"
+    # The system takes one diminutive and keeps it (GEN.46: no third
+    # word); sector names only ever get Greek letters, so it never clashes.
+    assert system_name == f"{DIMINUTIVE_PREFIXES[0]} Quessa"
     _all_unique_names(mysql_config)
 
 
@@ -181,8 +184,9 @@ def test_a_full_diminutive_tier_draws_a_fresh_name(mysql_config, monkeypatch):
         _at_once(size, lambda i, start=start: _save_in_sector(mysql_config, start + i, "Tellow"))
     names = _names(mysql_config, "star_systems")
     assert len(names) == count
-    assert sum(name.endswith("Tellow") for name in names) == len(DIMINUTIVE_PREFIXES)
-    assert sum(name.startswith("Fresh") for name in names) == 2
+    # Only the first can carry a diminutive within two words (GEN.46).
+    assert [name for name in names if name.endswith("Tellow")] == [f"{DIMINUTIVE_PREFIXES[0]} Tellow"]
+    assert sum(name.startswith("Fresh") for name in names) == count - 1
     _all_unique_names(mysql_config)
 
 

@@ -77,7 +77,10 @@ from .galaxyGeometry import (
 )
 from .bodyNames import rename_prefix
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from .nameUniqueness import resolve_diminutive, resolve_greek_roman_collision
+from .nameUniqueness import (
+    MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
+    word_limit_for,
+)
 from .nebulaData import Nebula
 from .planetData import Planet
 from .rogueSurface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
@@ -1786,8 +1789,9 @@ def _rename_existing_system_for_diminutive(conn, base_name):
     Returns:
         bool: `True` if resolved (including "no colliding system exists
             at all", a no-op). `False` if `names.DIMINUTIVE_PREFIXES` is
-            exhausted for this base name -- the caller must draw an
-            entirely fresh sector name instead.
+            exhausted for this base name, or the prefixed system name
+            would go past `MAX_SYSTEM_NAME_WORDS` (GEN.46) -- the caller
+            must draw an entirely fresh sector name instead.
     """
     row = conn.execute(
         "SELECT first_star_system_id, first_object_table, first_object_id, diminutive_index "
@@ -1802,6 +1806,12 @@ def _rename_existing_system_for_diminutive(conn, base_name):
         return False
 
     current = _registry_holder_name(conn, row)
+    if current is not None and not fits_word_limit(f"{prefix} {current}", word_limit_for(base_name)):
+        # A third word isn't allowed (GEN.46). A holder that already
+        # carries a diminutive can never meet a sector name (those only
+        # get Greek letters), so it can stay as it is; any other holder
+        # keeps its name and the sector draws a fresh one.
+        return has_diminutive(current)
     if current is not None:
         _rename_registry_holder(conn, row, f"{prefix} {current}")
     # else: that holder was since deleted -- nothing left to rename,
@@ -1862,16 +1872,17 @@ def reserve_sector_name(conn, candidate_name, sector_id):
         if new_name is None:
             candidate_name = generate_sector_name()
             continue
+        # The system side first: if it can't make room, this sector draws
+        # a fresh name and the sector holder below keeps its own.
+        if not _rename_existing_system_for_diminutive(conn, base):
+            candidate_name = generate_sector_name()
+            continue
         if rename is not None:
             # The holder keeps the spelling it was registered under
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
             conn.execute("UPDATE sectors SET name = ? WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
-
-        if not _rename_existing_system_for_diminutive(conn, base):
-            candidate_name = generate_sector_name()
-            continue
 
         return new_name, base
 
@@ -2063,11 +2074,20 @@ def reserve_system_names(conn, candidate_names):
             holder = "db" if existing_before > 0 else None
             for offset, i in enumerate(uses):
                 base = names[i]
-                new_name, rename = resolve_greek_roman_collision(base, existing_before + offset)
+                new_name, rename = resolve_greek_roman_collision(
+                    base, existing_before + offset, max_words=MAX_SYSTEM_NAME_WORDS)
+                prefix, next_index = (None, diminutive_index)
+                if new_name is not None and row_keys & sector_hits:
+                    prefix, next_index = resolve_diminutive(diminutive_index)
+                    if prefix is None or not fits_word_limit(f"{prefix} {new_name}", word_limit_for(base)):
+                        new_name = None
                 if new_name is None:
+                    # Every decoration for this base is used, or would
+                    # make the name longer than two words (GEN.46).
                     names[i] = _regenerate_star_name()
                     retry.append(i)
                     continue
+                diminutive_index = next_index
                 if rename is not None:
                     # Matched by id, not by the rename tuple's assumed
                     # old name: the holder may carry a diminutive (an
@@ -2080,12 +2100,7 @@ def reserve_system_names(conn, candidate_names):
                             conn, row, resolve_greek_roman_collision(row["base_name"], existing_before + offset)[1][1])
                     elif holder is not None:
                         results[holder][0] = resolve_greek_roman_collision(names[holder], existing_before + offset)[1][1]
-                if row_keys & sector_hits:
-                    prefix, diminutive_index = resolve_diminutive(diminutive_index)
-                    if prefix is None:
-                        names[i] = _regenerate_star_name()
-                        retry.append(i)
-                        continue
+                if prefix is not None:
                     new_name = f"{prefix} {new_name}"
                 results[i] = [new_name, base, diminutive_index]
                 if holder is None:
