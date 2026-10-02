@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405). | MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) and the System Map lane (MAP.57, MAP.88, MAP.92: PR #405). | MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -461,7 +461,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31.
 
 - [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
   Split out of UX.21 (replan, 2026-10-02), its one known dead control:
@@ -529,33 +529,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     with the buttons in one column below the map. Picks MAP.54's
     defaults for its open questions.
 
-- [ ] **MAP.56 Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug)**
-  Boss (2026-10-01 19:47Z): "I was wrong when before I said a 3x3 cube
-  of blocks should be selectable by the user, it isn't, so lets take
-  that back to the select-slab, zoom in, select segment of slab."
-  Today the drill-down (`galaxystages.js`) alternates layer and region
-  picks (MAP.19, PR #208: "quadrant, layer, region, layer, region, ...,
-  layer, sector"), and a region pick offers up to 3 x 3 options (a
-  third of the rings across, a third of the arc along, `PICK_SPLIT`).
-  Done: the region (3 x 3) pick is removed; the ladder becomes the
-  wedge pick (MAP.52), then select a slab (the slab buttons and lines
-  of MAP.54), then the view zooms to that slab (fitted to the window
-  and rotatable, MAP.53), then select a segment of the slab, repeating
-  slab and segment inside each smaller block down to a sector. Default
-  taken: a segment is one drill block of the next level inside the
-  slab (27 or 3 sectors a side), picked directly on the zoomed slab
-  with the same hover highlight as today's blocks; no existing item
-  defines it further. The URL and breadcrumb forms of a region pick
-  ("r4") go away; old links with one open at the nearest valid stage.
-  MAP.19's big targets still apply. Open question: should a segment be
-  one block, or a run of blocks along the arc when a block is too small
-  to click on a small screen?
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the ladder is arc, slab,
-  segment, then slab and segment again down to a sector.
-  The slab pick keeps MAP.91's hover (done, PR #395): the whole slab is lit and
-  outlined on the map, not one cube.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
 - [ ] **MAP.95 A "Forward to current" button next to the map's Back and Forward**
   Boss (2026-10-02 04:29Z, with MAP.93, done in PR #399): "we'll keep track of back and
   forth so we can always undo our last zoom, and we'll use that for the
@@ -616,8 +589,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   preset takes over, and a turn holds only within the step.) How does
   the user get back to the preset? (Default: the existing "Reset view"
   button, which flies to the step's preset.) A browser test checks the
-  tilt at each step going in and coming back out. Prerequisites: MAP.56,
-  MAP.96.
+  tilt at each step going in and coming back out. Prerequisite: MAP.96.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
 - [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
