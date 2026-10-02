@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.39 |
-| MAP | MAP.101 |
+| MAP | MAP.102 |
 | NAV | NAV.46 |
 | GEN | GEN.66 |
 | PERF | PERF.24 |
@@ -604,6 +604,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) | none | done, PR #422 |
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | none | done, PR #422 |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) | none | done, PR #422 |
+| MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
