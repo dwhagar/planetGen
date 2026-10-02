@@ -87,6 +87,13 @@ passing a `random.Random` down, which is GEN.56's change. `secrets` and
 deadlock replays the same draws. The `phenomenon` and `system` subcommands and the run's own
 choices (a random start's address) still draw from the run's stream.
 
+As built (DB.6): `stellarObjects/versionKey.py` computes the key
+(`version_key`) and the versions stored beside it (`current`). The galaxy
+records them in `galaxy_shape` whenever its seed is written (schema
+v52), and every `generate.py` run that changes the galaxy writes a
+`generation_runs` row with its command line, its own run seed, the
+galaxy seed, the key and its outcome.
+
 ## 4. The version key (DB.6, phase 0)
 
 22 uppercase hex digits, no separators:

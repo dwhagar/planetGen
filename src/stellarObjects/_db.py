@@ -47,6 +47,7 @@ connection per call, per TODO.md's "add real connection pooling" note.
 
 import contextlib
 import hashlib
+import json
 import math
 import os
 import random
@@ -61,7 +62,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, galaxySeed, keplerMotion, log, physical_constants, program_constants
+from . import activitylog, galaxySeed, keplerMotion, log, physical_constants, program_constants, versionKey
 from .appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
@@ -96,7 +97,7 @@ from .utils import (
 )
 from .wideBinary import WideBinaryPair
 
-SCHEMA_VERSION = 51
+SCHEMA_VERSION = 52
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `stellarObjects/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1322,6 +1323,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (52, _table_marker("generation_runs")),
     (51, _column_marker("galaxy_shape", "galaxy_seed")),
     (50, _column_marker("system_configs", "comets")),
     (49, _table_marker("bright_star_blocks")),
@@ -5262,7 +5264,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                                         to `DEFAULT_MYSQL_CONFIG`.
         galaxy_seed (bytes, optional): The galaxy's 16-byte seed (GEN.39).
             `None` keeps the one stored, or draws one
-            (`galaxySeed.new_seed`) when there is none.
+            (`galaxySeed.new_seed`) when there is none. A seed that isn't
+            the stored one also records the running code's version key
+            and versions (DB.6).
 
     Returns:
         bytes: The galaxy seed now stored.
@@ -5270,8 +5274,9 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
     conn = get_connection(config)
     try:
         with conn:
+            stored_seed = get_galaxy_seed(conn)
             if galaxy_seed is None:
-                galaxy_seed = get_galaxy_seed(conn) or galaxySeed.new_seed()
+                galaxy_seed = stored_seed or galaxySeed.new_seed()
             conn.execute(
                 """
                 INSERT INTO galaxy_shape (
@@ -5307,6 +5312,15 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     expected_system_count_at_density_1, outer_ring_index, bytes(galaxy_seed), bytes(galaxy_seed),
                 ),
             )
+            if stored_seed != bytes(galaxy_seed):
+                # DB.6: a new seed is a new galaxy -- record the code making it.
+                made_by = versionKey.current()
+                conn.execute(
+                    "UPDATE galaxy_shape SET version_key = ?, planetgen_version = ?, python_version = ?, platform = ?"
+                    " WHERE id = 1",
+                    (made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
+                     made_by["platform"]),
+                )
     finally:
         conn.close()
     return bytes(galaxy_seed)
@@ -5315,6 +5329,55 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
 def has_galaxy_sectors(conn):
     """Whether any sector has been placed in the galaxy grid."""
     return conn.execute("SELECT 1 FROM sectors WHERE ring_index IS NOT NULL LIMIT 1").fetchone() is not None
+
+
+GalaxyMaker = namedtuple("GalaxyMaker", ["version_key", "planetgen_version", "python_version", "platform"])
+"""What made the galaxy (v52, DB.6): `galaxy_shape`'s version columns."""
+
+
+def get_galaxy_maker(conn):
+    """The version key and versions that made the galaxy, or `None` when it
+    has never been planned (or was planned before v52)."""
+    row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row.get("version_key") is None:
+        return None
+    return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"])
+
+
+def start_generation_run(conn, command, arguments, run_seed=None):
+    """
+    Records a run that changes the galaxy (v52, DB.6) as started, with the
+    running code's version key and versions and the galaxy seed it runs
+    against, and commits.
+
+    Args:
+        conn (Connection): An open connection to the galaxy database.
+        command (str): The `generate.py` subcommand.
+        arguments (list): Its command line, without the --mysql-* and
+            --debug options (stored as JSON).
+        run_seed (int, optional): The run's own 128-bit seed.
+
+    Returns:
+        int: The run's `generation_runs.id`.
+    """
+    made_by = versionKey.current()
+    seed_bytes = None if run_seed is None else int(run_seed).to_bytes(galaxySeed.SEED_BYTES, "big")
+    run_id = conn.execute(
+        "INSERT INTO generation_runs (command, arguments, run_seed, galaxy_seed, version_key, planetgen_version,"
+        " python_version, platform) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (command, json.dumps(list(arguments)), seed_bytes, get_galaxy_seed(conn), made_by["version_key"],
+         made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
+    ).lastrowid
+    conn.commit()
+    return run_id
+
+
+def finish_generation_run(conn, run_id, outcome):
+    """Records how run `run_id` ended (`ok`, `failed` or `interrupted`) and
+    when, and commits."""
+    conn.execute("UPDATE generation_runs SET finished_at = CURRENT_TIMESTAMP(3), outcome = ? WHERE id = ?",
+                 (outcome, run_id))
+    conn.commit()
 
 
 def get_galaxy_seed(conn):
@@ -8522,6 +8585,23 @@ def _migrate_v50_to_v51(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (51)")
 
 
+def _migrate_v51_to_v52(conn):
+    """
+    Adds DB.6's record of what made the galaxy -- see `schema.sql`'s "v52"
+    header note: `galaxy_shape`'s version columns (left NULL: a galaxy
+    planned before doesn't say what made it) and the empty
+    `generation_runs` table.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "galaxy_shape", "version_key"):
+        conn.execute("ALTER TABLE galaxy_shape ADD COLUMN version_key CHAR(22), ADD COLUMN planetgen_version VARCHAR(32),"
+                     " ADD COLUMN python_version VARCHAR(16), ADD COLUMN platform VARCHAR(64)")
+    conn.execute(_schema_statement("generation_runs"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (52)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -8632,6 +8712,7 @@ def _migration_steps():
         (49, _migrate_v48_to_v49),
         (50, _migrate_v49_to_v50),
         (51, _migrate_v50_to_v51),
+        (52, _migrate_v51_to_v52),
     ]
 
 

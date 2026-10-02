@@ -141,7 +141,7 @@ Two independent version numbers:
 
 - `schema_migrations` (one row per applied DDL migration step) — the DDL
   structure version, `MAX(version)` in that table (this schema is version
-  `51`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
+  `52`, `_db.SCHEMA_VERSION`). Replaces SQLite's `PRAGMA user_version`, which has no MySQL
   equivalent — see `schema.sql`'s "MySQL port" header note.
 - `star_systems.schema_version` (per row) — the version of the serialized
   object-graph shape (Phase 1's `to_dict()`) that produced that row.
@@ -403,7 +403,7 @@ sector-placement columns on `black_holes`/`neutron_stars` (also real
 `star_systems`/`stars`/`planets`/`moons`.`name` and the facet/filter
 columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
-version, through `_migrate_v50_to_v51`. `migrate_database`
+version, through `_migrate_v51_to_v52`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
 `migrateDb.py` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A SQLite database from before
@@ -606,6 +606,10 @@ threshold. A sector's fill caps its own dim stars at its block's level
 (`INSERT ... ON DUPLICATE KEY UPDATE`, then `SELECT ... FOR UPDATE`,
 level NULL until it commits; parallel workers queue on it), so two generators never draw the same block. A plan re-run
 truncates it with `bright_stars`. `_migrate_v48_to_v49` creates it empty.
+
+**What made the galaxy, and every run (v52).** `_migrate_v51_to_v52`
+adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
+the empty `generation_runs` table (DB.6).
 
 **The galaxy seed (v51).** `_migrate_v50_to_v51` adds
 `galaxy_shape.galaxy_seed` (`BINARY(16)`: half the bytes of a
@@ -861,7 +865,6 @@ Galaxy schema:
 
 | Item | Phase | Change |
 |---|---|---|
-| DB.6 | 0 | `galaxy_shape` gains, next to the galaxy seed (v51), the version that made the galaxy: the 22-hex-digit version key, the full MAJOR.REVISION.BUILD string, the Python version and the platform. A new `generation_runs` table holds one row per run that changes the galaxy: command and options, version, start and end times, outcome. No migration of old galaxies: GEN.39 starts from a wiped galaxy. |
 | GEN.44, PERF.11 | 1 | One per-sector stats table keyed by sector address (an unfilled sector has no `sectors` row): the backfill level (-1 never backfilled, the dimmest L_sun reached, 0 fully generated), expected and actual density, and the galaxy-wide expected-against-actual decaying average. MAP.86's per-sector colour, saturation and lightness go in the same table. |
 | DB.7 | 1 | Each `sectors` row records the version key and full version string that generated it. |
 | DB.9 | 1 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
@@ -952,6 +955,8 @@ billions of candidates).
 | `bright_star_min_luminosity_sol` | DOUBLE | nullable | Added in v43. The luminosity threshold the bright-star scatter used (see `bright_stars` below). A sector fill reads this, not the current constant. NULL until a scatter has run. |
 | `bright_star_seed` | BIGINT UNSIGNED | nullable | Added in v43. The scatter's seed: since v51 the top 63 bits of the galaxy seed's unit seed `bright-stars:scatter` (GEN.39). |
 | `galaxy_seed` | BINARY(16) | nullable | Added in v51 (GEN.39). The galaxy's 128-bit seed, shown and typed as 32 hex digits (`generate.py plan --seed`), written by the first plan and kept by every later one. Every sector, bright-star scatter, band and backfill block draws from SHA-256 of it and the unit's `kind:address` (`galaxySeed.unit_seed`). NULL only on a galaxy planned before v51. |
+| `version_key` | CHAR(22) | nullable | Added in v52 (DB.6). The version key of the code that wrote `galaxy_seed` (`versionKey.version_key`): MAJOR 4, REVISION 4, BUILD 6, Python major, minor and micro 2 each, OS 1 (0 Linux, 1 Windows, 2 other Unix, 3 macOS, F unknown) and architecture 1 (0 x86-64, 1 ARM64, 2 x86, 3 ARM32, 4 RISC-V 64, F unknown) hex digits, for example `0007007F000160030C0300`. Written with a new seed; a later plan keeping the seed keeps it. |
+| `planetgen_version`, `python_version`, `platform` | VARCHAR(32) / VARCHAR(16) / VARCHAR(64) | nullable | Added in v52 (DB.6). The same code's full release (`7.127.352`), Python version (`3.12.3`) and `platform.system()` and `.machine()` (`Linux x86_64`). |
 
 ### `galaxy_layer`
 
@@ -1659,6 +1664,26 @@ above.
 | `block_ring`, `block_wedge`, `block_slab` | INT / INT / SMALLINT | PK | The level-3 block (`galaxyDrill.DrillBlock(3, ring, wedge, slab)`). |
 | `min_luminosity_sol` | DOUBLE | nullable | The dimmest luminosity (L_sun) the block's unfilled sectors hold every star down to. NULL only while a backfill holds the row. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
+
+### `generation_runs`
+
+Added in v52 (DB.6). One row per `generate.py` run that changes the
+galaxy (every subcommand except `check-math`, `system --output` and an
+`--estimate-only` run), written when it starts and finished when it ends.
+A galaxy is built by a series of runs (plan, sectors, scatter,
+backfill), not by its seed alone, so these rows are what a rebuild
+replays. Writing them never stops a run.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK, AUTO_INCREMENT | |
+| `command` | VARCHAR(32) | NOT NULL | The subcommand (`plan`, `galaxy`, ...). |
+| `arguments` | TEXT | NOT NULL | The command line as a JSON list, without `--mysql-*` and `--debug` (`generate._run_argv`). |
+| `run_seed` | BINARY(16) | nullable | The run's own 128-bit seed: what draws outside a galaxy unit (a random start's address, a one-off system) come from. |
+| `galaxy_seed` | BINARY(16) | nullable | The galaxy seed when the run started; NULL for the plan that drew it. |
+| `version_key`, `planetgen_version`, `python_version`, `platform` | CHAR(22) / VARCHAR | NOT NULL | The running code, as in `galaxy_shape`. |
+| `started_at`, `finished_at` | TIMESTAMP(3) | `finished_at` nullable | |
+| `outcome` | VARCHAR(16) | nullable | `ok`, `failed` or `interrupted`; NULL while it runs, or when it died without saying. |
 
 ### `species` / `polities` / `system_owners` / `population_state`
 

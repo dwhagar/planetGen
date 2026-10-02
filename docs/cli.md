@@ -327,7 +327,10 @@ seed fills a sector the same way at any `--workers` count and in any run
 that reaches it, on the same PlanetGen release. Two systems that draw the
 same name are still told apart in save order, and the bright-star
 backfill still depends on which sectors are filled first (both phase 1,
-GEN.57). Design:
+GEN.57). The galaxy also records the version key of the code that made
+it (22 hex digits: release, Python version, OS and architecture), and
+every run that changes it adds a row to `generation_runs` (command line,
+the run's own seed, version key, start, end and outcome; DB.6). Design:
 [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 
 After the outline, `generate.py plan` also places every star of 500 solar
@@ -423,7 +426,6 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
-| The version that made the galaxy, and every run | DB.6 | 0 | Store the 22-hex-digit version key, the full version, Python version and platform with the galaxy seed, and one `generation_runs` row per run that changes the galaxy. |
 | Seed line at the top of every run | OPS.10 | 0 | Every subcommand, web job and work queue run first writes the galaxy seed, the version with its 22-hex-digit key, and the run's command, at normal level. |
 | `generate.py check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
 | `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
