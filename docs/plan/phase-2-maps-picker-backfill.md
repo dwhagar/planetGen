@@ -32,7 +32,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.65 | One picking, hover and info-panel layer | MAP.56 | After the selection rewrite settles the pick flow. |
+| MAP.65 | One picking, hover and info-panel layer |  | After the selection rewrite settles the pick flow. |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | MAP.65 | Judgment: the per-kind toggles go on the shared control set; the dimming already landed in phase 0 (MAP.82 to MAP.84). |
 
 ### Picker
@@ -70,7 +70,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels | UX.29 | Same rows as UX.30; one thread. |
 | UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.29 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
-| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.95, NAV.41, MAP.56, UX.26, UX.27, UX.31 | Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31 | Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
 
 ### Backfill
 
