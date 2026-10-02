@@ -1,2 +1,0 @@
-### Fixed
-- **While picking a slab the Galaxy Map draws only the lines between slabs (MAP.77).** Before, every block inside every slab was outlined while you were choosing a slab. Now the map draws just the boundaries between the slabs, and once you are on one slab it draws the divisions between that slab's blocks, which are the segments you pick next; this repeats at every level down to a sector. The whole galaxy still shows no lines.
