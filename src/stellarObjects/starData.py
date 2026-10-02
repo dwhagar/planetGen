@@ -473,7 +473,50 @@ class Star:
 
         return age, lifespan
 
-    def adjust_age_for_planets(self, planets):
+    def planet_age_requirement_gy(self, planets):
+        """
+        The youngest age (Gy) this star can have and still host `planets`:
+        the highest minimum age any planet's `planet_class` needs on one of
+        this star's `supported_evolutionary_scales`. 0.0 when none needs
+        any. See `adjust_age_for_planets`.
+        """
+        # Uses get_star_evolutionary_profile rather than a raw
+        # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
+        # dwarfs etc. (whose spectral letter reflects only current
+        # temperature, not a main-sequence lifespan) are handled correctly.
+        supported_scales = get_star_evolutionary_profile(self).get("supported_evolutionary_scales", [])
+        required = 0.0
+        for planet in planets:
+            if hasattr(planet, 'planet_class') and planet.planet_class in program_constants.PLANET_CLASSES:
+                age_ranges = program_constants.PLANET_CLASSES[planet.planet_class].get("age_ranges", {})
+                for scale in supported_scales:
+                    if scale in age_ranges:
+                        required = max(required, age_ranges[scale][0])
+        return required
+
+    def age_ceiling_gy(self):
+        """
+        The oldest (Gy) this star can be made by `adjust_age_for_planets`
+        without contradicting what was generated for it, never below its
+        present age: a population-model star stays inside its present phase
+        (a white dwarf's age sets its cooling, so it can't move at all); a
+        specified-type star stays inside its lifespan. Both are capped at
+        the age of the universe. A binary's companion passes its ceiling to
+        the star that sets the pair's shared age (see
+        `adjust_pair_age_for_planets`).
+        """
+        if self.phase_end_age_gy == float('inf'):
+            return self.age
+        if self.phase_end_age_gy is not None:
+            limit = self.phase_end_age_gy
+        elif self.lifespan != float('inf'):
+            limit = self.lifespan
+        else:
+            return float('inf')
+        return max(self.age, min(limit * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                                 program_constants.UNIVERSE_AGE_GY))
+
+    def adjust_age_for_planets(self, planets, min_required_age_gy=0.0, age_ceiling_gy=None):
         """
         Adjusts the star's age to ensure it is at least as old as the minimum
         age required for the most "evolved" planet in its system. This method
@@ -500,32 +543,21 @@ class Star:
 
         Args:
             planets (list): A list of `Planet` objects in the system.
+            min_required_age_gy (float): A further minimum age, from planets
+                judged by another star (a binary companion's own).
+            age_ceiling_gy (float, optional): A further maximum age (a
+                binary companion's `age_ceiling_gy`); the age then also
+                never drops below its present value, since the companion was
+                born at it.
         """
         reseed_rng()
-        # Uses get_star_evolutionary_profile rather than a raw
-        # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
-        # dwarfs etc. (whose spectral letter reflects only current
-        # temperature, not a main-sequence lifespan) are handled correctly.
-        star_evolution_data = get_star_evolutionary_profile(self)
-        supported_scales = star_evolution_data.get("supported_evolutionary_scales", [])
-
-        min_required_age_for_system = 0.0
         original_age = self.age
         if self.phase_end_age_gy == float('inf'):
             # A population-model white dwarf's age sets its cooling
             # luminosity and temperature; it stays as drawn.
             return
 
-        for planet in planets:
-            # Assuming planet has a 'planet_class' attribute
-            if hasattr(planet, 'planet_class') and planet.planet_class in program_constants.PLANET_CLASSES:
-                planet_class_data = program_constants.PLANET_CLASSES[planet.planet_class]
-                age_ranges = planet_class_data.get("age_ranges", {})
-
-                for scale in supported_scales:
-                    if scale in age_ranges:
-                        min_planet_age_for_scale, _ = age_ranges[scale]
-                        min_required_age_for_system = max(min_required_age_for_system, min_planet_age_for_scale)
+        min_required_age_for_system = max(self.planet_age_requirement_gy(planets), min_required_age_gy)
 
         # Ensure the star's age is at least the minimum required by its planets
         if self.age < min_required_age_for_system:
@@ -547,8 +579,10 @@ class Star:
                 )
             else:
                 max_reachable_age = min_required_age_for_system + program_constants.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
+            if age_ceiling_gy is not None:
+                max_reachable_age = max(min(max_reachable_age, age_ceiling_gy), original_age)
 
-            if self.lifespan != float('inf') and max_reachable_age < min_required_age_for_system:
+            if max_reachable_age < min_required_age_for_system:
                 # The requirement is physically unreachable within this star's lifespan
                 # (e.g. a habitable world's minimum age exceeds a short-lived O/B/A star's
                 # entire life). The best it can do is sit near the very end of its life --
@@ -562,9 +596,10 @@ class Star:
                     min(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
                     max_reachable_age,
                 )
-                if self.phase_end_age_gy is not None:
+                if self.phase_end_age_gy is not None or age_ceiling_gy is not None:
                     # Never younger than it was: that could move a
-                    # population-model star back into an earlier phase.
+                    # population-model star (or a binary companion born at
+                    # this age) back into an earlier phase.
                     self.age = max(self.age, original_age)
             else:
                 # The requirement is reachable within the lifespan: bias where in the
@@ -580,6 +615,8 @@ class Star:
         # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
         if self.lifespan != float('inf') and self.age >= self.lifespan:
             self.age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
+        if age_ceiling_gy is not None:
+            self.age = max(min(self.age, age_ceiling_gy), original_age)
 
     def calculate_system_perimeter(self, galactic_center_dist_ly=None):
         """
@@ -1014,9 +1051,16 @@ class Star:
             initial_mass_sol = max(initial_mass_sol, program_constants.IMF_BREAKS_SOL[0])
             age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
             state = evolve_star(initial_mass_sol, age)
+            # A companion of a specified-type primary takes a fraction of
+            # that star's present mass, which can be heavy enough to have
+            # collapsed already at the pair's age. Lighten it until it is
+            # alive rather than redraw it at another age: the pair shares
+            # one age (GEN.53).
+            while state is None and initial_mass_sol > program_constants.IMF_BREAKS_SOL[0]:
+                initial_mass_sol = max(initial_mass_sol * 0.8, program_constants.IMF_BREAKS_SOL[0])
+                state = evolve_star(initial_mass_sol, age)
         if state is None:
-            # No companion given, or (defensively) a given one has already
-            # collapsed; a lighter companion of a living star never has.
+            # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
             initial_mass_sol, age, state = sample_living_star(
                 age_bias, bool(self.system_config.LARGE_STAR), habitable_host=habitable_host,
@@ -1121,7 +1165,7 @@ class Star:
         """
         reseed_rng()
         yerkes_lookup = YERKES_CLASS_NAMES
-        if not self.system_config.STAR_TYPE and (mass_override is None or initial_mass_sol is not None):
+        if initial_mass_sol is not None or (not self.system_config.STAR_TYPE and mass_override is None):
             self._generate_from_population_model(initial_mass_sol, age_gy)
             return
 
@@ -1278,3 +1322,26 @@ class Star:
         self.mass = mass
         self.temperature = temperature
         self.luminosity = luminosity * physical_constants.SOLAR_LUMINOSITY
+
+
+def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets):
+    """
+    Settles one shared age for a binary pair's two stars (GEN.53): old
+    enough for every planet each star hosts (judged by that star's own
+    evolutionary scales), and no older than either star's generated state
+    allows. The primary's `adjust_age_for_planets` does the work, bounded
+    by the companion's `age_ceiling_gy`; the companion then takes the
+    result. Both stars start at the same age (the companion is born with
+    the primary), so neither moves outside what it was generated as.
+
+    Args:
+        primary (Star): The heavier star.
+        secondary (Star): Its companion.
+        primary_planets (list): Bodies judged against the primary's scales.
+        secondary_planets (list): Bodies judged against the companion's (a
+            close pair passes its circumbinary planets for both).
+    """
+    primary.adjust_age_for_planets(primary_planets,
+                                   min_required_age_gy=secondary.planet_age_requirement_gy(secondary_planets),
+                                   age_ceiling_gy=secondary.age_ceiling_gy())
+    secondary.age = primary.age
