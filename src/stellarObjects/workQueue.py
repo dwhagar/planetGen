@@ -53,6 +53,7 @@ doesn't depend on how many workers there are or which finished first.
 import concurrent.futures
 import contextlib
 import hashlib
+import importlib
 import ipaddress
 import json
 import math
@@ -192,6 +193,8 @@ class Cancelled(SystemExit):
         return f"{self.title} was cancelled from the admin queue page."
 
 
+WORKER_HOOKS_ENV = "PLANETGEN_WORKER_HOOKS"
+
 # Set in a worker once it has been sent SIGTERM (see `_worker_sigterm`).
 _worker_stopping = False
 
@@ -243,6 +246,24 @@ def _worker_init(log_level, debug_file):
         log.configure(log_level, debug_file=debug_file, console=False)
     except OSError:
         log.configure(log_level, console=False)
+    _run_worker_hooks()
+
+
+def _run_worker_hooks():
+    """
+    Calls each `module:function` named in `$PLANETGEN_WORKER_HOOKS`
+    (comma separated) as a worker starts. The tests use it to patch the
+    workers the way they patch their own process (`tests/worker_patches.py`),
+    so a fault they inject reaches every worker count (PERF.21, TEST.74);
+    a real run never sets it.
+    """
+    hooks = os.environ.get(WORKER_HOOKS_ENV)
+    if not hooks:
+        return
+    for ref in hooks.split(","):
+        module_name, _, function = ref.strip().partition(":")
+        if module_name and function:
+            getattr(importlib.import_module(module_name), function)()
 
 
 def _run_task(fn, payload, seed):

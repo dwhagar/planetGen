@@ -45,6 +45,8 @@ from stellarObjects.galaxyGeometry import (
 )
 from stellarObjects.utils import ly_to_pc, mpc_to_pc
 
+from tests import worker_patches
+
 EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
 
 # A small, fast-to-evaluate toy shape -- same parameters test_galaxy_skeleton.py
@@ -62,6 +64,29 @@ _SKELETON_SHAPE = build_galaxy_shape(
     pitch_angle_rad=math.radians(15),
     arm_amplitude=0.4,
 )
+
+
+
+def poisson_always_one(_real):
+    """`_sample_poisson_count` that draws one of anything with a positive
+    mean (`worker_patches.patch_everywhere` factory)."""
+
+    def sample(mean, rng=None):
+        return 1 if mean > 0 else 0
+
+    return sample
+
+
+def capture_generate_sector(_real, path):
+    """A `generate_sector` that records each sector's `(density,
+    num_systems)` in `path` and makes an empty sector."""
+
+    def fake(args, galactic_center_dist_ly=None, cell=None, fill=None):
+        worker_patches.append_json(path, [args.density, args.num_systems])
+        from stellarObjects.spaceSector import SpaceSector
+        return "Fake Sector", SpaceSector(name="Fake Sector")
+
+    return fake
 
 
 def _layers(outer_ring_index, top_layer):
@@ -650,7 +675,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     assert captured["num_systems"] is None
 
 
-def test_ring_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, monkeypatch):
+def test_ring_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, monkeypatch, tmp_path):
     """
     'generate.py galaxy --ring N' with neither --density nor --num-systems
     should drive each sector's own system count from the galaxy skeleton's
@@ -665,41 +690,34 @@ def test_ring_batch_uses_skeleton_density_when_neither_flag_given(mysql_config, 
     n_0 = ring_sector_count(0)
     _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
-    captured = []
-
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
-        captured.append((args.density, args.num_systems))
-        from stellarObjects.spaceSector import SpaceSector
-        return "Fake Sector", SpaceSector(name="Fake Sector")
-
-    monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
+    captured_file = str(tmp_path / "captured.jsonl")
+    worker_patches.patch_everywhere(monkeypatch, sectorGen, "generate_sector",
+                                    "tests.test_galaxy_gen:capture_generate_sector", path=captured_file)
 
     _run_cli(["--ring", "0"] + _mysql_argv(mysql_config))
 
+    captured = [tuple(item) for item in worker_patches.read_json_lines(captured_file)]
     assert len(captured) == n_0
-    for slot_index, (density, num_systems) in enumerate(captured):
-        expected_density = relative_density(sector_position_pc(0, 0, slot_index, EDGE_PC), _SKELETON_SHAPE)
-        assert density == pytest.approx(expected_density)
-        assert num_systems is None
+    # Workers can finish the sectors in any order: compare the sets.
+    expected = sorted(relative_density(sector_position_pc(0, 0, slot_index, EDGE_PC), _SKELETON_SHAPE)
+                      for slot_index in range(n_0))
+    assert sorted(density for density, _num in captured) == pytest.approx(expected)
+    assert all(num_systems is None for _density, num_systems in captured)
 
 
-def test_ring_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_config, monkeypatch):
+def test_ring_batch_explicit_num_systems_still_overrides_skeleton_density(mysql_config, monkeypatch, tmp_path):
     """An explicit --num-systems is still a uniform, intentional override
     for the whole batch -- _BatchDensity must not second-guess it."""
     n_0 = ring_sector_count(0)
     _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
-    captured = []
-
-    def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None):
-        captured.append((args.density, args.num_systems))
-        from stellarObjects.spaceSector import SpaceSector
-        return "Fake Sector", SpaceSector(name="Fake Sector")
-
-    monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
+    captured_file = str(tmp_path / "captured.jsonl")
+    worker_patches.patch_everywhere(monkeypatch, sectorGen, "generate_sector",
+                                    "tests.test_galaxy_gen:capture_generate_sector", path=captured_file)
 
     _run_cli(["--ring", "0", "--num-systems", "4"] + _mysql_argv(mysql_config))
 
+    captured = [tuple(item) for item in worker_patches.read_json_lines(captured_file)]
     assert len(captured) == n_0
     assert all(density is None and num_systems == 4 for density, num_systems in captured)
 
@@ -1354,7 +1372,8 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
     `-planets` keeps each system's own generation cheap (position, not
     planet/moon content, is what this test cares about).
     """
-    monkeypatch.setattr(galaxyGen, "_sample_poisson_count", lambda mean, rng=None: 1 if mean > 0 else 0)
+    worker_patches.patch_everywhere(monkeypatch, galaxyGen, "_sample_poisson_count",
+                                    "tests.test_galaxy_gen:poisson_always_one")
     _plan_wide_galaxy(mysql_config)
 
     for ring_index, layer_index in _BOUNDS_TEST_ADDRESSES:
