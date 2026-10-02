@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.36 |
 | MAP | MAP.91 |
 | NAV | NAV.40 |
-| GEN | GEN.62 |
+| GEN | GEN.63 |
 | PERF | PERF.24 |
 | DB | DB.11 |
 | API | API.18 |
 | ADM | ADM.21 |
 | SEC | SEC.29 |
-| TEST | TEST.80 |
+| TEST | TEST.83 |
 | USR | USR.8 |
 | OPS | OPS.19 |
 | DOC | DOC.4 |
@@ -470,7 +470,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | done, PR #353 |
-| GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
+| GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | done, PR #371 |
 | GEN.33 | One class per PR, each with its tests | none | open |
 | GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | done, PR #350 |
 | GEN.35 | Rocky planets only ever get Class D moons (bug) | none | done, PR #350 |
@@ -484,15 +484,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | open |
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
-| GEN.46 | Star system names of at most two words (bug) | none | open |
+| GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
 | GEN.47 | Nebulae almost never appear (bug) | none | open |
 | GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | open |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
 | GEN.51 | Forcing options only for single-system generation | none | open |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
-| GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
-| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
+| GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
+| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
@@ -500,6 +500,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
+| GEN.62 | Star names in a binary system can reach three words (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -667,9 +668,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | open |
 | PERF.20 | Short-term caching through the work queue and API (needs planning) | none | open |
-| PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | open |
-| PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | open |
-| PERF.23 | The bright-star progress bar can end at 101% (bug) | none | open |
+| PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
+| PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
+| PERF.23 | The bright-star progress bar can end at 101% (bug) | none | done, PR #371 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -910,13 +911,16 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
-| TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | open |
-| TEST.74 | Generation tests at more than one worker | none | open |
+| TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | done, PR #371 |
+| TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
 | TEST.75 | Tests for forcing and prevalence | none | open |
-| TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | open |
+| TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
 | TEST.79 | Route edge cases, written before NAV.12 | none | open |
+| TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
+| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
+| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

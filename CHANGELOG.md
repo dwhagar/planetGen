@@ -1,5 +1,54 @@
 # Changelog
 
+## [7.138.440] - 2026-10-02
+
+### Fixed
+
+- Both stars of a binary now share one age (GEN.53). A `--star-type`
+  primary's companion is born at the primary's age, and the age adjustment
+  for planets now settles one age for the pair: old enough for the planets
+  around either star, and no older than either star's generated state
+  allows. Before, a wide pair's stars were aged separately (an M2V of 13.8
+  Gy next to an M8V of 0.45 Gy) and a `--star-type` companion rolled its
+  own age.
+- A `--star-type` primary's companion is now a real star for its mass
+  (GEN.54). It comes from the population model at a fraction of the
+  primary's mass, so its type, temperature and luminosity follow from that
+  mass. Before, it kept the requested type's temperature and luminosity
+  with an unrelated mass (a "G2V" of 0.17 Msun).
+
+## [7.137.440] - 2026-10-02
+
+### Fixed
+
+- The Galaxy Map's tile-level helper (`galaxyViewport.tile_level_for_view_radius`
+  and its copy in `lib/galaxymap3d.py`) no longer crashes with
+  `OverflowError` on a subnormal view radius; any tiny positive radius gets
+  the finest level (MAP.90).
+
+## [7.136.440] - 2026-10-02
+
+### Changed
+- **The reproducible-galaxies design note names the "merge now" button
+  (ADM.20, phase 3, low priority)** in place of its placeholder, with
+  its lock and backup-slot rules. Documentation only.
+
+## [7.135.440] - 2026-10-02
+
+### Changed
+- **Design and reference docs match the plan of 2026-10-02.** A new
+  design note, `docs/design/reproducible-galaxies.md` (OPS.11), lays out
+  the planned 128-bit galaxy seed, the 22-digit version key, the update
+  history, the settings JSON file with its daily merge and 18 backups,
+  the consistency check, parity repair and `generate.py reproduce`, each
+  marked with its TODO item and phase. A new `docs/design/course-routing.md`
+  describes today's routing and the planned routes with no hop limit and
+  unknown-space jumps (NAV.12). The Galaxy Map drill-down design gains
+  the planned arc pick (MAP.85) and an up-to-date build table; the
+  database schema, API and command-line references list their planned
+  changes, and the stale schema version numbers are corrected (galaxy
+  v50, control v7). Documentation only.
+
 ## [7.134.440] - 2026-10-02
 
 ### Added

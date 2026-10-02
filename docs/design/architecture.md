@@ -193,7 +193,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 |---|---|
 | `names.py`, `offensive_words.txt` | Name word lists and the blocklist used to reject generated names. |
 | `utils.py` (name part) | `generate_phoneme_salad_name`, `generate_sector_name`, `is_name_valid`. |
-| `nameUniqueness.py` | Pure functions that decorate a colliding sector or system name (Greek/Roman suffixes, diminutives). `_db.py` applies them on insert. |
+| `nameUniqueness.py` | Pure functions that decorate a colliding sector or system name (Greek/Roman suffixes, diminutives). `_db.py` applies them on insert. A new star system name stays within two words (`MAX_SYSTEM_NAME_WORDS`): a decoration that would add a third is skipped and a fresh name drawn. |
 | `bodyNames.py` | Names stars, planets and moons from their system's name (`Voranthis II`, `Voranthis IIa`). |
 
 #### Persistence

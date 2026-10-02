@@ -270,3 +270,53 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
         assert linked > 0
     finally:
         conn.close()
+
+
+def test_the_neighbour_lock_holder_gives_up_a_row_its_waiter_holds(mysql_config):
+    """PERF.21: a save waiting for the neighbour lock keeps the rows it
+    already wrote (a name collision renames an existing system), and the
+    holder's nearest-neighbour rows can need one of them. InnoDB can't see
+    the wait on the named lock, so both used to sit until its 50 s
+    timeout, every time two workers met like that. The holder now gives
+    up within `LOCK_HOLDER_ROW_WAIT_S` (a 1205 that `save_sector`
+    retries), and the waiter goes on."""
+    import threading
+    import time
+
+    setup = _db.get_connection(mysql_config)
+    try:
+        setup.execute("CREATE TABLE lock_probe (id INT PRIMARY KEY, v INT) ENGINE=InnoDB")
+        setup.execute("INSERT INTO lock_probe VALUES (1, 0)")
+        setup.commit()
+    finally:
+        setup.close()
+    lock_name = "planetgen.test.lock-probe"
+    holder = _db.get_connection(mysql_config)
+    waiter = _db.get_connection(mysql_config)
+    waited = {}
+
+    def wait_for_lock():
+        waiter.execute("UPDATE lock_probe SET v = 1 WHERE id = 1")
+        waiter.lock_until_commit(lock_name)
+        waiter.commit()
+        waited["done"] = True
+
+    try:
+        holder.lock_until_commit(lock_name)
+        thread = threading.Thread(target=wait_for_lock, daemon=True)
+        thread.start()
+        time.sleep(0.5)  # the waiter has its row and waits for the lock
+        started = time.monotonic()
+        with pytest.raises(pymysql.err.OperationalError) as raised:
+            holder.execute("UPDATE lock_probe SET v = 2 WHERE id = 1")
+        assert raised.value.args[0] == 1205
+        assert time.monotonic() - started < _db.LOCK_HOLDER_ROW_WAIT_S + 5
+        holder.rollback()
+        thread.join(timeout=20)
+        assert waited.get("done")
+        # The pooled connection's own row wait is back to normal.
+        row = holder.execute("SELECT @@SESSION.innodb_lock_wait_timeout AS t").fetchone()
+        assert int(row["t"]) > _db.LOCK_HOLDER_ROW_WAIT_S
+    finally:
+        holder.close()
+        waiter.close()

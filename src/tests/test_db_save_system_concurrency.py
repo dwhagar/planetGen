@@ -66,7 +66,11 @@ def test_same_named_systems_saved_at_once_after_a_matching_sector(mysql_config):
     _db.save_sector(SpaceSector("Halveth", edge_ly=11.5), config=mysql_config)
     names = _save_at_once(mysql_config, "Halveth")
     assert len(set(names)) == WRITERS
-    assert all(name.endswith(" Halveth") and name != "Halveth" for name in names)
+    # One takes a diminutive ("Little Halveth"); the rest would need a
+    # Greek letter too, three words, so they draw fresh names (GEN.46).
+    assert sum(name.endswith(" Halveth") for name in names) == 1
+    assert "Halveth" not in names
+    assert all(len(name.split()) <= 2 for name in names)
 
 
 def test_save_system_retries_a_deadlock_with_its_name_restored(mysql_config, monkeypatch):

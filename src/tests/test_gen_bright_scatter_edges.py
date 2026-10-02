@@ -27,6 +27,7 @@ from stellarObjects.galaxyDrill import DrillBlock, drill_parent
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
 from stellarObjects import program_constants
 
+from tests import worker_patches
 from tests.test_bright_star_scatter import (
     E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy,
 )
@@ -49,6 +50,11 @@ class _CountingRandom(random.Random):
 
 class _ScriptedRandom(random.Random):
     """Returns `script`'s values first, then a seeded stream."""
+
+    def __new__(cls, script, seed=1):
+        # Before Python 3.11, Random.__new__ seeds itself with its first
+        # argument, which can't be a list (TEST.76).
+        return super().__new__(cls, seed)
 
     def __init__(self, script, seed=1):
         super().__init__(seed)
@@ -267,36 +273,67 @@ ROWS_BEFORE_FAILURE = 25_000
 """Rows the failing layer yields: two 10,000-row commits, then 5,000 lost."""
 
 
+def _yielded_rows(scatter_layer):
+    """What `layer_zero_fails_after_commits` yields before it fails, from
+    the real `scatter_layer`."""
+    template = list(scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 5))
+    assert template
+    return list(itertools.islice(itertools.cycle(template), ROWS_BEFORE_FAILURE))
+
+
+def layer_zero_fails_after_commits(real):
+    """A `brightStars.scatter_layer` whose layer 0 yields
+    `ROWS_BEFORE_FAILURE` real layer-0 rows over and over, then fails
+    (`worker_patches.patch_everywhere` builds it in the workers too)."""
+
+    def failing_layer(shape, layer_index, *args, **kwargs):
+        if layer_index != 0:
+            yield from real(shape, layer_index, *args, **kwargs)
+            return
+        yield from _yielded_rows(real)
+        raise RuntimeError("scatter worker died")
+
+    return failing_layer
+
+
+def layer_fails(real, layer):
+    """A `brightStars.scatter_layer` that fails on `layer` before drawing."""
+
+    def failing_layer(shape, layer_index, *args, **kwargs):
+        if layer_index == layer:
+            raise RuntimeError("scatter worker died")
+        yield from real(shape, layer_index, *args, **kwargs)
+
+    return failing_layer
+
+
 def _interrupt_after_commits(mysql_config, monkeypatch):
     """Runs a plan scatter whose first layer (layer 0, the densest, goes
     first) yields `ROWS_BEFORE_FAILURE` real layer-0 rows over and over,
     then fails. Returns the rows it yielded."""
-    real_layer = brightStars.scatter_layer
-    template = list(real_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 5))
-    assert template
-    yielded = []
-
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index != 0:
-            yield from real_layer(shape, layer_index, *args, **kwargs)
-            return
-        for row in itertools.islice(itertools.cycle(template), ROWS_BEFORE_FAILURE):
-            yielded.append(row)
-            yield row
-        raise RuntimeError("scatter worker died")
-
-    monkeypatch.setattr(brightStars, "scatter_layer", failing_layer)
+    yielded = _yielded_rows(brightStars.scatter_layer)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
+                                           "tests.test_gen_bright_scatter_edges:layer_zero_fails_after_commits")
     with pytest.raises(RuntimeError, match="scatter worker died"):
         generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
-    monkeypatch.setattr(brightStars, "scatter_layer", real_layer)
+    undo()
     return yielded
+
+
+def _layer_rows(rows, layer_index):
+    return [row for row in rows if row[1] == layer_index]
 
 
 def test_a_scatter_that_fails_after_two_commits_keeps_them_and_no_seed(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     yielded = _interrupt_after_commits(mysql_config, monkeypatch)
-    assert _count(mysql_config) == 20_000
-    assert _comparable(_stored_rows(mysql_config)) == _comparable(yielded[:20_000])
+    stored = _stored_rows(mysql_config)
+    # Layer 0 keeps its two commits and loses the rest. With one worker
+    # the run stops there; with more, the layers other workers were
+    # drawing at the time finish and keep their stars.
+    assert _comparable(_layer_rows(stored, 0)) == _comparable(yielded[:20_000])
+    if worker_patches.workers() == 1:
+        assert len(stored) == 20_000
     # The threshold and seed are written only once every layer is in.
     assert _settings(mysql_config) is None
 
@@ -381,21 +418,20 @@ def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_c
     # fill there would build them as well as the backfill's stars (every
     # bright star twice).
     _seed_galaxy(mysql_config)
-    real_layer = brightStars.scatter_layer
-
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index == 1:
-            raise RuntimeError("scatter worker died")
-        yield from real_layer(shape, layer_index, *args, **kwargs)
-
-    monkeypatch.setattr(brightStars, "scatter_layer", failing_layer)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
+                                           "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
     with pytest.raises(RuntimeError, match="scatter worker died"):
         generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
-    monkeypatch.setattr(brightStars, "scatter_layer", real_layer)
+    undo()
     assert _settings(mysql_config) is None
 
     leftovers = _leftover_cells(mysql_config)
-    assert leftovers and {address[1] for address in leftovers} == {0, -1}
+    # With more than one worker, layers handed out beside layer 1 may
+    # finish too; layer 1 itself holds nothing.
+    layers = {address[1] for address in leftovers}
+    assert leftovers and {0, -1} <= layers and 1 not in layers
+    if worker_patches.workers() == 1:
+        assert layers == {0, -1}
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     address = max((address for address in leftovers if address[1] == 0), key=lambda a: (leftovers[a], a))
     block_cells = set(generate._block_addresses(_block_of(address)))
@@ -430,7 +466,8 @@ def test_a_fill_after_failed_commits_clears_its_blocks_leftovers(mysql_config, m
     block = _block_of(address)
     block_cells = set(generate._block_addresses(block))
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
-    assert last_leftover == 20_000
+    # With more workers, the layers drawn beside layer 0 left theirs too.
+    assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if entry.preplaced] == []
     _backfill_around(mysql_config, address)
@@ -457,25 +494,19 @@ def test_a_fill_after_failed_commits_clears_its_blocks_leftovers(mysql_config, m
 BAND_FLOOR = 300.0
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "TEST.25: add_bright_star_band keeps the band rows a failed run already committed and draws the "
-    "whole band again on the re-run, so the layers that finished the first time hold the band twice"))
 def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkeypatch):
+    # GEN.32: the re-run starts the band over, so the layers the first
+    # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
     monkeypatch.setattr(generate.random, "SystemRandom", _FixedSystemRandom)
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     first = _count(mysql_config)
-    real_layer = brightStars.scatter_layer
-
-    def failing_layer(shape, layer_index, *args, **kwargs):
-        if layer_index == 1:
-            raise RuntimeError("band worker died")
-        yield from real_layer(shape, layer_index, *args, **kwargs)
-
-    monkeypatch.setattr(brightStars, "scatter_layer", failing_layer)
-    with pytest.raises(RuntimeError, match="band worker died"):
+    first_rows = _stored_rows(mysql_config)
+    undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
+                                           "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
+    with pytest.raises(RuntimeError, match="scatter worker died"):
         generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(BAND_FLOOR)))
-    monkeypatch.setattr(brightStars, "scatter_layer", real_layer)
+    undo()
     assert _settings(mysql_config) == (THRESHOLD, FIXED_SEED)
     assert _count(mysql_config) > first
 
@@ -486,4 +517,6 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
                                         max_luminosity_sol=THRESHOLD))
     stored = _stored_rows(mysql_config)
     assert len(stored) == first + len(expected)
-    assert len({row[3:6] for row in stored}) == len(stored)
+    # The first scatter's stars and the band's, each once. (Both draws
+    # use FIXED_SEED, so positions can repeat between them: compare rows.)
+    assert _comparable(stored) == _comparable(first_rows + expected)
