@@ -94,14 +94,14 @@ incomplete uploads page (ADM.13).
 | GEN.42 | A pass that drops sectors from a region by probability | GEN.40 |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | GEN.40 |
 | PERF.1 | Generation at scale |  |
-| PERF.11 | Store each sector's expected and actual density | PERF.1 |
 
 PERF.19 (audit what the API and site start, inline or queued) first;
 then PERF.18 (the backfill in parallel on the queue), PERF.20 (short-term
 caching, planned with Boss) and ADM.15 (worker count and Ludicrous
 Speed). GEN.40's investigation (GEN.41) decides whether GEN.42 and
 GEN.43 are built; all of them use phase 1's GEN.44 levels to skip
-finished sectors, and PERF.11's stored densities. Build PERF.18 and
+finished sectors, and PERF.11's stored densities (both in phase 1's
+per-sector stats table). Build PERF.18 and
 GEN.42 in one thread: both change `backfill_bright_stars_around`.
 
 ### Reproducible galaxies, finished
@@ -179,7 +179,7 @@ Each thread is briefed with its exact item IDs and takes no others.
 4. Phenomena filters: UX.33.
 5. API remote generation: API.4 onward, in the order above.
 6. Work queue: PERF.19, PERF.20, ADM.15.
-7. Backfill: GEN.41, then PERF.18 with GEN.42 and GEN.43; PERF.11.
+7. Backfill: GEN.41, then PERF.18 with GEN.42 and GEN.43.
 8. Independent: UX.2, UX.3, ADM.14.
 9. Reproducible galaxies: API.16, ADM.17, GEN.59, then API.17 (after
    thread 5's API.12 and API.13).

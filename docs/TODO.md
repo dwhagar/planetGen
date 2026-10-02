@@ -105,9 +105,9 @@ goes into a phase's table in the same PR that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15, DB.6, OPS.10, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, NAV.34 |
+| 1 | [phase-1-foundations.md](plan/phase-1-foundations.md) | Fix what generation and storage get wrong, and lay the shared groundwork the map and navigation work of phase 2 builds on, so that phase can run in parallel threads without rewriting the same files twice. | PERF.21, PERF.22, TEST.74, PERF.23, GEN.48, GEN.49, GEN.50, GEN.51, GEN.52, ADM.16, TEST.75, GEN.53, GEN.54, GEN.28, GEN.33, GEN.27, GEN.38, GEN.29, GEN.25, GEN.34, GEN.35, GEN.36, GEN.37, GEN.45, GEN.24, GEN.31, GEN.32, GEN.39, GEN.44, PERF.11, GEN.46, GEN.47, DB.2, DB.3, DB.4, DB.5, MAP.63, MAP.64, NAV.7, NAV.8, NAV.9, TEST.70, MAP.57, MAP.88, MAP.89, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, TEST.73, TEST.76, MAP.90, UX.34, OPS.9, API.15, DB.6, OPS.10, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, NAV.34 |
 | 2 | [phase-2-maps-and-navigation.md](plan/phase-2-maps-and-navigation.md) | Rebuild the Galaxy Map's selection around the arc pick (a 3D galaxy with no sector lines, an arc, then a slab, then segments down to a sector), color sectors and blocks by what is in them, join the Galaxy, Sector and System maps on one engine, and build the shared picker and courses on top. | MAP.60, MAP.55, MAP.85, MAP.52, MAP.56, MAP.53, MAP.58, MAP.78, MAP.54, MAP.76, MAP.59, MAP.75, MAP.77, MAP.80, MAP.86, MAP.61, MAP.65, MAP.66, MAP.67, MAP.68, MAP.79, MAP.82, MAP.83, MAP.84, MAP.81, MAP.87, MAP.62, MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74, NAV.3, NAV.13, NAV.14, NAV.15, NAV.16, NAV.29, NAV.30, NAV.31, NAV.32, NAV.33, NAV.5, NAV.20, NAV.21, NAV.22, NAV.23, NAV.4, NAV.17, NAV.18, NAV.10, NAV.11, NAV.12, NAV.6, NAV.24, NAV.25, NAV.26, NAV.27, NAV.28, UX.21 |
-| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, PERF.11, ADM.17, API.16, API.17, GEN.59 |
+| 3 | [phase-3-interface-api-and-queue.md](plan/phase-3-interface-api-and-queue.md) | Modernize the pages (actions behind menus, icons, structured planet details instead of the Markdown render, simpler rows, real phenomena filters, units everywhere), build remote generation through the API, and move heavy work onto the work queue with smarter backfill. | UX.28, UX.26, UX.31, UX.27, UX.25, UX.24, UX.29, UX.32, UX.30, UX.33, UX.2, UX.3, ADM.14, UX.22, UX.23, API.4, API.5, API.6, API.9, API.7, API.3, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13, PERF.19, PERF.18, PERF.20, ADM.15, GEN.40, GEN.41, GEN.42, GEN.43, PERF.1, ADM.17, API.16, API.17, GEN.59 |
 | 4 | [phase-4-accounts-sky-and-galaxies.md](plan/phase-4-accounts-sky-and-galaxies.md) | User accounts with roles and bookmarks (and saved courses in the account), the view of the sky from a planet after its research session with Boss, and the plan for more than one galaxy. | USR.1, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, NAV.19, VIEW.1, VIEW.2, VIEW.3, VIEW.4, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -1609,7 +1609,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation draw uses the operating system's random source; a test
   checks that one galaxy seed gives the same sectors at 1, 2 and N
   workers (with TEST.74); and a test checks that two seeds differing
-  only in their high 64 bits give different output.
+  only in their high 64 bits give different output. Decided (Boss,
+  2026-10-02 01:46Z: "I'm going to nuke the galaxy anyway so let's say
+  GEN.39 requires the galaxy to be nuked and a fresh start"): GEN.39
+  starts from a wiped galaxy, which Boss does himself; no support for an
+  unseeded galaxy and no migration of old galaxies is needed.
 
   - [ ] **DB.6 Store the galaxy's 128-bit seed, the version that made it, and every generation run**
     The storage half of GEN.39. Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
@@ -1630,7 +1634,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     times, and the outcome. Simplest default: the run history is what
     makes "replay" possible (OPS.12), since a galaxy is built by a series
     of commands (plan, sectors, scatter, backfill), not by the seed
-    alone. A test checks the seed reads back bit for bit.
+    alone. A test checks the seed reads back bit for bit. No migration of
+    existing galaxies: GEN.39 starts from a wiped galaxy.
+    The version: Boss (2026-10-02 01:46Z): "I would say the version
+    number all added together into a number stored in hex", so the
+    stored version value is MAJOR + REVISION + BUILD, in hex. A plain sum
+    is not unique (7.59.155 and 7.58.156 both sum to 221), so two
+    different releases can share a value. Open question for Boss: is
+    that acceptable? Default: store the full MAJOR.REVISION.BUILD string
+    next to the summed hex value, and match releases on the string.
 
   - [ ] **OPS.10 The galaxy seed and version at the top of every generation log**
     The log half of GEN.39 (Boss: "put it in the log at the top of any
@@ -1700,9 +1712,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     level of each sector it draws. Since unfilled sectors have no
     `sectors` row, the level lives in its own table keyed by
     (ring, layer, slot), or replaces `bright_star_blocks` (a schema
-    migration, its row in `database-schema.md`); existing galaxies are
-    migrated from their block levels. GEN.40 to GEN.43 and PERF.18 use
-    it to skip work.
+    migration, its row in `database-schema.md`). Decided (Boss,
+    2026-10-02 01:46Z): "gen.44/perf.11 is one shared per sector stats
+    table", so the level lives in the same per-sector stats table as
+    PERF.11's densities, keyed by (ring, layer, slot), built in one
+    migration. No migration of existing galaxies (GEN.39 starts fresh).
+    GEN.40 to GEN.43 and PERF.18 use it to skip work.
 
 - [ ] **GEN.45 Check the rogue planet mix of terrestrial and gas giants (bug)**
   Boss (2026-10-01 23:53Z): "investigate probability for a gas giant
@@ -2005,13 +2020,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     expected against actual is kept as a decaying average and updated
     after every fill. PERF.10 places each sector in its density bucket
     with these numbers, and PERF.3, PERF.5 and PERF.9 use the
-    expected-versus-actual ratio to correct their estimates. Open
-    questions: columns on `sectors` (a migration in the Database
-    workstream) or a separate table; whether "actual" counts systems,
-    stars, or both; what the decaying average is taken over (the ratio
-    per density bucket, so it ties in with PERF.10, or one galaxy-wide
-    figure); whether existing sectors are backfilled by a migration;
-    and what happens to the stats when a sector is regenerated
+    expected-versus-actual ratio to correct their estimates. Decided
+    (Boss, 2026-10-02 01:46Z): one per-sector stats table shared with
+    GEN.44's backfill level, built with it in phase 1; no backfill of
+    existing sectors (GEN.39 starts fresh). Open questions: whether
+    "actual" counts systems, stars, or both; what the decaying average
+    is taken over (the ratio per density bucket, so it ties in with
+    PERF.10, or one galaxy-wide figure); and what happens to the stats when a sector is regenerated
     (ADM.8) or the galaxy is reset.
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
