@@ -268,7 +268,11 @@ def test_sector_map_screen_reader_list_selects(page, map_site):
 # --- The Galaxy Map -------------------------------------------------------------------
 
 def _crumbs(page):
-    return page.eval_on_selector_all("#galaxymap3d-crumbs li", "els => els.map(e => e.textContent.trim())")
+    """Every step to here, galaxy first: the Steps menu's list, which
+    holds them all however much of the breadcrumb line is folded into
+    "…" (MAP.93, MAP.94)."""
+    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                     "els => els.map(e => e.textContent.trim())")
 
 
 def _query(page):
@@ -290,7 +294,7 @@ def _settle(page):
 
 def _open_galaxy(page, base, query=""):
     _open(page, f"{base}/galaxy{query}", GALAXY_CANVAS)
-    page.wait_for_selector("#galaxymap3d-crumbs li")
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
 
 
@@ -719,3 +723,92 @@ def test_bookmarks_keep_a_course_pick_on_the_sector_page(page, map_site):
     _assert_pick_links(_menu_links(page, menu))
     _open_sector(page, map_site)
     assert page.locator(".pick-bookmarks").count() == 0, "no extra menu outside pick mode"
+
+
+# --- MAP.93, MAP.94: the breadcrumb on one line, and the phone's Steps button --------
+
+CRUMB_LINE = """() => {
+    const ol = document.querySelector("#galaxymap3d-crumbs ol");
+    const items = Array.from(ol.children);
+    const mids = items.map(li => { const r = li.getBoundingClientRect(); return (r.top + r.bottom) / 2; });
+    const here = ol.querySelector("[aria-current]");
+    return {cut: !!here && here.scrollWidth > here.clientWidth + 1,
+            tops: Math.max(...mids) - Math.min(...mids) < 6 ? 1 : 2, overflow: ol.scrollWidth - ol.clientWidth, count: items.length,
+            more: !!ol.querySelector(".galaxy-crumb-menu"), visible: ol.offsetParent !== null,
+            starTop: Math.round(document.querySelector("#galaxymap3d-crumbs .galaxy-bookmark").getBoundingClientRect().top),
+            olTop: Math.round(ol.getBoundingClientRect().top), olHeight: ol.getBoundingClientRect().height};
+}"""
+
+
+def _open_deep_galaxy(page, map_site):
+    """The Galaxy Map at the sector level of a fixture sector (many steps)."""
+    _open_sector(page, map_site)
+    href = page.locator(".badges a", has_text="Show on Galaxy Map").get_attribute("href")
+    _open_galaxy(page, map_site, href[len("/galaxy"):])
+    return _crumbs(page)
+
+
+def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
+    """MAP.93: at any width the breadcrumb is one line: the first step,
+    "…" for the steps that don't fit, the last ones and the current one;
+    it fits again on resize, and "…" lists the folded steps."""
+    page.set_viewport_size({"width": 1280, "height": 900})
+    full = _open_deep_galaxy(page, map_site)
+    assert len(full) >= 8, full
+    for width in (1280, 900, 700, 600):
+        page.set_viewport_size({"width": width, "height": 900})
+        page.wait_for_timeout(200)
+        line = page.evaluate(CRUMB_LINE)
+        assert line["tops"] == 1 and line["overflow"] <= 1, (width, line)
+        assert line["olHeight"] < 40, (width, line)
+        assert not line["cut"], f"the current step is cut short at {width} px while steps could fold: {line}"
+        shown = _crumbs(page)
+        assert shown[0] == "Galaxy" and shown[-1] == full[-1], (width, shown)
+        if line["more"]:
+            assert line["count"] < len(full) + 1
+    # At 600 px the middle is folded; "…" lists exactly those steps.
+    line = page.evaluate(CRUMB_LINE)
+    assert line["more"], "a deep breadcrumb at 600 px folds its middle"
+    more = page.locator("#galaxymap3d-crumbs .galaxy-crumb-menu")
+    more.locator("summary").click()
+    folded = more.locator("li").all_inner_texts()
+    line_items = page.locator("#galaxymap3d-crumbs > ol > li").all_inner_texts()
+    kept = line_items[2:]
+    assert line_items[0] == "Galaxy" and folded, line_items
+    assert [line_items[0]] + folded + kept == full, (line_items, folded, full)
+    more.locator("button").first.click()
+    _settle(page)
+    assert _crumbs(page) == full[:2], "the first folded step goes there"
+    assert not page.evaluate(CRUMB_LINE)["more"] or page.evaluate(CRUMB_LINE)["overflow"] <= 1
+    # Wider again: everything shown, no "…".
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.wait_for_timeout(200)
+    assert not page.evaluate(CRUMB_LINE)["more"] or page.evaluate(CRUMB_LINE)["overflow"] <= 1
+
+
+def test_galaxy_phone_steps_button_between_back_and_forward(page, map_site):
+    """MAP.94: at phone width the breadcrumb line gives way to a round
+    Steps button between Back and Forward, listing every step with the
+    current one marked; Reset stays beside the arrows."""
+    page.set_viewport_size({"width": 390, "height": 844})
+    full = _open_deep_galaxy(page, map_site)
+    line = page.evaluate(CRUMB_LINE)
+    assert not line["visible"], "no breadcrumb line on a phone"
+    order = page.locator("#galaxymap3d-controls > *").evaluate_all(
+        "els => els.map(e => e.dataset.action || e.id || e.className)")
+    assert order.index("back") + 1 == order.index("galaxymap3d-steps") == order.index("forward") - 1, order
+    assert page.locator('#galaxymap3d-controls [data-action="reset"]').is_visible()
+    steps = page.locator("#galaxymap3d-steps")
+    box = steps.locator("summary").bounding_box()
+    assert abs(box["width"] - box["height"]) < 2, "round"
+    steps.locator("summary").click()
+    items = steps.locator("li").all_inner_texts()
+    assert items == full, (items, full)
+    assert steps.locator("[aria-current]").inner_text() == full[-1]
+    steps.locator("button", has_text="Galaxy").first.click()
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"]
+    assert not steps.evaluate("d => d.open"), "taking a step closes the menu"
+    page.set_viewport_size({"width": 1280, "height": 900})
+    page.wait_for_timeout(200)
+    assert not steps.is_visible() and page.evaluate(CRUMB_LINE)["visible"]

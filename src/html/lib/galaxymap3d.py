@@ -557,6 +557,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
   <button type="button" class="starmap-btn" data-action="back" data-icon="back" disabled>Back</button>
+  <details class="galaxy-steps" id="galaxymap3d-steps">
+    <summary class="starmap-btn galaxy-steps-button" data-icon="steps" aria-label="Steps to here"
+             title="Steps to here: go back to any of them"><span aria-hidden="true">&#9679;</span></summary>
+    <div class="galaxy-steps-panel" data-steps-panel></div>
+  </details>
   <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
   <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
           title="One step back out (Esc)">Up</button>

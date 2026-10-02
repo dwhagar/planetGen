@@ -405,7 +405,14 @@ the end. The same path is used for the address bar's jumps
   `Galaxy › Quarter 90°–180° › Slab 0 › Arc 120°–150° › … › Block
   568·1036 › Layer -20 › Sector 1,705·-20·3,225`. Blocks read
   `ring·wedge`, and the last crumb is the address `ring·layer·slot`.
-  Clicking a crumb returns to that step.
+  Clicking a crumb returns to that step. The breadcrumb is always one
+  line (MAP.93): when the steps don't fit, it shows the first, a "…"
+  button whose menu lists the steps it hides, and as many of the last
+  steps as fit, then the current one, measured again whenever the
+  line's width changes; the ☆ stays on the line. At phone width
+  (under 600 px) the line gives way to a round Steps button between
+  Back and Forward whose menu lists every step, the current one marked
+  (MAP.94); Reset stays beside the arrows.
 - **Back** and **Forward** buttons beside the map (MAP.26) step through
   the stages visited on this map. They use the browser's own history:
   every stage change does `history.pushState`, with the map's own index

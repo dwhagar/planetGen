@@ -1962,6 +1962,7 @@ function initGalaxyMap3d(canvasEl, data) {
       address: document.getElementById("galaxymap3d-address"),
       matches: document.getElementById("galaxymap3d-matches"),
       controls: document.getElementById("galaxymap3d-controls"),
+      steps: document.getElementById("galaxymap3d-steps"),
     },
   });
 

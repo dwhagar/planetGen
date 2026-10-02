@@ -252,7 +252,11 @@ def test_phenomenon_diagram_minus_zooms_out_from_the_start(page, base_url, site_
 # --- TEST.55, TEST.59: the Galaxy Map ------------------------------------------------
 
 def _crumbs(page):
-    return page.eval_on_selector_all("#galaxymap3d-crumbs li", "els => els.map(e => e.textContent.trim())")
+    """Every step to here, galaxy first: the Steps menu's list, which
+    holds them all however much of the breadcrumb line is folded into
+    "…" (MAP.93, MAP.94)."""
+    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                     "els => els.map(e => e.textContent.trim())")
 
 
 def _query(page):
@@ -281,7 +285,7 @@ def _hover_choice(page, wanted=None):
 
 def _open_galaxy(page, base_url, query=""):
     _open(page, f"{base_url}/galaxy{query}", "#galaxymap3d-canvas")
-    page.wait_for_selector("#galaxymap3d-crumbs li")
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _wait_settled(page)
 
 
@@ -367,7 +371,12 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.
-    page.locator("#galaxymap3d-crumbs button.galaxy-crumb").nth(1).click()
+    more = page.locator("#galaxymap3d-crumbs .galaxy-crumb-menu")
+    if more.count():  # the second step is folded into "…" (MAP.93)
+        more.locator("summary").click()
+        more.locator("button").first.click()
+    else:
+        page.locator("#galaxymap3d-crumbs button.galaxy-crumb").nth(1).click()
     _wait_settled(page)
     assert _crumbs(page) == steps[1][1]
     page.click('#galaxymap3d-controls [data-action="reset"]')
