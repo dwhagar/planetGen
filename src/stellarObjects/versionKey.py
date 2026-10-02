@@ -123,3 +123,18 @@ def current():
         "python_version": python_version(),
         "platform": platform_name(),
     }
+
+
+def run_line(galaxy_seed, run):
+    """
+    The line every generation run writes first (OPS.10): `Galaxy seed
+    <32 hex>, PlanetGen <version> (<version key>), run: <run>`.
+
+    Args:
+        galaxy_seed (bytes | None): The galaxy's 16-byte seed; `None`
+            when it has none yet (never planned, or a run that doesn't
+            touch the galaxy).
+        run (str): What runs, such as `galaxy --ring 3`.
+    """
+    seed = bytes(galaxy_seed).hex().upper() if galaxy_seed is not None else "none yet"
+    return f"Galaxy seed {seed}, PlanetGen {__version__} ({version_key()}), run: {run}"

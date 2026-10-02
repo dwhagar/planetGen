@@ -330,7 +330,14 @@ backfill still depends on which sectors are filled first (both phase 1,
 GEN.57). The galaxy also records the version key of the code that made
 it (22 hex digits: release, Python version, OS and architecture), and
 every run that changes it adds a row to `generation_runs` (command line,
-the run's own seed, version key, start, end and outcome; DB.6). Design:
+the run's own seed, version key, start, end and outcome; DB.6). Every
+run's first line names the galaxy seed, the release with its key, and
+the command line without the `--mysql-*` and `--debug` options, for
+example `Galaxy seed 3F2A...C901, PlanetGen 7.127.352
+(0007007F000160030C0300), run: galaxy --ring 3` (`none yet` before the
+first plan; OPS.10). It goes to the console, the `--debug` file and the
+debug log, and a Generate page job's log starts with the same line for
+the job before its first step. Design:
 [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 
 After the outline, `generate.py plan` also places every star of 500 solar
@@ -426,7 +433,6 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
-| Seed line at the top of every run | OPS.10 | 0 | Every subcommand, web job and work queue run first writes the galaxy seed, the version with its 22-hex-digit key, and the run's command, at normal level. |
 | `generate.py check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
 | `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
 | Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
