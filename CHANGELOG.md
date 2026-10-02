@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.165.474] - 2026-10-02
+
+### Fixed
+- **Galaxy Map slab buttons: lines end at the slab's nearest edge, one-line labels, and they fit the window (MAP.98, MAP.100, MAP.99).** Each slab button's line now ends on its slab's outline as drawn on the map, at the point nearest the button, and keeps doing so as the view turns and zooms. Each button reads on one line, the slab number and how much of it is charted: "#4 Unknown" with nothing generated, "#2 < 0.01% charted", or "#6 ≈ 2.43% charted" (the full name and counts stay in the button's tooltip and screen-reader label). When one column of buttons is taller than the map, the buttons split into two columns, one each side of the map; if that still doesn't fit they shrink to the slab number alone, and when even that won't fit the buttons are left out and the box says to pick a slab on the map. On a phone, where the buttons sit below the map, they shrink and then give way the same way.
+
 ## [7.164.473] - 2026-10-02
 
 ### Fixed
