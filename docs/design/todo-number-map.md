@@ -466,7 +466,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
-| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | open |
+| GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | done, PR #353 |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | open |
 | GEN.33 | One class per PR, each with its tests | none | open |
 | GEN.34 | Gas and ice giants come out too light, so there are no super-Jupiters (bug) | none | done, PR #350 |
@@ -494,7 +494,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
-| GEN.59 | Edits and time evolution recorded as layers on top of the seed | none | open |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
