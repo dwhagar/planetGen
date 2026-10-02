@@ -50,25 +50,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) |  | galaxyViewport.py and lib/galaxymap3d.py, the tile-level code MAP.80 also changes. |
 | GEN.46 | Star system names of at most two words (bug) |  | nameUniqueness.py and _db.py name reservation; API.12 downloads the name state, so settle names first. Decided: only new names follow the rule. |
-| NAV.38 | Every sector a straight line passes through |  | galaxyGeometry.py with a JS twin, after GEN.31 (same file). |
-
-### Map groundwork
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| TEST.70 | Tests for the map JavaScript |  | Pins today's map behaviour before MAP.63/64 refactor and MAP.66/68 replace the Sector Map. |
-| MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) |  | _star_light in lib/starmap.py and STAR_LOG_LUMINOSITY in galaxymap3d.js; small, land before MAP.63 moves code. |
-| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) |  | Button style from aria-pressed (lib/starmap.py, sectormap.js). |
-| MAP.82 | Unmarked rogue planets barely visible (bug) |  | Rogue point style in sectormap.js / lib/starmap.py. |
-| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | MAP.82, MAP.83 | Same code; marked vs unmarked size and hit area. |
-| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) |  | Hide 'View phenomenon/system' in pick mode (sectormap.js line 116, galaxymap3d.js line 411). Tiny; fix now, TEST.70 keeps it. |
-| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) |  | Decision gate (which keys). bookmarks.js; decide before MAP.64 builds the shared key map. |
-| MAP.63 | Shared map helpers in one module | TEST.70, MAP.87, MAP.84, NAV.30 | Moves helpers out of galaxymap3d.js, sectormap.js and systemmap.js; no visible change. |
-| MAP.64 | One camera and input controller | MAP.63, MAP.81 | One controller with zoom policies; MAP.53, MAP.58, MAP.75, MAP.73 build on it. |
-| MAP.60 | Galaxy Map scale readout: one scale line | MAP.64 | Start of the one ordered Galaxy Map thread. |
-| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | MAP.60, UX.28, MAP.81 | Menu button and bookmark button; icons from UX.28, keys from MAP.81. |
-| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | MAP.55, MAP.64 | Moved to phase 0 by Boss (01:46Z). Root of the new selection: every later Galaxy Map pick item is rewritten around it. Arc size default: about 40 degrees by a third of the radius. Ships with today's block shading until MAP.86 lands. |
-| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | MAP.85 | Bug, but its code is replaced by MAP.85; its width and snapping carry into the arc. Same PR as MAP.85. |
 
 ### System Map
 
@@ -107,6 +88,15 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) |  | generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
+
+### Galaxy map picker and arc
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.60 | Galaxy Map scale readout: one scale line |  | Start of the one ordered Galaxy Map thread. |
+| MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | MAP.60, UX.28 | Menu button and bookmark button; icons from UX.28, keys from MAP.81. |
+| MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | MAP.55 | Moved to phase 0 by Boss (01:46Z). Root of the new selection: every later Galaxy Map pick item is rewritten around it. Arc size default: about 40 degrees by a third of the radius. Ships with today's block shading until MAP.86 lands. |
+| MAP.52 | Galaxy Map highlights the wrong area; pick a 40-degree wedge around the cursor (bug) | MAP.85 | Bug, but its code is replaced by MAP.85; its width and snapping carry into the arc. Same PR as MAP.85. |
 
 ### Routing groundwork
 

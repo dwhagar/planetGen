@@ -67,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | MAP.90, MAP.87 | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
+| MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | MAP.90 | Judgment: moved up from the selection chain; the thinning is in the tile listing (queryDb GALAXY_TILE_* floors) and galaxymap3d.js, not the pick code. |
 
 ### References
 
@@ -88,7 +88,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes; queue behind PERF.11. Built with NAV.12 (no hop limit, a route always exists). |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, NAV.38, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps. |
 

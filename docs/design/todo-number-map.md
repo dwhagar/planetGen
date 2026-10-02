@@ -562,8 +562,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.60 | Galaxy Map scale readout: one scale line | none | open |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
-| MAP.63 | Shared map helpers in one module | none | open |
-| MAP.64 | One camera and input controller | none | open |
+| MAP.63 | Shared map helpers in one module | none | done, PR #351 |
+| MAP.64 | One camera and input controller | none | done, PR #351 |
 | MAP.65 | One picking, hover and info-panel layer | none | open |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
 | MAP.67 | One URL and history scheme for every level | none | open |
@@ -580,13 +580,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | open |
 | MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | open |
-| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | open |
-| MAP.82 | Unmarked rogue planets barely visible (bug) | none | open |
-| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | open |
-| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | open |
+| MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | done, PR #351 |
+| MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
+| MAP.83 | The "Mark rogue planets" button shows when it is on (bug) | none | done, PR #351 |
+| MAP.84 | Marked rogue planets grow and become clickable; unmarked ones stay small (bug) | none | done, PR #351 |
 | MAP.85 | The galaxy pick is an arc, on a 3D galaxy with no sector lines | none | open |
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | open |
-| MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | open |
+| MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | open |
 | MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | open |
@@ -619,7 +619,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
-| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | open |
+| NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | open |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
@@ -627,7 +627,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
 | NAV.37 | An optional ship range for routes (open question) | none | dropped: conflicts with NAV.12 (a route always reaches the nearest star), PR #346 |
-| NAV.38 | Every sector a straight line passes through | none | open |
+| NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
@@ -907,7 +907,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.67 | Runs first in the suite and in CI | none | done, PR #281 |
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
-| TEST.70 | Tests for the map JavaScript | none | open |
+| TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | open |

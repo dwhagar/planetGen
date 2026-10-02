@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, DB.8 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -408,7 +408,6 @@ with `clamp()`.
   onto several lines (a container query, not a device check), never
   splitting a stop across lines; screen readers still get an ordered
   list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
-
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -768,24 +767,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   those items rewrite the same files (`galaxymap3d.js`,
   `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
 
-  - [ ] **MAP.63 Shared map helpers in one module**
-    The same helpers are copied between `galaxymap3d.js`,
-    `sectormap.js` and `systemmap.js`: `readSceneData`, `cssVar`,
-    `isLightBackground`, `addField`, `formatAddress`,
-    `makeRingTexture`, `niceScaleValue`/`updateScaleBar`, `resize`, and
-    the screen-space point pick (`starAtClientPoint` and
-    `pointAtClientPoint`). Done: one `static/mapcore.js` exports them
-    and all three maps import it; no visible change.
-
-  - [ ] **MAP.64 One camera and input controller**
-    The Galaxy Map's stage view (`galaxystageview.js`: drag, pan,
-    wheel, pinch, two-tap select, keys) and the Sector Map
-    (`sectormap.js`: its own `THREE.Spherical` orbit, pointer and arrow
-    key handlers, zoom buttons) each have their own. Done: one
-    controller module (orbit, pan, zoom, pinch, keys, drag-or-click
-    threshold) with a zoom policy each view sets (free, a short range,
-    or locked, which is MAP.58's rule), used by both maps.
-
   - [ ] **MAP.65 One picking, hover and info-panel layer**
     Done: one module for raycast and screen-space picking, the hover
     highlight and tooltip (the Sector Map has none today) and the info
@@ -917,36 +898,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
 
-  - [ ] **MAP.82 Unmarked rogue planets barely visible (bug)**
-    Boss (2026-10-01 23:53Z): "Rogue planet detail is for them to be dim
-    barely noticeable." Today every rogue planet has a bright violet
-    core and glow (`sectormap.js`, `{power 2.0, strength 1.6}`) and at
-    least a 4 px radius (`lib/starmap.py`). Done: unmarked rogue
-    planets are a dim, small point with no glow, barely noticeable
-    against the background, while stars and other objects show through.
-
-  - [ ] **MAP.83 The "Mark rogue planets" button shows when it is on (bug)**
-    Boss (2026-10-01 23:53Z): ""Mark Rogue Planets" button should
-    retain a highlight if it is "on" and loose the highlight when it is
-    "off" (default)". Today the button (`lib/starmap.py`) starts with
-    `aria-pressed="true"`, and `sectormap.js` flips `aria-pressed` but no
-    style follows it (`.starmap-btn-active` exists in `style.css` but is
-    never applied), so on and off look the same. Done: off is the
-    default; while on, the button keeps a clear highlight in both themes
-    (styled from `aria-pressed`), and it loses it when turned off.
-
-  - [ ] **MAP.84 Marked rogue planets grow and become clickable; unmarked ones stay small (bug)**
-    Boss (2026-10-01 23:53Z): "Rogue planets should not only be dim and
-    hard to see when not "marked" but also should be physically
-    smaller. When "marked" they get bigger and more prominent and
-    clickable." Today the toggle only shows or hides a ring sprite; the
-    planet itself never changes. Done: unmarked rogue planets are drawn
-    smaller than stars (with MAP.82's dimness); marking them makes them
-    bigger, brighter and ringed, and only then easy to hover and pick
-    (a larger hit area). Proposed values from Boss's research notes
-    (tune on screen): unmarked about 1.5 px at 0.2 opacity, marked about
-    5 px at full opacity with a glow ring.
-
 - [ ] **MAP.80 Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug)**
   Boss (2026-10-01 21:15Z): "as zooming into the sector level, when a sector is shown on
   the galactic arc it is close enough to see almost all stars in the
@@ -959,38 +910,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the Sector Map shows them; the thinning only applies farther out.
   Ties in with MAP.66 (the sector as the drill-down's last stage).
   Boss (21:17Z) confirmed it is a fix: "fix it".
-
-- [ ] **MAP.81 Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`), first reported in PR #234's thread and left for Boss to decide:
-  the map bookmark shortcuts (`static/bookmarks.js`, lines 23 and 325,
-  MAP.23) use Ctrl+1 to Ctrl+9, which Chrome and Firefox on Windows and
-  Linux take for switching tabs, so the shortcuts don't work there.
-  Done: the bookmark keys use a combination no major browser reserves
-  (for example Alt+Shift+1 to 9, or plain 1 to 9 while the map has
-  focus), the help text says which, and a test pins it. Decided (Boss,
-  2026-10-02): plain 1 to 9 while the map has focus.
-
-- [ ] **MAP.87 Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug)**
-  Boss (2026-10-02 00:42Z): "ALL stars need to become about 4 times as
-  bright in the sector maps but it's bright enough in the large galactic
-  map so scale so that the dimmest red dwarf stars are 4 times as bright
-  as they are now and when we approach the 1000+ sol lum mark it evens
-  out to be not any brighter. That's just in how it's displayed."
-  Today each star's point of light on the Sector Map comes from
-  `_star_light` in `lib/starmap.py` (MAP.15): luminosity mapped on a log
-  scale from 1e-4 to 1e6 L_sun onto the halo's size (13 to 40 px), its
-  strength (`_LIGHT_GLOW`, 0.55 to 0.85) and the core's opacity
-  (`_LIGHT_BRIGHT`, 0.9 to 1.0), drawn by `sectormap.js`; the Galaxy
-  Map's stars use the same log range (`STAR_LOG_LUMINOSITY` in
-  `galaxymap3d.js`). Boss (00:43Z): "Adjust TODO above to also use the
-  same logic in the galactic map, on 2nd though". Done: display only,
-  on both the Sector Map and the Galaxy Map, through one shared
-  brightness curve (in Python with its JavaScript twin, or computed
-  once and sent with the star data): the dimmest red dwarfs look about
-  four times as bright as now, the boost shrinks smoothly with
-  luminosity, and stars of about 1000 L_sun and up look as they do now;
-  nothing stored changes. Before and after screenshots of a busy sector
-  and of a zoomed Galaxy Map view, in both themes, go with the PR.
 
 - [ ] **MAP.85 The galaxy pick is an arc, on a 3D galaxy with no sector lines**
   Boss (2026-10-01 23:53Z): "Redo the galactic selection, so that the
@@ -1346,14 +1265,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offers the same two buttons, which start the course from that object.
   Ties in with NAV.3, NAV.13 and NAV.15.
 
-- [ ] **NAV.30 Hide "View phenomenon" and "View system" links while picking a course (bug)**
-  Boss (2026-10-01 21:15Z): "don't show the view phenomena when navigating as it'll take
-  you out of the page." Today the info panel shows "View phenomenon →"
-  (and "View system →") in pick mode too (`sectormap.js`,
-  `galaxymap3d.js`), and following it drops the course being built.
-  Done: in pick mode the panel shows only the pick buttons (NAV.29),
-  no link that leaves the picking flow. Ties in with NAV.15.
-
 - [ ] **NAV.31 Galaxy wedges don't highlight on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "in the navigation screen the wedges of the galaxy do not
   highlight at all and they should." Done: when picking a course on
@@ -1406,10 +1317,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the shortest link between them; the longest hop is shown; each
   hop is flagged as a jump through unknown space when its line crosses
   one or more unfilled (ungenerated) sectors (the default reading of
-  "unknown space"; NAV.38 finds the sectors), and `/api/nav` returns
-  the flag per hop. Built with NAV.10, which already rebuilds the
-  routing. Phase 1 is its anchor: NAV.34, NAV.38 and TEST.79 come
-  before it (phase 0), UX.35 runs alongside it (phase 1), and NAV.36
+  "unknown space"; NAV.38's `galaxyGeometry.sectors_along_segment`,
+  done in PR #357, finds the sectors), and `/api/nav` returns the flag
+  per hop. Built with NAV.10, which already rebuilds the routing.
+  Phase 1 is its anchor: NAV.34 and TEST.79 come before it (phase 0), UX.35 runs alongside it (phase 1), and NAV.36
   and NAV.39 need it first (phase 2).
 
 - [ ] **NAV.34 Courses between separately generated areas find no route: the route graph splits into islands (bug)**
@@ -1436,16 +1347,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
   shown by color alone. Prerequisites: NAV.12, UX.35, NAV.20.
-
-- [ ] **NAV.38 Every sector a straight line passes through**
-  A line-to-sectors helper, needed before NAV.12: given a straight
-  segment between two points in the galaxy, every sector address it
-  passes through, in `galaxyGeometry.py` with a JavaScript twin
-  (`galaxyprisms.js`) and tests that the two agree. NAV.12 uses it for
-  the unknown-space flag, and NAV.25 later for obstacles. Done: the
-  helper, exact at sector faces and edges (GEN.31 fixed the layer
-  boundary in PR #353), with tests along an axis, diagonally, through
-  the core and out into the halo.
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
@@ -2619,7 +2520,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Open question: which corrections the server makes on its own, and
   which reject the unit so the client regenerates it.
 
-
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -2754,19 +2654,6 @@ clears each one.
 ### Web, API and jobs
 
 ### Scripts and ops
-
-- [ ] **TEST.70 Tests for the map JavaScript**
-  Today only the pure modules (`galaxystages.js`, `galaxyprisms.js`,
-  number and distance formatting) have node tests, run from pytest; the
-  stage view, the Sector Map, the System Map and `bookmarks.js` have
-  none, and only the accessibility check drives a real browser. Done: a
-  Playwright harness (Chromium is already installed for the a11y test)
-  that loads each map against fixture data with no database, and tests
-  for what MAP.61 will move: picking, hover, keys, Back/Forward and URL
-  state, bookmarks and the scale line on the Galaxy Map and the Sector
-  Map, written before the refactor so it can't change behaviour
-  unnoticed. Builds on TEST.55 to TEST.59 (browser and JavaScript tests,
-  PR #307): reuse their harness.
 
 ## USR: User accounts
 
