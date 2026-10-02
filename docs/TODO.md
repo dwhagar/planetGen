@@ -113,8 +113,8 @@ that files it.
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Fix the bugs nothing else depends on and lay the groundwork everything later builds on: the parallel path first (Boss: top priority), the 128-bit galaxy seed with its stored 22-digit version key and log line, the database consistency check, the binary-pair, forcing and name bugs, the map groundwork through the arc pick (MAP.85, which Boss wants in phase 0), the routing groundwork, object references and the small page and ops fixes. The database and physics bug threads are done (PRs #342, #347, #350). | TEST.76, TEST.74, PERF.22, PERF.21, TEST.73, PERF.23, GEN.32, GEN.39, GEN.53, GEN.54, GEN.49, GEN.50, MAP.90, GEN.46, TEST.70, MAP.87, MAP.83, MAP.82, MAP.84, NAV.30, MAP.81, MAP.63, MAP.64, MAP.57, MAP.88, NAV.7, OPS.6, OPS.7, OPS.8, TEST.71, TEST.72, UX.34, OPS.9, UX.28, UX.23, UX.2, UX.24, UX.29, ADM.14, MAP.60, MAP.55, MAP.85, MAP.52, API.15, TEST.79, NAV.34, DB.6, OPS.10, TEST.78, NAV.38, DB.8 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue. | GEN.33, GEN.28, GEN.38, GEN.27, GEN.51, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.44, PERF.11, PERF.1, GEN.41, GEN.47, MAP.89, MAP.86, MAP.80, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.22, UX.25, UX.26, UX.31, UX.27, UX.3, PERF.19, ADM.15, API.4, API.7, API.9, OPS.11, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.13, OPS.14, DB.9, ADM.18, GEN.60 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), and the API pieces remote generation needs first. | MAP.56, MAP.53, MAP.58, MAP.78, MAP.76, MAP.54, MAP.75, MAP.59, MAP.77, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.31, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, UX.33, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -1895,7 +1895,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     seed (already in their Done text); API.16 and ADM.17 show the seed
     and version; OPS.15 has each update say whether it changes
     generated output.
-  - Phase 3: API.17 makes remote generation reproduce the server's.
+  - Phase 2: the daily maintenance run (OPS.16, with OPS.17's
+    schedule) merges pending admin changes into a new JSON file
+    (GEN.61) and keeps 18 backups (OPS.18, listed by ADM.19).
+  - Phase 3: API.17 makes remote generation reproduce the server's;
+    DB.10 repairs from the newest JSON plus pending deltas.
   - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
   Anything that draws new randomness later (GEN.47, GEN.42, PERF.18,
   API.12, API.13) uses the derived seeds and keeps TEST.77 green.
@@ -2021,6 +2025,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     that differ. The live galaxy is not touched. A test runs it across a
     change that alters a sector. Prerequisites: OPS.13, GEN.58.
 
+  - [ ] **OPS.16 A daily maintenance script for Linux, macOS and Windows**
+    Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
+    deltas at the end of the day. We're going to have to build a
+    maintenance script for powershell and bash that will run the
+    positional update script, then kick off this delta script that will
+    update the JSON so it's only updated once every 24 hours, old JSON
+    files are kept in the following order, 1 year ago, 6 months ago, 4
+    weeks ago, 7 days ago. A total of 18 backup slots so that we have a
+    good span of the different deltas."
+    Done: `scripts/maintenance.sh` (Linux and macOS) and
+    `scripts/maintenance.ps1` (Windows) run once a day: first the
+    positional update (`updateOrbits.py`), then the delta merge
+    (GEN.61), then the backup rotation (OPS.18). A lock keeps two runs
+    from overlapping, every step logs to the normal log, and the script
+    exits non-zero on any failure. Optionally it also runs OPS.15's
+    fingerprint check, so changed output is noticed daily. A test runs
+    it on a small galaxy and checks a second run started during the
+    first exits at once. Prerequisites: GEN.61, OPS.18.
+
+  - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
+    Done: `install.sh`, `install.ps1`, `update.sh` and `update.ps1`
+    (with `deploy-common.*`) set up OPS.16's daily run: a systemd timer
+    or cron entry on Linux, launchd on macOS, Task Scheduler on
+    Windows. Update leaves an existing schedule as it is and adds a
+    missing one. The deployment docs say how to change the time or turn
+    it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
+    them. Prerequisites: OPS.16, OPS.7, OPS.8, OPS.13.
+
+  - [ ] **OPS.18 Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly**
+    Boss (2026-10-02 02:28Z): "old JSON files are kept in the following
+    order, 1 year ago, 6 months ago, 4 weeks ago, 7 days ago. A total of
+    18 backup slots". Done: after each merge, the JSON files are kept by
+    grandfather-father-son rotation: the newest 7 daily files, then 4
+    weekly, 6 monthly and 1 yearly, 18 in all, and older files are
+    deleted. The current file is always kept. A unit test runs the
+    rotation over a simulated year of dates and checks which files
+    survive. Prerequisite: GEN.61.
+
   - [ ] **GEN.58 A fingerprint of a galaxy's generated content**
     A way to tell whether two builds are the same in the sense OPS.11
     defines. Done: `generate.py fingerprint` (for the galaxy or a region)
@@ -2049,13 +2091,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     one, listing any sector that differs; it refuses, naming the version
     to check out, when the running release isn't Y. Without the edit and
     epoch layers (GEN.59) it rebuilds the galaxy as first generated; with
-    the JSON file's net changes and regeneration seeds, as it is now. A test runs it on a small galaxy, and on one with
+    the JSON file's net changes, regeneration seeds and epoch, as it is
+    now. It reads the newest JSON file plus any pending deltas still in
+    the control database (GEN.59), or rebuilds from any of the 18
+    backups kept by OPS.18 (`--as-of DATE` picks one). A test runs it on a small galaxy, and on one with
     a deliberately changed sector. Simplest default: no automatic
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
     warns when they differ. It reads the galaxy's settings from ADM.18's
     JSON file. Prerequisites: DB.6, DB.7, GEN.57, GEN.58, TEST.77,
-    GEN.59, OPS.14, ADM.18.
+    GEN.59, OPS.14, ADM.18, GEN.61, OPS.18.
 
   - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
     Done: the Generate page shows the galaxy seed (32 hex digits, with a
@@ -2091,18 +2136,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
       in UTC, with no colons so it is valid on Windows, for example
       `9F3A07C2E81B44D5A1C06E7B3D2F9081-0007007F000160030C0300-20261002-022133Z.json`.
       It lives in the site's data directory (path in `config.json`).
-    - Whenever the file has to change (a setting change, a dimmer
-      bright-star layer added, an admin change that alters GEN.59's
-      diff), the old file is kept as the dated backup and the new one is
-      written under the new date-time, so the newest file is the current
-      one.
+    - The file is written once when the galaxy is created. After that
+      it changes only through the daily merge (GEN.61), which writes a
+      new file under the new date-time and leaves the old one as a dated
+      backup, so the newest file is the current one. Setting changes
+      and admin changes wait in the pending-delta table until then.
+      Backups are kept by OPS.18's 18-slot rotation.
     - The Admin dashboard offers the current file as a `.json` download
       at any time, with the control database's key history (the last 10
-      updates, OPS.13) alongside it.
+      updates, OPS.13) alongside it. ADM.19 later lists every backup.
     OPS.12 rebuilds from this file. A test creates a small galaxy,
     downloads the file and checks the name, settings, seed, key and word
-    list, then changes a setting and checks both files exist.
+    list.
     Prerequisites: DB.6, DB.7, OPS.13.
+
+  - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
+    Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
+    slots) with its date, slot (daily, weekly, monthly, yearly) and
+    version key, each downloadable as a `.json` file, next to the
+    current one (ADM.18). Admin only. A test checks the list matches
+    the files on disk and a download returns the file. Prerequisites:
+    ADM.18, OPS.18.
 
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
@@ -2140,16 +2194,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
       and slot, then system, body and moon by generated index), never by
       database id, through a small stable-path helper (it may share
       NAV.7's reference work but must not use row ids).
-    - Time evolution (`updateOrbits.py`) records only the epoch reached.
-    - Every admin change that alters the diff rewrites the JSON file,
-      the old one kept as the dated backup (ADM.18).
-    Rebuild = seed + key + this diff: "seed + key" gives the galaxy as
-    first generated, and adding the diff gives it as it is now. A test
-    edits, regenerates and deletes objects, rebuilds a fresh database
-    from seed + key + JSON, and gets the same content by fingerprint
+    - Admin changes (edits, deletes and regenerate seeds, by stable
+      path) go into a pending-delta table in the control database as
+      they happen. The JSON file is not rewritten per change: Boss
+      (2026-10-02 02:28Z): "a JSON file is only changed with the deltas
+      at the end of the day". The daily merge (GEN.61) folds the
+      pending deltas into a new file with the rules above.
+    - The positional-update epoch (when `updateOrbits.py` last moved
+      systems) is recorded with the deltas and in the JSON, and
+      `updateOrbits.py` is checked to give the same positions for the
+      same epoch.
+    Rebuild = seed + key + JSON + epoch: "seed + key" gives the galaxy
+    as first generated, and the JSON's diff and epoch give it as it is
+    now. Changes made since the last daily merge live only in the
+    database until the next one; DB.9's parity file protects them in
+    between. A test
+    edits, regenerates and deletes objects, merges the deltas, rebuilds
+    a fresh database from seed + key + JSON + epoch, and gets the same
+    content by fingerprint
     (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
     (`adminEdits.py`, `editStore.py`). Prerequisites: GEN.39, GEN.56,
     GEN.58, ADM.18.
+
+  - [ ] **GEN.61 The daily merge folds pending admin changes into a new JSON file**
+    Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
+    deltas at the end of the day. We're going to have to build a
+    maintenance script for powershell and bash that will run the
+    positional update script, then kick off this delta script that will
+    update the JSON so it's only updated once every 24 hours, old JSON
+    files are kept in the following order, 1 year ago, 6 months ago, 4
+    weeks ago, 7 days ago. A total of 18 backup slots so that we have a
+    good span of the different deltas."
+    Done: a delta-merge step reads the pending-delta table (GEN.59) and
+    the newest JSON file, applies the net-diff rules (latest value per
+    field, tombstones, a regenerate clearing earlier entries for that
+    object and its children, values back at the original dropped),
+    records the positional-update epoch, and writes a new JSON file
+    named by ADM.18's seed-key-date-time rule. Pending rows are cleared
+    only after the new file is written and read back. With nothing
+    pending and no epoch change it writes nothing. A test merges a set
+    of deltas, rebuilds from the new file, and matches the live galaxy
+    by fingerprint (GEN.58); another kills the merge before the check
+    and finds the pending rows still there. Prerequisites: GEN.59,
+    ADM.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -2333,6 +2420,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   - A test damages rows in a copy of a small galaxy, repairs them, and
     gets a passing check.
   Prerequisites: DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14.
+
+- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
+  From Boss's 02:28Z daily-merge rule (GEN.61). Done: DB.9's repair,
+  where it regenerates a sector from its seed, applies the newest JSON
+  file's diff and epoch plus any pending deltas still in the control
+  database, so admin changes since the last daily run survive a repair.
+  If the newest JSON file is damaged it falls back to the next backup
+  (OPS.18) and replays the pending deltas on top, saying so. A test
+  repairs a sector with both merged and pending changes. Prerequisites:
+  DB.9, GEN.61, OPS.18.
 
 ## API: The JSON API
 

@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The three maps on one engine, the 3D system view, courses that bend around gravity wells, and remote generation through the API, reproducing what the server would make.
+The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes.
 
 ## Threads
 
@@ -67,7 +67,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.14 | Upload routes, compressed, in batches | API.7, API.11 |  |
 | API.8 | Verify uploaded data before it is finalized | API.11, API.14 |  |
 | ADM.13 | Incomplete uploads page | API.10, API.8 |  |
-| API.3 | Remote generate: generate locally, upload through the API | GEN.51, GEN.52, API.9, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
+| API.3 | Remote generate: generate on a local machine, upload through the API | GEN.51, GEN.52, API.9, API.10, API.11, API.12, API.13, API.14, API.8, ADM.13 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, GEN.57, GEN.58 |  |
 
 ### Pages
@@ -75,6 +75,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | MAP.55, MAP.60, MAP.68, UX.26, UX.27, UX.31, NAV.32 | Bug, but a final pass over the finished pages. Judgment: its one known dead control (nebula '-' at the 1 ly limit) could be split out into phase 0. |
+
+### Database consistency check
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DB.10 | Repair reads the newest settings JSON and the pending deltas | DB.9, GEN.61, OPS.18 | Falls back to the next backup if the newest JSON is damaged. |
 
 ## Open questions for Boss
 
