@@ -24,7 +24,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.64 | A 64-bit position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread (still, 06:02Z). 64-bit packed position ID (type 4, unit 3, distance 17, bearing 20, mark 20) as the name; registry path goes away for these objects. Related: TEST.85 (done, PR #403), GEN.57, GEN.63. |
+| GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread (PR #406). Packed position ID as the name, 76 bits / 19 hex (Boss 06:44Z/06:48Z: type 6, unit 3, collision counter 4, distance 19, bearing 22, mark 22; cores get their own ID); registry path goes away for these objects. Related: TEST.85 (done, PR #403), GEN.57, GEN.63. |
 
 ### References
 
