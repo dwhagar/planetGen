@@ -20,12 +20,6 @@ Each thread is briefed with its exact item IDs and takes no others. Items
 run top to bottom inside a thread; "Needs" lists what must land first
 (from this phase or an earlier one).
 
-### Interstellar IDs
-
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system |  | Boss 05:32Z/05:36Z. Feature, not a bug, so phase 1 by the phase 0 rule; being built now by the analysis thread (PR #406). Packed position ID as the name, 76 bits / 19 hex (Boss 06:44Z/06:48Z: type 6, unit 3, collision counter 4, distance 19, bearing 22, mark 22; cores get their own ID); registry path goes away for these objects. Related: TEST.85 (done, PR #403), GEN.57, GEN.63. |
-
 ### References
 
 | ID | Item | Needs | Note |
@@ -123,7 +117,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.56 | Every random draw in generation comes from the derived seeds |  | Touches every generator module. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56, GEN.44 |  |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56, GEN.44 | Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  |  |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
@@ -132,7 +126,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.13 | Every update records the version key, keeping the last 10 | OPS.7, OPS.8 | update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.63 | Planet names are unique within a sector | GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; TEST.85 done (PR #403). |
+| GEN.63 | Planet names are unique within a sector | GEN.57 | Boss 04:03Z. Address-keyed clash rule from GEN.57; TEST.85 done (PR #403); rogue planets named by GEN.64's ID (PR #406). |
 
 ### Nearby search
 
