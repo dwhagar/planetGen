@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.29 |
 | TEST | TEST.84 |
 | USR | USR.8 |
-| OPS | OPS.19 |
+| OPS | OPS.20 |
 | DOC | DOC.4 |
 | VIEW | VIEW.5 |
 | POP | POP.7 |
@@ -648,6 +648,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
 | PERF.1 | Generation at scale | none | open |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
