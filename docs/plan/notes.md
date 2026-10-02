@@ -66,9 +66,8 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   sectors appear for the next pick. Note the word: "arc" was MAP.19's
   name for one cell of the old 3x3 region pick
   ([galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md));
-  it now means this first pick; the design doc's section 15 ("Planned:
-  the arc pick", PR #362) describes it, and is rewritten as the current
-  design now that MAP.85 has shipped. Shipped in PR #369 (MAP.60,
+  it now means this first pick; the design doc's section 15 ("The arc
+  pick") describes it as built. Shipped in PR #369 (MAP.60,
   MAP.55, MAP.85, MAP.52): arcs are 45 degrees wide (the width nearest
   40 degrees whose edges fall on wedge lines in every block ring) by a
   third of the disk radius, 24 arcs in all; the galaxy map is a tilted
