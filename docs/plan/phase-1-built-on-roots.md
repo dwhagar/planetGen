@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test, sector colors, routing, the first picker pieces and the queue.
+Work that needs phase 0 in place: galaxy generation on the parallel path with the per-sector stats table (GEN.44 and PERF.11), prevalence controls, planet classes, reproducible galaxies up to the golden-seed test (with the update key history, the creation settings JSON and admin changes stored as a net diff), database repair from parity, sector colors, routing with no hop limit, the first picker pieces and the queue.
 
 ## Threads
 
@@ -116,7 +116,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
-| API.9 | Key scopes |  | Control schema migration (v8). Judgment: if user keys belong to accounts (API.6's open question), USR.2's table design comes first. |
+| API.9 | Key scopes |  | Control schema migration (v8). Decided: user keys belong to accounts, so API.6 waits for USR.2 (phase 3+); API.9's scopes don't. |
 
 ### Reproducible galaxies
 
