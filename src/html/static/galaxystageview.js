@@ -17,7 +17,9 @@
 // - edgePc, shape (or null), galaxyRadius, reducedMotion, accentColor;
 // - blockScene: galaxyblocks' scene (buildCells);
 // - makeBlockMesh(part, translucent): a mesh with the map's block shader;
-// - setCamera({target: [x, y, z], dist, theta, phi}): moves the camera
+// - setCamera({target: [x, y, z], dist, quaternion}): moves the camera
+//   to `dist` from `target` along the quaternion's back (+z) axis, turned
+//   by it
 //   (and the tiles, scale bar and wedge lines with it);
 // - setWedgeClip(clip): only the wedge in view shown, {r0, r1, a0, a1,
 //   z0, z1, cells (its blocks' bounds)} (null: the whole galaxy, with its
@@ -40,40 +42,38 @@ const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 
-// Not quite 0: the camera keeps galactic north as its up vector, which
-// needs the view direction off vertical by a hair.
-export const TOP_DOWN_PHI = 1e-3;
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
 const DRAG_CLICK_PX = 6;
-// Every view below the whole galaxy opens at an isometric slant (the
-// tilt from straight down, Boss 2026-10-01), so the layers show side by
-// side and can be picked on the map as well as with the slab buttons; the small
-// cube of sectors (a level-3 block, 27 at most) has each sector
-// pickable. Layers and blocks touch: no space between them (Boss,
-// 2026-10-01).
+// Each zoom step flies the camera to a preset for what it shows (MAP.97,
+// Boss 2026-10-02: "when it zooms to a block it moves as isometric, wen
+// it zooms to a slab it moves to top-down and the other direction as
+// well. The only exception is the galaxy strtas out top-down so we can
+// see the spiral arms."): the whole galaxy and a slab straight down, a
+// block (several slabs: an arc, an entered block, the cube of sectors)
+// at the isometric slant, so its slabs show side by side and can be
+// picked on the map as well as with the slab buttons. Layers and blocks
+// touch: no space between them (Boss, 2026-10-01).
 const CUBE_MAX_SECTORS = 27;
 export const ISO_TILT = Math.atan(Math.SQRT2);
 // Every view can be turned, moved and zoomed (Boss, 2026-10-01; the
 // whole galaxy too since MAP.85): drag turns it, right-drag or
-// Shift-drag moves it, the wheel or a pinch zooms. The tilt stops short of
-// edge-on; zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit
+// Shift-drag moves it, the wheel or a pinch zooms. It turns any way by
+// any amount, through edge-on and under the plane, trackball style
+// (MAP.96: "rotate the contents of the galaxy map any direction any
+// amount"); zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit
 // (the whole galaxy: GALAXY_MIN_ZOOM, about twice as close, out to its
 // fit and no further, MAP.58), and the view's middle can't wander more
 // than PAN_REACH fits away.
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
 // Shift and an arrow key turn the view this far.
 const KEY_TURN = (5 * Math.PI) / 180;
-export const MAX_TILT = (80 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const PAN_REACH = 1.5;
 export const GALAXY_MIN_ZOOM = 0.5;
-// The whole galaxy opens tilted this far from straight down, so it reads
-// as a disk with depth (MAP.85).
-export const GALAXY_TILT = (35 * Math.PI) / 180;
 const WHEEL_ZOOM_PER_PX = 0.0025;
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
@@ -86,12 +86,7 @@ const NEIGHBOR_OUTLINE_OPACITY = 0.35;
 const SLAB_LINE_OPACITY = 0.45;
 const TWO_PI = 2 * Math.PI;
 
-// The free view's limits: the tilt from straight down to MAX_TILT ...
-export function clampTilt(phi) {
-  return Math.max(TOP_DOWN_PHI, Math.min(MAX_TILT, phi));
-}
-
-// ... the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
+// The free view's limits: the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
 // fit ...
 export function clampZoom(dist, fitDist) {
   return MC.clampDistance(FREE_VIEW_ZOOM, dist, fitDist);
@@ -447,24 +442,19 @@ export function createStageView(host) {
 
   const fitBasis = { m: null, x: null, y: null, z: null };
 
-  // The camera distance from `target` along (theta, phi) at which every
+  // The camera distance from `target` along turn `quat`'s back axis at which every
   // point (a flat [x, y, z, ...] list) shows on the map with FIT_MARGIN to
   // spare, across the map's actual width and height (MAP.53, MAP.78): a
   // wide map fits a long arc by its width, a tall one by its height, and a
   // bigger map shows the same fit larger.
-  function fitDistance(points, target, theta, phi) {
+  function fitDistance(points, target, quat) {
     if (!fitBasis.m) {
       fitBasis.m = new THREE.Matrix4();
       fitBasis.x = new THREE.Vector3();
       fitBasis.y = new THREE.Vector3();
       fitBasis.z = new THREE.Vector3();
-      fitBasis.eye = new THREE.Vector3();
-      fitBasis.at = new THREE.Vector3();
     }
-    const sinPhi = Math.sin(phi);
-    fitBasis.at.set(target[0], target[1], target[2]);
-    fitBasis.eye.set(target[0] + sinPhi * Math.cos(theta), target[1] + sinPhi * Math.sin(theta), target[2] + Math.cos(phi));
-    fitBasis.m.lookAt(fitBasis.eye, fitBasis.at, camera.up);
+    fitBasis.m.makeRotationFromQuaternion(quat);
     fitBasis.m.extractBasis(fitBasis.x, fitBasis.y, fitBasis.z);
     const X = fitBasis.x;
     const Y = fitBasis.y;
@@ -490,9 +480,9 @@ export function createStageView(host) {
   // so the points sit in the middle of the map: a slanted view sees the
   // near side of a block bigger than the far side, so the middle of the
   // blocks isn't the middle of their picture. {target, dist}.
-  function centeredFit(points, target, theta, phi) {
+  function centeredFit(points, target, quat) {
     let at = target.slice();
-    let dist = fitDistance(points, at, theta, phi);
+    let dist = fitDistance(points, at, quat);
     const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
     const tanH = tanV * aspect;
@@ -522,20 +512,38 @@ export function createStageView(host) {
       const cy = ((y0 + y1) / 2) * dist * tanV;
       if (Math.abs(cx) + Math.abs(cy) < 1e-6 * dist) break;
       at = [at[0] + X.x * cx + Y.x * cy, at[1] + X.y * cx + Y.y * cy, at[2] + X.z * cx + Y.z * cy];
-      dist = fitDistance(points, at, theta, phi);
+      dist = fitDistance(points, at, quat);
     }
     return { target: at, dist: dist };
   }
 
+  // The camera's turn looking from bearing `theta` (radians from +x) and
+  // tilt `phi` (from straight down) at its target, with the screen's up
+  // pointing away from the camera across the plane (galactic north up
+  // for theta -90 degrees); straight down needs no special case.
+  function presetQuat(theta, phi) {
+    const back = new THREE.Vector3(Math.sin(phi) * Math.cos(theta), Math.sin(phi) * Math.sin(theta), Math.cos(phi));
+    const upward = new THREE.Vector3(-Math.cos(phi) * Math.cos(theta), -Math.cos(phi) * Math.sin(theta), Math.sin(phi));
+    const right = new THREE.Vector3().crossVectors(upward, back);
+    return new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, upward, back));
+  }
+
+  // The preset tilt for a stage (MAP.97): straight down for the whole
+  // galaxy and for a slab (one layer left: its segments, or its sectors),
+  // the isometric slant for a block of several slabs.
+  function presetTilt(r) {
+    if (isWholeGalaxy(r)) return 0;
+    return r.kind === "layer" ? ISO_TILT : 0;
+  }
+
   // The camera for a stage, with the view's middle bearing pointing up
-  // the screen: the whole galaxy at GALAXY_TILT (galactic north up),
-  // everything below it from the isometric slant, turned about the middle
-  // of what it shows and fitted round its blocks: {target, dist, theta,
-  // phi}.
+  // the screen (galactic north up for the whole galaxy), at the stage's
+  // preset tilt, turned about the middle of what it shows and fitted
+  // round its blocks: {target, dist, quat}.
   function cameraFor(r) {
     const blocks = r.view.blocks;
     if (!blocks.length) {
-      return { target: [0, 0, 0], dist: host.galaxyRadius * 2.4, theta: -Math.PI / 2, phi: TOP_DOWN_PHI };
+      return { target: [0, 0, 0], dist: host.galaxyRadius * 2.4, quat: presetQuat(-Math.PI / 2, 0) };
     }
     const fp = S.footprint(blocks);
     let z0 = Infinity;
@@ -545,9 +553,9 @@ export function createStageView(host) {
       z1 = Math.max(z1, block.bounds.z1);
     });
     const theta = isWholeGalaxy(r) ? -Math.PI / 2 : (r.view.a0 + r.view.a1) / 2 + Math.PI;
-    const phi = isWholeGalaxy(r) ? GALAXY_TILT : ISO_TILT;
-    const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], theta, phi);
-    return { target: fit.target, dist: fit.dist, theta: theta, phi: phi };
+    const quat = presetQuat(theta, presetTilt(r));
+    const fit = centeredFit(fitPointsOf(r), [fp.center[0], fp.center[1], (z0 + z1) / 2], quat);
+    return { target: fit.target, dist: fit.dist, quat: quat };
   }
 
   // The view on arrival at camera `to`, keeping `to` as its fit. The
@@ -555,7 +563,28 @@ export function createStageView(host) {
   // reach is measured from the fit's. `zoom` is the user's zoom, the
   // distance over the fit's at the view's own turn.
   function settledView(to) {
-    return Object.assign({}, to, { target: to.target.slice(), fit: to, zoom: 1 });
+    return Object.assign({}, to, { target: to.target.slice(), quat: to.quat.clone(), fit: to, zoom: 1 });
+  }
+
+  // The view as a flight's start: {target, dist, quat}, copied.
+  function viewNow() {
+    return { target: view.target.slice(), dist: view.dist, quat: view.quat.clone() };
+  }
+
+  // Turns the view about its target, trackball style (MAP.96): `yaw`
+  // about the screen's up axis, `pitch` about its right axis, radians
+  // (a drag right or down by that much); no limit and no flip at the
+  // poles, since the turn is kept as a quaternion.
+  const turnAxis = { x: null, y: null, q: null };
+  function turnView(yaw, pitch) {
+    if (!turnAxis.q) {
+      turnAxis.x = new THREE.Vector3(1, 0, 0);
+      turnAxis.y = new THREE.Vector3(0, 1, 0);
+      turnAxis.q = new THREE.Quaternion();
+    }
+    view.quat.multiply(turnAxis.q.setFromAxisAngle(turnAxis.y, -yaw));
+    view.quat.multiply(turnAxis.q.setFromAxisAngle(turnAxis.x, -pitch));
+    view.quat.normalize();
   }
 
   // Where the stage's blocks fall on the map now, in canvas pixels:
@@ -596,16 +625,25 @@ export function createStageView(host) {
     return { blockEdges: blockEdges, slabLines: slabLines, kind: display.resolved.kind };
   };
 
+  // The camera's tilt from straight down, in degrees (0 top-down, 90
+  // edge-on, 180 from under the plane), and whether a flight is running.
+  // Read by the browser tests.
+  canvasEl.galaxyCamera = function () {
+    if (!view) return null;
+    const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
+    return { tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation };
+  };
+
   // Keeps the view fitted round the stage as it turns or the map changes
   // size (MAP.78): the distance is the user's zoom times the fit at the
   // view's own turn.
   function reframe() {
     if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
-    view.dist = view.zoom * fitDistance(fitPointsOf(resolved), view.fit.target, view.theta, view.phi);
+    view.dist = view.zoom * fitDistance(fitPointsOf(resolved), view.fit.target, view.quat);
   }
 
   function applyView() {
-    host.setCamera({ target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi });
+    host.setCamera({ target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray() });
     drawLeaders();
   }
 
@@ -614,12 +652,12 @@ export function createStageView(host) {
   }
 
   // Animates the camera from `from` to `to` along van Wijk and Nuij's
-  // path in the plane, easing the height and turn alongside; calls
+  // path in the plane, easing the height and turn (the shortest way
+  // between the two turns) alongside; calls
   // progress(t) each frame (t 0..1) and done() at the end.
   function flyCamera(from, to, progress, done) {
     const tanHalf = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const path = S.flightPath(from.target, 2 * from.dist * tanHalf, to.target, 2 * to.dist * tanHalf);
-    const turn = wrapAngle(to.theta - from.theta);
     animation = {
       startedAt: performance.now(),
       duration: host.reducedMotion ? 0 : S.flightMs(path.S),
@@ -629,8 +667,7 @@ export function createStageView(host) {
         view = {
           target: [p.center[0], p.center[1], from.target[2] + (to.target[2] - from.target[2]) * e],
           dist: p.w / (2 * tanHalf),
-          theta: from.theta + turn * e,
-          phi: from.phi + (to.phi - from.phi) * e,
+          quat: new THREE.Quaternion().slerpQuaternions(from.quat, to.quat, e),
         };
         applyView();
         if (progress) progress(t);
@@ -697,7 +734,7 @@ export function createStageView(host) {
   }
 
   function flyTo(r) {
-    const from = display && view ? { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi } : null;
+    const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
     const old = display;
     const incoming = buildDisplay(r);
@@ -1149,7 +1186,7 @@ export function createStageView(host) {
   // Turns the view (drag) or moves it in the screen's plane (pan).
   function drag(dx, dy, pan) {
     if (!pan) {
-      MC.orbitByDrag(view, dx, dy, ROTATE_PER_PX, clampTilt);
+      turnView(dx * ROTATE_PER_PX, dy * ROTATE_PER_PX);
       reframe();
     } else {
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
@@ -1180,7 +1217,7 @@ export function createStageView(host) {
   // Back to the stage's own view, after turning or moving it.
   function resetView() {
     if (!resolved || animation || !display) return;
-    const from = { target: view.target.slice(), dist: view.dist, theta: view.theta, phi: view.phi };
+    const from = viewNow();
     const to = cameraFor(resolved);
     flyCamera(from, to, null, function () {
       view = settledView(to);
@@ -1279,7 +1316,9 @@ export function createStageView(host) {
     // Shift and an arrow turn the view about the middle of what it shows
     // (MAP.53).
     if (event.shiftKey && key !== "Enter") {
-      if (view && !animation && isFree(resolved) && MC.orbitByKey(view, key, KEY_TURN, clampTilt)) {
+      if (view && !animation && isFree(resolved)) {
+        const turns = { ArrowLeft: [-KEY_TURN, 0], ArrowRight: [KEY_TURN, 0], ArrowUp: [0, KEY_TURN], ArrowDown: [0, -KEY_TURN] };
+        turnView(turns[key][0], turns[key][1]);
         reframe();
         applyView();
       }

@@ -13,6 +13,7 @@ generated database.
 """
 
 import io
+import math
 import re
 from urllib.parse import parse_qs, urlparse
 
@@ -306,6 +307,8 @@ HOVER_SCAN = """([wanted, steps]) => {
     for (let j = 2; j < steps - 1; j++) {
         for (let i = 2; i < steps - 1; i++) {
             const x = box.left + (i / steps) * box.width, y = box.top + (j / steps) * box.height;
+            // Only where a real click can land.
+            if (y < 2 || y > window.innerHeight - 2) continue;
             canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
             const text = tip.hidden ? "" : tip.textContent;
             if (text && (!re || re.test(text))) return [x, y, text];
@@ -324,6 +327,7 @@ def _hover_choice(page, wanted=None, steps=32):
     syntax); returns (x, y, text) or None, the pointer left there. The
     map ignores the pointer while a stage's flight runs, which takes longer
     on a busy machine, so the scan is tried again for a few seconds."""
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     found = page.evaluate(HOVER_SCAN, [wanted, steps])
     for _ in range(HOVER_RETRIES):
         if found:
@@ -1038,3 +1042,62 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
         _click_choice(page, GENERATED_CHOICE)
     kinds = [s["kind"] for s in seen]
     assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
+
+
+CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
+
+
+def test_galaxy_map_turns_past_edge_on_and_under_the_plane_and_still_picks(page, map_site):
+    """MAP.96: the view turns any way by any amount: past 80 degrees,
+    through edge-on and under the plane, and hovering and picking a slab
+    still work there."""
+    _open_galaxy(page, map_site, "?p=a0.180")
+    canvas = page.locator(GALAXY_CANVAS)
+    canvas.focus()
+    tilts = []
+    for _ in range(24):
+        page.keyboard.press("Shift+ArrowDown")
+        tilts.append(page.evaluate(CAMERA)["tilt"])
+    assert max(tilts) > 170, tilts
+    assert any(80 < t < 100 for t in tilts), "turned through edge-on"
+    assert page.evaluate(CAMERA)["tilt"] > 120, "seen from under the plane"
+    _framed(page.evaluate(FRAME), 0.4)
+    found = _hover_choice(page, SLAB_TIP)
+    assert found, "no slab to hover from under the plane"
+    label = _label_of(found[2])
+    page.mouse.click(found[0], found[1])
+    _settle(page)
+    assert _crumbs(page)[-1] == label
+
+
+def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
+    """MAP.97: the whole galaxy and a slab are seen straight down, a block
+    (an arc, an entered block, the cube) at the isometric slant, going in
+    and coming back out; a manual turn holds only within its step."""
+    iso = math.degrees(math.atan(math.sqrt(2)))
+    _open_galaxy(page, map_site)
+    seen = []
+    for _ in range(12):
+        if not _on_galaxy(page):
+            break
+        kind = page.evaluate(LINES)["kind"]
+        tilt = page.evaluate(CAMERA)["tilt"]
+        seen.append((kind, round(tilt, 1)))
+        expected = iso if kind == "layer" else 0
+        assert tilt == pytest.approx(expected, abs=0.5), (kind, tilt, seen)
+        if kind == "layer":
+            # A manual turn doesn't carry over to the next step.
+            page.locator(GALAXY_CANVAS).focus()
+            page.keyboard.press("Shift+ArrowDown")
+        _click_choice(page, GENERATED_CHOICE)
+    kinds = [k for k, _ in seen]
+    assert "arc" in kinds and kinds.count("layer") >= 2 and "segment" in kinds, seen
+    # Back out: each step flies back to its own preset.
+    _open_galaxy(page, map_site, "?p=a0.180,L0")
+    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _settle(page)
+    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(iso, abs=0.5)
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _settle(page)
+    assert page.evaluate(CAMERA)["tilt"] == pytest.approx(0, abs=0.5)

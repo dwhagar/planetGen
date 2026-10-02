@@ -1918,12 +1918,15 @@ function initGalaxyMap3d(canvasEl, data) {
     // While picking a NAV start or destination, the map's own URLs keep
     // the pick, so Back, a reload or a bookmark of the page keep it too.
     pickQuery: data.pickQuery || "",
+    // The stage view turns the camera freely (MAP.96): `quaternion` is
+    // its turn, the camera sitting `dist` back along it from `target`.
     setCamera: function (v) {
       target.set(v.target[0], v.target[1], v.target[2]);
       orbit.radius = v.dist;
-      orbit.theta = v.theta;
-      orbit.phi = v.phi;
-      applyCamera();
+      camera.quaternion.fromArray(v.quaternion);
+      var back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
+      camera.position.copy(target).add(back);
+      camera.updateMatrixWorld();
       updateScaleBar();
     },
     fetchStage: function (query) {

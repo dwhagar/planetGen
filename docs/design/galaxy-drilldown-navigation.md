@@ -227,14 +227,18 @@ sectors of its children.
 
 ## 4. The stages
 
-The whole galaxy is a 3D disk, opened tilted 35° from straight down,
-that the visitor can turn and tilt, and zoom in to about twice as close
-but no further out than its fit (MAP.85, MAP.58's range); it has no
-sector, block or wedge lines, so the stars and the spiral show through.
-Every view below it, from an arc down, opens at an isometric slant
-(Boss, 2026-10-01, "turn the angle to be isometric so that the user can
-select layers easier"), so layers can be clicked on the map as well as
-picked from the strip, and can be turned, moved and zoomed within a
+The whole galaxy is a 3D disk, opened straight down so the spiral arms
+show (MAP.97), that the visitor can turn any way, and zoom in to about
+twice as close but no further out than its fit (MAP.85, MAP.58's range);
+it has no sector, block or wedge lines, so the stars and the spiral show
+through. Below it each zoom step flies to a preset for what it shows
+(MAP.97, Boss 2026-10-02): a block of several slabs (an arc, an entered
+block, the cube of sectors) at an isometric slant (Boss, 2026-10-01,
+"turn the angle to be isometric so that the user can select layers
+easier"), so layers can be clicked on the map as well as picked with the
+slab buttons, and a slab straight down. Every view can be turned any way
+by any amount, through edge-on and under the plane (MAP.96), moved and
+zoomed within a
 short range, to make layers, blocks and sectors easier to pick (Boss,
 2026-10-01, section 5.1); each step still opens on its own view. A stage is a container (the galaxy or
 one block of the ladder, section 3) and the picks made inside it so far.
@@ -784,9 +788,9 @@ below it (MAP.19, section 4) until MAP.56 replaces that.
 
 ### 15.1 The whole galaxy
 
-- The whole galaxy opens as a 3D disk tilted 35 degrees from straight
-  down, galactic north up the screen, that the user can turn and tilt
-  (`GALAXY_TILT` in `static/galaxystageview.js`). It is drawn as its
+- The whole galaxy opens as a 3D disk seen straight down, galactic north
+  up the screen (MAP.97; it opened tilted 35 degrees before), that the
+  user can turn any way (MAP.96). It is drawn as its
   stars, spiral structure and block shading only: no sector, block or
   wedge lines, and no Wedges button.
 - Zoom on the whole galaxy is a short manual range: in to about twice
