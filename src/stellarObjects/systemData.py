@@ -22,7 +22,7 @@ import math
 import random
 
 from .asteroidData import AsteroidBelt
-from .bodyNames import generate_star_word, name_bodies
+from .bodyNames import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
@@ -478,9 +478,8 @@ class StarSystem:
         # see bodyNames.py.
         self._name = self.star.name
         self.star_words = None
-        if self.binary_type is not None:
-            primary_word = generate_star_word()
-            self.star_words = (primary_word, generate_star_word(exclude=(primary_word,)))
+        if self.binary_type == "wide":
+            self.star_words = self._draw_star_words(wide_pair_first_word(self._name))
         self.assign_names()
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
@@ -506,6 +505,14 @@ class StarSystem:
         if self.binary_type != "wide":
             self.star.name = value
 
+    @staticmethod
+    def _draw_star_words(first_word):
+        """A wide pair's two star words: the primary's from the star name
+        lists, the secondary's from the small/little/child ones (GEN.62),
+        each distinct from the other and from the shared first word."""
+        primary_word = generate_star_word(exclude=(first_word,))
+        return primary_word, generate_star_word(exclude=(first_word, primary_word), companion=True)
+
     def assign_names(self, name=None):
         """
         Names every star, planet and moon in this system from the system
@@ -524,19 +531,24 @@ class StarSystem:
             self.star.name = system_name
             hosts = [(system_name, self.planets)]
         else:
-            if getattr(self, "star_words", None) is None:
-                # A system reloaded from an export written before star words existed.
-                primary_word = generate_star_word()
-                self.star_words = (primary_word, generate_star_word(exclude=(primary_word,)))
-            primary_word, secondary_word = self.star_words
-            self.primary_star.name = f"{system_name} {primary_word}"
-            self.secondary_star.name = f"{system_name} {secondary_word}"
             if self.binary_type == "close":
+                # One system, so its stars are its A and B (GEN.62).
+                primary_letter, secondary_letter = CLOSE_PAIR_LETTERS
+                self.primary_star.name = f"{system_name} {primary_letter}"
+                self.secondary_star.name = f"{system_name} {secondary_letter}"
                 self.star.name = system_name
                 hosts = [(system_name, self.planets)]
             else:
-                hosts = [(self.primary_star.name, self.planets),
-                         (self.secondary_star.name, self.secondary_planets)]
+                first_word = wide_pair_first_word(system_name)
+                if getattr(self, "star_words", None) is None:
+                    # A system reloaded from an export written before star words existed.
+                    self.star_words = self._draw_star_words(first_word)
+                primary_word, secondary_word = self.star_words
+                # Two words each, the first shared; the primary's planets
+                # take that first word, the secondary's its own (GEN.62).
+                self.primary_star.name = f"{first_word} {primary_word}"
+                self.secondary_star.name = f"{first_word} {secondary_word}"
+                hosts = [(first_word, self.planets), (secondary_word, self.secondary_planets)]
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 

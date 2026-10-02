@@ -1749,13 +1749,27 @@ def test_rename_system_carries_its_stars_planets_and_moons(admin_client, mysql_c
     system_id = _save_wide_binary_with_moons(mysql_config)
     old = admin_client.get(f"/api/systems/{system_id}").get_json()["name"]
 
+    old_first = old.split()[0]
     response = admin_client.patch(f"/api/systems/{system_id}", json={"name": "  Castor   Major "})
     assert response.status_code == 200
     assert response.get_json()["name"] == "Castor Major"
+    # A wide pair's stars and its primary's planets carry the system name's
+    # first word (GEN.62); the secondary's planets carry its own word.
+    stars = _names(mysql_config, "stars", system_id).values()
+    assert stars and all(name.split()[0] == "Castor" and len(name.split()) == 2 for name in stars), stars
+    conn = _db.get_connection(mysql_config)
+    try:
+        primary_bodies = [row["name"] for row in conn.execute(
+            "SELECT p.name FROM planets p JOIN stars s ON s.id = p.star_id "
+            "WHERE p.star_system_id = ? AND s.role = 'primary' "
+            "UNION ALL SELECT m.name FROM moons m JOIN planets p ON p.id = m.planet_id "
+            "JOIN stars s ON s.id = p.star_id WHERE p.star_system_id = ? AND s.role = 'primary'",
+            (system_id, system_id)).fetchall()]
+    finally:
+        conn.close()
+    assert primary_bodies and all(name.startswith("Castor ") for name in primary_bodies), primary_bodies
     for table in ("stars", "planets", "moons"):
-        names = _names(mysql_config, table, system_id).values()
-        assert names and all(name.startswith("Castor Major ") for name in names), (table, names)
-        assert not any(name.startswith(old + " ") for name in names)
+        assert not any(name.startswith(old_first + " ") for name in _names(mysql_config, table, system_id).values())
 
 
 def test_rename_star_planet_and_moon(admin_client, mysql_config):
@@ -1771,12 +1785,13 @@ def test_rename_star_planet_and_moon(admin_client, mysql_config):
         moon_id = conn.execute("SELECT id FROM moons WHERE planet_id = ? LIMIT 1", (planet["id"],)).fetchone()["id"]
     finally:
         conn.close()
-    numeral = planet["name"][len(stars[primary_id]) + 1:]
+    # The primary's planets carry the pair's shared first word (GEN.62).
+    numeral = planet["name"][len(stars[primary_id].split()[0]) + 1:]
 
     # A binary's star is renamed on its own, and its planets and moons follow.
-    response = admin_client.patch(f"/api/stars/{primary_id}", json={"name": "Castor"})
+    response = admin_client.patch(f"/api/stars/{primary_id}", json={"name": "Castor Pollux"})
     assert response.status_code == 200
-    assert _names(mysql_config, "stars", system_id)[primary_id] == "Castor"
+    assert _names(mysql_config, "stars", system_id)[primary_id] == "Castor Pollux"
     assert _names(mysql_config, "planets", system_id)[planet["id"]] == f"Castor {numeral}"
     assert _names(mysql_config, "moons", system_id)[moon_id].startswith(f"Castor {numeral}")
 
@@ -1794,7 +1809,7 @@ def test_rename_star_planet_and_moon(admin_client, mysql_config):
     # another body's name is allowed, a star's is refused.
     response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "New Terra"})
     assert response.status_code == 200
-    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Castor"})
+    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Castor Pollux"})
     assert response.status_code == 409
     assert "star" in response.get_json()["error"]
 

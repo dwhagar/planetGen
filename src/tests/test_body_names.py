@@ -10,7 +10,7 @@ Run with: pytest tests/test_body_names.py
 
 import pytest
 
-from stellarObjects.bodyNames import moon_letters, rename_prefix, to_roman
+from stellarObjects.bodyNames import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 
@@ -80,23 +80,25 @@ def test_single_star_system_numbers_planets_and_lettered_moons():
     assert str(system).startswith(f"= {system.name} =")
 
 
-def test_close_binary_stars_follow_the_system_name_and_planets_orbit_both():
+def test_close_binary_stars_are_the_systems_a_and_b_and_planets_orbit_both():
     system = _system(binary=True, wide=False)
     assert system.binary_type == "close"
-    primary, secondary = system.primary_star.name, system.secondary_star.name
-    assert primary.startswith(system.name + " ") and secondary.startswith(system.name + " ")
-    assert primary != secondary
+    assert system.primary_star.name == f"{system.name} A"
+    assert system.secondary_star.name == f"{system.name} B"
     assert system.star.name == system.name  # the pair's proxy titles the page
     _assert_numbered(system.name, system.planets)
+    assert f"{system.name} A / B Binary System" in str(system)
 
 
 def test_wide_binary_planets_are_numbered_after_their_own_star():
     system = _system(binary=True, wide=True)
     assert system.binary_type == "wide"
-    assert system.primary_star.name.startswith(system.name + " ")
-    assert system.secondary_star.name.startswith(system.name + " ")
-    _assert_numbered(system.primary_star.name, system.planets)
-    _assert_numbered(system.secondary_star.name, system.secondary_planets)
+    first = system.name.split()[0]
+    primary_word, secondary_word = system.star_words
+    assert system.primary_star.name == f"{first} {primary_word}"
+    assert system.secondary_star.name == f"{first} {secondary_word}"
+    _assert_numbered(first, system.planets)
+    _assert_numbered(secondary_word, system.secondary_planets)
     # The page is titled with the system, not the primary star.
     assert str(system).startswith(f"= {system.name} =")
 
@@ -106,18 +108,66 @@ def test_no_name_uses_prime_or_a_letter_suffix(binary, wide):
     system = _system(binary=binary, wide=wide)
     names = _all_names(system)
     assert len(names) == len(set(names))
+    letter_stars = {star.name for star in system.stars} if system.binary_type == "close" else set()
     for name in names:
         assert "Prime" not in name.split()
-        assert name.split()[-1] not in ("A", "B")
+        if name not in letter_stars:
+            assert name.split()[-1] not in ("A", "B")
 
 
 def test_assign_names_follows_a_new_system_name():
     system = _system(binary=True, wide=True)
     words = [star.name.split()[-1] for star in system.stars]
-    system.assign_names("Beta Rigel")
-    assert system.name == "Beta Rigel"
-    assert [star.name for star in system.stars] == [f"Beta Rigel {word}" for word in words]
-    _assert_numbered(f"Beta Rigel {words[0]}", system.planets)
+    system.assign_names("Rigel")
+    assert system.name == "Rigel"
+    assert [star.name for star in system.stars] == [f"Rigel {word}" for word in words]
+    _assert_numbered("Rigel", system.planets)
+    _assert_numbered(words[1], system.secondary_planets)
+
+
+@pytest.mark.parametrize("system_name", ["Blue", "Blue Sky"])
+def test_a_wide_pairs_stars_share_the_first_word_and_name_their_own_planets(system_name):
+    """GEN.62 (Boss 2026-10-02): stars `Blue Green` and `Blue Red`; planets
+    around the first are `Blue I`, around the second `Red I`."""
+    system = _system(binary=True, wide=True)
+    system.star_words = ("Green", "Red")
+    system.assign_names(system_name)
+    assert [star.name for star in system.stars] == ["Blue Green", "Blue Red"]
+    _assert_numbered("Blue", system.planets)
+    _assert_numbered("Red", system.secondary_planets)
+
+
+@pytest.mark.parametrize("wide", [False, True])
+def test_new_binary_star_names_are_two_words(wide):
+    """GEN.62 over generated binaries: a wide pair's stars are two words
+    sharing the first; a close pair's are the system name with A and B."""
+    for _ in range(20):
+        cfg = SystemConfig()
+        cfg.BINARY_SYSTEM = True
+        cfg.WIDE_BINARY = wide
+        system = StarSystem(system_config=cfg)
+        for system_name in (system.name, "Xy Zz"):
+            system.assign_names(system_name)
+            names = [star.name.split() for star in system.stars]
+            if system.binary_type == "close":
+                assert [" ".join(n[:-1]) for n in names] == [system_name, system_name]
+                assert [n[-1] for n in names] == list(CLOSE_PAIR_LETTERS)
+            else:
+                assert all(len(n) == 2 for n in names)
+                assert names[0][0] == names[1][0] == system_name.split()[0]
+                assert names[0][1] != names[1][1]
+
+
+def test_close_pair_label():
+    assert close_pair_label("Rigel A", "Rigel B") == "Rigel A / B"
+    assert close_pair_label("Rigel Kelmoor", "Rigel Ostra") == "Rigel Kelmoor & Rigel Ostra"
+
+
+def test_companion_star_words_are_single_words():
+    from stellarObjects.bodyNames import generate_star_word
+    for _ in range(200):
+        word = generate_star_word(companion=True)
+        assert word and " " not in word
 
 
 def test_serialization_round_trip_keeps_the_system_name():

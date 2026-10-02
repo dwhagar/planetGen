@@ -1162,7 +1162,7 @@ anything.
 | `id` | INTEGER | PK | |
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | |
 | `role` | TEXT | NOT NULL, CHECK IN ('primary','secondary','single') | |
-| `name` | TEXT | NOT NULL | A single star shares the system's name (renaming one renames the other). A binary's stars put their own word after it, e.g. `"Voranthis Kelmoor"` and `"Voranthis Ostra"`, with no A/B letters (v34). |
+| `name` | TEXT | NOT NULL | A single star shares the system's name (renaming one renames the other). A wide binary's stars are the system name's first word plus their own word, e.g. `"Voranthis Kelmoor"` and `"Voranthis Pikkita"`; a close pair's are `"Voranthis A"` and `"Voranthis B"` (GEN.62; names stored before keep theirs). |
 | `star_type` | TEXT | NOT NULL | Full descriptive string, e.g. `"G2V Yellow Main Sequence Star"` — unrelated to `planets.body_type`'s single-character code. |
 | `yerkes_class` | TEXT | NOT NULL | e.g. `"V"`, `"VII"` (white dwarf). |
 | `mass_kg`, `radius_km`, `luminosity_w` | DOUBLE | NOT NULL | |

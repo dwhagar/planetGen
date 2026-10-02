@@ -17,6 +17,7 @@ the complexity of a multi-star system.
 import math
 import random
 
+from .bodyNames import close_pair_label
 from .config import SystemConfig
 from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
@@ -381,7 +382,7 @@ class BinaryStarProxy(Star):
             "mutual_orbit": mutual_orbit_string,
             "wobble": wobble_string,
             "orbit": orbit_string,
-            "loc": f"{self._primary.name} & {self._secondary.name} Binary System" # Use full name for location
+            "loc": f"{close_pair_label(self._primary.name, self._secondary.name)} Binary System"
         }
 
     def to_paragraph_list(self):
