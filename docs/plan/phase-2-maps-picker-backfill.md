@@ -25,12 +25,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | MAP.85 | Arc, slab, segment ladder in galaxystages.js. |
-| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | MAP.85, MAP.64 | Rotation and fit on MAP.64's controller. |
-| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | MAP.53, MAP.64 | A zoom policy of MAP.64. |
+| MAP.53 | Rotate a zoomed-in wedge, and zoom it to fit the window (bug) | MAP.85 | Rotation and fit on MAP.64's controller. |
+| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | MAP.53 | A zoom policy of MAP.64. |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | MAP.53 | The fit itself; with MAP.53. |
 | MAP.76 | Leader-line layout | MAP.56 | Layout half of MAP.54; same PR. |
 | MAP.54 | Slab leader lines instead of the slab slider (bug) | MAP.56, MAP.76 |  |
-| MAP.75 | The mini map as a second engine view | MAP.54, MAP.64 | Locked second camera on MAP.64. |
+| MAP.75 | The mini map as a second engine view | MAP.54 | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.54, MAP.53, MAP.75 |  |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | MAP.56, MAP.59 | Which lines show at each level, once the ladder and ghost exist. |
 
@@ -38,8 +38,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.65 | One picking, hover and info-panel layer | MAP.64, MAP.56 | After the selection rewrite settles the pick flow. |
-| MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | MAP.65, MAP.84 | Judgment: the per-kind toggles go on the shared control set; the dimming already landed in phase 0 (MAP.82 to MAP.84). |
+| MAP.65 | One picking, hover and info-panel layer | MAP.56 | After the selection rewrite settles the pick flow. |
+| MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | MAP.65 | Judgment: the per-kind toggles go on the shared control set; the dimming already landed in phase 0 (MAP.82 to MAP.84). |
 
 ### Picker
 
@@ -58,7 +58,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.20 | Draw the direct line and the route apart | NAV.13 |  |
 | NAV.21 | Fit the view to the whole course | MAP.53, MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
-| NAV.18 | Save, list, open, rename and delete, per browser | NAV.17, MAP.81 | Sibling of bookmarks.js. |
+| NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.24 | A keep-out radius for every kind of object | GEN.47 | Nebula keep-out question needs nebulae that actually exist. |
 | NAV.36 | Unknown-space jumps drawn red and glowing | NAV.12, UX.35, NAV.20 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |

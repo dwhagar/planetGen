@@ -24,10 +24,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.66 | The sector as the drill-down's last stage, on the same page | MAP.65, TEST.70, MAP.80 | Sector as the last stage. |
+| MAP.66 | The sector as the drill-down's last stage, on the same page | MAP.65, MAP.80 | Sector as the last stage. |
 | MAP.67 | One URL and history scheme for every level | MAP.66, NAV.7 |  |
 | MAP.68 | Remove the old Sector Map code | MAP.67, MAP.79 | Deletes sectormap.js. |
-| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | MAP.63, MAP.64, MAP.65, MAP.66, MAP.67, MAP.68 | Parent; closes with its subitems. |
+| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | MAP.65, MAP.66, MAP.67, MAP.68 | Parent; closes with its subitems. |
 
 ### 3D system
 
@@ -35,7 +35,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.71 | Scale modes that keep everything visible | MAP.69, MAP.89 | Its compressed scale should reuse MAP.89's fitted knots. |
 | MAP.72 | Rendering at system scale | MAP.69 |  |
-| MAP.73 | Free camera on the shared engine | MAP.72, MAP.64, NAV.13 |  |
+| MAP.73 | Free camera on the shared engine | MAP.72, NAV.13 |  |
 | MAP.74 | The 3D view on the system page, the flat diagram kept | MAP.73, MAP.71, UX.27, UX.31 | system.html, after the page's button and edit rework. |
 | MAP.62 | A full 3D star system view with a free camera | MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74 | Parent; closes with its subitems. |
 
@@ -43,7 +43,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | MAP.68, NAV.15, NAV.29, NAV.30, NAV.31, NAV.33, MAP.79 | Bug, but it is the 'pick mode uses the one engine' end state. |
+| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | MAP.68, NAV.15, NAV.29, NAV.31, NAV.33, MAP.79 | Bug, but it is the 'pick mode uses the one engine' end state. |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.13, NAV.14, NAV.15, NAV.16, NAV.32 | Parent; closes with its subitems. |
 
 ### Courses
@@ -53,7 +53,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.22 | Courses inside a sector and a system | NAV.20, NAV.16, MAP.66, MAP.73 |  |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.20, NAV.21 |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.20, NAV.21, NAV.22, NAV.23 | Parent; most of it exists (MAP.27). |
-| NAV.25 | Find the obstacles along a path | NAV.10, NAV.24, NAV.38 | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.25 | Find the obstacles along a path | NAV.10, NAV.24 | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26, MAP.70, NAV.16 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4, NAV.20 |  |
