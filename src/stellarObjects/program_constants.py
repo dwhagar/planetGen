@@ -2665,13 +2665,12 @@ BRIGHT_STAR_BACKFILL_TIERS = ((10.0, 100.0), (25.0, 250.0), (50.0, 500.0), (100.
 """
 tuple: The bright-star backfill around a generated sector (GEN.23,
 tiered by GEN.30), as `(out_to_ly, min_luminosity_sol)` pairs, nearest
-first. Every time a galaxy sector is generated, each sector block (3x3x3
-sectors, `galaxyDrill`'s level-3 blocks) with a sector within the last
-tier's distance of it gets every star down to the floor of the first tier
-its nearest sector falls in: under 10 ly, 100 L_sun; 10 to under 25 ly,
-250; 25 to under 50 ly, 500; 50 to 100 ly, 750 (Boss, 2026-10-01). A block
-keeps the dimmest level it has been filled to (`bright_star_blocks`), so a
-block a nearer sector reaches later is topped up with only the band it
+first. Every time a galaxy sector is generated, each sector within the
+last tier's distance of it gets every star down to the floor of the first
+tier it falls in: under 10 ly, 100 L_sun; 10 to under 25 ly, 250; 25 to
+under 50 ly, 500; 50 to 100 ly, 750 (Boss, 2026-10-01). A sector keeps
+the dimmest level it has been filled to (`sector_stats`, GEN.44), so a
+sector a nearer one reaches later is topped up with only the band it
 lacks, and no star is drawn twice (`generate.py`'s
 `backfill_bright_stars`).
 """

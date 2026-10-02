@@ -2,7 +2,7 @@
 
 """
 TEST.8: every galaxy schema `main` ever shipped (checked in under
-`fixtures/old_schemas/`, v8 to v51) migrates to the current version and
+`fixtures/old_schemas/`, v8 to v52) migrates to the current version and
 ends up exactly the shape `schema.sql` gives a new database: the same
 tables, columns (type, nullability, default), indexes, foreign keys and
 CHECKs. The per-step tests in test_db_persistence.py fake an old database

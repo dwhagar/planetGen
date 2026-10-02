@@ -22,15 +22,27 @@ The scatter can go down in stages (`generate.py plan
 --bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add
 only the band from, say, 100 up to (not including) 500, keeping every
 star already placed. `galaxy_shape.bright_star_min_luminosity_sol` holds
-the level reached so far. A sector already filled gets none of the new
-band: its own systems were drawn below the old level, so they already
-include stars that bright.
+the level reached so far, and `sector_stats.bright_level_sol` a sector's
+own level where a backfill took it deeper (GEN.44). A sector already
+filled gets none of the new band: its own systems were drawn below the
+old level, so they already include stars that bright.
+
+A sector's own draws (the backfill, and a band's top-up of a sector a
+backfill took deeper) are split into fixed luminosity bands
+(`canonical_bands`, eight to a decade), each drawn whole from its own
+random stream and then cut to the range asked for (GEN.44). So a
+sector's stars between two levels never depend on the steps taken to get
+there: down to 1000 Lsun and later down to 500 gives exactly the stars
+one draw down to 500 gives. The galaxy-wide layer scatter keeps one
+stream per layer and band run: splitting it the same way would cost
+about four times the draws (a narrow band is drawn by redrawing the
+stars that overshoot it).
 """
 
 import math
 import random
 
-from . import program_constants
+from . import physical_constants, program_constants
 from .galaxyDensity import population_densities, predicted_star_count
 from .galaxyGeometry import (
     galaxy_to_local_pc,
@@ -61,6 +73,59 @@ landing in a slot too sparse to ever be filled (only at a qualifying
 edge, where a bin straddles it)."""
 
 MPC_PER_PC = 1000
+
+BANDS_PER_DECADE = 8
+"""int: How many fixed luminosity bands (`canonical_bands`) a decade of
+luminosity is split into: band `k` runs from `10 ** (k / 8)` to
+`10 ** ((k + 1) / 8)` Lsun. A draw cut at a level between two edges
+draws the band it falls in whole and drops the stars outside the range,
+so finer bands waste less; 8 keeps that under a third of one band."""
+
+TOP_BAND = 56
+"""int: The last fixed band (`canonical_bands`), open-ended from
+10^7 Lsun up: no star model reaches that, so it is almost always empty."""
+
+
+def canonical_bands(min_luminosity_sol, max_luminosity_sol=None):
+    """
+    The fixed luminosity bands (GEN.44) a draw from `min_luminosity_sol`
+    up to (not including) `max_luminosity_sol` (`None`: no limit) is made
+    of, dimmest first, as `(k, low_sol, high_sol)`: band `k` covers
+    `10 ** (k / BANDS_PER_DECADE)` to the next edge (`high_sol` `None` for
+    the open top band, `TOP_BAND`); a band's low edge is raised to the
+    brightest white dwarf, the dimmest threshold the star model takes.
+    Each band is drawn whole from its own stream and cut to the range
+    afterwards, so stars never depend on where earlier draws stopped.
+
+    Raises:
+        ValueError: For a threshold below the brightest white dwarf (as
+            `band_fractions` does).
+    """
+    band_fractions(min_luminosity_sol, max_luminosity_sol)  # refuses a bad threshold first
+    lowest = program_constants.WD_LUMINOSITY_RANGE_SOL[1]
+    k = min(math.floor(BANDS_PER_DECADE * math.log10(min_luminosity_sol) + 1e-9), TOP_BAND)
+    while k > -10 ** 6 and 10 ** (k / BANDS_PER_DECADE) > min_luminosity_sol:
+        k -= 1
+    bands = []
+    while True:
+        low = max(10 ** (k / BANDS_PER_DECADE), lowest)
+        if max_luminosity_sol is not None and low >= max_luminosity_sol:
+            break
+        high = None if k >= TOP_BAND else 10 ** ((k + 1) / BANDS_PER_DECADE)
+        if high is None or high > low:
+            bands.append((k, low, high))
+        if high is None:
+            break
+        k += 1
+    return bands
+
+
+def _in_range(row, min_luminosity_sol, max_luminosity_sol):
+    """Whether a drawn row's luminosity (column 12, watts) is in `[min,
+    max)` Lsun."""
+    watts = row[12]
+    return (watts >= min_luminosity_sol * physical_constants.SOLAR_LUMINOSITY
+            and (max_luminosity_sol is None or watts < max_luminosity_sol * physical_constants.SOLAR_LUMINOSITY))
 
 
 def _densities(position_pc, shape):
@@ -324,16 +389,19 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             yield _row(ring_index, layer_index, slot, point, population, params, rng)
 
 
-def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, rng):
+def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed):
     """
     Draws and places every star in a luminosity band for a few cells (the
-    unfilled sectors of one sector block, GEN.23): the band below what was
-    already placed there, so no star is drawn twice.
+    sectors a backfill reaches, GEN.23, one by one since GEN.44): the band
+    below what was already placed there, so no star is drawn twice.
 
-    Per qualifying cell and population, a Poisson count with mean
-    `expected_at_density_1 * density * band share` at the cell's center
-    (the per-cell rate `scatter` averages over a bin), each star uniform
-    in the cell.
+    Per qualifying cell, fixed band (`canonical_bands`) and population, a
+    Poisson count with mean `expected_at_density_1 * density * band
+    share` at the cell's center (the per-cell rate `scatter` averages over
+    a bin), each star uniform in the cell. Each cell and band draws from
+    its own stream (the seed, the address and the band), cut to the band
+    asked for afterwards, so a cell taken down to 1000 Lsun and later to
+    500 holds exactly the stars one draw down to 500 gives (GEN.44).
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -343,33 +411,40 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
         min_luminosity_sol (float): The band's floor (Lsun).
         max_luminosity_sol (float or None): Its ceiling, the level the
             cells were already filled to; `None` when nothing was placed.
-        rng (random.Random): The random source.
+        seed (int): The galaxy's bright-star seed.
 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol)
+    bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
+    shares = {(k, population): bright_band_fraction(low, high, population)
+              for k, low, high in bands for population in POPULATIONS}
     for ring_index, layer_index, slot in addresses:
         center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
         if not _qualifies(center, shape, expected_at_density_1):
             continue
         densities = _densities(center, shape)
         slots = ring_sector_count(ring_index)
-        for population in POPULATIONS:
-            mean = expected_at_density_1 * densities[population] * fractions[population]
-            if mean <= 0.0:
+        for k, low, high in bands:
+            means = {population: expected_at_density_1 * densities[population] * shares[(k, population)]
+                     for population in POPULATIONS}
+            if not any(mean > 0.0 for mean in means.values()):
                 continue
-            count = _sample_poisson_count(mean, rng=rng)
-            if not count:
-                continue
-            stars = sample_bright_stars(count, min_luminosity_sol, population, rng,
-                                        max_luminosity_sol=max_luminosity_sol)
-            for params in stars:
-                for _ in range(SLOT_REDRAWS):
-                    point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
-                    if point is not None:
-                        yield _row(ring_index, layer_index, slot, point, population, params, rng)
-                        break
+            rng = random.Random(f"{seed}:{ring_index}:{layer_index}:{slot}:{k}")
+            for population in POPULATIONS:
+                if means[population] <= 0.0:
+                    continue
+                count = _sample_poisson_count(means[population], rng=rng)
+                if not count:
+                    continue
+                for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high):
+                    for _ in range(SLOT_REDRAWS):
+                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        if point is not None:
+                            row = _row(ring_index, layer_index, slot, point, population, params, rng)
+                            if _in_range(row, min_luminosity_sol, max_luminosity_sol):
+                                yield row
+                            break
 
 
 def star_params(row):

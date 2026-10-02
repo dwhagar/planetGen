@@ -889,8 +889,9 @@
 --   the computed answer.
 --
 -- v49: bright-star backfill per sector block (GEN.23) -- the
---   `bright_star_blocks` table below: for each 3x3x3 sector block a
---   backfill has reached, the dimmest luminosity its stars have been
+--   `bright_star_blocks` table (dropped in v53 for `sector_stats`): for
+--   each 3x3x3 sector block a backfill has reached, the dimmest
+--   luminosity its stars have been
 --   drawn down to. `_migrate_v48_to_v49` creates it empty.
 --
 -- v50: `system_configs` gains `comets` and `wide_binary`, so a stored
@@ -919,6 +920,15 @@
 --   changes the galaxy. A galaxy is built by a series of commands, not by
 --   the seed alone, so these rows are what a rebuild replays.
 --   `_migrate_v51_to_v52` adds both empty.
+--
+-- v53: one row of stats per sector (GEN.44, PERF.11, `sector_stats`
+--   below), keyed by grid address so a sector nobody has filled can have
+--   one: how deep its bright stars go (replacing v49's per-block
+--   `bright_star_blocks`, which it drops), its expected density, and,
+--   once filled, what it actually holds. `galaxy_shape` gains the
+--   decaying average of actual against expected systems.
+--   `_migrate_v52_to_v53` moves each block's level onto its unfilled
+--   sectors and gives every filled sector a row at level 0.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1101,7 +1111,13 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     version_key                     CHAR(22),
     planetgen_version               VARCHAR(32),
     python_version                  VARCHAR(16),
-    platform                        VARCHAR(64)
+    platform                        VARCHAR(64),
+
+    -- v53 (PERF.11): a decaying average, over every sector fill, of the
+    -- systems a sector got against the systems expected there
+    -- (`sector_stats`), and how many fills went into it.
+    density_ratio_avg               DOUBLE,
+    density_ratio_samples           BIGINT UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- One row per layer that holds content (v33; replaces v32's
@@ -2482,24 +2498,50 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 
 
 -- ---------------------------------------------------------------------
--- bright_star_blocks (v49, GEN.23): one row per sector block (a level-3
--- block of `galaxyDrill`: 3 rings by 3 layers by its wedge's slots, keyed
--- by block ring, wedge and slab) the bright-star backfill around a
--- generated sector has reached. `min_luminosity_sol` is the dimmest
--- luminosity the block's unfilled sectors hold every star down to; NULL
--- while a backfill holds the row locked, before it finishes. A block
--- with no row is at `galaxy_shape.bright_star_min_luminosity_sol` (or
--- has no bright stars at all, before any scatter). A plan re-run or
--- reset empties the table along with `bright_stars`.
+-- sector_stats (v53, GEN.44 and PERF.11): one row per sector address
+-- (ring, layer, slot) that a backfill reached or a fill generated --
+-- unfilled sectors have no `sectors` row, so this is keyed by address.
+--
+-- `bright_level_sol` is how deep the sector's bright stars go (GEN.44):
+-- -1 untouched (it follows `galaxy_shape.bright_star_min_luminosity_sol`,
+-- and holding stars with no level there means a run failed part way, so
+-- they are wiped and drawn again), a positive L_sun for the dimmest a
+-- backfill drew every star down to, 0 once the sector is generated. It is
+-- written in the same transaction as the stars it describes. A fill keeps
+-- the level it found in `level_before_fill_sol`, which deleting the
+-- sector puts back. A new scatter sets every positive level back to -1.
+--
+-- `relative_density` and `expected_systems` are the galaxy model's
+-- density at the sector's center and the systems expected there
+-- (PERF.11); `actual_systems`, `actual_stars` and the mean temperature
+-- (K) and luminosity (L_sun) of its stars are what a fill gave it, NULL
+-- before. From them a fill also works out the sector's color on the
+-- Galaxy Map (MAP.86, `sectorLook`): `fill_share` (0..1, its systems
+-- against the most a sector can hold) and `color_r`/`color_g`/`color_b`
+-- (sRGB, 0..1; NULL for a sector with no stars), so the map averages
+-- stored colors into its blocks.
 -- ---------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS bright_star_blocks (
-    block_ring           INT NOT NULL,
-    block_wedge          INT NOT NULL,
-    block_slab           SMALLINT NOT NULL,
-    min_luminosity_sol   DOUBLE,
-    updated_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+CREATE TABLE IF NOT EXISTS sector_stats (
+    ring_index             INT NOT NULL,
+    layer_index            SMALLINT NOT NULL,
+    ring_slot_index        INT NOT NULL,
+    bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
+    level_before_fill_sol  DOUBLE,
+    relative_density       DOUBLE,
+    expected_systems       DOUBLE,
+    actual_systems         INT,
+    actual_stars           INT,
+    mean_temperature_k     DOUBLE,
+    mean_luminosity_sol    DOUBLE,
+    fill_share             DOUBLE,
+    color_r                DOUBLE,
+    color_g                DOUBLE,
+    color_b                DOUBLE,
+    filled_at              TIMESTAMP(3) NULL,
+    updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
-    PRIMARY KEY (block_ring, block_wedge, block_slab)
+    PRIMARY KEY (ring_index, layer_index, ring_slot_index),
+    KEY idx_sector_stats_level (bright_level_sol)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

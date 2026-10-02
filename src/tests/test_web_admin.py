@@ -711,6 +711,24 @@ def test_bright_star_text_without_a_scatter(database, text):
     assert admin_pages.bright_star_text(database) == text
 
 
+def test_admin_stats_sector_density_row(client, fake):
+    # PERF.11: the decaying average of actual against expected systems.
+    _logged_in(client, fake)
+    fake.database_extra = {"sector_stats": {"measured": 12, "backfilled": 300, "ratio": 0.9731, "fills": 12}}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert re.search(r'<th scope="row">Sector density</th><td>0.97 of the expected systems \(average of 12 '
+                     r'fills\); 12 sectors measured, 300 sectors backfilled to their own level</td>', html)
+
+
+@pytest.mark.parametrize("database, text", [
+    ({}, "not tracked by this schema"),
+    ({"sector_stats": {"measured": 0, "backfilled": 0, "ratio": None, "fills": 0}},
+     "no sector filled yet; 0 sectors backfilled to their own level"),
+])
+def test_density_text_without_fills(database, text):
+    assert admin_pages.density_text(database) == text
+
+
 def test_admin_stats_names_paged(client, fake):
     _logged_in(client, fake)
     fake.names = [{"base_name": f"Name {i:03d}", "levels": ["sector"], "rows": []} for i in range(60)]

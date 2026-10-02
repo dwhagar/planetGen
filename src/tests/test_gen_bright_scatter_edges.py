@@ -17,13 +17,13 @@ does the backfill after a run, GEN.30, leave any beside its own stars).
 """
 
 import itertools
+import math
 import random
 
 import pytest
 
 import generate
 from stellarObjects import _db, brightStars, galaxySeed
-from stellarObjects.galaxyDrill import DrillBlock, drill_parent
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
 from stellarObjects import program_constants
 
@@ -209,8 +209,7 @@ def test_a_threshold_below_every_white_dwarf_is_refused_before_any_star(threshol
     with pytest.raises(ValueError, match="white dwarf"):
         brightStars.band_fractions(threshold)
     with pytest.raises(ValueError, match="white dwarf"):
-        next(brightStars.backfill_cells(SHAPE, [(2, 0, 0)], EDGE_PC, E_VALUE, threshold, THRESHOLD,
-                                        random.Random(1)))
+        next(brightStars.backfill_cells(SHAPE, [(2, 0, 0)], EDGE_PC, E_VALUE, threshold, THRESHOLD, 1))
 
 
 def test_a_backfill_below_every_white_dwarf_writes_nothing(mysql_config):
@@ -221,8 +220,8 @@ def test_a_backfill_below_every_white_dwarf_writes_nothing(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
-        # No block is left holding a lock row (level NULL) or a level.
-        assert conn.execute("SELECT COUNT(*) AS n FROM bright_star_blocks").fetchone()["n"] == 0
+        # No sector is left with a level (GEN.44).
+        assert conn.execute("SELECT COUNT(*) AS n FROM sector_stats WHERE bright_level_sol > 0").fetchone()["n"] == 0
     finally:
         conn.close()
 
@@ -363,9 +362,18 @@ def _leftover_cells(mysql_config):
     return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["n"] for row in rows}
 
 
-def _block_of(address):
-    ring_index, layer_index, slot = address
-    return drill_parent(DrillBlock(1, ring_index, slot, layer_index))
+def _reached(mysql_config):
+    """The sectors a backfill took to their own level (GEN.44)."""
+    conn = _db.get_connection(mysql_config)
+    try:
+        return set(_db.sector_bright_level_keys(conn))
+    finally:
+        conn.close()
+
+
+def _nearest(cells, address):
+    return min(cells, key=lambda cell: (math.dist(sector_position_pc(*cell, EDGE_PC),
+                                                  sector_position_pc(*address, EDGE_PC)), cell))
 
 
 def _fill(mysql_config, address):
@@ -413,10 +421,10 @@ def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_c
     # Layers 0 and -1 are written and committed, layer 1 fails: no
     # threshold is recorded. A run's fill then builds none of its cell's
     # leftovers (no level to fill down to), and the backfill after it
-    # (GEN.30) draws its blocks from their tier floors with no ceiling.
-    # Its blocks' other cells must lose their leftovers then, or a later
-    # fill there would build them as well as the backfill's stars (every
-    # bright star twice).
+    # (GEN.30) draws its sectors from their tier floors with no ceiling.
+    # Every other cell it reaches must lose its leftovers then (GEN.44: no
+    # level anywhere, yet stars), or a later fill there would build them
+    # as well as the backfill's stars (every bright star twice).
     _seed_galaxy(mysql_config)
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
                                            "tests.test_gen_bright_scatter_edges:layer_fails", layer=1)
@@ -434,17 +442,17 @@ def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_c
         assert layers == {0, -1}
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     address = max((address for address in leftovers if address[1] == 0), key=lambda a: (leftovers[a], a))
-    block_cells = set(generate._block_addresses(_block_of(address)))
-    neighbor = max((cell for cell in block_cells if cell != address and leftovers.get(cell)),
-                   key=lambda cell: (leftovers[cell], cell))
+    neighbor = _nearest([cell for cell in leftovers if cell != address], address)
 
     _sector_id, _name, sector = _fill(mysql_config, address)
     assert [entry for entry in sector.entries if entry.preplaced] == []
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
     assert _backfill_around(mysql_config, address)["stars"] > 0
+    reached = _reached(mysql_config)
+    assert neighbor in reached
     # The filled cell's own leftovers stay unbuilt (a filled sector never
-    # gets stars); the block's other cells hold none.
-    assert _unbuilt_leftover_cells(mysql_config, last_leftover) & block_cells == {address}
+    # gets stars); the cells the backfill reached hold none.
+    assert _unbuilt_leftover_cells(mysql_config, last_leftover) & (reached | {address}) == {address}
 
     _sector_id, _name, sector = _fill(mysql_config, neighbor)
     preplaced = [entry for entry in sector.entries if entry.preplaced]
@@ -456,15 +464,14 @@ def test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star(mysql_c
     assert all(star_id > last_leftover for star_id in built)
 
 
-def test_a_fill_after_failed_commits_clears_its_blocks_leftovers(mysql_config, monkeypatch):
+def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
     _interrupt_after_commits(mysql_config, monkeypatch)
     leftovers = _leftover_cells(mysql_config)
     # The layer-0 cell with the fewest leftovers, so the fill stays small
     # even if it did build them.
     address = min((cell for cell in leftovers if cell[1] == 0), key=lambda cell: (leftovers[cell], cell))
-    block = _block_of(address)
-    block_cells = set(generate._block_addresses(block))
+    neighbor = _nearest([cell for cell in leftovers if cell != address], address)
     last_leftover = _count(mysql_config, "SELECT MAX(id) AS n FROM bright_stars")
     # With more workers, the layers drawn beside layer 0 left theirs too.
     assert last_leftover == 20_000 if worker_patches.workers() == 1 else last_leftover >= 20_000
@@ -474,20 +481,15 @@ def test_a_fill_after_failed_commits_clears_its_blocks_leftovers(mysql_config, m
 
     assert _count(mysql_config, "SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NOT NULL") == 0
     after = _leftover_cells(mysql_config)
-    conn = _db.get_connection(mysql_config)
-    try:
-        backfilled = {cell for key in _db.bright_star_block_keys(conn)
-                      for cell in generate._block_addresses(DrillBlock(3, *key))}
-    finally:
-        conn.close()
+    backfilled = _reached(mysql_config) | {address}
     stale_cells = _unbuilt_leftover_cells(mysql_config, last_leftover)
-    assert block_cells <= backfilled
-    assert stale_cells, "leftovers outside the backfilled blocks should still be there"
-    # Only the filled cell keeps its leftovers inside the backfilled
-    # blocks: it never gets stars again, so they are never built.
+    assert neighbor in backfilled
+    assert stale_cells, "leftovers outside the backfilled sectors should still be there"
+    # Only the filled cell keeps its leftovers among the backfilled
+    # sectors: it never gets stars again, so they are never built.
     assert stale_cells & backfilled == {address}
-    # Leftovers outside the backfilled blocks are untouched until their
-    # own block is reached (or a re-plan clears them).
+    # Leftovers outside the backfilled sectors are untouched until a
+    # backfill reaches them (or a re-plan clears them).
     assert {cell for cell in leftovers if cell not in backfilled} <= set(after)
 
 

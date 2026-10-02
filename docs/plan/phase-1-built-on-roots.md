@@ -33,7 +33,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Moved from phase 0: a new tool, not a bug fix; first item of phase 1 with DB.9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.44, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
 ### Classes
 
@@ -57,7 +57,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 | ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
-| GEN.41 | Investigate: how much backfill work a density pre-pass would save | GEN.44 | Investigation; go/no-go for GEN.42. |
+| GEN.41 | Investigate: how much backfill work a density pre-pass would save |  | Investigation; go/no-go for GEN.42. |
 
 ### Galaxy Map
 
@@ -82,7 +82,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes; queue behind PERF.11. Built with NAV.12 (no hop limit, a route always exists). |
+| NAV.10 | Routing that scales past a few thousand systems |  | Galaxy schema migration for position indexes (v53 taken by PR #425). Built with NAV.12 (no hop limit, a route always exists). |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.34, TEST.79, NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
@@ -117,7 +117,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.56 | Every random draw in generation comes from the derived seeds |  | Touches every generator module. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56, GEN.44 | Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56 | Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  |  |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
@@ -142,5 +142,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
+- GEN.57: A sector's contents depend only on the seed, the version and its address, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.
 - NAV.43: Find everything within a distance of a place: the query and the API, see its entry in TODO.md.
