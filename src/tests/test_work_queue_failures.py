@@ -84,6 +84,71 @@ def test_a_dead_worker_fails_the_run_and_frees_the_lease(control_config):
     assert errors and any("BrokenProcessPool" in row["error"] for row in errors)
 
 
+def _sleep_then_pid(payload):
+    time.sleep(payload)
+    return os.getpid()
+
+
+def _pid(_payload):
+    return os.getpid()
+
+
+def test_a_worker_sent_sigterm_mid_task_exits_once_the_task_ends():
+    """PERF.22: the pool turns SIGTERM during a task into that task's
+    `SystemExit`, then waits for the next task. A worker must still
+    exit, or Python 3.12's broken-pool cleanup (terminate, then join
+    under its shutdown lock) hangs the run for good."""
+    import concurrent.futures
+    import multiprocessing
+
+    pool = concurrent.futures.ProcessPoolExecutor(
+        max_workers=1, mp_context=multiprocessing.get_context("spawn"),
+        initializer=workQueue._worker_init, initargs=(workQueue.log.NORMAL, None),
+    )
+    try:
+        pid = pool.submit(_pid, None).result(timeout=60)
+        worker = pool._processes[pid]
+        busy = pool.submit(workQueue._run_task, _sleep_then_pid, 5, 1)
+        time.sleep(0.5)
+        os.kill(pid, signal.SIGTERM)
+        with pytest.raises(BaseException) as ended:
+            busy.result(timeout=30)
+        assert isinstance(ended.value, (SystemExit, BrokenProcessPool))
+        deadline = time.monotonic() + 10
+        while time.monotonic() < deadline:
+            if not worker.is_alive():
+                break
+            time.sleep(0.05)
+        else:
+            pytest.fail("the worker outlived its SIGTERM")
+    finally:
+        pool.shutdown(wait=True, cancel_futures=True)
+
+
+@pytest.mark.parametrize("attempt", range(3))
+def test_a_dead_worker_never_hangs_the_run(control_config, attempt):
+    """PERF.22: a dead worker fails the run on every Python version, with
+    the other worker busy when the pool breaks (the case that hung on
+    3.12)."""
+    finished = threading.Event()
+    outcome = {}
+
+    def run():
+        try:
+            with workQueue.WorkQueue("Worker dies, other busy", workers=2, control_config=control_config) as queue:
+                for n in range(12):
+                    queue.submit("die", f"n{n}", _die_on_two, n)
+        except BaseException as exc:  # noqa: BLE001 -- checked below
+            outcome["raised"] = exc
+        finally:
+            finished.set()
+
+    thread = threading.Thread(target=run, daemon=True)
+    thread.start()
+    assert finished.wait(60), "the run hung after a worker died"
+    assert isinstance(outcome.get("raised"), BrokenProcessPool)
+
+
 def test_on_done_raising_fails_the_run(control_config):
     def broken(result, seconds, weight):
         raise RuntimeError("the progress bar broke")

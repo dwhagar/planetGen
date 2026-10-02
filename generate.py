@@ -236,7 +236,7 @@ class _CountColumn(MofNCompleteColumn):
 
     def render(self, task):
         if task.fields.get("percent"):
-            share = task.completed / task.total if task.total else 0.0
+            share = min(task.completed / task.total, 1.0) if task.total else 0.0
             return Text(f"{100 * share:.0f}%", style="progress.download")
         return super().render(task)
 
@@ -3545,6 +3545,7 @@ class _LayerTracker:
         self.lock = threading.Lock()
         self.in_flight = {}
         self.credited = {}
+        self.finished = set()
         self.done_weight = 0.0
         self.done_layers = 0
         self.layer_rate = progressRate.DecayingRate(clock=clock)
@@ -3557,14 +3558,20 @@ class _LayerTracker:
         return f"{self.label} ({self.done_layers:,} of {len(self.weights):,} layers)"
 
     def layer_progress(self, layer_index, done, estimate):
-        """A layer in progress has drawn `done` of about `estimate` stars."""
+        """A layer in progress has drawn `done` of about `estimate` stars.
+        A report that arrives after its layer finished (reports come
+        through the channel's thread) is ignored, or that layer would be
+        counted twice (PERF.23)."""
         with self.lock:
-            if layer_index in self.weights:
+            if layer_index in self.weights and layer_index not in self.finished:
                 self.in_flight[layer_index] = (done, estimate)
                 self._refresh()
 
     def layer_done(self, layer_index):
         with self.lock:
+            if layer_index in self.finished:
+                return
+            self.finished.add(layer_index)
             self.in_flight.pop(layer_index, None)
             self.credited.pop(layer_index, None)
             self.done_weight += self.weights.get(layer_index, 0.0)

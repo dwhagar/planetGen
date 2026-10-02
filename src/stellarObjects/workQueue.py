@@ -192,8 +192,37 @@ class Cancelled(SystemExit):
         return f"{self.title} was cancelled from the admin queue page."
 
 
+# Set in a worker once it has been sent SIGTERM (see `_worker_sigterm`).
+_worker_stopping = False
+
+# How long a worker stopped mid-task waits, after the task has ended,
+# before stopping itself (`_run_task`), so the task's result is sent first.
+WORKER_STOP_DELAY_SECONDS = 0.2
+
+
 def _worker_sigterm(signum, _frame):
+    global _worker_stopping
+    _worker_stopping = True
     raise SystemExit(128 + signum)
+
+
+def _stop_worker_soon():
+    """
+    Sends this worker SIGTERM again once the task that the first one
+    ended has been reported (PERF.22). The pool runs every task inside
+    a `try` that catches `BaseException`, so a SIGTERM during a task
+    only ends that task; the worker would then wait for its next task
+    forever. When the pool itself is stopping a broken pool, it
+    terminates the workers and then joins them while holding its
+    shutdown lock (Python 3.12), so a worker that never exits hangs
+    the whole run.
+    """
+    # To the main thread itself: a process-wide signal can land on another
+    # thread, leaving the main thread blocked in its read.
+    timer = threading.Timer(WORKER_STOP_DELAY_SECONDS, signal.pthread_kill,
+                            (threading.main_thread().ident, signal.SIGTERM))
+    timer.daemon = True
+    timer.start()
 
 
 def _worker_init(log_level, debug_file):
@@ -219,7 +248,11 @@ def _worker_init(log_level, debug_file):
 def _run_task(fn, payload, seed):
     random.seed(seed)
     started = time.monotonic()
-    result = fn(payload)
+    try:
+        result = fn(payload)
+    finally:
+        if _worker_stopping:
+            _stop_worker_soon()
     return result, time.monotonic() - started
 
 
