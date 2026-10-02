@@ -61,7 +61,7 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 
 **Note on Incompatible Options:**
 
-*   `-planets` cannot be combined with `+moons`, `+max_planets`, or `+habitable_world`.
+*   `-planets` cannot be combined with `+moons`, `+max_planets`, `+habitable_world`, or `+asteroid_belt` (on the `system` command this also covers the same keys, `num_orbits` and `slots`, in a `--system-file`).
 *   `--star-type` cannot be combined with `+large_star`.
 *   `+intelligent_life`/`-intelligent_life` cannot be combined with `-habitable_world`.
 *   `+habitable_world` and `+asteroid_belt` together cannot be combined with `-large_star` (both objects require the room a large star provides).
@@ -69,6 +69,10 @@ Most generation options use a `+name`/`-name` tri-state syntax: `+name` forces t
 *   `--num-orbits` must be from 0 to 500 (the generator's own ceiling on objects in a system).
 *   `--flavor-chance-system` must be a float between 0.0 and 1.0.
 *   `--flavor-chance-planet` must be a float between 0.0 and 1.0.
+
+A forced body some stars can't host (a habitable world around a hot O or B
+star, for example) is tried on up to five whole systems. If none of them has
+it, `system` exits with an error and saves nothing.
 
 ### System specification files
 

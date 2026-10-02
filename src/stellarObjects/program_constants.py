@@ -136,6 +136,13 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # neighbor's spacing to protect one body's zone in place.
 MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
+# How many whole systems (star and all) `generate.py system` builds while
+# looking for one that meets every forced option (`StarSystem.
+# unmet_requirements`) before it gives up with an error and saves nothing.
+# Some stars rarely allow a forced body: around an O5V star a habitable
+# world fails about two systems in five.
+SINGLE_SYSTEM_GENERATION_ATTEMPTS = 5
+
 # --- Binary System Generation Parameters ---
 
 # Holman & Wiegert (1999), AJ 117:621 -- their P-type (circumbinary) fit,

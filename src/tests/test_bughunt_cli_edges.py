@@ -34,6 +34,7 @@ from tests.bughunt_support import mysql_argv, run_cli
     ["-planets", "+moons"],
     ["-planets", "+max_planets"],
     ["-planets", "+habitable_world"],
+    ["-planets", "+asteroid_belt"],
     ["--star-type", "G2V", "+large_star"],
     ["+intelligent_life", "-habitable_world"],
     ["-intelligent_life", "-habitable_world"],
