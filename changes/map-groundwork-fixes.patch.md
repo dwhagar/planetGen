@@ -7,3 +7,5 @@
 
 ### Added
 - **Browser tests for the maps that need no database (TEST.70).** `test_web_browser_fixture_maps.py` drives the Galaxy Map and the Sector Map, served by the real Flask views over fixture data, through picking, hover, keys, Back and Forward, URL state, bookmarks and the scale line.
+- **One module for the maps' shared helpers (MAP.63).** `static/mapcore.js` holds what the Galaxy Map, the Sector Map and the System Map each had their own copy of: reading the scene data, theme colors, info-panel fields, the highlight ring, the scale bar's numbers, fitting the canvas and picking a point of light on screen. No visible change.
+- **One camera and input controller for the Galaxy Map and the Sector Map (MAP.64).** `static/mapcontrol.js` turns, moves and zooms both maps, with a zoom policy each view sets (free, a short range, or locked), and tells a drag from a click in one place. No visible change.

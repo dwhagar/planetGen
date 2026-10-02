@@ -41,6 +41,7 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const {
   addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
@@ -667,6 +668,13 @@ export function initStarmap(canvasEl, data, options) {
   var DRAG_CLICK_THRESHOLD_PX = 4;
   var MIN_POLAR = THREE.MathUtils.degToRad(2);
   var MAX_POLAR = THREE.MathUtils.degToRad(178);
+  // The zoom policy (mapcontrol.js): a short range, zoom MIN_ZOOM to
+  // MAX_ZOOM, as camera distances from the zoom-1 distance.
+  var ZOOM_POLICY = MC.zoomPolicy(MC.ZOOM_RANGE, 1 / MAX_ZOOM, 1 / MIN_ZOOM);
+
+  function clampPolar(phi) {
+    return Math.max(MIN_POLAR, Math.min(MAX_POLAR, phi));
+  }
 
   var defaultZoom = data.defaultZoom > 0 && data.defaultZoom <= 1 ? data.defaultZoom : 1;
   var defaultAzimuth = THREE.MathUtils.degToRad(-32);
@@ -685,7 +693,7 @@ export function initStarmap(canvasEl, data, options) {
   }
 
   function setZoom(zoom) {
-    spherical.radius = referenceDistance / Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoom));
+    spherical.radius = MC.clampDistance(ZOOM_POLICY, referenceDistance / Math.max(zoom, 1e-6), referenceDistance);
     applyCamera();
     updateScaleBar();
   }
@@ -976,62 +984,6 @@ export function initStarmap(canvasEl, data, options) {
 
   // --- Pointer/keyboard interaction --------------------------------------
 
-  var dragging = false;
-  var dragDistance = 0;
-  var lastClientX = 0;
-  var lastClientY = 0;
-  var suppressNextClick = false;
-
-  canvasEl.addEventListener("pointerdown", function (event) {
-    dragging = true;
-    dragDistance = 0;
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-    try {
-      canvasEl.setPointerCapture(event.pointerId);
-    } catch (err) {
-      // Pointer capture isn't essential -- dragging still works via
-      // ordinary pointermove bubbling if the browser refuses it.
-    }
-  });
-
-  canvasEl.addEventListener("pointermove", function (event) {
-    if (!dragging) {
-      return;
-    }
-    var deltaX = event.clientX - lastClientX;
-    var deltaY = event.clientY - lastClientY;
-    dragDistance += Math.abs(deltaX) + Math.abs(deltaY);
-    lastClientX = event.clientX;
-    lastClientY = event.clientY;
-
-    spherical.theta -= deltaX * ROTATE_SENSITIVITY;
-    spherical.phi = Math.max(MIN_POLAR, Math.min(MAX_POLAR, spherical.phi - deltaY * ROTATE_SENSITIVITY));
-    applyCamera();
-    updateScaleBar();
-  });
-
-  function endDrag(event) {
-    dragging = false;
-    if (dragDistance > DRAG_CLICK_THRESHOLD_PX) {
-      suppressNextClick = true;
-      // Safety net: a pointerup isn't always followed by a click (e.g.
-      // pointercancel) -- don't leave this suppressing some unrelated
-      // later click if one never arrives to consume and clear it.
-      setTimeout(function () {
-        suppressNextClick = false;
-      }, 0);
-    }
-    dragDistance = 0;
-    try {
-      canvasEl.releasePointerCapture(event.pointerId);
-    } catch (err) {
-      // Already released/invalid -- nothing to clean up.
-    }
-  }
-  canvasEl.addEventListener("pointerup", endDrag);
-  canvasEl.addEventListener("pointercancel", endDrag);
-
   canvasEl.addEventListener(
     "wheel",
     function (event) {
@@ -1042,15 +994,10 @@ export function initStarmap(canvasEl, data, options) {
   );
 
   canvasEl.addEventListener("keydown", function (event) {
-    var key = event.key;
-    if (key !== "ArrowLeft" && key !== "ArrowRight" && key !== "ArrowUp" && key !== "ArrowDown") {
+    if (!MC.orbitByKey(spherical, event.key, KEY_ROTATE_STEP, clampPolar)) {
       return;
     }
     event.preventDefault();
-    if (key === "ArrowLeft") spherical.theta += KEY_ROTATE_STEP;
-    if (key === "ArrowRight") spherical.theta -= KEY_ROTATE_STEP;
-    if (key === "ArrowUp") spherical.phi = Math.max(MIN_POLAR, spherical.phi - KEY_ROTATE_STEP);
-    if (key === "ArrowDown") spherical.phi = Math.min(MAX_POLAR, spherical.phi + KEY_ROTATE_STEP);
     applyCamera();
     updateScaleBar();
   });
@@ -1099,12 +1046,22 @@ export function initStarmap(canvasEl, data, options) {
     return { entry: best, distance: camera.position.distanceTo(new THREE.Vector3(best.x, best.y, best.z)) };
   }
 
-  canvasEl.addEventListener("click", function (event) {
-    if (suppressNextClick) {
-      suppressNextClick = false;
-      return;
-    }
-    selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+  // Any button's drag turns the view from its first move; a click that
+  // travelled no more than DRAG_CLICK_THRESHOLD_PX picks what's under it.
+  MC.createPointerControl(canvasEl, {
+    attach: true,
+    dragClickPx: DRAG_CLICK_THRESHOLD_PX,
+    measure: "path",
+    turnAtOnce: true,
+    onDrag: function (dx, dy) {
+      MC.orbitByDrag(spherical, dx, dy, ROTATE_SENSITIVITY, clampPolar);
+      applyCamera();
+      updateScaleBar();
+    },
+    clickOn: "click",
+    onClick: function (event) {
+      selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+    },
   });
 
   var controlsEl = document.getElementById("starmap-controls");

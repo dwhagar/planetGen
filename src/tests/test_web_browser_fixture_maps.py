@@ -276,7 +276,16 @@ def _query(page):
 
 
 def _settle(page):
+    """Waits out a stage's flight: until the scale bar (its width follows
+    the camera) holds still, a few seconds at most on a busy machine."""
     page.wait_for_timeout(250)
+    last = None
+    for _ in range(40):
+        now = page.evaluate("() => (document.querySelector('#galaxymap3d-scale') || {}).innerHTML || ''")
+        if now == last:
+            return
+        last = now
+        page.wait_for_timeout(150)
 
 
 def _open_galaxy(page, base, query=""):
@@ -302,11 +311,21 @@ HOVER_SCAN = """([wanted, steps]) => {
 }"""
 
 
+HOVER_RETRIES = 20
+
+
 def _hover_choice(page, wanted=None, steps=32):
     """Moves the pointer over the map (as pointer events, for speed) until
     the tooltip names a choice matching `wanted` (a regex, JavaScript
-    syntax); returns (x, y, text) or None, the pointer left there."""
+    syntax); returns (x, y, text) or None, the pointer left there. The
+    map ignores the pointer while a stage's flight runs, which takes longer
+    on a busy machine, so the scan is tried again for a few seconds."""
     found = page.evaluate(HOVER_SCAN, [wanted, steps])
+    for _ in range(HOVER_RETRIES):
+        if found:
+            break
+        page.wait_for_timeout(250)
+        found = page.evaluate(HOVER_SCAN, [wanted, steps])
     if found:
         page.mouse.move(found[0], found[1])
     return found
@@ -466,7 +485,7 @@ def test_galaxy_map_scale_line_follows_the_zoom_on_a_free_stage(page, map_site):
     box = page.locator(GALAXY_CANVAS).bounding_box()
     page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
     page.mouse.wheel(0, -400)
-    page.wait_for_timeout(150)
+    _settle(page)
     assert _galaxy_scale(page) != stage_scale, "the wheel zooms and the scale follows"
     reset_view.click()
     _settle(page)
