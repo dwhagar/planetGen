@@ -111,7 +111,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391). | TEST.85, MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so is the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403). | MAP.57, MAP.88, MAP.92, MAP.56, MAP.76, MAP.54, MAP.53, MAP.78, MAP.77, MAP.96, MAP.97, GEN.60, GEN.38, GEN.47, GEN.44, PERF.11, PERF.1, MAP.80, MAP.86, TEST.79, NAV.34, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | GEN.64, NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
@@ -1678,9 +1678,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   free, so the result does not depend on generation order; search,
   pages, the API and the maps show the 16-digit form; a test packs and
   unpacks positions at each unit and checks a forced clash. Being built
-  now by the analysis thread (2026-10-02 05:36Z). Related: TEST.85 (its
-  registry path no longer serves these objects; the fix still matters
-  for named star systems), GEN.57 (name clashes keyed on address: these
+  now by the analysis thread (2026-10-02 05:36Z). Related: TEST.85 (done,
+  PR #403: its registry path no longer serves these objects; the fix
+  still matters for named star systems), GEN.57 (name clashes keyed on address: these
   objects no longer have name clashes to settle), GEN.63 (planet names
   unique in a sector: rogue planets and their moons drop out of it,
   since their names come from the ID), GEN.46 (done, PR #370: the
@@ -1931,8 +1931,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     resolved by the system with the lower address keeping the name and
     the other renaming from its own seeded stream (GEN.57's rule, so
     the result doesn't depend on generation order or worker count); the
-    check reads the sector's existing names, not a running count (see
-    TEST.85's negative collision count in `nameUniqueness.py`); duplicates
+    check reads the sector's existing names, not a running count (TEST.85,
+    done in PR #403, fixed the negative collision count in
+    `nameUniqueness.py`); duplicates
     across sectors stay allowed; and a test generates crowded sectors
     and checks every name is unique within each. Rogue planets and
     their moons are named from GEN.64's position ID, so they drop out
@@ -2705,45 +2706,6 @@ clears each one.
   fixed seed, or the list worked out from what the run produced), and
   it passes on every run tried. [infra, DB]
 
-- [ ] **TEST.85 Name collisions can count -1 existing names and fail generation (bug)**
-  `test_bright_star_scatter.py::test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band`
-  failed once in the full suite with `ValueError: existing_count must
-  be >= 0, got -1` from `nameUniqueness.py` line 137, and passed in 7
-  runs alone (seen by the Binary pairs and single-system forcing
-  thread, PR #373, 2026-10-02; not fixed there). The count of existing
-  names comes from the name reservation in `_db.py`, so a -1 suggests a
-  reservation counted against a name another worker or an earlier band
-  removed. Related: GEN.44 (adding only the new luminosity band to a
-  sector, Boss 03:25Z) and GEN.57 (name collisions keyed on address,
-  not arrival order); GEN.46 (done, PR #370) last changed the
-  collision code. Done: the failing case is found (loop the test under
-  `-n auto`), the count can never go below 0, and the test passes on
-  every run tried. Seen again (2026-10-02 05:00Z): the same error hit
-  two tests in `test_galaxy_gen.py` in the Binary pairs lane's run of
-  PR #393, so at least three tests in two files fail on it. It is a
-  real bug in the name collision count (`nameUniqueness.py` line 137
-  rejects a count `_db.py` produced), not a timing flake, so it moves
-  out of the flakes to the Binary pairs and single-system forcing lane,
-  right after GEN.51 (done, PR #398), in the same naming code; GEN.57 and
-  GEN.63 (phase 1) build their address-keyed and per-sector name rules
-  on a count that is right.
-  Root cause (naming-cost analysis thread, 2026-10-02, report
-  https://claude.ai/artifact/Qzz9KEefo7k1WDH26iq5XQ): in
-  `_db.reserve_system_names`, a name redrawn by
-  `_regenerate_star_name()` during a pass is counted in the `uses` of a
-  registry row handled later in the same pass, though it was never
-  inserted for that row, so that row's existing count comes out -1 and
-  the sector save fails. Captured case: seed
-  `0123456789abcdef0123456789abcdef`, ring 700 layer 0, the 4th sector,
-  slot 1016 "Aogbun Alibas" redrawn to "Askaus", where the Askaus row
-  (`occurrence_count` 1) counted 2 uses; it gets more likely as the
-  registry fills. Fix hint: work out each name's key once per pass,
-  after the redraws, rather than in `uses = [i for i in todo if
-  _name_key(names[i]) in row_keys]`; that comprehension is also O(n^2),
-  about 0.85 s per dense sector, and precomputing the keys made dense
-  sectors about 1.7 times faster with identical output. The captured
-  case becomes a regression test. [infra, GEN]
-
 - [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
   `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`
   failed once in a full `pytest -n auto` run and passed 3 of 3 alone
@@ -2751,6 +2713,18 @@ clears each one.
   2026-10-02). Done: the failing case is found (loop the test under
   `-n auto`), the cause is fixed in the test or in the code it found,
   and the test passes on every run tried. [infra, GEN]
+
+- [ ] **TEST.87 The two-process id-block test times out under full parallel load (bug)**
+  `test_db_id_blocks_edges.py::test_two_processes_using_up_blocks_of_one_table_never_collide`
+  times out with `_queue.Empty` in a full `pytest -n auto` run and
+  passed 3 of 3 alone (seen by the Binary pairs thread, PR #403,
+  2026-10-02). The test spawns two processes that reserve id blocks of
+  one table and reads their results from a queue, so a slow spawn under
+  load can outrun the queue wait. Related: TEST.81 (the same two-process
+  reservation can deadlock on MariaDB 10.11). Done: the cause is found
+  (a wait too short for a loaded machine, or a real stall in
+  `_db._reserve_id_block`), fixed in the test or the code, and the test
+  passes on every full `-n auto` run tried. [infra, DB]
 
 ## USR: User accounts
 
