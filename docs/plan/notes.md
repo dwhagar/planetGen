@@ -164,7 +164,7 @@ None of Boss's 2026-10-01 notes apply to this phase.
 | generate.py: sector phenomena (generate_sector_phenomena) | GEN.47 (phase 0) | Generation bugs lane. |
 | generate.py: sector summary | UX.34, OPS.9 | One PR. |
 | systemData.py StarSystem constructor | GEN.52 | GEN.53, GEN.54, GEN.49, GEN.50, GEN.62, GEN.51 done (PRs #367, #373, #393, #398). |
-| planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.60, GEN.38 with class S (phase 0), GEN.33/28, GEN.27, GEN.29 | Generation bugs lane first; the classes thread in phase 1. |
+| planetPhysics.py, roguePlanetData.py and PLANET_CLASSES | GEN.33/28, GEN.27, GEN.29 | GEN.60, GEN.38 and class S done (PR #415); the classes thread in phase 1. |
 | Random draws in every generator file | GEN.56 (GEN.39 done, PR #381) | Touches almost every file above; tell the other generation threads to merge main when it lands. |
 | _db.py | API.10 (id blocks), API.12 (names), TEST.81, TEST.87, GEN.57 | DB.2 to DB.5 done (PRs #342, #347); GEN.46 done (PR #370); GEN.64 done (PR #406, `_claim_object_ids`). |
 | Galaxy schema (schema.sql, v52 today, PR #387) | GEN.44, PERF.11 with MAP.86 (phase 0), DB.7, NAV.10, API.11 | One writer at a time, now in this order: GEN.44 (v53), PERF.11 with MAP.86, then DB.7, NAV.10, API.11. DB.8 only reads it. |

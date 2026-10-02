@@ -476,7 +476,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.35 | Rocky planets only ever get Class D moons (bug) | none | done, PR #350 |
 | GEN.36 | Moon regeneration can produce gas-giant or blacklisted moon classes (bug) | none | done, PR #350 |
 | GEN.37 | 97% of planets land in the cold zone (bug) | none | done, PR #350 |
-| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | open |
+| GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | done, PR #415 |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | done, PR #381 |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
@@ -498,7 +498,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
-| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | open |
+| GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | open |
