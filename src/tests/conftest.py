@@ -25,6 +25,7 @@ can still run everything else.
 """
 
 import os
+import sys
 import tempfile
 import urllib.error
 import urllib.request
@@ -43,9 +44,10 @@ from stellarObjects._db import MySQLConfig
 os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-test-logs-"))
 
 # Generation runs one sector at a time, in-process, unless a test asks for
-# workers itself (tests/test_work_queue.py): many tests patch generate.py's
-# functions, which a worker process would never see, and pytest-xdist
-# already uses the cores.
+# workers itself (tests/test_work_queue.py) or the run sets
+# PLANETGEN_WORKERS: CI's worker legs (TEST.74) run the `generation` tests
+# at 2 and 4 workers too. A test that patches generate.py for a run does
+# it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
 # Test runs never read or add to the control database's generation speed
@@ -106,6 +108,15 @@ def pytest_sessionstart(session):
         )
 
 
+def _generation_refs():
+    """What a test file that runs generation has imported."""
+    refs = [sys.modules.get("generate"), sys.modules.get("stellarObjects.workQueue")]
+    support = sys.modules.get("tests.bughunt_support")
+    if support is not None:
+        refs.append(support.run_cli)
+    return [ref for ref in refs if ref is not None]
+
+
 def pytest_collection_modifyitems(config, items):
     """Suite markers (registered in pytest.ini), so a run can pick a slice:
     `-m "not db"` without a database, `-m "not slow"` for a quick loop,
@@ -119,7 +130,11 @@ def pytest_collection_modifyitems(config, items):
     - `browser`: `test_web_a11y.py` and `test_web_browser_*.py` (headless
       Chromium).
     - `mathcheck`: `test_math_check.py`, moved to the front of the run.
+    - `generation`: files that run generation (`generate`, the work queue
+      or `bughunt_support.run_cli`), which CI also runs at several worker
+      counts (TEST.74).
     """
+    generation_refs = _generation_refs()
     for item in items:
         if "mysql_config" in getattr(item, "fixturenames", ()):
             item.add_marker(pytest.mark.db)
@@ -128,6 +143,9 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.slow)
         if name == "test_web_a11y.py" or name.startswith("test_web_browser"):
             item.add_marker(pytest.mark.browser)
+        module = getattr(item, "module", None)
+        if module is not None and any(value is ref for value in vars(module).values() for ref in generation_refs):
+            item.add_marker(pytest.mark.generation)
     # The math check's own tests run first (a stable sort keeps every
     # other test in its collected order).
     items.sort(key=lambda item: item.get_closest_marker("mathcheck") is None)

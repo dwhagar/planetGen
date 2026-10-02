@@ -348,6 +348,33 @@ GALAXY_RING = 3
 NUM_SYSTEMS = 6
 
 
+def test_a_stop_signal_swallowed_by_a_database_call_still_stops_the_run(control_config, monkeypatch):
+    """TEST.73: a SIGTERM's `SystemExit` can land inside pymysql, which
+    turns it into a database error that the queue's bookkeeping logs and
+    carries on past; the run then finished as if nothing had happened.
+    The queue remembers the signal and stops at the next step."""
+    with pytest.raises(SystemExit) as raised:
+        with workQueue.WorkQueue("Swallowed signal", workers=2, control_config=control_config) as queue:
+            real = queue._store.add_tasks
+            sent = []
+
+            def add_tasks(job_id, tasks):
+                if not sent:
+                    sent.append(True)
+                    try:
+                        os.kill(os.getpid(), signal.SIGTERM)
+                        time.sleep(0.5)
+                    except BaseException:  # noqa: BLE001 -- what pymysql did with it
+                        pass
+                return real(job_id, tasks)
+
+            monkeypatch.setattr(queue._store, "add_tasks", add_tasks)
+            for n in range(8):
+                queue.submit("square", f"n{n}", _slow_square, n)
+    assert sent and raised.value.code == 128 + signal.SIGTERM
+    _ended_cleanly(control_config, queue.job_id, "cancelled")
+
+
 def _sector_counts(config):
     conn = _db.get_connection(config)
     try:

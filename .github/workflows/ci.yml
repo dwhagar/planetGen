@@ -58,7 +58,7 @@ jobs:
 
   test:
     needs: mathcheck
-    name: test (${{ matrix.python-version }}, ${{ matrix.db-image }})
+    name: test (${{ matrix.python-version }}, ${{ matrix.db-image }}${{ matrix.workers && format(', {0} workers', matrix.workers) || '' }})
     runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
     # The whole suite takes about 4 minutes on 4 cores; a run past an hour
     # is stuck, and would otherwise hold a self-hosted runner for 6 hours.
@@ -86,6 +86,18 @@ jobs:
           - python-version: "3.12"
             db-image: mariadb:11.4
             db-health: healthcheck.sh --connect --innodb_initialized
+          # TEST.74: the generation tests again with 2 and 4 worker
+          # processes, the path a real run takes (the legs above run every
+          # generation in-process, PLANETGEN_WORKERS=1). 3.12 and 3.13
+          # because a dead worker once hung the pool on 3.12 (PERF.22).
+          - python-version: "3.12"
+            db-image: mysql:8.4
+            db-health: mysqladmin ping -h 127.0.0.1
+            workers: 2
+          - python-version: "3.13"
+            db-image: mariadb:11.4
+            db-health: healthcheck.sh --connect --innodb_initialized
+            workers: 4
 
     services:
       # conftest.py's own docstring says database-backed tests expect CI to
@@ -137,12 +149,14 @@ jobs:
       - name: Run tests
         env:
           PLANETGEN_TEST_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
+          PLANETGEN_WORKERS: ${{ matrix.workers || '1' }}
         # One worker per core (docs/testing.md, "Running in parallel");
         # worksteal rebalances the few minute-long tests across workers.
         # A test still running after 10 minutes is stuck: --timeout fails
         # it with every thread's stack, so the log shows where.
         # --durations lists the slowest tests, to compare runners.
-        run: pytest -n auto --dist worksteal --timeout=600 --durations=25
+        # A worker leg runs only the `generation` tests (conftest.py).
+        run: pytest -n auto --dist worksteal --timeout=600 --durations=25 ${{ matrix.workers && '-m generation' || '' }}
 
   browser-a11y:
     needs: mathcheck
