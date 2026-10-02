@@ -491,8 +491,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | open |
 | GEN.51 | Forcing options only for single-system generation | none | open |
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
-| GEN.53 | The two stars of a binary don't share one age (bug) | none | open |
-| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | open |
+| GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
+| GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
