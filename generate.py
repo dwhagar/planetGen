@@ -1924,9 +1924,9 @@ class _BatchDensity:
             return args
         skeleton = self.skeleton
 
-        star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
-        if star_count < 1.0:
-            return None
+        # star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
+        # if star_count < 1.0:
+            # return None
 
         resolved = copy.copy(args)
         resolved.density = relative_density(position_pc, skeleton.shape)
