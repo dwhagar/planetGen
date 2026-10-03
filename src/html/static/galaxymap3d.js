@@ -39,7 +39,9 @@
 // Stars are points of light a few pixels across with a soft glow, the
 // same size at every zoom: the pre-placed bright stars (500 L☉ or more)
 // everywhere, and the stars of generated systems fainter and fainter as
-// the view closes in (MAP.51); clicking one shows it -- see "Stars".
+// the view closes in (MAP.51). They can't be clicked (MAP.101): a click
+// on one picks what's under it, and a star's details are on its sector's
+// page -- see "Stars".
 
 // Sibling modules are imported with this module's own `?v=<version>`
 // query (html/lib/fmt.py's `static_url`), so they are cached and
@@ -407,40 +409,6 @@ function formatLuminosity(sol) {
     return Number(sol.toPrecision(2)).toLocaleString("en-US", { maximumSignificantDigits: 2 }) + " L☉";
   }
   return formatNumber(sol) + " L☉";
-}
-
-function systemUrl(id) {
-  return String(sceneData.systemUrl || "").replace("{id}", encodeURIComponent(id));
-}
-
-// A star on the map: a pre-placed bright star
-// (queryDb.galaxy_bright_stars_in_box) or a generated system's star
-// (queryDb.galaxy_generated_stars_in_box, `generated` set): what it is,
-// and its system's page once its sector is filled.
-function showStarInfo(star) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
-  var heading = document.createElement("h3");
-  heading.textContent = star.generated ? star.name || "Star" : "Bright star";
-  panel.appendChild(heading);
-  var dl = document.createElement("dl");
-  addField(dl, "Type", [star.star_type, star.yerkes_class].filter(Boolean).join(" "));
-  addField(dl, "Luminosity", formatLuminosity(star.luminosity_sol));
-  addField(dl, "Temperature", formatNumber(star.temperature_k) + " K");
-  if (star.radius_sol != null) {
-    addField(dl, "Radius", formatNumber(Number(star.radius_sol.toPrecision(2)), 6, 0) + " R☉");
-  }
-  addField(dl, "Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z)));
-  addField(dl, "Sector", sectorDesignation(star.ring_index, star.layer_index, star.ring_slot_index));
-  addField(dl, "Address", formatAddress(star.ring_index, star.layer_index, star.ring_slot_index));
-  addField(dl, "System", star.system_id != null ? null : "Not generated yet (its sector isn't filled)");
-  panel.appendChild(dl);
-  if (sceneData.systemUrl && star.system_id != null && !sceneData.pick) {
-    panel.appendChild(pageLink(systemUrl(star.system_id), "View system →"));
-  }
 }
 
 var POINT_TYPE_LABELS = { black_hole: "Black Hole", neutron_star: "Neutron Star", quasar: "Quasar" };
@@ -1295,8 +1263,9 @@ function initGalaxyMap3d(canvasEl, data) {
   var STAR_GLOW = [0.2, 0.6];
   var STAR_CORE_ALPHA = [0.75, 1];
   var STAR_LOG_LUMINOSITY = [-4, 6];
-  // A click within this many pixels of a star's center picks it.
-  var STAR_PICK_PX = 7;
+  // A click within this many pixels of a black hole, neutron star or
+  // quasar's center picks it (stars themselves are never picked, MAP.101).
+  var POINT_PICK_PX = 7;
   // Stars new to the view fade in over this long (MAP.48: nothing pops
   // in); with reduced motion they just appear.
   var STAR_FADE_IN_MS = reducedMotion ? 0 : 300;
@@ -1462,12 +1431,13 @@ function initGalaxyMap3d(canvasEl, data) {
     attribute.needsUpdate = true;
   }
 
-  // The star whose center is nearest a screen point, within
-  // STAR_PICK_PX, or null.
-  function starAtClientPoint(clientX, clientY) {
+  // The black hole, neutron star or quasar (drawn as a star, MAP.80) whose
+  // center is nearest a screen point, within POINT_PICK_PX, or null.
+  // Plain stars are skipped: they never take the click (MAP.101).
+  function pointAtClientPoint(clientX, clientY) {
     var found = nearestOnScreen(starList, camera, canvasEl.getBoundingClientRect(), clientX, clientY, {
-      reach: function () { return STAR_PICK_PX; },
-      accept: function (star) { return inWedgeClip(star.x, star.y, star.z); },
+      reach: function () { return POINT_PICK_PX; },
+      accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
       lastWins: true,
     });
     return found ? found.entry : null;
@@ -2035,8 +2005,9 @@ function initGalaxyMap3d(canvasEl, data) {
   //
   // Everything goes to the drill-down, which turns and zooms the view
   // where it may.
-  // A click on a bright star or a cloud small enough to aim at shows it
-  // instead of picking what's under it.
+  // A click on a black hole, neutron star or quasar, or a cloud small
+  // enough to aim at, shows it instead of picking what's under it (never a
+  // star: MAP.101).
   canvasEl.addEventListener("pointerdown", function (event) { stageView.onPointerDown(event); });
   canvasEl.addEventListener("pointermove", function (event) { stageView.onPointerMove(event); });
   canvasEl.addEventListener("pointerup", function (event) { stageView.onPointerUp(event); });
@@ -2060,17 +2031,17 @@ function initGalaxyMap3d(canvasEl, data) {
     return new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
   }
 
-  // The star or cloud a click at a screen point means, shown in the panel
-  // and ringed: true when there was one.
+  // The phenomenon (a black hole, neutron star or quasar, or a cloud) a
+  // click at a screen point means, shown in the panel and ringed: true
+  // when there was one. Stars are never picked here (MAP.101):
+  // in a dense sector they would cover it, so a click on one picks the
+  // block, slab or sector under it, and a star's details are on its
+  // sector's page.
   function showPointAt(clientX, clientY) {
-    var star = starAtClientPoint(clientX, clientY);
-    if (star) {
-      highlightPosition(star.x, star.y, star.z);
-      if (star.phenomenon) {
-        showPointInfo(star);
-      } else {
-        showStarInfo(star);
-      }
+    var point = pointAtClientPoint(clientX, clientY);
+    if (point) {
+      highlightPosition(point.x, point.y, point.z);
+      showPointInfo(point);
       return true;
     }
     var found = cloudAtClientPoint(clientX, clientY);

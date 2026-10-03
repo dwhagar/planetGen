@@ -348,9 +348,10 @@ of a level-3 block.
   leaves the map. It switches at once, with no fade, so there is nothing
   for `prefers-reduced-motion` to turn off.
 - **Click:** takes the choice, and the map flies into it (section 5.3).
-  Inside a block, a click on a bright star or a small cloud shows it
-  instead; over the whole galaxy and its quarters the stars are too
-  thick for that.
+  Inside a block, a click on a black hole, neutron star, quasar or small
+  cloud shows it instead. Stars never take the click (MAP.101): a click
+  on one picks what's under it, since in a dense sector they would cover
+  it, and a star's details are on its sector's page.
 - **The slab buttons (MAP.30, now MAP.54 and MAP.76):** while a layer
   is to be picked, one button per slab to the right of the map (in one
   column below it on a phone), each with its slab's name and generated
