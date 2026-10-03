@@ -2375,10 +2375,10 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
 
     density = relative_density(position_pc, skeleton.shape)
     star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
-    if star_count < 1.0:
+    # if star_count < 1.0:
         # Inside the layer (a safe superset) but this slot's own angle
         # didn't clear the exact threshold.
-        return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+        # return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
     args = _default_generation_args(config=config)
     args.density = density
