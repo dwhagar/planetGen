@@ -701,7 +701,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # them) have since been fixed, but that isn't a guarantee every
         # generated value now lands in a narrow realistic band -- it's a
         # statistical question the physical-plausibility tooling
-        # (stellarObjects/plausibility.py) is better suited to monitor than
+        # (planetgen/generation/plausibility.py) is better suited to monitor than
         # a hard clamp. Commented out rather than deleted in case it needs
         # restoring.
         # if planet.planet_class == "M":
@@ -1111,7 +1111,7 @@ def generate_moons(planet, moon_count=None):
 
     # Deferred import: planetData imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
-    from stellarObjects.planetData import Planet
+    from planetgen.generation.planet import Planet
 
     while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * constants.AU_TO_KM):
         if moon_count is not None and len(planet.moons) >= moon_count:

@@ -34,10 +34,10 @@ import types
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics.planets import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 N_SYSTEMS = 20
 
@@ -237,7 +237,7 @@ def test_period_uses_the_actual_primary_not_always_the_star(bodies):
 
 
 def test_serializable_fields_include_orbital_motion_attributes():
-    from stellarObjects.planetData import Planet
+    from planetgen.generation.planet import Planet
     for field in (
         "orbital_inclination_deg", "orbital_ascending_node_deg",
         "orbital_phase_deg", "position_x", "position_y", "position_z",
@@ -528,8 +528,8 @@ def test_star_with_no_planets_has_zero_reflex_offset():
 
 
 def test_serializable_fields_include_reflex_offset_attributes():
-    from stellarObjects.planetData import Planet
-    from stellarObjects.starData import Star
+    from planetgen.generation.planet import Planet
+    from planetgen.generation.star import Star
     for field in ("reflex_offset_x", "reflex_offset_y", "reflex_offset_z"):
         assert field in Planet.SERIALIZABLE_FIELDS
         assert field in Star.SERIALIZABLE_FIELDS

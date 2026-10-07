@@ -7,12 +7,12 @@ a moon, and on the class reference page.
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import classref  # noqa: E402

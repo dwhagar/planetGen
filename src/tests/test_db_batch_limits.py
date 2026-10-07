@@ -19,11 +19,11 @@ import pymysql
 import pytest
 
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 
 TEXT_MAX = 65535
 """int: Bytes a TEXT column holds."""

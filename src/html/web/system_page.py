@@ -32,7 +32,7 @@ from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_sto
 from .helpers import crumb, render_page, trusted_html
 
 from mdconvert import markdown_to_html
-from stellarObjects.generationLimits import MAX_NUM_ORBITS
+from planetgen.generation.limits import MAX_NUM_ORBITS
 
 TRISTATE_FIELDS = (
     # (generate.py option name, label) -- the same ten, in the same order,

@@ -46,8 +46,8 @@ from stellarObjects._db import (add_mysql_connection_args, escape_like, get_conn
                                 mysql_config_from_args, surrounding_cloud)
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects.starData import compressed_heliosphere_radius
-from stellarObjects.brightStars import MPC_PER_PC
+from planetgen.generation.star import compressed_heliosphere_radius
+from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen._version import VersionAction, __version__, version_banner
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
@@ -70,7 +70,7 @@ from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
-from stellarObjects.evolution import life_stage_from_paragraphs
+from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_ISLAND_LINKS, PLANET_CLASSES,
 )

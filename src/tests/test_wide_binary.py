@@ -17,8 +17,8 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 from stellarObjects.utils import (holman_wiegert_critical_semimajor_axis,
                                    mutual_hill_radius_au,
                                    sample_wide_binary_eccentricity,

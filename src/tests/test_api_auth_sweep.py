@@ -39,9 +39,9 @@ from api.app import create_app
 from api.config import Config
 from api.limiter import limiter
 from stellarObjects import _db, adminAuth
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.test_fuzz_web_routes import csrf_pair, session_of
 from tests.test_two_factor import _now_code

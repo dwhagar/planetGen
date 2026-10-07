@@ -1,4 +1,4 @@
-# stellarObjects/validation.py
+# planetgen/generation/validation.py
 
 """
 One place to validate a planet, a lunar system (a planet and its moons)
@@ -26,10 +26,10 @@ Three kinds of function live here:
 
 from collections import namedtuple
 
-from . import planetLife
+from planetgen.generation import life as planetLife
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
-from .utils import calculate_reflex_offset, mutual_hill_radius_au
+from stellarObjects.utils import calculate_reflex_offset, mutual_hill_radius_au
 
 RELATIVE_TOLERANCE = 1e-9
 """float: Slack the checks allow on a distance comparison, so a body the

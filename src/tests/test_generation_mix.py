@@ -18,14 +18,14 @@ import statistics
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects import validation
+from planetgen.generation import validation
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning as prog_c
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.roguePlanetData import RoguePlanet
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.phenomena.rogue import RoguePlanet
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 N_SYSTEMS = 1000
 

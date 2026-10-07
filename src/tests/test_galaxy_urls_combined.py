@@ -134,9 +134,9 @@ def test_locate_endpoint_not_found_from_the_api_is_json(client, fake, monkeypatc
 def _system_in(mysql_config, sector_id, name):
     """Adds one star system named `name` to `sector_id` (raw rows are
     enough for the locate and course lookups)."""
-    from stellarObjects.config import SystemConfig
+    from planetgen.generation.config import SystemConfig
     from planetgen.galaxy.sector import SpaceSector
-    from stellarObjects.systemData import StarSystem
+    from planetgen.generation.system import StarSystem
 
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"

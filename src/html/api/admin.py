@@ -19,7 +19,8 @@ import pymysql
 from flask import Blueprint, current_app, jsonify, request
 
 import adminStats
-from stellarObjects import _db, adminAuth, generationStats, loginThrottle
+from stellarObjects import _db, adminAuth, loginThrottle
+from planetgen.generation import stats as generationStats
 from planetgen._version import __version__
 
 from .authz import audit, require_admin
@@ -178,7 +179,7 @@ def _proxy_warning(locked, failures):
 def generation_stats():
     """
     `GET /api/admin/generation-stats` -- how fast this server generates
-    and how big a galaxy gets (PERF.10, `stellarObjects/generationStats.py`):
+    and how big a galaxy gets (PERF.10, `planetgen/generation/stats.py`):
     `{"buckets": [{"kind", "bucket", "density_low", "density_high",
     "samples", "seconds_per_task", "seconds_per_system",
     "systems_per_task", "stars_per_system", "max_density"}], "sizes":

@@ -1,4 +1,4 @@
-# stellarObjects/wideBinary.py
+# planetgen/generation/wide_binary.py
 
 """
 Wide (S-type) Binary Pair
@@ -38,8 +38,8 @@ import random
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .starData import Star
-from .utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
+from planetgen.generation.star import Star
+from stellarObjects.utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
                     holman_wiegert_critical_semimajor_axis,
                     minimum_update_interval_years, orbital_position_au,
                     properties_to_string, sample_wide_binary_eccentricity,

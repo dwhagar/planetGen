@@ -1,4 +1,4 @@
-# stellarObjects/phenomenaPlausibility.py
+# planetgen/generation/phenomena_plausibility.py
 
 """
 Exotic-phenomena plausibility anomaly finder.
@@ -40,15 +40,15 @@ from collections import Counter, defaultdict
 
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
-from .asteroidFieldData import AsteroidField
-from .compactRemnant import BlackHole, NeutronStar
-from .config import SystemConfig
-from .nebulaData import Nebula
-from .plausibility import iqr_bounds
-from .quasarData import Quasar
-from .roguePlanetData import InterstellarComet, RoguePlanet, rogue_planet_classes
-from .supernovaRemnantData import SupernovaRemnant
-from .utils import power_law_share
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.plausibility import iqr_bounds
+from planetgen.generation.phenomena.quasar import Quasar
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, rogue_planet_classes
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from stellarObjects.utils import power_law_share
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
 """tuple: The eight phenomenon types this module can generate/check --

@@ -28,10 +28,10 @@ import pytest
 import queryDb
 from stellarObjects import _db
 from stellarObjects._db import MySQLConfig
-from stellarObjects.config import SystemConfig
-from stellarObjects.roguePlanetData import RoguePlanet
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.conftest import _test_server_kwargs
 

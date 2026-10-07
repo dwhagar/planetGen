@@ -9,9 +9,9 @@ import random
 import pytest
 
 from planetgen.physics import constants
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics.stellar_evolution import main_sequence_luminosity_sol
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 STAR_TYPES = [None, "G2V", "M2V", "O5V", "B3V", "A0V", "K1III", "M2VII", "M2IA"]
 SEEDS = range(12)

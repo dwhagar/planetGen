@@ -42,8 +42,9 @@ from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
 import generate
-from stellarObjects.starData import STAR_TYPE_PATTERN
-from stellarObjects import _db, generationLimits
+from planetgen.generation.star import STAR_TYPE_PATTERN
+from stellarObjects import _db
+from planetgen.generation import limits
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.density import build_galaxy_shape
@@ -249,7 +250,7 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
     note(f"argv={argv}")
     get = lambda name: getattr(args, name, None)  # noqa: E731
     if get("num_orbits") is not None:
-        assert 0 <= args.num_orbits <= generationLimits.MAX_NUM_ORBITS
+        assert 0 <= args.num_orbits <= limits.MAX_NUM_ORBITS
     for name in ("flavor_chance_system", "flavor_chance_planet"):
         if get(name) is not None:
             assert 0.0 <= get(name) <= 1.0
@@ -266,9 +267,9 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
         for name in ("ring", "slot", "max_ring"):
             assert get(name) is None or get(name) >= 0
         for name in ("ring", "max_ring"):
-            assert get(name) is None or get(name) <= generationLimits.MAX_GENERATE_RING
-        assert get("limit") is None or 1 <= get("limit") <= generationLimits.MAX_GENERATE_LIMIT
-        assert get("radius_pc") is None or 0 < get("radius_pc") <= generationLimits.MAX_GENERATE_RADIUS_PC
+            assert get(name) is None or get(name) <= limits.MAX_GENERATE_RING
+        assert get("limit") is None or 1 <= get("limit") <= limits.MAX_GENERATE_LIMIT
+        assert get("radius_pc") is None or 0 < get("radius_pc") <= limits.MAX_GENERATE_RADIUS_PC
         assert get("min_start_density") is None or get("min_start_density") > 0
     if command == "plan":
         assert 0 <= args.arm_amplitude < 1 and args.max_ring >= 1
@@ -674,12 +675,12 @@ def _recording_fill_task(payload):
     ("inf", "was a raw OverflowError from math.ceil(-inf)"),
     ("1e300", "was a hang enumerating ~1e300 rings; now past the radius bound"),
     ("1e308", "the largest finite radius; now past the radius bound"),
-    (repr(generationLimits.MAX_GENERATE_RADIUS_PC), "the largest allowed radius, wider than the test galaxy"),
+    (repr(limits.MAX_GENERATE_RADIUS_PC), "the largest allowed radius, wider than the test galaxy"),
 ])
 def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radius, consequence):
     """A radius beyond the whole galaxy just means "every sector in it":
     the enumeration must be trimmed to the galaxy up front, not walk the
-    whole sphere. A radius past `generationLimits.MAX_GENERATE_RADIUS_PC`
+    whole sphere. A radius past `limits.MAX_GENERATE_RADIUS_PC`
     is a usage error before anything is generated. Generating the ~150
     sectors of the test galaxy for real would take a while and prove
     nothing extra, so each one is stubbed and only the addresses asked

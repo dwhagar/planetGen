@@ -932,7 +932,7 @@ credentials are current and writes an audit-log row.
   new density and composition over the same span. A regenerated body
   keeps its name and its row (so facilities on it stay). The rest of the
   system is then re-validated from the moons outward
-  (`stellarObjects/validation.py`): bodies are moved outward until the
+  (`planetgen/generation/validation.py`): bodies are moved outward until the
   orbits are stable, never removed. The answer is `{"status": "ok",
   "summary", "moved", "reclassified", "removed", "warnings",
   "star_system_id"}`: the names of the bodies that moved or changed class

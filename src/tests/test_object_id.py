@@ -13,9 +13,9 @@ import pytest
 
 from stellarObjects import _db
 from planetgen.names import object_id as objectId
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.navigation import course_between
-from stellarObjects.roguePlanetData import RoguePlanet
+from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
 
 _POSITION = {"center_x_pc": 8000.0, "center_y_pc": 20.0, "center_z_pc": 5.0, "galactic_radius_pc": 8000.03}
@@ -142,7 +142,7 @@ def test_a_placed_sector_names_its_phenomena_by_id(mysql_config):
 
 
 def test_a_remnant_core_gets_its_own_core_id(mysql_config):
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
     for _ in range(200):
         remnant = SupernovaRemnant(SystemConfig())
         if remnant.compact_remnant is not None:

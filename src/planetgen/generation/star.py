@@ -1,4 +1,4 @@
-# stellarObjects/starData.py
+# planetgen/generation/star.py
 
 """
 Star Generation and Properties
@@ -21,7 +21,7 @@ import math
 import random
 import re
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants
 from planetgen import tuning
@@ -29,7 +29,7 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from .utils import (format_age_string, format_number, calculate_galactic_orbit,
+from stellarObjects.utils import (format_age_string, format_number, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
                     format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, get_star_evolutionary_profile,

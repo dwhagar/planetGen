@@ -102,7 +102,7 @@ rather than forced into a single unit everywhere:
   logic.
 
 Neither convention touches the generator itself — every attribute in
-`src/stellarObjects/starData.py`, `doubleStar.py`, `planetData.py`,
+`src/planetgen/generation/star.py`, `doubleStar.py`, `planetData.py`,
 `asteroidData.py`, and `spaceSector.py` keeps its own native unit (km, AU,
 or ly) exactly as today. Conversion only happens at the persistence
 boundary, once it's built: `src/stellarObjects/utils.py` provides
@@ -220,7 +220,7 @@ lockstep every time `binary_mutual_orbital_phase_deg` advances.
 
 v15 added S-type (wide) binary support, planetGen's second real binary
 configuration alongside the P-type/close pair every `binary_*` column
-above already covers (see `stellarObjects/wideBinary.py`'s module
+above already covers (see `planetgen/generation/wide_binary.py`'s module
 docstring for the physics). `star_systems` gains `binary_configuration`
 (`'close'` | `'wide'` | NULL for a single star — the authoritative
 discriminator going forward; `is_binary` is kept and now means "this
@@ -251,7 +251,7 @@ constituent of a `'wide'` pair. `asteroid_belts` gains `star_id`, the same
 each have their own asteroid belts, not just their own planets.
 
 v16 added six tables for `generate.py phenomenon`'s separate, rarer exotic-
-phenomenon generation mode (`stellarObjects/compactRemnant.py`/
+phenomenon generation mode (`planetgen/generation/phenomena/compact_remnant.py`/
 `nebulaData.py`/`supernovaRemnantData.py`/`roguePlanetData.py`) — never
 produced by `generate.py system`/`generate.py sector`'s normal generation odds, so no
 pre-existing table's shape changes. `black_holes`/`neutron_stars` are
@@ -836,7 +836,7 @@ v7 adds columns, see below):
   an older control schema by `update.sh` (`_db._add_control_columns`).
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
-  (`stellarObjects/generationStats.py`, see
+  (`planetgen/generation/stats.py`, see
   [`cli.md`](cli.md#size-and-time-estimates)). `generation_stats` has
   one row per `kind` (`sector` fill, or a `scatter` layer of bright
   stars) and density `bucket` (`floor(2 * log10(density / 0.01))`: two
@@ -1098,7 +1098,7 @@ have made for `queryDb.py`.
 ### `system_configs`
 
 One row per `SystemConfig` "recipe" — the generation parameters a
-`StarSystem` was built from (`src/stellarObjects/config.py`,
+`StarSystem` was built from (`src/planetgen/generation/config.py`,
 `SERIALIZABLE_FIELDS`).
 
 | Column | Type | Null | Notes |
@@ -1415,7 +1415,7 @@ plain component list (no concentration gradient), mirroring
 ### `black_holes` / `neutron_stars`
 
 Added in v16, for `generate.py phenomenon`'s separate, rarer exotic-phenomenon
-generation mode (`stellarObjects/compactRemnant.py`). Satellite tables
+generation mode (`planetgen/generation/phenomena/compact_remnant.py`). Satellite tables
 extending a `stars` row (the same "extra detail alongside an existing row"
 shape `asteroid_belt_composition` has to `asteroid_belts`) when a compact
 remnant anchors a full `StarSystem` (`generate.py phenomenon --anchor-system`)

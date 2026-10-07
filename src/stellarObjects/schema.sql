@@ -3,7 +3,7 @@
 -- MySQL (InnoDB) schema for planetGen persistence (TODO.md Phase 2, ported
 -- off SQLite for Phase 5's MySQL migration -- see docs/TODO.md). Plain SQL
 -- DDL, no ORM. Column lists are verified against the actual generator
--- source (stellarObjects/config.py, starData.py, doubleStar.py,
+-- source (planetgen/generation/config.py, starData.py, doubleStar.py,
 -- planetData.py, asteroidData.py, spaceSector.py) as of schema version 2 --
 -- not against TODO.md's earlier field-count estimates.
 --
@@ -1154,7 +1154,7 @@ CREATE TABLE IF NOT EXISTS orbit_simulation_state (
 
 -- ---------------------------------------------------------------------
 -- system_configs -- one row per SystemConfig "recipe"
--- (stellarObjects/config.py:29-33 SERIALIZABLE_FIELDS)
+-- (planetgen/generation/config.py:29-33 SERIALIZABLE_FIELDS)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS system_configs (
     id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -1651,7 +1651,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
 
 -- ---------------------------------------------------------------------
 -- comets -- v19, a comet gravitationally bound to a star
--- (stellarObjects/cometData.py:Comet), propagated via real two-body
+-- (planetgen/generation/comet.py:Comet), propagated via real two-body
 -- Kepler/Barker orbital mechanics (planetgen/physics/kepler.py) --
 -- contrast interstellar_comets below, an unbound object on a fixed
 -- hyperbolic trajectory. Deliberately NOT part of the planets table (no

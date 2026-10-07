@@ -10,7 +10,7 @@ import pytest
 
 import generate
 from planetgen import tuning
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from tests.bughunt_support import run_cli
 
 

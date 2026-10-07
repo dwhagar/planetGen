@@ -20,9 +20,9 @@ import pytest
 
 import resetDb
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from tests.bughunt_support import mysql_argv
 from tests.conftest import _test_server_kwargs
 

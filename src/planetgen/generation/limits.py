@@ -1,4 +1,4 @@
-# stellarObjects/generationLimits.py
+# planetgen/generation/limits.py
 
 """
 Upper bounds on the generation inputs an admin can type: the Generate
@@ -15,7 +15,7 @@ instead of a job that runs for days or exhausts memory.
 from planetgen import tuning
 from planetgen.galaxy.geometry import ring_sector_count
 from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
-from .utils import pc_to_ly
+from stellarObjects.utils import pc_to_ly
 
 MAX_GENERATE_RADIUS_PC = 200.0
 """float: The largest neighborhood radius (`--radius-pc`, the Generate

@@ -1,4 +1,4 @@
-# stellarObjects/quasarData.py
+# planetgen/generation/phenomena/quasar.py
 
 """
 Quasar Generation
@@ -28,13 +28,13 @@ its Eddington ratio:
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name
+from stellarObjects.utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name
 
 
 def _log_uniform(low, high):

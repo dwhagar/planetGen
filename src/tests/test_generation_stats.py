@@ -1,7 +1,7 @@
 # tests/test_generation_stats.py
 
 """
-`stellarObjects.generationStats` (PERF.3, PERF.10): density buckets,
+`planetgen.generation.stats` (PERF.3, PERF.10): density buckets,
 decaying averages, the stored speeds and sizes, the size and time
 estimate, and the disk-space refusal.
 
@@ -15,8 +15,9 @@ import math
 import pytest
 
 import generate
-from stellarObjects import _db, generationStats
-from stellarObjects.generationStats import (
+from stellarObjects import _db
+from planetgen.generation import stats as generationStats
+from planetgen.generation.stats import (
     Bucket, DiskSpace, GenerationStats, bucket_bounds, bucket_index, check_disk, estimate, format_bytes,
     format_duration,
 )

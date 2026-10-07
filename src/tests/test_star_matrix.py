@@ -12,7 +12,7 @@ bigger than the galaxy) and the O/B dwarf wind constant was ~3-4 orders of
 magnitude too low. It also caught giants/supergiants/subgiants/hypergiants
 drawing their age from their *current temperature letter's* main-sequence
 lifespan table (e.g. a red giant reported as hundreds of billions of years
-old) instead of their own generated mass. See stellarObjects/starData.py and
+old) instead of their own generated mass. See planetgen/generation/star.py and
 physical_constants.py for the fixes.
 
 Run with: pytest tests/test_star_matrix.py
@@ -21,8 +21,8 @@ import math
 
 import pytest
 
-from stellarObjects.config import SystemConfig
-from stellarObjects.starData import Star, _sample_evolved_star_mass_sol
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.star import Star, _sample_evolved_star_mass_sol
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
 

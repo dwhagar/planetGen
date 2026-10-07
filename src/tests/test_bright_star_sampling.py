@@ -1,5 +1,5 @@
 """
-Bright/dim star sampling (`stellarObjects.stellarPopulation`), stellar
+Bright/dim star sampling (`planetgen.generation.star_population`), stellar
 populations by position (`density.population_densities`) and
 pre-placed systems (`SpaceSector.add_preplaced_system`): GEN.21
 and GEN.22, the Physics part of bright-star pre-placement.
@@ -16,11 +16,11 @@ from planetgen.galaxy import density
 from planetgen.physics import constants as phys_c
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
-from stellarObjects import stellarPopulation as sp
-from stellarObjects.config import SystemConfig
+from planetgen.generation import star_population as sp
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 THRESHOLD = 500.0
 

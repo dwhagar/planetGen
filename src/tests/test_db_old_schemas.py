@@ -15,9 +15,9 @@ and the steps.
 import pytest
 
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from tests.db_schema_support import (
     load_old_schema,
     old_schema_versions,

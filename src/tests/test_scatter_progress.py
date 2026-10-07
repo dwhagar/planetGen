@@ -2,7 +2,7 @@
 
 """
 PERF.9 and PERF.4: the bright-star scatter's progress. The main bar
-counts each layer's expected work (`brightStars.layer_weight`), credited
+counts each layer's expected work (`bright_stars.layer_weight`), credited
 star by star as layers report (`scatter_layer`'s `on_progress`), so the
 near-empty edge layers no longer count as much as the dense middle; and
 while layers finish slowly a second bar shows the stars of the layers
@@ -15,7 +15,8 @@ import json
 import pytest
 
 import generate
-from stellarObjects import brightStars, progressFile
+from stellarObjects import progressFile
+from planetgen.generation import bright_stars
 
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD
 
@@ -49,13 +50,13 @@ class _FakeProgress:
 
 
 def _fractions():
-    return brightStars.band_fractions(THRESHOLD)
+    return bright_stars.band_fractions(THRESHOLD)
 
 
 def test_the_expected_count_follows_what_the_scatter_places():
-    expected = sum(brightStars.layer_expected_stars(SHAPE, layer, outer, EDGE_PC, E_VALUE, _fractions())
+    expected = sum(bright_stars.layer_expected_stars(SHAPE, layer, outer, EDGE_PC, E_VALUE, _fractions())
                    for layer, outer in EXTENTS)
-    placed = [len(list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed)))
+    placed = [len(list(bright_stars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed)))
               for seed in range(6)]
     mean = sum(placed) / len(placed)
     assert mean > 20
@@ -65,26 +66,26 @@ def test_the_expected_count_follows_what_the_scatter_places():
 
 def test_dense_layers_weigh_more_than_edge_layers_and_rings_count_too():
     fractions = _fractions()
-    middle, middle_stars = brightStars.layer_weight(SHAPE, 0, 8, EDGE_PC, E_VALUE, fractions)
-    edge, edge_stars = brightStars.layer_weight(SHAPE, 1, 6, EDGE_PC, E_VALUE, fractions)
+    middle, middle_stars = bright_stars.layer_weight(SHAPE, 0, 8, EDGE_PC, E_VALUE, fractions)
+    edge, edge_stars = bright_stars.layer_weight(SHAPE, 1, 6, EDGE_PC, E_VALUE, fractions)
     assert middle > edge
     assert middle_stars > edge_stars
-    assert middle == pytest.approx(middle_stars + brightStars.RING_WEIGHT_STARS * 9)
-    empty, empty_stars = brightStars.layer_weight(SHAPE, 40, 3, EDGE_PC, E_VALUE, fractions)
+    assert middle == pytest.approx(middle_stars + bright_stars.RING_WEIGHT_STARS * 9)
+    empty, empty_stars = bright_stars.layer_weight(SHAPE, 40, 3, EDGE_PC, E_VALUE, fractions)
     assert empty_stars == 0.0
-    assert empty == brightStars.RING_WEIGHT_STARS * 4
+    assert empty == bright_stars.RING_WEIGHT_STARS * 4
 
 
 def test_a_band_weighs_less_than_the_whole_scatter():
-    whole = brightStars.layer_expected_stars(SHAPE, 0, 8, EDGE_PC, E_VALUE, brightStars.band_fractions(THRESHOLD))
-    band = brightStars.layer_expected_stars(SHAPE, 0, 8, EDGE_PC, E_VALUE,
-                                            brightStars.band_fractions(THRESHOLD, THRESHOLD * 4))
+    whole = bright_stars.layer_expected_stars(SHAPE, 0, 8, EDGE_PC, E_VALUE, bright_stars.band_fractions(THRESHOLD))
+    band = bright_stars.layer_expected_stars(SHAPE, 0, 8, EDGE_PC, E_VALUE,
+                                            bright_stars.band_fractions(THRESHOLD, THRESHOLD * 4))
     assert 0 < band < whole
 
 
 def test_a_layer_reports_its_stars_and_ends_at_its_count():
     reports = []
-    rows = list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7,
+    rows = list(bright_stars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7,
                                           on_progress=lambda done, estimate: reports.append((done, estimate))))
     assert len(rows) > 10
     dones = [done for done, _ in reports]
@@ -94,8 +95,8 @@ def test_a_layer_reports_its_stars_and_ends_at_its_count():
 
 
 def test_reporting_progress_leaves_the_stars_unchanged():
-    plain = list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7))
-    reported = list(brightStars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7,
+    plain = list(bright_stars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7))
+    reported = list(bright_stars.scatter_layer(SHAPE, 0, 8, EDGE_PC, E_VALUE, THRESHOLD, 7,
                                               on_progress=lambda done, estimate: None))
     assert plain == reported
 

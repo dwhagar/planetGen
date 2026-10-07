@@ -25,7 +25,7 @@ import statistics
 
 import pytest
 
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 
 N_SAMPLE = 200
 

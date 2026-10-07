@@ -11,8 +11,8 @@ Run with: pytest tests/test_body_names.py
 import pytest
 
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 
 
 def test_to_roman():

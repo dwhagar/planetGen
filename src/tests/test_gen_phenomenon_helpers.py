@@ -15,17 +15,18 @@ from types import SimpleNamespace
 
 import pytest
 
-from stellarObjects import asteroidFieldData, cometData, nebulaData
+from planetgen.generation.phenomena import asteroid_field, nebula as nebulaData
+from planetgen.generation import comet as cometData
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects import roguePlanetData, supernovaRemnantData
-from stellarObjects.compactRemnant import BlackHole, NeutronStar, infer_black_hole_mass_class
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS, Nebula
-from stellarObjects.planetData import Planet
-from stellarObjects.roguePlanetData import RoguePlanet
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena import rogue as roguePlanetData, supernova_remnant
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, infer_black_hole_mass_class
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS, Nebula
+from planetgen.generation.planet import Planet
+from planetgen.generation.phenomena.rogue import RoguePlanet
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -138,13 +139,13 @@ def test_nebula_class_name_matches_its_letter(letter):
 
 @pytest.mark.parametrize("kind", ["neutron_star", "black_hole", None])
 def test_a_type_ia_remnant_is_always_w(kind):
-    assert supernovaRemnantData.remnant_classes_for("Type Ia", kind) == ("W",)
+    assert supernova_remnant.remnant_classes_for("Type Ia", kind) == ("W",)
 
 
 def test_core_collapse_remnant_classes_follow_the_core():
-    ns = supernovaRemnantData.remnant_classes_for("Type II", "neutron_star")
-    bh = supernovaRemnantData.remnant_classes_for("Type II", "black_hole")
-    bare = supernovaRemnantData.remnant_classes_for("Type II", None)
+    ns = supernova_remnant.remnant_classes_for("Type II", "neutron_star")
+    bh = supernova_remnant.remnant_classes_for("Type II", "black_hole")
+    bare = supernova_remnant.remnant_classes_for("Type II", None)
     assert {"T", "U"} <= set(ns)
     assert not {"T", "U"} & set(bh) and not {"T", "U"} & set(bare)
     for classes in (ns, bh, bare):
@@ -153,7 +154,7 @@ def test_core_collapse_remnant_classes_follow_the_core():
 
 
 def test_unknown_core_kind_has_no_remnant_class():
-    assert supernovaRemnantData.remnant_classes_for("Type II", "quark_star") == ()
+    assert supernova_remnant.remnant_classes_for("Type II", "quark_star") == ()
 
 
 @pytest.mark.parametrize("morphology, progenitor, age, expected", [
@@ -168,7 +169,7 @@ def test_unknown_core_kind_has_no_remnant_class():
     ("shell", "Type II", 1e9, "S"),
 ])
 def test_infer_remnant_class(morphology, progenitor, age, expected):
-    assert supernovaRemnantData.infer_remnant_class(morphology, progenitor, age) == expected
+    assert supernova_remnant.infer_remnant_class(morphology, progenitor, age) == expected
 
 
 # --- black hole -----------------------------------------------------------
@@ -324,37 +325,37 @@ def test_activity_chance_falls_with_perihelion_and_is_bounded():
 
 def test_asteroid_field_size_digit_clamps():
     low, high = PC.ASTEROID_FIELD_SIZE_DIGIT_RANGE
-    au = asteroidFieldData.AU_PER_LY
-    assert asteroidFieldData.asteroid_field_size_digit(1e-9) == low
-    assert asteroidFieldData.asteroid_field_size_digit(1e9) == high
-    assert asteroidFieldData.asteroid_field_size_digit(1000 / au) == 3
-    digits = [asteroidFieldData.asteroid_field_size_digit(r) for r in (1e-5, 1e-3, 1e-2, 0.1, 1.0, 10.0)]
+    au = asteroid_field.AU_PER_LY
+    assert asteroid_field.asteroid_field_size_digit(1e-9) == low
+    assert asteroid_field.asteroid_field_size_digit(1e9) == high
+    assert asteroid_field.asteroid_field_size_digit(1000 / au) == 3
+    digits = [asteroid_field.asteroid_field_size_digit(r) for r in (1e-5, 1e-3, 1e-2, 0.1, 1.0, 10.0)]
     assert digits == sorted(digits)
 
 
 @pytest.mark.parametrize("family", list(PC.ASTEROID_FIELD_COMPOSITIONS))
 def test_composition_family_round_trips_through_its_letters(family):
     for letter in PC.ASTEROID_FIELD_COMPOSITIONS[family]["letters"].values():
-        assert asteroidFieldData.composition_family_for_letter(letter) == family
+        assert asteroid_field.composition_family_for_letter(letter) == family
 
 
 @pytest.mark.parametrize("letter", ["Z", "", "a", "C3"])
 def test_composition_family_for_an_unknown_letter_raises(letter):
     with pytest.raises(ValueError, match=rf"unknown asteroid field class letter {letter!r}"):
-        asteroidFieldData.composition_family_for_letter(letter)
+        asteroid_field.composition_family_for_letter(letter)
 
 
 def test_asteroid_field_class_rejects_unknown_family_or_density():
     with pytest.raises(KeyError):
-        asteroidFieldData.asteroid_field_class("plasma", "dense", 1.0)
+        asteroid_field.asteroid_field_class("plasma", "dense", 1.0)
     with pytest.raises(KeyError):
-        asteroidFieldData.asteroid_field_class("icy", "very dense", 1.0)
+        asteroid_field.asteroid_field_class("icy", "very dense", 1.0)
 
 
 def test_asteroid_field_designation():
-    assert asteroidFieldData.asteroid_field_designation("C3", "FE81000A2B", 1) == "AF C3-FE81000A2B-01"
-    assert asteroidFieldData.asteroid_field_designation("C3", None, 7) == "AF C3-07"
-    assert asteroidFieldData.asteroid_field_designation("C3", "", 123) == "AF C3-123"
+    assert asteroid_field.asteroid_field_designation("C3", "FE81000A2B", 1) == "AF C3-FE81000A2B-01"
+    assert asteroid_field.asteroid_field_designation("C3", None, 7) == "AF C3-07"
+    assert asteroid_field.asteroid_field_designation("C3", "", 123) == "AF C3-123"
 
 
 # --- get_table_properties -------------------------------------------------

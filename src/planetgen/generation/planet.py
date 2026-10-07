@@ -1,4 +1,4 @@
-# stellarObjects/planetData.py
+# planetgen/generation/planet.py
 
 """
 Planet Generation
@@ -24,11 +24,11 @@ defined separately in `asteroidData`.
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
+from stellarObjects.utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
                     format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k)
 

@@ -15,14 +15,14 @@ import pytest
 
 import checkRenderParity
 from stellarObjects import _db
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
-from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects.evolution import life_stage_from_paragraphs
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.evolution import life_stage_from_paragraphs
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 from stellarObjects.systemRender import render_star_system, render_system_sections, render_system_text
-from stellarObjects.wideBinary import WideBinaryPair
+from planetgen.generation.wide_binary import WideBinaryPair
 
 _VARIANTS = [
     dict(BINARY_SYSTEM=False, MOONS=True, COMETS=True, ASTEROID_BELT=True),

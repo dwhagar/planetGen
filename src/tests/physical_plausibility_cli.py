@@ -3,7 +3,7 @@
 src/tests/physical_plausibility_cli.py -- physical-plausibility anomaly
 finder (CLI). Not a pytest test module itself (no `test_*` name, so pytest
 won't collect it) -- it lives alongside `test_physical_plausibility.py`
-because it shares that file's engine (`stellarObjects/plausibility.py`)
+because it shares that file's engine (`planetgen/generation/plausibility.py`)
 and exists specifically to batch-run it for human-reviewed findings,
 rather than as an automated pass/fail check.
 
@@ -18,7 +18,7 @@ broad grid of main-sequence host star spectral types, then reports:
     distribution) for surface_temperature, atmospheric_pressure, gravity,
     and scale_height -- flagged for human review, not asserted to be zero.
 
-See `stellarObjects/plausibility.py` (same directory's parent) for the
+See `planetgen/generation/plausibility.py` (same directory's parent) for the
 full design rationale (why two tiers, why host stars are sampled across
 spectral types, why this isn't hand-authored per-class numeric bounds)
 and docs/TODO.md's "Physical-plausibility test suite (anomaly finder)"
@@ -41,7 +41,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 from planetgen import tuning as prog_c
 
 # Suppress transformers warnings pulled in transitively via stellarObjects.

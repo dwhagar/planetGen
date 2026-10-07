@@ -2,7 +2,7 @@
 System builder internals (TODO TEST.32).
 
 Direct tests of the `StarSystem` placement helpers that the validate
-module (`stellarObjects/validation.py`, ADM.5) wraps or sits beside:
+module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
 `generate_slot_object`, `calculate_distance_for_class`,
 `_forced_habitable_distance`, `_trim_to_orbit_ceiling`,
 `_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
@@ -11,12 +11,12 @@ helper is exercised on hand-placed bodies.
 """
 import pytest
 
-from stellarObjects import systemData
+from planetgen.generation import system as systemData
 from planetgen import tuning
-from stellarObjects.asteroidData import AsteroidBelt
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -380,7 +380,7 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     """A habitable-zone planet whose class and star share no life chemical
     is lifeless, so it gets no evolutionary timeline; it used to get one,
     and the population pass then gave it a species no page showed."""
-    from stellarObjects import planetLife
+    from planetgen.generation import life as planetLife
 
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
