@@ -536,9 +536,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | open |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
-| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | open |
-| GEN.78 | Some regions have a star probability of zero (bug) | none | open |
-| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | open |
+| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | done, PR #461 |
+| GEN.78 | Some regions have a star probability of zero (bug) | none | done, PR #461 |
+| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | done, PR #461 |
 | GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | done, PR #448 |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | open |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |

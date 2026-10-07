@@ -69,7 +69,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill |  | Merges the 2026-10-03 scatter-order item and the 2026-10-07 "generated through the entire galaxy first". |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | GEN.75, GEN.100 |  |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
-| GEN.102 | Investigate filling all near-zero-density void space at once | GEN.78 |  |
+| GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
 
 ### Habitability
