@@ -170,7 +170,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | MAP.65, MAP.111 |  |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | MAP.79 | The toggle is one of MAP.79's per-kind buttons. |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | MAP.102 | Also the per-zoom rule for which objects show; folds MAP.115 (Boss 2026-10-07 16:26Z). |
-| MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | MAP.102, MAP.65 | Boss's third Galaxy Map problem (2026-10-07 16:26Z). |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | NAV.15 | Fixed by pick mode on the shared layer (NAV.15). |
 
 ### Groundwork: nebula shapes

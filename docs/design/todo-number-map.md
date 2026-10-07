@@ -691,12 +691,12 @@ Parents marked "new parent" had no old number of their own.
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
-| MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | open |
+| MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | open |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
-| MAP.121 | The Sector Map shows the neighbouring sectors dimmed, fading the ones in the way | none | open |
+| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |
