@@ -31,15 +31,21 @@ A cached answer is dropped when any of these says it may be stale:
 Every failure fails open: if the stamp can't be read the call simply
 isn't cached.
 
+The entries live in a `cachetools.TTLCache` sized in characters of body
+(least recently used out first, nothing served past `max_age_seconds`),
+with `max_entries` held on top of it; cachetools isn't thread-safe, so
+every use is under the cache's lock.
+
 Settings live under `page_cache` in `config.json` (`enabled`,
 `max_entries`, `max_mb`, `stamp_seconds`, `max_age_seconds`), and
 `PLANETGEN_PAGE_CACHE=off` turns it off.
 """
 
-import collections
 import os
 import threading
 import time
+
+import cachetools
 
 DEFAULTS = {
     "enabled": True,
@@ -98,13 +104,17 @@ class ResponseCache:
         self._max_age = float(settings["max_age_seconds"])
         self._clock = clock
         self._lock = threading.Lock()
-        self._entries = collections.OrderedDict()  # (db, target) -> (body, stored_at)
-        self._bytes = 0
+        # (db, target) -> body; the timer reads self._clock each time, so
+        # a test can swap the clock after construction.
+        self._entries = cachetools.TTLCache(maxsize=max(self._max_bytes, 1), ttl=self._max_age,
+                                            timer=lambda: self._clock(), getsizeof=len)
         self._stamps = {}  # db -> (stamp, checked_at)
         self._generation = 0  # bumped by clear()
 
     def __len__(self):
-        return len(self._entries)
+        with self._lock:
+            self._entries.expire()
+            return len(self._entries)
 
     @property
     def generation(self):
@@ -117,7 +127,6 @@ class ResponseCache:
         with self._lock:
             self._generation += 1
             self._entries.clear()
-            self._bytes = 0
             self._stamps.clear()
 
     def _fresh_stamp(self, db):
@@ -137,31 +146,17 @@ class ResponseCache:
             return False
         with self._lock:
             if known is not None and known[0] != stamp:
-                self._drop_db(db)
+                for key in [key for key in self._entries if key[0] == db]:
+                    self._entries.pop(key, None)
             self._stamps[db] = (stamp, now)
         return True
-
-    def _drop_db(self, db):
-        for key in [key for key in self._entries if key[0] == db]:
-            body, _ = self._entries.pop(key)
-            self._bytes -= len(body)
 
     def get(self, db, target):
         """The cached body for `target` in `db`, or `None`."""
         if not self._fresh_stamp(db):
             return None
-        key = (db, target)
         with self._lock:
-            entry = self._entries.get(key)
-            if entry is None:
-                return None
-            body, stored_at = entry
-            if self._clock() - stored_at >= self._max_age:
-                del self._entries[key]
-                self._bytes -= len(body)
-                return None
-            self._entries.move_to_end(key)
-            return body
+            return self._entries.get((db, target))
 
     def put(self, db, target, body, generation):
         """Stores `body` for `target` in `db` -- skipped when it's too
@@ -172,12 +167,6 @@ class ResponseCache:
         with self._lock:
             if generation != self._generation or (db is not None and db not in self._stamps):
                 return
-            key = (db, target)
-            old = self._entries.pop(key, None)
-            if old is not None:
-                self._bytes -= len(old[0])
-            self._entries[key] = (body, self._clock())
-            self._bytes += len(body)
-            while self._entries and (len(self._entries) > self._max_entries or self._bytes > self._max_bytes):
-                _, (evicted, _) = self._entries.popitem(last=False)
-                self._bytes -= len(evicted)
+            self._entries[(db, target)] = body
+            while len(self._entries) > self._max_entries:
+                self._entries.popitem()
