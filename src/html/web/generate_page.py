@@ -5,7 +5,7 @@
 needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
-- New galaxy: wipe the database (`src/resetDb.py --yes`), build the
+- New galaxy: wipe the database planetgen.cli.reset --yes`), build the
   density skeleton (`generate.py plan --no-bright-stars`), then generate
   a first neighborhood around a random start and only then scatter the
   bright stars, leaving those sectors out (`generate.py galaxy
@@ -29,7 +29,7 @@ needs a terminal on the server. Four actions, each a background job
 
 New galaxy and Reset delete every generated sector and system, so both
 ask for the database name to be typed back, the same confirmation
-`resetDb.py` asks for in a terminal.
+`planetgen.cli.reset` asks for in a terminal.
 
 The page shows the running job (step, progress bar, elapsed time and the
 tail of its output), refreshed every few seconds by

@@ -30,10 +30,10 @@ a search of their own.
   Sector names keep every tier.
 `strip_decoration` is the inverse of both -- recovering the
 underlying base name from an already-decorated one, e.g. for the
-one-off backfill script (`src/dedupeNames.py`) to group existing rows.
+one-off backfill script `planetgen.cli.dedupe`) to group existing rows.
 
 None of this module talks to the database or knows about `sectors`/
-`star_systems` -- see `stellarObjects/_db.py`'s `reserve_sector_name`/
+`star_systems` -- see `planetgen/db/store.py`'s `reserve_sector_name`/
 `reserve_system_name` (and their `confirm_*` counterparts) for where
 these functions actually get called, against the `sector_name_registry`/
 `system_name_registry` tables that track each base name's own progress
@@ -211,7 +211,7 @@ def strip_decoration(name):
     """
     Recovers the underlying base name from one that may carry any
     combination of this module's own decorations -- the inverse of
-    `resolve_greek_roman_collision`/`resolve_diminutive`. Used by `src/dedupeNames.py` to group already-
+    `resolve_greek_roman_collision`/`resolve_diminutive`. Used by `planetgen.cli.dedupe` to group already-
     stored names by what they'd collide on.
 
     Strips a trailing roman numeral and leading Greek-letter and
@@ -230,7 +230,7 @@ def strip_decoration(name):
         str: `name` with every decoration this module could have added
             stripped away.
     """
-    # Repeated until nothing changes: `_db.py` stacks decorations -- a
+    # Repeated until nothing changes: `store.py` stacks decorations -- a
     # diminutive prefix *outside* a Greek one ("Little Beta <base>",
     # `reserve_system_name`), a second diminutive on top of the first
     # ("Petit Little <base>") or a second companion suffix ("<base> Kin

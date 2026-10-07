@@ -16,13 +16,13 @@
 #      Python, or distribution (apt) packages on an externally managed one
 #      (PEP 668, e.g. Ubuntu 24.04+), with system-wide pip only for
 #      libraries the distribution lacks or ships too old. No venv.
-#   2. Runs `src/migrateDb.py` (with a progress bar; when a migration is
+#   2. Runs `planetgen.cli.migrate` (with a progress bar; when a migration is
 #      pending it first asks, y/N with a 30-second timeout defaulting to
 #      N, whether to delete the galaxy data instead) against the
 #      configured MySQL database
 #      ($PLANETGEN_MYSQL_* in this shell's environment, or the vhost's
 #      `SetEnv` directives once deployed), bringing it up to the current
-#      schema (`stellarObjects/schema.sql`) if it isn't already. A no-op
+#      schema (`planetgen/db/schema.sql`) if it isn't already. A no-op
 #      for a database that's already current. Needs step 1 done first,
 #      since it imports `stellarObjects`.
 #   3. Pre-fetches (unless it's already there) the NLTK `words` corpus into a shared, world-readable

@@ -12,7 +12,7 @@ loads fails). The exceptions below each say why.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 
@@ -36,7 +36,7 @@ SECTOR_PLACEMENT = ("sector_id", "center_x_pc", "center_y_pc", "center_z_pc", "g
 
 NULL_IN_THIS_GALAXY = {
     # Only something sitting inside a nebula or supernova remnant.
-    **{(table, column): CHANCE for table in _db.CONTAINABLE_TABLES for column in CONTAINMENT},
+    **{(table, column): CHANCE for table in store.CONTAINABLE_TABLES for column in CONTAINMENT},
     # A quasar only exists placed at a galaxy's own center; the CLI's is standalone.
     **{("quasars", column): "standalone quasar" for column in SECTOR_PLACEMENT},
     ("quasars", "jet_length_ly"): CHANCE,
@@ -99,7 +99,7 @@ NEVER_READ = {
     # DB.6: what made the galaxy and its runs, for a rebuild (OPS.12) and the update history (OPS.13).
     **{("galaxy_shape", column): "what made the galaxy (DB.6)" for column in
        ("version_key", "planetgen_version", "python_version", "platform")},
-    # PERF.11: galaxy-wide stats, read by `_db.galaxy_density_ratio`, not by an object loader.
+    # PERF.11: galaxy-wide stats, read by `store.galaxy_density_ratio`, not by an object loader.
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",
     **{("generation_runs", column): "run history (DB.6)" for column in
@@ -135,7 +135,7 @@ def _content_columns(conn):
 
 
 def test_every_column_is_written(rich_galaxy):
-    conn = _db.get_connection(rich_galaxy)
+    conn = store.get_connection(rich_galaxy)
     try:
         always_null = [
             (table, column) for table, column in _content_columns(conn)
@@ -151,18 +151,18 @@ def test_every_column_is_written(rich_galaxy):
 
 def test_every_column_is_read_back(rich_galaxy, monkeypatch):
     client = _client(rich_galaxy)
-    conn = _db.get_connection(rich_galaxy)
+    conn = store.get_connection(rich_galaxy)
     try:
         def ids(table):
             return [row["id"] for row in conn.execute(f"SELECT id FROM {table} ORDER BY id").fetchall()]
 
-        import queryDb
+        from planetgen.db import query
 
         with tracking_reads(monkeypatch) as reads:
             pages = [f"/api/sectors/{i}" for i in ids("sectors")]
             pages += [f"/api/systems/{i}{part}" for i in ids("star_systems")
                       for part in ("", "/sections", "/owner", "/facilities")]
-            pages += [f"/api/phenomena/{label}/{i}" for table, label, *_ in queryDb._PHENOMENON_TABLES
+            pages += [f"/api/phenomena/{label}/{i}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
             pages += [f"/api/facilities/{i}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
@@ -171,9 +171,9 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
             for page in pages:
                 assert client.get(page).status_code == 200, page
             for sector_id in ids("sectors"):
-                _db.load_sector(conn, sector_id)
+                store.load_sector(conn, sector_id)
             for system_id in ids("star_systems"):
-                _db.load_star_system(conn, system_id)
+                store.load_star_system(conn, system_id)
             columns = _content_columns(conn)
             read = columns_read(reads, {table for table, _column in columns})
     finally:

@@ -1,7 +1,7 @@
 # examples/maintenance/planetgen-orbits@.timer
 #
 # Fires planetgen-orbits@.service (see that file) on the "once a month
-# or so" cadence updateOrbits.py's own header comment asks for. Pair with
+# or so" cadence planetgen.cli.orbits's own header comment asks for. Pair with
 # it under the same instance name, e.g.:
 #
 #   sudo systemctl enable --now planetgen-orbits@planetgen.timer

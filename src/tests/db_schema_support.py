@@ -13,7 +13,7 @@ import uuid
 
 import pymysql
 
-from stellarObjects import _db
+from planetgen.db import store
 
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
@@ -33,7 +33,7 @@ def load_old_schema(config, version):
     left a new database."""
     with gzip.open(os.path.join(OLD_SCHEMA_DIR, f"schema_v{version}.sql.gz"), "rt", encoding="utf-8") as handle:
         script = handle.read()
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         conn.executescript(script)
         conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (version,))
@@ -54,11 +54,11 @@ def scratch_database(beside):
             cur.execute(f"CREATE DATABASE `{name}`")
     finally:
         admin.close()
-    config = _db.MySQLConfig(database=name, **server_kwargs)
+    config = store.MySQLConfig(database=name, **server_kwargs)
     try:
         yield config
     finally:
-        _db.close_pool(config)
+        store.close_pool(config)
         admin = pymysql.connect(**server_kwargs)
         try:
             with admin.cursor() as cur:
@@ -76,7 +76,7 @@ def schema_snapshot(config):
     (by clause: an unnamed CHECK's automatic name depends on the engine
     and on the order it was added in).
     """
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         def rows(sql):
             return conn.execute(sql).fetchall()

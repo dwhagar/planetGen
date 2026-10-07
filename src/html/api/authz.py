@@ -54,7 +54,7 @@ def require_admin(fresh=False, session_only=False):
             admin route except `/api/auth/me`, `/api/auth/logout`, and
             `/api/auth/change-credentials` itself sets this, so the
             seeded first `admin` login (random password printed once by
-            `migrateDb.py`) can authenticate but
+            `planetgen.cli.migrate`) can authenticate but
             can't do anything else until credentials are actually
             changed (see `adminAuth`'s module docstring and
             `control_schema.sql`'s `admin_users` comment).

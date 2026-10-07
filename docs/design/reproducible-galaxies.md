@@ -230,7 +230,7 @@ what seed + key would not produce, not a history:
 - objects are named by a stable address path (sector ring, layer and
   slot, then system, body and moon by generated index), never by
   database id, since ids change on every rebuild;
-- the positional-update epoch: when `updateOrbits.py` last moved the
+- the positional-update epoch: when `planetgen.cli.orbits` last moved the
   systems, so a rebuild reaches the same positions.
 
 Admin changes go into a pending-delta table in the control database as
@@ -259,7 +259,7 @@ OPS.18.
 
 - **The script (OPS.16).** `scripts/maintenance.sh` (Linux and macOS)
   and `scripts/maintenance.ps1` (Windows) run once a day: the positional
-  update (`updateOrbits.py`), then the delta merge (GEN.61), then the
+  update (`planetgen.cli.orbits`), then the delta merge (GEN.61), then the
   backup rotation (OPS.18). A lock stops two runs overlapping, each step
   logs, and any failure exits non-zero. Optionally it runs OPS.15's
   fingerprint check too.

@@ -1,10 +1,10 @@
 # tests/test_dedupe_names.py
 
 """
-Tests for `src/dedupeNames.py` -- the one-off backfill script that cleans
+Tests for `planetgen.cli.dedupe` -- the one-off backfill script that cleans
 up sector/system name collisions in an existing database
 (v22, `planetgen/names/uniqueness.py`). Live generation (via
-`stellarObjects._db.py`'s `reserve_*_name`/`confirm_*_name`) already
+`planetgen.db.store`'s `reserve_*_name`/`confirm_*_name`) already
 prevents any *new* duplicate, so these tests simulate a "legacy" database
 that predates that guarantee: insert normally (which the reservation
 system already resolves), then manually revert the row(s)/registry to
@@ -17,21 +17,21 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 Run with: pytest tests/test_dedupe_names.py
 """
 
-from dedupeNames import dedupe_names
+from planetgen.cli.dedupe import dedupe_names
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
 
 def test_dedupe_fixes_a_legacy_sector_duplicate_and_is_idempotent(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            id1 = _db.insert_sector(conn, SpaceSector(name="Sol"))
+            id1 = store.insert_sector(conn, SpaceSector(name="Sol"))
         with conn:
-            id2 = _db.insert_sector(conn, SpaceSector(name="Sol"))
+            id2 = store.insert_sector(conn, SpaceSector(name="Sol"))
 
         # Revert to a literal duplicate, as if resolution had never run.
         with conn:
@@ -47,7 +47,7 @@ def test_dedupe_fixes_a_legacy_sector_duplicate_and_is_idempotent(mysql_config):
     assert counts["sectors"] == 1
     assert counts["star_systems"] == 0
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         after = {r["id"]: r["name"] for r in conn.execute("SELECT id, name FROM sectors").fetchall()}
         assert len(set(after.values())) == 2
@@ -61,14 +61,14 @@ def test_dedupe_fixes_a_legacy_sector_duplicate_and_is_idempotent(mysql_config):
 
 
 def test_dedupe_fixes_a_legacy_system_vs_sector_collision(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            sector_id = _db.insert_sector(conn, SpaceSector(name="Venus"))
+            sector_id = store.insert_sector(conn, SpaceSector(name="Venus"))
         with conn:
             system = StarSystem(system_config=SystemConfig())
             system.name = "Venus"
-            system_id = _db.insert_star_system(conn, system, system.system_config)
+            system_id = store.insert_star_system(conn, system, system.system_config)
 
         # Revert the system's own cross-level resolution, simulating a
         # database from before that check existed.
@@ -82,7 +82,7 @@ def test_dedupe_fixes_a_legacy_system_vs_sector_collision(mysql_config):
     assert counts["star_systems"] == 1
     assert counts["sectors"] == 0
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         sector_name = conn.execute("SELECT name FROM sectors WHERE id = ?", (sector_id,)).fetchone()["name"]
         system_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
@@ -99,14 +99,14 @@ def test_dedupe_fixes_a_legacy_system_vs_sector_collision(mysql_config):
 
 
 def test_dedupe_is_a_true_no_op_on_a_database_with_no_collisions(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Mercury"))
+            store.insert_sector(conn, SpaceSector(name="Mercury"))
         with conn:
             system = StarSystem(system_config=SystemConfig())
             system.name = "Uniquesys"
-            _db.insert_star_system(conn, system, system.system_config)
+            store.insert_star_system(conn, system, system.system_config)
     finally:
         conn.close()
 

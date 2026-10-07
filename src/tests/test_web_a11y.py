@@ -55,9 +55,9 @@ from api.app import create_app  # noqa: E402
 from api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from api.config import Config  # noqa: E402
 from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth
-from stellarObjects._db import MySQLConfig  # noqa: E402
+from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
@@ -144,9 +144,9 @@ def _add_bright_stars(config, count=300):
     from planetgen.galaxy.geometry import sector_address_at
 
     rng = random.Random(5)
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        edge_pc = _db.get_galaxy_shape(conn).edge_pc
+        edge_pc = store.get_galaxy_shape(conn).edge_pc
         rows = []
         for _ in range(count):
             r, theta = 300.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
@@ -154,7 +154,7 @@ def _add_bright_stars(config, count=300):
             rows.append((*sector_address_at(point, edge_pc), *(int(round(v * 1000)) for v in point), "young", "B",
                          "III", 2e31, 1e7, rng.uniform(3000.0, 30000.0), rng.uniform(500.0, 1e6) * 3.82e26,
                          0.05, 0.1, 10.0, None, 1))
-        _db.insert_bright_stars(conn, rows)
+        store.insert_bright_stars(conn, rows)
         conn.commit()
     finally:
         conn.close()
@@ -165,7 +165,7 @@ def _add_population(config):
     and the systems it holds, as `generate.py population` would write
     them (a real pass makes civilizations too rarely to rely on here),
     so the population pages have something to show."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         if conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]:
             return
@@ -227,7 +227,7 @@ def site_db(_mysql_server_available):
             random.setstate(state)
         yield config
     finally:
-        _db.close_pool(config)
+        store.close_pool(config)
         admin_conn = pymysql.connect(**kwargs)
         try:
             with admin_conn.cursor() as cur:
@@ -260,7 +260,7 @@ def admin_token(site_db):
     """A logged-in admin session (credentials already changed, so no
     page forces the change-credentials form)."""
     auth.bootstrap_control_schema(site_db)
-    conn = _db.get_control_connection(site_db)
+    conn = store.get_control_connection(site_db)
     try:
         conn.execute("UPDATE admin_users SET must_change_credentials = 0")
         conn.commit()

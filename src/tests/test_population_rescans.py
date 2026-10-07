@@ -14,7 +14,7 @@ skipped, not failed, when no MySQL test server is reachable.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.population import model
 
 from tests.test_population import _civilized_system, _place, _plain_system, _set_age, galaxy  # noqa: F401
@@ -37,7 +37,7 @@ def _without_ids_and_names(species):
 
 @pytest.fixture
 def conn(mysql_config):
-    connection = _db.get_connection(mysql_config)
+    connection = store.get_connection(mysql_config)
     try:
         yield connection
     finally:

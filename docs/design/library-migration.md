@@ -40,7 +40,7 @@ by the new libraries rather than patched in the old code.
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
 | Work queue and web jobs | `workQueue.py` (1,600 lines), `jobRunner.py`, the `work_lease` table | RQ on Redis | See section 3. |
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |
-| Database | `_db.py` (9,800 lines), `migrateDb.py` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
+| Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
 | Physics | `keplerMotion.py`, `physical_constants.py` | scipy, astropy | Results checked against today's within stated tolerances. |
 | Job logs and progress | `generatejobs.js`, `generatefolds.js`, `jobs.py`, `progressRate.py` | Xterm.js over Server-Sent Events, native `<progress>` | See section 4. |
@@ -94,11 +94,11 @@ The plan for OPS.24's move. Boss approves it before the move starts.
 ### 6.1 Where things live today
 
 - `src/stellarObjects/`: 75 flat modules, 46,000 lines, among them
-  `_db.py` (9,800), `program_constants.py` (2,900), `systemData.py`
+  `store.py` (9,800), `program_constants.py` (2,900), `systemData.py`
   (2,100) and `utils.py` (1,900, a mix of formatting, unit conversion,
   random sampling, orbital formulas and word-salad names).
 - `generate.py` (4,600 lines) at the repo root, and nine scripts in
-  `src/` (`queryDb.py` alone is 4,300).
+  `src/` (`planetgen.db.query` alone is 4,300).
 - `src/html/`: `api/` and `web/` import as top-level packages and the 17
   modules in `lib/` as top-level modules, because `wsgi.py`,
   `web/__init__.py`, `routes.py` and `apiclient.py` each push a folder
@@ -159,8 +159,8 @@ import cycle can form between them.
 | `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
 | `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query`, `migrate`, `reset`, `orbits`, `dedupe`, `lockouts`, `render_parity`, `job` (jobRunner) |
 
-Large modules move whole. `_db.py` is split by DB.11 (SQLAlchemy), and
-`queryDb.py` with it; splitting them during the move would make every
+Large modules move whole. `store.py` is split by DB.11 (SQLAlchemy), and
+`planetgen.db.query` with it; splitting them during the move would make every
 open branch conflict twice. `utils.py`, `fmt.py` and `generate.py` are
 the exceptions: they are split as listed, because nothing replaces them
 later.

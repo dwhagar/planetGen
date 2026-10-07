@@ -3,11 +3,11 @@
 """
 Configuration for the planetGen API.
 
-`MYSQL_CONFIG` is a `stellarObjects._db.MySQLConfig`, itself built from
+`MYSQL_CONFIG` is a `planetgen.db.store.MySQLConfig`, itself built from
 the same `PLANETGEN_MYSQL_*` environment variables (or `config.json`'s
 `mysql` section -- see `planetgen.util.appconfig` and `docs/config.md`)
 every other entry point in this project (`sectorGen.py`, `systemGen.py`,
-`queryDb.py`) reads, so a WSGI deployment (see `wsgi.py`) points this API
+`planetgen.db.query`) reads, so a WSGI deployment (see `wsgi.py`) points this API
 at a specific database without editing code, set via the vhost's `SetEnv`
 directives, the `gunicorn` service's environment file, or a single shared
 `config.json`.
@@ -35,7 +35,7 @@ worker count.
 import os
 import secrets
 
-from stellarObjects._db import MySQLConfig, control_mysql_config
+from planetgen.db.store import MySQLConfig, control_mysql_config
 from planetgen.util.appconfig import load_config
 
 DEFAULT_RATE_LIMITS = "200 per day;50 per hour"

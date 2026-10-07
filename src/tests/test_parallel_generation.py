@@ -24,9 +24,10 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import _db, workQueue
+from stellarObjects import workQueue
+from planetgen.db import store
 from planetgen.names import uniqueness
-from stellarObjects._db import MySQLConfig
+from planetgen.db.store import MySQLConfig
 
 from tests.conftest import _test_server_kwargs
 from tests.galaxy_fingerprint import galaxy_rows
@@ -112,12 +113,12 @@ def make_database(_mysql_server_available):
         finally:
             conn.close()
         made.append(config)
-        _db.get_control_connection(config, ensure_schema=True).close()
+        store.get_control_connection(config, ensure_schema=True).close()
         return config
 
     yield make
     for config in made:
-        _db.close_pool(config)
+        store.close_pool(config)
         conn = pymysql.connect(**kwargs)
         try:
             with conn.cursor() as cur:
@@ -141,7 +142,7 @@ def _run(command, argv, config, monkeypatch):
 
 
 def _systems_per_sector(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]): row["n"]
                 for row in conn.execute(
@@ -191,7 +192,7 @@ def test_galaxy_seeds_differing_only_in_their_high_64_bits_make_different_sector
 
 
 def _systems_by_sector(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         rows = conn.execute(
             "SELECT s.ring_index, s.layer_index, s.ring_slot_index, ss.name, ss.position_x_mpc, ss.position_y_mpc,"
@@ -225,7 +226,7 @@ def test_a_sector_comes_out_the_same_whichever_run_fills_it(make_database, monke
 # ---------------------------------------------------------------------------
 
 def _sector_addresses(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return [tuple(row.values()) for row in conn.execute(
             "SELECT ring_index, layer_index, ring_slot_index FROM sectors").fetchall()]
@@ -234,7 +235,7 @@ def _sector_addresses(config):
 
 
 def _table_count(config, table):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
     finally:
@@ -275,7 +276,7 @@ def test_shell_on_two_workers_fills_every_slot_and_layer_once(galaxy_db, monkeyp
 
 def test_column_on_two_workers_fills_one_slot_on_every_layer_once(galaxy_db, monkeypatch):
     # A column covers every stored layer, so keep the galaxy thin.
-    _db.replace_galaxy_layers([(layer, 999) for layer in range(-2, 3)], config=galaxy_db)
+    store.replace_galaxy_layers([(layer, 999) for layer in range(-2, 3)], config=galaxy_db)
     counts = _run("galaxy", ["--ring", "1", "--slot", "2", "--column"] + _workers(), galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)
     assert sorted(addresses) == [(1, layer, 2) for layer in range(-2, 3)]
@@ -298,7 +299,7 @@ def test_block_on_two_workers_fills_each_sector_once(galaxy_db, monkeypatch):
 
 def test_center_sector_on_two_workers_fills_its_neighborhood_once(galaxy_db, monkeypatch):
     _run("galaxy", ["--ring", "2", "--limit", "1"] + _workers(1), galaxy_db, monkeypatch)
-    conn = _db.get_connection(galaxy_db)
+    conn = store.get_connection(galaxy_db)
     try:
         center = conn.execute("SELECT id FROM sectors").fetchone()["id"]
     finally:
@@ -323,7 +324,7 @@ def test_random_start_on_two_workers_fills_each_sector_once(galaxy_db, monkeypat
 
 def test_unplaced_sectors_on_two_workers_are_each_saved_once(galaxy_db, monkeypatch):
     counts = _run("sector", ["--num-sectors", "5", "--yes", "--workers", "2"], galaxy_db, monkeypatch)
-    conn = _db.get_connection(galaxy_db)
+    conn = store.get_connection(galaxy_db)
     try:
         rows = conn.execute("SELECT id, name, ring_index FROM sectors").fetchall()
     finally:

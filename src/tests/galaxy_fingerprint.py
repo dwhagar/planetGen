@@ -12,7 +12,7 @@ number formatting); just enough for the tests to say "same galaxy".
 
 import re
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 
 _DECORATION = re.compile(r"\b(?:%s) (?=[A-Z])" % "|".join(GREEK_LETTERS + DIMINUTIVE_PREFIXES))
@@ -20,7 +20,7 @@ _DECORATION = re.compile(r"\b(?:%s) (?=[A-Z])" % "|".join(GREEK_LETTERS + DIMINU
 Which of two colliding systems keeps the plain name depends on which
 saved first (GEN.57, phase 1), so the picture leaves the decoration out."""
 
-_CONTROL_SCHEMA = _db.os.path.join(_db.os.path.dirname(_db.__file__), "control_schema.sql")
+_CONTROL_SCHEMA = store.os.path.join(store.os.path.dirname(store.__file__), "control_schema.sql")
 
 with open(_CONTROL_SCHEMA, encoding="utf-8") as _file:
     _CONTROL_TABLES = frozenset(re.findall(r"CREATE TABLE IF NOT EXISTS (\w+)", _file.read()))
@@ -53,7 +53,7 @@ def _comparable(value):
 def galaxy_rows(config):
     """`{table: sorted list of row tuples}` for every non-empty content
     table of the database at `config`."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         tables = [row["name"] for row in conn.execute(
             "SELECT table_name AS name FROM information_schema.tables WHERE table_schema = DATABASE()"

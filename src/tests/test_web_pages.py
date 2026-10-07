@@ -20,7 +20,7 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from web import csrf  # noqa: E402
@@ -464,7 +464,7 @@ def test_real_database_home_and_paging(db_client, mysql_config, monkeypatch):
         raise AssertionError("HTTP transport used inside a Flask request")
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     for i in range(55):
-        _db.save_sector(SpaceSector(f"Web <i>Sector</i> {i:03d}", edge_ly=10.0), config=mysql_config)
+        store.save_sector(SpaceSector(f"Web <i>Sector</i> {i:03d}", edge_ly=10.0), config=mysql_config)
 
     page1 = db_client.get("/")
     html = page1.get_data(as_text=True)
@@ -481,7 +481,7 @@ def test_real_database_home_and_paging(db_client, mysql_config, monkeypatch):
 
 def test_real_login_session_shows_admin_menu(db_client, mysql_config):
     _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     resp = db_client.post("/api/auth/login", json={"username": "admin", "password": first_password})
     assert resp.status_code == 200
     html = db_client.get("/").get_data(as_text=True)
@@ -499,7 +499,7 @@ def test_page_views_are_not_rate_limited(db_client, mysql_config):
     direct API call from the same address still counts.
     """
     from api.limiter import limiter
-    _db.get_connection(mysql_config).close()  # lay down the (empty) content schema
+    store.get_connection(mysql_config).close()  # lay down the (empty) content schema
     limiter.reset()
     try:
         statuses = {db_client.get("/").status_code for _ in range(60)}

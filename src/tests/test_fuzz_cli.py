@@ -43,7 +43,7 @@ from hypothesis import strategies as st
 
 import generate
 from planetgen.generation.star import STAR_TYPE_PATTERN
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import limits
 from planetgen import tuning
 from planetgen.util import log
@@ -536,9 +536,9 @@ def plan_argv(draw):
 def test_plan_runs_clean_across_galaxy_shapes(mysql_config, argv):
     code = assert_clean(argv + mysql_argv(mysql_config), limit=60)
     if code == 0:
-        conn = _db.get_connection(mysql_config)
+        conn = store.get_connection(mysql_config)
         try:
-            bounds = _db.get_galaxy_bounds(conn)
+            bounds = store.get_galaxy_bounds(conn)
         finally:
             conn.close()
         assert bounds is not None
@@ -584,10 +584,10 @@ _OUTER_RING = 3
 
 
 def _plan_flat_galaxy(mysql_config):
-    _db.save_galaxy_shape(_FLAT_SHAPE, edge_pc=EDGE_PC, outer_ring_index=_OUTER_RING,
+    store.save_galaxy_shape(_FLAT_SHAPE, edge_pc=EDGE_PC, outer_ring_index=_OUTER_RING,
                           expected_system_count_at_density_1=expected_system_count_at_density_1(),
                           config=mysql_config)
-    _db.replace_galaxy_layers([(1, _OUTER_RING), (0, _OUTER_RING), (-1, _OUTER_RING)], config=mysql_config)
+    store.replace_galaxy_layers([(1, _OUTER_RING), (0, _OUTER_RING), (-1, _OUTER_RING)], config=mysql_config)
 
 
 def _placed_sector_id(mysql_config):
@@ -595,7 +595,7 @@ def _placed_sector_id(mysql_config):
     galaxy-placed sector for --center-sector."""
     assert_clean(["galaxy", "--quiet", "--ring", "0", "--limit", "1", "--num-systems", "1"]
                  + mysql_argv(mysql_config))
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]
     finally:
@@ -647,7 +647,7 @@ def test_galaxy_runs_clean_with_hostile_numbers(mysql_config, data, seed):
     note(f"argv={argv}")
     assert_clean(argv + mysql_argv(mysql_config), seed=seed, limit=60)
     # Nothing generated may ever land outside the stored outline.
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT ring_index, layer_index FROM sectors").fetchall()
     finally:

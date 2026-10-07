@@ -638,8 +638,8 @@ def _schema_text(database):
     if database["schema_current"]:
         return f"v{version} (current)"
     if version is None:
-        return f"not initialized (code expects v{database['schema_expected']}); run migrateDb.py"
-    return f"v{version}, code expects v{database['schema_expected']}; run migrateDb.py"
+        return f"not initialized (code expects v{database['schema_expected']}); run planetgen.cli.migrate"
+    return f"v{version}, code expects v{database['schema_expected']}; run planetgen.cli.migrate"
 
 
 _LEVEL_LABELS = {

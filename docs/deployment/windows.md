@@ -153,7 +153,7 @@ Layout used below (short names, no spaces):
 5. **Schema and first admin login:**
 
        cd C:\srv\planetGen
-       C:\srv\planetgen-venv\Scripts\python.exe src\migrateDb.py
+       C:\srv\planetgen-venv\Scripts\python3 -m planetgen.cli.migrate
 
    The first run prints the `admin` password once. Keep it; you change
    it at `/login` later.
@@ -349,7 +349,7 @@ galaxy data instead), offers the optional population pass (y/N, default
 N; `-Population` runs it without asking), and re-applies the folders and
 permissions. Then
 restart the app (per option above; the script's last line says how).
-`python src\migrateDb.py --status` shows whether a migration is pending.
+`python3 -m planetgen.cli.migrate --status` shows whether a migration is pending.
 New files inherit the checkout's permissions, so the service account
 still only has read access.
 

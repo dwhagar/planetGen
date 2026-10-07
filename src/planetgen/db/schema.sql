@@ -1,4 +1,4 @@
--- stellarObjects/schema.sql
+-- planetgen/db/schema.sql
 --
 -- MySQL (InnoDB) schema for planetGen persistence (TODO.md Phase 2, ported
 -- off SQLite for Phase 5's MySQL migration -- see docs/TODO.md). Plain SQL
@@ -66,7 +66,7 @@
 -- `quadrant` gets above, so a system's neighborhood is directly searchable
 -- without recomputing nearest-neighbor distances on every read. NULL under
 -- exactly the same condition as `quadrant`/`position_x/y/z_mpc`: a system
--- never placed in a sector. Computed in `stellarObjects/_db.py` from
+-- never placed in a sector. Computed in `planetgen/db/store.py` from
 -- `SpaceSector.nearest_neighbors` (up to 3, nearest first) at
 -- `insert_sector` time; `migrate_database`'s `_migrate_v1_to_v2`/
 -- `_migrate_v2_to_v3` backfill it for a database migrated from an older
@@ -81,7 +81,7 @@
 --   - star_systems.schema_version (per row) is the version of the
 --     serialized object-graph shape (Phase 1's to_dict()) that produced it.
 -- Both started at 1; the DDL version below is CURRENT_SCHEMA_VERSION in
--- `_db.py`.
+-- `store.py`.
 --
 -- v4: added six nullable galaxy-frame placement columns to `sectors` --
 -- center_x/y/z_pc (Cartesian center, parsecs, galactic-origin-relative),
@@ -109,9 +109,9 @@
 -- (`moon_evolutionary_paragraphs`/`moon_reflection_spectrum`) for the same
 -- reason. Moons never generate their own moons (`Planet.__init__` only
 -- calls `generate_moons` `if not self.is_moon`), so `moons` has no
--- self-reference of its own. `stellarObjects/_db.py`'s `migrate_database`
+-- self-reference of its own. `planetgen/db/store.py`'s `migrate_database`
 -- converts an existing v1 database in place (backing up the original
--- first); `migrateDb.py` runs it over every database in a directory, and
+-- first); `planetgen.cli.migrate` runs it over every database in a directory, and
 -- `install.sh` (and so `update.sh`, which calls it) does this on every
 -- deploy.
 -- v5: dropped every pre-rendered `table_*`/`binary_table_*` TEXT column
@@ -204,7 +204,7 @@
 --   (`orbital_phase_deg`, this body's current position angle around its
 --   otherwise-circular orbit) and one static descriptive stat
 --   (`rotation_period_hours`, axial "day length" -- this generator doesn't
---   track rotational phase, only period). `updateOrbits.py` is a new,
+--   track rotational phase, only period). `planetgen.cli.orbits` is a new,
 --   separately-run script that advances every body's `orbital_phase_deg`
 --   in place based on `period_years` and real elapsed time, using the new
 --   `orbit_simulation_state` singleton row (one per database, same
@@ -241,7 +241,7 @@
 --   "each body positioned relative to its immediate primary" convention
 --   `docs/design/galaxy-coordinate-system.md` already uses one level up
 --   for sectors/systems relative to the galactic center (see v10 above).
---   `updateOrbits.py`/`_db.advance_orbital_phases` recomputes position in
+--   `planetgen.cli.orbits`/`_db.advance_orbital_phases` recomputes position in
 --   lockstep with `orbital_phase_deg` as time passes; `orbital_speed_kms`
 --   only changes if `distance_km`/`period_years` themselves do (e.g.
 --   `StarSystem.validate_system` resolving an orbital overlap at
@@ -585,7 +585,7 @@
 --   since nothing here ever needs to know which wiki software served it,
 --   only where to link). `star_systems.wikijs_url`/`mediawiki_url`
 --   (present in this file's `CREATE TABLE` since before v23, but never
---   populated or migrated for an existing database -- see `_db.py`'s
+--   populated or migrated for an existing database -- see `store.py`'s
 --   `_migrate_v22_to_v23`) are the per-system equivalent, one column per
 --   backend since a system's own pre-rendered `wikitext_content`/
 --   `markdown_content` can genuinely be uploaded to both a MediaWiki and
@@ -602,7 +602,7 @@
 --   collision-decoration scheme (Greek/Roman letters for sectors and
 --   systems against their own kind, a diminutive prefix for a system
 --   against a sector, a companion suffix for a planet/moon against
---   anything). `_db.py`'s `insert_sector`/`insert_star_system`/
+--   anything). `store.py`'s `insert_sector`/`insert_star_system`/
 --   `insert_planet`/`insert_moon` all consult and update these now, so no
 --   two rows anywhere in this database ever end up sharing a display
 --   name. See each table's own comment below for the exact shape.
@@ -644,7 +644,7 @@
 --   range-scan that bounding box instead of still examining every row.
 --
 -- v27: row timestamps on the top-level tables -- `sectors`,
---   `star_systems` and the seven exotic-phenomenon tables (`_db.py`'s
+--   `star_systems` and the seven exotic-phenomenon tables (`store.py`'s
 --   `TIMESTAMPED_TABLES`). Each gets `created_at` (`star_systems` already
 --   had one) and `modified_at`, plus an index on `modified_at` so "what
 --   changed since T" is a range scan rather than a full one -- the shape
@@ -661,7 +661,7 @@
 --     system changed. Deleting a system bumps its sector the same way
 --     (`_db.touch_sector`). Generation writes a system and its children
 --     together, so the system's own insert already covers them.
---   - `updateOrbits.py`'s orbit ticks (`_db.advance_orbital_phases`) do
+--   - `planetgen.cli.orbits`'s orbit ticks (`_db.advance_orbital_phases`) do
 --     NOT count as a modification: each of its `UPDATE`s sets
 --     `modified_at = modified_at`, which stops `ON UPDATE` from firing.
 --     The simulation clock moving would otherwise mark every row changed
@@ -705,7 +705,7 @@
 --   text was built from already has its own column (the same reasoning v5
 --   applied to the `table_*` snapshot columns), so both formats are now
 --   rendered on demand: `_db.load_star_system` rebuilds the generation
---   object graph and `stellarObjects/systemRender.py` renders it
+--   object graph and `planetgen/db/render.py` renders it
 --   (`StarSystem.__str__`, toggling `SystemConfig.MARKDOWN`). Rendered
 --   fresh, a page follows every later change the stored copy never saw --
 --   a rename, a name made unique after the text was rendered (planets and
@@ -986,7 +986,7 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- ---------------------------------------------------------------------
 -- schema_migrations -- DDL-level structure version tracking. Replaces
 -- SQLite's `PRAGMA user_version` (see the MySQL port note above);
--- `_db.py`'s `migrate_database` reads `MAX(version)` from this table
+-- `store.py`'s `migrate_database` reads `MAX(version)` from this table
 -- and inserts a row per migration step it applies.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS schema_migrations (
@@ -1143,9 +1143,9 @@ CREATE TABLE IF NOT EXISTS galaxy_column (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Singleton row (same pattern as galaxy_shape above) tracking when
--- updateOrbits.py last advanced every planet's/moon's orbital_phase_deg in
+-- planetgen.cli.orbits last advanced every planet's/moon's orbital_phase_deg in
 -- this database, so the next run knows how much real time has actually
--- elapsed since then. Absent entirely until updateOrbits.py's first run
+-- elapsed since then. Absent entirely until planetgen.cli.orbits's first run
 -- against a given database (it creates this row itself).
 CREATE TABLE IF NOT EXISTS orbit_simulation_state (
     id               BIGINT UNSIGNED PRIMARY KEY CHECK (id = 1),
@@ -1429,7 +1429,7 @@ CREATE TABLE IF NOT EXISTS planets (
     flavor_text_count         INT NOT NULL DEFAULT 0,
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time; phase changes over time, advanced
-    -- in place by updateOrbits.py. rotation_period_hours is a separate,
+    -- in place by planetgen.cli.orbits. rotation_period_hours is a separate,
     -- static "day length" stat.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
@@ -1438,7 +1438,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- relative to this planet's orbital anchor (the star, or the
     -- BinaryStarProxy's combined center for a binary system), derived from
     -- distance_km and the orbital-motion columns above; changes in
-    -- lockstep with orbital_phase_deg as updateOrbits.py advances it.
+    -- lockstep with orbital_phase_deg as planetgen.cli.orbits advances it.
     -- orbital_speed_kms is constant around a circular orbit -- it only
     -- changes if distance_km/period_years do.
     position_x_km               DOUBLE NOT NULL,
@@ -1541,7 +1541,7 @@ CREATE TABLE IF NOT EXISTS moons (
     flavor_text_count         INT NOT NULL DEFAULT 0,
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time; phase changes over time, advanced
-    -- in place by updateOrbits.py. rotation_period_hours is a separate,
+    -- in place by planetgen.cli.orbits. rotation_period_hours is a separate,
     -- static "day length" stat.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
@@ -2368,7 +2368,7 @@ CREATE TABLE IF NOT EXISTS system_name_registry (
 -- Only systems within `_db.NEAREST_SYSTEMS_SEARCH_PC` count, so an
 -- isolated object can have fewer than 3 rows. Filled when a sector is
 -- generated (a new sector also updates its neighbors' lists) and by the
--- correlative update (`updateOrbits.py`), which moves everything.
+-- correlative update (`planetgen.cli.orbits`), which moves everything.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS nearest_systems (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

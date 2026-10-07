@@ -1,11 +1,11 @@
 # tests/test_db_persistence.py
 
 """
-End-to-end save-path tests for `stellarObjects._db.insert_star_system`,
+End-to-end save-path tests for `planetgen.db.store.insert_star_system`,
 specifically that a freshly generated system's planets and moons land in
 their respective schema-v2 tables (`planets` vs. `moons`, see
 `schema.sql`'s "v2" header note) rather than sharing one table the way
-schema v1 did. There's otherwise no test coverage of `_db.py`'s save path
+schema v1 did. There's otherwise no test coverage of `store.py`'s save path
 at all (`docs/database-schema.md`'s own "no read path yet" status,
 historical, since resolved), so this is deliberately a real
 generate-then-save-then-query round trip rather than a unit test against
@@ -25,7 +25,7 @@ import time
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen import tuning
 from planetgen.physics import constants as pc
 from planetgen.generation.comet import Comet
@@ -213,10 +213,10 @@ def _make_system_with_comets():
 def test_insert_star_system_persists_comets_in_their_own_table(mysql_config):
     system, cfg = _make_system_with_comets()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         db_comets = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(db_comets) == system.comet_count
@@ -257,11 +257,11 @@ def test_insert_star_system_persists_comets_in_their_own_table(mysql_config):
 def test_load_star_system_round_trips_comets_with_composition(mysql_config):
     system, cfg = _make_system_with_comets()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -312,10 +312,10 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_
     """
     system, cfg = _make_wide_binary_system_with_comets()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         primary_row = conn.execute(
             "SELECT id FROM stars WHERE star_system_id = ? AND role = 'primary'", (system_id,)
@@ -334,7 +334,7 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_wide_binary(mysql_
         # only ever correct for a 'close' binary's merged proxy) hiding.
         assert primary_names | secondary_names == {row["name"] for row in db_comets}
 
-        reloaded = _db.load_star_system(conn, system_id)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -365,16 +365,16 @@ def _make_close_binary_system_with_comets():
 def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql_config):
     system, cfg = _make_close_binary_system_with_comets()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         db_comets = conn.execute("SELECT name, star_id FROM comets WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(db_comets) == system.comet_count
         assert all(row["star_id"] is None for row in db_comets)
 
-        reloaded = _db.load_star_system(conn, system_id)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -386,10 +386,10 @@ def test_insert_and_load_star_system_round_trips_comets_for_a_close_binary(mysql
 def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
     finally:
         conn.close()
 
@@ -398,7 +398,7 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql
     expected_moon_names = sorted(moon.name for planet in expected_planets for moon in planet.moons)
     assert expected_moon_names, "test fixture must actually contain moons"
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         db_planets = conn.execute("SELECT * FROM planets WHERE star_system_id = ?", (system_id,)).fetchall()
         assert len(db_planets) == len(expected_planets)
@@ -417,13 +417,13 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql
         assert len(belts) == len(expected_belts)
 
         version_row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
-        assert version_row["version"] == _db.SCHEMA_VERSION
+        assert version_row["version"] == store.SCHEMA_VERSION
     finally:
         conn.close()
 
 
 # ---------------------------------------------------------------------------
-# Read path (_db.load_star_system / load_sector / load_system_config).
+# Read path (store.load_star_system / load_sector / load_system_config).
 # Covers the gaps this module's own docstring called out as still missing:
 # binary systems, lifespan_gy round-tripping, and foreign-key integrity,
 # plus save_sector/insert_sector and insert_system_config's SLOTS child rows.
@@ -432,11 +432,11 @@ def test_insert_star_system_splits_planets_and_moons_into_their_own_tables(mysql
 def test_load_star_system_round_trips_single_star_system_exactly(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -461,11 +461,11 @@ def test_load_star_system_round_trips_binary_system_exactly(mysql_config):
     cfg.PLANETS = False
     system = StarSystem(system_config=cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -489,16 +489,16 @@ def test_lifespan_gy_null_round_trips_to_infinite_lifespan(mysql_config):
     system = StarSystem(system_config=cfg)
     assert system.star.lifespan == float('inf')
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
         row = conn.execute(
             "SELECT lifespan_gy FROM stars WHERE star_system_id = ?", (system_id,)
         ).fetchone()
         assert row["lifespan_gy"] is None  # NULL in storage, never the JSON "Infinity" token
 
-        reloaded = _db.load_star_system(conn, system_id)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -516,11 +516,11 @@ def test_galactic_orbit_fields_round_trip_exactly(mysql_config):
     """
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -534,11 +534,11 @@ def test_galactic_orbit_fields_round_trip_exactly(mysql_config):
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            binary_system_id = _db.insert_star_system(conn, binary_system, binary_cfg)
-        reloaded_binary = _db.load_star_system(conn, binary_system_id)
+            binary_system_id = store.insert_star_system(conn, binary_system, binary_cfg)
+        reloaded_binary = store.load_star_system(conn, binary_system_id)
     finally:
         conn.close()
 
@@ -557,11 +557,11 @@ def test_star_motion_fields_round_trip_exactly(mysql_config):
     """
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -577,11 +577,11 @@ def test_star_motion_fields_round_trip_exactly(mysql_config):
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            binary_system_id = _db.insert_star_system(conn, binary_system, binary_cfg)
-        reloaded_binary = _db.load_star_system(conn, binary_system_id)
+            binary_system_id = store.insert_star_system(conn, binary_system, binary_cfg)
+        reloaded_binary = store.load_star_system(conn, binary_system_id)
     finally:
         conn.close()
 
@@ -636,10 +636,10 @@ def test_insert_star_system_respects_foreign_keys(mysql_config):
     # insert-then-reload round trip above completes without one.
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_star_system(conn, system, cfg)
+            store.insert_star_system(conn, system, cfg)
     finally:
         conn.close()
 
@@ -655,11 +655,11 @@ def test_save_sector_and_load_sector_round_trip(mysql_config):
     system_b = StarSystem(system_config=cfg_b)
     sector.add_system(system_b, position=(-4.0, 0.0, 5.5), system_config=cfg_b)
 
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        reloaded_sector = _db.load_sector(conn, sector_id)
+        reloaded_sector = store.load_sector(conn, sector_id)
     finally:
         conn.close()
 
@@ -692,11 +692,11 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
     planets = [obj for obj in system.planets if obj.body_type != "a"]
     assert any(p.moons for p in planets), "test fixture must actually contain moons"
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -735,14 +735,14 @@ def test_orbital_motion_fields_round_trip_exactly(mysql_config):
 
 
 # ---------------------------------------------------------------------------
-# Orbital motion updates (stellarObjects._db.advance_orbital_phases /
-# get_orbit_update_elapsed_years) -- see updateOrbits.py.
+# Orbital motion updates (planetgen.db.store.advance_orbital_phases /
+# get_orbit_update_elapsed_years) -- see planetgen.cli.orbits.
 # ---------------------------------------------------------------------------
 
 def test_get_orbit_update_elapsed_years_is_none_before_first_update(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.get_orbit_update_elapsed_years(conn) is None
+        assert store.get_orbit_update_elapsed_years(conn) is None
     finally:
         conn.close()
 
@@ -750,10 +750,10 @@ def test_get_orbit_update_elapsed_years_is_none_before_first_update(mysql_config
 def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_fields_untouched(mysql_config):
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_star_system(conn, system, cfg)
+            store.insert_star_system(conn, system, cfg)
 
         before = conn.execute(
             "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
@@ -761,7 +761,7 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
             "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
 
-        counts = _db.advance_orbital_phases(conn, elapsed_years=0.5)
+        counts = store.advance_orbital_phases(conn, elapsed_years=0.5)
         assert counts["planets"] > 0
         assert counts["moons"] > 0
         assert counts["stars"] > 0
@@ -798,9 +798,9 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
 
     # get_orbit_update_elapsed_years should now report ~0 elapsed time
     # (the call above just set last_updated_at to NOW()), not None.
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        elapsed = _db.get_orbit_update_elapsed_years(conn)
+        elapsed = store.get_orbit_update_elapsed_years(conn)
     finally:
         conn.close()
     assert elapsed is not None
@@ -823,10 +823,10 @@ def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockste
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            binary_id = _db.insert_star_system(conn, binary_system, binary_cfg)
+            binary_id = store.insert_star_system(conn, binary_system, binary_cfg)
 
         before = conn.execute(
             "SELECT binary_separation_km, binary_mutual_orbital_period_years, "
@@ -838,7 +838,7 @@ def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockste
         # Big enough elapsed time to clearly move the (fast) mutual orbit,
         # regardless of its randomly generated period.
         elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        _db.advance_orbital_phases(conn, elapsed_years=elapsed_years)
+        store.advance_orbital_phases(conn, elapsed_years=elapsed_years)
 
         after = conn.execute(
             "SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km, "
@@ -880,10 +880,10 @@ def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            binary_id = _db.insert_star_system(conn, binary_system, binary_cfg)
+            binary_id = store.insert_star_system(conn, binary_system, binary_cfg)
 
         before = conn.execute(
             "SELECT binary_mutual_orbital_period_years, binary_primary_position_x_km, "
@@ -892,7 +892,7 @@ def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(
         ).fetchone()
 
         elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        counts = _db.advance_orbital_phases(conn, elapsed_years=elapsed_years)
+        counts = store.advance_orbital_phases(conn, elapsed_years=elapsed_years)
         assert counts["binary_mutual_orbits"] > 0
 
         after = conn.execute(
@@ -947,10 +947,10 @@ def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_
     if system is None:
         pytest.fail("could not generate a single-star system with planets and at least one moon")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, system.system_config)
+            system_id = store.insert_star_system(conn, system, system.system_config)
 
         star_id = conn.execute(
             "SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)
@@ -964,7 +964,7 @@ def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_
         max_period = conn.execute(
             "SELECT MAX(period_years) AS p FROM planets WHERE star_id = ?", (star_id,)
         ).fetchone()["p"]
-        counts = _db.advance_orbital_phases(conn, elapsed_years=max_period * 137.25)
+        counts = store.advance_orbital_phases(conn, elapsed_years=max_period * 137.25)
         assert counts["star_reflex_offsets"] > 0
         assert counts["planet_reflex_offsets"] > 0
 
@@ -990,16 +990,16 @@ def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_
 
 
 def test_advance_orbital_phases_rejects_negative_elapsed_years(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError):
-            _db.advance_orbital_phases(conn, elapsed_years=-1.0)
+            store.advance_orbital_phases(conn, elapsed_years=-1.0)
     finally:
         conn.close()
 
 
 # ---------------------------------------------------------------------------
-# Comet orbital motion updates (stellarObjects._db.advance_comet_orbits) --
+# Comet orbital motion updates (planetgen.db.store.advance_comet_orbits) --
 # a separate Python-loop call from advance_orbital_phases above, since a
 # comet's position isn't a linear function of elapsed time the way a
 # circular planet/moon orbit's is -- see that function's own docstring.
@@ -1015,15 +1015,15 @@ def test_advance_comet_orbits_advances_elliptical_mean_anomaly_and_recomputes_po
     comet.update_orbital_state()
     system.comets = [comet]
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
         step_years = before["orbital_period_years"] * 0.05  # 18 degrees of mean anomaly
 
-        updated = _db.advance_comet_orbits(conn, step_years)
+        updated = store.advance_comet_orbits(conn, step_years)
         assert updated == 1
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -1052,10 +1052,10 @@ def test_advance_comet_orbits_advances_parabolic_mean_anomaly_without_wrapping(m
     comet.update_orbital_state()
     system.comets = [comet]
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
         assert before["mean_anomaly_deg"] is None
@@ -1064,7 +1064,7 @@ def test_advance_comet_orbits_advances_parabolic_mean_anomaly_without_wrapping(m
         # A large elapsed time -- since a parabolic anomaly doesn't wrap
         # (unlike mean_anomaly_deg's MOD 360), this should NOT be clamped
         # or wrapped, just added linearly.
-        updated = _db.advance_comet_orbits(conn, elapsed_years=50.0)
+        updated = store.advance_comet_orbits(conn, elapsed_years=50.0)
         assert updated == 1
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -1084,15 +1084,15 @@ def test_advance_comet_orbits_skips_elliptical_rows_below_min_update_interval(my
     comet = Comet(cfg, primary_mass_solar=system.star.mass / pc.SOLAR_MASS_TO_KG, orbit_type="elliptical")
     system.comets = [comet]
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
         # Comfortably below this comet's own min_update_interval_years floor.
         tiny_elapsed = before["min_update_interval_years"] / 2
-        updated = _db.advance_comet_orbits(conn, tiny_elapsed)
+        updated = store.advance_comet_orbits(conn, tiny_elapsed)
         assert updated == 0
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -1104,10 +1104,10 @@ def test_advance_comet_orbits_skips_elliptical_rows_below_min_update_interval(my
 
 
 def test_advance_comet_orbits_rejects_negative_elapsed_years(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError):
-            _db.advance_comet_orbits(conn, elapsed_years=-1.0)
+            store.advance_comet_orbits(conn, elapsed_years=-1.0)
     finally:
         conn.close()
 
@@ -1123,7 +1123,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
     step up to `SCHEMA_VERSION` in one call, so a v8 database now lands on
     v15 directly).
     """
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for table in ("planets", "moons"):
             conn.execute(
@@ -1172,10 +1172,10 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         planet_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM planets").fetchall()}
         assert {
@@ -1184,7 +1184,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
             "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
             "min_update_interval_years",
         } <= planet_columns
-        assert _db.get_orbit_update_elapsed_years(conn) is None  # table exists, no row yet
+        assert store.get_orbit_update_elapsed_years(conn) is None  # table exists, no row yet
 
         star_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM stars").fetchall()}
         assert {
@@ -1195,7 +1195,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
@@ -1209,7 +1209,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
     the database as current again, without disturbing the v9
     orbital-motion columns already in place.
     """
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute(
             "ALTER TABLE stars "
@@ -1254,10 +1254,10 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         star_columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM stars").fetchall()}
         assert {
@@ -1286,7 +1286,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
@@ -1303,10 +1303,10 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
     """
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         for table in ("planets", "moons"):
             conn.execute(
@@ -1350,10 +1350,10 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         rows = conn.execute(
             "SELECT distance_km, orbital_inclination_deg, orbital_ascending_node_deg, orbital_phase_deg, "
@@ -1393,10 +1393,10 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
     """
     system, cfg = _make_system_with_moons_and_belt()
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
 
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN min_update_interval_years")
@@ -1435,10 +1435,10 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         planet_rows = conn.execute(
             "SELECT period_years, min_update_interval_years "
@@ -1461,7 +1461,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config):
@@ -1488,11 +1488,11 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
     binary_config.WIDE_BINARY = False  # pin to close/P-type -- these assertions are BinaryStarProxy-specific
     binary_system = StarSystem(binary_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-            binary_id = _db.insert_star_system(conn, binary_system, binary_config)
+            system_id = store.insert_star_system(conn, system, cfg)
+            binary_id = store.insert_star_system(conn, binary_system, binary_config)
 
         conn.execute(
             "ALTER TABLE stars "
@@ -1529,10 +1529,10 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         star_rows = conn.execute(
             "SELECT galactic_orbital_phase_deg, galactic_orbital_period_gy, galactic_min_update_interval_years "
@@ -1582,7 +1582,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_config):
@@ -1604,10 +1604,10 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
     binary_config.WIDE_BINARY = False  # pin to close/P-type -- these assertions are BinaryStarProxy-specific
     binary_system = StarSystem(binary_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            binary_id = _db.insert_star_system(conn, binary_system, binary_config)
+            binary_id = store.insert_star_system(conn, binary_system, binary_config)
 
         conn.execute(
             "ALTER TABLE star_systems "
@@ -1636,10 +1636,10 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         row = conn.execute(
             "SELECT binary_separation_km, binary_mutual_orbital_inclination_deg, "
@@ -1658,7 +1658,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_config):
@@ -1686,10 +1686,10 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
     if system is None:
         pytest.fail("could not generate a single-star system with planets and at least one moon")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, system.system_config)
+            system_id = store.insert_star_system(conn, system, system.system_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
@@ -1702,10 +1702,10 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         star_row = conn.execute(
             "SELECT id, mass_kg, reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km "
@@ -1752,7 +1752,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
@@ -1780,10 +1780,10 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
     if system is None:
         pytest.fail("could not generate a close-binary system with circumbinary planets")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, system.system_config)
+            system_id = store.insert_star_system(conn, system, system.system_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
@@ -1796,10 +1796,10 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         ss_row = conn.execute(
             "SELECT binary_effective_mass_kg, binary_mutual_position_x_km, binary_mutual_position_y_km, "
@@ -1844,7 +1844,7 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
         conn.close()
 
     # Idempotent: running it again against an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_insert_system_config_round_trips_slots_child_rows(mysql_config):
@@ -1856,11 +1856,11 @@ def test_insert_system_config_round_trips_slots_child_rows(mysql_config):
         {"type": "asteroid_belt", "planet_class": None, "moons": None},
     ]
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            config_id = _db.insert_system_config(conn, cfg)
-        reloaded = _db.load_system_config(conn, config_id)
+            config_id = store.insert_system_config(conn, cfg)
+        reloaded = store.load_system_config(conn, config_id)
     finally:
         conn.close()
 
@@ -1883,11 +1883,11 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
     bh = BlackHole(cfg)
     ns = NeutronStar(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            pre_existing_bh_id = _db.insert_black_hole(conn, bh)
-            pre_existing_ns_id = _db.insert_neutron_star(conn, ns)
+            pre_existing_bh_id = store.insert_black_hole(conn, bh)
+            pre_existing_ns_id = store.insert_neutron_star(conn, ns)
 
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
@@ -1904,10 +1904,10 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
     finally:
         conn.close()
 
-    version_after = _db.migrate_database(mysql_config)
-    assert version_after == _db.SCHEMA_VERSION
+    version_after = store.migrate_database(mysql_config)
+    assert version_after == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         bh_columns_after = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM black_holes").fetchall()}
         ns_columns_after = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM neutron_stars").fetchall()}
@@ -1931,7 +1931,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
             "center_x_pc": 5.0, "center_y_pc": -3.0, "center_z_pc": 1.0,
             "galactic_radius_pc": math.sqrt(5.0 ** 2 + 3.0 ** 2 + 1.0 ** 2),
         }
-        sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+        sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
         new_bh = BlackHole(SystemConfig())
         placement = {
@@ -1939,7 +1939,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
             "galactic_radius_pc": math.sqrt(5.5 ** 2 + 3.0 ** 2 + 1.0 ** 2),
         }
         with conn:
-            new_bh_id = _db.insert_black_hole(conn, new_bh, sector_id=sector_id, placement=placement)
+            new_bh_id = store.insert_black_hole(conn, new_bh, sector_id=sector_id, placement=placement)
         new_bh_row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (new_bh_id,)).fetchone()
         assert new_bh_row["sector_id"] == sector_id
         assert new_bh_row["center_x_pc"] == pytest.approx(5.5)
@@ -1951,13 +1951,13 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
 def _drop_v27_timestamp_columns(conn):
     """
     Drops v27's `created_at`/`modified_at` columns and `modified_at`
-    indexes from every `_db.TIMESTAMPED_TABLES` table (keeping
+    indexes from every `store.TIMESTAMPED_TABLES` table (keeping
     `star_systems.created_at`, which predates v27) -- the same "already
     exists on a freshly-bootstrapped test database" reasoning
     `_drop_v17_phenomenon_columns` gives for its own tables. See
     `schema.sql`'s "v27" header note.
     """
-    for table in _db.TIMESTAMPED_TABLES:
+    for table in store.TIMESTAMPED_TABLES:
         drops = [f"DROP INDEX idx_{table}_modified_at", "DROP COLUMN modified_at"]
         if table != "star_systems":
             drops.append("DROP COLUMN created_at")
@@ -1977,20 +1977,20 @@ def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monk
     own time. A batch size of 1 makes the backfill cross batch
     boundaries.
     """
-    monkeypatch.setattr(_db, "_V27_BACKFILL_BATCH_SIZE", 1)
+    monkeypatch.setattr(store, "_V27_BACKFILL_BATCH_SIZE", 1)
     first_created = datetime.datetime(2020, 1, 1, 0, 0, 0)
     second_created = datetime.datetime(2021, 6, 15, 12, 30, 0)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        sector_id = _db.save_sector(SpaceSector("Timestamp Migration Sector", edge_ly=11.5), config=mysql_config)
-        empty_sector_id = _db.save_sector(SpaceSector("Empty Timestamp Sector", edge_ly=11.5), config=mysql_config)
+        sector_id = store.save_sector(SpaceSector("Timestamp Migration Sector", edge_ly=11.5), config=mysql_config)
+        empty_sector_id = store.save_sector(SpaceSector("Empty Timestamp Sector", edge_ly=11.5), config=mysql_config)
         with conn:
             system_ids = []
             for _ in range(2):
                 system, cfg = _make_system_with_moons_and_belt()
-                system_ids.append(_db.insert_star_system(conn, system, cfg))
-            bh_id = _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+                system_ids.append(store.insert_star_system(conn, system, cfg))
+            bh_id = store.insert_black_hole(conn, BlackHole(SystemConfig()))
 
         _drop_v27_timestamp_columns(conn)
         for system_id, created in zip(system_ids, (second_created, first_created)):
@@ -2007,11 +2007,11 @@ def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monk
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in _db.TIMESTAMPED_TABLES:
+        for table in store.TIMESTAMPED_TABLES:
             columns = {row["Field"] for row in conn.execute(f"SHOW COLUMNS FROM {table}").fetchall()}
             assert {"created_at", "modified_at"} <= columns, table
             indexes = {row["Key_name"] for row in conn.execute(f"SHOW INDEX FROM {table}").fetchall()}
@@ -2037,17 +2037,17 @@ def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monk
         conn.close()
 
     # Running it again on an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 
 def _drop_v28_placement_columns(conn):
     """
     Drops v28's placement columns, indexes and CHECKs from every
-    `_db.V28_PLACED_TABLES` table -- see `schema.sql`'s "v28" header note
+    `store.V28_PLACED_TABLES` table -- see `schema.sql`'s "v28" header note
     and `_drop_v27_timestamp_columns`'s reasoning.
     """
-    for table in _db.V28_PLACED_TABLES:
+    for table in store.V28_PLACED_TABLES:
         conn.execute(f"ALTER TABLE {table} DROP CONSTRAINT chk_{table}_placement")
         conn.execute(
             f"ALTER TABLE {table} DROP INDEX idx_{table}_center, DROP INDEX idx_{table}_galactic_radius_pc, "
@@ -2072,32 +2072,32 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
     from stellarObjects.utils import ly_to_pc
 
-    monkeypatch.setattr(_db, "_V27_BACKFILL_BATCH_SIZE", 1)
+    monkeypatch.setattr(store, "_V27_BACKFILL_BATCH_SIZE", 1)
     center_pc = (4000.0, 3000.0, 20.0)
     galaxy_position = {
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": math.sqrt(sum(c * c for c in center_pc)),
     }
-    placed_sector_id = _db.save_sector(
+    placed_sector_id = store.save_sector(
         SpaceSector("Placement Migration Sector", edge_ly=11.5), config=mysql_config,
         galaxy_position=galaxy_position,
     )
-    unplaced_sector_id = _db.save_sector(SpaceSector("Unplaced Migration Sector", edge_ly=11.5), config=mysql_config)
+    unplaced_sector_id = store.save_sector(SpaceSector("Unplaced Migration Sector", edge_ly=11.5), config=mysql_config)
 
     remnant = SupernovaRemnant(SystemConfig())
     remnant.compact_remnant = BlackHole(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            snr_id = _db.insert_supernova_remnant(conn, remnant, sector_id=placed_sector_id)
-            rogue_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_sector_id)
-            comet_id = _db.insert_interstellar_comet(
+            snr_id = store.insert_supernova_remnant(conn, remnant, sector_id=placed_sector_id)
+            rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_sector_id)
+            comet_id = store.insert_interstellar_comet(
                 conn, InterstellarComet(SystemConfig()), sector_id=placed_sector_id,
             )
-            stray_rogue_id = _db.insert_rogue_planet(
+            stray_rogue_id = store.insert_rogue_planet(
                 conn, RoguePlanet(SystemConfig()), sector_id=unplaced_sector_id,
             )
-            loose_comet_id = _db.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()))
+            loose_comet_id = store.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()))
         bh_id = conn.execute(
             "SELECT compact_remnant_black_hole_id AS id FROM supernova_remnants WHERE id = ?", (snr_id,),
         ).fetchone()["id"]
@@ -2110,17 +2110,17 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
     half_edge_pc = ly_to_pc(11.5) / 2
     # No grid address, so placement falls back to an axis-aligned cube.
     axes = ((1.0, 0.0, 0.0), (0.0, 1.0, 0.0), (0.0, 0.0, 1.0))
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in _db.V28_PLACED_TABLES:
+        for table in store.V28_PLACED_TABLES:
             indexes = {row["Key_name"] for row in conn.execute(f"SHOW INDEX FROM {table}").fetchall()}
             assert {f"idx_{table}_center", f"idx_{table}_galactic_radius_pc"} <= indexes, table
-            assert _db._has_constraint(conn, table, f"chk_{table}_placement"), table
+            assert store._has_constraint(conn, table, f"chk_{table}_placement"), table
 
         def placement(table, row_id):
             return conn.execute(
@@ -2155,7 +2155,7 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
         conn.close()
 
     # Running it again on an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
     """
@@ -2171,11 +2171,11 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
     binary_cfg.PLANETS = False
     binary_system = StarSystem(system_config=binary_cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, binary_system, binary_cfg)
-            bh_id = _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+            system_id = store.insert_star_system(conn, binary_system, binary_cfg)
+            bh_id = store.insert_black_hole(conn, BlackHole(SystemConfig()))
 
         def modified(table, row_id):
             return conn.execute(f"SELECT modified_at FROM {table} WHERE id = ?", (row_id,)).fetchone()["modified_at"]
@@ -2184,7 +2184,7 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
         bh_before = modified("black_holes", bh_id)
         time.sleep(0.05)
 
-        counts = _db.advance_orbital_phases(conn, elapsed_years=1e5)
+        counts = store.advance_orbital_phases(conn, elapsed_years=1e5)
         assert counts["binary_mutual_orbits"] > 0
         assert counts["black_holes"] > 0
         assert modified("star_systems", system_id) == system_before
@@ -2197,7 +2197,7 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
 
         time.sleep(0.05)
         with conn:
-            _db.touch_star_system(conn, system_id)
+            store.touch_star_system(conn, system_id)
         assert modified("star_systems", system_id) > system_renamed
     finally:
         conn.close()
@@ -2212,9 +2212,9 @@ def test_migrate_v29_to_v30_cleans_up_surface_conditions(mysql_config):
     cfg.BINARY_SYSTEM = False
     cfg.PLANETS = True
     cfg.MOONS = True
-    _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for table in ("planets", "moons"):
             row = conn.execute(f"SELECT id FROM {table} ORDER BY id LIMIT 1").fetchone()
@@ -2231,9 +2231,9 @@ def test_migrate_v29_to_v30_cleans_up_surface_conditions(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
             stale = conn.execute(
@@ -2272,18 +2272,18 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     )
-    _db.save_galaxy_shape(shape, edge_pc=3.526, outer_ring_index=7,
+    store.save_galaxy_shape(shape, edge_pc=3.526, outer_ring_index=7,
                           expected_system_count_at_density_1=20.0, config=mysql_config)
-    placed_id = _db.save_sector(_sector_with_one_system("Placed"), config=mysql_config, galaxy_position={
+    placed_id = store.save_sector(_sector_with_one_system("Placed"), config=mysql_config, galaxy_position={
         "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 0.5, "galactic_radius_pc": 2.29,
     })
-    unplaced_id = _db.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
+    unplaced_id = store.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_id)
-            kept_rogue_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
+            store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_id)
+            kept_rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
         # Put the database back in its v31 shape.
         conn.execute("ALTER TABLE sectors DROP INDEX uq_sectors_address, DROP COLUMN ring_index, "
                      "DROP COLUMN layer_index, DROP COLUMN ring_slot_index, ADD COLUMN shell_index INT, "
@@ -2301,9 +2301,9 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         sector_ids = {row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()}
         assert sector_ids == {unplaced_id}
@@ -2312,9 +2312,9 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
         rogue_ids = [row["id"] for row in conn.execute("SELECT id FROM rogue_planets").fetchall()]
         assert rogue_ids == [kept_rogue_id]
 
-        assert not _db._has_column(conn, "sectors", "shell_index")
-        assert _db._has_column(conn, "sectors", "ring_index")
-        assert _db._has_index(conn, "sectors", "uq_sectors_address")
+        assert not store._has_column(conn, "sectors", "shell_index")
+        assert store._has_column(conn, "sectors", "ring_index")
+        assert store._has_index(conn, "sectors", "uq_sectors_address")
         for table in ("sector_vertices", "galaxy_shell_band"):
             assert conn.execute(
                 "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",
@@ -2322,15 +2322,15 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
             ).fetchone() is None, table
 
         # v33 then rebuilds the skeleton per layer at the standard edge.
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         assert skeleton.edge_pc == tuning.DEFAULT_SECTOR_EDGE_PC
-        assert _db.get_galaxy_layers(conn)
-        assert _db.get_galaxy_layer_outer_ring(conn, 0) == skeleton.outer_ring_index
+        assert store.get_galaxy_layers(conn)
+        assert store.get_galaxy_layer_outer_ring(conn, 0) == skeleton.outer_ring_index
     finally:
         conn.close()
 
     # Running it again on an already-current database is a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
@@ -2349,19 +2349,19 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     )
-    _db.save_galaxy_shape(shape, edge_pc=3.526, outer_ring_index=7,
+    store.save_galaxy_shape(shape, edge_pc=3.526, outer_ring_index=7,
                           expected_system_count_at_density_1=20.0, config=mysql_config)
-    placed_id = _db.save_sector(_sector_with_one_system("Placed"), config=mysql_config, galaxy_position={
+    placed_id = store.save_sector(_sector_with_one_system("Placed"), config=mysql_config, galaxy_position={
         "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 0.5, "galactic_radius_pc": 2.29,
         "ring_index": 0, "layer_index": 0, "ring_slot_index": 1,
     })
-    unplaced_id = _db.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
+    unplaced_id = store.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_id)
-            kept_rogue_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
+            store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=placed_id)
+            kept_rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
         # Put the database back in its v32 shape.
         conn.execute("CREATE TABLE galaxy_ring_band (ring_index INT NOT NULL PRIMARY KEY, "
                      "layer_index_min INT NOT NULL, layer_index_max INT NOT NULL)")
@@ -2373,9 +2373,9 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         sector_ids = {row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()}
         assert sector_ids == {unplaced_id}
@@ -2388,7 +2388,7 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
             ("galaxy_ring_band",),
         ).fetchone() is None
 
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         assert skeleton.edge_pc == tuning.DEFAULT_SECTOR_EDGE_PC
         assert skeleton.expected_system_count_at_density_1 == pytest.approx(
             SpaceSector("x", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY).expected_system_count()
@@ -2396,28 +2396,28 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
         expected, outer, _confirmed = build_layer_extents(
             shape, tuning.DEFAULT_SECTOR_EDGE_PC, 1.0 / skeleton.expected_system_count_at_density_1,
         )
-        assert _db.get_galaxy_layers(conn) == expected
+        assert store.get_galaxy_layers(conn) == expected
         assert skeleton.outer_ring_index == outer
         columns = [
             (row["ring_index"], row["layer_index_min"], row["layer_index_max"])
             for row in conn.execute("SELECT * FROM galaxy_column ORDER BY ring_index").fetchall()
         ]
         assert columns == column_extents(expected)
-        assert _db.get_galaxy_column(conn, 0) == columns[0][1:]
-        bounds = _db.get_galaxy_bounds(conn)
+        assert store.get_galaxy_column(conn, 0) == columns[0][1:]
+        bounds = store.get_galaxy_bounds(conn)
         assert bounds.outer_ring == dict(expected)
         assert bounds.contains(outer, 0) and not bounds.contains(outer + 1, 0)
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_migrate_v33_to_v34_drops_the_planet_and_moon_name_registry(mysql_config):
     """v34 names planets and moons from their system (`bodyNames.py`), so
     `body_name_registry` goes; the rest of the database is untouched."""
-    system_id = _db.save_system(StarSystem(SystemConfig()), SystemConfig(), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    system_id = store.save_system(StarSystem(SystemConfig()), SystemConfig(), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute(
             "CREATE TABLE body_name_registry (id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, "
@@ -2430,9 +2430,9 @@ def test_migrate_v33_to_v34_drops_the_planet_and_moon_name_registry(mysql_config
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute(
             "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = ?",
@@ -2456,41 +2456,41 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
         bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
     )
-    _db.save_galaxy_shape(shape, edge_pc=4.0, outer_ring_index=7,
+    store.save_galaxy_shape(shape, edge_pc=4.0, outer_ring_index=7,
                           expected_system_count_at_density_1=20.0, config=mysql_config)
 
     def placed(name, ring):
-        return _db.save_sector(_sector_with_one_system(name), config=mysql_config, galaxy_position={
+        return store.save_sector(_sector_with_one_system(name), config=mysql_config, galaxy_position={
             "center_x_pc": 4.0 * ring + 2.0, "center_y_pc": 0.1, "center_z_pc": 0.0,
             "galactic_radius_pc": 4.0 * ring + 2.0, "ring_index": ring, "layer_index": 0, "ring_slot_index": 0,
         })
 
     changed_id = placed("Changed", 2)  # 16 slots before, 15 after
     unchanged_id = placed("Unchanged", 1)
-    unplaced_id = _db.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
+    unplaced_id = store.save_sector(_sector_with_one_system("Unplaced"), config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=changed_id)
-            kept_rogue_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
-        layers_before = _db.get_galaxy_layers(conn)
+            store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=changed_id)
+            kept_rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
+        layers_before = store.get_galaxy_layers(conn)
         conn.execute("DELETE FROM schema_migrations WHERE version IN (35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (34)")
         conn.commit()
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         kept = {unchanged_id, unplaced_id}
         assert {row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()} == kept
         assert {row["sector_id"] for row in conn.execute("SELECT sector_id FROM star_systems").fetchall()} == kept
         assert [row["id"] for row in conn.execute("SELECT id FROM rogue_planets").fetchall()] == [kept_rogue_id]
-        assert _db.get_galaxy_layers(conn) == layers_before
-        assert _db.get_galaxy_shape(conn).outer_ring_index == 7
+        assert store.get_galaxy_layers(conn) == layers_before
+        assert store.get_galaxy_shape(conn).outer_ring_index == 7
     finally:
         conn.close()
 
@@ -2499,10 +2499,10 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
     """v36 adds `black_holes.mass_class`, filled from each row's mass."""
     from planetgen.generation.phenomena.compact_remnant import BlackHole
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            ids = [_db.insert_black_hole(conn, BlackHole(SystemConfig())) for _ in range(3)]
+            ids = [store.insert_black_hole(conn, BlackHole(SystemConfig())) for _ in range(3)]
         for row_id, mass in zip(ids, (10.0, 5e3, 4.3e6)):
             conn.execute("UPDATE black_holes SET mass_solar = ? WHERE id = ?", (mass, row_id))
         conn.execute("ALTER TABLE black_holes DROP CONSTRAINT chk_black_holes_mass_class")
@@ -2513,14 +2513,14 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         classes = [conn.execute("SELECT mass_class FROM black_holes WHERE id = ?", (i,)).fetchone()["mass_class"]
                    for i in ids]
         assert classes == ["stellar", "intermediate", "supermassive"]
-        assert _db._has_constraint(conn, "black_holes", "chk_black_holes_mass_class")
+        assert store._has_constraint(conn, "black_holes", "chk_black_holes_mass_class")
     finally:
         conn.close()
 
@@ -2530,10 +2530,10 @@ def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_confi
     `star_systems.runaway_class`/`runaway_speed_kms`."""
     from planetgen.generation.phenomena.rogue import RoguePlanet
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            ids = [_db.insert_rogue_planet(conn, RoguePlanet(SystemConfig())) for _ in range(5)]
+            ids = [store.insert_rogue_planet(conn, RoguePlanet(SystemConfig())) for _ in range(5)]
         earth = pc.EARTH_MASS_TO_KG
         masses = (1.0 * earth, 10.0 * earth, 100.0 * earth, 1000.0 * earth, 30 * pc.JUPITER_MASS_TO_KG)
         for row_id, mass in zip(ids, masses):
@@ -2546,15 +2546,15 @@ def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_confi
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         bins = [conn.execute("SELECT mass_bin FROM rogue_planets WHERE id = ?", (i,)).fetchone()["mass_bin"]
                 for i in ids]
         assert bins == ["terrestrial", "sub-neptune", "saturn", "jupiter", "brown-dwarf"]
-        assert _db._has_column(conn, "star_systems", "runaway_class")
-        assert _db._has_column(conn, "star_systems", "runaway_speed_kms")
+        assert store._has_column(conn, "star_systems", "runaway_class")
+        assert store._has_column(conn, "star_systems", "runaway_speed_kms")
     finally:
         conn.close()
 
@@ -2562,10 +2562,10 @@ def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_confi
 def test_runaway_flags_round_trip(mysql_config):
     system = StarSystem(SystemConfig())
     system.runaway_class, system.runaway_speed_kms = "runaway", 55.0
-    system_id = _db.save_system(system, SystemConfig(), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    system_id = store.save_system(system, SystemConfig(), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        loaded = _db.load_star_system(conn, system_id)
+        loaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
     assert (loaded.runaway_class, loaded.runaway_speed_kms) == ("runaway", 55.0)
@@ -2579,13 +2579,13 @@ def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_c
     from planetgen.generation.phenomena.nebula import Nebula
     from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), nebula_class="F"))
+            nebula_id = store.insert_nebula(conn, Nebula(SystemConfig(), nebula_class="F"))
             remnant = SupernovaRemnant(SystemConfig())
-            remnant_id = _db.insert_supernova_remnant(conn, remnant)
-            field_id = _db.insert_asteroid_field(conn, AsteroidField(SystemConfig()))
+            remnant_id = store.insert_supernova_remnant(conn, remnant)
+            field_id = store.insert_asteroid_field(conn, AsteroidField(SystemConfig()))
         conn.execute("UPDATE nebulae SET radius_ly = 5.0 WHERE id = ?", (nebula_id,))
         conn.execute("UPDATE supernova_remnants SET morphology = 'plerion', progenitor_type = 'core-collapse' "
                      "WHERE id = ?", (remnant_id,))
@@ -2604,9 +2604,9 @@ def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_c
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         nebula = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
         assert nebula["nebula_class"] == "F"
@@ -2617,7 +2617,7 @@ def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_c
         field = conn.execute("SELECT * FROM asteroid_fields WHERE id = ?", (field_id,)).fetchone()
         assert (field["composition_family"], field["field_class"]) == ("mixed", "S4")
         with conn:
-            _db.insert_nebula(conn, Nebula(SystemConfig(), nebula_class="A"))
+            store.insert_nebula(conn, Nebula(SystemConfig(), nebula_class="A"))
     finally:
         conn.close()
 
@@ -2628,11 +2628,11 @@ def test_classed_phenomena_round_trip_their_contents(mysql_config):
 
     nebula = Nebula(SystemConfig(), nebula_class="Q")
     field = AsteroidField(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            nebula_id = _db.insert_nebula(conn, nebula)
-            field_id = _db.insert_asteroid_field(conn, field)
+            nebula_id = store.insert_nebula(conn, nebula)
+            field_id = store.insert_asteroid_field(conn, field)
         row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
         assert (row["nebula_class"], row["nebula_type"]) == ("Q", "dark")
         assert row["temperature_k"] == pytest.approx(nebula.temperature_k)
@@ -2645,12 +2645,12 @@ def test_classed_phenomena_round_trip_their_contents(mysql_config):
 def test_innermost_container_picks_the_smallest_cloud_holding_the_point():
     big = {"column": "inside_nebula_id", "id": 1, "center": (0.0, 0.0, 0.0), "radius_pc": 10.0}
     small = {"column": "inside_remnant_id", "id": 2, "center": (1.0, 0.0, 0.0), "radius_pc": 2.0}
-    assert _db.innermost_container((1.5, 0.0, 0.0), [big, small]) is small
-    assert _db.innermost_container((5.0, 0.0, 0.0), [big, small]) is big
-    assert _db.innermost_container((20.0, 0.0, 0.0), [big, small]) is None
+    assert store.innermost_container((1.5, 0.0, 0.0), [big, small]) is small
+    assert store.innermost_container((5.0, 0.0, 0.0), [big, small]) is big
+    assert store.innermost_container((20.0, 0.0, 0.0), [big, small]) is None
     # A nebula only nests in a larger cloud, and never in itself.
-    assert _db.innermost_container((1.0, 0.0, 0.0), [big, small], own_radius_pc=3.0) is big
-    assert _db.innermost_container((0.0, 0.0, 0.0), [big], own_radius_pc=0.0,
+    assert store.innermost_container((1.0, 0.0, 0.0), [big, small], own_radius_pc=3.0) is big
+    assert store.innermost_container((0.0, 0.0, 0.0), [big], own_radius_pc=0.0,
                                    own=("inside_nebula_id", 1)) is None
 
 
@@ -2659,19 +2659,19 @@ def _placed_nebula(conn, sector_id, center_pc, radius_ly, nebula_class="D"):
     nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
     nebula.radius_ly = radius_ly
     x, y, z = center_pc
-    return _db.insert_nebula(conn, nebula, sector_id=sector_id, placement={
+    return store.insert_nebula(conn, nebula, sector_id=sector_id, placement={
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.hypot(x, y, z),
     })
 
 
 def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config):
-    sector_id = _db.save_sector(_sector_with_one_system("Cloudy"), config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(_sector_with_one_system("Cloudy"), config=mysql_config, galaxy_position={
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
     })
-    far_id = _db.save_sector(_sector_with_one_system("Clear"), config=mysql_config, galaxy_position={
+    far_id = store.save_sector(_sector_with_one_system("Clear"), config=mysql_config, galaxy_position={
         "center_x_pc": 400.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 400.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             big = _placed_nebula(conn, sector_id, (110.0, 0.0, 0.0), radius_ly=100.0, nebula_class="E")
@@ -2690,10 +2690,10 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
 
         with conn:
             conn.execute("DELETE FROM nebulae WHERE id = ?", (small,))
-            _db.refresh_containment(conn, [sector_id])
+            store.refresh_containment(conn, [sector_id])
         row = conn.execute("SELECT inside_nebula_id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()
         assert row["inside_nebula_id"] == big
-        import queryDb
+        from planetgen.db import query as queryDb
         inside = queryDb.sector_detail(conn, sector_id)["systems"][0]["inside"]
         assert (inside["type"], inside["id"], inside["class"]) == ("nebula", big, "E")
     finally:
@@ -2701,14 +2701,14 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
 
 
 def test_migrate_v38_to_v39_fills_containment(mysql_config):
-    sector_id = _db.save_sector(_sector_with_one_system("Old Cloud"), config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(_sector_with_one_system("Old Cloud"), config=mysql_config, galaxy_position={
         "center_x_pc": 50.0, "center_y_pc": 50.0, "center_z_pc": 0.0, "galactic_radius_pc": 70.7,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             nebula_id = _placed_nebula(conn, sector_id, (50.0, 50.0, 1.0), radius_ly=30.0)
-        for table in _db.CONTAINABLE_TABLES:
+        for table in store.CONTAINABLE_TABLES:
             conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY fk_{table}_inside_nebula, "
                          f"DROP FOREIGN KEY fk_{table}_inside_remnant")
             conn.execute(f"ALTER TABLE {table} DROP COLUMN inside_nebula_id, DROP COLUMN inside_remnant_id")
@@ -2718,9 +2718,9 @@ def test_migrate_v38_to_v39_fills_containment(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         row = conn.execute("SELECT inside_nebula_id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()
         assert row["inside_nebula_id"] == nebula_id
@@ -2753,35 +2753,35 @@ def test_phenomena_share_the_system_name_registry(mysql_config):
     renamed whichever kind it is."""
     from planetgen.generation.phenomena.nebula import Nebula
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             system, cfg = _named_system("Kelvaro")
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
             nebula = Nebula(SystemConfig(), name="Kelvaro")
-            nebula_id = _db.insert_nebula(conn, nebula)
+            nebula_id = store.insert_nebula(conn, nebula)
         assert conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"] == "Alpha Kelvaro"
         assert conn.execute("SELECT name FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()["name"] == "Beta Kelvaro"
         assert nebula.name == "Beta Kelvaro"
 
         with conn:
-            first = _db.insert_rogue_planet(conn, __import__(
+            first = store.insert_rogue_planet(conn, __import__(
                 "planetgen.generation.phenomena.rogue", fromlist=["RoguePlanet"]).RoguePlanet(SystemConfig(), name="Ossandre"))
             system, cfg = _named_system("Ossandre")
-            _db.insert_star_system(conn, system, cfg)
+            store.insert_star_system(conn, system, cfg)
         assert conn.execute("SELECT name FROM rogue_planets WHERE id = ?", (first,)).fetchone()["name"] == "Alpha Ossandre"
         assert system.name == "Beta Ossandre"
-        assert _db.name_in_use(conn, "Alpha Ossandre") == "rogue_planets"
+        assert store.name_in_use(conn, "Alpha Ossandre") == "rogue_planets"
     finally:
         conn.close()
 
 
 def test_a_renamed_remnant_takes_its_core_along(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            remnant_id = _db.insert_supernova_remnant(conn, _remnant_with_core("Thessavel"))
-            _db.insert_nebula(conn, __import__(
+            remnant_id = store.insert_supernova_remnant(conn, _remnant_with_core("Thessavel"))
+            store.insert_nebula(conn, __import__(
                 "planetgen.generation.phenomena.nebula", fromlist=["Nebula"]).Nebula(SystemConfig(), name="Thessavel"))
         row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
         assert row["name"] == "Alpha Thessavel"
@@ -2802,10 +2802,10 @@ def test_comets_carry_designations_that_follow_their_host(mysql_config):
     from planetgen.generation.comet import PERIODIC_COMET_MAX_PERIOD_YEARS
 
     system, cfg = _make_system_with_comets()
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
         rows = conn.execute(
             "SELECT name, orbit_type, orbital_period_years FROM comets WHERE star_system_id = ? ORDER BY id",
             (system_id,),
@@ -2814,7 +2814,7 @@ def test_comets_carry_designations_that_follow_their_host(mysql_config):
             periodic = row["orbit_type"] == "elliptical" and row["orbital_period_years"] < PERIODIC_COMET_MAX_PERIOD_YEARS
             assert row["name"] == f"{'P' if periodic else 'C'}/{system.name}-{n}"
         with conn:
-            _db.rename_star_system(conn, system_id, "Neraloth")
+            store.rename_star_system(conn, system_id, "Neraloth")
         renamed = conn.execute("SELECT name FROM comets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()
         assert [r["name"][2:] for r in renamed] == [f"Neraloth-{n}" for n in range(1, len(rows) + 1)]
     finally:
@@ -2825,14 +2825,14 @@ def test_interstellar_comets_and_asteroid_fields_are_designated_by_sector(mysql_
     from planetgen.generation.phenomena.asteroid_field import AsteroidField
     from planetgen.generation.phenomena.rogue import InterstellarComet
 
-    sector_id = _db.save_sector(_sector_with_one_system("Designated"), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    sector_id = store.save_sector(_sector_with_one_system("Designated"), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()), sector_id=sector_id)
-            _db.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()), sector_id=sector_id)
+            store.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()), sector_id=sector_id)
+            store.insert_interstellar_comet(conn, InterstellarComet(SystemConfig()), sector_id=sector_id)
             field = AsteroidField(SystemConfig())
-            _db.insert_asteroid_field(conn, field, sector_id=sector_id)
+            store.insert_asteroid_field(conn, field, sector_id=sector_id)
         names = [r["name"] for r in conn.execute(
             "SELECT name FROM interstellar_comets WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
         sector_name = conn.execute("SELECT name FROM sectors WHERE id = ?", (sector_id,)).fetchone()["name"]
@@ -2845,16 +2845,16 @@ def test_interstellar_comets_and_asteroid_fields_are_designated_by_sector(mysql_
 def test_migrate_v39_to_v40_registers_and_designates_existing_rows(mysql_config):
     system, cfg = _make_system_with_comets()
     system.name = "Morrowen"
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
             conn.execute("UPDATE comets SET name = 'Old Comet' WHERE star_system_id = ?", (system_id,))
             from planetgen.generation.phenomena.nebula import Nebula
-            nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Unregistered"))
+            nebula_id = store.insert_nebula(conn, Nebula(SystemConfig(), name="Unregistered"))
             # Before v40 a phenomenon's name was never checked.
             conn.execute("UPDATE nebulae SET name = 'Morrowen' WHERE id = ?", (nebula_id,))
-            for table in _db.NAMED_PHENOMENON_TABLES:
+            for table in store.NAMED_PHENOMENON_TABLES:
                 conn.execute(f"ALTER TABLE {table} DROP KEY idx_{table}_name")
             conn.execute("DELETE FROM system_name_registry WHERE first_star_system_id IS NULL")
             conn.execute("ALTER TABLE system_name_registry DROP COLUMN first_object_table, DROP COLUMN first_object_id, "
@@ -2864,9 +2864,9 @@ def test_migrate_v39_to_v40_registers_and_designates_existing_rows(mysql_config)
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"] == "Alpha Morrowen"
         assert conn.execute("SELECT name FROM nebulae").fetchone()["name"] == "Beta Morrowen"
@@ -2881,7 +2881,7 @@ def test_system_grid_nearest_matches_brute_force():
     import random as _random
     rng = _random.Random(7)
     systems = [(i, (rng.uniform(-5, 5), rng.uniform(-5, 5), rng.uniform(-5, 5))) for i in range(300)]
-    grid = _db._SystemGrid(systems)
+    grid = store._SystemGrid(systems)
     for _ in range(50):
         point = (rng.uniform(-5, 5), rng.uniform(-5, 5), rng.uniform(-5, 5))
         brute = sorted((math.dist(point, p), i) for i, p in systems if math.dist(point, p) <= 4.0)[:3]
@@ -2909,15 +2909,15 @@ def _sector_with_systems(name, positions_ly):
 def test_nearest_systems_cross_sector_boundaries(mysql_config):
     """UX.18 (v41): a system at a sector's edge lists a system just
     across the boundary once that sector is generated."""
-    import queryDb
+    from planetgen.db import query as queryDb
     from stellarObjects.utils import pc_to_ly
 
     edge_ly = pc_to_ly(4.0)
-    first = _db.save_sector(_sector_with_systems("Westmark", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),
+    first = store.save_sector(_sector_with_systems("Westmark", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),
                             config=mysql_config, galaxy_position={
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         border_id, far_id = [r["id"] for r in conn.execute(
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY position_x_mpc DESC", (first,)).fetchall()]
@@ -2926,11 +2926,11 @@ def test_nearest_systems_cross_sector_boundaries(mysql_config):
     finally:
         conn.close()
 
-    second = _db.save_sector(_sector_with_systems("Eastmark", [(-edge_ly / 2 + 0.5, 0.0, 0.0)]),
+    second = store.save_sector(_sector_with_systems("Eastmark", [(-edge_ly / 2 + 0.5, 0.0, 0.0)]),
                              config=mysql_config, galaxy_position={
         "center_x_pc": 104.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 104.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         across = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (second,)).fetchone()["id"]
         after = queryDb.nearest_systems(conn, "star_systems", [border_id])[border_id]
@@ -2946,17 +2946,17 @@ def test_nearest_systems_cross_sector_boundaries(mysql_config):
 
 
 def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
-    import queryDb
-    sector_id = _db.save_sector(_sector_with_systems("Octmark", [(1.0, 1.0, 1.0)]), config=mysql_config,
+    from planetgen.db import query as queryDb
+    sector_id = store.save_sector(_sector_with_systems("Octmark", [(1.0, 1.0, 1.0)]), config=mysql_config,
                                 galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 200.0, "center_z_pc": 0.0, "galactic_radius_pc": 200.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             # Local +X points away from the galactic axis (+y here), local +Y along -x.
             nebula_id = _placed_nebula(conn, sector_id, (0.5, 200.5, -0.5), radius_ly=0.5)
-            _db.refresh_nearest_systems(conn, [sector_id])
+            store.refresh_nearest_systems(conn, [sector_id])
         quadrant = conn.execute("SELECT quadrant FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()["quadrant"]
         from planetgen.galaxy.sector import classify_octant
         assert quadrant == classify_octant((0.5, -0.5, -0.5))[0]
@@ -2968,14 +2968,14 @@ def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
 
 
 def test_migrate_v40_to_v41_fills_nearest_systems(mysql_config):
-    sector_id = _db.save_sector(_sector_with_systems("Oldmark", [(0.0, 0.0, 0.0), (3.0, 0.0, 0.0)]),
+    sector_id = store.save_sector(_sector_with_systems("Oldmark", [(0.0, 0.0, 0.0), (3.0, 0.0, 0.0)]),
                                 config=mysql_config, galaxy_position={
         "center_x_pc": 60.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 60.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE nearest_systems")
-        for table in _db.PLACED_PHENOMENON_TABLES:
+        for table in store.PLACED_PHENOMENON_TABLES:
             # MariaDB drops a column-level CHECK with its column.
             conn.execute(f"ALTER TABLE {table} DROP COLUMN quadrant")
         conn.execute("DELETE FROM schema_migrations WHERE version IN (41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53)")
@@ -2984,9 +2984,9 @@ def test_migrate_v40_to_v41_fills_nearest_systems(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         rows = conn.execute("SELECT COUNT(*) AS n FROM nearest_systems WHERE sector_id = ?", (sector_id,)).fetchone()
         assert rows["n"] == 2
@@ -3003,7 +3003,7 @@ def _bright_row(ring=3, layer=0, slot=1, luminosity_sol=800.0):
 def test_bright_stars_store_and_clear(mysql_config):
     """Bright-star pre-placement storage (v43): bulk insert, per-sector
     lookup brightest first, fill link, and a plan re-run clearing it."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
@@ -3011,24 +3011,24 @@ def test_bright_stars_store_and_clear(mysql_config):
                          " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
                          " expected_system_count_at_density_1, outer_ring_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
-            assert _db.bright_star_scatter_settings(conn) is None
-            written = _db.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
+            assert store.bright_star_scatter_settings(conn) is None
+            written = store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
                                                      _bright_row(slot=2)], batch_size=2)
-            _db.record_bright_star_scatter(conn, 500.0, 7)
+            store.record_bright_star_scatter(conn, 500.0, 7)
         assert written == 3
-        assert _db.bright_star_scatter_settings(conn) == (500.0, 7)
-        found = _db.bright_stars_for_sector(conn, 3, 0, 1)
+        assert store.bright_star_scatter_settings(conn) == (500.0, 7)
+        found = store.bright_stars_for_sector(conn, 3, 0, 1)
         assert len(found) == 2 and found[0]["luminosity_w"] > found[1]["luminosity_w"]
 
         system, cfg = _named_system("Beaconholm")
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-            _db.mark_bright_star_filled(conn, found[0]["id"], system_id)
-        assert len(_db.bright_stars_for_sector(conn, 3, 0, 1)) == 1
+            system_id = store.insert_star_system(conn, system, cfg)
+            store.mark_bright_star_filled(conn, found[0]["id"], system_id)
+        assert len(store.bright_stars_for_sector(conn, 3, 0, 1)) == 1
 
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
-        assert _db.bright_star_scatter_settings(conn) is None
+        assert store.bright_star_scatter_settings(conn) is None
     finally:
         conn.close()
 
@@ -3037,12 +3037,12 @@ def test_bright_star_web_queries(mysql_config):
     """The Stats page's placed/filled counts, the sector page's per-cell and
     per-box listings (unfilled only by default) and the Generate page's
     scatter status all agree with what was stored."""
-    import adminStats
-    import queryDb
+    from planetgen.db import stats
+    from planetgen.db import query as queryDb
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert adminStats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
+        assert stats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
         assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
@@ -3053,9 +3053,9 @@ def test_bright_star_web_queries(mysql_config):
                          " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
                          " expected_system_count_at_density_1, outer_ring_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
-            _db.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
+            store.insert_bright_stars(conn, [_bright_row(luminosity_sol=600.0), _bright_row(),
                                            _bright_row(slot=2)], batch_size=2)
-            _db.record_bright_star_scatter(conn, 100.0, 9)
+            store.record_bright_star_scatter(conn, 100.0, 9)
         listed = queryDb.bright_stars_in_sector(conn, 3, 0, 1)
         assert [s["luminosity_sol"] for s in listed] == pytest.approx([800.0, 600.0], rel=1e-2)
         assert listed[0]["x"] == pytest.approx(12.0) and listed[0]["yerkes_class"] == "V"
@@ -3063,9 +3063,9 @@ def test_bright_star_web_queries(mysql_config):
 
         system, cfg = _named_system("Lanternfall")
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-            _db.mark_bright_star_filled(conn, listed[0]["id"], system_id)
-        assert adminStats.bright_star_counts(conn) == {"placed": 3, "filled": 1, "unfilled": 2}
+            system_id = store.insert_star_system(conn, system, cfg)
+            store.mark_bright_star_filled(conn, listed[0]["id"], system_id)
+        assert stats.bright_star_counts(conn) == {"placed": 3, "filled": 1, "unfilled": 2}
         assert [s["id"] for s in queryDb.bright_stars_in_sector(conn, 3, 0, 1)] == [listed[1]["id"]]
         every = queryDb.bright_stars_in_sector(conn, 3, 0, 1, unfilled_only=False)
         assert [(s["id"], s["system_id"]) for s in every] == [(listed[0]["id"], system_id), (listed[1]["id"], None)]
@@ -3082,17 +3082,17 @@ def test_bright_star_web_queries(mysql_config):
 
         # A re-scatter empties the table and restarts the ids, so the id
         # span still counts exactly.
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
         with conn:
-            _db.insert_bright_stars(conn, [_bright_row(slot=s) for s in range(5)])
-        assert adminStats.bright_star_counts(conn) == {"placed": 5, "filled": 0, "unfilled": 5}
+            store.insert_bright_stars(conn, [_bright_row(slot=s) for s in range(5)])
+        assert stats.bright_star_counts(conn) == {"placed": 5, "filled": 0, "unfilled": 5}
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 5
     finally:
         conn.close()
 
 
 def test_migrate_v42_to_v43_adds_bright_star_storage(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE bright_stars")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN bright_star_min_luminosity_sol, DROP COLUMN bright_star_seed")
@@ -3101,17 +3101,17 @@ def test_migrate_v42_to_v43_adds_bright_star_storage(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
-        assert _db._has_column(conn, "galaxy_shape", "bright_star_seed")
+        assert store._has_column(conn, "galaxy_shape", "bright_star_seed")
     finally:
         conn.close()
 
 
 def test_migrate_v48_to_v49_adds_bright_star_blocks_and_v53_replaces_them(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE sector_stats")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples")
@@ -3119,8 +3119,8 @@ def test_migrate_v48_to_v49_adds_bright_star_blocks_and_v53_replaces_them(mysql_
         conn.commit()
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM sector_stats").fetchone()["n"] == 0
         assert conn.execute("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE()"
@@ -3136,7 +3136,7 @@ def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
     sectors = [(sector.ring, sector.slab, sector.wedge) for slab in drill_slabs(block)
                for sector in drill_block_sectors(block, slab)]
     filled = sectors[0]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE sector_stats")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples")
@@ -3151,8 +3151,8 @@ def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         rows = {(row["ring_index"], row["layer_index"], row["ring_slot_index"]):
                 (row["bright_level_sol"], row["level_before_fill_sol"])
@@ -3162,6 +3162,6 @@ def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
         assert set(rows) == set(sectors)  # the block with no finished level moves nothing
         assert conn.execute("SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE()"
                             " AND table_name = 'bright_star_blocks'").fetchone() is None
-        assert _db.galaxy_density_ratio(conn) == (None, 0)
+        assert store.galaxy_density_ratio(conn) == (None, 0)
     finally:
         conn.close()

@@ -28,8 +28,8 @@ import random
 
 import pytest
 
-from queryDb import nav_between
-from stellarObjects import _db
+from planetgen.db.query import nav_between
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_position_pc
 from planetgen.galaxy.nav_graph import (
@@ -251,13 +251,13 @@ def _save_grid_sector(config, name, slot, local_positions, layer=0):
         system, cfg = _make_system()
         sector.add_system(system, position=position, system_config=cfg)
     center = sector_position_pc(RING, layer, slot, EDGE_PC)
-    sector_id = _db.save_sector(sector, config=config, galaxy_position={
+    sector_id = store.save_sector(sector, config=config, galaxy_position={
         "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
         "galactic_radius_pc": math.hypot(center[0], center[1]),
         "vertices_pc": {"inner": [], "outer": []},
         "ring_index": RING, "layer_index": layer, "ring_slot_index": slot,
     })
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         rows = conn.execute(
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)
@@ -275,7 +275,7 @@ def _cluster(center, count=8, spread=1.0):
 
 
 def _nav(config, from_id, to_id):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return nav_between(conn, from_id, to_id)
     finally:

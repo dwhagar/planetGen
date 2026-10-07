@@ -7,7 +7,7 @@ throwaway MySQL database -- see `conftest.py`'s `mysql_config` fixture.
 Skipped, not failed, when no MySQL test server is reachable.
 
 Every test here treats `mysql_config`'s throwaway database as the
-*control* schema directly (`_db.get_control_connection(mysql_config,
+*control* schema directly (`store.get_control_connection(mysql_config,
 ensure_schema=True)`) rather than needing a second fixture -- the control
 schema's tables (`admin_users`/`admin_sessions`/`admin_api_keys`/
 `admin_audit_log`) never collide with a content schema's own tables, so
@@ -16,13 +16,13 @@ one throwaway database serves fine for testing either role.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.admin import auth
 
 
 @pytest.fixture
 def control_conn(mysql_config):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     try:
         yield conn
     finally:
@@ -62,7 +62,7 @@ def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
     username, password = auth.bootstrap_control_schema(mysql_config)
     assert username == auth.DEFAULT_ADMIN_USERNAME
 
-    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    conn = store.get_control_connection(mysql_config, ensure_schema=False)
     try:
         row = conn.execute(
             "SELECT * FROM admin_users WHERE username = ?", (auth.DEFAULT_ADMIN_USERNAME,),
@@ -83,7 +83,7 @@ def test_bootstrap_control_schema_seeds_default_admin_once(mysql_config):
 
     # Nothing seeded, so nothing to show (migrateDb prints only a new seed).
     assert auth.bootstrap_control_schema(mysql_config) is None
-    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    conn = store.get_control_connection(mysql_config, ensure_schema=False)
     try:
         count = conn.execute(
             "SELECT COUNT(*) AS n FROM admin_users WHERE username = ?", (auth.DEFAULT_ADMIN_USERNAME,),
@@ -105,7 +105,7 @@ def test_bootstrap_seeds_a_random_first_password_meeting_the_policy(mysql_config
     _username, first = auth.bootstrap_control_schema(mysql_config)
     auth.validate_password_policy(first, username=auth.DEFAULT_ADMIN_USERNAME)
     assert len(first) >= auth.MIN_PASSWORD_LENGTH
-    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    conn = store.get_control_connection(mysql_config, ensure_schema=False)
     try:
         row = conn.execute("SELECT * FROM admin_users").fetchone()
         assert first not in row["password_hash"]
@@ -129,7 +129,7 @@ def test_bootstrap_rotates_an_older_install_still_on_the_published_password(mysq
     migrateDb run gives it a random password and ends its sessions. A
     changed login, or one that no longer verifies, is left alone."""
     auth.bootstrap_control_schema(mysql_config)
-    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    conn = store.get_control_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("UPDATE admin_users SET password_hash = ?", (auth.hash_password("password"),))
         conn.commit()
@@ -139,7 +139,7 @@ def test_bootstrap_rotates_an_older_install_still_on_the_published_password(mysq
         conn.close()
     username, rotated = auth.bootstrap_control_schema(mysql_config)
     assert username == auth.DEFAULT_ADMIN_USERNAME and rotated != "password"
-    conn = _db.get_control_connection(mysql_config, ensure_schema=False)
+    conn = store.get_control_connection(mysql_config, ensure_schema=False)
     try:
         with pytest.raises(auth.AuthError):
             auth.authenticate(conn, username, "password")
@@ -151,20 +151,20 @@ def test_bootstrap_rotates_an_older_install_still_on_the_published_password(mysq
 
 
 def test_migrate_db_prints_the_first_password_only_when_seeded(monkeypatch, capsys):
-    """Security #39: `migrateDb.py` shows the seeded login exactly once."""
-    import migrateDb
+    """Security #39: `planetgen.cli.migrate` shows the seeded login exactly once."""
+    from planetgen.cli import migrate
 
-    migrateDb.print_initial_admin_login("admin", "Zx9-random-first-pass")
+    migrate.print_initial_admin_login("admin", "Zx9-random-first-pass")
     out = capsys.readouterr().out
     assert "username: admin" in out
     assert "password: Zx9-random-first-pass" in out
     assert "/login" in out and "change" in out
 
-    monkeypatch.setattr(migrateDb, "_migrate_with_progress", lambda config: migrateDb.SCHEMA_VERSION)
-    monkeypatch.setattr(migrateDb.sys, "argv", ["migrateDb.py"])
+    monkeypatch.setattr(migrate, "_migrate_with_progress", lambda config: migrate.SCHEMA_VERSION)
+    monkeypatch.setattr(migrate.sys, "argv", ["planetgen.cli.migrate"])
     for seeded, shown in ((("admin", "Zx9-random-first-pass"), True), (None, False)):
-        monkeypatch.setattr(migrateDb.auth, "bootstrap_control_schema", lambda config, s=seeded: s)
-        migrateDb.main()
+        monkeypatch.setattr(migrate.auth, "bootstrap_control_schema", lambda config, s=seeded: s)
+        migrate.main()
         out = capsys.readouterr().out
         assert ("Zx9-random-first-pass" in out) is shown
         assert ("New admin login password" in out) is shown

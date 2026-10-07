@@ -2,9 +2,9 @@
 
 """
 Tests for schema v18's galaxy-frame placement of nebulae/asteroid fields --
-`stellarObjects._db.compute_phenomenon_placement`/`insert_nebula`/
+`planetgen.db.store.compute_phenomenon_placement`/`insert_nebula`/
 `insert_asteroid_field`/`save_phenomenon`, and the read side
-(`queryDb.phenomena_near_sector`/`galaxy_placed_phenomena`) `html/
+(`query.phenomena_near_sector`/`galaxy_placed_phenomena`) `html/
 lib/starmap.py`'s Sector Map and `html/lib/galaxymap.py`'s Galaxy Map
 build on. See `schema.sql`'s "v18" header note for the full design: a
 nebula/asteroid field gets a real galaxy-frame sphere (`center_x/y/z_pc`,
@@ -20,8 +20,8 @@ import math
 
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_orientation
@@ -42,16 +42,16 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=11.5):
         "center_x_pc": cx, "center_y_pc": cy, "center_z_pc": cz,
         "galactic_radius_pc": math.sqrt(cx * cx + cy * cy + cz * cz),
     }
-    return _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+    return store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
 
 def test_compute_phenomenon_placement_center_falls_within_sector_cube_half_extent(mysql_config):
     sector_id = _place_sector(mysql_config, "Placement Test Sector", (100.0, -50.0, 25.0), edge_ly=11.5)
     edge_pc = ly_to_pc(11.5)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        placement = _db.compute_phenomenon_placement(conn, sector_id)
+        placement = store.compute_phenomenon_placement(conn, sector_id)
     finally:
         conn.close()
 
@@ -69,21 +69,21 @@ def test_compute_phenomenon_placement_center_falls_within_sector_cube_half_exten
 
 def test_compute_phenomenon_placement_rejects_an_unplaced_sector(mysql_config):
     sector = SpaceSector("Unplaced Sector", edge_ly=11.5)
-    sector_id = _db.save_sector(sector, config=mysql_config)  # no galaxy_position
+    sector_id = store.save_sector(sector, config=mysql_config)  # no galaxy_position
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError, match="no galaxy placement"):
-            _db.compute_phenomenon_placement(conn, sector_id)
+            store.compute_phenomenon_placement(conn, sector_id)
     finally:
         conn.close()
 
 
 def test_compute_phenomenon_placement_rejects_a_nonexistent_sector(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError):
-            _db.compute_phenomenon_placement(conn, 999999)
+            store.compute_phenomenon_placement(conn, 999999)
     finally:
         conn.close()
 
@@ -95,10 +95,10 @@ def test_save_phenomenon_persists_placement_and_nearest_sector_for_nebula_and_as
     nebula = Nebula(cfg)
     field = AsteroidField(cfg)
 
-    nebula_id = _db.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
-    field_id = _db.save_phenomenon(field, cfg, "asteroid-field", config=mysql_config, sector_id=sector_id)
+    nebula_id = store.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
+    field_id = store.save_phenomenon(field, cfg, "asteroid-field", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         nebula_row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
         field_row = conn.execute("SELECT * FROM asteroid_fields WHERE id = ?", (field_id,)).fetchone()
@@ -118,9 +118,9 @@ def test_save_phenomenon_persists_placement_and_nearest_sector_for_nebula_and_as
 def test_save_phenomenon_without_sector_id_leaves_it_unplaced(mysql_config):
     cfg = SystemConfig()
     nebula = Nebula(cfg)
-    nebula_id = _db.save_phenomenon(nebula, cfg, "nebula", config=mysql_config)
+    nebula_id = store.save_phenomenon(nebula, cfg, "nebula", config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
     finally:
@@ -139,11 +139,11 @@ def test_phenomena_near_sector_finds_a_nebula_placed_at_that_sector(mysql_config
     cfg = SystemConfig()
     nebula = Nebula(cfg)
     nebula.radius_ly = 5.0  # small and deterministic, for a clean "definitely inside" case
-    nebula_id = _db.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
+    nebula_id = store.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        matches = queryDb.phenomena_near_sector(conn, sector_id)
+        matches = query.phenomena_near_sector(conn, sector_id)
     finally:
         conn.close()
 
@@ -175,16 +175,16 @@ def test_phenomena_near_sector_excludes_a_small_far_nebula_but_includes_a_huge_o
     cfg = SystemConfig()
     small_nebula = Nebula(cfg)
     small_nebula.radius_ly = 5.0
-    small_id = _db.save_phenomenon(small_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_a)
+    small_id = store.save_phenomenon(small_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_a)
 
     huge_nebula = Nebula(cfg, name="Huge Nebula")
     huge_nebula.radius_ly = 3000.0  # bigger than the whole 500 pc (~1630 ly) separation
-    huge_id = _db.save_phenomenon(huge_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_a)
+    huge_id = store.save_phenomenon(huge_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_a)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        near_a = {m["id"] for m in queryDb.phenomena_near_sector(conn, sector_a)}
-        near_b = {m["id"] for m in queryDb.phenomena_near_sector(conn, sector_b)}
+        near_a = {m["id"] for m in query.phenomena_near_sector(conn, sector_a)}
+        near_b = {m["id"] for m in query.phenomena_near_sector(conn, sector_b)}
     finally:
         conn.close()
 
@@ -194,11 +194,11 @@ def test_phenomena_near_sector_excludes_a_small_far_nebula_but_includes_a_huge_o
 
 def test_phenomena_near_sector_is_empty_for_an_unplaced_sector(mysql_config):
     sector = SpaceSector("Unplaced Sector", edge_ly=11.5)
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert queryDb.phenomena_near_sector(conn, sector_id) == []
+        assert query.phenomena_near_sector(conn, sector_id) == []
     finally:
         conn.close()
 
@@ -208,13 +208,13 @@ def test_galaxy_placed_phenomena_returns_only_placed_ones(mysql_config):
 
     cfg = SystemConfig()
     placed_nebula = Nebula(cfg)
-    placed_id = _db.save_phenomenon(placed_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
+    placed_id = store.save_phenomenon(placed_nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
     unplaced_field = AsteroidField(cfg)
-    _db.save_phenomenon(unplaced_field, cfg, "asteroid-field", config=mysql_config)  # no sector_id
+    store.save_phenomenon(unplaced_field, cfg, "asteroid-field", config=mysql_config)  # no sector_id
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        placed = queryDb.galaxy_placed_phenomena(conn)
+        placed = query.galaxy_placed_phenomena(conn)
     finally:
         conn.close()
 
@@ -232,11 +232,11 @@ def test_sector_detail_includes_nearby_phenomena(mysql_config):
     sector_id = _place_sector(mysql_config, "Detail Sector", (7.0, 8.0, 9.0))
     cfg = SystemConfig()
     field = AsteroidField(cfg)
-    field_id = _db.save_phenomenon(field, cfg, "asteroid-field", config=mysql_config, sector_id=sector_id)
+    field_id = store.save_phenomenon(field, cfg, "asteroid-field", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        detail = queryDb.sector_detail(conn, sector_id)
+        detail = query.sector_detail(conn, sector_id)
     finally:
         conn.close()
 
@@ -254,7 +254,7 @@ def test_pc_ly_round_trip_used_by_placement_math():
 
 # ---------------------------------------------------------------------------
 # v21: sector-level exotic phenomena persistence --
-# stellarObjects._db._galaxy_placement_from_sector_offset/insert_black_hole/
+# planetgen.db.store._galaxy_placement_from_sector_offset/insert_black_hole/
 # insert_neutron_star's new sector_id/placement params, insert_sector
 # persisting SpaceSector.phenomena for all seven phenomenon types, and
 # save_phenomenon now actually wiring sector_id through for
@@ -278,7 +278,7 @@ def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc()
     galaxy_position = {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 10.0}
     offset_ly = (1.0, 0.0, 0.0)
 
-    placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
+    placement = store._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
 
     expected_offset_pc = ly_to_pc(1.0)
     assert placement["center_x_pc"] == pytest.approx(expected_offset_pc)
@@ -304,7 +304,7 @@ def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_o
     galaxy_position = {"center_x_pc": 10.0, "center_y_pc": -5.0, "center_z_pc": 2.0}
     offset_ly = (1.0, -2.0, 0.5)
 
-    placement = _db._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
+    placement = store._galaxy_placement_from_sector_offset(galaxy_position, offset_ly)
 
     center_pc = (10.0, -5.0, 2.0)
     local_x, local_y, local_z = sector_orientation(center_pc)
@@ -327,7 +327,7 @@ def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_o
 
 
 def test_galaxy_placement_from_sector_offset_returns_none_for_an_unplaced_sector():
-    assert _db._galaxy_placement_from_sector_offset(None, (1.0, 2.0, 3.0)) is None
+    assert store._galaxy_placement_from_sector_offset(None, (1.0, 2.0, 3.0)) is None
 
 
 def test_insert_black_hole_and_neutron_star_persist_sector_id_and_placement(mysql_config):
@@ -341,11 +341,11 @@ def test_insert_black_hole_and_neutron_star_persist_sector_id_and_placement(mysq
     bh = BlackHole(cfg)
     ns = NeutronStar(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            bh_id = _db.insert_black_hole(conn, bh, sector_id=sector_id, placement=placement)
-            ns_id = _db.insert_neutron_star(conn, ns, sector_id=sector_id, placement=placement)
+            bh_id = store.insert_black_hole(conn, bh, sector_id=sector_id, placement=placement)
+            ns_id = store.insert_neutron_star(conn, ns, sector_id=sector_id, placement=placement)
 
         bh_row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
         ns_row = conn.execute("SELECT * FROM neutron_stars WHERE id = ?", (ns_id,)).fetchone()
@@ -360,10 +360,10 @@ def test_insert_black_hole_and_neutron_star_persist_sector_id_and_placement(mysq
 
 def test_insert_black_hole_without_sector_id_leaves_it_unplaced(mysql_config):
     bh = BlackHole(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            bh_id = _db.insert_black_hole(conn, bh)
+            bh_id = store.insert_black_hole(conn, bh)
         row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
     finally:
         conn.close()
@@ -385,11 +385,11 @@ def test_save_phenomenon_now_wires_sector_id_for_supernova_remnant_rogue_planet_
     planet = RoguePlanet(cfg)
     comet = InterstellarComet(cfg)
 
-    remnant_id = _db.save_phenomenon(remnant, cfg, "supernova-remnant", config=mysql_config, sector_id=sector_id)
-    planet_id = _db.save_phenomenon(planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
-    comet_id = _db.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
+    remnant_id = store.save_phenomenon(remnant, cfg, "supernova-remnant", config=mysql_config, sector_id=sector_id)
+    planet_id = store.save_phenomenon(planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
+    comet_id = store.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         remnant_row = conn.execute(
             "SELECT sector_id FROM supernova_remnants WHERE id = ?", (remnant_id,)
@@ -414,9 +414,9 @@ def test_save_phenomenon_computes_real_placement_for_a_sector_linked_black_hole(
     edge_pc = ly_to_pc(11.5)
 
     bh = BlackHole(SystemConfig())
-    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+    bh_id = store.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (bh_id,)).fetchone()
     finally:
@@ -460,9 +460,9 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
         "center_x_pc": 100.0, "center_y_pc": -40.0, "center_z_pc": 5.0,
         "galactic_radius_pc": math.sqrt(100.0 ** 2 + 40.0 ** 2 + 5.0 ** 2),
     }
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         bh_row = conn.execute("SELECT * FROM black_holes WHERE sector_id = ?", (sector_id,)).fetchone()
         ns_row = conn.execute("SELECT * FROM neutron_stars WHERE sector_id = ?", (sector_id,)).fetchone()
@@ -495,7 +495,7 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
         (nebula_row, nebula_entry), (field_row, field_entry),
         (remnant_row, remnant_entry), (planet_row, planet_entry), (comet_row, comet_entry),
     ):
-        expected = _db._galaxy_placement_from_sector_offset(galaxy_position, entry.position)
+        expected = store._galaxy_placement_from_sector_offset(galaxy_position, entry.position)
         assert row["center_x_pc"] == pytest.approx(expected["center_x_pc"])
         assert row["center_y_pc"] == pytest.approx(expected["center_y_pc"])
         assert row["center_z_pc"] == pytest.approx(expected["center_z_pc"])
@@ -510,15 +510,15 @@ def test_supernova_remnants_compact_remnant_shares_its_sector_and_drifts_by_its_
     remnant.compact_offset_ly = [3.26156, 0.0, 0.0]  # 1 pc
     placement = {"center_x_pc": 30.5, "center_y_pc": 10.0, "center_z_pc": 0.0, "galactic_radius_pc": 32.0}
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=placement)
+        remnant_id = store.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=placement)
         conn.commit()
         remnant_row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
         core_row = conn.execute(
             "SELECT * FROM neutron_stars WHERE id = ?", (remnant_row["compact_remnant_neutron_star_id"],)
         ).fetchone()
-        near = {(m["type"], m["id"]) for m in queryDb.phenomena_near_sector(conn, sector_id)}
+        near = {(m["type"], m["id"]) for m in query.phenomena_near_sector(conn, sector_id)}
     finally:
         conn.close()
 
@@ -538,22 +538,22 @@ def test_phenomena_near_sector_lists_every_type_and_its_own_far_away_ones(mysql_
     near_placement = {"center_x_pc": -20.0, "center_y_pc": 60.0, "center_z_pc": 3.0, "galactic_radius_pc": 63.3}
     far_placement = {"center_x_pc": -20.0, "center_y_pc": 90.0, "center_z_pc": 3.0, "galactic_radius_pc": 92.2}
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         remnant = SupernovaRemnant(SystemConfig())
         remnant.compact_remnant = None
         remnant.radius_ly = 1.0
-        remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=near_placement)
-        planet_id = _db.insert_rogue_planet(
+        remnant_id = store.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=near_placement)
+        planet_id = store.insert_rogue_planet(
             conn, RoguePlanet(SystemConfig()), sector_id=sector_id, placement=far_placement,
         )
-        comet_id = _db.insert_interstellar_comet(
+        comet_id = store.insert_interstellar_comet(
             conn, InterstellarComet(SystemConfig()), sector_id=sector_id, placement=near_placement,
         )
         # Same far spot, but no link to this sector: stays out.
-        stranger_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), placement=far_placement)
+        stranger_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), placement=far_placement)
         conn.commit()
-        matches = queryDb.phenomena_near_sector(conn, sector_id)
+        matches = query.phenomena_near_sector(conn, sector_id)
     finally:
         conn.close()
 
@@ -572,9 +572,9 @@ def test_insert_sector_links_phenomena_without_placement_for_an_unplaced_sector(
     sector = SpaceSector("Unplaced Pipeline Sector", edge_ly=40.0)
     black_hole_entry = sector.add_phenomenon(BlackHole(SystemConfig()), "black-hole")
 
-    sector_id = _db.save_sector(sector, config=mysql_config)  # no galaxy_position
+    sector_id = store.save_sector(sector, config=mysql_config)  # no galaxy_position
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM black_holes WHERE sector_id = ?", (sector_id,)).fetchone()
     finally:
@@ -592,12 +592,12 @@ def test_galaxy_placed_phenomena_includes_black_holes_and_neutron_stars(mysql_co
     bh.has_accretion_disk = True
     ns = NeutronStar(SystemConfig())
 
-    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
-    ns_id = _db.save_phenomenon(ns, SystemConfig(), "neutron-star", config=mysql_config, sector_id=sector_id)
+    bh_id = store.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+    ns_id = store.save_phenomenon(ns, SystemConfig(), "neutron-star", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        placed = queryDb.galaxy_placed_phenomena(conn)
+        placed = query.galaxy_placed_phenomena(conn)
     finally:
         conn.close()
 
@@ -613,11 +613,11 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
     sector_id = _place_sector(mysql_config, "Compact Remnant Nearby Sector", (300.0, 0.0, 0.0))
 
     bh = BlackHole(SystemConfig())
-    bh_id = _db.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
+    bh_id = store.save_phenomenon(bh, SystemConfig(), "black-hole", config=mysql_config, sector_id=sector_id)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        matches = queryDb.phenomena_near_sector(conn, sector_id)
+        matches = query.phenomena_near_sector(conn, sector_id)
     finally:
         conn.close()
 
@@ -640,11 +640,11 @@ def test_phenomena_near_sector_finds_a_black_hole_placed_at_that_sector(mysql_co
 
 def test_list_phenomena_includes_a_supernova_remnant_always_unplaced(mysql_config):
     remnant = SupernovaRemnant(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        remnant_id = store.insert_supernova_remnant(conn, remnant)
         conn.commit()
-        rows = queryDb.list_phenomena(conn)
+        rows = query.list_phenomena(conn)
     finally:
         conn.close()
 
@@ -671,12 +671,12 @@ def test_count_phenomena_includes_supernova_remnants(mysql_config):
     else:
         pytest.fail("could not generate a supernova remnant with no embedded compact remnant")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        before = queryDb.count_phenomena(conn)
-        _db.insert_supernova_remnant(conn, remnant)
+        before = query.count_phenomena(conn)
+        store.insert_supernova_remnant(conn, remnant)
         conn.commit()
-        after = queryDb.count_phenomena(conn)
+        after = query.count_phenomena(conn)
     finally:
         conn.close()
 
@@ -685,11 +685,11 @@ def test_count_phenomena_includes_supernova_remnants(mysql_config):
 
 def test_phenomenon_detail_returns_a_supernova_remnants_own_columns(mysql_config):
     remnant = SupernovaRemnant(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        remnant_id = _db.insert_supernova_remnant(conn, remnant)
+        remnant_id = store.insert_supernova_remnant(conn, remnant)
         conn.commit()
-        detail = queryDb.phenomenon_detail(conn, "supernova_remnant", remnant_id)
+        detail = query.phenomenon_detail(conn, "supernova_remnant", remnant_id)
     finally:
         conn.close()
 
@@ -710,18 +710,18 @@ def test_phenomena_near_sector_leaves_out_a_neighbors_point_objects_but_keeps_it
     neighbor = _place_sector(mysql_config, "Next Door", (0.0, 43.5, 0.0), edge_ly=11.5)
     near_placement = {"center_x_pc": 0.0, "center_y_pc": 42.5, "center_z_pc": 0.0, "galactic_radius_pc": 42.5}
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        rogue_id = _db.insert_rogue_planet(
+        rogue_id = store.insert_rogue_planet(
             conn, RoguePlanet(SystemConfig()), sector_id=neighbor, placement=near_placement)
         nebula = Nebula(SystemConfig())
         nebula.radius_ly = 4.0
-        nebula_id = _db.insert_nebula(conn, nebula, sector_id=neighbor, placement=near_placement)
-        own_id = _db.insert_rogue_planet(
+        nebula_id = store.insert_nebula(conn, nebula, sector_id=neighbor, placement=near_placement)
+        own_id = store.insert_rogue_planet(
             conn, RoguePlanet(SystemConfig()), sector_id=home,
             placement={"center_x_pc": 0.0, "center_y_pc": 40.5, "center_z_pc": 0.0, "galactic_radius_pc": 40.5})
         conn.commit()
-        matches = {(m["type"], m["id"]): m for m in queryDb.phenomena_near_sector(conn, home)}
+        matches = {(m["type"], m["id"]): m for m in query.phenomena_near_sector(conn, home)}
     finally:
         conn.close()
 
@@ -742,11 +742,11 @@ def test_sector_reach_holds_every_corner_of_a_small_rings_cell():
             "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
             "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
         }
-        reach = queryDb._sector_reach_pc(sector, edge_pc)
+        reach = query._sector_reach_pc(sector, edge_pc)
         assert reach >= edge_pc * math.sqrt(3) / 2
         for vertex in sector_cell_vertices_pc(*address, edge_pc):
             assert math.dist(vertex, center) <= reach + 1e-9
-    assert queryDb._sector_reach_pc(
+    assert query._sector_reach_pc(
         {"center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
          "ring_index": None, "layer_index": None, "ring_slot_index": None}, edge_pc,
     ) == pytest.approx(edge_pc * math.sqrt(3) / 2)

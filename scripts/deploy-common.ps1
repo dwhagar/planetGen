@@ -242,17 +242,18 @@ function Read-AnswerWithTimeout([string]$Prompt, [int]$Seconds) {
 
 # Brings the configured database up to the current schema. When a
 # migration is pending, first asks whether to delete the galaxy data
-# instead: y wipes every generated sector and system (src/resetDb.py;
+# instead: y wipes every generated sector and system (planetgen.cli.reset;
 # admin logins are kept) and the empty database is brought to the
 # current schema. Anything else, no answer within 30 seconds, or no
-# console to ask on keeps the data and migrates it (with migrateDb.py's
+# console to ask on keeps the data and migrates it (with planetgen.cli.migrate's
 # progress bar). Nothing is asked when the database is already current.
 function Invoke-MigrateOrReset {
     $python = Get-VenvPython
-    Push-Location $Root
+    # From src\ so `python -m planetgen.cli.*` finds the planetgen package.
+    Push-Location (Join-Path $Root "src")
     try {
-        $status = @(& $python "src\migrateDb.py" --status)
-        if ($LASTEXITCODE -ne 0) { throw "src\migrateDb.py --status failed (see above)." }
+        $status = @(& $python -m planetgen.cli.migrate --status)
+        if ($LASTEXITCODE -ne 0) { throw "planetgen.cli.migrate --status failed (see above)." }
         $current, $target, $pending, $database = ("$($status[-1])".Trim() -split "\s+")
         if ([int]$pending -gt 0) {
             Write-Host "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
@@ -261,12 +262,12 @@ function Invoke-MigrateOrReset {
                 Write-Host "(No console to ask on: keeping the data and migrating it.)"
             } elseif ($answer -match "^(y|yes)$") {
                 Write-Host "Deleting the galaxy data in '$database' (admin logins are kept)."
-                Invoke-Checked $python "src\resetDb.py" --yes
+                Invoke-Checked $python -m planetgen.cli.reset --yes
             } else {
                 Write-Host "Keeping the data and migrating it."
             }
         }
-        Invoke-Checked $python "src\migrateDb.py"
+        Invoke-Checked $python -m planetgen.cli.migrate
     } finally {
         Pop-Location
     }

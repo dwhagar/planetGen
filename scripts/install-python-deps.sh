@@ -43,7 +43,7 @@
 #
 # planetGen itself is never installed into site-packages: every entry
 # point adds the checkout's src/ to sys.path itself (generate.py,
-# src/html/lib/apiclient.py, src/html/wsgi.py, and src/migrateDb.py
+# src/html/lib/apiclient.py, src/html/wsgi.py, and planetgen.cli.migrate
 # through its own sys.path[0]), and /usr/local/bin/planetgen is a small
 # wrapper around the checkout's generate.py. (The unmanaged path still
 # pip-installs the package, as it always has, but nothing runs that copy.)

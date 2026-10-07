@@ -1,6 +1,6 @@
 # Old galaxy schemas (TEST.8, TEST.9)
 
-`schema_v<N>.sql.gz` is `src/stellarObjects/schema.sql` as `main` last
+`schema_v<N>.sql.gz` is `src/planetgen/db/schema.sql` as `main` last
 shipped it while `SCHEMA_VERSION` was N, with its `--` comment lines and
 blank lines removed. Versions that never reached `main` (10-13, 16) are
 missing. `tests/test_db_old_schemas.py` loads each into an empty database,
@@ -49,6 +49,6 @@ Commit each file came from:
 To add the schema a release is leaving behind (run from the repo root,
 before bumping `SCHEMA_VERSION`):
 
-    N=$(grep -m1 '^SCHEMA_VERSION = ' src/stellarObjects/_db.py | awk '{print $3}')
-    grep -v '^\s*--' src/stellarObjects/schema.sql | sed 's/\s\+--.*$//' | grep -v '^\s*$' \
+    N=$(grep -m1 '^SCHEMA_VERSION = ' src/stellarObjects/store.py | awk '{print $3}')
+    grep -v '^\s*--' src/planetgen/db/schema.sql | sed 's/\s\+--.*$//' | grep -v '^\s*$' \
         | gzip -9n > src/tests/fixtures/old_schemas/schema_v$N.sql.gz

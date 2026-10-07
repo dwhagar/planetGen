@@ -4,7 +4,7 @@
   examples/macos/org.planetgen.orbits.planetgen.plist
 
   launchd counterpart of examples/maintenance/planetgen-orbits@.timer and
-  its service: runs src/updateOrbits.py against the "planetgen" database
+  its service: runs planetgen.cli.orbits against the "planetgen" database
   on the 1st of every month at 03:30. For another database, copy this
   file, change "planetgen" in the Label, the file name and
   PLANETGEN_MYSQL_DATABASE. See docs/deployment/macos.md.
@@ -26,7 +26,7 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/planetgen/venv/bin/python</string>
-        <string>src/updateOrbits.py</string>
+        planetgen.cli.orbits</string>
     </array>
     <key>UserName</key>
     <string>_www</string>

@@ -1,4 +1,4 @@
-# stellarObjects/systemRender.py
+# planetgen/db/render.py
 
 """
 On-demand rendering of a stored star system's wiki page text.
@@ -15,7 +15,7 @@ gives the same Markdown split per star/planet/moon/belt/comet, for
 
 from contextlib import contextmanager
 
-from ._db import load_star_system
+from planetgen.db.store import load_star_system
 
 FORMATS = ("wikitext", "markdown")
 """tuple: The page formats `render_system_text` accepts."""

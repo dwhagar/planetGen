@@ -60,7 +60,7 @@ sectors with their systems and phenomena.
 ## 2. Rendering system pages from the database instead of storing text
 
 **Chosen:** a system's wikitext and Markdown pages are rendered on demand
-from its rows (`stellarObjects/systemRender.py`). The stored copies
+from its rows (`planetgen/db/render.py`). The stored copies
 (`star_systems.wikitext_content`, `markdown_content`) are gone.
 
 **When:** 5.52.0 (2026-09-24, PR #85, schema v29; the commit message says
@@ -71,7 +71,7 @@ orbit ticks" (CHANGELOG 5.52.0). Stored text went stale whenever a row
 changed after generation. Wiki upload uses the fresh render.
 
 **Rejected:** keeping the stored text and regenerating it on every change.
-Not discussed in the record beyond the reasons above. `src/checkRenderParity.py`
+Not discussed in the record beyond the reasons above. `planetgen.cli.render_parity`
 was written to compare stored and rendered text on an old database before
 upgrading, and to export the stored copies.
 

@@ -12,7 +12,7 @@ import re
 import pytest
 
 from api import loginguard
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.admin import auth as adminAuth, totp
 
 # --- Codes (RFC 6238) -----------------------------------------------------------
@@ -53,7 +53,7 @@ def test_new_secret_and_uri():
 
 @pytest.fixture
 def control_conn(mysql_config):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     try:
         yield conn
     finally:
@@ -240,13 +240,13 @@ def test_api_keys_skip_the_second_factor(real_app):
 
 
 def test_command_line_reset(mysql_config, real_app, capsys, monkeypatch):
-    import loginLockouts
+    from planetgen.cli import lockouts
     _turn_on(real_app.admin_client)
     args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(_db, "configured_control_database", lambda: mysql_config.database)
-    assert loginLockouts.main(["--reset-two-factor", "admin"] + args) == 0
+    monkeypatch.setattr(store, "configured_control_database", lambda: mysql_config.database)
+    assert lockouts.main(["--reset-two-factor", "admin"] + args) == 0
     assert "Two-factor sign-in for admin is off." in capsys.readouterr().out
     assert _login(real_app.test_client(), "admin", "violet-orbit-ledger-91").get_json()["username"] == "admin"
 

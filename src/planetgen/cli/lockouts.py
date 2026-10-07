@@ -1,17 +1,17 @@
-# src/loginLockouts.py
+# planetgen.cli.lockouts
 
 """
 Lists and lifts login lockouts (SEC.1, SEC.21) from the command line, for
 an admin locked out of the web interface itself:
 
-    python3 src/loginLockouts.py                     # list what is locked
-    python3 src/loginLockouts.py --ip 203.0.113.5    # lift one address
-    python3 src/loginLockouts.py --user admin        # lift one username
-    python3 src/loginLockouts.py --all               # lift every lockout
-    python3 src/loginLockouts.py --forget-devices admin
+    python3 -m planetgen.cli.lockouts                     # list what is locked
+    python3 -m planetgen.cli.lockouts --ip 203.0.113.5    # lift one address
+    python3 -m planetgen.cli.lockouts --user admin        # lift one username
+    python3 -m planetgen.cli.lockouts --all               # lift every lockout
+    python3 -m planetgen.cli.lockouts --forget-devices admin
                                     # that admin's browsers lose their
                                     # trusted-device cookies (SEC.22)
-    python3 src/loginLockouts.py --reset-two-factor admin
+    python3 -m planetgen.cli.lockouts --reset-two-factor admin
                                     # turns off that admin's two-factor
                                     # sign-in (lost phone and recovery
                                     # codes; SEC.26)
@@ -30,7 +30,7 @@ import time
 import pymysql
 
 from planetgen.admin import activity_log, auth, throttle
-from stellarObjects._db import add_mysql_connection_args, control_mysql_config, get_control_connection, \
+from planetgen.db.store import add_mysql_connection_args, control_mysql_config, get_control_connection, \
     mysql_config_from_args
 
 

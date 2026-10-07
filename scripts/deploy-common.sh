@@ -250,9 +250,15 @@ EOF
     fi
 }
 
+# Runs one of planetGen's command-line tools, `python3 -m planetgen.cli.NAME
+# ARGS...`, from the checkout's src/ so the planetgen package imports.
+run_cli() {
+    (cd "$SCRIPT_DIR/src" && "$PYTHON" -m "planetgen.cli.$1" "${@:2}")
+}
+
 # Brings the configured database up to the current schema. When a
 # migration is pending, first asks whether to delete the galaxy data
-# instead: y wipes every generated sector and system (src/resetDb.py, the
+# instead: y wipes every generated sector and system (planetgen.cli.reset, the
 # same as the Generate page's Reset; admin logins are kept) and the empty
 # database is then brought to the current schema. Anything else, no
 # answer within 30 seconds, or no terminal to ask on (the maintenance
@@ -260,7 +266,7 @@ EOF
 # database is already current.
 migrate_or_reset_db() {
     local status current target pending database answer=""
-    if ! status="$("$PYTHON" "$SCRIPT_DIR/src/migrateDb.py" --status)"; then
+    if ! status="$(run_cli migrate --status)"; then
         return 1
     fi
     read -r current target pending database <<< "$status"
@@ -274,12 +280,12 @@ migrate_or_reset_db() {
         fi
         if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
             echo "Deleting the galaxy data in '$database' (admin logins are kept)."
-            "$PYTHON" "$SCRIPT_DIR/src/resetDb.py" --yes
+            run_cli reset --yes
         else
             echo "Keeping the data and migrating it."
         fi
     fi
-    "$PYTHON" "$SCRIPT_DIR/src/migrateDb.py"
+    run_cli migrate
 }
 
 # The math check (`generate.py check-math`, TEST.68): known answers from

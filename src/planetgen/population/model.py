@@ -501,7 +501,7 @@ def refresh_territories(conn):
     Returns:
         int: Systems owned.
     """
-    from stellarObjects._db import sectors_reached_by
+    from planetgen.db.store import sectors_reached_by
 
     # Each polity only looks at the sectors its own reach touches, so the
     # cost is the sum of their territories, not polities x all systems.

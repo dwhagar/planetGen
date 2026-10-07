@@ -21,7 +21,7 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from web.population_pages import format_years  # noqa: E402
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen.population import model
 from tests.test_population import _set_age, galaxy  # noqa: E402,F401
 from tests.test_web_facilities import _planet as _facility_planet  # noqa: E402
@@ -212,7 +212,7 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
     assert 'href="/species"' not in _nav(before)
     assert real_client.get("/species").status_code == 404
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         model.run_pass(conn)
         with conn:

@@ -20,7 +20,8 @@ import pytest
 
 import generate
 import jobRunner
-from stellarObjects import _db, workQueue
+from stellarObjects import workQueue
+from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 

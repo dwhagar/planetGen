@@ -135,19 +135,19 @@ def test_phenomenon_inside_links_its_cloud(monkeypatch):
 
 
 def test_system_detail_names_the_containing_nebula(mysql_config):
-    import queryDb
-    from stellarObjects import _db
+    from planetgen.db import query
+    from planetgen.db import store
     from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
 
-    sector_id = _db.save_sector(_sector_with_one_system("Misty"), config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(_sector_with_one_system("Misty"), config=mysql_config, galaxy_position={
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             nebula_id = _placed_nebula(conn, sector_id, (101.0, 0.0, 0.0), radius_ly=100.0, nebula_class="E")
         system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
-        inside = queryDb.system_detail(conn, system_id)["inside"]
+        inside = query.system_detail(conn, system_id)["inside"]
         assert (inside["type"], inside["id"]) == ("nebula", nebula_id)
     finally:
         conn.close()
@@ -175,24 +175,24 @@ def test_contents_rows_show_a_phenomenons_octant_and_nearest_systems():
 
 
 def test_phenomenon_and_system_detail_carry_stored_nearest_systems(mysql_config):
-    import queryDb
-    from stellarObjects import _db
+    from planetgen.db import query
+    from planetgen.db import store
     from tests.test_db_persistence import _placed_nebula, _sector_with_systems
 
-    sector_id = _db.save_sector(_sector_with_systems("Nearmark", [(1.0, 1.0, 1.0), (2.0, 1.0, 1.0)]),
+    sector_id = store.save_sector(_sector_with_systems("Nearmark", [(1.0, 1.0, 1.0), (2.0, 1.0, 1.0)]),
                                 config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 200.0, "center_z_pc": 0.0, "galactic_radius_pc": 200.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             nebula_id = _placed_nebula(conn, sector_id, (0.5, 200.5, -0.5), radius_ly=0.5)
-            _db.refresh_nearest_systems(conn, [sector_id])
-        detail = queryDb.phenomenon_detail(conn, "nebula", nebula_id)
+            store.refresh_nearest_systems(conn, [sector_id])
+        detail = query.phenomenon_detail(conn, "nebula", nebula_id)
         assert len(detail["nearest"]) == 2 and detail["quadrant"]
         system_ids = [row["id"] for row in conn.execute(
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
-        neighbors = queryDb.system_detail(conn, system_ids[0])["nearest_neighbors"]
+        neighbors = query.system_detail(conn, system_ids[0])["nearest_neighbors"]
         assert [n["id"] for n in neighbors] == [system_ids[1]]
     finally:
         conn.close()

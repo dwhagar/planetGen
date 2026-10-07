@@ -5,12 +5,12 @@ JSON endpoints over the planetGen database.
 
 The read endpoints each open a strictly-read-only connection
 (`queryDb.open_readonly` -- same `file:...?mode=ro`-equivalent guarantee
-the `queryDb.py` CLI already relies on, see that module's docstring for
+the `planetgen.db.query` CLI already relies on, see that module's docstring for
 how "read-only" is enforced by the configured account's grants). Listing
-endpoints delegate straight to `queryDb.py`'s existing `list_sectors`/
+endpoints delegate straight to `planetgen.db.query`'s existing `list_sectors`/
 `list_systems`/`systems_within_radius` functions rather than
 re-implementing the same SQL a third time; the two detail endpoints go
-through `stellarObjects._db.load_sector`/`load_star_system` for the full
+through `planetgen.db.store.load_sector`/`load_star_system` for the full
 nested object graph, serialized via each class's own `to_dict()` (Phase 1
 serialization, `planetgen/util/serialization.py`).
 
@@ -41,7 +41,7 @@ from flask import Blueprint, current_app, g, jsonify, request
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
 import generate  # noqa: E402
 
-from queryDb import (
+from planetgen.db.query import (
     facilities_for_system,
     facilities_in_sector,
     facility_detail,
@@ -74,17 +74,17 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.population import facilities as facility_rules
-from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
+from planetgen.db.store import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
 from planetgen.generation.system import StarSystem
-from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
-from stellarObjects.systemRender import render_system_sections, render_system_text
+from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
+from planetgen.db.render import render_system_sections, render_system_text
 from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
@@ -129,7 +129,7 @@ def _resolve_requested_db_config():
     this API learned about `?db=`) unless the request supplies a `db`
     query parameter, in which case it's validated against every schema on
     that same server whose name matches the configured prefix (see
-    `stellarObjects._db.list_databases`/`resolve_database`) -- the same
+    `planetgen.db.store.list_databases`/`resolve_database`) -- the same
     validation `html/lib/dbutil.resolve_db_name` has always applied for
     the CGI browser's own `?db=` picker, now shared by this API so a
     request can't select a schema this deployment never meant to expose.
@@ -332,7 +332,7 @@ def health():
     only runs `CREATE TABLE IF NOT EXISTS` -- a no-op against a table that
     already exists, so it never retroactively adds a migration's `ALTER
     TABLE` (e.g. schema v25's `idx_sectors_center`) to an existing
-    database. Only `migrateDb.py` (run directly, or via `update.sh`/
+    database. Only `planetgen.cli.migrate` (run directly, or via `update.sh`/
     `install.sh`) actually advances an existing database's schema.
     Restarting this process alone -- a natural thing to try after pulling
     in a schema-fixing code change -- does *not* apply a pending
@@ -341,7 +341,7 @@ def health():
     /api/galaxy/view` that took the whole site down (`docs/apache-
     deployment.md`'s single `planetgen-api` process/thread pool serializes
     all API traffic, so one slow endpoint stalls every page). Surfaced
-    here instead of only in `migrateDb.py`'s own output, so a live
+    here instead of only in `planetgen.cli.migrate`'s own output, so a live
     deployment that's fallen behind is visible without having to
     separately remember to go check.
     """
@@ -358,7 +358,7 @@ def health():
 
     # A separate try/except from the reachability check above: a database
     # that answers `SELECT 1` fine but has never had `schema.sql`/
-    # `migrateDb.py` applied to it at all has no `schema_migrations` table
+    # `planetgen.cli.migrate` applied to it at all has no `schema_migrations` table
     # yet either -- one step further back than "some migrations pending"
     # (schema_row would simply come back empty for that), not an
     # unreachable database. Reported the same way a stale-but-present
@@ -373,20 +373,20 @@ def health():
     body = {
         "status": "ok",
         "schema_version": schema_version,
-        "schema_current": schema_version == _db.SCHEMA_VERSION,
+        "schema_current": schema_version == store.SCHEMA_VERSION,
     }
-    if schema_version is not None and schema_version > _db.SCHEMA_VERSION:
+    if schema_version is not None and schema_version > store.SCHEMA_VERSION:
         body["detail"] = (
-            f"Database schema is at v{schema_version}, newer than this code's v{_db.SCHEMA_VERSION} -- "
-            f"update planetGen (update.sh); don't run this older code's migrateDb.py against it."
+            f"Database schema is at v{schema_version}, newer than this code's v{store.SCHEMA_VERSION} -- "
+            f"update planetGen (update.sh); don't run this older code's planetgen.cli.migrate against it."
         )
-    elif schema_version != _db.SCHEMA_VERSION:
+    elif schema_version != store.SCHEMA_VERSION:
         body["detail"] = (
-            f"Database schema is at v{schema_version}, code expects v{_db.SCHEMA_VERSION} -- "
-            f"run migrateDb.py (or update.sh/install.sh) against this database."
+            f"Database schema is at v{schema_version}, code expects v{store.SCHEMA_VERSION} -- "
+            f"run planetgen.cli.migrate (or update.sh/install.sh) against this database."
             if schema_version is not None else
             f"Database schema has not been initialized yet (no schema_migrations table), code expects "
-            f"v{_db.SCHEMA_VERSION} -- run migrateDb.py (or update.sh/install.sh) against this database."
+            f"v{store.SCHEMA_VERSION} -- run planetgen.cli.migrate (or update.sh/install.sh) against this database."
         )
     return jsonify(body)
 
@@ -395,7 +395,7 @@ def health():
 def databases():
     """
     Lists every MySQL schema on the configured server whose name matches
-    this deployment's prefix (`stellarObjects._db.list_databases`), each
+    this deployment's prefix (`planetgen.db.store.list_databases`), each
     with its size/last-modified stats plus a quick-glance sector/system
     count. Every other endpoint's own
     `?db=` selects among these same names (see `get_db`).
@@ -500,7 +500,7 @@ def system_text(system_id):
     """
     `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
     full wiki page, rendered now from its database rows
-    (`stellarObjects/systemRender.py`; no page text is stored since
+    (`planetgen/db/render.py`; no page text is stored since
     schema v29). `format` defaults to `wikitext`.
     """
     fmt = request.args.get("format", "wikitext")
@@ -547,7 +547,7 @@ def systems_near(system_id):
     try:
         matches = systems_within_radius(get_db(), system_id, radius)
     except SystemExit as exc:
-        # systems_within_radius is shared with the queryDb.py CLI and raises
+        # systems_within_radius is shared with the planetgen.db.query CLI and raises
         # SystemExit (its CLI-appropriate error signal) for a missing/
         # unplaced system id -- caught here rather than changing its shared
         # behavior just for this one caller.
@@ -1020,10 +1020,10 @@ def _resolve_requested_write_db_config():
 def _write_conn():
     """Opens a write-capable connection against the content database
     `?db=` (or the configured default) selects -- `ensure_schema=False`,
-    same reasoning as `queryDb.open_readonly`/`_db.open_write`: the
+    same reasoning as `queryDb.open_readonly`/`store.open_write`: the
     write-capable account has no `CREATE` grant (see `config.py`), so the
     schema must already exist."""
-    return _db.open_write(_resolve_requested_write_db_config())
+    return store.open_write(_resolve_requested_write_db_config())
 
 
 @bp.route("/sectors", methods=["POST"])
@@ -1113,7 +1113,7 @@ def delete_sector(sector_id):
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
             if address is not None:
                 # GEN.44: the slot goes back to the bright-star level it had unfilled.
-                _db.forget_sector_fill(conn, (address["ring_index"], address["layer_index"],
+                store.forget_sector_fill(conn, (address["ring_index"], address["layer_index"],
                                               address["ring_slot_index"]))
     finally:
         conn.close()
@@ -1227,8 +1227,8 @@ def _validate_system_config_body(body):
     for field in ("star_type", "name"):
         if field in body and body[field] is not None and not isinstance(body[field], str):
             raise ApiError(f"'{field}' must be a string or null")
-    if isinstance(body.get("name"), str) and len(body["name"]) > _db.SYSTEM_NAME_MAX_LENGTH:
-        raise ApiError(f"'name' must be at most {_db.SYSTEM_NAME_MAX_LENGTH} characters")
+    if isinstance(body.get("name"), str) and len(body["name"]) > store.SYSTEM_NAME_MAX_LENGTH:
+        raise ApiError(f"'name' must be at most {store.SYSTEM_NAME_MAX_LENGTH} characters")
     if "age" in body and body["age"] not in (None, "young", "old"):
         raise ApiError("'age' must be 'young', 'old', or null")
     if "num_orbits" in body:
@@ -1269,14 +1269,14 @@ def _sector_generation_context(conn, sector_id, system_config):
     (`brightStars.FillContext`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:
-        placement = _db.get_sector_galaxy_position(conn, sector_id)
+        placement = store.get_sector_galaxy_position(conn, sector_id)
     except ValueError:
         raise ApiError(f"no such sector: {sector_id}", status_code=404)
     if placement is None:
         return None
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
-        level = _db.bright_star_fill_level(conn, placement["ring_index"], placement["layer_index"],
+        level = store.bright_star_fill_level(conn, placement["ring_index"], placement["layer_index"],
                                            placement["ring_slot_index"])
         center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
         brightStars.FillContext(center, skeleton.shape, min_luminosity_sol=level).apply(system_config)
@@ -1304,7 +1304,7 @@ def create_system():
     --system-file` already takes (`SystemConfig.from_dict`), plus optional
     `sector_id` and `position`. Without `sector_id` the new system is
     standalone. With it, the system joins that sector
-    (`_db.add_system_to_sector`): placed clear of every stored system's
+    (`store.add_system_to_sector`): placed clear of every stored system's
     Hill sphere, or at `position` (`[x, y, z]` light-years from the
     sector's center, inside it), with the sector's stellar population
     when it is in the galaxy. Returns the new `star_systems.id` (and
@@ -1319,13 +1319,13 @@ def create_system():
     try:
         with conn:
             if sector_id is None:
-                system_id = _db.insert_star_system(conn, _generate_system(system_config), system_config)
+                system_id = store.insert_star_system(conn, _generate_system(system_config), system_config)
                 placed = None
             else:
                 dist_ly = _sector_generation_context(conn, sector_id, system_config)
                 star_system = _generate_system(system_config, dist_ly)
                 try:
-                    system_id, placed = _db.add_system_to_sector(conn, sector_id, star_system, system_config,
+                    system_id, placed = store.add_system_to_sector(conn, sector_id, star_system, system_config,
                                                                  position=position)
                 except ValueError as exc:
                     raise ApiError(str(exc), status_code=409 if position is None else 400)
@@ -1366,7 +1366,7 @@ def _rename_body(max_length=NAME_MAX_LENGTH):
 
 def _check_name(name, max_length=NAME_MAX_LENGTH):
     """A new name, trimmed and checked as `_rename_body` describes. A
-    system or star passes `_db.SYSTEM_NAME_MAX_LENGTH`: its planets and
+    system or star passes `store.SYSTEM_NAME_MAX_LENGTH`: its planets and
     moons are named after it, so it needs room to grow."""
     if not isinstance(name, str) or not name.strip():
         raise ApiError("'name' must be a non-empty string")
@@ -1379,8 +1379,8 @@ def _check_name(name, max_length=NAME_MAX_LENGTH):
 def _require_unique_name(conn, name, exclude):
     """Raises a 409 when a sector, system or star other than the rows in
     `exclude` (`(table, id)` pairs) is already called `name`. Planet and
-    moon names aren't checked (`_db.name_in_use`)."""
-    clash = _db.name_in_use(conn, name, exclude=exclude)
+    moon names aren't checked (`store.name_in_use`)."""
+    clash = store.name_in_use(conn, name, exclude=exclude)
     if clash is not None:
         raise ApiError(f"{_NAME_CLASH_LABELS[clash]} is already named {name!r}", status_code=409)
 
@@ -1408,14 +1408,14 @@ def update_system(system_id):
     """
     `PATCH /api/systems/<id>` -- `{"name": str}` renames a system, and
     every star, planet and moon still named after it
-    (`_db.rename_star_system`); 409 if a sector, system or star already has
+    (`store.rename_star_system`); 409 if a sector, system or star already has
     the name.
 
     `{"regenerate": recipe}` (the `POST /api/systems` recipe fields, `{}`
     for a fresh roll with defaults) replaces the system's stars, planets,
     moons, asteroid belts and comets with a newly generated set, keeping
     its id, name, sector, position and links
-    (`_db.replace_star_system_content`). A sector system keeps its
+    (`store.replace_star_system_content`). A sector system keeps its
     sector's stellar population. 409 when the system was built around a
     pre-placed bright star, or hosts facilities unless `"drop_facilities":
     true` (they would be deleted with the bodies). Both may be sent
@@ -1427,7 +1427,7 @@ def update_system(system_id):
         raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
     if "name" not in body and "regenerate" not in body:
         raise ApiError("send 'name', 'regenerate', or both")
-    name = _check_name(body["name"], _db.SYSTEM_NAME_MAX_LENGTH) if "name" in body else None
+    name = _check_name(body["name"], store.SYSTEM_NAME_MAX_LENGTH) if "name" in body else None
     recipe = body.get("regenerate")
     drop_facilities = body.get("drop_facilities", False)
     if not isinstance(drop_facilities, bool):
@@ -1447,9 +1447,9 @@ def update_system(system_id):
                 raise ApiError(f"no such system: {system_id}", status_code=404)
             if name is not None:
                 _require_unique_name(conn, name, _system_rename_exclusions(conn, system_id))
-                _db.rename_star_system(conn, system_id, name)
+                store.rename_star_system(conn, system_id, name)
             if recipe is not None:
-                blockers = _db.system_content_blockers(conn, system_id)
+                blockers = store.system_content_blockers(conn, system_id)
                 if blockers["bright_star"]:
                     raise ApiError("this system is built around a pre-placed bright star, so its content "
                                    "can't be regenerated", status_code=409)
@@ -1459,7 +1459,7 @@ def update_system(system_id):
                 system_config = SystemConfig.from_dict(recipe)
                 dist_ly = (_sector_generation_context(conn, row["sector_id"], system_config)
                            if row["sector_id"] is not None else None)
-                _db.replace_star_system_content(conn, system_id, _generate_system(system_config, dist_ly),
+                store.replace_star_system_content(conn, system_id, _generate_system(system_config, dist_ly),
                                                 system_config)
             final_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
     finally:
@@ -1479,9 +1479,9 @@ def rename_star(star_id):
     """`PATCH /api/stars/<id>` `{"name": str}` -- renames a star. A single
     star shares its system's name, so this renames the system too; a
     binary's star is renamed on its own, with the planets and moons named
-    after it (`_db.rename_star`). 409 if a sector, system or star already has the
+    after it (`store.rename_star`). 409 if a sector, system or star already has the
     name."""
-    name = _rename_body(_db.SYSTEM_NAME_MAX_LENGTH)
+    name = _rename_body(store.SYSTEM_NAME_MAX_LENGTH)
 
     conn = _write_conn()
     try:
@@ -1494,7 +1494,7 @@ def rename_star(star_id):
             else:
                 exclude = [("stars", star_id)]
             _require_unique_name(conn, name, exclude)
-            _db.rename_star(conn, star_id, name)
+            store.rename_star(conn, star_id, name)
     finally:
         conn.close()
 
@@ -1513,7 +1513,7 @@ def _rename_planet_or_moon(table, kind, body_id):
             if row is None:
                 raise ApiError(f"no such {kind}: {body_id}", status_code=404)
             _require_unique_name(conn, name, [(table, body_id)])
-            _db.rename_body(conn, table, body_id, name)
+            store.rename_body(conn, table, body_id, name)
     finally:
         conn.close()
 
@@ -1554,7 +1554,7 @@ def delete_system(system_id):
             row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:
-                _db.touch_sector(conn, row["sector_id"])
+                store.touch_sector(conn, row["sector_id"])
     finally:
         conn.close()
 
@@ -1648,8 +1648,8 @@ def facility_orbit():
     except ValueError:
         raise ApiError("host_id must be a whole number and distance_km a number")
     try:
-        return jsonify(_db.facility_orbit(get_db(), host_type, host_id, distance_km))
-    except _db.FacilityError as exc:
+        return jsonify(store.facility_orbit(get_db(), host_type, host_id, distance_km))
+    except store.FacilityError as exc:
         raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
 
 
@@ -1660,7 +1660,7 @@ def create_facility():
     """`POST /api/facilities` `{"name", "kind", "placement", "host_type",
     "host_id"}` (required) plus optional `distance_km`/`phase_deg`
     (orbital), `offset_ly` (stand-alone, `[x, y, z]` from the sector's
-    center) and `description` -- adds a facility (`_db.add_facility`).
+    center) and `description` -- adds a facility (`store.add_facility`).
     400 when the placement rules refuse it, 404 when the host is missing."""
     body = require_json_body()
     _validate_sector_fields(body, required={"name", "kind", "placement", "host_type", "host_id"},
@@ -1668,12 +1668,12 @@ def create_facility():
     conn = _write_conn()
     try:
         with conn:
-            facility_id = _db.add_facility(
+            facility_id = store.add_facility(
                 conn, body["name"].strip(), body["kind"], body["placement"], body["host_type"], body["host_id"],
                 distance_km=body.get("distance_km"), phase_deg=body.get("phase_deg"),
                 offset_ly=body.get("offset_ly"), description=body.get("description"),
             )
-    except _db.FacilityError as exc:
+    except store.FacilityError as exc:
         raise ApiError(str(exc), status_code=404 if exc.not_found else 400)
     finally:
         conn.close()
@@ -1691,7 +1691,7 @@ def delete_facility(facility_id):
     conn = _write_conn()
     try:
         with conn:
-            deleted = _db.delete_facility(conn, facility_id)
+            deleted = store.delete_facility(conn, facility_id)
     finally:
         conn.close()
     if not deleted:
@@ -1802,7 +1802,7 @@ def upload_system_wiki(system_id):
     `POST /api/systems/<id>/wiki` `{"backend": "wikijs"|"mediawiki",
     "path": str}` -- publishes this system's page -- rendered now
     from its database rows, Markdown for `wikijs` and wikitext for
-    `mediawiki` (`stellarObjects/systemRender.py`) -- to the chosen wiki,
+    `mediawiki` (`planetgen/db/render.py`) -- to the chosen wiki,
     then records the
     new page's URL on `star_systems.wikijs_url`/`mediawiki_url` (see
     `schema.sql`'s "v22" header note) so `html/system.py` can swap its

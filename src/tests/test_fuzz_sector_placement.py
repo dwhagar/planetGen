@@ -560,18 +560,18 @@ def test_round_trip_keeps_the_galaxy_cell(ring, edge):
 
 @pytest.mark.parametrize("ring", [0, 5, 40])
 def test_db_load_rebuilds_the_galaxy_cell_from_the_ring_address(mysql_config, ring):
-    """The `sectors` table has no cell column; `_db.load_sector` must
+    """The `sectors` table has no cell column; `store.load_sector` must
     rebuild it from the stored ring address and edge (a galaxy-placed
     sector used to come back as a cube)."""
-    from stellarObjects import _db
+    from planetgen.db import store
     edge = DEFAULT_EDGE
     sector = SpaceSector("celled db", edge_ly=edge, cell=SectorCell.for_ring(ring, edge))
     placement = {"center_x_pc": 1.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 1.0,
                  "ring_index": ring, "layer_index": 0, "ring_slot_index": 0}
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=placement)
-    conn = _db.get_connection(mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=placement)
+    conn = store.get_connection(mysql_config)
     try:
-        loaded = _db.load_sector(conn, sector_id)
+        loaded = store.load_sector(conn, sector_id)
     finally:
         conn.close()
     assert loaded.cell is not None

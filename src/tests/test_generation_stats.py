@@ -15,7 +15,7 @@ import math
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import stats as generationStats
 from planetgen.generation.stats import (
     Bucket, DiskSpace, GenerationStats, bucket_bounds, bucket_index, check_disk, estimate, format_bytes,
@@ -171,7 +171,7 @@ def test_format_duration(seconds, text):
 
 @pytest.fixture
 def control_config(mysql_config):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     conn.close()
     return mysql_config
 
@@ -198,7 +198,7 @@ def test_buckets_and_sizes_survive_a_round_trip(control_config):
 
 
 def test_the_size_is_measured_from_the_galaxy_database(control_config):
-    conn = _db.get_connection(control_config)
+    conn = store.get_connection(control_config)
     try:
         stats = GenerationStats(control_config)
         assert stats.measure_size(conn, control_config.database) is None   # no systems yet

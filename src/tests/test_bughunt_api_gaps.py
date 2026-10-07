@@ -19,7 +19,7 @@ All tests are skipped, not failed, without a reachable MySQL test server
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import limits
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
@@ -36,21 +36,21 @@ from tests.test_api import (  # noqa: F401
 def _save_nebula(mysql_config, sector_id=None):
     cfg = SystemConfig()
     nebula = Nebula(cfg)
-    phenomenon_id = _db.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
+    phenomenon_id = store.save_phenomenon(nebula, cfg, "nebula", config=mysql_config, sector_id=sector_id)
     return phenomenon_id, nebula
 
 
 def _save_rogue_planet(mysql_config, sector_id=None):
     cfg = SystemConfig()
     rogue_planet = RoguePlanet(cfg)
-    phenomenon_id = _db.save_phenomenon(rogue_planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
+    phenomenon_id = store.save_phenomenon(rogue_planet, cfg, "rogue-planet", config=mysql_config, sector_id=sector_id)
     return phenomenon_id, rogue_planet
 
 
 def _save_interstellar_comet(mysql_config, sector_id=None):
     cfg = SystemConfig()
     comet = InterstellarComet(cfg)
-    phenomenon_id = _db.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
+    phenomenon_id = store.save_phenomenon(comet, cfg, "comet", config=mysql_config, sector_id=sector_id)
     return phenomenon_id, comet
 
 
@@ -83,7 +83,7 @@ def test_phenomena_listing_on_never_initialized_database_fails_cleanly(client, m
     zero tables) -- the read-only API connection deliberately can't run
     DDL itself (get_connection's own docstring: a read-only account has
     no CREATE grant), so querying a table before any write-path call
-    (generate.py, or here, _db.save_phenomenon) has ever initialized the
+    (generate.py, or here, store.save_phenomenon) has ever initialized the
     schema is expected to fail. What matters is HOW it fails: app.py's
     generic 500 handler must still turn the resulting
     pymysql.err.ProgrammingError ("table doesn't exist") into the same

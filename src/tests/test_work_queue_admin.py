@@ -20,7 +20,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, systemLoad, workQueue
+from stellarObjects import systemLoad, workQueue
+from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
@@ -39,9 +40,9 @@ def _slow(payload):
 
 @pytest.fixture
 def control_config(mysql_config, monkeypatch):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     conn.close()
-    monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, mysql_config.database)
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
     monkeypatch.delenv(workQueue.PARENT_ENV_VAR, raising=False)
     monkeypatch.setattr(workQueue, "WAIT_POLL_SECONDS", 0.05)
     monkeypatch.setattr(workQueue, "CONTROL_POLL_SECONDS", 0.0)
@@ -49,7 +50,7 @@ def control_config(mysql_config, monkeypatch):
 
 
 def _conn(config):
-    return _db.get_control_connection(config)
+    return store.get_control_connection(config)
 
 
 def _call(config, fn, *args):

@@ -20,7 +20,8 @@ import time
 import pytest
 
 import generate
-from stellarObjects import _db, workQueue
+from stellarObjects import workQueue
+from planetgen.db import store
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 
@@ -143,13 +144,13 @@ def test_a_failed_task_stops_the_run_with_its_own_error():
 
 @pytest.fixture
 def control_config(mysql_config):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     conn.close()
     return mysql_config
 
 
 def _rows(config, sql, params=()):
-    conn = _db.get_control_connection(config)
+    conn = store.get_control_connection(config)
     try:
         return conn.execute(sql, params).fetchall()
     finally:
@@ -184,7 +185,7 @@ def test_a_failed_run_is_recorded(control_config):
 
 def test_a_second_run_waits_for_the_lease(control_config, monkeypatch):
     monkeypatch.setattr(workQueue, "WAIT_POLL_SECONDS", 0.1)
-    conn = _db.get_control_connection(control_config)
+    conn = store.get_control_connection(control_config)
     try:
         with conn:
             conn.execute("INSERT INTO work_lease (id, holder, job_id, heartbeat_at)"
@@ -194,7 +195,7 @@ def test_a_second_run_waits_for_the_lease(control_config, monkeypatch):
 
     def release():
         time.sleep(1.0)
-        other = _db.get_control_connection(control_config)
+        other = store.get_control_connection(control_config)
         try:
             with other:
                 other.execute("UPDATE work_lease SET holder = NULL WHERE id = 1")
@@ -214,7 +215,7 @@ def test_a_second_run_waits_for_the_lease(control_config, monkeypatch):
 
 
 def test_a_dead_runs_lease_is_taken_over(control_config):
-    conn = _db.get_control_connection(control_config)
+    conn = store.get_control_connection(control_config)
     try:
         with conn:
             conn.execute("INSERT INTO work_jobs (id, title, holder, state, workers, created_at, heartbeat_at)"
@@ -247,18 +248,18 @@ def test_without_the_control_tables_the_pool_still_runs(mysql_config):
 def test_nearest_search_without_shells_matches_the_shell_walk():
     rng = random.Random(5)
     systems = [(n, (rng.uniform(-6, 6), rng.uniform(-6, 6), rng.uniform(-6, 6))) for n in range(3000)]
-    dense = _db._SystemGrid(systems)
-    sparse = _db._SystemGrid(systems[:40])
+    dense = store._SystemGrid(systems)
+    sparse = store._SystemGrid(systems[:40])
     for _ in range(50):
         point = (rng.uniform(-8, 8), rng.uniform(-8, 8), rng.uniform(-8, 8))
-        assert len(dense.systems) >= (2 * (math.ceil(_db.NEAREST_SYSTEMS_SEARCH_PC) + 1) + 1) ** 3
+        assert len(dense.systems) >= (2 * (math.ceil(store.NEAREST_SYSTEMS_SEARCH_PC) + 1) + 1) ** 3
         expected = sorted(
-            (math.dist(point, p), n) for n, p in systems[:40] if math.dist(point, p) <= _db.NEAREST_SYSTEMS_SEARCH_PC
-        )[:_db.NEAREST_SYSTEMS_COUNT]
+            (math.dist(point, p), n) for n, p in systems[:40] if math.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
+        )[:store.NEAREST_SYSTEMS_COUNT]
         assert sparse.nearest(point) == expected
         expected_dense = sorted(
-            (math.dist(point, p), n) for n, p in systems if math.dist(point, p) <= _db.NEAREST_SYSTEMS_SEARCH_PC
-        )[:_db.NEAREST_SYSTEMS_COUNT]
+            (math.dist(point, p), n) for n, p in systems if math.dist(point, p) <= store.NEAREST_SYSTEMS_SEARCH_PC
+        )[:store.NEAREST_SYSTEMS_COUNT]
         assert dense.nearest(point) == expected_dense
 
 
@@ -282,7 +283,7 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
         generate.RUN_COUNTS[counter] = 0
     _run_galaxy(["--ring", "1", "--num-systems", "6", "--workers", "2"] + _mysql_argv(control_config))
 
-    conn = _db.get_connection(control_config)
+    conn = store.get_connection(control_config)
     try:
         sectors = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors").fetchall()
         expected = generate.ring_sector_count(1)
@@ -294,7 +295,7 @@ def test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one(control_config,
         query = "SELECT object_table, object_id, neighbor_rank, neighbor_system_id FROM nearest_systems"
         stored = {tuple(row.values()) for row in conn.execute(query).fetchall()}
         ids = [row["id"] for row in conn.execute("SELECT id FROM sectors").fetchall()]
-        _db.refresh_nearest_systems(conn, ids)
+        store.refresh_nearest_systems(conn, ids)
         recomputed = {tuple(row.values()) for row in conn.execute(query).fetchall()}
         conn.rollback()
         assert stored and stored == recomputed

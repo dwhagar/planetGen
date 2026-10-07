@@ -448,6 +448,6 @@ Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ
 Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`
 (Linux and macOS) and `scripts/maintenance.ps1` (Windows), set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional
-update (`updateOrbits.py`), then the day's admin changes folded into a
+update (`planetgen.cli.orbits`), then the day's admin changes folded into a
 new settings file (GEN.61), then the backups rotated to 18 kept files,
 7 daily, 4 weekly, 6 monthly and 1 yearly (OPS.18).

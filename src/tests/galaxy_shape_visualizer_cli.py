@@ -33,7 +33,7 @@ Two panels are always rendered:
   profile).
 
 With `--mysql-*` connection args (or `PLANETGEN_MYSQL_*` env vars, this
-project's usual convention -- see `stellarObjects._db`), a third overlay
+project's usual convention -- see `planetgen.db.store`), a third overlay
 is added to the face-on panel: every real, already-generated sector's own
 stored galaxy position (`sectors.center_x/y/z_pc`), so "does this look
 like a spiral" and "is my already-generated ('known') space actually
@@ -62,7 +62,7 @@ import numpy as np
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _SRC_DIR)
 
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape, relative_density  # noqa: E402
 
 DEFAULT_DISK_SCALE_LENGTH_PC = 2800.0
@@ -174,7 +174,7 @@ def _real_sector_positions(mysql_config):
     if mysql_config is None:
         return []
     try:
-        conn = _db.get_connection(mysql_config)
+        conn = store.get_connection(mysql_config)
     except Exception as exc:  # noqa: BLE001 -- this overlay is best-effort, never fatal
         print(f"Note: could not connect to a database ({exc}) -- rendering the shape-only panels "
               "without a 'known space' overlay.")
@@ -209,7 +209,7 @@ def render(args):
     # that configures its database via env vars gets the overlay for
     # free; _real_sector_positions itself never raises if no server is
     # actually reachable there either.
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     sector_positions = _real_sector_positions(mysql_config)
     if sector_positions:
         print(f"Overlaying {len(sector_positions)} real, already-generated sector position(s).")
@@ -275,7 +275,7 @@ def main():
                              "a few seconds.")
     parser.add_argument("-o", "--output", type=str, default="galaxy_shape.png",
                         help="Output PNG path.")
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
     args = parser.parse_args()
 
     if args.resolution < 10:

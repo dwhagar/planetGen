@@ -36,8 +36,8 @@ import pytest
 
 import generate as galaxyGen
 import generate as sectorGen
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store as _db
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.geometry import (
@@ -194,7 +194,7 @@ def _address(row):
 def test_galaxy_density_shape_returns_none_before_a_skeleton_is_built(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
-        assert queryDb.galaxy_density_shape(conn) is None
+        assert query.galaxy_density_shape(conn) is None
     finally:
         conn.close()
 
@@ -209,7 +209,7 @@ def test_galaxy_density_shape_serializes_the_stored_skeleton(mysql_config):
 
     conn = _db.get_connection(mysql_config)
     try:
-        shape_dict = queryDb.galaxy_density_shape(conn)
+        shape_dict = query.galaxy_density_shape(conn)
     finally:
         conn.close()
 
@@ -1490,7 +1490,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 
 def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, monkeypatch):
     """
-    MAP.45: what the Sector Map draws for a sector (`queryDb.phenomena_near_sector`,
+    MAP.45: what the Sector Map draws for a sector (`query.phenomena_near_sector`,
     rendered by `html/lib/starmap.py`) keeps every point-like object -- a
     rogue planet, comet, black hole or neutron star -- inside that sector's
     own cell. A neighbor's rogue planets used to be pulled in by a sphere
@@ -1512,7 +1512,7 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
     contexts = _sector_cell_contexts(mysql_config)
     conn = _db.get_connection(mysql_config)
     try:
-        drawn = {sector_id: queryDb.phenomena_near_sector(conn, sector_id) for sector_id in contexts}
+        drawn = {sector_id: query.phenomena_near_sector(conn, sector_id) for sector_id in contexts}
         edges = {row["id"]: row["edge_mpc"] for row in conn.execute("SELECT id, edge_mpc FROM sectors").fetchall()}
     finally:
         conn.close()

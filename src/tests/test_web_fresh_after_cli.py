@@ -46,7 +46,7 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import pagecache  # noqa: E402
 import tilecache  # noqa: E402
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from stellarObjects.utils import ly_to_pc  # noqa: E402
@@ -160,13 +160,13 @@ def _generate(mysql_config, *argv):
 
 
 def _plan_galaxy(mysql_config):
-    _db.save_galaxy_shape(_SHAPE, edge_pc=EDGE_PC, outer_ring_index=999,
+    store.save_galaxy_shape(_SHAPE, edge_pc=EDGE_PC, outer_ring_index=999,
                           expected_system_count_at_density_1=1.0, config=mysql_config)
-    _db.replace_galaxy_layers([(layer, 999) for layer in range(5, -6, -1)], config=mysql_config)
+    store.replace_galaxy_layers([(layer, 999) for layer in range(5, -6, -1)], config=mysql_config)
 
 
 def _rows(mysql_config, sql):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute(sql).fetchall()
     finally:
@@ -283,7 +283,7 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
 
 def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_config):
     """`generate.py phenomenon --sector-id` adds a row to no table the
-    stamp reads, so it must touch its sector (`_db.save_phenomenon`):
+    stamp reads, so it must touch its sector (`store.save_phenomenon`):
     before it did, the sector page stayed stale until the page cache's age
     limit, and a cached tile never showed the new cloud at all."""
     _plan_galaxy(mysql_config)

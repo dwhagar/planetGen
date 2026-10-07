@@ -6,21 +6,21 @@ TEST.60: the operator scripts' command lines, driven through their real
 uncaught exception -- the traceback an operator would see -- rather than
 being hidden behind a subprocess:
 
-- `main()` of `queryDb.py`, `checkRenderParity.py` and `dedupeNames.py`
-  against a small seeded database; `adminStats.py` has no command line
+- `main()` of `planetgen.db.query`, `planetgen.cli.render_parity` and `planetgen.cli.dedupe`
+  against a small seeded database; `planetgen.db.stats` has no command line
   (the admin stats page imports it), so its functions are checked against
   the same database instead.
 - Every script taking the shared `--mysql-*` flags
-  (`stellarObjects._db.add_mysql_connection_args`): a bad port, an unknown
+  (`planetgen.db.store.add_mysql_connection_args`): a bad port, an unknown
   database, and an empty `--mysql-password` against
   `PLANETGEN_MYSQL_PASSWORD` -- the flag wins whenever it is given, even
   empty (`mysql_config_from_args` only falls back on `None`), and the
   environment is used only when the flag is left out.
-- `resetDb.py --yes --dry-run`: the dry run wins; nothing is wiped and
+- `planetgen.cli.reset --yes --dry-run`: the dry run wins; nothing is wiped and
   nothing is asked.
-- `updateOrbits.py` with the clock moved back (`last_updated_at` in the
+- `planetgen.cli.orbits` with the clock moved back (`last_updated_at` in the
   future): nothing moves backwards.
-- `loginLockouts.py --ip` with malformed IPv6 addresses: a clean usage
+- `planetgen.cli.lockouts --ip` with malformed IPv6 addresses: a clean usage
   error.
 
 Cases `tests/test_edge_admin_scripts.py` already covers (resetDb's
@@ -35,16 +35,16 @@ import uuid
 import pymysql
 import pytest
 
-import adminStats
-import checkRenderParity
-import dedupeNames
-import loginLockouts
-import queryDb
-import resetDb
-import updateOrbits
-from stellarObjects import _db
+from planetgen.db import stats as adminStats
+from planetgen.cli import render_parity
+from planetgen.cli import dedupe
+from planetgen.cli import lockouts as loginLockouts
+from planetgen.db import query
+from planetgen.cli import reset
+from planetgen.cli import orbits
+from planetgen.db import store
 from planetgen.names.uniqueness import strip_decoration
-from stellarObjects.systemRender import render_star_system
+from planetgen.db.render import render_star_system
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -68,7 +68,7 @@ def _run_main(module, argv, monkeypatch):
 
 
 def _with_schema(config):
-    _db.get_connection(config).close()
+    store.get_connection(config).close()
     return config
 
 
@@ -77,7 +77,7 @@ def control_schema(monkeypatch):
     """A throwaway control database of this test's own, with its schema
     (loginLockouts works on it)."""
     name = f"planetgen_test_ctl_{uuid.uuid4().hex[:12]}"
-    monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, name)
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, name)
     conn = pymysql.connect(**_test_server_kwargs())
     try:
         with conn.cursor() as cur:
@@ -99,9 +99,9 @@ def control_schema(monkeypatch):
 def schema_db(mysql_config, control_schema):
     """An empty content database with the current schema, plus a control
     database with its schema (for loginLockouts)."""
-    control = _db.control_mysql_config(mysql_config)
-    _db.get_control_connection(control, ensure_schema=True).close()
-    _db.close_pool(control)
+    control = store.control_mysql_config(mysql_config)
+    store.get_control_connection(control, ensure_schema=True).close()
+    store.close_pool(control)
     return _with_schema(mysql_config)
 
 
@@ -113,7 +113,7 @@ def seeded(mysql_config):
 
 
 def _query(config, sql, params=()):
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         return conn.execute(sql, params).fetchall()
     finally:
@@ -121,7 +121,7 @@ def _query(config, sql, params=()):
 
 
 def _execute(config, sql, params=()):
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         conn.execute(sql, params)
         conn.commit()
@@ -145,11 +145,11 @@ def _replace(argv, flag, value):
 # Every script taking the shared --mysql-* flags, with the rest of a
 # harmless command line: (module, args before the --mysql-* flags, after).
 SCRIPTS = {
-    "queryDb": (queryDb, [], ["sectors"]),
-    "checkRenderParity": (checkRenderParity, [], []),
-    "dedupeNames": (dedupeNames, [], []),
-    "resetDb": (resetDb, ["--dry-run"], []),
-    "updateOrbits": (updateOrbits, [], []),
+    "queryDb": (query, [], ["sectors"]),
+    "checkRenderParity": (render_parity, [], []),
+    "dedupeNames": (dedupe, [], []),
+    "resetDb": (reset, ["--dry-run"], []),
+    "updateOrbits": (orbits, [], []),
     "loginLockouts": (loginLockouts, [], []),
 }
 
@@ -163,10 +163,10 @@ def _script_argv(name, mysql):
 
 def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, capsys):
     argv = mysql_argv(seeded)
-    assert _run_main(queryDb, argv + ["sectors"], monkeypatch) == 0
+    assert _run_main(query, argv + ["sectors"], monkeypatch) == 0
     assert capsys.readouterr().out.strip() == "No sectors stored."
 
-    assert _run_main(queryDb, argv + ["systems"], monkeypatch) == 0
+    assert _run_main(query, argv + ["systems"], monkeypatch) == 0
     systems = capsys.readouterr().out.strip().splitlines()
     names = {row["id"]: row["name"] for row in _query(seeded, "SELECT id, name FROM star_systems")}
     assert len(systems) == len(names) == 2
@@ -175,37 +175,37 @@ def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, c
         assert any(line.startswith(f"[{i}] {name} (") for i, name in names.items())
 
     planet_count = len(_query(seeded, "SELECT id FROM planets"))
-    assert _run_main(queryDb, argv + ["planets"], monkeypatch) == 0
+    assert _run_main(query, argv + ["planets"], monkeypatch) == 0
     out = capsys.readouterr().out.strip()
     assert (out == "No matching planets.") if planet_count == 0 else len(out.splitlines()) == planet_count
 
-    assert _run_main(queryDb, argv + ["moons", "--min-radius-km", "1e12"], monkeypatch) == 0
+    assert _run_main(query, argv + ["moons", "--min-radius-km", "1e12"], monkeypatch) == 0
     assert capsys.readouterr().out.strip() == "No matching moons."
 
 
 def test_query_db_near_an_unknown_or_unplaced_system(seeded, monkeypatch, capsys):
     argv = mysql_argv(seeded) + ["near", "999999", "--radius", "50"]
-    assert _run_main(queryDb, argv, monkeypatch) == 1
+    assert _run_main(query, argv, monkeypatch) == 1
     assert capsys.readouterr().err.strip() == "Error: no star_systems row with id 999999."
     system_id = _query(seeded, "SELECT MIN(id) AS i FROM star_systems")[0]["i"]
     argv = mysql_argv(seeded) + ["near", str(system_id), "--radius", "50"]
-    assert _run_main(queryDb, argv, monkeypatch) == 1
+    assert _run_main(query, argv, monkeypatch) == 1
     assert "isn't placed in a sector" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("argv", [[], ["near", "1"], ["near", "x", "--radius", "5"], ["galaxies"]])
 def test_query_db_rejects_an_incomplete_command_line(argv, monkeypatch, capsys):
-    assert _run_main(queryDb, argv, monkeypatch) == 2
+    assert _run_main(query, argv, monkeypatch) == 2
     assert "usage:" in capsys.readouterr().err
 
 
 # --- adminStats (no command line: the admin stats page imports it) -------------
 
 def test_admin_stats_reports_on_a_seeded_database(seeded):
-    conn = _db.get_connection(seeded, ensure_schema=False)
+    conn = store.get_connection(seeded, ensure_schema=False)
     try:
         assert adminStats.server_info(conn)["version"]
-        assert adminStats.schema_version(conn) == _db.SCHEMA_VERSION
+        assert adminStats.schema_version(conn) == store.SCHEMA_VERSION
         assert adminStats.exact_counts(conn)["star_systems"] == 2
         stamps = {row["table"]: row for row in adminStats.timestamp_stats(conn)}
         assert stamps["star_systems"]["newest_created_at"].endswith("Z")
@@ -217,7 +217,7 @@ def test_admin_stats_reports_on_a_seeded_database(seeded):
 
 
 def test_admin_stats_on_a_database_without_a_schema(mysql_config):
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert adminStats.schema_version(conn) is None
         assert all(row["newest_created_at"] is None for row in adminStats.timestamp_stats(conn))
@@ -231,7 +231,7 @@ def test_dedupe_names_main_renames_a_duplicate_once(seeded, monkeypatch, capsys)
     first, second = _query(seeded, "SELECT id, name FROM star_systems ORDER BY id")
     _execute(seeded, "UPDATE star_systems SET name = ? WHERE id = ?", (first["name"], second["id"]))
 
-    assert _run_main(dedupeNames, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(dedupe, mysql_argv(seeded), monkeypatch) == 0
     assert capsys.readouterr().out.strip() == \
         "Renamed 0 sector(s) and 1 system(s) to resolve name collisions."
     names = [row["name"] for row in _query(seeded, "SELECT name FROM star_systems ORDER BY id")]
@@ -240,11 +240,11 @@ def test_dedupe_names_main_renames_a_duplicate_once(seeded, monkeypatch, capsys)
     assert names[0] != names[1]
     assert [strip_decoration(name) for name in names] == [first["name"]] * 2
 
-    assert _run_main(dedupeNames, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(dedupe, mysql_argv(seeded), monkeypatch) == 0
     assert capsys.readouterr().out.strip() == "No duplicate names found -- nothing to do."
 
     # The admin stats page now lists the decorated name.
-    conn = _db.get_connection(seeded, ensure_schema=False)
+    conn = store.get_connection(seeded, ensure_schema=False)
     try:
         page = adminStats.duplicate_names(conn)
     finally:
@@ -254,14 +254,14 @@ def test_dedupe_names_main_renames_a_duplicate_once(seeded, monkeypatch, capsys)
 
 
 def test_dedupe_names_on_an_empty_database(schema_db, monkeypatch, capsys):
-    assert _run_main(dedupeNames, mysql_argv(schema_db), monkeypatch) == 0
+    assert _run_main(dedupe, mysql_argv(schema_db), monkeypatch) == 0
     assert "nothing to do" in capsys.readouterr().out
 
 
 # --- checkRenderParity ---------------------------------------------------------
 
 def test_check_render_parity_after_the_page_text_is_gone(seeded, monkeypatch, capsys):
-    assert _run_main(checkRenderParity, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(render_parity, mysql_argv(seeded), monkeypatch) == 0
     assert "already gone" in capsys.readouterr().out
 
 
@@ -271,10 +271,10 @@ def stored_text(seeded):
     fresh render, so they start out identical."""
     _execute(seeded, "ALTER TABLE star_systems ADD COLUMN wikitext_content MEDIUMTEXT NULL, "
                      "ADD COLUMN markdown_content MEDIUMTEXT NULL")
-    conn = _db.get_connection(seeded, ensure_schema=False)
+    conn = store.get_connection(seeded, ensure_schema=False)
     try:
         for row in conn.execute("SELECT id FROM star_systems").fetchall():
-            system = _db.load_star_system(conn, row["id"])
+            system = store.load_star_system(conn, row["id"])
             conn.execute(
                 "UPDATE star_systems SET wikitext_content = ?, markdown_content = ? WHERE id = ?",
                 (render_star_system(system, "wikitext"), render_star_system(system, "markdown"), row["id"]),
@@ -287,7 +287,7 @@ def stored_text(seeded):
 
 def test_check_render_parity_identical_text_passes_and_exports(stored_text, tmp_path, monkeypatch, capsys):
     argv = mysql_argv(stored_text) + ["--export-dir", str(tmp_path)]
-    assert _run_main(checkRenderParity, argv, monkeypatch) == 0
+    assert _run_main(render_parity, argv, monkeypatch) == 0
     out = capsys.readouterr().out
     assert f"{stored_text.database}: 2 systems checked" in out
     assert "identical: 2" in out and "other: 0" in out
@@ -301,7 +301,7 @@ def test_check_render_parity_fails_on_a_real_difference(stored_text, monkeypatch
                           "wikitext_content = NULL WHERE id = ?", ("\nAn extra paragraph.", system_id))
     _execute(stored_text, "UPDATE star_systems SET markdown_content = NULL, wikitext_content = NULL "
                           "WHERE id <> ?", (system_id,))
-    assert _run_main(checkRenderParity, mysql_argv(stored_text) + ["--show", "1"], monkeypatch) == 1
+    assert _run_main(render_parity, mysql_argv(stored_text) + ["--show", "1"], monkeypatch) == 1
     out = capsys.readouterr().out
     assert f"--- system {system_id} (" in out and "+An extra paragraph." not in out
     assert "-An extra paragraph." in out
@@ -315,7 +315,7 @@ def test_reset_yes_with_dry_run_only_lists(seeded, monkeypatch, capsys):
         raise AssertionError("a dry run must not ask")
     monkeypatch.setattr("builtins.input", no_prompt)
     before = _query(seeded, "SELECT COUNT(*) AS n FROM star_systems")[0]["n"]
-    assert _run_main(resetDb, mysql_argv(seeded) + ["--yes", "--dry-run"], monkeypatch) == 0
+    assert _run_main(reset, mysql_argv(seeded) + ["--yes", "--dry-run"], monkeypatch) == 0
     out = capsys.readouterr().out
     assert out.startswith("Would truncate") and "Wiped" not in out
     assert _query(seeded, "SELECT COUNT(*) AS n FROM star_systems")[0]["n"] == before == 2
@@ -324,14 +324,14 @@ def test_reset_yes_with_dry_run_only_lists(seeded, monkeypatch, capsys):
 # --- updateOrbits with the clock moved back ------------------------------------
 
 def test_update_orbits_never_moves_backwards_when_the_clock_goes_back(seeded, monkeypatch, capsys):
-    assert _run_main(updateOrbits, mysql_argv(seeded), monkeypatch) == 0  # starting point
+    assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0  # starting point
     _execute(seeded, "UPDATE orbit_simulation_state SET last_updated_at = NOW() + INTERVAL 30 DAY WHERE id = 1")
     phases = "SELECT id, orbital_phase_deg FROM planets ORDER BY id"
     before = _query(seeded, phases)
     assert before, "the seeded systems need planets"
     capsys.readouterr()
 
-    assert _run_main(updateOrbits, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     out = capsys.readouterr().out
     assert "in the future" in out and "moving nothing" in out
     after = _query(seeded, phases)
@@ -386,7 +386,7 @@ def test_an_unknown_database_is_reported_cleanly(name, schema_db, monkeypatch, c
     if name == "loginLockouts":
         # loginLockouts works on the control database; --mysql-database
         # does not pick it.
-        monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, "planetgen_test_no_such_control_db")
+        monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, "planetgen_test_no_such_control_db")
     argv = _script_argv(name, _replace(mysql_argv(schema_db), "--mysql-database", "planetgen_test_no_such_db"))
     assert _run_main(SCRIPTS[name][0], argv, monkeypatch) != 0
     err = capsys.readouterr().err

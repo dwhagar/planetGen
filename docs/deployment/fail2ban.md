@@ -61,7 +61,7 @@ The log's times are UTC (`2026-10-01T09:43:33Z`); the jail says so with
 
 To lift a ban: `sudo fail2ban-client set planetgen unbanip <address>`.
 To lift planetGen's own lockout as well: Admin › Stats › Login lockouts,
-or `python3 src/loginLockouts.py --ip <address>`.
+or `python3 -m planetgen.cli.lockouts --ip <address>`.
 
 ## Apache-level options
 

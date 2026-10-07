@@ -111,7 +111,7 @@ class BinaryStarProxy(Star):
         # Initialize the base Star class with _skip_property_init=True
         # The name will be overridden, and other properties will be handled by getters.
         # The proxy stands in for the whole system (its own `.name` is what
-        # `_db.py.insert_star_system` stores as `star_systems.name`), so it
+        # `store.insert_star_system` stores as `star_systems.name`), so it
         # takes the primary's own bare name -- exactly what a 'wide' (S-type)
         # pair's own system name already is (`StarSystem.star` there stays
         # the primary `Star` itself, never renamed) -- rather than a
@@ -202,7 +202,7 @@ class BinaryStarProxy(Star):
         # convention planetPhysics.update_orbital_position uses for a
         # planet/moon, just with the mutual orbit's own (unrestricted,
         # non-near-ecliptic) inclination/ascending_node/phase above rather
-        # than a planet's small-tilt ones. `updateOrbits.py`/
+        # than a planet's small-tilt ones. `planetgen.cli.orbits`/
         # `_db.advance_orbital_phases` recomputes this in lockstep every
         # time `binary_mutual_orbital_phase_deg` advances, the same way it
         # already does for planets/moons.
@@ -336,7 +336,7 @@ class BinaryStarProxy(Star):
         pairs `to_paragraph_list` renders into the combined pair's data
         table -- as its own method so the database persistence layer can
         read the same as-published values without duplicating this
-        formatting logic (see `stellarObjects/_db.py`). This is the combined
+        formatting logic (see `planetgen/db/store.py`). This is the combined
         PAIR's table, distinct from `Star.get_table_properties()` (which
         each constituent star still has its own copy of).
 

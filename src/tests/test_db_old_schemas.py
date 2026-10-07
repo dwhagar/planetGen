@@ -14,7 +14,7 @@ and the steps.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -34,7 +34,7 @@ def fresh_snapshot(beside):
     server = (beside.host, beside.port)
     if server not in _fresh_snapshots:
         with scratch_database(beside) as fresh:
-            _db.get_connection(fresh).close()
+            store.get_connection(fresh).close()
             _fresh_snapshots[server] = schema_snapshot(fresh)
     return _fresh_snapshots[server]
 
@@ -42,32 +42,32 @@ def fresh_snapshot(beside):
 def test_every_released_version_has_a_fixture():
     versions = old_schema_versions()
     assert versions[0] == 8
-    assert versions[-1] == _db.SCHEMA_VERSION - 1
+    assert versions[-1] == store.SCHEMA_VERSION - 1
     # 10-13 and 16 never reached main.
-    assert set(range(8, _db.SCHEMA_VERSION)) - set(versions) == {10, 11, 12, 13, 16}
+    assert set(range(8, store.SCHEMA_VERSION)) - set(versions) == {10, 11, 12, 13, 16}
 
 
 @pytest.mark.parametrize("version", old_schema_versions())
 def test_old_schema_migrates_to_the_fresh_shape(mysql_config, version):
     load_old_schema(mysql_config, version)
-    assert _db.schema_status(mysql_config)[0] == version
+    assert store.schema_status(mysql_config)[0] == version
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
     differences = schema_differences(schema_snapshot(mysql_config), fresh_snapshot(mysql_config))
     assert not differences, f"v{version} migrated differs from a new database:\n" + "\n".join(differences)
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         versions = [row["version"] for row in conn.execute("SELECT version FROM schema_migrations").fetchall()]
     finally:
         conn.close()
-    assert sorted(versions) == [version, *range(version + 1, _db.SCHEMA_VERSION + 1)]
+    assert sorted(versions) == [version, *range(version + 1, store.SCHEMA_VERSION + 1)]
 
 
 @pytest.mark.parametrize("version", [8, 20, 33, 44])
 def test_migrated_old_database_saves_and_loads_a_sector(mysql_config, version):
     load_old_schema(mysql_config, version)
-    _db.migrate_database(mysql_config)
+    store.migrate_database(mysql_config)
 
     cfg = SystemConfig()
     cfg.STAR_TYPE = "K2V"
@@ -75,11 +75,11 @@ def test_migrated_old_database_saves_and_loads_a_sector(mysql_config, version):
     system = StarSystem(system_config=cfg)
     sector = SpaceSector("Old Schema Sector", edge_ly=11.5)
     sector.add_system(system, position=(1.0, 2.0, 3.0), system_config=cfg)
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        reloaded = _db.load_sector(conn, sector_id)
+        reloaded = store.load_sector(conn, sector_id)
     finally:
         conn.close()
     assert reloaded.name == sector.name
@@ -91,8 +91,8 @@ def test_v50_keeps_nebulae_when_their_sector_goes(mysql_config):
     """v16/v17 made `nebulae.sector_id` ON DELETE CASCADE; a new database
     (and, after v50, a migrated one) keeps the nebula, unplaced."""
     load_old_schema(mysql_config, 17)
-    _db.migrate_database(mysql_config)
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    store.migrate_database(mysql_config)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         sector_id = conn.execute(
             "INSERT INTO sectors (name, edge_mpc) VALUES ('Doomed', 3526)").lastrowid

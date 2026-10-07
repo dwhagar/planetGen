@@ -1,6 +1,6 @@
 # planetGen API
 
-A JSON API over the planetGen database (`src/stellarObjects/schema.sql`),
+A JSON API over the planetGen database (`src/planetgen/db/schema.sql`),
 built with [Flask](https://flask.palletsprojects.com/). This is `TODO.md`'s
 Phase 5 backend — backed by the same MySQL database every other tool in this
 project uses (see [`database-schema.md`](database-schema.md) for the MySQL
@@ -18,13 +18,13 @@ seeded first login — see "Authentication" and "Write endpoints" below.
 ## Why Flask
 
 Comparison against FastAPI/Django REST Framework: the persistence layer
-(`stellarObjects/_db.py`) is deliberately plain SQL over a small `pymysql`
+(`planetgen/db/store.py`) is deliberately plain SQL over a small `pymysql`
 wrapper with no ORM, this API is read-heavy with no concurrency pressure yet,
 and it needs to deploy onto a plain Apache2/VPS setup (or nginx, Caddy,
 IIS or macOS; see [`deployment/`](deployment/README.md)).
 Flask has no opinion
-about the data layer (route handlers call straight into `queryDb.py`'s and
-`stellarObjects._db`'s existing functions), deploys as a plain WSGI app
+about the data layer (route handlers call straight into `planetgen.db.query`'s and
+`planetgen.db.store`'s existing functions), deploys as a plain WSGI app
 (`mod_wsgi`, gunicorn or waitress), and
 lives at `../src/html/api/`, mounted at `/api/` by the same Flask app that
 serves the HTML pages (`../src/html/web/`, see "Deploying"
@@ -46,7 +46,7 @@ read from (validated against the same prefix-filtered list
 as an unrecognized sector/system id); omitted, it falls back to
 `MYSQL_CONFIG`'s own configured default database (`config.py`). This is
 what lets one API process serve several databases — see
-`stellarObjects._db.list_databases`/`resolve_database`. (The HTML pages
+`planetgen.db.store.list_databases`/`resolve_database`. (The HTML pages
 always show the one configured database.) `/api/health` also honors `db=` — passing it checks
 connectivity to that specific schema rather than the default one.
 
@@ -66,7 +66,7 @@ connectivity to that specific schema rather than the default one.
   whose name starts with this deployment's prefix (literally: `_` and `%`
   in the prefix are not wildcards), except the control schema
   (`control_database`, which holds admin logins and API keys and is never
-  listed or selectable with `db=`) (`stellarObjects._db.list_databases`),
+  listed or selectable with `db=`) (`planetgen.db.store.list_databases`),
   each with `name`, `size_bytes`, `modified_at`, and a quick-glance
   `sector_count`/`system_count` (`null` for a matching schema missing this
   project's own tables, e.g. mid-migration, rather than failing the whole
@@ -112,7 +112,7 @@ connectivity to that specific schema rather than the default one.
   `mean_temperature_k`, `mean_luminosity_sol`, `fill_share` and its Galaxy
   Map color `color_r`/`color_g`/`color_b` (MAP.86) — or `null` for a sector off
   the grid) (`queryDb.sector_detail`). Distinct from
-  `stellarObjects._db.load_sector(...).to_dict()`'s *generation* object
+  `planetgen.db.store.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
   ids-and-display-fields shape the sector page's (`/sector/<id>`) Contents table
   and Sector Map actually need.
@@ -152,11 +152,11 @@ connectivity to that specific schema rather than the default one.
   system's navigation frame) with `heliopause_open_space_au`
   (`queryDb.system_detail`) — same "flat display
   shape, not the generation object graph" relationship to
-  `stellarObjects._db.load_star_system(...).to_dict()` as `/api/sectors/<id>`
+  `planetgen.db.store.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.
 - `GET /api/systems/<id>/text?format=wikitext|markdown` — the system's
   full wiki page, `{"id", "format", "content"}`, rendered from its
-  database rows on each request (`stellarObjects/systemRender.py`; no page
+  database rows on each request (`planetgen/db/render.py`; no page
   text is stored since schema v29). `format` defaults to `wikitext`; any
   other value is a `400`.
 - `GET /api/systems/<id>/sections` — the same page as Markdown split for
@@ -387,7 +387,7 @@ connectivity to that specific schema rather than the default one.
   `404` for an unknown host. `POST /api/facilities` refuses the same
   distances; an asteroid facility in a belt takes no distance and gets a
   random spot in the belt, with the circular orbit around its star from
-  there, which `updateOrbits.py` advances like an orbital facility's.
+  there, which `planetgen.cli.orbits` advances like an orbital facility's.
 - `GET /api/galaxy/bright-stars?ring=<i>&layer=<j>&slot=<k>[&all=1]` —
   `{"items": [...]}`: the bright stars the plan pre-placed in one sector
   cell, brightest first (`queryDb.bright_stars_in_sector`), only those not
@@ -555,7 +555,7 @@ forced credential change. They back the admin stats page
 - `POST /api/admin/lockouts/lift` `{"scope": "ip"|"user", "subject"}`, or
   `{"all": true}` — lifts lockouts and forgets their counts; returns
   `{"lifted": n}`; audited as `lockout.lift`. From a shell (for an admin
-  locked out of the site itself): `python3 src/loginLockouts.py` lists
+  locked out of the site itself): `python3 -m `planetgen.cli.lockouts` lists
   them, `--ip <address>`, `--user <name>` or `--all` lifts them, and
   `--forget-devices <name>` revokes that admin's trusted-device cookies.
 
@@ -609,7 +609,7 @@ forced credential change. They back the admin stats page
 - `POST /api/auth/totp/disable` `{"current_password", "code"}` — turns
   it off, and forgets every trusted device of that admin (the browser
   that turned it off gets a new device cookie). Lost the phone and the recovery codes? From a shell:
-  `python3 src/loginLockouts.py --reset-two-factor <user>`.
+  `python3 -m planetgen.cli.lockouts --reset-two-factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
 - `GET /api/auth/me` — the calling admin's identity.
 - `POST /api/auth/change-credentials`
@@ -803,7 +803,7 @@ page shows this as "000 mark 000", rounded to whole degrees.
 Every write route requires an authenticated admin (session cookie or
 `Authorization: Bearer <api-key>` — see "Authentication" above) whose
 `must_change_credentials` flag is clear — the seeded `admin` bootstrap
-admin (random first password, printed once by `migrateDb.py`) can log in and call `/api/auth/change-credentials`, but
+admin (random first password, printed once by `planetgen.cli.migrate`) can log in and call `/api/auth/change-credentials`, but
 nothing else, until it changes its own credentials (`403` otherwise). A
 missing/invalid credential is `401`. Every write route runs against the
 same `PLANETGEN_MYSQL_*` database account every read route above uses —
@@ -1128,7 +1128,7 @@ python src/html/wsgi.py
 
 Connects to the same MySQL database every other tool in this project
 defaults to (`PLANETGEN_MYSQL_*` env vars, `config.json`'s `mysql` section,
-or their built-in defaults — see `stellarObjects._db.MySQLConfig` and
+or their built-in defaults — see `planetgen.db.store.MySQLConfig` and
 [`config.md`](config.md)). Point it at a different database with either a
 `config.json` at the repo root or:
 
@@ -1152,13 +1152,13 @@ production — see [`deployment/README.md`](deployment/README.md#mysql-accounts)
 Admin logins/sessions/API keys/audit log live in a separate **control
 schema** (`PLANETGEN_CONTROL_DATABASE`, default `planetgen_control`),
 global to the deployment rather than per-galaxy-database — see
-`stellarObjects/control_schema.sql`'s header comment and
-[`database-schema.md`](database-schema.md). `migrateDb.py` creates and
+`planetgen/db/control_schema.sql`'s header comment and
+[`database-schema.md`](database-schema.md). `planetgen.cli.migrate` creates and
 seeds it alongside its usual content-schema migration.
 
 ### The first admin login
 
-There is no published default password. The first time `migrateDb.py`
+There is no published default password. The first time `planetgen.cli.migrate`
 runs against an empty control schema (so on the first `install.sh`), it
 creates the user `admin` with a random password and prints both once, in
 a boxed block in the installer's output. Only the password's hash is
@@ -1169,10 +1169,10 @@ every other admin page and write endpoint refuses to work until you do.
 #### Resetting the admin login
 
 If that password is lost (or every admin is locked out), delete the admin
-rows and let `migrateDb.py` seed a new one:
+rows and let `planetgen.cli.migrate` seed a new one:
 
     mysql -e 'DELETE FROM planetgen_control.admin_users'
-    python3 src/migrateDb.py        # or ./update.sh
+    python3 -m planetgen.cli.migrate        # or ./update.sh
 
 (use your `PLANETGEN_CONTROL_DATABASE` name if you changed it). Deleting
 the rows also deletes their sessions and API keys; the audit log keeps

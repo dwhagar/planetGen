@@ -1,31 +1,31 @@
 # planetGen Database Format
 
 This document describes the MySQL database schema defined in
-[`src/stellarObjects/schema.sql`](../src/stellarObjects/schema.sql). It's the
+[`src/planetgen/db/schema.sql`](../src/planetgen/db/schema.sql). It's the
 reference for anyone reading, querying, or extending the database — table by
 table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
 **Status**: the schema is implemented, with both a write and a read path.
-[`src/stellarObjects/_db.py`](../src/stellarObjects/_db.py) (private — leading
+[`src/planetgen/db/store.py`](../src/stellarObjects/store.py) (private — leading
 underscore, not part of the package's public generation API) writes
 already-generated `StarSystem`/`SpaceSector` objects straight into these
 tables (`generate.py sector` calls it automatically on every run), and
 reconstructs them back into live objects from rows (`load_star_system`/
 `load_sector`/`load_system_config`), inverting every unit conversion the
-write path applies. `queryDb.py` is the "list what's stored" CLI (`TODO.md`
+write path applies. `planetgen.db.query` is the "list what's stored" CLI (`TODO.md`
 Phase 3). The database itself lives on a MySQL server (TODO.md Phase 5 —
 this schema previously targeted SQLite; see "MySQL port" in `schema.sql`'s
 own header comment for the type-mapping/idempotency notes that move brought),
 reachable via the `$PLANETGEN_MYSQL_HOST`/`$PLANETGEN_MYSQL_PORT`/
 `$PLANETGEN_MYSQL_USER`/`$PLANETGEN_MYSQL_PASSWORD`/`$PLANETGEN_MYSQL_DATABASE`
 environment variables (or the equivalent `--mysql-*` CLI flags every entry
-point accepts — see `stellarObjects._db.MySQLConfig`), with its tables created
+point accepts — see `planetgen.db.store.MySQLConfig`), with its tables created
 automatically on first connection. See `TODO.md` for the full roadmap.
 
 ## Persistence layer
 
-`src/stellarObjects/_db.py` owns every unit conversion at the point of writing
+`src/planetgen/db/store.py` owns every unit conversion at the point of writing
 a value into the database; nothing else in the package imports it, and it
 never mutates the generation/physics code's own native units. Its shape:
 
@@ -47,7 +47,7 @@ never mutates the generation/physics code's own native units. Its shape:
   between. A brand-new database is created at the current schema, so this
   is a no-op there; a database created by an older release gets one
   `_migrate_vN_to_vN+1` step per version it is behind (see "Versioning"
-  below). `src/migrateDb.py` is its CLI. There is no import from a
+  below). `planetgen.cli.migrate` is its CLI. There is no import from a
   pre-MySQL-port SQLite database (see "Versioning" below).
 - `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
   / `load_system_config(conn, config_id)` — the read-path counterparts,
@@ -64,7 +64,7 @@ never mutates the generation/physics code's own native units. Its shape:
   comets), the same text the rendered page uses. The old `table_*`
   display-string columns were dropped in v5 and the stored page text in
   v29: display formatting is computed on demand from the data columns
-  (`html/lib/tabledisplay.py`, `stellarObjects/systemRender.py`).
+  (`html/lib/tabledisplay.py`, `planetgen/db/render.py`).
 
 ## How to read this document
 
@@ -169,7 +169,7 @@ constraint on `sectors`, turning a concurrent lazy-generation race
 instead of a silent duplicate row; v9 added orbital motion —
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/
 `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, plus the
-`orbit_simulation_state` singleton row `updateOrbits.py` uses to track
+`orbit_simulation_state` singleton row `planetgen.cli.orbits` uses to track
 elapsed time between runs (see that table's own section above); v10 added
 `galactic_orbital_speed_kms`/`galactic_orbital_period_gy` to `stars` (and
 their `binary_galactic_orbital_*` counterparts on `star_systems`) — a star
@@ -307,7 +307,7 @@ browsing (`ON DELETE SET NULL` now, not `CASCADE`: deleting that sector
 shouldn't delete a phenomenon merely linked to it), not the authoritative
 geometry (`queryDb.phenomena_near_sector` finds every phenomenon whose
 sphere overlaps a given sector's cube by real distance, regardless of
-which sector it's linked to). `stellarObjects._db.compute_phenomenon_placement`
+which sector it's linked to). `planetgen.db.store.compute_phenomenon_placement`
 picks the center: the given sector's own stored galaxy position plus a
 uniform random jitter within that sector's own cube half-extent. The
 null-together CHECK on each table is named explicitly
@@ -369,7 +369,7 @@ between these versions in place (gzip-compressed file backups, a
 port (TODO.md Phase 5) on the assumption that every MySQL database this
 project creates starts at the current schema directly, with no "upgrade
 an older MySQL database" case to handle — true until v9, whose
-`_migrate_v8_to_v9` (`stellarObjects/_db.py`) is the first real migration
+`_migrate_v8_to_v9` (`planetgen/db/store.py`) is the first real migration
 function of the MySQL era, reviving the same per-version-step pattern
 (minus the file backups, which made no sense for a live database anyway)
 for a database created under the v8 schema; `_migrate_v9_to_v10` follows
@@ -405,7 +405,7 @@ columns `GET /api/search` groups/filters by (`ALTER TABLE ... ADD KEY`
 steps only — no new columns, nothing to backfill), and so on, one step per
 version, through `_migrate_v52_to_v53`. `migrate_database`
 applies whatever steps are needed to reach `SCHEMA_VERSION`, one call
-`migrateDb.py` wraps as a CLI (also run automatically by
+`planetgen.cli.migrate` wraps as a CLI (also run automatically by
 `install.sh`/`update.sh` on every deploy). A SQLite database from before
 the MySQL port can't be brought in: the one-time import script that used
 to be here (`src/migrateSqliteToMysql.py`) was retired (TEST.61), because
@@ -431,7 +431,7 @@ exotic-phenomenon tables each carry `created_at` and `modified_at`
 (stars, planets, moons, belts, comets) have no timestamps of their own;
 changing one bumps its system's `modified_at` (`_db.touch_star_system`),
 and deleting a system bumps its sector's (`_db.touch_sector`). Orbit
-ticks from `updateOrbits.py` deliberately don't count as a change; see
+ticks from `planetgen.cli.orbits` deliberately don't count as a change; see
 `orbit_simulation_state.last_updated_at` for those. `_migrate_v26_to_v27`
 adds the columns with `ALGORITHM=INSTANT` where the server supports it
 and builds the indexes online, so it's safe on a large, live database.
@@ -738,7 +738,7 @@ dwarfs share the table), and `star_systems.runaway_class`/
 
 **This versioning is independent of the control schema's own.** Admin
 logins/sessions/API keys/the write-action audit log live in a separate
-MySQL schema entirely (`stellarObjects/control_schema.sql`,
+MySQL schema entirely (`planetgen/db/control_schema.sql`,
 `control_schema_migrations`, currently version 7) — see "The control
 schema" below. `SCHEMA_VERSION`/`schema_migrations` above only ever
 describe the per-galaxy content schema this whole document is otherwise
@@ -749,7 +749,7 @@ about.
 A second, deployment-global MySQL schema (`PLANETGEN_CONTROL_DATABASE`,
 default `planetgen_control`) holds everything about *who can administer
 this deployment*, separate from every per-galaxy content schema this
-document otherwise describes — see `stellarObjects/control_schema.sql`'s
+document otherwise describes — see `planetgen/db/control_schema.sql`'s
 header comment for the full rationale (in short: a deployment can host
 several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
@@ -761,7 +761,7 @@ Thirteen tables, versioned independently via `control_schema_migrations`
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, and v7 the work queue's job
 tree and pause columns; v2 to v6 are new tables, which `CREATE TABLE IF
-NOT EXISTS` adds to an older schema on the next `migrateDb.py` run, and
+NOT EXISTS` adds to an older schema on the next `planetgen.cli.migrate` run, and
 v7 adds columns, see below):
 
 - **`admin_users`** — one row per admin (`username`, `password_hash`,
@@ -793,7 +793,7 @@ v7 adds columns, see below):
   value), `expires_at` (90 days after the login that made it),
   `last_used_at`. A login from a browser holding a valid one for that
   username skips the per-username lock. Deleted on a credentials change,
-  with `src/loginLockouts.py --forget-devices <user>`, and (expired ones)
+  with planetgen.cli.lockouts --forget-devices <user>`, and (expired ones)
   when the admin's next device is made.
 - **`admin_totp`** (v4, SEC.26) — one row per admin who has set up an
   authenticator app: `secret` (the base32 key itself, as sensitive as a
@@ -855,7 +855,7 @@ v7 adds columns, see below):
 `planetgen/admin/auth.py` is the only code that reads/writes the
 admin tables directly — `bootstrap_control_schema` creates the schema and,
 when `admin_users` is empty, seeds an `admin` row with a random first
-password that `migrateDb.py` prints once (`migrateDb.py` calls this
+password that `planetgen.cli.migrate` prints once (`planetgen.cli.migrate` calls this
 automatically, alongside its usual content-schema migration), and every
 other function there implements one piece of the login/session/API-key/
 audit lifecycle `html/api/auth.py`'s routes expose.
@@ -872,11 +872,11 @@ MySQL has no dedicated boolean type either. Plain booleans are `TINYINT(1)`
 No rendered page text is stored (v29 dropped `star_systems.wikitext_content`/
 `markdown_content`). Every value the page shows has its own column, so
 `_db.load_star_system` rebuilds the generation object graph and
-`stellarObjects/systemRender.py` renders either format on demand — the
+`planetgen/db/render.py` renders either format on demand — the
 same `StarSystem.__str__` generation used to run once before saving, so
 the text is identical, except that it now follows later changes (renames,
 names made unique, orbit ticks' current wobble and comet positions).
-`src/checkRenderParity.py` compares the two on a database still at v28.
+`planetgen.cli.render_parity` compares the two on a database still at v28.
 `mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
 /api/systems/<id>/wiki` (`src/wikiClient/`, `web/system_pages.py`'s "Upload to
@@ -902,8 +902,8 @@ pieces fit together is in
 [design/reproducible-galaxies.md](design/reproducible-galaxies.md).
 
 From 2026-10-07 every schema change is an Alembic migration (DB.11, phase
-0: SQLAlchemy models replace the hand-written SQL in `_db.py`, and
-Alembic replaces `migrateDb.py` and the `schema_vNN.sql.gz` fixtures,
+0: SQLAlchemy models replace the hand-written SQL in `store.py`, and
+Alembic replaces `planetgen.cli.migrate` and the `schema_vNN.sql.gz` fixtures,
 starting from a baseline at the current schema). DB.13 (phase 0) moves
 every value kept in a JSON or serialized column into real, indexed
 columns or child tables. `sector_stats.bright_level_sol` = 0 is the one
@@ -1060,10 +1060,10 @@ anything there, so a sector is never placed outside the galaxy.
 ### `orbit_simulation_state`
 
 Singleton row (same pattern as `galaxy_shape` above) added in v9, tracking
-when `updateOrbits.py` last advanced every planet's/moon's
+when `planetgen.cli.orbits` last advanced every planet's/moon's
 `orbital_phase_deg` in this database — absent entirely until that
 script's first run against a given database (it creates this row
-itself). `stellarObjects._db.get_orbit_update_elapsed_years` reads it
+itself). `planetgen.db.store.get_orbit_update_elapsed_years` reads it
 (via `TIMESTAMPDIFF` against `NOW()`, server-side, rather than trusting
 the calling process' own clock) to compute how much simulated time has
 passed since the last update.
@@ -1071,13 +1071,13 @@ passed since the last update.
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Always `1` — singleton. |
-| `last_updated_at` | TIMESTAMP | NOT NULL | When `updateOrbits.py` last ran against this database. |
+| `last_updated_at` | TIMESTAMP | NOT NULL | When `planetgen.cli.orbits` last ran against this database. |
 
 Meant to run on a schedule, not on every deploy (`install.sh`/`update.sh`
 don't call it) -- e.g. a monthly cron entry:
 
 ```
-0 3 1 * * cd /var/lib/planetGen && python3 src/updateOrbits.py >> /var/log/planetgen-orbits.log 2>&1
+0 3 1 * * cd /var/lib/planetGen && python3 -m planetgen.cli.orbits >> /var/log/planetgen-orbits.log 2>&1
 ```
 
 or, on a systemd-based (Ubuntu/Debian) host, the equivalent systemd timer
@@ -1091,9 +1091,9 @@ update on the same monthly run:
 sudo examples/maintenance/install-maintenance-timer.sh [database ...]
 ```
 
-`updateOrbits.py` mutates rows, so it needs the same read-write database
+`planetgen.cli.orbits` mutates rows, so it needs the same read-write database
 account `generate.py` and the web app use, not a `SELECT`-only one you may
-have made for `queryDb.py`.
+have made for `planetgen.db.query`.
 
 ### `system_configs`
 
@@ -1277,8 +1277,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `flavor_text` | TEXT | nullable | |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
-| `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `updateOrbits.py` (see `orbit_simulation_state` below). |
-| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`utils.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `updateOrbits.py` advances it. |
+| `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `planetgen.cli.orbits` (see `orbit_simulation_state` below). |
+| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`utils.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
@@ -1658,7 +1658,7 @@ one renamed as collisions happen (bare, then Alpha, ...).
 Added in v41. Up to 3 rows per placed star system or phenomenon: the
 nearest star systems, searched across sector boundaries out to
 `_db.NEAREST_SYSTEMS_SEARCH_PC`. Filled when a sector is generated (which
-also updates its neighbors' lists) and by `updateOrbits.py`. See
+also updates its neighbors' lists) and by `planetgen.cli.orbits`. See
 "Octants and nearest systems (v41)" above.
 
 | Column | Type | Null | Notes |
@@ -1689,7 +1689,7 @@ a CHECK on a cascading column). See "Facilities (v42)" above and the API's
 | `star_id`, `planet_id`, `moon_id`, `asteroid_belt_id`, `asteroid_field_id` | BIGINT UNSIGNED | FK, `ON DELETE CASCADE`, nullable | The host row. `star_id` is NULL for a close pair's shared orbit. |
 | `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | For a stand-alone facility in open space. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable | A stand-alone facility's galaxy-frame position. |
-| `orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg` | DOUBLE | nullable | An orbital facility's circular orbit, from its host's mass; an asteroid facility in a belt gets one too, around its star from a random spot in the belt (no schema change). `updateOrbits.py` advances both. |
+| `orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg` | DOUBLE | nullable | An orbital facility's circular orbit, from its host's mass; an asteroid facility in a belt gets one too, around its star from a random spot in the belt (no schema change). `planetgen.cli.orbits` advances both. |
 | `description` | TEXT | nullable | |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | |
 

@@ -13,10 +13,10 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 import pymysql
 import pytest
 
-import queryDb
+from planetgen.db import query as queryDb
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -32,7 +32,7 @@ def _save_sector(config, name, system_names):
         system = StarSystem(system_config=cfg)
         system.name = system_name
         sector.add_system(system, position=(float(index), 0.0, 0.0), system_config=cfg)
-    return _db.save_sector(sector, config=config)
+    return store.save_sector(sector, config=config)
 
 
 class _Statements:
@@ -40,13 +40,13 @@ class _Statements:
 
     def __init__(self, monkeypatch):
         self.count = 0
-        real = _db.Connection._run
+        real = store.Connection._run
 
         def run(conn, sql, params):
             self.count += 1
             return real(conn, sql, params)
 
-        monkeypatch.setattr(_db.Connection, "_run", run)
+        monkeypatch.setattr(store.Connection, "_run", run)
 
 
 def _search(conn, limit=50, **texts):
@@ -71,7 +71,7 @@ def test_name_search_matches_whole_words_only(mysql_config):
 
 
 def test_galaxy_locate_matches_the_start_of_the_last_word(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute(
@@ -90,7 +90,7 @@ def test_galaxy_locate_matches_the_start_of_the_last_word(mysql_config):
 
 
 def test_result_counts_stop_at_the_cap(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.executemany(
@@ -164,20 +164,20 @@ def test_sector_and_system_pages_use_a_fixed_number_of_queries(mysql_config, mon
 
 
 def test_migration_to_v46_adds_the_fulltext_indexes(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            for table in _db.FULLTEXT_NAME_TABLES:
+            for table in store.FULLTEXT_NAME_TABLES:
                 conn.execute(f"ALTER TABLE {table} DROP INDEX ft_{table}_name")
             conn.execute("DELETE FROM schema_migrations")
             conn.execute("INSERT INTO schema_migrations (version) VALUES (45)")
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        for table in _db.FULLTEXT_NAME_TABLES:
-            assert _db._has_index(conn, table, f"ft_{table}_name"), table
+        for table in store.FULLTEXT_NAME_TABLES:
+            assert store._has_index(conn, table, f"ft_{table}_name"), table
     finally:
         conn.close()
 
@@ -187,7 +187,7 @@ def test_a_slow_statement_is_stopped(mysql_config):
     try:
         with pytest.raises(pymysql.err.OperationalError) as caught:
             conn.execute("SELECT COUNT(*) AS n FROM (SELECT SLEEP(2)) slow").fetchone()
-        assert caught.value.args[0] in _db.STATEMENT_TIMEOUT_ERRORS
+        assert caught.value.args[0] in store.STATEMENT_TIMEOUT_ERRORS
     finally:
         conn.close()
     unlimited = queryDb.open_readonly(mysql_config)

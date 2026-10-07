@@ -13,7 +13,7 @@ import threading
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -38,7 +38,7 @@ def _save_at_once(mysql_config, name):
     def save(system, cfg):
         start.wait()
         try:
-            ids.append(_db.save_system(system, cfg, config=mysql_config))
+            ids.append(store.save_system(system, cfg, config=mysql_config))
         except Exception as exc:  # reported below, with the others
             errors.append(exc)
 
@@ -48,7 +48,7 @@ def _save_at_once(mysql_config, name):
     for thread in threads:
         thread.join()
     assert not errors, errors
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return sorted(row["name"] for row in conn.execute(
             f"SELECT name FROM star_systems WHERE id IN ({', '.join('?' * len(ids))})", tuple(ids)).fetchall())
@@ -63,7 +63,7 @@ def test_same_named_systems_saved_at_once_are_all_lettered(mysql_config, round_)
 
 
 def test_same_named_systems_saved_at_once_after_a_matching_sector(mysql_config):
-    _db.save_sector(SpaceSector("Halveth", edge_ly=11.5), config=mysql_config)
+    store.save_sector(SpaceSector("Halveth", edge_ly=11.5), config=mysql_config)
     names = _save_at_once(mysql_config, "Halveth")
     assert len(set(names)) == WRITERS
     # One takes a diminutive ("Little Halveth"); the rest would need a
@@ -75,7 +75,7 @@ def test_same_named_systems_saved_at_once_after_a_matching_sector(mysql_config):
 
 def test_save_system_retries_a_deadlock_with_its_name_restored(mysql_config, monkeypatch):
     system, cfg = _system("Retrivel")
-    real_insert = _db.insert_star_system
+    real_insert = store.insert_star_system
     seen = []
 
     def deadlock_once(conn, star_system, system_config, *args, **kwargs):
@@ -85,11 +85,11 @@ def test_save_system_retries_a_deadlock_with_its_name_restored(mysql_config, mon
             raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
         return real_insert(conn, star_system, system_config, *args, **kwargs)
 
-    monkeypatch.setattr(_db, "insert_star_system", deadlock_once)
-    monkeypatch.setattr(_db.time, "sleep", lambda _seconds: None)
-    system_id = _db.save_system(system, cfg, config=mysql_config)
+    monkeypatch.setattr(store, "insert_star_system", deadlock_once)
+    monkeypatch.setattr(store.time, "sleep", lambda _seconds: None)
+    system_id = store.save_system(system, cfg, config=mysql_config)
     assert seen == ["Retrivel", "Retrivel"]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"] == "Retrivel"
     finally:
@@ -104,8 +104,8 @@ def test_save_system_gives_up_after_the_last_attempt(mysql_config, monkeypatch):
         calls.append(1)
         raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
 
-    monkeypatch.setattr(_db, "insert_star_system", always_deadlocks)
-    monkeypatch.setattr(_db.time, "sleep", lambda _seconds: None)
+    monkeypatch.setattr(store, "insert_star_system", always_deadlocks)
+    monkeypatch.setattr(store.time, "sleep", lambda _seconds: None)
     with pytest.raises(pymysql.err.OperationalError):
-        _db.save_system(system, cfg, config=mysql_config)
-    assert len(calls) == _db.SECTOR_SAVE_ATTEMPTS
+        store.save_system(system, cfg, config=mysql_config)
+    assert len(calls) == store.SECTOR_SAVE_ATTEMPTS

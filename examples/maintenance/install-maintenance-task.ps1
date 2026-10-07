@@ -12,7 +12,7 @@
         gets deployed with no human review in between; leave it out if
         only a person should update this site. With no console to ask
         on, a pending migration keeps the data and migrates it.
-      - "planetGen orbits (<database>)" runs src\updateOrbits.py against
+      - "planetGen orbits (<database>)" runs planetgen.cli.orbits against
         each database at 03:30 on the 1st.
 
     Both run as SYSTEM, and run as soon as possible after a start missed
@@ -91,7 +91,7 @@ foreach ($db in $Database) {
         "set `"PLANETGEN_MYSQL_DATABASE=$db`"",
         "set `"NLTK_DATA=$nltk`"",
         "cd /d `"$Root`"",
-        "`"$python`" src\updateOrbits.py >> `"$logs\orbits-$db.log`" 2>&1"
+        "`"$python`" planetgen.cli.orbits >> `"$logs\orbits-$db.log`" 2>&1"
     )
     Register-MonthlyTask "planetGen orbits ($db)" "03:30" $cmd
 }

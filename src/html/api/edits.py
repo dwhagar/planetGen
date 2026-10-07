@@ -7,10 +7,10 @@ moon's class (ADM.6) and change a single-star system's star (ADM.7).
 Every write needs an admin whose credentials are current, writes an
 audit-log row, and answers with what the edit did.
 
-A body edit loads its system (`_db.load_star_system`), changes it with
+A body edit loads its system (`store.load_star_system`), changes it with
 `planetgen.admin.edits`, re-validates it from the moons outward
 (`planetgen.generation.validation`) and writes it back in place
-(`stellarObjects.editStore`), so the other bodies keep their rows. The
+(`planetgen.db.edits`), so the other bodies keep their rows. The
 answer lists the bodies the re-validation moved and any warnings left.
 
 Kept in its own blueprint, like `population.py`, so this work doesn't
@@ -22,7 +22,7 @@ import random
 from flask import Blueprint, jsonify, request
 
 import generate
-from stellarObjects import _db, editStore
+from planetgen.db import edits as editStore, store
 from planetgen.admin import edits as adminEdits
 from planetgen.generation import validation
 from planetgen import tuning
@@ -93,7 +93,7 @@ def _edit_body(kind, body_id, regenerate):
             if row is None:
                 raise ApiError(f"no such {kind}: {body_id}", status_code=404)
             system_id = row["star_system_id"]
-            system = _db.load_star_system(conn, system_id)
+            system = store.load_star_system(conn, system_id)
             body, owner = adminEdits.find_body(system, kind, body_id)
             lost = _facilities_lost(conn, kind, body, regenerate)
             if lost and not drop_facilities:
@@ -149,7 +149,7 @@ def _load_system_of(conn, kind, body_id):
     row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         raise ApiError(f"no such {kind}: {body_id}", status_code=404)
-    return row["star_system_id"], _db.load_star_system(conn, row["star_system_id"])
+    return row["star_system_id"], store.load_star_system(conn, row["star_system_id"])
 
 
 @bp.route("/systems/<int:system_id>/class-options")
@@ -162,7 +162,7 @@ def system_class_options(system_id):
     conn = _write_conn()
     try:
         try:
-            system = _db.load_star_system(conn, system_id)
+            system = store.load_star_system(conn, system_id)
         except ValueError:
             raise ApiError(f"no such system: {system_id}", status_code=404)
         options = adminEdits.class_options(system)
@@ -261,10 +261,10 @@ def change_system_star(system_id):
     try:
         with conn:
             try:
-                system = _db.load_star_system(conn, system_id)
+                system = store.load_star_system(conn, system_id)
             except ValueError:
                 raise ApiError(f"no such system: {system_id}", status_code=404)
-            if _db.system_content_blockers(conn, system_id)["bright_star"]:
+            if store.system_content_blockers(conn, system_id)["bright_star"]:
                 raise ApiError("this system is built around a pre-placed bright star, so its star can't be changed",
                                status_code=409)
             before = _body_ids(system)
@@ -389,7 +389,7 @@ def regenerate_sector(sector_id):
             if address is None:
                 raise ApiError("this sector isn't placed in the galaxy, so it can't be generated again",
                                status_code=409)
-            if _db.get_galaxy_shape(conn) is None:
+            if store.get_galaxy_shape(conn) is None:
                 raise ApiError("the galaxy has no density plan yet; run 'generate.py plan' first", status_code=409)
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:

@@ -5,7 +5,7 @@ Pure unit tests for `planetgen.names.uniqueness` -- no database, no
 generation, just the collision-resolution state machines and their
 inverse (`strip_decoration`). See that module's own docstring for the
 sector > system hierarchy these feed into; the actual
-database integration (`_db.py`'s `_reserve_*`/`_confirm_*` functions) is
+database integration (`store.py`'s `_reserve_*`/`_confirm_*` functions) is
 covered separately by `test_db_persistence.py`.
 
 Run with: pytest tests/test_name_uniqueness.py

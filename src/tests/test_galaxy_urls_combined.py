@@ -24,7 +24,7 @@ from urllib.parse import quote
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
@@ -144,8 +144,8 @@ def _system_in(mysql_config, sector_id, name):
     cfg.BINARY_SYSTEM = False
     holder = SpaceSector("Holder " + name, edge_ly=10.0)
     holder.add_system(StarSystem(system_config=cfg), position=(0.0, 0.0, 0.0), system_config=cfg)
-    holder_id = _db.save_sector(holder, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    holder_id = store.save_sector(holder, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (holder_id,)).fetchone()["id"]
@@ -158,7 +158,7 @@ def _system_in(mysql_config, sector_id, name):
 
 
 def _delete(mysql_config, table, row_id):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute(f"DELETE FROM {table} WHERE id = ?", (row_id,))
@@ -243,7 +243,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
     _place_sector(mysql_config, "Old Vega", address=(5, 1, 22))
     _system_in(mysql_config, vega, "Vega Minor")
     unplaced = _place_sector(mysql_config, "Vega Unplaced", address=(5, 1, 23))
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("UPDATE sectors SET ring_index = NULL, layer_index = NULL, ring_slot_index = NULL"
@@ -275,7 +275,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
     f"ring=0&layer={10 ** 30}&slot=0", f"ring=5&layer=0&slot={10 ** 30}", "ring=-5&layer=0&slot=0",
 ])
 def test_cell_out_of_range_coordinates_are_400(db_client, mysql_config, query):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     response = db_client.get(f"/api/galaxy/cell?{query}")
     assert response.status_code == 400, response.get_data(as_text=True)[:300]
     assert "error" in response.get_json()
@@ -286,7 +286,7 @@ def test_cell_far_past_the_galaxy_by_ring_is_described_not_refused(db_client, my
     integer address, so the cell is described (about 4e30 pc out, with
     `in_galaxy` null before a plan) rather than refused -- a clean answer
     either way, never an overflow."""
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     response = db_client.get(f"/api/galaxy/cell?ring={10 ** 30}&layer=0&slot=0")
     assert response.status_code in (200, 400)
     if response.status_code == 200:
@@ -298,7 +298,7 @@ def test_cell_far_past_the_galaxy_by_ring_is_described_not_refused(db_client, my
     "243.7.14.0;drop", "%E2%91%A1.0.0.0", "",
 ])
 def test_stage_out_of_range_keys_against_the_real_database(db_client, mysql_config, at):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     response = db_client.get(f"/galaxy/stage?at={at}")
     assert response.status_code in ((200,) if at == "" else (400,)), response.get_data(as_text=True)[:300]
     assert isinstance(response.get_json(), dict)
@@ -309,7 +309,7 @@ def test_stage_out_of_range_keys_against_the_real_database(db_client, mysql_conf
 def test_stage_far_past_the_galaxy_is_an_empty_block(db_client, mysql_config):
     """Pinned as found: a block ring far past any galaxy is a well-formed
     key, so it answers an empty stage rather than a 400."""
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     response = db_client.get(f"/galaxy/stage?at=243.{10 ** 30}.0.0")
     assert response.status_code in (200, 400)
     if response.status_code == 200:

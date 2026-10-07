@@ -387,7 +387,7 @@ def test_private_lockout_warns_about_a_proxy(real_app):
 
 
 def test_command_line_lists_and_lifts(mysql_config, capsys, monkeypatch):
-    import loginLockouts
+    from planetgen.cli import lockouts as loginLockouts
     adminAuth.bootstrap_control_schema(mysql_config)
     conn = adminAuth._db.get_control_connection(mysql_config)
     try:

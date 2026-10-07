@@ -16,7 +16,8 @@ import json
 import pytest
 
 import generate
-from stellarObjects import _db, progressFile
+from stellarObjects import progressFile
+from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from stellarObjects.progressRate import DecayingRate
 
@@ -141,9 +142,9 @@ def test_layers_drawn_in_any_order_give_the_same_stars():
 
 
 def _stored_stars(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        columns = ", ".join(_db.BRIGHT_STAR_COLUMNS)
+        columns = ", ".join(store.BRIGHT_STAR_COLUMNS)
         return sorted(tuple(row.values()) for row in conn.execute(f"SELECT {columns} FROM bright_stars").fetchall())
     finally:
         conn.close()

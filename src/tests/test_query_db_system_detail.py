@@ -1,7 +1,7 @@
 # tests/test_query_db_system_detail.py
 
 """
-Coverage for `queryDb.system_detail`'s `binary_mutual_position_x/y/z_km`
+Coverage for `query.system_detail`'s `binary_mutual_position_x/y/z_km`
 keys -- added so `html/lib/systemmap.py`'s System Map could place a
 binary pair's two stars at their real mass-weighted offsets from the
 system's own barycenter, instead of the old map's fixed schematic offset.
@@ -17,17 +17,17 @@ same as every other database-backed test in this suite.
 
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 
 
 def _insert(mysql_config, system, cfg):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
         return system_id
     finally:
         conn.close()
@@ -42,10 +42,10 @@ def test_system_detail_exposes_binary_mutual_position_for_a_close_binary(mysql_c
 
     system_id = _insert(mysql_config, system, cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         raw_row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
-        detail = queryDb.system_detail(conn, system_id)
+        detail = query.system_detail(conn, system_id)
     finally:
         conn.close()
 
@@ -63,9 +63,9 @@ def test_system_detail_binary_mutual_position_is_none_for_a_single_star(mysql_co
 
     system_id = _insert(mysql_config, system, cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        detail = queryDb.system_detail(conn, system_id)
+        detail = query.system_detail(conn, system_id)
     finally:
         conn.close()
 

@@ -25,7 +25,7 @@ DB-backed tests for the persistence/migration/update-script side of this
 feature (`insert_planet`/`insert_moon`'s new columns,
 `advance_orbital_phases`, `migrate_database`'s v8->v9/v10->v11/v11->v12
 steps) live in `test_db_persistence.py` instead, alongside every other
-`_db.py` test.
+`store.py` test.
 """
 
 import math
@@ -360,7 +360,7 @@ def test_minimum_update_interval_years_scales_linearly_with_period():
 def test_minimum_update_interval_years_is_far_below_any_realistic_cadence():
     """
     For a 1-year period, the guard floor should be many orders of
-    magnitude below `updateOrbits.py`'s own "once a month or so" cadence
+    magnitude below `planetgen.cli.orbits`'s own "once a month or so" cadence
     (a month is roughly 0.083 years) -- confirming this guard exists for
     correctness against pathological callers, not because real usage ever
     comes close to it.

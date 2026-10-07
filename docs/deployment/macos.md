@@ -93,7 +93,7 @@ installs the monthly orbit update (and update.sh, unless
 
 5. **Schema and first admin login:**
 
-       cd /var/lib/planetGen && sudo /usr/local/planetgen/venv/bin/python src/migrateDb.py
+       cd /var/lib/planetGen && sudo /usr/local/planetgen/venv/bin/python3 -m planetgen.cli.migrate
 
    Note the `admin` password it prints.
 
@@ -167,7 +167,7 @@ proxy timeouts, and everything else to gunicorn. gunicorn listens on
       cd /var/lib/planetGen && sudo git pull
       sudo /usr/local/planetgen/venv/bin/pip install --upgrade "/var/lib/planetGen[api]" gunicorn
       sudo /usr/local/planetgen/venv/bin/pip uninstall -y planetGen
-      sudo /usr/local/planetgen/venv/bin/python src/migrateDb.py
+      sudo /usr/local/planetgen/venv/bin/python3 -m planetgen.cli.migrate
       # re-apply step 6 if new files came in, then reload:
       sudo launchctl kill SIGHUP system/org.planetgen.gunicorn
 

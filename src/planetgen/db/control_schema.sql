@@ -1,4 +1,4 @@
--- stellarObjects/control_schema.sql
+-- planetgen/db/control_schema.sql
 --
 -- MySQL (InnoDB) schema for planetGen's *control plane* -- admin
 -- identities, web sessions, API keys, and the audit trail of every
@@ -7,7 +7,7 @@
 -- from every per-galaxy content schema `schema.sql` describes.
 --
 -- Why separate: a deployment can host several galaxy databases sharing
--- one MySQL server (`stellarObjects._db.list_databases`, prefix-filtered
+-- one MySQL server (`planetgen.db.store.list_databases`, prefix-filtered
 -- -- one schema per campaign/galaxy). Admin accounts describe *who can
 -- administer this deployment*, not *who owns one galaxy*, so duplicating
 -- `admin_users` into every content schema would mean re-registering the
@@ -16,7 +16,7 @@
 -- schema is applied once, independent of how many content schemas exist.
 --
 -- Versioned the same way `schema.sql` is (see that file's header and
--- `stellarObjects/_db.py`'s `SCHEMA_VERSION`/`migrate_database`), but with
+-- `planetgen/db/store.py`'s `SCHEMA_VERSION`/`migrate_database`), but with
 -- its own independent version counter (`control_schema_migrations`) --
 -- this schema's shape has nothing to do with a galaxy's own generated
 -- content, so there is no reason its version number should ever need to

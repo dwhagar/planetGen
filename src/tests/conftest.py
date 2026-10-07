@@ -34,8 +34,8 @@ import uuid
 import pymysql
 import pytest
 
-from stellarObjects import _db
-from stellarObjects._db import MySQLConfig
+from planetgen.db import store as _db
+from planetgen.db.store import MySQLConfig
 
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
@@ -187,7 +187,7 @@ def mysql_config(_mysql_server_available):
     Creates a uniquely-named, empty MySQL database for the duration of
     one test, and drops it afterward regardless of the test's outcome.
 
-    Every test gets its own database name, so `stellarObjects._db`'s
+    Every test gets its own database name, so `planetgen.db.store`'s
     module-level pool cache (keyed by connection params, database
     included) would otherwise grow by one `PooledDB` -- and its
     `mincached` real connections -- per test for the life of the process.

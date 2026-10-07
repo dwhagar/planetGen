@@ -127,5 +127,5 @@ def _web_client(mysql_config):
 
 
 def _db_get_connection(mysql_config):
-    from stellarObjects import _db
-    return _db.get_connection(mysql_config)
+    from planetgen.db import store
+    return store.get_connection(mysql_config)

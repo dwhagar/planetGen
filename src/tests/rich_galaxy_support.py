@@ -15,8 +15,8 @@ import sys
 
 import pytest
 
-import updateOrbits
-from stellarObjects import _db
+from planetgen.cli import orbits
+from planetgen.db import store
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.db_schema_support import scratch_database
@@ -41,7 +41,7 @@ PLACEABLE = ("nebula", "asteroid-field", "black-hole", "neutron-star")
 def rich_galaxy(_mysql_server_available):
     """A `MySQLConfig` for one seeded galaxy per test module; tests must
     leave it as they found it (roll back)."""
-    with scratch_database(_db.MySQLConfig(database="", **_test_server_kwargs())) as config:
+    with scratch_database(store.MySQLConfig(database="", **_test_server_kwargs())) as config:
         build_rich_galaxy(config)
         yield config
 
@@ -64,7 +64,7 @@ def _build(config):
     with forced_system_config(PLANETS=True):
         run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "6", "--population",
                            "--yes", "--quiet"] + target)
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         sector_id = conn.execute("SELECT MIN(id) AS id FROM sectors").fetchone()["id"]
     finally:
@@ -85,9 +85,9 @@ def _build(config):
 
 def _run_update_orbits(target):
     argv = sys.argv
-    sys.argv = ["updateOrbits.py"] + target
+    sys.argv = ["planetgen.cli.orbits"] + target
     try:
-        updateOrbits.main()
+        orbits.main()
     finally:
         sys.argv = argv
 
@@ -96,7 +96,7 @@ def _add_polity_and_facilities(config):
     """A polity holding its species' home system (a real population pass
     makes civilizations too rarely to rely on), and one facility of each
     placement."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         def one(sql):
             return conn.execute(sql).fetchone()
@@ -119,11 +119,11 @@ def _add_polity_and_facilities(config):
         terrestrial = one("SELECT id FROM planets WHERE body_type = 't' ORDER BY id LIMIT 1")["id"]
         giant = one("SELECT id FROM planets WHERE body_type = 'g' ORDER BY id LIMIT 1")["id"]
         belt = one("SELECT id FROM asteroid_belts ORDER BY id LIMIT 1")["id"]
-        _db.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", terrestrial,
+        store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", terrestrial,
                          description="A colony.")
-        _db.add_facility(conn, "High Yard", "starbase", "orbital", "planet", giant,
+        store.add_facility(conn, "High Yard", "starbase", "orbital", "planet", giant,
                          phase_deg=10.0)
-        _db.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", belt)
+        store.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", belt)
         conn.commit()
     finally:
         conn.close()

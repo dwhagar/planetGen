@@ -1,7 +1,7 @@
 # tests/test_db_sector_save_failure.py
 
 """
-TEST.15 "Sector save fails halfway": `_db.save_sector`/`insert_sector`
+TEST.15 "Sector save fails halfway": `store.save_sector`/`insert_sector`
 failing after a sector's systems are written but before its phenomena or
 its neighbour links. Nothing may persist (no rows, no orphans, no stale
 name reservations), the neighbour named lock must be free again, and the
@@ -16,7 +16,7 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
@@ -59,7 +59,7 @@ def _names(sector):
 
 
 def _query(config, sql, params=()):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return conn.execute(sql, params).fetchall()
     finally:
@@ -105,9 +105,9 @@ def _orphans(config):
 
 
 def _lock_name(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        return _db._neighbor_lock_name(conn)
+        return store._neighbor_lock_name(conn)
     finally:
         conn.close()
 
@@ -142,7 +142,7 @@ def _assert_saved_once(config, sector_id):
 
 
 def _fail_on_second_rogue(monkeypatch, config, lock_name):
-    real = _db._PHENOMENON_INSERTERS["rogue-planet"]
+    real = store._PHENOMENON_INSERTERS["rogue-planet"]
     calls = []
 
     def inserter(conn, phenomenon, **kwargs):
@@ -155,7 +155,7 @@ def _fail_on_second_rogue(monkeypatch, config, lock_name):
         assert conn.execute("SELECT COUNT(*) AS n FROM rogue_planets").fetchone()["n"] == 1
         raise pymysql.err.IntegrityError(1452, "Cannot add or update a child row (injected)")
 
-    monkeypatch.setitem(_db._PHENOMENON_INSERTERS, "rogue-planet", inserter)
+    monkeypatch.setitem(store._PHENOMENON_INSERTERS, "rogue-planet", inserter)
 
 
 def _fail_linking_neighbours(monkeypatch, config, lock_name):
@@ -165,7 +165,7 @@ def _fail_linking_neighbours(monkeypatch, config, lock_name):
         assert not _lock_is_free(config, lock_name)
         raise pymysql.err.IntegrityError(1452, "Cannot add or update a child row (injected)")
 
-    monkeypatch.setattr(_db, "_add_sector_to_nearest", link)
+    monkeypatch.setattr(store, "_add_sector_to_nearest", link)
 
 
 @pytest.mark.parametrize("inject", [_fail_on_second_rogue, _fail_linking_neighbours],
@@ -177,13 +177,13 @@ def test_a_save_failing_after_the_systems_leaves_nothing_behind(mysql_config, mo
     with monkeypatch.context() as patch:
         inject(patch, mysql_config, lock_name)
         with pytest.raises(pymysql.err.IntegrityError):
-            _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+            store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
 
     assert _names(sector) == generated
     _assert_nothing_persisted(mysql_config)
     assert _lock_is_free(mysql_config, lock_name)
 
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
     assert _query(mysql_config, "SELECT name FROM sectors")[0]["name"] == "Halfway Sector"
     _assert_saved_once(mysql_config, sector_id)
     assert _query(mysql_config, "SELECT COUNT(*) AS n FROM nearest_systems")[0]["n"] > 0
@@ -194,7 +194,7 @@ def test_a_deadlock_on_every_attempt_gives_up_after_the_last_one(mysql_config, m
     lock_name = _lock_name(mysql_config)
     sector = _sector("Deadlocked Sector")
     generated = _names(sector)
-    real_insert = _db.insert_sector
+    real_insert = store.insert_sector
     seen, sleeps = [], []
 
     def insert(conn, sector_arg, galaxy_position=None):
@@ -204,22 +204,22 @@ def test_a_deadlock_on_every_attempt_gives_up_after_the_last_one(mysql_config, m
     def deadlock(conn, sector_id):
         raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
 
-    monkeypatch.setattr(_db, "insert_sector", insert)
-    monkeypatch.setattr(_db, "_add_sector_to_nearest", deadlock)
-    monkeypatch.setattr(_db.time, "sleep", sleeps.append)
+    monkeypatch.setattr(store, "insert_sector", insert)
+    monkeypatch.setattr(store, "_add_sector_to_nearest", deadlock)
+    monkeypatch.setattr(store.time, "sleep", sleeps.append)
     with pytest.raises(pymysql.err.OperationalError) as raised:
-        _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+        store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
 
     assert raised.value.args[0] == 1213
-    assert seen == [generated] * _db.SECTOR_SAVE_ATTEMPTS
-    assert len(sleeps) == _db.SECTOR_SAVE_ATTEMPTS - 1
+    assert seen == [generated] * store.SECTOR_SAVE_ATTEMPTS
+    assert len(sleeps) == store.SECTOR_SAVE_ATTEMPTS - 1
     assert _names(sector) == generated
     _assert_nothing_persisted(mysql_config)
     assert _lock_is_free(mysql_config, lock_name)
 
 
 def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysql_config, monkeypatch):
-    neighbor_id = _db.save_sector(_sector("Older Sector", ["Ilmaren", "Quorra"], []),
+    neighbor_id = store.save_sector(_sector("Older Sector", ["Ilmaren", "Quorra"], []),
                                   config=mysql_config, galaxy_position=_NEIGHBOR_POSITION)
     lock_name = _lock_name(mysql_config)
     holder = pymysql.connect(**_test_server_kwargs())
@@ -228,7 +228,7 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
             cur.execute("SELECT GET_LOCK(%s, 0)", (lock_name,))
             assert cur.fetchone()[0] == 1
 
-        real_insert = _db.insert_sector
+        real_insert = store.insert_sector
         attempts, sleeps = [], []
 
         def insert(conn, sector_arg, galaxy_position=None):
@@ -241,12 +241,12 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
                 cur.execute("SELECT RELEASE_LOCK(%s)", (lock_name,))
 
         # The default timeout is bound when `lock_until_commit` is defined.
-        monkeypatch.setattr(_db.Connection.lock_until_commit, "__defaults__", (0.2,))
-        monkeypatch.setattr(_db, "insert_sector", insert)
-        monkeypatch.setattr(_db.time, "sleep", sleep)
+        monkeypatch.setattr(store.Connection.lock_until_commit, "__defaults__", (0.2,))
+        monkeypatch.setattr(store, "insert_sector", insert)
+        monkeypatch.setattr(store.time, "sleep", sleep)
         sector = _sector("Waiting Sector")
         generated = _names(sector)
-        sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+        sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
     finally:
         holder.close()
 
@@ -260,9 +260,9 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
     assert _orphans(mysql_config) == []
     # The stored neighbour lists are exactly what a full recompute finds,
     # and the older sector's lists picked up the new sector's systems.
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.refresh_nearest_systems(conn, [neighbor_id, sector_id]) == set()
+        assert store.refresh_nearest_systems(conn, [neighbor_id, sector_id]) == set()
         conn.rollback()
         linked = conn.execute(
             "SELECT COUNT(*) AS n FROM nearest_systems ns JOIN star_systems s ON s.id = ns.neighbor_system_id "
@@ -283,7 +283,7 @@ def test_the_neighbour_lock_holder_gives_up_a_row_its_waiter_holds(mysql_config)
     import threading
     import time
 
-    setup = _db.get_connection(mysql_config)
+    setup = store.get_connection(mysql_config)
     try:
         setup.execute("CREATE TABLE lock_probe (id INT PRIMARY KEY, v INT) ENGINE=InnoDB")
         setup.execute("INSERT INTO lock_probe VALUES (1, 0)")
@@ -291,8 +291,8 @@ def test_the_neighbour_lock_holder_gives_up_a_row_its_waiter_holds(mysql_config)
     finally:
         setup.close()
     lock_name = "planetgen.test.lock-probe"
-    holder = _db.get_connection(mysql_config)
-    waiter = _db.get_connection(mysql_config)
+    holder = store.get_connection(mysql_config)
+    waiter = store.get_connection(mysql_config)
     waited = {}
 
     def wait_for_lock():
@@ -310,13 +310,13 @@ def test_the_neighbour_lock_holder_gives_up_a_row_its_waiter_holds(mysql_config)
         with pytest.raises(pymysql.err.OperationalError) as raised:
             holder.execute("UPDATE lock_probe SET v = 2 WHERE id = 1")
         assert raised.value.args[0] == 1205
-        assert time.monotonic() - started < _db.LOCK_HOLDER_ROW_WAIT_S + 5
+        assert time.monotonic() - started < store.LOCK_HOLDER_ROW_WAIT_S + 5
         holder.rollback()
         thread.join(timeout=20)
         assert waited.get("done")
         # The pooled connection's own row wait is back to normal.
         row = holder.execute("SELECT @@SESSION.innodb_lock_wait_timeout AS t").fetchone()
-        assert int(row["t"]) > _db.LOCK_HOLDER_ROW_WAIT_S
+        assert int(row["t"]) > store.LOCK_HOLDER_ROW_WAIT_S
     finally:
         holder.close()
         waiter.close()

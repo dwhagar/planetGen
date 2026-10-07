@@ -50,7 +50,7 @@ it leaves the heliosphere below this share of its open-space size."""
 
 # Tracks the shape of `StarSystem.to_dict()`'s output (the serialized
 # object-graph -- see TODO.md's Phase 1), independent of
-# `stellarObjects._db.SCHEMA_VERSION`, which tracks the *database's* DDL
+# `planetgen.db.store.SCHEMA_VERSION`, which tracks the *database's* DDL
 # structure instead. A JSON export carries this number so `from_dict` can
 # raise a clear error if a file's shape is newer than the code understands,
 # rather than a confusing `KeyError`/`AttributeError` partway through
@@ -258,7 +258,7 @@ class StarSystem:
             # used to fork every field (not just LARGE_STAR) into its own
             # independent object, including MARKDOWN -- invisible at
             # generation time (both copies start out equal), but
-            # `_db.py.insert_star_system` re-renders the whole system in
+            # `store.insert_star_system` re-renders the whole system in
             # *both* formats after the fact by toggling `system_config.
             # MARKDOWN` and calling `str(star_system)` again, which only
             # ever reaches this shared object, not a secondary star's own
@@ -1067,7 +1067,7 @@ class StarSystem:
         deliberately the worst case, not an average: nothing in this
         generator correlates a primary-planet's instantaneous phase against
         a secondary-planet's (each is rolled independently, and
-        `updateOrbits.py` advances them independently over time too), so
+        `planetgen.cli.orbits` advances them independently over time too), so
         it's the only separation value that stays valid across the whole
         orbital cycle, not just at generation time.
 
@@ -1150,7 +1150,7 @@ class StarSystem:
         discriminator to reconstruct it as anything other than a plain
         `Star` -- round-tripping such a system through JSON is not
         currently supported (`phenomenonGen.py`, the only caller that
-        creates one, never serializes to JSON -- only `_db.py`'s direct,
+        creates one, never serializes to JSON -- only `store.py`'s direct,
         non-`to_dict`-based read/write path, via `insert_star_system`/
         `load_star_system`, persists such a system today).
 

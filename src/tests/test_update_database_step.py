@@ -26,7 +26,7 @@ import uuid
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -72,7 +72,7 @@ def _run_step(config, control_db, **overrides):
 
 
 def _version(config):
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         return conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"]
     finally:
@@ -80,7 +80,7 @@ def _version(config):
 
 
 def _systems(config):
-    conn = _db.get_connection(config, ensure_schema=False)
+    conn = store.get_connection(config, ensure_schema=False)
     try:
         return conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
     finally:
@@ -91,7 +91,7 @@ def _back_to_v48(config):
     """Makes a current database look like one at v48 (before
     `bright_star_blocks`, which v53 replaced with `sector_stats`), so the
     step has migrations to run."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         conn.execute("DROP TABLE sector_stats")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples")
@@ -100,16 +100,16 @@ def _back_to_v48(config):
         conn.commit()
     finally:
         conn.close()
-    _db.close_pool(config)
+    store.close_pool(config)
 
 
 def test_a_new_empty_database_is_brought_current(mysql_config, control_db):
     result = _run_step(mysql_config, control_db)
     assert result.returncode == 0, result.stderr
-    assert f"Database is at schema v{_db.SCHEMA_VERSION} (current)." in result.stdout
+    assert f"Database is at schema v{store.SCHEMA_VERSION} (current)." in result.stdout
     assert "Control schema (admin logins) is up to date." in result.stdout
     assert "Skipping the population pass" in result.stdout
-    assert _version(mysql_config) == _db.SCHEMA_VERSION
+    assert _version(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_an_up_to_date_database_is_left_alone_and_nothing_is_asked(mysql_config, control_db):
@@ -118,7 +118,7 @@ def test_an_up_to_date_database_is_left_alone_and_nothing_is_asked(mysql_config,
     assert result.returncode == 0, result.stderr
     assert "migration step(s)" not in result.stdout
     assert "Delete all galaxy data" not in result.stdout
-    assert f"schema v{_db.SCHEMA_VERSION} (current)" in result.stdout
+    assert f"schema v{store.SCHEMA_VERSION} (current)" in result.stdout
     assert "password:" not in result.stdout  # the first admin password only shows once
 
 
@@ -129,16 +129,16 @@ def test_a_database_that_needs_migrating_is_migrated_and_keeps_its_data(mysql_co
     _back_to_v48(mysql_config)
     result = _run_step(mysql_config, control_db)
     assert result.returncode == 0, result.stderr
-    assert (f"is at schema v48; this version needs v{_db.SCHEMA_VERSION} "
-            f"({_db.SCHEMA_VERSION - 48} migration step(s))") in result.stdout
+    assert (f"is at schema v48; this version needs v{store.SCHEMA_VERSION} "
+            f"({store.SCHEMA_VERSION - 48} migration step(s))") in result.stdout
     assert "No terminal to ask on: keeping the data and migrating it." in result.stdout
-    assert _version(mysql_config) == _db.SCHEMA_VERSION
+    assert _version(mysql_config) == store.SCHEMA_VERSION
     assert _systems(mysql_config) == systems
 
 
 def test_a_database_newer_than_the_code_is_refused_untouched(mysql_config, control_db):
-    _db.get_connection(mysql_config).close()
-    newer = _db.SCHEMA_VERSION + 1
+    store.get_connection(mysql_config).close()
+    newer = store.SCHEMA_VERSION + 1
     _admin(f"INSERT INTO `{mysql_config.database}`.schema_migrations (version) VALUES ({newer})")
     result = _run_step(mysql_config, control_db)
     assert result.returncode != 0

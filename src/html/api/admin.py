@@ -7,7 +7,7 @@ same `?db=` every read route in `routes.py` does, and both require a
 logged-in admin past the forced credential change (`require_admin(fresh=True)`),
 since table sizes and server details aren't for public visitors.
 
-The queries themselves live in `src/adminStats.py`.
+The queries themselves live in `planetgen.db.stats`.
 """
 
 import os
@@ -18,8 +18,8 @@ import time
 import pymysql
 from flask import Blueprint, current_app, jsonify, request
 
-import adminStats
-from stellarObjects import _db
+from planetgen.db import stats as adminStats
+from planetgen.db import store as _db
 from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen._version import __version__

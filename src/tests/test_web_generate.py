@@ -8,7 +8,7 @@ The page tests fake the logged-in admin and the galaxy summary through
 `apiclient`, and point the jobs directory at `tmp_path`. The job tests
 run the real runner on tiny Python one-liners instead of `generate.py`,
 so they need no database. The last test resets a real throwaway database
-through the runner and `resetDb.py` (skipped without a MySQL test
+through the runner and `planetgen.cli.reset` (skipped without a MySQL test
 server, like the rest of the suite).
 """
 
@@ -838,7 +838,7 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 # --- Real database ----------------------------------------------------------------
 
 def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
-    from stellarObjects import _db
+    from planetgen.db import store as _db
     from planetgen.galaxy.sector import SpaceSector
 
     sector = SpaceSector("Doomed", edge_ly=10.0)

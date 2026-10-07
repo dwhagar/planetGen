@@ -10,7 +10,7 @@ API: every page here used to open its own read-only MySQL connection
 (`html/lib/dbutil.py`'s previous `open_readonly`/`resolve_db_name`) and
 run its own bespoke SQL; now every page is a thin HTTP client over
 `GET /api/...` (see `docs/api.md`), and the database-querying logic those
-pages used to duplicate lives once, in `queryDb.py`, shared with the API
+pages used to duplicate lives once, in `planetgen.db.query`, shared with the API
 itself. `html/lib/fmt.py` still holds the formatting-only helpers
 (`esc`, `linkify_location`, `format_density`) that have nothing to do
 with fetching data.
@@ -418,7 +418,7 @@ def get_system_text(db, system_id, fmt):
 
 def get_system_sections(db, system_id):
     """Returns `GET /api/systems/<id>/sections` -- the page's Markdown split
-    per body, see `stellarObjects.systemRender.render_system_sections`."""
+    per body, see `planetgen.db.render.render_system_sections`."""
     _require_db(db)
     return _request(f"/systems/{system_id}/sections", {"db": db})
 

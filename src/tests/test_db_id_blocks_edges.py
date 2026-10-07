@@ -2,8 +2,8 @@
 
 """
 TEST.16 "Id blocks after reset and rollback": the `id_blocks` id
-allocator (`_db._allocate_id`/`_reserve_id_block`/`forget_id_blocks`,
-schema v45, PERF.13) at its edges -- a `resetDb.py` run in the same
+allocator (`store._allocate_id`/`_reserve_id_block`/`forget_id_blocks`,
+schema v45, PERF.13) at its edges -- a `planetgen.cli.reset` run in the same
 process, a row inserted by hand with an explicit high id between
 allocations, a rolled-back transaction, and two processes using up
 several blocks of the same table at once.
@@ -18,8 +18,8 @@ import sys
 import pymysql
 import pytest
 
-import resetDb
-from stellarObjects import _db
+from planetgen.cli import reset as resetDb
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -47,7 +47,7 @@ def _insert_configs(conn, count):
 
 
 def _ids(config, table):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return [row["id"] for row in conn.execute(f"SELECT id FROM {table} ORDER BY id").fetchall()]
     finally:
@@ -55,22 +55,22 @@ def _ids(config, table):
 
 
 def test_a_reset_in_the_same_process_continues_ids_without_collisions(mysql_config, monkeypatch):
-    first_sector = _db.save_sector(_sector("Before Reset", ["Haldor", "Imrith"]), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    first_sector = store.save_sector(_sector("Before Reset", ["Haldor", "Imrith"]), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         before = _insert_configs(conn, 3)
     finally:
         conn.close()
     assert first_sector == 1
     # Cached, partly used blocks for these tables survive in this process.
-    assert (mysql_config._key(), "system_configs") in _db._id_blocks
+    assert (mysql_config._key(), "system_configs") in store._id_blocks
 
-    monkeypatch.setattr(sys, "argv", ["resetDb.py", *mysql_argv(mysql_config), "--yes"])
+    monkeypatch.setattr(sys, "argv", ["planetgen.cli.reset", *mysql_argv(mysql_config), "--yes"])
     resetDb.main()
     assert _ids(mysql_config, "star_systems") == []
 
-    second_sector = _db.save_sector(_sector("After Reset", ["Haldor", "Imrith", "Velos"]), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    second_sector = store.save_sector(_sector("After Reset", ["Haldor", "Imrith", "Velos"]), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         after = _insert_configs(conn, 3)
     finally:
@@ -87,7 +87,7 @@ def test_a_reset_in_the_same_process_continues_ids_without_collisions(mysql_conf
 def _hold_block_then_insert(config, ready, go, out):
     """A long-lived process (the web app, a worker): reserves a block of
     `system_configs` ids before the reset, then keeps using it after."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         _insert_configs(conn, 1)
         ready.set()
@@ -108,11 +108,11 @@ def test_reset_while_another_process_holds_a_block_never_reuses_ids(mysql_config
     holder.start()
     try:
         assert ready.wait(60)
-        monkeypatch.setattr(sys, "argv", ["resetDb.py", *mysql_argv(mysql_config), "--yes"])
+        monkeypatch.setattr(sys, "argv", ["planetgen.cli.reset", *mysql_argv(mysql_config), "--yes"])
         resetDb.main()
         # This process plays the one started after the reset.
-        _db.forget_id_blocks(mysql_config._key())
-        conn = _db.get_connection(mysql_config)
+        store.forget_id_blocks(mysql_config._key())
+        conn = store.get_connection(mysql_config)
         try:
             fresh = _insert_configs(conn, 10)
         finally:
@@ -128,7 +128,7 @@ def test_reset_while_another_process_holds_a_block_never_reuses_ids(mysql_config
 
 
 def test_a_hand_inserted_high_id_is_never_handed_out_again(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     other = pymysql.connect(database=mysql_config.database, **_test_server_kwargs())
     try:
         first = _insert_configs(conn, 1)
@@ -150,7 +150,7 @@ def test_a_hand_inserted_high_id_is_never_handed_out_again(mysql_config):
 
 
 def test_a_rolled_back_transaction_leaves_a_gap_never_a_reused_id(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         committed = _insert_configs(conn, 2)
         with pytest.raises(RuntimeError):
@@ -168,7 +168,7 @@ def test_a_rolled_back_transaction_leaves_a_gap_never_a_reused_id(mysql_config):
         after = _insert_configs(conn, 1)
         # A fresh cache (a restarted process) starts past the whole
         # reserved block: the reservation itself was not rolled back.
-        _db.forget_id_blocks(mysql_config._key())
+        store.forget_id_blocks(mysql_config._key())
         fresh = _insert_configs(conn, 1)
     finally:
         conn.close()
@@ -184,7 +184,7 @@ _ROWS_PER_COMMIT = 50
 
 
 def _fill_in_worker(config, barrier, results):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         barrier.wait()
         ids = []
@@ -201,7 +201,7 @@ def _fill_in_worker(config, barrier, results):
 
 
 def test_two_processes_using_up_blocks_of_one_table_never_collide(mysql_config):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     context = multiprocessing.get_context("spawn")
     barrier, results = context.Barrier(2), context.Queue()
     workers = [context.Process(target=_fill_in_worker, args=(mysql_config, barrier, results)) for _ in range(2)]

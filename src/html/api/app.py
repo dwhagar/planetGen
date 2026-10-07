@@ -12,7 +12,7 @@ import time
 import pymysql
 from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.admin import activity_log
 from planetgen.util import log
 
@@ -237,7 +237,7 @@ def _register_error_handlers(app):
         # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
         # is a 504 with a plain message; any other database error is
         # still the generic 500.
-        if not (exc.args and exc.args[0] in _db.STATEMENT_TIMEOUT_ERRORS):
+        if not (exc.args and exc.args[0] in store.STATEMENT_TIMEOUT_ERRORS):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
         if _is_api_request():

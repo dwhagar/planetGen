@@ -13,7 +13,7 @@ import pytest
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db  # noqa: E402
+from planetgen.db import store  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
@@ -221,8 +221,8 @@ def test_real_search_pages_a_result_panel(db_client, mysql_config, monkeypatch):
         raise AssertionError("HTTP transport used inside a Flask request")
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     for i in range(60):
-        _db.save_sector(SpaceSector(f"Pager Sector {i:03d}", edge_ly=10.0), config=mysql_config)
-    _db.save_sector(SpaceSector("Unrelated", edge_ly=10.0), config=mysql_config)
+        store.save_sector(SpaceSector(f"Pager Sector {i:03d}", edge_ly=10.0), config=mysql_config)
+    store.save_sector(SpaceSector("Unrelated", edge_ly=10.0), config=mysql_config)
 
     page1 = db_client.get("/search?sector_q=Pager")
     assert page1.status_code == 200
@@ -246,7 +246,7 @@ def test_real_q_and_tags(db_client, mysql_config):
         cfg.PLANETS = False
         cfg.BINARY_SYSTEM = False
         sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
-    _db.save_sector(sector, config=mysql_config)
+    store.save_sector(sector, config=mysql_config)
 
     html = db_client.get("/search?q=Tagged").get_data(as_text=True)
     assert "Tagged Sector" in _panel(html, "sectors")
@@ -263,8 +263,8 @@ def test_real_phenomenon_and_class_tags(db_client, mysql_config):
 
     for name, nebula_class in (("Crab Mist", "D"), ("Faint Veil", "A")):
         nebula = Nebula(SystemConfig(), name=name, nebula_class=nebula_class)
-        _db.save_phenomenon(nebula, SystemConfig(), "nebula", config=mysql_config)
-    _db.save_phenomenon(BlackHole(SystemConfig()), SystemConfig(), "black-hole", config=mysql_config)
+        store.save_phenomenon(nebula, SystemConfig(), "nebula", config=mysql_config)
+    store.save_phenomenon(BlackHole(SystemConfig()), SystemConfig(), "black-hole", config=mysql_config)
 
     html = db_client.get("/search").get_data(as_text=True)
     assert "Phenomenon Class" in html and "D: Classical H II region" in html

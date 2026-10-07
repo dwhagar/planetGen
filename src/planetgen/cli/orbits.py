@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# src/updateOrbits.py
+# planetgen.cli.orbits
 
 """
 Advances every planet's, moon's, star's, and binary system's orbital
@@ -13,12 +13,12 @@ column -- `planets`/`moons` (their own orbit) and `stars`/`star_systems`
 other) -- so a single run brings the whole database's motion up to date
 in one pass.
 
-`stellarObjects._db.advance_orbital_phases` does the actual work: a
+`planetgen.db.store.advance_orbital_phases` does the actual work: a
 single set-based `UPDATE` per table (`planets`/`moons`, plus every
 standalone exotic phenomenon's own galactic orbit -- see below), driven by
 each body's own already-stored `period_years` and the elapsed real time
 since `orbit_simulation_state.last_updated_at` (stored, not recomputed --
-`stellarObjects._db.get_orbit_update_elapsed_years` measures it
+`planetgen.db.store.get_orbit_update_elapsed_years` measures it
 server-side via `TIMESTAMPDIFF` rather than trusting this process' own
 clock to agree with the database server's). A database this has never run
 against yet has no `orbit_simulation_state` row -- the first run just
@@ -45,7 +45,7 @@ center) and, for a binary pair, `star_systems.binary_galactic_orbital_phase_deg`
 and `binary_mutual_orbital_phase_deg` (the pair's own mutual orbit around
 each other, entirely separate from their shared galactic orbit) are
 advanced the same way, each guarded by its own `*_min_update_interval_years`
--- see `schema.sql`'s "v13" note and `stellarObjects._db.advance_orbital_phases`'s
+-- see `schema.sql`'s "v13" note and `planetgen.db.store.advance_orbital_phases`'s
 docstring. `binary_mutual_position_x/y/z_km` (the secondary's position
 relative to the primary) are recomputed in lockstep with
 `binary_mutual_orbital_phase_deg`, the same "position has no independent
@@ -60,7 +60,7 @@ identical way a lone star's is: unbound from any specific STAR doesn't
 mean unbound from the galaxy itself, so these still orbit the galactic
 center on the same timescale. See `schema.sql`'s "v17" header note.
 
-Star-bound comets (schema v18, `stellarObjects._db.advance_comet_orbits`)
+Star-bound comets (schema v18, `planetgen.db.store.advance_comet_orbits`)
 are handled by a SEPARATE call, not folded into `advance_orbital_phases`
 above: a comet's position isn't a linear function of elapsed time the way
 a circular planet/moon orbit's is (Kepler's second law -- it moves far
@@ -87,7 +87,7 @@ like, with no independent update-guard interval of their own. See
 formula.
 
 Galactic motion (GEN.6): after the phases above,
-`stellarObjects._db.advance_galactic_positions` turns every placed star
+`planetgen.db.store.advance_galactic_positions` turns every placed star
 system, standalone phenomenon and stand-alone facility about the galactic
 axis by the same angle its galactic phase advanced (the galaxy's nucleus,
 the quasar, stays put). Sectors are fixed cells, so an object that drifts
@@ -105,21 +105,21 @@ sys.path[0] (the running script's directory) already makes
 `stellarObjects` importable -- no sys.path shim needed.
 
 Usage:
-    python3 src/updateOrbits.py [--mysql-host HOST] [--mysql-port PORT]
+    python3 -m planetgen.cli.orbits [--mysql-host HOST] [--mysql-port PORT]
                                 [--mysql-user USER] [--mysql-password PASSWORD]
                                 [--mysql-database DATABASE]
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
-    `stellarObjects._db.MySQLConfig`). Needs a read-write database
-    account (like `sectorGen.py`/`systemGen.py`, not `queryDb.py`'s
+    `planetgen.db.store.MySQLConfig`). Needs a read-write database
+    account (like `sectorGen.py`/`systemGen.py`, not `planetgen.db.query`'s
     read-only one) -- this script mutates rows.
 """
 
 import argparse
 import sys
 
-from stellarObjects._db import (
+from planetgen.db.store import (
     add_mysql_connection_args,
     advance_comet_orbits,
     advance_facility_orbits,
@@ -165,7 +165,7 @@ def main():
                     "phenomenon's orbital position based on real elapsed time.",
     )
     add_mysql_connection_args(parser)
-    parser.add_argument('--version', action=VersionAction, banner=version_banner('updateOrbits.py'))
+    parser.add_argument('--version', action=VersionAction, banner=version_banner('planetgen.cli.orbits'))
     args = parser.parse_args()
 
     config = mysql_config_from_args(args)

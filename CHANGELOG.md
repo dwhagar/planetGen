@@ -442,7 +442,7 @@
 ## [7.130.426] - 2026-10-02
 
 ### Fixed
-- **Wiping the database (resetDb.py, or "New galaxy" on the Generate page)
+- **Wiping the database (planetgen.cli.reset, or "New galaxy" on the Generate page)
   while the web app or a generation worker is still running no longer
   risks "Duplicate entry" errors (DB.3).** The id counters are now kept
   through a reset, so a new galaxy's ids carry on from where the old one
@@ -473,7 +473,7 @@
   queue), and for a migration running while another program connects.
 - **A database whose schema version record was emptied or lost is no
   longer treated as up to date (DB.4).** Its version is now worked out
-  from which tables and columns it has, so `migrateDb.py` (and update.sh)
+  from which tables and columns it has, so `planetgen.cli.migrate` (and update.sh)
   still runs the steps it is missing. No schema change.
 
 ## [7.127.352] - 2026-10-01
@@ -581,14 +581,14 @@
 
 ### Changed
 
-- **A database newer than the code is refused (TEST.10).** `migrateDb.py`
-  (and so install and update), `migrateDb.py --status` and every
+- **A database newer than the code is refused (TEST.10).** `planetgen.cli.migrate`
+  (and so install and update), `planetgen.cli.migrate --status` and every
   read-write connection now stop with a clear message when the galaxy
   database or the control schema is at a higher version than this code
   knows, instead of carrying on (and before this code's older
   `schema.sql` touches it). `/api/health` says the database is newer than
-  the code rather than telling you to run `migrateDb.py`.
-- **`migrateDb.py --status` no longer changes anything:** it reads the
+  the code rather than telling you to run `planetgen.cli.migrate`.
+- **`planetgen.cli.migrate --status` no longer changes anything:** it reads the
   version without laying down the schema, so it works with a read-only
   account, and reports a new empty database as current.
 
@@ -600,13 +600,13 @@
   unset `$APACHE_CONFDIR` and killed the user/group lookup. It is read
   safely now, and a lookup that still fails says so.
 
-- `checkRenderParity.py`, `dedupeNames.py`, `resetDb.py` and
-  `loginLockouts.py` print `error: ...` and exit 1 on a database they
+- `planetgen.cli.render_parity`, `planetgen.cli.dedupe`, `planetgen.cli.reset` and
+  `planetgen.cli.lockouts` print `error: ...` and exit 1 on a database they
   can't reach instead of a traceback.
-- `updateOrbits.py` no longer fails every run with "elapsed_years must be
+- `planetgen.cli.orbits` no longer fails every run with "elapsed_years must be
   >= 0" after the database server's clock went back; it moves nothing and
   restarts the clock from now.
-- `loginLockouts.py --ip ""` is a usage error instead of quietly listing
+- `planetgen.cli.lockouts --ip ""` is a usage error instead of quietly listing
   the lockouts.
 
 ### Removed
@@ -832,7 +832,7 @@ needed; the backfill starts with the next sector generated.
   is now "Geologically Active", computed rather than rolled. The model and
   its defaults are in `docs/design/rogue-planet-surface.md`. Schema v48
   adds the columns and fills them for stored rogue planets, so run
-  `update.sh` (or `migrateDb.py`).
+  `update.sh` (or `planetgen.cli.migrate`).
 
 ## [7.108.254] - 2026-10-01
 
@@ -918,7 +918,7 @@ needed; the backfill starts with the next sector generated.
   rogue's page (linked to the class page), in the sector's Contents and on
   the Sector Map, and the class reference lists "Interstellar space" as a
   zone. Schema v47 adds `rogue_planets.planet_class` and gives stored rogue
-  planets their class, so run `update.sh` (or `migrateDb.py`).
+  planets their class, so run `update.sh` (or `planetgen.cli.migrate`).
 
 ## [7.102.253] - 2026-10-01
 
@@ -1217,7 +1217,7 @@ database to schema v45.
   about 47,000 common and breached passwords and may not be just the
   username or the site's name with a few characters added; passwords are
   hashed with PBKDF2-SHA256 at 600,000 rounds and older hashes are
-  upgraded at the next login. `src/loginLockouts.py --forget-devices
+  upgraded at the next login. planetgen.cli.lockouts --forget-devices
   <user>` revokes an admin's trusted devices.
 - A fail2ban filter and jail for failed admin sign-ins
   (`examples/fail2ban/`, guide in `docs/deployment/fail2ban.md`; SEC.27).
@@ -1226,7 +1226,7 @@ database to schema v45.
   then asks for the 6-digit code after the password (or one of ten
   single-use recovery codes). Wrong codes count as failed logins and are
   logged as `AUTH totp.failed` (matched by the fail2ban filter). API keys
-  are unaffected. `src/loginLockouts.py --reset-two-factor <user>` turns
+  are unaffected. planetgen.cli.lockouts --reset-two-factor <user>` turns
   it off for a lost phone. Control schema v4 (rerun
   `update.sh`).
 
@@ -1251,7 +1251,7 @@ database to schema v45.
   are kept in memory as before.
 - **Lifting a lockout.** The admin Stats page lists current lockouts
   with Lift buttons (`GET /api/admin/lockouts`, `POST
-  /api/admin/lockouts/lift`), and `python3 src/loginLockouts.py` lists or
+  /api/admin/lockouts/lift`), and `python3 -m `planetgen.cli.lockouts` lists or
   lifts them from a shell (`--ip`, `--user`, `--all`) for an admin locked
   out of the site itself.
 
@@ -1361,7 +1361,7 @@ database to schema v45.
   orbit"; a surface facility has no distance control. The API refuses an
   orbit outside the host's sphere of influence.
 - A facility in an asteroid belt gets a random spot in the belt and a
-  circular orbit around its star from there, and `updateOrbits.py` moves
+  circular orbit around its star from there, and `planetgen.cli.orbits` moves
   it along with orbital facilities. No schema change; belt facilities
   saved before this have no orbit and stay where they are.
 
@@ -1586,7 +1586,7 @@ The population pass (species, civilizations, territories) is now optional and of
 
 ### Added
 
-Worlds with complex life now have a named dominant species, and technological civilizations have an age and an era (Industrial through Elder). Every spacefaring species founds one polity that claims the generated systems around its homeworld, out to a reach that grows with its age (up to 100 ly), so groups of systems form territories in 3D. `generate.py population` builds all of this from the stored galaxy with no regenerate; `generate.py sector`/`galaxy --population` also run it after saving. New read endpoints: `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species` and `/api/territories`. Schema v44 adds the `species`, `polities`, `system_owners` and `population_state` tables; run `update.sh` (or `migrateDb.py`), then `generate.py population` when you want it. Design: docs/design/population-and-politics.md (TODO 51-54).
+Worlds with complex life now have a named dominant species, and technological civilizations have an age and an era (Industrial through Elder). Every spacefaring species founds one polity that claims the generated systems around its homeworld, out to a reach that grows with its age (up to 100 ly), so groups of systems form territories in 3D. `generate.py population` builds all of this from the stored galaxy with no regenerate; `generate.py sector`/`galaxy --population` also run it after saving. New read endpoints: `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species` and `/api/territories`. Schema v44 adds the `species`, `polities`, `system_owners` and `population_state` tables; run `update.sh` (or `planetgen.cli.migrate`), then `generate.py population` when you want it. Design: docs/design/population-and-politics.md (TODO 51-54).
 
 ## [7.48.0] - 2026-10-01
 
@@ -1729,7 +1729,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Changed
 
-- **The correlative update moves everything.** `updateOrbits.py` now
+- **The correlative update moves everything.** `planetgen.cli.orbits` now
   turns every star system, phenomenon and stand-alone facility along its
   galactic orbit, moves anything that drifts into another generated
   sector over to it (sector, position, octant and location text), and
@@ -2327,7 +2327,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Security
 - **No more published first login.** A new install's admin gets a random
-  password, printed once by `migrateDb.py` (so by `install.sh` and
+  password, printed once by `planetgen.cli.migrate` (so by `install.sh` and
   `update.sh`); it must still be changed at first login. An existing
   install whose admin is still on the old `admin`/`password` login gets a
   random password the same way on the next update. See `docs/api.md`
@@ -2483,10 +2483,10 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   to delete the galaxy data instead of migrating it: y/N, with a
   30-second timeout that defaults to N (keep the data and migrate it).
   The same happens with no terminal to ask on. Deleting wipes every
-  generated sector and system (`resetDb.py`) and keeps admin logins.
-- **Progress bar and ETA for database migrations.** `migrateDb.py` shows
+  generated sector and system (`planetgen.cli.reset`) and keeps admin logins.
+- **Progress bar and ETA for database migrations.** `planetgen.cli.migrate` shows
   each migration step as it runs, with the elapsed time and an estimate
-  of the time left. `migrateDb.py --status` reports the current and
+  of the time left. `planetgen.cli.migrate --status` reports the current and
   target schema versions without changing anything.
 
 ## [7.1.0] - 2026-09-30
@@ -2660,7 +2660,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 - **Generate, plan and reset the galaxy from the web interface.** A new
   admin-only page, `/admin/generate` (the Generate link in the header),
   runs `generate.py plan`, `generate.py galaxy` (every mode: random start,
-  whole ring, around a sector, one address) and `resetDb.py` as
+  whole ring, around a sector, one address) and `planetgen.cli.reset` as
   background jobs, plus a one-click "New galaxy" that resets, plans and
   generates a first neighborhood. Reset and New galaxy ask for the
   database name to be typed back. The running job shows its step, a
@@ -2768,7 +2768,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   in the sector's Contents table, in the phenomena list and on its own
   detail page, and `generate.py phenomenon --type quasar` makes one on
   demand (`--sector-id` must be a shell-0 sector). New `quasars` table,
-  schema v31; run `migrateDb.py` (update.sh does).
+  schema v31; run `planetgen.cli.migrate` (update.sh does).
 
 ### Fixed
 - **A black hole's accretion-disk temperature could render one kelvin
@@ -2830,7 +2830,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   (2.725 K).
 - Schema v30 cleans up both problems in rows already saved: stale
   atmosphere values on airless bodies go back to empty, and temperatures
-  below 2.725 K are raised to it. Run `migrateDb.py` (update.sh does).
+  below 2.725 K are raised to it. Run `planetgen.cli.migrate` (update.sh does).
 
 ## [5.53.1] - 2026-09-24
 
@@ -2884,12 +2884,12 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 - **Wiki page text is no longer stored (schema v29).**
   `star_systems.wikitext_content`/`markdown_content` are dropped; both
   formats are rendered on demand from the system's rows
-  (`stellarObjects/systemRender.py`), so pages now follow renames, names
+  (`planetgen/db/render.py`), so pages now follow renames, names
   made unique after generation, and orbit ticks. Wiki upload uses the
   fresh render. `GET /api/systems/<id>` no longer returns the two text
   fields; use the new `GET /api/systems/<id>/text?format=wikitext|markdown`
   and `GET /api/systems/<id>/sections`. **The migration deletes the stored
-  copies: back up first** (`mysqldump`, or `src/checkRenderParity.py
+  copies: back up first** (`mysqldump`, or planetgen.cli.render_parity
   --export-dir`, which also compares the stored and rendered text on a
   database still at v28).
 
@@ -2907,7 +2907,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   listing and NAV. They now have one (schema v28), drawn as a glowing
   shell, a dim world and an icy coma, and each is clickable like the
   others. A supernova remnant's leftover black hole or neutron star sits
-  at the remnant's center. `migrateDb.py` gives existing ones a random
+  at the remnant's center. `planetgen.cli.migrate` gives existing ones a random
   spot inside the sector they were generated in.
 
 ### Changed
@@ -3044,7 +3044,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   (schema v27). MySQL keeps `modified_at` current on every edit. Changing
   a planet or moon bumps its system's `modified_at` instead of the child
   row getting its own timestamp, and deleting a system bumps its sector's.
-  Orbit updates from `updateOrbits.py` don't count as a modification. The
+  Orbit updates from `planetgen.cli.orbits` don't count as a modification. The
   migration adds the columns without rebuilding the tables where MySQL
   supports it, and builds the indexes online, so it's safe to run on a
   large database. Existing systems and sectors are backfilled from the
@@ -3056,7 +3056,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Added
 - **`docs/server-checklist.md`**, a step-by-step check to run on the server
-  after a deploy: confirms the code version, that `migrateDb.py` has brought
+  after a deploy: confirms the code version, that `planetgen.cli.migrate` has brought
   every database to schema v26 (an Apache restart alone doesn't), the
   spatial indexes, `request-timeout=60`, the Galaxy Map tile cache, and that
   the Galaxy Map no longer times out or runs the API out of memory.
@@ -3302,7 +3302,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   (the spatial indexes on `nebulae`/`asteroid_fields`/`black_holes`/
   `neutron_stars` that fix `sector.py`'s production timeout) -- the
   `_migrate_v25_to_v26` function existed but was never called from
-  `migrate_database`'s own version cascade, so running `migrateDb.py`
+  `migrate_database`'s own version cascade, so running `planetgen.cli.migrate`
   against an existing (pre-v26) database left it silently stuck at v25
   forever, `GET /api/health`'s `schema_current` reporting `false`
   indefinitely with no way to clear it short of applying the index by
@@ -3438,7 +3438,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   large placed phenomenon as the old unconditional scan). New schema v26
   adds the matching spatial indexes
   (`idx_{nebulae,asteroid_fields,black_holes,neutron_stars}_center`) --
-  **run `migrateDb.py` (or `update.sh`/`install.sh`) against any existing
+  **run `planetgen.cli.migrate` (or `update.sh`/`install.sh`) against any existing
   deployment's database for this fix to actually take effect**; `GET
   /api/health` (see [5.46.17]) will report `schema_current: false` in the
   meantime.
@@ -3447,7 +3447,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Fixed
 - **`GET /api/health` was returning a bare 503 "error" for a database
-  that's reachable but has never had `schema.sql`/`migrateDb.py` applied
+  that's reachable but has never had `schema.sql`/`planetgen.cli.migrate` applied
   to it at all** (no `schema_migrations` table yet -- one step further
   back than "some migrations pending", which it already handled). Caught
   by CI: `test_health_ok` exercised exactly this case by accident (its
@@ -3470,7 +3470,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `schema_version`/`schema_current` (and a `detail` message naming the
   fix) by comparing the database's own `schema_migrations` table against
   the code's `SCHEMA_VERSION`, so a deployment that pulled in a
-  schema-fixing code change but never actually ran `migrateDb.py` (or
+  schema-fixing code change but never actually ran `planetgen.cli.migrate` (or
   `update.sh`/`install.sh`) against its database is visible at `/api/health`
   instead of continuing to silently run the old, unmigrated schema -- the
   likely explanation if the same full-table-scan timeouts (and the site
@@ -3493,7 +3493,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   spanning the whole galaxy) and repeatedly (debounced) as the 3D camera
   moves. New schema v25 adds a composite `idx_sectors_center` index
   (`_db._migrate_v24_to_v25`) so the query can range-scan instead of
-  examining every row. **Run `migrateDb.py` (or `update.sh`/`install.sh`,
+  examining every row. **Run `planetgen.cli.migrate` (or `update.sh`/`install.sh`,
   which call it) against the database to pick this up** -- restarting the
   app alone does *not* apply it: the API's own connections are read-only
   (`ensure_schema=False`) and never run schema DDL at all, and even a
@@ -3767,7 +3767,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Fixed
 - **`src/html/search.py` and `GET /api/search` crashed with a 500 error on any
-  text search.** In `queryDb.py`, the SQL LIKE clauses across all five text search
+  text search.** In `planetgen.db.query`, the SQL LIKE clauses across all five text search
   helpers (`_search_result_sectors`, `_search_result_systems`,
   `_search_result_stars`, `_search_result_planets`, `_search_result_moons`) used
   Python string literals `"ESCAPE '\\'"`. In Python string literals, `"\\"`
@@ -4138,7 +4138,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   for a system colliding with its sector, and a companion suffix for a
   planet/moon colliding with anything. `_db.py`'s `insert_sector`/
   `insert_star_system`/`insert_planet`/`insert_moon` all consult and
-  update these registries now. `src/dedupeNames.py` is a new one-off
+  update these registries now. `planetgen.cli.dedupe` is a new one-off
   script to decorate any duplicate names an existing database already
   has from before this feature existed.
 - **A "generate more sectors around this one" admin action** on
@@ -4160,7 +4160,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `WRITE_MYSQL_CONFIG` now simply reuses `MYSQL_CONFIG`, so there's a
   single account (`config.json`'s `mysql` section /
   `PLANETGEN_MYSQL_*`) for the generation CLIs, `install.sh`/
-  `migrateDb.py`, and the API's reads and writes alike -- give that one
+  `planetgen.cli.migrate`, and the API's reads and writes alike -- give that one
   account whatever grants the most demanding caller needs.
 
 ## [5.38.0] - 2026-09-18
@@ -4257,7 +4257,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   endpoint the two forms use to know which backend(s) to offer.
   `star_systems.wikijs_url`/`mediawiki_url` (present in the schema since
   [5.34.0] but never populated) and a new `sectors.wiki_url` column
-  (schema v23, `stellarObjects._db._migrate_v22_to_v23`) record where each
+  (schema v23, `planetgen.db.store._migrate_v22_to_v23`) record where each
   page ends up; once set, `html/system.py`'s Description section is
   replaced by a link to the wiki page (opening in a new tab) instead of
   the locally rendered/source view, and `html/sector.py` shows the same
@@ -4513,7 +4513,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   types' own `sector_id` column -- present since v16 but never actually
   populated -- finally gets wired through `_db.save_phenomenon`. Surfaced
   in the web interface everywhere nebulae/asteroid fields already were:
-  `queryDb.py`'s phenomena queries, the Sector Map (a small glowing point
+  `planetgen.db.query`'s phenomena queries, the Sector Map (a small glowing point
   instead of a translucent cloud, since a compact remnant's own physical
   radius is negligible at this scale), and the Galaxy Map.
 
@@ -4589,7 +4589,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   sector-context encounter" and always NULL. `phenomenonGen.py
   --sector-id` now actually places one: a galaxy-frame sphere
   (`center_x/y/z_pc`/`galactic_radius_pc`, schema v18) centered near an
-  already galaxy-placed sector (`stellarObjects._db.
+  already galaxy-placed sector (`planetgen.db.store.
   compute_phenomenon_placement`), not a sector-relative offset -- a
   nebula can span up to 200 ly, far larger than a single ~11.5 ly sector,
   so it's a real sphere that may overlap several sectors' cubes, or none.
@@ -4640,7 +4640,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   planets/asteroid belts, since a comet's distance is a continuously
   varying current position, not a fixed orbital-slot distance) and a new
   `SystemConfig.COMETS` tri-state flag; `advance_comet_orbits`
-  (`updateOrbits.py`) advances each comet's orbital anomaly and
+  (`planetgen.cli.orbits`) advances each comet's orbital anomaly and
   recomputes its position on every run; `queryDb.system_detail`/
   `html/system.py` gain a parallel comets table. Persisted via schema v19
   (`comets`/`comet_composition` tables, `_migrate_v18_to_v19`).
@@ -4703,7 +4703,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `_min_update_interval_years` quartet a lone `Star` has (new shared
   `utils.generate_galactic_orbit_fields`/`format_galactic_orbit` helpers,
   also adopted by `Star`/`BinaryStarProxy`/`BlackHole`/`NeutronStar` for
-  consistency), advanced over real elapsed time by `updateOrbits.py`/
+  consistency), advanced over real elapsed time by `planetgen.cli.orbits`/
   `_db.advance_orbital_phases` the identical way a star's already is.
   `advance_orbital_phases` now returns a name-keyed dict rather than a
   positional tuple, since the set of tables it advances keeps growing.
@@ -4715,7 +4715,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `Star.from_dict`, with no dispatch on the owning `stars.yerkes_class`
   marker (`'BH'`/`'NS'`) and no query against the `black_holes`/
   `neutron_stars` satellite tables -- a system saved via `phenomenonGen.py
-  --anchor-system` reloaded (via `queryDb.py` or the Flask API) as a
+  --anchor-system` reloaded (via `planetgen.db.query` or the Flask API) as a
   generic `Star` carrying a nonsensical Yerkes class, missing every
   remnant-specific field, and rendered with `Star`'s own paragraph text
   instead of the remnant's. New `_db._load_single_star` now dispatches
@@ -4765,7 +4765,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 ## [5.28.0] - 2026-09-12
 
 ### Added
-- **`queryDb.py`: `planets`/`moons` CLI subcommands.** Closes the gap
+- **`planetgen.db.query`: `planets`/`moons` CLI subcommands.** Closes the gap
   `docs/TODO.md`'s "Open items" > "Search" tracked: the `systems`
   subcommand only ever filtered by star type/sector, with no way to ask
   this CLI "every Class D planet smaller than Earth" the way the web/API
@@ -5013,7 +5013,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   these (`routes._parse_size_range`); `html/search.py` gained matching
   number-input fields, active-filter chips (e.g. "Planet size: 5,000–
   8,000 km"), and a Radius column on the Stars/Planets/Moons result
-  tables. `queryDb.py`'s own CLI (`sectors`/`systems`/`near`
+  tables. `planetgen.db.query`'s own CLI (`sectors`/`systems`/`near`
   subcommands) still has no `planets`/`moons` equivalent at all -- see
   `docs/TODO.md`'s "Open items" > "Search" for that narrower, separate,
   still-open gap.
@@ -5228,7 +5228,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   invocation, even when `git pull` found no new commits at all -- pure
   wasted work for a caller like `examples/maintenance/planetgen-update.timer`
   that may run this monthly for years between real updates. Now, when the
-  pull is a no-op, `update.sh` runs `src/migrateDb.py` directly instead
+  pull is a no-op, `update.sh` runs `planetgen.cli.migrate` directly instead
   (a cheap, idempotent no-op once the schema is already current) and
   skips the rest; `install.sh` (migration included, as its own step 2)
   still runs in full whenever the pull actually brought new commits, same
@@ -5241,14 +5241,14 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   30 minutes ahead of `planetgen-orbits@.timer`'s own now-fixed time (both
   timers dropped `RandomizedDelaySec` in favor of this deliberate,
   guaranteed ordering) -- update.sh can `pip install --force-reinstall` a
-  new version of the very `stellarObjects` code `updateOrbits.py` imports,
+  new version of the very `stellarObjects` code `planetgen.cli.orbits` imports,
   so the code update needs to land first, not run independently sometime
   in the same month. `planetgen-orbits@.service` also gained an
   `After=planetgen-update.service` ordering line for the case where both
   happen to be queued together. `install-maintenance-timer.sh` installs
   and enables both by default, sharing the same `/etc/planetgen/
   maintenance.env` credentials file (`update.sh`'s `install.sh` step needs
-  DB credentials for `src/migrateDb.py` too); pass `--skip-update-timer`
+  DB credentials for `planetgen.cli.migrate` too); pass `--skip-update-timer`
   to opt out of unattended code updates and keep only the orbit timer, if
   this deployment's branch should only ever be updated by a human running
   `update.sh` deliberately.
@@ -5256,7 +5256,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 ## [5.18.0] - 2026-09-11
 
 ### Added
-- **`examples/maintenance/`: systemd timer for `updateOrbits.py`.** An
+- **`examples/maintenance/`: systemd timer for `planetgen.cli.orbits`.** An
   Ubuntu/Debian-native alternative to the raw crontab line
   `docs/database-schema.md` already documented for running the periodic
   orbital-motion update ("once a month or so"). `planetgen-orbits@.service`/
@@ -5277,7 +5277,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 ## [5.17.0] - 2026-09-11
 
 ### Added
-- **Binary mutual-orbit position.** `updateOrbits.py`/`_db.advance_orbital_phases`
+- **Binary mutual-orbit position.** `planetgen.cli.orbits`/`_db.advance_orbital_phases`
   now recomputes `star_systems.binary_mutual_position_x_km`/`_y_km`/`_z_km`
   (the secondary star's Cartesian position relative to the primary) every
   time it advances `binary_mutual_orbital_phase_deg` -- the same "position
@@ -5355,7 +5355,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `UPDATE` entirely (not just a no-op write, no attempt at all) when a
   call's `elapsed_years` is below it. In practice this floor sits many
   orders of magnitude below any realistic elapsed time
-  (`updateOrbits.py` runs "once a month or so"), so it exists for
+  (`planetgen.cli.orbits` runs "once a month or so"), so it exists for
   correctness against a caller advancing time in much smaller steps, not
   because today's actual usage pattern comes close to tripping it.
   Scoped to `planets`/`moons` only -- `stars`' galactic-orbit values are
@@ -5387,7 +5387,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   `planets`/`moons`.`position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms` --
   schema v11, with a migration that backfills real derived values (not a
   placeholder) for existing rows.
-- `updateOrbits.py`/`_db.advance_orbital_phases` now recomputes position
+- `planetgen.cli.orbits`/`_db.advance_orbital_phases` now recomputes position
   in lockstep with `orbital_phase_deg` as real time passes (a single
   set-based SQL `UPDATE` per table, matching phase advancement's own
   performance characteristics); `StarSystem.validate_system` recomputes
@@ -5429,19 +5429,19 @@ Class W removal. No functional difference from the original release._
   its data from `GET /api/...` via a new stdlib-only HTTP client
   (`html/lib/apiclient.py`, `PLANETGEN_API_BASE_URL`) rather than opening
   its own read-only MySQL connection -- the database-querying logic those
-  pages used to duplicate now lives once in `queryDb.py`, shared with the
+  pages used to duplicate now lives once in `planetgen.db.query`, shared with the
   API. `html/lib/dbutil.py` is gone; its non-DB formatting helpers
   (`esc`/`linkify_location`/`format_density`) moved to a new
   `html/lib/fmt.py`. The API itself gained what this needed: `?db=` on
   every route (multi-schema, matching the browser's own picker --
-  `stellarObjects._db.list_databases`/`resolve_database`, moved out of
+  `planetgen.db.store.list_databases`/`resolve_database`, moved out of
   `html/lib/dbutil.py` into the package itself), `GET /api/databases`,
   `GET /api/galaxy/sectors`, `GET /api/search` (the full faceted-search
   query layer, ported from `html/search.py`), `sector_id=none` on
   `GET /api/systems` (standalone systems), and richer `GET /api/sectors`/
   `GET /api/sectors/<id>`/`GET /api/systems/<id>` responses (display-
   ready fields -- ids, quadrant/location, star summaries, galaxy
-  placement -- distinct from `stellarObjects._db.load_sector`/
+  placement -- distinct from `planetgen.db.store.load_sector`/
   `load_star_system`'s *generation* object graph, still reachable the
   same way). Apache's example vhost
   (`examples/apache/planetgen.conf.example`) mounts the API at `/api/`
@@ -5526,9 +5526,9 @@ Class W removal. No functional difference from the original release._
     for real large moons, not a rare special case; otherwise rotation
     period is drawn from a `body_type`-appropriate range (`physical_constants.
     ROTATION_PERIOD_RANGE_HOURS`).
-  - **New `src/updateOrbits.py`.** Advances every planet's/moon's
+  - **New `planetgen.cli.orbits`.** Advances every planet's/moon's
     `orbital_phase_deg` in the configured database based on real elapsed
-    time since the last run (`stellarObjects._db.advance_orbital_phases`,
+    time since the last run (`planetgen.db.store.advance_orbital_phases`,
     a single set-based `UPDATE` per table, not a per-row Python loop) --
     meant to be run periodically (e.g. cron, "once a month or so"), not
     on every generation run. A new `orbit_simulation_state` singleton row
@@ -5558,7 +5558,7 @@ Class W removal. No functional difference from the original release._
     recomputed `period` -- now it does.
   - Schema v8 -> v9: `orbital_inclination_deg`/`orbital_ascending_node_deg`/
     `orbital_phase_deg`/`rotation_period_hours` on `planets`/`moons`, and
-    the new `orbit_simulation_state` table. `stellarObjects._db.
+    the new `orbit_simulation_state` table. `planetgen.db.store.
     _migrate_v8_to_v9` is the first real per-version migration step of the
     MySQL era (every database before this one started fresh, already at
     the then-current schema) -- existing rows default to `0`/`24` (an
@@ -5793,7 +5793,7 @@ Class W removal. No functional difference from the original release._
   (`theta_i = (2*pi*i / GOLDEN_RATIO) mod 2*pi`), matching the exact
   formula `test_galaxy_geometry.py`'s own worked-example test already
   documented and asserted against.
-- **`stellarObjects._db.Connection`'s `execute`/`executemany` could
+- **`planetgen.db.store.Connection`'s `execute`/`executemany` could
   return a `tuple` instead of a `list` from `.fetchall()` when zero rows
   matched** -- confirmed by testing, `pymysql`'s own cursor returns `()`
   for no rows but a `list` when rows exist, unlike `sqlite3`'s cursor
@@ -5851,19 +5851,19 @@ Class W removal. No functional difference from the original release._
   Flask's default HTML error page, and a 500 never leaks exception detail
   to the client. See `docs/api.md`.
 - **MySQL backend (`TODO.md` Phase 5), replacing SQLite entirely.**
-  `stellarObjects/schema.sql` is now MySQL/InnoDB DDL (`BIGINT UNSIGNED`
+  `planetgen/db/schema.sql` is now MySQL/InnoDB DDL (`BIGINT UNSIGNED`
   ids, `DOUBLE`/`VARCHAR`/`TEXT`/`LONGTEXT` typing, a real
   `schema_migrations` tracking table replacing `PRAGMA user_version`,
   every index/foreign key declared inline per table for
-  `CREATE TABLE IF NOT EXISTS` idempotency). `stellarObjects/_db.py` now
+  `CREATE TABLE IF NOT EXISTS` idempotency). `planetgen/db/store.py` now
   talks to MySQL via `pymysql` (pure-Python driver) through a small
   `Connection` wrapper that keeps every existing call site's
   `conn.execute(sql, params)`/`row["column"]` shape unchanged, backed by
   a real connection pool (`DBUtils.PooledDB`) per TODO.md's "add real
   connection pooling" note. Every tool that touches the database
-  (`sectorGen.py`, `systemGen.py`, `galaxyGen.py`, `queryDb.py`,
-  `migrateDb.py`, `src/api/`, `src/html/`) now takes `--mysql-*` flags/
-  `PLANETGEN_MYSQL_*` environment variables (`stellarObjects._db.MySQLConfig`)
+  (`sectorGen.py`, `systemGen.py`, `galaxyGen.py`, `planetgen.db.query`,
+  `planetgen.cli.migrate`, `src/api/`, `src/html/`) now takes `--mysql-*` flags/
+  `PLANETGEN_MYSQL_*` environment variables (`planetgen.db.store.MySQLConfig`)
   instead of `--db-path`/`PLANETGEN_DB_PATH`; the CGI browser's database
   picker now lists MySQL schemas on the configured server (filtered by
   `PLANETGEN_MYSQL_DATABASE_PREFIX`) instead of `.db` files in a
@@ -6416,7 +6416,7 @@ enhancements") for where this started as a plan.
   be placed on a galaxy-wide, radial shell/Fibonacci-sphere tiling
   (`docs/design/galaxy-coordinate-system.md` sections 0-8) instead of
   existing only in isolation:
-  - **Schema v3 -> v4** (`stellarObjects/schema.sql`): `sectors` gains six
+  - **Schema v3 -> v4** (`planetgen/db/schema.sql`): `sectors` gains six
     nullable galaxy-frame columns (`center_x/y/z_pc`, `galactic_radius_pc`,
     `shell_index`, `shell_slot_index`), NULL together for a sector never
     placed in a galaxy. `_db.migrate_database`'s new `_migrate_v3_to_v4`
@@ -6541,7 +6541,7 @@ enhancements") for where this started as a plan.
   didn't match its own target; `src/html/lib/dbutil.py`'s docstring still
   pointed at the pre-5.3.2 `stellarObjects/` path instead of
   `src/stellarObjects/`).
-- **`wsgi.py`, `queryDb.py`, `migrateDb.py` moved into `src/`**, alongside
+- **`wsgi.py`, `planetgen.db.query`, `planetgen.cli.migrate` moved into `src/`**, alongside
   `stellarObjects`/`api`/`tests`, so only the `*Gen.py` scripts
   (`sectorGen.py`/`systemGen.py`) are visible at the repo root as CLI
   entry points. Since these three now sit as direct siblings of
@@ -6550,7 +6550,7 @@ enhancements") for where this started as a plan.
   importable -- the sys.path shims 5.3.2 added to them are gone, no
   longer needed (unlike `sectorGen.py`/`systemGen.py`, which stay one
   directory further away at the repo root and keep theirs).
-  `migrateDb.py`'s `DEFAULT_DB_DIR` needed an extra `os.path.dirname()`
+  `planetgen.cli.migrate`'s `DEFAULT_DB_DIR` needed an extra `os.path.dirname()`
   level to still resolve to the repo-root `db/`, one directory deeper
   than before.
 - **`physicalPlausibility.py` moved to `src/tests/physical_plausibility_cli.py`**,
@@ -6589,7 +6589,7 @@ enhancements") for where this started as a plan.
 - **Repo layout: `stellarObjects`/`api`/`tests` moved under a new `src/`
   directory** (`src/stellarObjects/`, `src/api/`, `src/tests/`), so only
   the top-level CLI entry points (`sectorGen.py`, `systemGen.py`,
-  `queryDb.py`, `migrateDb.py`, `physicalPlausibility.py`, `wsgi.py`) are
+  `planetgen.db.query`, `planetgen.cli.migrate`, `physicalPlausibility.py`, `wsgi.py`) are
   visible at the repo root. `setup.py` now declares an explicit
   `package_dir` per discovered package rather than a blanket
   `package_dir={'': 'src'}`, since that would have also redirected the
@@ -6601,7 +6601,7 @@ enhancements") for where this started as a plan.
   on -- those fallbacks (`src/html/lib/dbutil.py`, `src/html/sector.py`,
   `src/html/search.py`) were updated the same way. Two internal
   repo-root-relative path computations (`stellarObjects/webconfig.py`'s
-  `_PROJECT_ROOT`, `stellarObjects/_db.py`'s `DEFAULT_DB_PATH`) needed an
+  `_PROJECT_ROOT`, `planetgen/db/store.py`'s `DEFAULT_DB_PATH`) needed an
   extra `os.path.dirname()` level to still resolve correctly one
   directory deeper; `pytest.ini` gained an explicit `pythonpath = . src`
   so both the entry scripts and the moved packages resolve during tests
@@ -6733,7 +6733,7 @@ enhancements") for where this started as a plan.
   attribute tags needed to actually tell a planet from a moon: previously
   a "Class D Planet" tag queried `planets` with no way to exclude
   `is_moon=1` rows of the same class, so it silently listed moons too.
-  `stellarObjects/_db.py` gained a dedicated `insert_moon` (mirroring
+  `planetgen/db/store.py` gained a dedicated `insert_moon` (mirroring
   `insert_planet`, but writing to the new table); `insert_planet` no
   longer recurses into itself for moons.
 - `src/html/search.py`'s tag facets and name search now follow the same
@@ -6749,10 +6749,10 @@ enhancements") for where this started as a plan.
   `tests/test_moons.py::test_moons_cannot_themselves_have_moons`).
 
 ### Added
-- `migrateDb.py` (repo root): converts every `*.db` file in a directory
+- `planetgen.cli.migrate` (repo root): converts every `*.db` file in a directory
   from schema v1 to v2, backing up each original first
   (`<name>.db.v1-backup-<timestamp>.db`) -- a no-op for a database
-  that's already current. Backed by a new `stellarObjects._db.
+  that's already current. Backed by a new `planetgen.db.store.
   migrate_database`/`_migrate_v1_to_v2`, which builds the converted
   database at a temporary path and only atomically swaps it into place
   at the very end, so a crash or error partway through leaves the
@@ -6762,7 +6762,7 @@ enhancements") for where this started as a plan.
   keeps an existing deployment's database working across the schema
   change with no manual step.
 - `tests/test_db_migration.py` and `tests/test_db_persistence.py`: the
-  first automated tests of `stellarObjects/_db.py`'s save/migrate paths
+  first automated tests of `planetgen/db/store.py`'s save/migrate paths
   (previously "manually smoke-tested via `sectorGen.py`" per `TODO.md`).
   Between the two, they cover the v1->v2 migration (including the
   moon-owned child-row split, which the real generated data used for
@@ -6958,8 +6958,8 @@ enhancements") for where this started as a plan.
 ## [5.2.0] - 2026-09-06
 
 ### Added
-- Full SQLite database persistence: `stellarObjects/schema.sql` defines the
-  schema, and the new `stellarObjects/_db.py` writes an already-generated
+- Full SQLite database persistence: `planetgen/db/schema.sql` defines the
+  schema, and the new `planetgen/db/store.py` writes an already-generated
   `SpaceSector` (every system, star, planet, moon, and asteroid belt,
   plus a rendered copy of the wiki page in both wikitext and Markdown)
   into it in a single transaction. Documented column-by-column in the new

@@ -172,16 +172,16 @@ system specification file format and the incompatible option pairs.
 
 All in `src/`; `python3 src/<tool>.py --help` shows each one's options:
 
-- **`updateOrbits.py`** advances the galaxy by the time elapsed since
+- **`planetgen.cli.orbits`** advances the galaxy by the time elapsed since
   the last run: planets, moons and orbiting facilities around their
   hosts, and every system and phenomenon along its galactic orbit. Run
   it monthly; the maintenance timers in
   [INSTALL.md](INSTALL.md#scheduled-maintenance) do.
-- **`migrateDb.py`** brings the database schema up to date. The install
+- **`planetgen.cli.migrate`** brings the database schema up to date. The install
   and update scripts run it for you.
-- **`resetDb.py`** deletes all generated galaxy data (asks for the
+- **`planetgen.cli.reset`** deletes all generated galaxy data (asks for the
   database name first) so you can start a new galaxy.
-- **`queryDb.py`** searches the database from the terminal.
+- **`planetgen.db.query`** searches the database from the terminal.
 
 ## Documentation
 

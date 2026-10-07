@@ -244,7 +244,7 @@ class Star:
 
         `habitable_zone` is stored as a list (JSON has no tuple type).
         `lifespan` is stored as `None` in place of `float('inf')` (white
-        dwarfs) -- the same convention `stellarObjects/_db.py` uses via
+        dwarfs) -- the same convention `planetgen/db/store.py` uses via
         `_lifespan_gy` -- since `float('inf')` round-trips through the
         standard `json` module as a non-standard `Infinity` token that not
         every JSON consumer accepts.
@@ -852,7 +852,7 @@ class Star:
                 `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
             galactic_orbital_phase_deg (float, optional): This star's
                 current angular position around its galactic orbit, in
-                degrees -- the value `stellarObjects._db.advance_orbital_phases`
+                degrees -- the value `planetgen.db.store.advance_orbital_phases`
                 advances over time, the same role `orbital_phase_deg` plays
                 for a planet/moon's own orbit (see
                 `planetPhysics.generate_orbital_motion_properties`).
@@ -913,7 +913,7 @@ class Star:
         `to_paragraph_list` renders into the star's data table -- as its own
         method so the database persistence layer can read the same
         as-published values without duplicating this formatting logic (see
-        `stellarObjects/_db.py`).
+        `planetgen/db/store.py`).
 
         Returns:
             dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,

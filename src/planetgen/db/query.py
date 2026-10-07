@@ -1,13 +1,13 @@
-# src/queryDb.py
+# planetgen.db.query
 
 """
-List/query CLI for the planetGen database (src/stellarObjects/schema.sql).
+List/query CLI for the planetGen database (src/planetgen/db/schema.sql).
 
 A thin read-only front end over the tables `sectorGen.py`/`systemGen.py`
 populate, for questions like "every G-type system," "everything within 50
 light-years of a given system," and "what sectors exist" -- see
 docs/TODO.md's Phase 3 ("A way to list/query what's already stored").
-Deliberately plain SQL rather than routing through `stellarObjects._db`'s
+Deliberately plain SQL rather than routing through `planetgen.db.store`'s
 `load_star_system`/`load_sector` (Phase 2's read path): these are simple,
 columnar listings, not full object-graph reconstructions, so a raw query
 is the more direct tool for the job -- the read path remains what a
@@ -24,7 +24,7 @@ flag the way SQLite's `file:...?mode=ro` URI trick gave the old SQLite
 version of this function, so the guarantee lives in the account's grants
 instead of the connection itself.
 
-Run directly as `python src/queryDb.py`: this file lives alongside
+Run directly as `python3 -m `planetgen.db.query`: this file lives alongside
 `stellarObjects/` under `src/`, so Python's own sys.path[0] (the running
 script's directory) already makes `stellarObjects` importable -- no
 sys.path shim needed, unlike the root-level entry scripts
@@ -42,7 +42,7 @@ import time
 
 import pymysql
 
-from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
+from planetgen.db.store import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
                                 mysql_config_from_args, surrounding_cloud)
 from planetgen.physics import constants
 from planetgen import tuning
@@ -91,7 +91,7 @@ def open_readonly(config=None, statement_timeout_s=None):
             `mysql.statement_timeout_seconds`. `None`: no limit.
 
     Returns:
-        stellarObjects._db.Connection: An open connection.
+        planetgen.db.store.Connection: An open connection.
 
     Raises:
         SystemExit: If the database can't be reached.
@@ -110,7 +110,7 @@ def list_sectors(conn, limit=None, offset=None):
     distance and come last, by name.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         limit (int, optional): Caps the number of rows returned. `None`
             (the default -- what every existing caller of this function
             still gets) returns every sector.
@@ -164,7 +164,7 @@ def count_sectors(conn):
     `/api/sectors`) need to report how many pages exist.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         int: Total sector count.
@@ -224,7 +224,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     Returns systems, optionally filtered by star type and/or sector.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         star_type_prefix (str, optional): Matches any system with at least
             one star (single, primary, or secondary) whose `star_type`
             starts with this text, e.g. `"G"` for every G-type system,
@@ -344,7 +344,7 @@ def count_systems(conn, star_type_prefix=None, sector_id=None):
     need to report how many pages exist.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         star_type_prefix (str, optional): Same meaning as `list_systems`.
         sector_id (int or NO_SECTOR, optional): Same meaning as `list_systems`.
 
@@ -410,7 +410,7 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
     class tags, but this CLI's own subcommands never got an equivalent.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         planet_class (str, optional): Exact `planet_class` match (e.g. `"M"`).
         min_radius_km (float, optional): Only planets at least this large.
         max_radius_km (float, optional): Only planets at most this large.
@@ -449,7 +449,7 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
     its docstring for the gap this closes).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         planet_class (str, optional): Exact `planet_class` match (e.g. `"M"`).
         min_radius_km (float, optional): Only moons at least this large.
         max_radius_km (float, optional): Only moons at most this large.
@@ -488,7 +488,7 @@ def systems_within_radius(conn, system_id, radius_ly):
     `radius_ly` light-years, nearest first.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         system_id (int): The `star_systems.id` to measure distances from.
         radius_ly (float): The search radius, in light-years.
 
@@ -566,7 +566,7 @@ def _load_nav_endpoint(conn, system_id):
     `spaceSector.distance_between`).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         system_id (int): The `star_systems.id` to look up.
 
     Returns:
@@ -652,7 +652,7 @@ def _load_nav_phenomenon_endpoint(conn, phenomenon_type, phenomenon_id):
     "is this a phenomenon" flag anywhere in that logic.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
         phenomenon_id (int): The phenomenon's own row id.
 
@@ -693,7 +693,7 @@ def _sector_local_positions(conn, sector_id):
     adjacency graph is built from.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         sector_id (int): The sector to gather positions from.
 
     Returns:
@@ -730,7 +730,7 @@ def _galaxy_frame_positions(conn):
     position to route through for a sector nothing has visited yet either.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         dict: `{star_systems.id: (x, y, z)}`, light-years, galaxy-frame.
@@ -782,7 +782,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
           lacks a galaxy placement) -> unavailable.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         from_id (int): The origin's own row id -- `star_systems.id` when
             `from_kind == "system"`, else the phenomenon's own table id.
         to_id (int): Same, for the destination.
@@ -917,7 +917,7 @@ def sector_neighbors(conn, sector):
     `generate.py galaxy --ring I --layer J --slot K`.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         sector (dict or Row): This sector's own row -- needs
             `ring_index`, `layer_index`, `ring_slot_index`, and `edge_mpc`.
 
@@ -1068,14 +1068,14 @@ def sector_detail(conn, sector_id):
     roster) -- everything `html/sector.py`'s systems table and Sector Map
     (`html/lib/starmap.py`) need, in one function.
 
-    Distinct from `stellarObjects._db.load_sector`, which reconstructs
+    Distinct from `planetgen.db.store.load_sector`, which reconstructs
     the *generation* object graph (config/provenance, no database ids) --
     this is a flat, ids-and-display-fields read, the same relationship
     `list_sectors`/`list_systems` above already have to
-    `stellarObjects._db.load_star_system`.
+    `planetgen.db.store.load_star_system`.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         sector_id (int): The `sectors.id` to look up.
 
     Returns:
@@ -1278,7 +1278,7 @@ def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
     by distance) and `galaxy_placed_phenomena` (which doesn't need to).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         bbox (tuple, optional): `(center_x_pc, center_y_pc, center_z_pc,
             margin_pc)` -- when given, adds a `center_x_pc BETWEEN ...`
             (and y/z) SQL `WHERE` clause to each table's own query, the
@@ -1366,7 +1366,7 @@ def _widest_placed_phenomenon_radius_ly(conn):
     could silently fall outside of.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         float: The widest placed radius, light-years.
@@ -1392,7 +1392,7 @@ def list_phenomena(conn, limit=None, offset=None):
     `phenomena_near_sector` (one sector's own neighborhood).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         limit (int, optional): Caps the number of rows returned.
         offset (int, optional): Skips this many rows first. Ignored unless
             `limit` is also given.
@@ -1452,7 +1452,7 @@ def count_phenomena(conn):
     exist.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         int: Total phenomenon count.
@@ -1491,7 +1491,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     shared shape the way a mixed-type list does.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         phenomenon_type (str): One of `_PHENOMENON_TYPE_TO_TABLE`'s keys
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
             `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
@@ -1556,7 +1556,7 @@ def galaxy_placed_phenomena(conn):
     dots on the same Galaxy Map (`html/lib/galaxymap.py`).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         list[dict]: See `_placed_phenomenon_rows`.
@@ -1570,7 +1570,7 @@ def nearest_systems(conn, object_table, object_ids):
     several objects of one kind.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         object_table (str): `'star_systems'` or a phenomenon table.
         object_ids (iterable): The objects' ids.
 
@@ -1659,7 +1659,7 @@ def phenomena_near_sector(conn, sector_id):
     mode `schema.sql`'s "v25" note already documented for `sectors`).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         sector_id (int): The `sectors.id` to check against.
 
     Returns:
@@ -1764,10 +1764,10 @@ def system_detail(conn, system_id):
     enough sector context to render `html/system.py` -- in one function, the
     same DB-row-shaped read `sector_detail` gives sectors (see that
     function's docstring for why this is distinct from
-    `stellarObjects._db.load_star_system`'s generation object graph).
+    `planetgen.db.store.load_star_system`'s generation object graph).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         system_id (int): The `star_systems.id` to look up.
 
     Returns:
@@ -1987,7 +1987,7 @@ def galaxy_placed_sectors(conn):
     excluded at the query itself.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         list[dict]: `id`, `name`, `x`/`y`/`z` (`center_x/y/z_pc`),
@@ -2029,7 +2029,7 @@ def galaxy_density_shape(conn):
     the spiral it's predicted to be.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
         dict or None: Every `GalaxyShape` field plus `edge_pc`,
@@ -2084,7 +2084,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
     prefilter.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         center_x_pc, center_y_pc, center_z_pc (float): The view center,
             galaxy-frame parsecs.
         radius_pc (float): The view radius, parsecs.
@@ -2196,7 +2196,7 @@ def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     columns instead of a count for every placed sector.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         limit (int): See `GALAXY_TILE_MAX_PLACED`.
@@ -2274,7 +2274,7 @@ def galaxy_filled_in_box(conn, lo, hi, tile_edge_pc, edge_pc, max_cells=GALAXY_T
     cell is one sector, listed with its id, name and system count.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         tile_edge_pc (float): The tile's edge (sets the cell size).
@@ -2382,7 +2382,7 @@ def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margin
     sphere is tested against the box exactly.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` lower corner, parsecs.
         hi (tuple): `(x, y, z)` upper corner, parsecs.
         max_clouds (int): See `GALAXY_TILE_MAX_CLOUDS`.
@@ -2578,7 +2578,7 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     at any galaxy size.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         ring_index, layer_index, ring_slot_index (int): The cell's address.
         unfilled_only (bool): Leave out stars already built into a system
             (the default); `False` lists every star placed in the cell,
@@ -2640,7 +2640,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
     is by the estimated rows each way reads.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         edge_pc (float): The sector edge, parsecs.
@@ -2797,7 +2797,7 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
     picked by a hash of the id so the sample has no stripes.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         min_luminosity_sol (float): The faintest star listed.
@@ -2879,7 +2879,7 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     placement of its own and is drawn as that system's star instead.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         limit (int): See `GALAXY_TILE_MAX_POINTS`.
@@ -2921,7 +2921,7 @@ def galaxy_tiles(conn, tile_keys):
     (see `galaxy_content_stamp`), so callers can cache each part by key.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         tile_keys (list[str]): `"level/ix/iy/iz"` keys (see
             `galaxyViewport.parse_tile_key`), at most
             `MAX_TILES_PER_REQUEST`.
@@ -3021,7 +3021,7 @@ def galaxy_stage(conn, at=None):
     wedge covers (wedges nest at every level, so that range is exact).
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         at (str or None): A block key, `m.ring.wedge.slab` (see
             `galaxyDrill.parse_drill_key`), or `None` for the galaxy.
 
@@ -3192,7 +3192,7 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     systems outside a sector are left out.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         term (str): Part of a name; blank finds nothing.
         limit (int): Most matches to return.
 
@@ -3378,7 +3378,7 @@ def galaxy_changes(conn, since=None):
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         since (str or None): A `state` from an earlier call (or
             `GET /api/galaxy/stamp`), or `None`.
 
@@ -3543,7 +3543,7 @@ def _name_match(conn, column, term, prefix_last=False):
     when no word fits the index.
 
     Args:
-        conn (stellarObjects._db.Connection): An open connection.
+        conn (planetgen.db.store.Connection): An open connection.
         column (str): The (aliased) `name` column, a literal.
         term (str): What was typed.
         prefix_last (bool): Let the last word match the start of a word,
@@ -4052,7 +4052,7 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     for a continuous quantity like size, so it's a range, not a tag.
 
     Args:
-        conn (stellarObjects._db.Connection): An open, read-only connection.
+        conn (planetgen.db.store.Connection): An open, read-only connection.
         texts (dict): `{"sector_q", "system_q", "star_q", "planet_q",
             "moon_q"}` -> search term (`""`/absent for "not searched").
         tags (dict): `{facet: set(value, ...)}`, one entry per name in
@@ -4157,7 +4157,7 @@ def process_args():
     parser = argparse.ArgumentParser(
         description="List/query what's already stored in the planetGen database.",
     )
-    parser.add_argument('--version', action=VersionAction, banner=version_banner('queryDb.py'))
+    parser.add_argument('--version', action=VersionAction, banner=version_banner('planetgen.db.query'))
     add_mysql_connection_args(parser)
 
     subparsers = parser.add_subparsers(dest='command', required=True)

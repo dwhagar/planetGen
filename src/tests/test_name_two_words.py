@@ -1,7 +1,7 @@
 """
 GEN.46: no newly chosen star system name is longer than two words. A base
 name is one word or two (`utils.split_long_word`); the uniqueness
-decorations (`nameUniqueness.py`, applied in `_db.py`) may only be used
+decorations (`nameUniqueness.py`, applied in `store.py`) may only be used
 while the name stays within two words, and otherwise the name is drawn
 again. Names already stored are left as they are (Boss, 2026-10-02).
 
@@ -13,7 +13,7 @@ import random
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.names.uniqueness import (
     GREEK_ROMAN_CAPACITY, MAX_SYSTEM_NAME_WORDS, resolve_greek_roman_collision, word_count,
@@ -64,7 +64,7 @@ def _system(name):
 def _insert_system(conn, name):
     with conn:
         system = _system(name)
-        _db.insert_star_system(conn, system, system.system_config)
+        store.insert_star_system(conn, system, system.system_config)
     return system.name
 
 
@@ -76,11 +76,11 @@ def _all_names(conn, table):
 def fresh_names(monkeypatch):
     """Draws again from a known pool, one and two words."""
     pool = iter(f"Fresh{n}" if n % 2 else f"Fresh{n} Vale" for n in range(10_000))
-    monkeypatch.setattr(_db, "_regenerate_star_name", lambda: next(pool))
+    monkeypatch.setattr(store, "_regenerate_star_name", lambda: next(pool))
 
 
 def test_one_base_name_thirty_times(mysql_config, fresh_names):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         names = [_insert_system(conn, "Vor") for _ in range(30)]
         stored = _all_names(conn, "star_systems")
@@ -93,7 +93,7 @@ def test_one_base_name_thirty_times(mysql_config, fresh_names):
 
 
 def test_a_two_word_base_colliding_draws_a_fresh_name_and_the_holder_keeps_its_own(mysql_config, fresh_names):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         first = _insert_system(conn, "Xy Zz")
         second = _insert_system(conn, "Xy Zz")
@@ -106,10 +106,10 @@ def test_a_two_word_base_colliding_draws_a_fresh_name_and_the_holder_keeps_its_o
 
 
 def test_a_system_after_a_two_word_sector_draws_a_fresh_name(mysql_config, fresh_names):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Xy Zz"))
+            store.insert_sector(conn, SpaceSector(name="Xy Zz"))
         name = _insert_system(conn, "Xy Zz")
     finally:
         conn.close()
@@ -119,13 +119,13 @@ def test_a_system_after_a_two_word_sector_draws_a_fresh_name(mysql_config, fresh
 def test_a_sector_after_a_greek_decorated_system_takes_a_fresh_name(mysql_config, fresh_names):
     """Putting a diminutive on "Beta Vor" would make three words: the
     systems keep their names and the sector draws another."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         _insert_system(conn, "Vor")
         _insert_system(conn, "Vor")
         with conn:
             sector = SpaceSector(name="Vor")
-            _db.insert_sector(conn, sector)
+            store.insert_sector(conn, sector)
         systems = _all_names(conn, "star_systems")
     finally:
         conn.close()
@@ -134,14 +134,14 @@ def test_a_sector_after_a_greek_decorated_system_takes_a_fresh_name(mysql_config
 
 
 def test_a_sector_after_a_diminutive_system_leaves_it_alone(mysql_config, fresh_names):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Quessa"))
+            store.insert_sector(conn, SpaceSector(name="Quessa"))
         assert _insert_system(conn, "Quessa") == f"{DIMINUTIVE_PREFIXES[0]} Quessa"
         for _ in range(3):
             with conn:
-                _db.insert_sector(conn, SpaceSector(name="Quessa"))
+                store.insert_sector(conn, SpaceSector(name="Quessa"))
         systems = _all_names(conn, "star_systems")
         sectors = _all_names(conn, "sectors")
     finally:
@@ -154,12 +154,12 @@ def test_a_hand_given_long_name_keeps_the_old_decorations(mysql_config, fresh_na
     """The rule is for generated names: a longer name given by hand is
     saved as given and, on a collision, decorated as before rather than
     swapped for a random one."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         first = _insert_system(conn, "Lonely Shell Star")
         second = _insert_system(conn, "Lonely Shell Star")
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Far Out Place"))
+            store.insert_sector(conn, SpaceSector(name="Far Out Place"))
         third = _insert_system(conn, "Far Out Place")
         stored = _all_names(conn, "star_systems")
     finally:
@@ -176,13 +176,13 @@ def test_many_colliding_names_never_pass_two_words(mysql_config, fresh_names):
     every sector and system name is unique."""
     pool = ["Vor", "Quessa", "Tellow", "Xy Zz", "Ana Rel", "Mervane"]
     rng = random.Random(46)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for _ in range(120):
             name = rng.choice(pool)
             if rng.random() < 0.2:
                 with conn:
-                    _db.insert_sector(conn, SpaceSector(name=name))
+                    store.insert_sector(conn, SpaceSector(name=name))
             else:
                 _insert_system(conn, name)
         systems = _all_names(conn, "star_systems")

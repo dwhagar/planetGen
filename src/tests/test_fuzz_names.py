@@ -12,7 +12,7 @@ name-generation helpers in `stellarObjects/utils.py` that consume them
 Goes past `test_name_uniqueness.py`/`test_name_generation.py`/
 `test_bughunt_name_exhaustion.py`: huge collision counts, arbitrary base
 names, long simulated insert runs checking uniqueness, the decoration
-stacks `_db.py` actually builds, hostile text into every pure helper, and
+stacks `store.py` actually builds, hostile text into every pure helper, and
 a bounded sample of real generated names checked against the offensive-
 word list. See `fuzz_support.py` for the `ci`/`deep` profiles.
 """
@@ -247,7 +247,7 @@ def test_strip_decoration_inverts_each_single_decoration(base, greek, roman, dim
 def test_strip_decoration_inverts_the_stacks_db_actually_builds(base, count, diminutives):
     """Regression: `strip_decoration("Little Beta Foo")` used to give
     "Beta Foo" (and "Petit Little Foo" -> "Little Foo"). These are the
-    exact stacks `_db.py` builds: `reserve_system_name` prefixes the
+    exact stacks `store.py` builds: `reserve_system_name` prefixes the
     diminutive onto the Greek/Roman name, and
     `_rename_existing_system_for_diminutive` decorates the same row again
     on every later collision."""

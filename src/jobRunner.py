@@ -6,7 +6,7 @@ Runs one background job the web interface's admin Generate page started
 (`html/web/jobs.py` spawns `python3 src/jobRunner.py <job dir>` detached
 from the web server, then returns right away).
 
-A job is a list of steps, each one command line (`resetDb.py`, then
+A job is a list of steps, each one command line (`planetgen.cli.reset`, then
 `generate.py plan`, then `generate.py galaxy ...`). This runs them in
 order, appends every step's output to `<job dir>/output.log`, and keeps
 `<job dir>/state.json` current, so the page can show which step is
@@ -117,10 +117,10 @@ def _mysql_config(job):
     `MySQLConfig`; imports planetGen, so only called once `state.json` is
     written."""
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from stellarObjects import _db
+    from planetgen.db import store
 
     env = job.get("env") or {}
-    return _db.MySQLConfig(
+    return store.MySQLConfig(
         host=env.get("PLANETGEN_MYSQL_HOST"), port=env.get("PLANETGEN_MYSQL_PORT"),
         user=env.get("PLANETGEN_MYSQL_USER"), password=env.get("PLANETGEN_MYSQL_PASSWORD"),
         database=env.get("PLANETGEN_MYSQL_DATABASE"),
@@ -138,15 +138,15 @@ def _run_line(job):
     run = job.get("title") or job["id"]
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from stellarObjects import _db
+        from planetgen.db import store
         from planetgen.galaxy import version_key
     except Exception:  # noqa: BLE001 -- the job runs without the line's details
         return f"Galaxy seed unknown, PlanetGen unknown, run: {run}"
     seed = None
     try:
-        conn = _db.get_connection(_mysql_config(job), ensure_schema=False)
+        conn = store.get_connection(_mysql_config(job), ensure_schema=False)
         try:
-            seed = _db.get_galaxy_seed(conn)
+            seed = store.get_galaxy_seed(conn)
         finally:
             conn.close()
     except Exception:  # noqa: BLE001 -- no database or no galaxy yet
@@ -162,12 +162,13 @@ class _JobTree:
         self.queue = None
         self.root = None
         try:
-            from stellarObjects import _db, workQueue
+            from stellarObjects import workQueue
+            from planetgen.db import store
 
             base = _mysql_config(job)
             self.queue = workQueue
             self.root = workQueue.open_node(
-                "web-job", job.get("title") or job["id"], _db.control_mysql_config(base),
+                "web-job", job.get("title") or job["id"], store.control_mysql_config(base),
                 web_job_id=job["id"], database=job.get("database"),
             )
         except Exception:  # noqa: BLE001 -- the job runs without its tree

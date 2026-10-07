@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# src/migrateDb.py
+# planetgen.cli.migrate
 
 """
 Brings the configured planetGen MySQL database's `schema_migrations`
-bookkeeping up to the current schema (`stellarObjects/schema.sql`),
+bookkeeping up to the current schema (`planetgen/db/schema.sql`),
 applying any migration step in between -- a no-op for a database that's
-already current. See `stellarObjects/_db.py`'s `migrate_database` for how
+already current. See `planetgen/db/store.py`'s `migrate_database` for how
 a single database's version is checked/advanced.
 
 Run automatically by `install.sh` and `update.sh`
@@ -23,7 +23,7 @@ steps so far took -- steps differ a lot in cost, so it firms up as they
 run).
 
 Usage:
-    python3 src/migrateDb.py [--mysql-host HOST] [--mysql-port PORT]
+    python3 -m planetgen.cli.migrate [--mysql-host HOST] [--mysql-port PORT]
                              [--mysql-user USER] [--mysql-password PASSWORD]
                              [--mysql-database DATABASE] [--status]
 
@@ -33,7 +33,7 @@ Usage:
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
-    `stellarObjects._db.MySQLConfig`) -- unlike the pre-MySQL-port version
+    `planetgen.db.store.MySQLConfig`) -- unlike the pre-MySQL-port version
     of this script, there is exactly one database to migrate (a MySQL
     server, not a directory of `*.db` files), so this needs a connection
     to point at rather than a directory to scan.
@@ -52,7 +52,7 @@ from rich.progress import (
 )
 
 from planetgen.admin import auth
-from stellarObjects._db import (
+from planetgen.db.store import (
     SCHEMA_VERSION,
     add_mysql_connection_args,
     control_mysql_config,

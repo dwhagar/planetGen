@@ -2,7 +2,7 @@
 #
 # Runs `update.sh` (git pull, then checks that every package, directory
 # and permission the site needs is present, installing only what's
-# missing, plus a `src/migrateDb.py` schema check) unattended -- the same
+# missing, plus a `planetgen.cli.migrate` schema check) unattended -- the same
 # thing a human would run by hand per README.md's "Web Interface"
 # section, on a schedule instead of "whenever someone remembers to." See
 # update.sh's own header comment: nothing is reinstalled, so most months
@@ -14,7 +14,7 @@
 # Paired with planetgen-orbits@.service via planetgen-update.timer/
 # planetgen-orbits@.timer's fixed (not randomized) schedule times -- see
 # those files' own comments for why the ordering matters: update.sh can
-# change the very code updateOrbits.py runs.
+# change the very code planetgen.cli.orbits runs.
 #
 # NOTE on what this means: enabling this timer means whatever is on the
 # tracked branch's remote gets pulled and deployed automatically, once a
@@ -28,7 +28,7 @@
 #
 # Install with examples/maintenance/install-maintenance-timer.sh, which
 # also sets up the credentials file this unit reads (needed for
-# install.sh's `src/migrateDb.py` step).
+# install.sh's `planetgen.cli.migrate` step).
 
 [Unit]
 Description=planetGen deployment update (git pull + dependency check)
@@ -44,8 +44,8 @@ Type=oneshot
 # the git checkout it pulls into) actually lives.
 WorkingDirectory=/var/lib/planetGen
 # Read-write MySQL credentials -- needed for install.sh's
-# `src/migrateDb.py` step, same file planetgen-orbits@.service reads.
+# `planetgen.cli.migrate` step, same file planetgen-orbits@.service reads.
 # "-" prefix makes it optional so a missing file falls back to
-# migrateDb.py's own built-in defaults rather than failing to start.
+# planetgen.cli.migrate's own built-in defaults rather than failing to start.
 EnvironmentFile=-/etc/planetgen/maintenance.env
 ExecStart=/var/lib/planetGen/update.sh

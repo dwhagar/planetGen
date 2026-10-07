@@ -13,7 +13,7 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
@@ -41,7 +41,7 @@ def _scatter(seed=7, **kwargs):
 
 
 def _row_dict(row):
-    return dict(zip(_db.BRIGHT_STAR_COLUMNS, row))
+    return dict(zip(store.BRIGHT_STAR_COLUMNS, row))
 
 
 def test_scattered_stars_sit_in_their_own_qualifying_cell_and_are_bright():
@@ -124,9 +124,9 @@ def _plan_args(mysql_config, *extra):
 
 
 def _seed_galaxy(mysql_config):
-    _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=8,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    _db.replace_galaxy_layers(EXTENTS, config=mysql_config)
+    store.replace_galaxy_layers(EXTENTS, config=mysql_config)
 
 
 def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
@@ -134,15 +134,15 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     summary = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     assert summary["total"] > 20
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == summary["total"]
-        assert _db.bright_star_scatter_settings(conn)[0] == THRESHOLD
+        assert store.bright_star_scatter_settings(conn)[0] == THRESHOLD
         target = conn.execute(
             "SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n FROM bright_stars"
             " GROUP BY ring_index, layer_index, ring_slot_index ORDER BY n DESC LIMIT 1").fetchone()
         address = (target["ring_index"], target["layer_index"], target["ring_slot_index"])
-        stars = _db.bright_stars_for_sector(conn, *address)
+        stars = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
 
@@ -154,9 +154,9 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     # The backfill (GEN.23) adds this sector's 100-500 L_sun stars first.
     assert len(preplaced) >= len(stars)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.bright_stars_for_sector(conn, *address) == []
+        assert store.bright_stars_for_sector(conn, *address) == []
         linked = conn.execute(
             "SELECT b.luminosity_w AS stored_w, s.luminosity_w AS built FROM bright_stars b"
             " JOIN stars s ON s.star_system_id = b.star_system_id AND s.role IN ('primary', 'single')"
@@ -178,9 +178,9 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
 
     summary = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     assert summary["total"] > 0
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.bright_stars_for_sector(conn, *address) == []
+        assert store.bright_stars_for_sector(conn, *address) == []
     finally:
         conn.close()
 
@@ -195,10 +195,10 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
     args.num_systems = 1
     address = (0, 0, 0)
     generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         before = {row["id"]: row["luminosity_w"] for row in conn.execute("SELECT id, luminosity_w FROM bright_stars").fetchall()}
-        seed = _db.bright_star_scatter_settings(conn)[1]
+        seed = store.bright_star_scatter_settings(conn)[1]
     finally:
         conn.close()
     assert len(before) == first["total"]
@@ -207,9 +207,9 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
     assert band["total"] > first["total"]
     assert (band["from_luminosity_sol"], band["to_luminosity_sol"]) == (THRESHOLD, 100.0)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.bright_star_scatter_settings(conn) == (100.0, seed)
+        assert store.bright_star_scatter_settings(conn) == (100.0, seed)
         rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index"
                             " FROM bright_stars").fetchall()
     finally:
@@ -231,7 +231,7 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
 def test_going_down_a_layer_needs_a_scatter_first(mysql_config):
     _seed_galaxy(mysql_config)
     assert generate.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", "100")) is None
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
     finally:
@@ -313,7 +313,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     center = sector_position_pc(4, 0, 5, EDGE_PC)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         before = conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"]
     finally:
@@ -321,7 +321,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
 
     first = generate.backfill_bright_stars(mysql_config, center, radius_ly=20.0)
     assert first["sectors"] > 0 and first["stars"] > 0
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         levels = _level_rows(conn)
         assert len(levels) == first["sectors"] and set(levels.values()) == {FLOOR}
@@ -329,10 +329,10 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
         assert len(added) == first["stars"]
         assert all(row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY for row in added)
         address = (4, 0, 5)
-        assert _db.bright_star_fill_level(conn, *address) == FLOOR
-        assert _db.bright_star_fill_level(conn, 0, 3, 0) == THRESHOLD  # a sector nobody reached
+        assert store.bright_star_fill_level(conn, *address) == FLOOR
+        assert store.bright_star_fill_level(conn, 0, 3, 0) == THRESHOLD  # a sector nobody reached
         # PERF.11: a row a backfill made carries the sector's expected density.
-        stats = _db.get_sector_stats(conn, *address)
+        stats = store.get_sector_stats(conn, *address)
         assert stats["expected_systems"] == pytest.approx(stats["relative_density"] * E_VALUE)
         assert stats["actual_systems"] is None
     finally:
@@ -344,7 +344,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     # A sector filled before the backfill reaches it gets no new stars.
     far = (8, 0, 0)
     far_center = sector_position_pc(*far, EDGE_PC)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("INSERT INTO sectors (name, edge_mpc, ring_index, layer_index, ring_slot_index,"
                      " center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
@@ -354,7 +354,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     finally:
         conn.close()
     generate.backfill_bright_stars(mysql_config, far_center, radius_ly=20.0)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert _cell_stars(conn, far) == stars_there
         assert far not in _level_rows(conn)
@@ -363,7 +363,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
 
     # A new plan scatter forgets every sector's level.
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--force"))
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert _level_rows(conn) == {}
     finally:
@@ -380,14 +380,14 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     assert generate.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC), radius_ly=20.0,
                                           min_luminosity_sol=partial)["sectors"]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         cells = set(_level_rows(conn))
     finally:
         conn.close()
 
     def stars_since(last_id):
-        conn = _db.get_connection(mysql_config)
+        conn = store.get_connection(mysql_config)
         try:
             rows = conn.execute("SELECT id, luminosity_w, ring_index, layer_index, ring_slot_index FROM bright_stars"
                                 " WHERE id > ? ORDER BY id", (last_id,)).fetchall()
@@ -412,9 +412,9 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
 
 
 def _database_now(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return _db.database_now(conn)
+        return store.database_now(conn)
     finally:
         conn.close()
 
@@ -432,7 +432,7 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_floor(mysql_config
     position = sector_position_pc(*address, EDGE_PC)
     started = _database_now(mysql_config)
     _sector_id, _name, sector = generate.generate_and_save_sector_at(args, address, position, EDGE_PC)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert _level_rows(conn) == {}  # GEN.30: nothing until the run is done
     finally:
@@ -441,7 +441,7 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_floor(mysql_config
     args.ring, args.layer, args.slot = address
     summary = generate.backfill_after_run(args, EDGE_PC, started)
     assert summary["sectors"] > 0
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         levels = _level_rows(conn)
         # GEN.30, GEN.44: each sector's floor is its own distance tier.
@@ -449,8 +449,8 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_floor(mysql_config
         for other, level in levels.items():
             assert level == generate._tier_floor(generate.backfill_tiers(), _distance_ly(address, other))
         assert _cell_stars(conn, address) == 0  # the generated sector itself never gets backfilled stars
-        assert _db.bright_stars_for_sector(conn, *address) == []
-        assert _db.get_sector_stats(conn, *address)["bright_level_sol"] == 0.0
+        assert store.bright_stars_for_sector(conn, *address) == []
+        assert store.get_sector_stats(conn, *address)["bright_level_sol"] == 0.0
     finally:
         conn.close()
     assert not [entry for entry in sector.entries if entry.preplaced]
@@ -462,9 +462,9 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_floor(mysql_config
 
 def test_backfill_does_nothing_when_the_scatter_already_went_that_deep(mysql_config):
     _seed_galaxy(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        _db.record_bright_star_scatter(conn, FLOOR, 1)
+        store.record_bright_star_scatter(conn, FLOOR, 1)
         conn.commit()
     finally:
         conn.close()
@@ -490,7 +490,7 @@ def test_concurrent_backfills_draw_each_sector_once(mysql_config):
     for thread in threads:
         thread.join()
     assert not errors
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == sum(
             result["stars"] for result in results)
@@ -501,7 +501,7 @@ def test_concurrent_backfills_draw_each_sector_once(mysql_config):
 
 def _stored_stars(conn):
     """Every bright star as its drawn columns, sorted (ids and times left out)."""
-    columns = ", ".join(_db.BRIGHT_STAR_COLUMNS)
+    columns = ", ".join(store.BRIGHT_STAR_COLUMNS)
     return sorted(tuple(row.values()) for row in conn.execute(f"SELECT {columns} FROM bright_stars").fetchall())
 
 
@@ -513,17 +513,17 @@ def test_a_sector_taken_down_in_steps_gets_the_stars_of_one_draw(mysql_config):
     center = sector_position_pc(1, 0, 2, EDGE_PC)
     first = generate.backfill_bright_stars(mysql_config, center, radius_ly=20.0, min_luminosity_sol=1000.0)
     second = generate.backfill_bright_stars(mysql_config, center, radius_ly=20.0, min_luminosity_sol=500.0)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         stepped = _stored_stars(conn)
         assert set(_level_rows(conn).values()) == {500.0}
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
     finally:
         conn.close()
     assert first["stars"] > 0 and second["stars"] > 0 and second["sectors"] == first["sectors"]
     assert len(stepped) == first["stars"] + second["stars"]
     once = generate.backfill_bright_stars(mysql_config, center, radius_ly=20.0, min_luminosity_sol=500.0)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert _stored_stars(conn) == stepped
     finally:
@@ -538,20 +538,20 @@ def test_a_sector_holding_stars_but_no_level_is_wiped_and_drawn_again(mysql_conf
     address = (1, 0, 2)
     center = sector_position_pc(*address, EDGE_PC)
     generate.backfill_bright_stars(mysql_config, center, radius_ly=5.0)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         clean = _stored_stars(conn)
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
         stray = list(brightStars.backfill_cells(SHAPE, [address], EDGE_PC, E_VALUE, 2000.0, None, 99))[:1] or [
             (*address, 0, 0, 0, "young", "B", "III", 1e31, 1e6, 9000.0, 2000.0 * constants.SOLAR_LUMINOSITY,
              0.1, 0.2, 5.0, 0.15, 7)]
-        _db.insert_bright_stars(conn, stray)
+        store.insert_bright_stars(conn, stray)
         conn.commit()
-        assert _db.sector_bright_levels(conn, [address]).get(address, -1.0) == -1.0
+        assert store.sector_bright_levels(conn, [address]).get(address, -1.0) == -1.0
     finally:
         conn.close()
     generate.backfill_bright_stars(mysql_config, center, radius_ly=5.0)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert _stored_stars(conn) == clean
         assert _level_rows(conn)[address] == FLOOR
@@ -563,7 +563,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
     # PERF.11 and GEN.44: a fill writes the sector's expected and actual
     # density, its stars' mean temperature and luminosity, and level 0; the
     # galaxy keeps a decaying average of actual against expected.
-    from stellarObjects import editStore
+    from planetgen.db import edits
     _seed_galaxy(mysql_config)
     address = (2, 0, 3)
     position = sector_position_pc(*address, EDGE_PC)
@@ -571,9 +571,9 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
     args = generate._default_generation_args(config=mysql_config)
     args.num_systems = 4
     sector_id, _name, _sector = generate.generate_and_save_sector_at(args, address, position, EDGE_PC)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        stats = _db.get_sector_stats(conn, *address)
+        stats = store.get_sector_stats(conn, *address)
         systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?",
                                (sector_id,)).fetchone()["n"]
         stars = conn.execute("SELECT temperature_k, luminosity_w FROM stars st JOIN star_systems ss"
@@ -587,39 +587,39 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         assert stats["filled_at"] is not None
         # MAP.86: its map color, from those means and how full it is.
         from planetgen.galaxy import sector_look
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         assert stats["fill_share"] == pytest.approx(
             sector_look.fill_share(systems, sector_look.max_sector_systems(skeleton)))
         assert (stats["color_r"], stats["color_g"], stats["color_b"]) == pytest.approx(sector_look.sector_color(
             stats["mean_temperature_k"], stats["mean_luminosity_sol"], stats["fill_share"]))
-        average, samples = _db.galaxy_density_ratio(conn)
+        average, samples = store.galaxy_density_ratio(conn)
         assert samples == 1 and average == pytest.approx(systems / stats["expected_systems"])
 
-        editStore.delete_sector_with_contents(conn, sector_id)
+        edits.delete_sector_with_contents(conn, sector_id)
         conn.commit()
-        stats = _db.get_sector_stats(conn, *address)
+        stats = store.get_sector_stats(conn, *address)
         assert stats["bright_level_sol"] == FLOOR and stats["actual_systems"] is None
         assert stats["fill_share"] is None and stats["color_r"] is None
-        assert _db.galaxy_density_ratio(conn) == (pytest.approx(average), 1)
+        assert store.galaxy_density_ratio(conn) == (pytest.approx(average), 1)
     finally:
         conn.close()
 
 
 def test_the_density_ratio_decays_toward_newer_fills(mysql_config):
     _seed_galaxy(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("INSERT INTO sectors (name, edge_mpc, ring_index, layer_index, ring_slot_index)"
                      " VALUES ('Empty', 13046, 1, 0, 0)")
         conn.execute("UPDATE galaxy_shape SET density_ratio_avg = 1.0, density_ratio_samples = ?",
-                     (_db.DENSITY_RATIO_WINDOW * 5,))
+                     (store.DENSITY_RATIO_WINDOW * 5,))
         sector_id = conn.execute("SELECT id FROM sectors WHERE name = 'Empty'").fetchone()["id"]
-        _db.record_sector_stats(conn, sector_id, (1, 0, 0), sector_position_pc(1, 0, 0, EDGE_PC))
-        average, samples = _db.galaxy_density_ratio(conn)
+        store.record_sector_stats(conn, sector_id, (1, 0, 0), sector_position_pc(1, 0, 0, EDGE_PC))
+        average, samples = store.galaxy_density_ratio(conn)
         # No systems against some expected: one fill moves a long-running
         # average 1 / DENSITY_RATIO_WINDOW of the way to 0.
-        assert samples == _db.DENSITY_RATIO_WINDOW * 5 + 1
-        assert average == pytest.approx(1.0 - 1.0 / _db.DENSITY_RATIO_WINDOW)
+        assert samples == store.DENSITY_RATIO_WINDOW * 5 + 1
+        assert average == pytest.approx(1.0 - 1.0 / store.DENSITY_RATIO_WINDOW)
     finally:
         conn.close()
 
@@ -645,7 +645,7 @@ def test_each_sector_takes_its_own_tier_and_a_nearer_sector_tops_it_up(mysql_con
     tiers = ((5.0, 100.0), (40.0, 300.0))
     center = sector_position_pc(4, 0, 5, EDGE_PC)
     first = generate.backfill_bright_stars(mysql_config, center, tiers=tiers)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         levels = _level_rows(conn)
         stars = conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"]
@@ -661,7 +661,7 @@ def test_each_sector_takes_its_own_tier_and_a_nearer_sector_tops_it_up(mysql_con
     # 100, adding only the band.
     target = next(address for address, level in sorted(levels.items()) if level == 300.0)
     second = generate.backfill_bright_stars(mysql_config, sector_position_pc(*target, EDGE_PC), tiers=tiers)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         after = _level_rows(conn)
         added = conn.execute("SELECT * FROM bright_stars ORDER BY id").fetchall()[stars:]
@@ -695,7 +695,7 @@ def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
 
     args.backfill_from = "requested"
     generate.backfill_after_run(args, EDGE_PC, started)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         requested = _level_rows(conn)
     finally:
@@ -705,11 +705,11 @@ def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
 
     args.backfill_from = "all"
     generate.backfill_after_run(args, EDGE_PC, started)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         every = _level_rows(conn)
-        assert _db.bright_stars_for_sector(conn, *far) == []
-        assert _db.bright_stars_for_sector(conn, *near) == []
+        assert store.bright_stars_for_sector(conn, *far) == []
+        assert store.bright_stars_for_sector(conn, *near) == []
     finally:
         conn.close()
     assert min(around(every, far).values()) == 250.0

@@ -2,14 +2,14 @@
 Admin editing (TODO ADM.1): the delete and regenerate endpoints for one
 planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
 (ADM.6) and star (ADM.7) changes (`src/html/api/edits.py`), the in-place writer behind them
-(`stellarObjects/editStore.py`) and the object edits
+(`planetgen/db/edits.py`) and the object edits
 (`planetgen/admin/edits.py`), against a real throwaway database.
 """
 import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, editStore
+from planetgen.db import edits as editStore, store
 from planetgen.admin import auth as adminAuth, edits as adminEdits
 from planetgen.generation import validation
 from planetgen import tuning
@@ -33,7 +33,7 @@ def client(mysql_config):
 
 @pytest.fixture
 def admin(client, mysql_config):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
     assert client.post("/api/auth/login", json={"username": "admin", "password": password}).status_code == 200
     assert client.post("/api/auth/change-credentials", json={
@@ -60,8 +60,8 @@ def _saved_system(mysql_config, want=None):
         if want(system):
             sector = SpaceSector("Edit Sector", edge_ly=10.0)
             sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
-            sector_id = _db.save_sector(sector, config=mysql_config)
-            conn = _db.get_connection(mysql_config)
+            sector_id = store.save_sector(sector, config=mysql_config)
+            conn = store.get_connection(mysql_config)
             try:
                 system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?",
                                          (sector_id,)).fetchone()["id"]
@@ -76,7 +76,7 @@ def _with_moons(system):
 
 
 def _rows(mysql_config, sql, params=()):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute(sql, params).fetchall()
     finally:
@@ -84,15 +84,15 @@ def _rows(mysql_config, sql, params=()):
 
 
 def _load(mysql_config, system_id):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return _db.load_star_system(conn, system_id)
+        return store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
 
 def test_edits_need_an_admin(client, mysql_config):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     assert client.post("/api/planets/1/regenerate").status_code == 401
     assert client.delete("/api/planets/1").status_code == 401
     assert client.delete("/api/phenomena/nebula/1").status_code == 401
@@ -104,10 +104,10 @@ def test_save_system_edits_round_trips_an_unchanged_system(mysql_config):
     before = _load(mysql_config, system_id)
     planet_ids = sorted(r["id"] for r in _rows(mysql_config, "SELECT id FROM planets WHERE star_system_id = ?",
                                                    (system_id,)))
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            editStore.save_system_edits(conn, system_id, _db.load_star_system(conn, system_id))
+            editStore.save_system_edits(conn, system_id, store.load_star_system(conn, system_id))
     finally:
         conn.close()
     after = _load(mysql_config, system_id)
@@ -205,10 +205,10 @@ def test_regenerated_system_validates(mysql_config):
 def _saved_nebula(mysql_config):
     sector_id, _system_id = _saved_system(mysql_config)
     cfg = SystemConfig()
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            nebula_id = _db.insert_nebula(conn, Nebula(cfg, name="Test Veil"), sector_id=sector_id,
+            nebula_id = store.insert_nebula(conn, Nebula(cfg, name="Test Veil"), sector_id=sector_id,
                                           placement={"center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
                                                      "galactic_radius_pc": 3.7})
     finally:
@@ -280,7 +280,7 @@ def web_app(mysql_config, monkeypatch):
 
 def _web_admin(web_app, mysql_config):
     client = web_app.test_client()
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
     assert client.post("/api/auth/login", json={"username": "admin", "password": password}).status_code == 200
     assert client.post("/api/auth/change-credentials", json={

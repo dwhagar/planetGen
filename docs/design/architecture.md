@@ -51,29 +51,29 @@ planetGen has three layers that share one Python package:
 1. **Generation.** `generate.py` and the `src/stellarObjects/` package
    build stars, planets, sectors and whole galaxies from physics models
    and random draws.
-2. **Storage.** `src/stellarObjects/_db.py` writes those objects into a
+2. **Storage.** `src/planetgen/db/store.py` writes those objects into a
    MySQL database (`schema.sql`), reads them back, and migrates old
    databases forward. A second, separate schema (`control_schema.sql`)
    holds admin logins.
 3. **Serving.** One Flask app (`src/html/`) serves both the JSON API
    (`/api/...`) and the HTML pages. The pages never query the database
    themselves; they call the API in-process through `lib/apiclient.py`,
-   and the API reads through `src/queryDb.py` and `_db.py`.
+   and the API reads through `planetgen.db.query` and `store.py`.
 
 Around those sit the installers (`install.sh`, `update.sh` and their
-Windows twins), maintenance tools (`src/updateOrbits.py`,
-`src/migrateDb.py`, ...), the tests, and the release workflows.
+Windows twins), maintenance tools `planetgen.cli.orbits`,
+`planetgen.cli.migrate`, ...), the tests, and the release workflows.
 
 ```mermaid
 flowchart LR
     CLI["generate.py<br/>(CLI)"] --> SO["src/stellarObjects/<br/>generation + physics"]
-    SO --> DB["_db.py"]
+    SO --> DB["store.py"]
     DB --> MySQL[("MySQL<br/>content schema<br/>+ control schema")]
     Browser["Browser"] --> WSGI["src/html/wsgi.py"]
     WSGI --> Web["src/html/web/<br/>HTML pages"]
     Web --> Client["lib/apiclient.py<br/>(in-process)"]
     Client --> API["src/html/api/<br/>JSON API"]
-    API --> Q["src/queryDb.py"]
+    API --> planetgen.db.query"]
     Q --> MySQL
     API --> DB
     Web -. "admin Generate" .-> Jobs["web/jobs.py -> src/jobRunner.py"]
@@ -87,7 +87,7 @@ flowchart LR
 | Path | What it holds |
 |---|---|
 | [`generate.py`](../../generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
-| [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `migrateDb.py`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
+| [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, and the same optional population prompt after the migration. Safe to run on a schedule (with no terminal the prompt is skipped). |
 | [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `-Population` runs the population pass without asking. |
 | `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
@@ -122,13 +122,13 @@ Copy-and-edit configuration for each kind of server. The guides in
 | `examples/macos/` | launchd plists (gunicorn, orbit update, update) and the Homebrew nginx config. |
 | `examples/systemd/` | The gunicorn service and a drop-in that reloads the web server after an update. |
 | `examples/windows/` | IIS (`web.config`), Caddy, Apache Lounge, waitress service wrapper and the orbit-update task. |
-| `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `updateOrbits.py` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS) and the Windows `install-maintenance-task.ps1`. |
+| `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS) and the Windows `install-maintenance-task.ps1`. |
 | `examples/systems/` | Sample system files for `generate.py system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
 
 ### src/stellarObjects/
 
 The core package. Generation code works in natural units and knows
-nothing about the database; `_db.py` is the one place that converts and
+nothing about the database; `store.py` is the one place that converts and
 stores. The groups below are by role, not by folder (the package is flat).
 
 #### Systems, stars and bodies
@@ -199,18 +199,18 @@ stores. The groups below are by role, not by folder (the package is flat).
 |---|---|
 | `names.py`, `offensive_words.txt` | Name word lists and the blocklist used to reject generated names. |
 | `utils.py` (name part) | `generate_phoneme_salad_name`, `generate_sector_name`, `is_name_valid`. |
-| `nameUniqueness.py` | Pure functions that decorate a colliding sector or system name (Greek/Roman suffixes, diminutives). `_db.py` applies them on insert. A new star system name stays within two words (`MAX_SYSTEM_NAME_WORDS`): a decoration that would add a third is skipped and a fresh name drawn. |
+| `nameUniqueness.py` | Pure functions that decorate a colliding sector or system name (Greek/Roman suffixes, diminutives). `store.py` applies them on insert. A new star system name stays within two words (`MAX_SYSTEM_NAME_WORDS`): a decoration that would add a third is skipped and a fresh name drawn. |
 | `bodyNames.py` | Names stars, planets and moons from their system's name (`Voranthis II`, `Voranthis IIa`). |
 
 #### Persistence
 
 | Path | What it holds |
 |---|---|
-| [`_db.py`](../../src/stellarObjects/_db.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and every `_migrate_vN_to_vN+1` step plus `migrate_database`. `SCHEMA_VERSION` lives here. |
-| [`schema.sql`](../../src/stellarObjects/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
-| [`control_schema.sql`](../../src/stellarObjects/control_schema.sql) | The control schema: admin users, sessions, API keys, audit log. One per deployment, versioned separately. |
+| [`store.py`](../../src/stellarObjects/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and every `_migrate_vN_to_vN+1` step plus `migrate_database`. `SCHEMA_VERSION` lives here. |
+| [`schema.sql`](../../src/planetgen/db/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
+| [`control_schema.sql`](../../src/planetgen/db/control_schema.sql) | The control schema: admin users, sessions, API keys, audit log. One per deployment, versioned separately. |
 | `adminAuth.py` | Password hashing, sessions, API keys, credential rotation, audit log, and `bootstrap_control_schema` (creates the control schema and seeds the first admin). |
-| `systemRender.py` | Renders a stored system's page text (wikitext or Markdown) on demand from the database rows. No page text is stored since schema v29. |
+| `render.py` | Renders a stored system's page text (wikitext or Markdown) on demand from the database rows. No page text is stored since schema v29. |
 
 #### Shared infrastructure
 
@@ -234,14 +234,14 @@ from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 
 | Path | What it holds |
 |---|---|
-| [`src/queryDb.py`](../../src/queryDb.py) | The read layer and a list/query CLI. `open_readonly`, the listings, `sector_detail`/`system_detail`, `search`, `nav_between`, every Galaxy Map query (`galaxy_tiles`, `galaxy_stage`, `galaxy_content_stamp`, `galaxy_changes`, `galaxy_locate` for the address bar), and the bright-star reads (`bright_star_scatter_status`, `bright_stars_in_sector`, `galaxy_bright_stars_in_box` with `unfilled_only`). The API's read routes call these. |
-| [`src/migrateDb.py`](../../src/migrateDb.py) | Brings the content database to the current schema (`_db.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
-| `src/resetDb.py` | Empties every generated table (`TRUNCATE`), keeping the schema and its version. |
-| `src/updateOrbits.py` | Advances every orbit and galactic position by the real time elapsed since the last run. Meant for a monthly timer. |
+| `planetgen.db.query`planetgen.db.query) | The read layer and a list/query CLI. `open_readonly`, the listings, `sector_detail`/`system_detail`, `search`, `nav_between`, every Galaxy Map query (`galaxy_tiles`, `galaxy_stage`, `galaxy_content_stamp`, `galaxy_changes`, `galaxy_locate` for the address bar), and the bright-star reads (`bright_star_scatter_status`, `bright_stars_in_sector`, `galaxy_bright_stars_in_box` with `unfilled_only`). The API's read routes call these. |
+| `planetgen.cli.migrate`planetgen.cli.migrate) | Brings the content database to the current schema (`_db.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
+| `planetgen.cli.reset` | Empties every generated table (`TRUNCATE`), keeping the schema and its version. |
+| `planetgen.cli.orbits` | Advances every orbit and galactic position by the real time elapsed since the last run. Meant for a monthly timer. |
 | `src/jobRunner.py` | Runs one admin Generate job's steps in order, writing `state.json` and `output.log`, honoring the `cancel` file. |
-| `src/adminStats.py` | Read-only statistics about a database (table sizes, schema version, decorated names, `bright_star_counts`) for the admin stats page. |
-| `src/dedupeNames.py` | One-off backfill that resolves duplicate sector and system names in an older database. |
-| `src/checkRenderParity.py` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
+| `planetgen.db.stats` | Read-only statistics about a database (table sizes, schema version, decorated names, `bright_star_counts`) for the admin stats page. |
+| `planetgen.cli.dedupe` | One-off backfill that resolves duplicate sector and system names in an older database. |
+| `planetgen.cli.render_parity` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
 
 ### src/wikiClient/
 
@@ -276,7 +276,7 @@ the browser loads.
 | `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
 | `authz.py` | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
 | `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in the control database's `login_throttle`, in memory only while that table is missing), and the log line and audit row for each refused sign-in. |
-| `admin.py` | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `src/adminStats.py`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
+| `admin.py` | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `planetgen.db.stats`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
 | `limiter.py` | The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits. |
 | `config.py` | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
 | `common.py` | `ApiError` and the control-schema connection, shared by `routes.py` and `auth.py` without an import cycle. |
@@ -392,7 +392,7 @@ admin asks for a neighborhood.
 ```mermaid
 flowchart TD
     Plan["generate.py plan<br/>run_plan"] --> Skel["build_skeleton<br/>galaxyDensity.build_galaxy_shape<br/>galaxySkeleton.build_layer_extents"]
-    Skel --> SaveSkel["_db.clear_bright_stars<br/>_db.replace_galaxy_layers<br/>_db.save_galaxy_shape"]
+    Skel --> SaveSkel["_db.clear_bright_stars<br/>store.replace_galaxy_layers<br/>store.save_galaxy_shape"]
     SaveSkel --> Scatter["scatter_bright_stars<br/>brightStars.scatter<br/>(stellarPopulation, stellarEvolution)"]
     Scatter --> BS[("bright_stars table")]
 
@@ -465,7 +465,7 @@ flowchart TD
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
     Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
     Scan --> Civ["refresh_civilizations<br/>era_for_age, found or dissolve polities,<br/>reach_ly"]
-    Civ --> Terr["refresh_territories<br/>_db.sectors_reached_by,<br/>add_claims (strongest claim wins)"]
+    Civ --> Terr["refresh_territories<br/>store.sectors_reached_by,<br/>add_claims (strongest claim wins)"]
     Scan --> PT[("species,<br/>population_state")]
     Civ --> Pol[("polities")]
     Terr --> SO[("system_owners")]
@@ -499,11 +499,11 @@ flowchart TD
     RO["read-only callers<br/>(queryDb.open_readonly, API)"] --> NoDDL["get_connection<br/>ensure_schema=False"]
     NoDDL --> Content
 
-    Inst["install.sh / update.sh<br/>deploy-common migrate_or_reset_db"] --> Status["migrateDb.py --status<br/>_db.schema_status"]
+    Inst["install.sh / update.sh<br/>deploy-common migrate_or_reset_db"] --> Status["planetgen.cli.migrate --status<br/>store.schema_status"]
     Status -->|"steps pending"| Ask{"delete the galaxy<br/>instead? (y/N, 30 s)"}
     Status -->|"current"| Mig
-    Ask -->|"N"| Mig["migrateDb.py<br/>_db.migrate_database<br/>each _migrate_vN_to_vN+1"]
-    Ask -->|"y"| Reset["resetDb.py --yes<br/>(admin logins kept)"]
+    Ask -->|"N"| Mig["planetgen.cli.migrate<br/>store.migrate_database<br/>each _migrate_vN_to_vN+1"]
+    Ask -->|"y"| Reset["planetgen.cli.reset --yes<br/>(admin logins kept)"]
     Reset --> Mig
     Mig --> Content
     Mig --> Boot["adminAuth.bootstrap_control_schema<br/>CREATE DATABASE, control_schema.sql,<br/>seed first admin"]
@@ -519,19 +519,19 @@ default `ensure_schema=True`) applies `schema.sql`. Every statement is
 **Migrating.** `schema.sql` always describes the current shape. An older
 database is moved forward by `_db.migrate_database`, which runs every
 `_migrate_vN_to_vN+1` step above the stored version, in order
-(`_migration_steps`). `src/migrateDb.py` is the CLI wrapper with a progress
+(`_migration_steps`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A schema change therefore touches three places: `schema.sql` (and its
-header note), a new migration step in `_db.py` with `SCHEMA_VERSION` bumped,
+header note), a new migration step in `store.py` with `SCHEMA_VERSION` bumped,
 and [database-schema.md](../database-schema.md).
 
-**Control schema.** After the content migration, `migrateDb.py` calls
+**Control schema.** After the content migration, `planetgen.cli.migrate` calls
 `adminAuth.bootstrap_control_schema`. It creates the control database if
 needed, applies `control_schema.sql`, and seeds an `admin` user with a
-random password when there is none. `migrateDb.py` prints that password
+random password when there is none. `planetgen.cli.migrate` prints that password
 once.
 
-**Other writers.** `src/resetDb.py` truncates generated tables.
-`src/updateOrbits.py` advances orbits (`_db.advance_orbital_phases`,
+**Other writers.** `planetgen.cli.reset` truncates generated tables.
+`planetgen.cli.orbits` advances orbits (`_db.advance_orbital_phases`,
 `advance_galactic_positions`, `refresh_after_motion`). The population
 pass (Flow 1) writes `species`, `polities`, `system_owners` and
 `population_state` (schema v44). The API's system writes go through
@@ -539,7 +539,7 @@ pass (Flow 1) writes `species`, `polities`, `system_owners` and
 of the others' Hill spheres, with containment and nearest systems filled
 in) and `_db.replace_star_system_content` (regenerate a system's bodies in
 place, keeping its id, name, position and links). Page text is not
-stored; `systemRender.py` renders it from rows when asked.
+stored; `render.py` renders it from rows when asked.
 
 ## Flow 3: serving a page and a map
 
@@ -573,7 +573,7 @@ which registers the API blueprints and calls `web.init_app`. A page view
 (for example `web/sector_page.py`) calls an `apiclient` function. Because
 `transport.install()` ran at startup, the call goes straight through the
 app's own WSGI callable: same route, validation and auth as over HTTP,
-without a socket. The API route reads through `queryDb.py` (listings,
+without a socket. The API route reads through `planetgen.db.query` (listings,
 details, search, nav) or `_db.load_*`. The view then builds map data with
 `lib/` helpers and renders a Jinja template. Errors become HTML pages
 (`web/errors.py`); under `/api` they stay JSON.
@@ -669,7 +669,7 @@ flowchart TD
 
     Gen["POST /admin/generate<br/>web/generate_page.py<br/>(CSRF + fresh admin)"] --> SJ["web/jobs.start_job<br/>job.json, take 'active' lock"]
     SJ --> Spawn["spawn detached:<br/>python3 src/jobRunner.py JOBDIR"]
-    Spawn --> Steps["each step in order:<br/>resetDb.py --yes, generate.py plan --no-bright-stars,<br/>generate.py plan --bright-stars-only, generate.py galaxy ..."]
+    Spawn --> Steps["each step in order:<br/>planetgen.cli.reset --yes, generate.py plan --no-bright-stars,<br/>generate.py plan --bright-stars-only, generate.py galaxy ..."]
     Steps --> Files["state.json, output.log,<br/>progress.json (progressFile.py)"]
     Poll["static/generatejobs.js<br/>GET /admin/generate/status"] --> Files
 ```
@@ -725,14 +725,14 @@ flowchart TD
         I --> PD["scripts/install-python-deps.sh<br/>probe_requirements.py, lock_pins.py"]
         U --> PDC["install-python-deps.sh --check"]
         DC --> NL["NLTK words corpus"]
-        DC --> MR["migrate_or_reset_db -> src/migrateDb.py"]
+        DC --> MR["migrate_or_reset_db -> planetgen.cli.migrate"]
         DC --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
         POP -->|"y"| GP["generate.py population"]
         DC --> WS["Apache modules / gunicorn daemon"]
         I --> EX["examples/apache/*.sh<br/>permissions, cache + jobs dirs, debug log"]
         U --> EX
         T["examples/maintenance timers"] --> U
-        T --> UO["src/updateOrbits.py"]
+        T --> planetgen.cli.orbits"]
     end
     subgraph Release["On GitHub"]
         PR["PR adds changes/NAME.LEVEL.md"] --> RN["release-note.yml<br/>bump_version.py --check-pr"]
@@ -751,7 +751,7 @@ Shared steps live in `scripts/deploy-common.sh` and
 `scripts/deploy-common.ps1`, so install and update cannot drift.
 Libraries come from `scripts/install-python-deps.sh` (pip with
 `--require-hashes` from `requirements.lock`, or apt on an externally
-managed Python). The database step is `src/migrateDb.py` (Flow 2).
+managed Python). The database step is `planetgen.cli.migrate` (Flow 2).
 After it (in `install.sh`, after the NLTK corpus, which the species names
 need), `offer_population_pass` asks whether to run `generate.py
 population`. The answer defaults to No after 30 seconds, and with no
@@ -764,7 +764,7 @@ directory and debug log.
 **Update.** `update.sh` and `update.ps1` force the checkout to the
 branch tip (untracked files such as `config.json` are kept), then run each
 check and change only what is missing. The maintenance timers in
-`examples/maintenance/` can run it, and `updateOrbits.py`, on a schedule.
+`examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule.
 
 **Releases.** A PR never edits the version. It adds one note under
 `changes/` named `<short-name>.<patch|minor|major>.md`; `release-note.yml`

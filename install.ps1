@@ -17,7 +17,7 @@
          own profile).
       3. config.json from examples\windows\config.json.example when there
          is none (this install's folders, a new secret_key; you fill in
-         the database settings), then src\migrateDb.py with the same
+         the database settings), then planetgen.cli.migrate with the same
          migrate-or-delete question as install.sh (y/N, 30 seconds,
          default N) and its progress bar. Skipped, with a note, while
          mysql.password is still the example's CHANGE-ME. Then it offers

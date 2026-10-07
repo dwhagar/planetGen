@@ -11,7 +11,7 @@ import math
 import pytest
 
 import generate as galaxyGen
-from stellarObjects import _db
+from planetgen.db import store as _db
 from planetgen.galaxy import nebula_field
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape

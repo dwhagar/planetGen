@@ -3,9 +3,9 @@
 """
 JSON API over the planetGen database (Phase 5, TODO.md).
 
-A Flask app exposing the same read queries `queryDb.py` already provides
+A Flask app exposing the same read queries `planetgen.db.query` already provides
 as a CLI, plus full sector/system display detail (`queryDb.sector_detail`/
-`system_detail` -- distinct from `stellarObjects._db`'s `load_sector`/
+`system_detail` -- distinct from `planetgen.db.store`'s `load_sector`/
 `load_star_system`, which reconstruct the *generation* object graph
 instead) and a faceted search (`queryDb.search`), rate-limited via
 Flask-Limiter. Write endpoints (create/modify/delete a sector or system)
