@@ -84,7 +84,7 @@ DEFAULT_CONFIG = {
     "ratelimit": {
         "default": "200 per day;50 per hour",
         "storage_uri": "memory://",
-        # Per-client-IP limits on the HTML pages (html/web/ratelimits.py)
+        # Per-client-IP limits on the HTML pages (planetgen/web/ratelimits.py)
         # and /api/health. An empty string turns that one limit off.
         "pages": {
             "search": "30 per minute",

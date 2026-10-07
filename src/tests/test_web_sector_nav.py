@@ -17,7 +17,7 @@ import re
 import pytest
 from markupsafe import escape
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
@@ -28,9 +28,9 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
-from web import csrf, generate_page, jobs  # noqa: E402
-from web.helpers import page_url  # noqa: E402
-from web.nav_page import endpoint, nav_url  # noqa: E402
+from planetgen.web import csrf, generate_page, jobs  # noqa: E402
+from planetgen.web.helpers import page_url  # noqa: E402
+from planetgen.web.nav_page import endpoint, nav_url  # noqa: E402
 
 
 DB = "planetgen_web_test"
@@ -527,7 +527,7 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
     """`nav_page.galaxy_course` hands the map galaxy-frame parsecs; a
     course inside one sector names that sector instead."""
     from stellarObjects.utils import ly_to_pc
-    from web.nav_page import galaxy_course
+    from planetgen.web.nav_page import galaxy_course
 
     app = client.application
     with app.test_request_context("/galaxy"):

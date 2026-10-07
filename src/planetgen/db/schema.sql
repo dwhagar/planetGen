@@ -575,12 +575,12 @@
 --   on `/api/search` once the database grew past a trivial size.
 --
 -- v23: wiki publishing wired up (docs/TODO.md's "Wiki publishing isn't
---   wired up yet" item; see `src/wikiClient/`, `html/api/routes.py`'s
+--   wired up yet" item; see `src/wikiClient/`, `planetgen/api/routes.py`'s
 --   `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`, and
 --   `html/system.py`/`html/sector.py`/`html/admin.py`). `sectors` gains
 --   `wiki_url`, a single manually-set-or-uploaded link (a sector has no
 --   generated page content of its own the way a system does -- see
---   `_sector_wiki_content` in `html/api/routes.py` -- so one plain URL is
+--   `_sector_wiki_content` in `planetgen/api/routes.py` -- so one plain URL is
 --   enough; there is no per-backend pair the way `star_systems` has,
 --   since nothing here ever needs to know which wiki software served it,
 --   only where to link). `star_systems.wikijs_url`/`mediawiki_url`

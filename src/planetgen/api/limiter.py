@@ -26,7 +26,7 @@ from planetgen.util.appconfig import DEFAULT_CONFIG
 
 IN_PROCESS_ENVIRON_KEY = "planetgen.in_process"
 """str: WSGI environ key `web/transport.py` sets on the API requests the
-Flask-served pages (`html/web/`) dispatch to this app in-process. Not an
+Flask-served pages (`planetgen/web/`) dispatch to this app in-process. Not an
 `HTTP_*` key, so no client can set it from outside."""
 
 

@@ -216,7 +216,7 @@ def test_the_count_column_shows_a_share_for_a_weighted_bar():
 
 @pytest.fixture
 def generate_page(monkeypatch):
-    import web.generate_page as generate_page
+    from planetgen.web import generate_page as generate_page
 
     monkeypatch.setattr(generate_page, "url_for", lambda *a, **k: "/job")
     return generate_page

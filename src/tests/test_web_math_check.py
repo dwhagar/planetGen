@@ -8,7 +8,7 @@ on every page, never to visitors, and the site keeps serving.
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 

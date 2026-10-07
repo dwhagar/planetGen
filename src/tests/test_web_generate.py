@@ -20,13 +20,13 @@ import time
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.queue import progress_file  # noqa: E402
-from web import csrf, generate_page, jobs  # noqa: E402
+from planetgen.web import csrf, generate_page, jobs  # noqa: E402
 
 DB = "planetgen_generate_test"
 PY = sys.executable
@@ -862,7 +862,7 @@ def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
 
 # --- One-off system (web/system_page.py) --------------------------------------------
 
-from web import system_page  # noqa: E402
+from planetgen.web import system_page  # noqa: E402
 
 
 def _post_system(client, **form):
@@ -1060,7 +1060,7 @@ def test_page_inputs_carry_the_bounds(site, client):
 def test_map_generate_target_only_for_a_usable_admin():
     """The Sector and Galaxy Maps offer Generate buttons (their scene
     data's `generate`) only to an admin who could use the Generate page."""
-    from web import helpers
+    from planetgen.web import helpers
 
     app = create_app(_FakeConfig)
     with app.test_request_context("/sector/1"):

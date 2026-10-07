@@ -8,7 +8,7 @@ Map.
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
 from planetgen.db import store
@@ -20,7 +20,7 @@ from planetgen.generation.phenomena.rogue import (RoguePlanet, default_rogue_pla
                                             rogue_planet_classes)
 
 from planetgen.web.maps import starmap  # noqa: E402
-from web import sector_page, system_pages  # noqa: E402
+from planetgen.web import sector_page, system_pages  # noqa: E402
 
 
 class _Config(Config):

@@ -237,10 +237,9 @@ import os
 import sys
 
 root = sys.argv[1]
-sys.path[:0] = [os.path.join(root, "src", "html"), os.path.join(root, "src")]
+sys.path.insert(0, os.path.join(root, "src"))
 import stellarObjects  # noqa: E402,F401
-from planetgen.api.app import create_app  # noqa: E402,F401
-import web  # noqa: E402,F401
+from planetgen.web.app import create_app  # noqa: E402,F401
 EOF
     ); then
         echo "The web app and stellarObjects import cleanly as $user with $PYTHON."

@@ -37,7 +37,7 @@
 #     traverse and list them but other local users can't.
 #   - Regular files: 640 (owner rw, group r, others none).
 #   - Every `*.py` file anywhere under html-dir, at any subdirectory
-#     depth (`html/wsgi.py`, `html/web/*.py`, ...): 750 (owner+group
+#     depth (`html/wsgi.py`, ...): 750 (owner+group
 #     read, so mod_wsgi's daemon can import them; mod_wsgi only needs
 #     read access, the execute bit is a leftover from the old CGI pages
 #     and harmless). Reported with a count at the end so a wrong
@@ -83,7 +83,7 @@ apply_permissions() {
     find "$dir" -type f -exec chmod 640 {} +
 
     # No -maxdepth here on purpose: this must reach *.py files at any
-    # subdirectory depth (html/web/*.py included), not just directly
+    # subdirectory depth, not just directly
     # inside $dir -- a previous version of this script effectively only
     # fixed the top-level scripts, which is exactly what was reported
     # broken.

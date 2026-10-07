@@ -106,7 +106,7 @@ def _secret_key():
     `PLANETGEN_SECRET_KEY`, else `config.json`'s `secret_key`, else a
     random per-process key (`SECRET_KEY_IS_EPHEMERAL` is then True and
     `create_app` logs a warning). Used to sign the Flask-served pages'
-    CSRF tokens (`html/web/csrf.py`); nothing else in the app signs
+    CSRF tokens (`planetgen/web/csrf.py`); nothing else in the app signs
     anything with it today.
     """
     configured = os.environ.get("PLANETGEN_SECRET_KEY") or _config_file.get("secret_key") or ""
@@ -226,7 +226,7 @@ class Config:
     SECRET_KEY = _SECRET_KEY
     SECRET_KEY_IS_EPHEMERAL = _SECRET_KEY_IS_EPHEMERAL
 
-    # The one database the Flask-served pages (`html/web/`) show. Empty
+    # The one database the Flask-served pages (`planetgen/web/`) show. Empty
     # (the default) means `MYSQL_CONFIG.database`, i.e. `config.json`'s
     # `mysql.database` or `PLANETGEN_MYSQL_DATABASE` -- see
     # `web/helpers.db_name`. It never travels in a page URL.

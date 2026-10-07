@@ -27,7 +27,7 @@ about the data layer (route handlers call straight into `planetgen.db.query`'s a
 `planetgen.db.store`'s existing functions), deploys as a plain WSGI app
 (`mod_wsgi`, gunicorn or waitress), and
 lives at `../src/planetgen/api/`, mounted at `/api/` by the same Flask app that
-serves the HTML pages (`../src/html/web/`, see "Deploying"
+serves the HTML pages (`../src/planetgen/web/`, see "Deploying"
 below). Those pages are this API's own frontend, calling it in-process. FastAPI's
 headline advantages (async, auto-generated OpenAPI docs) still don't pay
 for themselves: this API is read-heavy and low-concurrency regardless of
@@ -173,7 +173,7 @@ connectivity to that specific schema rather than the default one.
   galaxy placement), each with `id`, `name`, `x`/`y`/`z`
   (`center_x/y/z_pc`), `galactic_radius_pc`, `ring_index`, and
   `system_count` (`queryDb.galaxy_placed_sectors`) — the data
-  the Galaxy Map page (`/galaxy`, `../src/html/web/galaxy_views.py`) plots. Not paginated: bounded by
+  the Galaxy Map page (`/galaxy`, `../src/planetgen/web/galaxy_views.py`) plots. Not paginated: bounded by
   how much of the galaxy has actually been generated (the lazy galaxy-scale generation
   design, finished in the original roadmap's phase 4), not by the addressable galaxy's own
   scale.
@@ -481,7 +481,7 @@ connectivity to that specific schema rather than the default one.
 
 Both take `?db=` like the read endpoints, and need an admin past the
 forced credential change. They back the admin stats page
-(`/admin/stats`, `../src/html/web/admin_pages.py`).
+(`/admin/stats`, `../src/planetgen/web/admin_pages.py`).
 
 - `GET /api/admin/stats` — health and statistics for one database:
   `api` (version, Python version, process uptime, load average, memory),
@@ -1202,7 +1202,7 @@ each guide. Behind nginx, Caddy, IIS or Apache's `mod_proxy`, set
 `config.json`'s `proxy_fix` so the rate limits see the client's address
 and the app knows a request came over HTTPS; under `mod_wsgi` leave it
 off. No separate vhost or `ServerName` is needed for the API: the pages
-call it in-process (`html/web/transport.py`), not over HTTP.
+call it in-process (`planetgen/web/transport.py`), not over HTTP.
 
 Point the app at the deployed MySQL database with `config.json`'s `mysql`
 section, or `PLANETGEN_MYSQL_*` in the process environment. That account
@@ -1277,6 +1277,6 @@ items and their full text are in `docs/TODO.md`, and the phases in
 
 Editing individual generated bodies (stars, planets, moons, belts)
 beyond renaming them or regenerating the whole system is also still
-open. The pages in `../src/html/web/` (see
+open. The pages in `../src/planetgen/web/` (see
 [`html-interface.md`](html-interface.md)) are this API's own
 server-rendered frontend.

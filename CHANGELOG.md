@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.202.610] - 2026-10-07
+
+### Changed
+- TODO: Boss's answers to the open decisions are recorded. Wide-binary planets are named from two words (GEN.71). Orbital updates follow real time, one day per day, with an option to advance more (GEN.105). The orbital neighbour search is checked against the ring, layer and slot sectors (GEN.109). GEN.65 becomes a test across neighbourhood centres. New OPS.27 points the Windows installer at Redis in WSL.
+
+## [7.201.610] - 2026-10-07
+
+### Changed
+- **The HTML pages and the app factory move into `planetgen.web` (OPS.24, step 12 of 14).** `src/html/web/`, with its templates, is now `src/planetgen/web/`, and `create_app` moved from `planetgen.api.app` to `planetgen.web.app`. `src/html/` now holds only `wsgi.py` and `static/`, so the Apache, gunicorn and waitress setup doesn't change. `wsgi.py` adds only `src/` to `sys.path`, and the tests no longer need `src/html` on it.
+
+## [7.200.610] - 2026-10-07
+
+### Added
+- TODO: OPS.26 (bug) records Boss's Ubuntu 24.04 install failure. apt's NumPy-1 builds of astropy, erfa and scikit-image cannot load alongside the NumPy 2 that pip pulls in, so the requirements probe reports them as unusable.
+
 ## [7.199.608] - 2026-10-07
 
 ### Changed

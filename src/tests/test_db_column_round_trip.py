@@ -109,7 +109,7 @@ NEVER_READ = {
 
 
 def _client(config):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class TestConfig(Config):

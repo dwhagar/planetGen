@@ -18,7 +18,7 @@ from html import escape
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
@@ -32,7 +32,7 @@ from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web.maps.systemmap import render_system_map_panel  # noqa: E402
-from web import csrf  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
 
 DB = "planetgen_web_test"
 AU_KM = constants.AU_TO_KM
@@ -400,7 +400,7 @@ def test_system_map_draws_facilities_at_their_hosts():
 # --- Sector page ----------------------------------------------------------------------
 
 def test_sector_contents_list_facilities_outside_systems(app):
-    from web.sector_page import _contents
+    from planetgen.web.sector_page import _contents
 
     sector = {"systems": [], "center_x_pc": 0.0, "center_y_pc": 50.0, "center_z_pc": 0.0, "phenomena": [
         {"id": 7, "type": "asteroid_field", "name": "The Shoals", "descriptor": "dense", "radius_ly": 1.0,

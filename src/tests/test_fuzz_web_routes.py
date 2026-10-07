@@ -2,8 +2,8 @@
 
 """
 Brute-force/property-based tests for every route of the Flask app: the
-HTML pages (`src/html/web/`) and the JSON API (`src/planetgen/api/`), both
-served by `api.app.create_app`.
+HTML pages (`src/planetgen/web/`) and the JSON API (`src/planetgen/api/`), both
+served by `planetgen.web.app.create_app`.
 
 The routes are not hand-listed: the sweeps walk `app.url_map`, so a route
 added later is fuzzed without touching this file. Hypothesis throws
@@ -59,7 +59,7 @@ from hypothesis import example, given, settings
 from flask.testing import FlaskClient
 from hypothesis import strategies as st
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.common import is_http_url
 from planetgen.api.config import Config
@@ -71,7 +71,7 @@ from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
-from web import csrf  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
 
 from tests.conftest import _test_server_kwargs
 from tests.fuzz_support import any_float, hostile_text, scaled

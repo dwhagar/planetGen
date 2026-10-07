@@ -11,7 +11,7 @@ and phenomenon pages' data layer is faked like `test_web_system_phen.py`.
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
@@ -211,7 +211,7 @@ def _system():
 
 
 def test_system_list_links_classes(app):
-    from web.class_pages import class_url
+    from planetgen.web.class_pages import class_url
     with app.test_request_context("/system/1"):
         html = system_list_html(_system(), _SECTIONS, class_url)
         table = stars_html(_system()["stars"], class_url)
@@ -228,7 +228,7 @@ def test_system_list_links_classes(app):
 def test_system_list_without_hook_or_known_class_stays_text(app):
     html = system_list_html(_system(), _SECTIONS)
     assert "/classes/" not in html and "Class M" in html
-    from web.class_pages import class_url
+    from planetgen.web.class_pages import class_url
     system = _system()
     system["planets"] = [_planet("Z")]
     system["stars"][0]["star_type"] = "Unknown"

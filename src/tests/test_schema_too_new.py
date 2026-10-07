@@ -22,7 +22,7 @@ import pymysql
 import pytest
 
 from planetgen.cli import migrate
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
 from tests.bughunt_support import mysql_argv

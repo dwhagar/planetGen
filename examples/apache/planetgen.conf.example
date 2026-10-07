@@ -45,8 +45,8 @@
 
     # Security headers (Content-Security-Policy, X-Frame-Options,
     # X-Content-Type-Options, Referrer-Policy) come from the application,
-    # not from here: html/web/__init__.py's SECURITY_HEADERS for every
-    # page, planetgen/api/app.py for the API. That keeps one source per
+    # not from here: planetgen/web/__init__.py's SECURITY_HEADERS for every
+    # page, planetgen/web/app.py for the API. That keeps one source per
     # response and works the same without this file. Earlier versions of
     # this example also set three of them vhost-wide with `Header always
     # set`; remove those lines from an existing site config when you

@@ -15,7 +15,7 @@ _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _HTML_DIR = os.path.join(_SRC_DIR, "html")
 
 from planetgen.web.lib import fmt  # noqa: E402
-import web  # noqa: E402
+from planetgen import web  # noqa: E402
 from planetgen.web.lib.mdconvert import markdown_to_html  # noqa: E402
 from planetgen._version import __version__  # noqa: E402
 
@@ -41,9 +41,8 @@ def test_no_page_links_an_unversioned_static_file():
     static_url; a bare "static/x" URL would be cached for a year by the
     Apache example without ever being refreshed."""
     offenders = []
-    web_dir = os.path.join(_HTML_DIR, "web")
-    web_package = os.path.join(_SRC_DIR, "planetgen", "web")
-    for folder in (os.path.join(web_package, "lib"), os.path.join(web_package, "maps"), web_dir,
+    web_dir = os.path.join(_SRC_DIR, "planetgen", "web")
+    for folder in (os.path.join(web_dir, "lib"), os.path.join(web_dir, "maps"), web_dir,
                    os.path.join(web_dir, "templates"),
                    os.path.join(web_dir, "templates", "partials")):
         for name in os.listdir(folder):
@@ -98,7 +97,7 @@ def test_explicit_dark_theme_matches_the_os_dark_theme():
     explicit = _tokens(_block(css, ':root[data-theme="dark"] {'))
     assert os_dark and os_dark == explicit
     # Same colours base.html's <meta name="theme-color"> tags use.
-    base = open(os.path.join(_HTML_DIR, "web", "templates", "base.html"), encoding="utf-8").read()
+    base = open(os.path.join(_SRC_DIR, "planetgen", "web", "templates", "base.html"), encoding="utf-8").read()
     assert f'content="{os_dark["--bg"]}" media="(prefers-color-scheme: dark)"' in base
     light = _tokens(_block(css, ":root {"))["--bg"]
     assert f'content="{light}" media="(prefers-color-scheme: light)"' in base

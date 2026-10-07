@@ -7,7 +7,7 @@ planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
 """
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import edits as editStore, store
 from planetgen.admin import auth as adminAuth, edits as adminEdits
@@ -257,7 +257,7 @@ def test_regenerate_sector_off_the_grid_is_refused(admin, mysql_config):
 # ---------------------------------------------------------------------
 
 from planetgen.web.lib import apiclient  # noqa: E402
-from web import csrf  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
 
 
 @pytest.fixture
