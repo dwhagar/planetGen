@@ -1,4 +1,4 @@
-# html/api/config.py
+# planetgen/api/config.py
 
 """
 Configuration for the planetGen API.

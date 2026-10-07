@@ -51,10 +51,10 @@ sync_api = pytest.importorskip("playwright.sync_api")
 
 from werkzeug.serving import make_server  # noqa: E402
 
-from api.app import create_app  # noqa: E402
-from api.authz import SESSION_COOKIE_NAME  # noqa: E402
-from api.config import Config  # noqa: E402
-from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.api.app import create_app  # noqa: E402
+from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
+from planetgen.api.config import Config  # noqa: E402
+from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth
 from planetgen.db.store import MySQLConfig  # noqa: E402

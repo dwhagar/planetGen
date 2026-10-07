@@ -46,7 +46,7 @@ import secrets
 from flask import abort, current_app, g, redirect, request, url_for
 from markupsafe import Markup, escape
 
-from api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.admin import activity_log
 
 COOKIE_NAME = "pg_csrf"

@@ -1,14 +1,14 @@
 """
 Admin editing (TODO ADM.1): the delete and regenerate endpoints for one
 planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
-(ADM.6) and star (ADM.7) changes (`src/html/api/edits.py`), the in-place writer behind them
+(ADM.6) and star (ADM.7) changes (`src/planetgen/api/edits.py`), the in-place writer behind them
 (`planetgen/db/edits.py`) and the object edits
 (`planetgen/admin/edits.py`), against a real throwaway database.
 """
 import pytest
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 from planetgen.db import edits as editStore, store
 from planetgen.admin import auth as adminAuth, edits as adminEdits
 from planetgen.generation import validation

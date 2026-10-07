@@ -22,11 +22,11 @@ import logging
 
 import pytest
 
-from api.app import create_app
-from api.common import is_http_url
-from api.config import Config, _proxy_fix
-from api.limiter import DEFAULT_PAGE_LIMITS
-from api.routes import DATABASE_UNAVAILABLE, SECTOR_UPDATE_FIELDS
+from planetgen.api.app import create_app
+from planetgen.api.common import is_http_url
+from planetgen.api.config import Config, _proxy_fix
+from planetgen.api.limiter import DEFAULT_PAGE_LIMITS
+from planetgen.api.routes import DATABASE_UNAVAILABLE, SECTOR_UPDATE_FIELDS
 from planetgen.db.store import MySQLConfig
 from planetgen.util.appconfig import DEFAULT_CONFIG
 

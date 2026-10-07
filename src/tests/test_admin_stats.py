@@ -1,7 +1,7 @@
 # tests/test_admin_stats.py
 
 """
-Tests for the admin stats endpoints (`html/api/admin.py`, backed by
+Tests for the admin stats endpoints (`planetgen/api/admin.py`, backed by
 `planetgen.db.stats`): `GET /api/admin/stats` and `GET
 /api/admin/duplicate-names`. Needs a MySQL test server like every other
 database-backed test (see `conftest.py`).
@@ -12,8 +12,8 @@ import os
 import pytest
 
 from planetgen.db import stats as adminStats
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig

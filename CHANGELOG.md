@@ -1,5 +1,19 @@
 # Changelog
 
+## [7.190.607] - 2026-10-07
+
+### Changed
+- **The JSON API moves into `planetgen.api` (OPS.24, step 11 of 14).** `src/html/api/` is now `src/planetgen/api/`, with the same module names (`app`, `routes`, `auth`, `config`, ...). The Apache example drops its deny rule for the old folder, since the package sits outside the DocumentRoot. Every caller moved too.
+
+## [7.189.607] - 2026-10-07
+
+### Fixed
+- **The bright-star backfill after a `galaxy` run has its own progress
+  bar with a working ETA** (PERF.28). A `--slot` run (the Sector Map's
+  "Generate neighborhood" among them) used to backfill inside the
+  sector's bar, which sat at 0 of 1 with no ETA for minutes; the backfill
+  now runs at the end of the run, counting the sectors it visits.
+
 ## [7.188.607] - 2026-10-07
 
 ### Added

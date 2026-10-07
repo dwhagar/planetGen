@@ -15,9 +15,9 @@ import re
 
 import pytest
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib.fmt import linkify_location, nearest_neighbors_location  # noqa: E402

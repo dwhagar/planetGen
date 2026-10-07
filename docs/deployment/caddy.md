@@ -51,7 +51,6 @@ fits in one short file. gunicorn runs the app exactly as in the
 | `Alias /static/ .../src/html/static/` | `handle_path /static/* { root * .../src/html/static; file_server }` |
 | `?v=` Cache-Control rule | `@versioned query v=*` and `@unversioned not query v=*`, each with a `header` |
 | `X-Content-Type-Options: nosniff` on `static/` | `header X-Content-Type-Options "nosniff"` in the static block |
-| `Require all denied` on `lib/` and `api/` | Not needed: only `/static/` maps to disk |
 | `mod_deflate` | `encode zstd gzip` |
 | `request-timeout=60` | `response_header_timeout 60s` |
 | certbot | Automatic |

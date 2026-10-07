@@ -13,7 +13,7 @@ import time
 
 import pytest
 
-from api import auth, loginguard
+from planetgen.api import auth, loginguard
 from planetgen.admin import auth as adminAuth, throttle
 from planetgen.admin.throttle import IP_POLICY, SCOPE_IP, SCOPE_USER, USER_POLICY
 
@@ -161,8 +161,8 @@ def test_wait_text():
 
 @pytest.fixture
 def app(monkeypatch):
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class _Config(Config):
         TESTING = True
@@ -328,8 +328,8 @@ def test_older_control_schema_gets_the_table(mysql_config):
 
 @pytest.fixture
 def real_app(mysql_config):
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class RealConfig(Config):
         MYSQL_CONFIG = mysql_config

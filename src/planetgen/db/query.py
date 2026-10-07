@@ -19,7 +19,7 @@ that the connection can't write is a deployment concern: point
 `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` at a database account
 with `SELECT`-only grants for this tool rather than the read-write account
 `generate.py` and the Flask app use (the app writes too: the admin pages
-and the API's write endpoints, see `html/api/config.py`) -- MySQL has no per-connection "open this read-only"
+and the API's write endpoints, see `planetgen/api/config.py`) -- MySQL has no per-connection "open this read-only"
 flag the way SQLite's `file:...?mode=ro` URI trick gave the old SQLite
 version of this function, so the guarantee lives in the account's grants
 instead of the connection itself.

@@ -212,7 +212,7 @@ to its ownership rows.
 
 ## Presentation
 
-- **API** (`src/html/api/population.py`, its own blueprint):
+- **API** (`src/planetgen/api/population.py`, its own blueprint):
   `GET /api/population` (whether a pass has run and whether any species,
   polity or owned system exists, so pages can hide themselves),
   `GET /api/species` (paged, `?spacefaring=`), `GET /api/species/<id>`,

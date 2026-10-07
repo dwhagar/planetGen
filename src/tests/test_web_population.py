@@ -15,8 +15,8 @@ import re
 import markupsafe
 import pytest
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from web.population_pages import format_years  # noqa: E402

@@ -16,7 +16,7 @@ two functions that need it rather than at module import time, so this
 module (and everything in `stellarObjects` that imports it transitively)
 stays importable without the `api` extra installed -- matching this
 package's existing boundary where `flask`/`werkzeug` are optional, needed
-only by `html/api/`.
+only by `planetgen/api/`.
 
 Every function here takes an already-open `Connection` (to the control
 schema -- see `planetgen.db.store.get_control_connection`) rather than
@@ -61,7 +61,7 @@ seeds (`secrets.token_urlsafe(16)`: 22 characters, comfortably over
 seeded one is printed once by `planetgen.cli.migrate` (install/update) and never
 stored anywhere but as its hash. `admin_users.must_change_credentials`
 still starts `TRUE` for this row, and every write/admin endpoint refuses
-to work until it's changed (see `html/api/authz.py`'s `require_admin`)."""
+to work until it's changed (see `planetgen/api/authz.py`'s `require_admin`)."""
 
 
 class AuthError(Exception):
@@ -717,7 +717,7 @@ def disable_totp(conn, admin_user_id):
 def record_audit(conn, admin_user_id, admin_username, action, target=None, detail=None):
     """
     Writes one `admin_audit_log` row. Called by every write/admin
-    endpoint after it succeeds (see `html/api/routes.py`) -- `admin_username`
+    endpoint after it succeeds (see `planetgen/api/routes.py`) -- `admin_username`
     is captured here (denormalized alongside `admin_user_id`) rather than
     joined at read time, so the trail stays readable even if that admin is
     later renamed (see `control_schema.sql`'s comment on this table).

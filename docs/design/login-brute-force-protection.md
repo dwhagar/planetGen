@@ -19,7 +19,7 @@ Section 1 describes the site as it was before them.
   minute per client address (`auth.LOGIN_RATE_LIMIT`, Flask-Limiter,
   `memory://` storage). The web `/login` form calls the same route
   in-process and passes the real visitor's address through.
-- **Per-username backoff.** `src/html/api/loginbackoff.py`: 10 free
+- **Per-username backoff.** `src/planetgen/api/loginbackoff.py`: 10 free
   failures per username, then a lock of 1 s doubling to 15 minutes,
   answered with 429 and `Retry-After` before the password is checked.
   Unknown usernames are counted like real ones, so a lock doesn't reveal

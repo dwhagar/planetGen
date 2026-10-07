@@ -23,7 +23,7 @@ from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 from itsdangerous import URLSafeTimedSerializer
 
-from api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 

@@ -26,7 +26,7 @@ explicit function/CLI argument, then the matching `PLANETGEN_*`
 environment variable (so a single shared `config.json` can still be
 overridden per-process -- e.g. `planetgen-orbits@.service`'s per-instance
 `PLANETGEN_MYSQL_DATABASE=%i`), then `config.json`, then the built-in
-default below. Callers (`planetgen.db.store`, `html/api/config.py`,
+default below. Callers (`planetgen.db.store`, `planetgen/api/config.py`,
 `planetgen/web/lib/apiclient.py`) each still read their own
 `os.environ.get(VAR, ...)` for the middle two steps; this module only
 supplies the `config.json` layer.
@@ -95,13 +95,13 @@ DEFAULT_CONFIG = {
         },
     },
     # Client addresses or networks (CIDR) never locked out after failed
-    # logins (html/api/loginguard.py); loopback never is either.
+    # logins (planetgen/api/loginguard.py); loopback never is either.
     "login_allowlist": [],
     "admin_cookie_insecure": False,
     "secret_key": "",
     # How many reverse proxies in front of the WSGI server to trust for
     # each X-Forwarded-* header (werkzeug's ProxyFix; see
-    # html/api/config.py). All 0 (the default) means the app uses the
+    # planetgen/api/config.py). All 0 (the default) means the app uses the
     # connection's own address and scheme, which is right under Apache +
     # mod_wsgi.
     "proxy_fix": {
@@ -123,7 +123,7 @@ DEFAULT_CONFIG = {
         # backend is "configured" (offered as an upload target) purely by
         # having a non-empty base_url plus that backend's own required
         # credential field(s), not by a separate on/off switch (see
-        # html/api/config.py's WIKI_CONFIG, which computes this). Both
+        # planetgen/api/config.py's WIKI_CONFIG, which computes this). Both
         # configured at once is exactly what lets a caller choose "the
         # wiki of their choice" per upload (see wikiClient/client.py).
         "wikijs": {
