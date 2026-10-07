@@ -279,7 +279,7 @@ def _mysql_port(text):
     except ValueError:
         raise argparse.ArgumentTypeError(f"invalid int value: {text!r}")
     if not 1 <= port <= 65535:
-        raise argparse.ArgumentTypeError(f"must be from 1 to 65535, got {port}")
+        raise argparse.ArgumentTypeError("must be between 1 and 65535")
     return port
 
 

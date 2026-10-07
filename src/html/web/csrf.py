@@ -119,11 +119,13 @@ def protect():
     submitted = request.form.get(FIELD_NAME) or request.headers.get("X-CSRF-Token")
     if not valid(submitted, request.cookies.get(COOKIE_NAME), _session()):
         activity_log.event("AUTHZ", "csrf.failed", path=request.path)
-        if request.endpoint in SIGN_IN_ENDPOINTS and _session():
+        if (request.endpoint in SIGN_IN_ENDPOINTS and _session()
+                and valid(submitted, request.cookies.get(COOKIE_NAME), "")):
             # SEC.31: a sign-in form sent again after the browser already
             # signed in (a second click or Enter, or a password manager
             # submitting too) carries the token minted before sign-in,
-            # which no longer matches the new session. Nothing is done
+            # which no longer matches the new session (and only that
+            # token: no token, or any other, is still a 400). Nothing is done
             # with it; the login page forwards a signed-in admin to
             # `next`, or shows the form again if the session is stale.
             return redirect(url_for("web.login", next=request.values.get("next") or None), code=303)

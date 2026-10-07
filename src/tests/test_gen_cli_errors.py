@@ -283,7 +283,7 @@ _PORT_COMMANDS = ["system", "sector", "galaxy", "plan", "phenomenon", "populatio
 @pytest.mark.parametrize("command", _PORT_COMMANDS)
 @pytest.mark.parametrize("port", [0, -1, 65536])
 def test_mysql_port_out_of_range_message(monkeypatch, capsys, command, port):
-    assert _error(monkeypatch, capsys, command, ["--mysql-port", port]) == "--mysql-port must be between 1 and 65535."
+    assert _error(monkeypatch, capsys, command, ["--mysql-port", port]) == "argument --mysql-port: must be between 1 and 65535"
 
 
 @pytest.mark.parametrize("command", _PORT_COMMANDS)
@@ -296,7 +296,7 @@ def test_mysql_port_is_checked_before_the_subcommands_own_options(monkeypatch, c
     """The port check runs first, so a bad port is what gets reported
     even alongside another bad option."""
     assert _error(monkeypatch, capsys, "galaxy", ["--ring", "-1", "--mysql-port", "0"]) == \
-        "--mysql-port must be between 1 and 65535."
+        "argument --mysql-port: must be between 1 and 65535"
 
 
 # ---------------------------------------------------------------------------

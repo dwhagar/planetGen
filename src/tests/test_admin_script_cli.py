@@ -380,7 +380,7 @@ def test_an_out_of_range_port_is_a_usage_error(name, port, monkeypatch, capsys):
     argv = _script_argv(name, ["--mysql-host", "127.0.0.1", "--mysql-port", port, "--mysql-user", "nobody",
                                "--mysql-password", "x", "--mysql-database", "nothing"])
     assert _run_main(SCRIPTS[name][0], argv, monkeypatch) == 2
-    assert "--mysql-port: must be from 1 to 65535" in capsys.readouterr().err
+    assert "--mysql-port: must be between 1 and 65535" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))

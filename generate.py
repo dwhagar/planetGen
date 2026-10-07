@@ -4467,9 +4467,8 @@ def process_args():
     reject_lost_option_values(args, command_parser)
     validate_logging_args(args, command_parser)
 
-    port = getattr(args, "mysql_port", None)
-    if port is not None and not 1 <= port <= 65535:
-        command_parser.error("--mysql-port must be between 1 and 65535.")
+    # --mysql-port's range (1 to 65535) is checked by its argparse type,
+    # planetgen.db.store._mysql_port (OPS.6).
 
     if args.command == 'system':
         validate_system_args(args, command_parser)
