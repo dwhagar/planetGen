@@ -144,7 +144,7 @@
               <tbody>
                 {%- for member in row.members %}
                 <tr>
-                  <td><a href="{{ member.url }}">{{ member.name }}</a>{% if member.map_target %} <button type="button" class="btn-small" data-map-target="{{ member.map_target }}" hidden>Show on map</button>{% endif %}</td>
+                  <td><a href="{{ member.url }}">{{ member.name }}</a>{% if member.map_target %} <button type="button" class="icon-btn" data-map-target="{{ member.map_target }}" title="Show on map" aria-label="Show {{ member.name }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif %}</td>
                   <td>{{ member.details }}</td>
                   <td>{% if member.octant %}{{ member.octant }}{% else %}&ndash;{% endif %}</td>
                   <td class="inline-links">{% if member.location is not none %}{{ member.location }}{% else %}&ndash;{% endif %}</td>
@@ -159,7 +159,7 @@
       {%- else %}
       <tr>
         <td>{%- if row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}
-          {%- if row.map_target %} <button type="button" class="btn-small" data-map-target="{{ row.map_target }}" hidden>Show on map</button>{% endif %}</td>
+          {%- if row.map_target %} <button type="button" class="icon-btn" data-map-target="{{ row.map_target }}" title="Show on map" aria-label="Show {{ row.name }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif %}</td>
         <td>{{ row.type }}</td>
         <td>{{ row.details }}</td>
         <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>

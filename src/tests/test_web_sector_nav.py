@@ -286,6 +286,12 @@ def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
     assert ">Drifter</a>" in group and ">Wanderer</a>" in group
     assert "+x+y+z" in group and "-x-y-z" in group
     assert 'Nearest: <a href="/system/1002">Other</a>' in group
+    # UX.25: "Show on map" is a small map icon beside each name, its
+    # words in the aria-label and tooltip.
+    assert re.search(r'>Drifter</a> <button type="button" class="icon-btn" data-map-target="rogue_planet:21" '
+                     r'title="Show on map" aria-label="Show Drifter on the map" hidden><svg class="icon" '
+                     r'aria-hidden="true" focusable="false"><use href="/static/icons\.svg\?v=[^"]+#show-on-map">',
+                     group)
 
 
 def test_sector_page_takes_database_from_config(client, fake):
