@@ -15,6 +15,7 @@ which moves bodies (never removes them) until it validates, and the
 returned `EditResult` says what moved and what is still wrong.
 """
 
+import math
 import random
 from collections import namedtuple
 
@@ -173,10 +174,20 @@ def regenerate_body(system, kind, body, owner):
 # ADM.6: a planet's or moon's class
 # ---------------------------------------------------------------------
 
-def _typical_mass_kg(planet_class):
-    """The geometric middle of a class's mass range."""
+def class_fits_mass(planet_class, mass_kg):
+    """Whether a body of `mass_kg` can be `planet_class` (ADM.27): its
+    mass lies in the class's mass range (`planetPhysics.planet_mass_ranges`),
+    since a class change keeps the body's mass."""
     low, high = planetPhysics.planet_mass_ranges[planet_class]
-    return (low * high) ** 0.5
+    return low * (1 - 1e-9) <= mass_kg <= high * (1 + 1e-9)
+
+
+def _mass_refusal(body, planet_class):
+    """The message refusing `planet_class` for `body` because of its mass."""
+    low, high = planetPhysics.planet_mass_ranges[planet_class]
+    earth = physical_constants.EARTH_MASS_TO_KG
+    return (f"{body.name} is {body.mass / earth:.3g} Earth masses; class {planet_class} needs "
+            f"{low / earth:.3g} to {high / earth:.3g}, so its class wasn't changed")
 
 
 def _hill_radius_au(distance_au, mass_kg, star_mass_kg):
@@ -205,18 +216,14 @@ def _fits_between(body, owner, mass_kg):
 
 
 def _can_hold_moons(body, planet_class):
-    """Whether some planet of `planet_class` at `body`'s orbit could hold
-    its moons: big enough for the largest and (at the class's typical
-    size and mass) a Hill sphere reaching the outermost."""
+    """Whether some planet of `planet_class` could hold `body`'s moons:
+    big enough for the largest. Its mass, and so its Hill sphere, stays
+    what it is (ADM.27)."""
     if not body.moons:
         return True
     largest = max(m.radius for m in body.moons)
     low, high = program_constants.PLANET_CLASSES[planet_class]["radius_range"]
-    if (low * high) ** 0.5 / (10 ** (1 / 3)) < largest:
-        return False
-    reach_km = (_hill_radius_au(body.distance, _typical_mass_kg(planet_class), body.star.mass) * physical_constants.AU_TO_KM
-                * program_constants.MOON_PROGRADE_STABLE_HILL_FRACTION)
-    return max(m.distance for m in body.moons) * physical_constants.AU_TO_KM <= reach_km
+    return (low * high) ** 0.5 / (10 ** (1 / 3)) >= largest
 
 
 def _roll_fits(body, owner):
@@ -256,10 +263,10 @@ def recommended_classes(system, body, owner):
     """
     The classes `body` could take without moving any other planet ("recommended",
     ADM.6), best first by how common they are: valid in its zone, not a
-    habitable class where the system rules those out, and -- for a planet
-    -- at a typical mass for the class still clear of its neighbors, and
-    big enough to hold its moons; for a moon, a class its planet can hold
-    (`moon_classes`). Its current class is left out.
+    habitable class where the system rules those out, a class its mass
+    fits (`class_fits_mass`; the change keeps it, ADM.27), and -- for a
+    planet -- big enough to hold its moons; for a moon, a class its planet
+    can hold (`moon_classes`). Its current class is left out.
     """
     if body.is_moon:
         candidates = moon_classes(owner)
@@ -267,11 +274,11 @@ def recommended_classes(system, body, owner):
         zone = validation.zone_for(body.habitable_zone, body.distance)
         candidates = [
             c for c, data in program_constants.PLANET_CLASSES.items()
-            if data[zone] and _can_hold_moons(body, c) and _fits_between(body, owner, _typical_mass_kg(c))
+            if data[zone] and _can_hold_moons(body, c)
         ]
         if planetPhysics._habitable_classes_barred(body, zone):
             candidates = [c for c in candidates if c not in program_constants.HABITABLE_PLANET_CLASSES]
-    candidates = [c for c in candidates if c != body.planet_class]
+    candidates = [c for c in candidates if c != body.planet_class and class_fits_mass(c, body.mass)]
     return sorted(candidates, key=lambda c: -program_constants.PLANET_CLASS_PROBABILITIES.get(c, 0))
 
 
@@ -289,11 +296,33 @@ def class_options(system):
     return options
 
 
+def _keep_mass(body, mass_kg):
+    """Puts `body` back at `mass_kg` after a re-roll drew its own: a giant
+    on the mass-radius relation takes the relation's radius for it; any
+    other class keeps its drawn density where the radius that gives stays
+    in the class's range, else the nearest end of that range and the
+    density the mass then makes (in range too, since the mass fits the
+    class)."""
+    body.mass = mass_kg
+    if planetPhysics.uses_giant_mass_radius(body.planet_class):
+        body.radius = None
+        planetPhysics._apply_giant_mass_and_radius(body, radius_given=False, mass_given=True)
+    else:
+        low, high = program_constants.PLANET_CLASSES[body.planet_class]["radius_range"]
+        radius_m = (3 * mass_kg / (4 * math.pi * body.density * 1000)) ** (1 / 3)
+        body.radius = min(max(radius_m / physical_constants.KM_TO_M_FACTOR, low), high)
+        radius_m = body.radius * physical_constants.KM_TO_M_FACTOR
+        body.density = mass_kg / ((4 / 3) * math.pi * radius_m ** 3) / 1000
+    body.volume = (4 / 3) * math.pi * body.radius ** 3
+
+
 def _apply_class(body, owner, planet_class):
-    """Re-rolls `body` as `planet_class` in place: radius, mass, density,
-    atmosphere and everything derived, at its current orbit. A class not
+    """Re-generates `body` as `planet_class` in place (ADM.27): radius,
+    density, composition, atmosphere, temperature, pressure, life and
+    everything derived, keeping its orbit, mass and name. A class not
     valid in the body's zone is generated as if it were in a zone where it
     is, then put back in its real zone (a forced change)."""
+    mass = body.mass
     distance = body.distance
     parent_distance = owner.distance if body.is_moon else None
     real_zone = validation.zone_for(body.habitable_zone, parent_distance if body.is_moon else distance)
@@ -309,6 +338,7 @@ def _apply_class(body, owner, planet_class):
         planetPhysics.generate_planet_properties(body, zone_override=gen_zone)
     finally:
         config.HABITABLE_WORLD = habitable_rule
+    _keep_mass(body, mass)
     body.distance = distance
     body.zone = real_zone
     primary_mass = owner.mass if body.is_moon else body.star.mass
@@ -328,20 +358,25 @@ def _apply_class(body, owner, planet_class):
 
 def change_class(system, body, owner, planet_class, force=False):
     """
-    Changes a planet's or moon's class (ADM.6). Without `force` only a
-    recommended class (`recommended_classes`) is accepted; with it, any
-    known class, even one that can't exist where the body orbits. The body
+    Changes a planet's or moon's class (ADM.6), re-generating its surface
+    conditions as that class and keeping its orbit, mass and name
+    (ADM.27). Without `force` only a recommended class
+    (`recommended_classes`) is accepted; with it, any known class its mass
+    fits, even one that can't exist where the body orbits. The body
     keeps its new class no matter what (it is pinned); the rest of the
     system is then re-spaced from the moons outward until it validates,
     and whatever still doesn't (a forced class out of its zone, a moon too
     large for its planet) comes back as warnings. Nothing is removed.
 
     Raises:
-        ValueError: For an unknown class, or a class that isn't
-            recommended without `force`.
+        ValueError: For an unknown class, a class the body's mass doesn't
+            fit, or a class that isn't recommended without `force`.
+            Nothing is changed.
     """
     if planet_class not in program_constants.PLANET_CLASSES:
         raise ValueError(f"unknown class: {planet_class}")
+    if not class_fits_mass(planet_class, body.mass):
+        raise ValueError(_mass_refusal(body, planet_class))
     if not force and planet_class not in recommended_classes(system, body, owner):
         raise ValueError(f"class {planet_class} doesn't fit {body.name} where it is; force it to set it anyway")
     old_class = body.planet_class
