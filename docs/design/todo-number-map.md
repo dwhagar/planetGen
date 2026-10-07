@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.49 |
-| MAP | MAP.127 |
+| MAP | MAP.128 |
 | NAV | NAV.50 |
 | GEN | GEN.116 |
 | PERF | PERF.31 |
@@ -689,8 +689,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | open |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
