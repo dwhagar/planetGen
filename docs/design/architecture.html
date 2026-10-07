@@ -291,7 +291,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 
   <section id="data">
     <div class="sec-head"><span class="eyebrow">Today</span><h2>Where data lives</h2>
-      <p>One content database per galaxy (46 tables), one control database per deployment (14 tables), and two disk directories. Positions of sectors are never stored: they are pure functions of the ring, layer and slot address.</p></div>
+      <p>One content database per galaxy (42 tables), one control database per deployment (14 tables), and two disk directories. Positions of sectors are never stored: they are pure functions of the ring, layer and slot address.</p></div>
     <div class="cols" id="datacols"></div>
   </section>
 
@@ -309,9 +309,9 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     <div class="planned-band">
       <h3>Order of the move</h3>
       <div class="steps">
-        <div class="step"><h4>Pins and Redis</h4><p>The new libraries go into the hash-pinned locks, and install, update and CI provide a Redis server (Redis in WSL2 on Windows).</p><div class="ids" data-ids="OPS.21,OPS.20"></div></div>
+        <div class="step"><h4>Pins and Redis <span class="pill">done</span></h4><p>Done in PR #437 (OPS.21): the new libraries are in the hash-pinned locks, and install, update and CI provide a Redis server (Redis in WSL2 on Windows, PR #475).</p><div class="ids" data-ids="OPS.21,OPS.20"></div></div>
         <div class="step"><h4>Layout plan, then the move <span class="pill">done</span></h4><p>Done: the package layout was approved (OPS.23), then the code moved one package per PR with no behavior change, so each file moved once. The move (OPS.24) finished in PR #473; the modules above are in their packages.</p><div class="ids" data-ids="OPS.23,OPS.24,OPS.22"></div></div>
-        <div class="step"><h4>Library swaps</h4><p>One swap per PR, each deleting the code it replaces and checked against the old behavior. Old import paths keep working through thin re-exports.</p><div class="ids" data-ids="SEC.29,SEC.30,UX.39,DB.11,ADM.21,GEN.66,PERF.24,PERF.25,ADM.22,UX.40,UX.41,MAP.102"></div></div>
+        <div class="step"><h4>Library swaps</h4><p>One swap per PR, each deleting the code it replaces and checked against the old behavior. Old import paths are not kept: no shims or re-exports (Boss, 2026-10-07).</p><div class="ids" data-ids="SEC.29,SEC.30,UX.39,DB.11,ADM.21,GEN.66,PERF.24,PERF.25,ADM.22,UX.40,UX.41,MAP.102"></div></div>
       </div>
       <h3 class="mid" style="margin-top:22px">Packages (in place since the move; their files today)</h3>
       <div class="pkgs" id="pkgs"></div>
@@ -376,7 +376,7 @@ R+='<div class="node" style="border-color:var(--serve)"><span class="nm">src/htm
 R+=node('serve','web','HTML pages')+arrow('apiclient, in-process (page cache first)');
 R+='<div class="tiles">'+node('serve','lib','Page helpers',' ')+node('serve','maps','Map data',' ')+node('serve','api','JSON API',' ')+node('serve','admin','Accounts and security',' ')+node('serve','wiki','Wiki publishing',' ')+'</div>'+arrow('reads through');
 R+='<a class="node store" href="#g-db"><span class="nm">db/query.py</span><span class="ds">The read layer: listings, details, search, NAV and every Galaxy Map query, on read-only connections.</span><span class="ln">'+fmt((mods.find(m=>m.path==='src/planetgen/db/query.py')||{lines:0}).lines)+' lines</span></a></div>';
-const DB='<div class="db"><div class="node"><span class="nm">Content database (one per galaxy)</span><span class="ds">MySQL 8 or MariaDB 11. Schema v53, 46 tables: sectors, systems, bodies, phenomena, bright stars, stats, population.</span></div><div class="node"><span class="nm">Control database (one per deployment)</span><span class="ds">Schema v7, 14 tables: admins, sessions, API keys, two-step sign-in, lockouts, audit log, the work queue.</span></div><div class="node"><span class="nm">On disk</span><span class="ds">The Galaxy Map tile cache and the Generate job directories (state.json, output.log, progress.json). The page cache is in memory.</span></div></div>';
+const DB='<div class="db"><div class="node"><span class="nm">Content database (one per galaxy)</span><span class="ds">MySQL 8 or MariaDB 11. Schema v53, 42 tables in schema.sql (and 14 in control_schema.sql): sectors, systems, bodies, phenomena, bright stars, stats, population.</span></div><div class="node"><span class="nm">Control database (one per deployment)</span><span class="ds">Schema v7, 14 tables: admins, sessions, API keys, two-step sign-in, lockouts, audit log, the work queue.</span></div><div class="node"><span class="nm">On disk</span><span class="ds">The Galaxy Map tile cache and the Generate job directories (state.json, output.log, progress.json). The page cache is in memory.</span></div></div>';
 document.getElementById('schem').innerHTML=L+R+DB;
 // modules
 const MAX=Math.max(...mods.map(m=>m.lines));
