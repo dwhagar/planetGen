@@ -958,8 +958,10 @@ def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site)
     ends = {line["slab"]: line["end"] for line in before}
     assert any(abs(line["end"][0] - ends[line["slab"]][0]) + abs(line["end"][1] - ends[line["slab"]][1]) > 2
                for line in after), f"the lines didn't follow the turn: {before} {after}"
-    # A button lights its slab and line, and picks it.
-    button = page.locator(".galaxy-slab-button").first
+    # A button lights its slab and line, and picks it. The midplane's slab:
+    # one far above or below can hold a single block, which the map opens
+    # straight away.
+    button = page.locator('.galaxy-slab-button[data-slab="0"]')
     label = button.get_attribute("title").split(":")[0]
     button.hover()
     assert "is-lit" in button.get_attribute("class")
