@@ -43,7 +43,7 @@ import queryDb
 import resetDb
 import updateOrbits
 from stellarObjects import _db
-from stellarObjects.nameUniqueness import strip_decoration
+from planetgen.names.uniqueness import strip_decoration
 from stellarObjects.systemRender import render_star_system
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs

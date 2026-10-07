@@ -2,7 +2,7 @@
 
 """
 Database-integration tests for `stellarObjects._db`'s name-uniqueness
-machinery (v24, `stellarObjects/nameUniqueness.py`) -- `insert_sector`/
+machinery (v24, `planetgen/names/uniqueness.py`) -- `insert_sector`/
 `insert_star_system`'s `reserve_*`/`confirm_*` calls, exercised against a
 real database. `test_name_uniqueness.py` covers the pure resolver
 functions in isolation; this file covers the sector > system hierarchy

@@ -3878,7 +3878,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     name generator constellation name support based on constellation
     names throughout all known languages and then slice it up like we do
     for all our naming". Done: a constellation name list in
-    `stellarObjects/names.py` gathered from constellation and star-group
+    `planetgen/names/wordlists.py` gathered from constellation and star-group
     names across the world's languages and sky cultures (not just the 88
     IAU ones), and a constellation name generator that slices and
     recombines them into new names the same way stars, planets and

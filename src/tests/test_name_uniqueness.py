@@ -1,7 +1,7 @@
 # tests/test_name_uniqueness.py
 
 """
-Pure unit tests for `stellarObjects.nameUniqueness` -- no database, no
+Pure unit tests for `planetgen.names.uniqueness` -- no database, no
 generation, just the collision-resolution state machines and their
 inverse (`strip_decoration`). See that module's own docstring for the
 sector > system hierarchy these feed into; the actual
@@ -11,8 +11,8 @@ covered separately by `test_db_persistence.py`.
 Run with: pytest tests/test_name_uniqueness.py
 """
 
-from stellarObjects import nameUniqueness as nu
-from stellarObjects.names import (
+from planetgen.names import uniqueness as nu
+from planetgen.names.wordlists import (
     GREEK_LETTERS, ROMAN_NUMERAL_VALUES,
 )
 

@@ -3,7 +3,7 @@
 """
 Tests for `src/dedupeNames.py` -- the one-off backfill script that cleans
 up sector/system name collisions in an existing database
-(v22, `stellarObjects/nameUniqueness.py`). Live generation (via
+(v22, `planetgen/names/uniqueness.py`). Live generation (via
 `stellarObjects._db.py`'s `reserve_*_name`/`confirm_*_name`) already
 prevents any *new* duplicate, so these tests simulate a "legacy" database
 that predates that guarantee: insert normally (which the reservation

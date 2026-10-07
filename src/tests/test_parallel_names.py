@@ -19,7 +19,7 @@ import pytest
 
 from stellarObjects import _db, population
 from stellarObjects.config import SystemConfig
-from stellarObjects.names import DIMINUTIVE_PREFIXES, GREEK_LETTERS
+from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 

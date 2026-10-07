@@ -1,7 +1,7 @@
 # tests/test_body_names.py
 
 """
-Tests for `stellarObjects/bodyNames.py` -- stars, planets and moons named
+Tests for `planetgen/names/bodies.py` -- stars, planets and moons named
 from their system (`Voranthis I`, `Voranthis IIa`, a binary's
 `Voranthis Kelmoor`) -- and for `StarSystem` applying it at generation.
 
@@ -10,7 +10,7 @@ Run with: pytest tests/test_body_names.py
 
 import pytest
 
-from stellarObjects.bodyNames import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, close_pair_label, moon_letters, rename_prefix, to_roman
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 
@@ -164,7 +164,7 @@ def test_close_pair_label():
 
 
 def test_companion_star_words_are_single_words():
-    from stellarObjects.bodyNames import generate_star_word
+    from planetgen.names.bodies import generate_star_word
     for _ in range(200):
         word = generate_star_word(companion=True)
         assert word and " " not in word
@@ -181,7 +181,7 @@ def test_serialization_round_trip_keeps_the_system_name():
 def test_star_words_are_always_one_word(monkeypatch):
     """Regression: STAR_NAMES' "El Nath" could come through as a two-word
     star word, so a star's name no longer ended in its own word."""
-    from stellarObjects import bodyNames
+    from planetgen.names import bodies as bodyNames
 
     draws = iter(["El Nath", "Vega"])
     monkeypatch.setattr(bodyNames, "generate_phoneme_salad_name", lambda *args, **kwargs: next(draws))

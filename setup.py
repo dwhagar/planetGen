@@ -3,8 +3,8 @@ import re
 
 from setuptools import find_packages, setup
 
-# NLTK's 'words' corpus (needed by stellarObjects.names for name generation) is
-# downloaded lazily, at import time, by stellarObjects/names.py itself — it is
+# NLTK's 'words' corpus (needed by planetgen.names.wordlists for name generation) is
+# downloaded lazily, at import time, by planetgen/names/wordlists.py itself — it is
 # NOT downloaded here. A previous version of this file tried to download it via
 # a custom post-install command, but that imported nltk at the top of setup.py,
 # which crashes: pip builds this package in an isolated build environment that
@@ -49,10 +49,11 @@ setup(
     packages=find_packages(where='src'),
     package_dir={pkg: 'src/' + pkg.replace('.', '/') for pkg in find_packages(where='src')},
     package_data={
-        # stellarObjects.names reads this at import time; setuptools does not
+        # planetgen.names.wordlists reads this at import time; setuptools does not
         # include non-.py files in a package by default, so without this the
         # installed package is missing the file and crashes on first import.
-        'stellarObjects': ['offensive_words.txt', 'common_passwords.txt.gz', 'common_passwords.LICENSE'],
+        'stellarObjects': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
+        'planetgen.names': ['offensive_words.txt'],
     },
     py_modules=['generate'],
     entry_points={

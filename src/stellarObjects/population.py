@@ -33,7 +33,7 @@ import pymysql
 from planetgen import tuning
 from planetgen.util import log
 from .evolution import life_stage_from_paragraphs
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
 
 _YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}

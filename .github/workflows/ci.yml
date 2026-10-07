@@ -151,7 +151,7 @@ jobs:
       - name: Install package with test/api extras
         run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
 
-      # stellarObjects/names.py checks nltk.data.find() before ever
+      # planetgen/names/wordlists.py checks nltk.data.find() before ever
       # downloading -- pre-fetching here means a flaky/rate-limited
       # download never fails a test run partway through.
       - name: Pre-fetch the NLTK 'words' corpus
@@ -574,7 +574,7 @@ jobs:
         # persistence helpers (TransitionParser.train/parse,
         # AveragedPerceptron.save/load, PerceptronTagger.save_to_json,
         # save_maxent_params) -- unpatched upstream as of this writing.
-        # stellarObjects/names.py only ever calls nltk.corpus.words,
+        # planetgen/names/wordlists.py only ever calls nltk.corpus.words,
         # nltk.data.find, and nltk.download, never any of the affected
         # APIs, so this isn't reachable here. Ignored by ID (not skipped
         # wholesale) so a real, relevant finding still fails this job, and

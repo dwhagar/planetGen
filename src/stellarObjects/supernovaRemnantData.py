@@ -21,7 +21,7 @@ import random
 
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .nebulaData import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from planetgen import tuning
 from planetgen.util import log

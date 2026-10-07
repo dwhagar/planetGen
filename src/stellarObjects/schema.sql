@@ -595,7 +595,7 @@
 --   new-tab link whenever either is set, per the same convention
 --   `html/sector.py`'s link swap uses for `wiki_url`.
 --
--- v24: name-uniqueness registries (`stellarObjects/nameUniqueness.py`) --
+-- v24: name-uniqueness registries (`planetgen/names/uniqueness.py`) --
 --   `sector_name_registry`/`system_name_registry`/`body_name_registry`,
 --   one per level of the sector > system > planet/moon naming hierarchy,
 --   tracking each base name's progress through that level's own
@@ -2308,7 +2308,7 @@ CREATE TABLE IF NOT EXISTS asteroid_field_composition (
 -- ---------------------------------------------------------------------
 -- sector_name_registry / system_name_registry -- name-uniqueness
 -- bookkeeping (v24, see the header comment's "v24" note and
--- `stellarObjects/nameUniqueness.py`'s own module docstring for the
+-- `planetgen/names/uniqueness.py`'s own module docstring for the
 -- sector > system decoration hierarchy; v34 dropped the planet/moon
 -- registry, since those names now derive from the system's). One row per
 -- distinct base name (the name with every decoration this project could

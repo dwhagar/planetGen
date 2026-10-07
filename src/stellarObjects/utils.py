@@ -16,7 +16,7 @@ import math
 import random
 
 from .config import SystemConfig
-from .names import (
+from planetgen.names.wordlists import (
     BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS,
     NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
     UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
