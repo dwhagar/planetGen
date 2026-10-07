@@ -78,6 +78,12 @@ STARTING_GRACE_SECONDS = 15
 """int: How long a just-spawned job may go without a `state.json` before
 it counts as interrupted (the runner writes one as its first act)."""
 
+RUNNER_START_LIMIT_SECONDS = 300
+"""int: How long a job whose runner is still alive may go without a
+`state.json` (a slow start on a busy server) before it counts as
+interrupted anyway: where only the pid can be checked (no `/proc`, not
+Windows), a reused pid can't block jobs for longer than this."""
+
 JOB_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 """re.Pattern: A job id: `YYYYMMDD-HHMMSS-xxxx`. Checked before any id
 from a URL becomes part of a path."""
@@ -285,9 +291,14 @@ def get_job(job_id, root=None):
     status = state.get("status")
     now = time.time()
     if status is None:
+        # A runner still alive is starting until `RUNNER_START_LIMIT_SECONDS`
+        # (TEST.90: calling a slow start interrupted let a finished-looking
+        # job come back as running); one with no pid yet gets the grace.
         pid = _runner_pid(path, state)
-        if now - job.get("created_at", 0) < STARTING_GRACE_SECONDS and (
-                pid is None or _runner_alive(pid, job_id, job.get("created_at"))):
+        age = now - job.get("created_at", 0)
+        if pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id, job.get("created_at")):
+            status = "starting"
+        elif pid is None and age < STARTING_GRACE_SECONDS:
             status = "starting"
         else:
             status = "interrupted"

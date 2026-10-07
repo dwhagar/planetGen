@@ -656,6 +656,33 @@ def test_one_job_at_a_time(site, client, no_spawn, jobs_root):
     assert "Cancel job" in html
 
 
+@pytest.mark.skipif(not os.path.isdir("/proc/self"), reason="checks a runner's command line in /proc")
+def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
+    """TEST.90: a runner that hasn't written `state.json` after the grace
+    period but is still alive was called interrupted (finished), and then
+    came back as running, so the next job found it busy."""
+    import subprocess
+    job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
+    path = os.path.join(jobs_root, job_id)
+    with open(os.path.join(path, "job.json")) as f:
+        body = json.load(f)
+    body["created_at"] -= jobs.STARTING_GRACE_SECONDS + 5
+    with open(os.path.join(path, "job.json"), "w") as f:
+        json.dump(body, f)
+    runner = subprocess.Popen([PY, "-c", "import time; time.sleep(30)", path])
+    try:
+        with open(os.path.join(path, "runner.pid"), "w") as f:
+            f.write(str(runner.pid))
+        assert jobs.get_job(job_id)["status"] == "starting"
+        assert not jobs.get_job(job_id)["finished"]
+        with pytest.raises(jobs.JobBusy):
+            jobs.start_job("reset", "Reset", [{"label": "x", "argv": ["true"]}], spawn=False)
+    finally:
+        runner.kill()
+        runner.wait()
+    assert jobs.get_job(job_id)["status"] == "interrupted"
+
+
 def test_stale_lock_is_cleared(jobs_root, monkeypatch):
     job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
     # Pretend it was spawned long ago by a runner that is gone.

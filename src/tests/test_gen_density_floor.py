@@ -117,3 +117,37 @@ def test_a_large_bulge_gets_bright_stars_far_above_layer_121(layer_index):
     assert len(rows) > 20
     assert {row[1] for row in rows} == {layer_index}
     assert {row[6] for row in rows} <= {"bulge", "old"}
+
+
+# --- GEN.117 --------------------------------------------------------------
+
+INNER_RINGS = 242
+"""int: The inner disk out to about 970 pc (Block 0-2 on the Galaxy Map)."""
+
+
+def _scatter(layer_index):
+    return list(brightStars.scatter_layer(MILKY_WAY, layer_index, INNER_RINGS, EDGE_PC, E_VALUE,
+                                          tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, 7))
+
+
+@pytest.mark.parametrize("layer_index", [121, -121])
+def test_bright_stars_rise_far_above_the_thin_young_band(layer_index):
+    # About 485 pc from the plane, where young stars are all but gone,
+    # old disk and bulge giants still give hundreds of bright stars.
+    rows = _scatter(layer_index)
+    populations = [row[6] for row in rows]
+    assert len(rows) > 200
+    assert populations.count("old") + populations.count("bulge") > 0.8 * len(rows)
+
+
+def test_the_bright_stars_z_spread_by_population():
+    plane = [row[6] for row in _scatter(0)]
+    high = [row[6] for row in _scatter(60)]       # about 240 pc up
+    # The plane is mostly young stars; 240 pc up young ones are rare,
+    # but every older population is still there in strength.
+    assert plane.count("young") > 0.5 * len(plane)
+    assert high.count("young") < 0.1 * len(high)
+    for population in ("intermediate", "old", "bulge"):
+        assert high.count(population) > 0.1 * plane.count(population), population
+    # Altogether, 240 pc up holds more than a tenth of the plane's count.
+    assert len(high) > 0.1 * len(plane)

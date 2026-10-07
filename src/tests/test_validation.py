@@ -86,7 +86,12 @@ def test_space_orbits_keeps_a_pinned_class(star):
 
 def test_trim_to_orbit_ceiling_returns_what_it_removed(star):
     planets = [planet_at(star, 6.0, "J"), planet_at(star, 50.0, "J")]
-    removed = validation.trim_to_orbit_ceiling(planets, 10.0)
+    # TEST.82: a planet reaches out by five Hill radii as well, so a heavy
+    # giant at 6 AU can reach past 10 AU; the ceiling sits just past
+    # whatever the inner one's reach was drawn to be.
+    ceiling = validation.reach_au(planets[0]) + 1.0
+    assert validation.reach_au(planets[1]) > ceiling
+    removed = validation.trim_to_orbit_ceiling(planets, ceiling)
     assert [p.distance for p in removed] == [50.0]
     assert len(planets) == 1
 

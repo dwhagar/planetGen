@@ -27,6 +27,7 @@ import pytest
 
 from tests.bughunt_support import mysql_argv, run_cli
 from planetgen.db import store
+from planetgen.generation import run_sector
 
 
 # --- README "Note on Incompatible Options" ------------------------------
@@ -79,9 +80,12 @@ def test_sector_min_habitable_exceeding_num_systems_is_rejected(mysql_config):
         run_cli("sector", ["--num-systems", "3", "--min-habitable", "4"] + mysql_argv(mysql_config))
 
 
-def test_sector_min_habitable_above_a_drawn_count_warns_and_raises_the_count(mysql_config, capsys):
+def test_sector_min_habitable_above_a_drawn_count_warns_and_raises_the_count(mysql_config, capsys, monkeypatch):
     # GEN.81: with --density the count is drawn, so --min-habitable can
     # land above it; the console warns and gives the sector that many.
+    # The draw is pinned at one system: a tiny --density still drew 3 now
+    # and then, which isn't above 2 (seen on CI).
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean, rng=None: 1)
     run_cli("sector", ["--density", "1e-6", "--min-habitable", "2"] + mysql_argv(mysql_config))
     assert "WARNING:" in capsys.readouterr().out
     conn = store.get_connection(mysql_config)
