@@ -33,7 +33,7 @@ diagram needs, so it renders here exactly like a nebula/asteroid field.
 from planetgen.web.lib.fmt import esc
 
 try:
-    from stellarObjects.utils import ly_to_au
+    from planetgen.physics.units import ly_to_au
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching galaxy.py's/phenomenon.py's own

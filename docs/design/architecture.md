@@ -345,8 +345,8 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `phenomenonrender.js` | The phenomenon View panel's three.js render (neutron star beams, accretion disks, rogue planet, comet), one still frame under reduced motion. |
 | `generatejobs.js` | Live progress of the current Generate job (polls `/admin/generate/status`). |
 | `mapzoom.js`, `phenomenonmap.js` | Shared SVG viewBox zoom/pan, and its use on the phenomenon diagram. |
-| `distance.js` | The browser copy of the distance ladder (`utils.format_distance_m`). |
-| `numberformat.js` | The browser copy of `utils.format_number` (scientific notation past 4 whole digits). |
+| `distance.js` | The browser copy of the distance ladder (`format.format_distance_m`). |
+| `numberformat.js` | The browser copy of `format.format_number` (scientific notation past 4 whole digits). |
 | `localtime.js` | Rewrites UTC times into the viewer's time zone. |
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |
@@ -439,7 +439,7 @@ get a quasar (`add_galactic_nucleus`).
 **System.** `StarSystem` (`systemData.py`) builds its star or binary
 (`starData`, `doubleStar`, `wideBinary`, `compactRemnant`), then planets
 and moons (`planetData`, `planetPhysics`), belts and comets, then applies
-life data (`planetLife`). Names come from `utils.generate_phoneme_salad_name`
+life data (`planetLife`). Names come from `wordsalad.generate_phoneme_salad_name`
 and `bodyNames.py`.
 
 **Save.** `_db.save_sector` runs `insert_sector` in one transaction: it

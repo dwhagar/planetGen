@@ -29,11 +29,15 @@ from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
-from stellarObjects.utils import (format_age_string, format_number, calculate_galactic_orbit,
-                    calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
-                    format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, get_star_evolutionary_profile,
-                    finite_domain, properties_to_string)
+from planetgen.galaxy.galactic_orbit import (
+    calculate_galactic_orbit, format_galactic_orbit, generate_galactic_orbit_fields,
+)
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
+from planetgen.util.checks import finite_domain
+from planetgen.util.format import (
+    format_age_string, format_number, format_body_radius_km, format_distance_au, format_distance_km, format_relative_to_sol, properties_to_string,
+)
 
 STAR_TYPE_PATTERN = re.compile(r"([OBAFGKM])([0-9])(IA\+|IAB|VII|III|IA|IB|II|IV|VI|0|V|D)")
 """A forced `SystemConfig.STAR_TYPE` (uppercased): spectral class, subclass
@@ -196,7 +200,7 @@ class Star:
     `AttributeError`. Populated only for a star that is one constituent of
     an S-type (wide) binary: this star's own Holman & Wiegert (1999)
     critical semi-major axis (see
-    `utils.holman_wiegert_critical_semimajor_axis`), the maximum orbit
+    `orbits.holman_wiegert_critical_semimajor_axis`), the maximum orbit
     distance that stays long-term stable against its companion's
     perturbation. `None` for a single star or either star of a P-type
     (close) binary, where no such companion-driven limit applies (a P-type
@@ -229,7 +233,7 @@ class Star:
     fixed point, caused by the combined gravitational pull of every planet
     orbiting it directly -- the "wobble" half of a proper two-body
     treatment, alongside the planets' own unchanged `position_x/y/z` (see
-    `utils.calculate_reflex_offset`'s docstring). Zero for a star with no
+    `orbits.calculate_reflex_offset`'s docstring). Zero for a star with no
     planets. Set directly by `StarSystem.__init__` once `self.planets`
     exists -- a `Star` never computes this on its own construction, the
     same reasoning `a_crit_au` documents above. Applies identically to a
@@ -657,7 +661,7 @@ class Star:
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
         """
         Calculates this star system's circular orbital speed and period
-        around the galactic center, via `utils.calculate_galactic_orbit`.
+        around the galactic center, via `galactic_orbit.calculate_galactic_orbit`.
 
         Unlike `calculate_system_perimeter`, the result doesn't depend on
         this star's own mass -- see that function's docstring -- so this
@@ -674,7 +678,7 @@ class Star:
 
         Returns:
             tuple: `(orbital_speed_kms, orbital_period_gy)` -- see
-                  `utils.calculate_galactic_orbit`.
+                  `galactic_orbit.calculate_galactic_orbit`.
         """
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
@@ -1344,3 +1348,83 @@ def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_p
                                    min_required_age_gy=secondary.planet_age_requirement_gy(secondary_planets),
                                    age_ceiling_gy=secondary.age_ceiling_gy())
     secondary.age = primary.age
+
+
+def get_star_spectral_class(star):
+    """
+    Returns the uppercase spectral class character (e.g. 'G') for a star.
+
+    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
+    `BinaryStarProxy` here (which would create a circular import) — a proxy
+    is detected by duck-typing on its `_primary` attribute, and its primary
+    star's type is used as the representative spectral class.
+
+    Args:
+        star: A `Star` or `BinaryStarProxy` instance.
+
+    Returns:
+        str: The uppercase spectral class character.
+    """
+    reference_star = star._primary if hasattr(star, '_primary') else star
+    return reference_star.type[0].upper()
+
+
+def get_star_evolutionary_profile(star):
+    """
+    Returns the `STAR_EVOLUTION`-shaped profile describing which life
+    chemicals and evolutionary paces are plausible for planets orbiting
+    `star`, correctly accounting for its Yerkes luminosity class.
+
+    `STAR_EVOLUTION` is keyed by spectral letter (e.g. 'G'), which for a
+    main-sequence (Yerkes 'V') star fully determines both its current
+    temperature and its total lifespan -- so that class's fixed entry
+    applies directly.
+
+    For any evolved or remnant star (giants, supergiants, subgiants, bright
+    giants, hypergiants, subdwarfs, white dwarfs), the spectral letter only
+    reflects the star's *current* temperature/color, not a lifespan -- e.g.
+    an "F5VII" white dwarf merely glows at F-like temperature; it did not
+    live and die as an F-type main-sequence star. Using STAR_EVOLUTION['F']
+    directly for such a star would misapply a main-sequence lifespan/scale
+    table to an unrelated evolutionary history. `potentially_viable_chemicals`
+    (driven by the star's current emission spectrum) is still taken from the
+    current-temperature letter, since that part genuinely is about current
+    color. `supported_evolutionary_scales`, which is really a proxy for how
+    much time was available for a biosphere to develop, is instead derived
+    from the star's own already-computed age/lifespan (already correctly
+    yerkes-class-aware -- see `Star._calculate_initial_star_age_and_lifespan`),
+    by checking which evolutionary paces could reach their technological
+    civilization milestone within that time budget.
+
+    Args:
+        star: A `Star` or `BinaryStarProxy` instance.
+
+    Returns:
+        dict: A `STAR_EVOLUTION`-entry-shaped dict (with at least
+              `potentially_viable_chemicals` and `supported_evolutionary_scales`
+              keys), or `{}` if the spectral letter has no entry.
+    """
+    reference_star = star._primary if hasattr(star, '_primary') else star
+    spectral_class_char = reference_star.type[0].upper()
+    base_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
+    if not base_info:
+        return {}
+
+    if reference_star.yerkes_class == "V":
+        return base_info
+
+    # A white dwarf's lifespan is infinite (it just cools forever), so "how
+    # much time has been available so far" is better represented by its age.
+    # Every other evolved class has a finite lifespan, used as-is.
+    time_budget = reference_star.age if reference_star.lifespan == float('inf') else reference_star.lifespan
+
+    reachable_scales = [
+        scale for scale in ["fast", "normal", "slow"]
+        if tuning.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
+    ]
+    if not reachable_scales:
+        # Even the fastest pace doesn't fit -- still return it so callers have
+        # something to work with, mirroring the fallback in get_evolutionary_timeline.
+        reachable_scales = ["fast"]
+
+    return {**base_info, "supported_evolutionary_scales": reachable_scales}

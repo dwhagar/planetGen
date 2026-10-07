@@ -135,7 +135,7 @@ def test_parabolic_mean_anomaly_matches_definition():
 # ---------------------------------------------------------------------------
 
 def test_vis_viva_speed_matches_circular_orbital_speed():
-    from stellarObjects.utils import circular_orbital_speed_kms
+    from planetgen.physics.orbits import circular_orbital_speed_kms
 
     semi_major_axis_au = 3.0
     primary_mass_solar = 1.0

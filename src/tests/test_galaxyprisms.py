@@ -64,7 +64,7 @@ def _threshold_shape():
     """The test shape with the galaxy's own sector threshold, as the page
     embeds it (lib/galaxymap3d._density_shape)."""
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
 
     return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 
@@ -457,7 +457,7 @@ def test_one_sector_blocks_outline_exactly_the_skeletons_layers(center, view_rad
     # With the galaxy's sector threshold, a single-sector block exists
     # exactly when build_layer_extents' bound lets that sector exist.
     from planetgen.galaxy.skeleton import bound_relative_density_at, expected_system_count_at_density_1
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
 
     threshold = 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))
     out = _run(f"""

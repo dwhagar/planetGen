@@ -6,7 +6,7 @@ Kepler Orbital Motion
 
 Two-body Kepler/Barker-equation propagation for eccentric (elliptical,
 `0 <= e < 1`) and parabolic (`e == 1`) orbits -- the physically correct
-alternative to `utils.orbital_position_au`'s uniform-angular-speed
+alternative to `orbits.orbital_position_au`'s uniform-angular-speed
 circular-orbit model, needed for any body whose orbit isn't nearly
 circular. `cometData.Comet` is the motivating case here (see
 docs/design/comet-orbital-realism.md): a Halley-like bound comet reaches
@@ -33,7 +33,7 @@ since Kepler's third law (`T^2 = a^3/M` in these units) reduces to
 `T = 2*pi*sqrt(a^3/mu)` with `mu = 4*pi^2*M`.
 
 Once a true anomaly and radius are known, 3D placement reuses
-`utils.orbital_position_au` as-is: that function's rotation math takes an
+`orbits.orbital_position_au` as-is: that function's rotation math takes an
 arbitrary radius and "argument of latitude" angle -- it happens to be
 called elsewhere with a *fixed* radius and phase-as-argument-of-latitude
 (a circular orbit has no periapsis, so phase alone plays that role there)
@@ -45,7 +45,8 @@ angle instead. No new rotation math is needed.
 import math
 
 from planetgen.physics import constants
-from stellarObjects.utils import finite_domain, orbital_position_au
+from planetgen.physics.orbits import orbital_position_au
+from planetgen.util.checks import finite_domain
 
 TWO_PI = 2 * math.pi
 
@@ -342,7 +343,7 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
     Dispatches on `orbit_type` ("elliptical" uses Kepler's equation and a
     finite semi-major axis derived from `perihelion_distance_au`/
     `eccentricity`; "parabolic" uses Barker's equation and an infinite
-    semi-major axis) and reuses `utils.orbital_position_au` for the actual
+    semi-major axis) and reuses `orbits.orbital_position_au` for the actual
     3D placement -- see this module's own docstring for why that function,
     built for a fixed-radius circular orbit, applies unchanged here.
 

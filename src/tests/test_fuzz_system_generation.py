@@ -49,7 +49,11 @@ from planetgen.physics import constants as pc, kepler as km
 from planetgen.generation import life as planetLife
 from planetgen.physics import planets as pp
 from planetgen import tuning as prog
-from stellarObjects import utils
+from planetgen.galaxy import galactic_orbit
+from planetgen.physics import formation
+from planetgen.physics import orbits
+from planetgen.util import format as formatting
+from planetgen.util import random as sampling
 from planetgen.generation import comet as cometData, star as starData
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
@@ -690,19 +694,19 @@ L_SUN = pc.SOLAR_LUMINOSITY
 # name -> (callable, nominal float args)
 HELPERS = {
     "calculate_orbital_period_years": (pp.calculate_orbital_period_years, (1.0, M_SUN)),
-    "calculate_hill_sphere": (utils.calculate_hill_sphere, (1.5e11, 6e24, M_SUN)),
-    "holman_wiegert_critical_semimajor_axis": (utils.holman_wiegert_critical_semimajor_axis, (100.0, 0.5, 0.3)),
-    "mutual_hill_radius_au": (utils.mutual_hill_radius_au, (6e24, 6e24, 1.0, 1.5, M_SUN)),
-    "mutual_hill_radius_m": (utils.mutual_hill_radius_m, (1.5e11, 2e11, 6e24, 6e24, M_SUN)),
-    "snow_line_au": (utils.snow_line_au, (L_SUN,)),
-    "disk_surface_density_scale": (utils.disk_surface_density_scale, (M_SUN,)),
-    "mmsn_surface_density_gcm2": (utils.mmsn_surface_density_gcm2, (1.0, 2.7, 1.0)),
-    "isolation_mass_kg": (utils.isolation_mass_kg, (1.0, 7.0, M_SUN)),
-    "calculate_habitable_zone": (utils.calculate_habitable_zone, (L_SUN,)),
-    "calculate_galactic_orbit": (utils.calculate_galactic_orbit, (26000.0,)),
-    "circular_orbital_speed_kms": (utils.circular_orbital_speed_kms, (1.0, 1.0)),
-    "orbital_position_au": (utils.orbital_position_au, (1.0, 10.0, 20.0, 30.0)),
-    "minimum_update_interval_years": (utils.minimum_update_interval_years, (1.0,)),
+    "calculate_hill_sphere": (orbits.calculate_hill_sphere, (1.5e11, 6e24, M_SUN)),
+    "holman_wiegert_critical_semimajor_axis": (orbits.holman_wiegert_critical_semimajor_axis, (100.0, 0.5, 0.3)),
+    "mutual_hill_radius_au": (orbits.mutual_hill_radius_au, (6e24, 6e24, 1.0, 1.5, M_SUN)),
+    "mutual_hill_radius_m": (orbits.mutual_hill_radius_m, (1.5e11, 2e11, 6e24, 6e24, M_SUN)),
+    "snow_line_au": (formation.snow_line_au, (L_SUN,)),
+    "disk_surface_density_scale": (formation.disk_surface_density_scale, (M_SUN,)),
+    "mmsn_surface_density_gcm2": (formation.mmsn_surface_density_gcm2, (1.0, 2.7, 1.0)),
+    "isolation_mass_kg": (formation.isolation_mass_kg, (1.0, 7.0, M_SUN)),
+    "calculate_habitable_zone": (orbits.calculate_habitable_zone, (L_SUN,)),
+    "calculate_galactic_orbit": (galactic_orbit.calculate_galactic_orbit, (26000.0,)),
+    "circular_orbital_speed_kms": (orbits.circular_orbital_speed_kms, (1.0, 1.0)),
+    "orbital_position_au": (orbits.orbital_position_au, (1.0, 10.0, 20.0, 30.0)),
+    "minimum_update_interval_years": (orbits.minimum_update_interval_years, (1.0,)),
     "gravitational_parameter_au3_yr2": (km.gravitational_parameter_au3_yr2, (1.0,)),
     "mean_motion_per_year": (km.mean_motion_per_year, (1.0, 1.0)),
     "solve_eccentric_anomaly": (km.solve_eccentric_anomaly, (1.0, 0.5)),
@@ -717,7 +721,7 @@ HELPERS = {
     "_calculate_heliosphere_radius_static": (
         Star._calculate_heliosphere_radius_static, (M_SUN, L_SUN, 696000.0, "G2V", "V")),
     "_calculate_system_perimeter_static": (BinaryStarProxy._calculate_system_perimeter_static, (M_SUN, 26000.0)),
-    "sample_bounded_bell": (utils.sample_bounded_bell, (1.0, 2.0, 0.5)),
+    "sample_bounded_bell": (sampling.sample_bounded_bell, (1.0, 2.0, 0.5)),
 }
 
 # Finite but hostile: zero, signed zero, subnormal, tiny, huge, negative.
@@ -766,7 +770,7 @@ def _grid_failures(name, values):
 
 
 # Regression repros: each of these once broke the contract on a FINITE
-# input (now fixed by `utils.finite_domain`); kept as exact examples.
+# input (now fixed by `planetgen.util.checks.finite_domain`); kept as exact examples.
 FINITE_REPROS = [
     ("calculate_orbital_period_years", (1.0, 5e-324)),    # kg->Msun underflow: ZeroDivisionError
     ("calculate_orbital_period_years", (1e300, M_SUN)),   # OverflowError
@@ -853,35 +857,35 @@ def test_valid_domain_orbital_period(d, m):
 @given(d=POS, m=MASS, big=MASS)
 def test_valid_domain_hill_spheres(d, m, big):
     assume(m < big)
-    r = utils.calculate_hill_sphere(d, m, big)
+    r = orbits.calculate_hill_sphere(d, m, big)
     assert math.isfinite(r) and 0 < r < d
-    mutual = utils.mutual_hill_radius_au(m, m, d, d, big)
+    mutual = orbits.mutual_hill_radius_au(m, m, d, d, big)
     assert math.isfinite(mutual) and mutual > 0
-    assert mutual == pytest.approx(utils.mutual_hill_radius_m(d, d, m, m, big), rel=1e-12)
+    assert mutual == pytest.approx(orbits.mutual_hill_radius_m(d, d, m, m, big), rel=1e-12)
 
 
 @given(a=POS, mu=st.floats(0.0, 1.0), e=st.floats(0.0, 1.0))
 def test_valid_domain_holman_wiegert(a, mu, e):
-    a_crit = utils.holman_wiegert_critical_semimajor_axis(a, mu, e)
+    a_crit = orbits.holman_wiegert_critical_semimajor_axis(a, mu, e)
     assert math.isfinite(a_crit) and 0 < a_crit < a
 
 
 @given(lum=LUM, mass=MASS, d=POS)
 def test_valid_domain_disk_helpers(lum, mass, d):
-    inner, outer = utils.calculate_habitable_zone(lum)
+    inner, outer = orbits.calculate_habitable_zone(lum)
     assert 0 < inner < outer and _finite(inner, outer)
-    snow = utils.snow_line_au(lum)
-    sigma = utils.mmsn_surface_density_gcm2(d, snow, utils.disk_surface_density_scale(mass))
-    iso = utils.isolation_mass_kg(d, sigma, mass)
+    snow = formation.snow_line_au(lum)
+    sigma = formation.mmsn_surface_density_gcm2(d, snow, formation.disk_surface_density_scale(mass))
+    iso = formation.isolation_mass_kg(d, sigma, mass)
     assert _finite(snow, sigma, iso) and snow > 0 and sigma > 0 and iso > 0
 
 
 @given(d=POS, period=POS, inc=ANGLE, node=ANGLE, phase=ANGLE)
 def test_valid_domain_orbital_position_and_speed(d, period, inc, node, phase):
-    x, y, z = utils.orbital_position_au(d, inc, node, phase)
+    x, y, z = orbits.orbital_position_au(d, inc, node, phase)
     assert math.sqrt(x * x + y * y + z * z) == pytest.approx(d, rel=1e-9)
-    speed = utils.circular_orbital_speed_kms(d, period)
-    interval = utils.minimum_update_interval_years(period)
+    speed = orbits.circular_orbital_speed_kms(d, period)
+    interval = orbits.minimum_update_interval_years(period)
     assert _finite(speed, interval) and speed > 0 and interval > 0
 
 
@@ -906,7 +910,7 @@ def test_valid_domain_kepler_parabolic(t, q, m):
 
 @given(dist=st.floats(1e-3, 1e6), mass=MASS)
 def test_valid_domain_galactic_and_perimeter(dist, mass):
-    speed, period = utils.calculate_galactic_orbit(dist)
+    speed, period = galactic_orbit.calculate_galactic_orbit(dist)
     perimeter = BinaryStarProxy._calculate_system_perimeter_static(mass, dist)
     assert _finite(speed, period, perimeter) and speed > 0 and period > 0 and perimeter > 0
 
@@ -917,12 +921,12 @@ def test_valid_domain_bounded_bell(lo, width, mode, seed):
     hi = lo + width
     assume(hi > lo)
     with _deterministic_entropy(seed):
-        value = utils.sample_bounded_bell(lo, hi, mode)
+        value = sampling.sample_bounded_bell(lo, hi, mode)
     assert math.isfinite(value) and lo <= value <= hi
 
 
 @given(years=st.floats(1 / (365.25 * 24 * 60), 1e15), age=st.floats(1e-6, 1e4))
 def test_valid_domain_text_formatters(years, age):
-    for text in (utils.format_period_years(years), utils.format_age_string(age)):
+    for text in (formatting.format_period_years(years), formatting.format_age_string(age)):
         assert isinstance(text, str) and text
         assert not {"nan", "inf", "-inf"} & set(text.lower().split())

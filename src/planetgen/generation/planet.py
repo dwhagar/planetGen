@@ -28,9 +28,9 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
-                    properties_to_string, to_paragraph,
-                    format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k)
+from planetgen.util.format import (
+    format_body_radius_km, format_distance_au, format_distance_km, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
+)
 
 
 class Planet:
@@ -155,7 +155,7 @@ class Planet:
                                    is smaller than `orbital_phase_deg`'s own
                                    floating-point resolution, so the update
                                    would be a silent no-op (see
-                                   `utils.minimum_update_interval_years`).
+                                   `orbits.minimum_update_interval_years`).
                                    Not a narrative stat -- a guard value for
                                    the update path, derived purely from
                                    `period`.

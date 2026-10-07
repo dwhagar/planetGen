@@ -4,7 +4,7 @@
 # 30 minutes ahead of planetgen-orbits@.timer's own fixed time -- a
 # deliberate, guaranteed ordering (not `RandomizedDelaySec`, which
 # planetgen-orbits@.timer also skips for the same reason): update.sh
-# pulls a new version of the very `stellarObjects` code planetgen.cli.orbits
+# pulls a new version of the very `planetgen` code planetgen.cli.orbits
 # imports, so the update needs to have already landed before the orbit
 # update runs, not "sometime this month, independently." 30 minutes is
 # comfortably more than update.sh's own steps (git pull, dependency

@@ -1,5 +1,17 @@
 # Changelog
 
+## [7.204.610] - 2026-10-07
+
+### Changed
+- **`stellarObjects/utils.py` is split into the `planetgen` packages, and `stellarObjects` is gone (OPS.24, step 13 of 14).** The number, distance, speed, duration, temperature, pressure and age text is `planetgen.util.format`; `finite_domain` is `planetgen.util.checks`; the power-law, bounded-bell and log-uniform draws are `planetgen.util.random`; unit conversions are `planetgen.physics.units`; the orbital helpers are `planetgen.physics.orbits`; the disk physics is `planetgen.physics.formation`; the galactic orbit is `planetgen.galaxy.galactic_orbit`; and the word-salad name generator is `planetgen.names.wordsalad`. The few helpers with one caller went to that caller's module. `planetgen.web.lib.fmt` now wraps `planetgen.util.format` instead of keeping its own copies, the Galaxy pages' Quadrant and Zone come from `planetgen.galaxy.geometry`, and the copies of the log-uniform draw are one `log_uniform`. Every draw is unchanged, so a seeded galaxy generates the same.
+
+## [7.203.610] - 2026-10-07
+
+### Fixed
+
+- The console no longer tells the user no (GEN.81). A run the database disk is too small for, a ring, shell or block past 2,000 sectors without `--limit` or `--yes`, an address named outside the galaxy's outline, `--min-habitable` above a sector's drawn count, and a forced body no system had room for each print a warning, and the run goes ahead: the named address is generated at the halo density, the sector gets that many systems, the last system tried is kept. Bad arguments are still refused. `--strict` (on `system`, `sector` and `galaxy`) keeps the old stop for scripts.
+- The installer no longer mixes apt's NumPy 1.x builds with pip's NumPy 2 (OPS.26). On Ubuntu 24.04 pip put NumPy 2.5.3 into /usr/local as a dependency of a newer scipy, and apt's astropy (erfa) and scikit-image, built for NumPy 1.x, stopped importing. NumPy, scipy, astropy with pyerfa and scikit-image now always come from one place: when pip must provide any of them, or would pull any of them in, it installs all of them from `requirements.lock`, and the report says so.
+
 ## [7.202.610] - 2026-10-07
 
 ### Changed

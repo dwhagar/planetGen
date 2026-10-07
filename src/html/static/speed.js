@@ -1,6 +1,6 @@
 // html/static/speed.js
 //
-// The speed ladder (UX.13): the browser mirror of stellarObjects/utils.py
+// The speed ladder (UX.13): the browser mirror of planetgen/util/format.py
 // `format_speed_kms`. A speed is shown in one unit, slowest to fastest
 // km/h < km/s < Mm/s < c: km/h below 1 km/s, km/s up to 1,000 km/s, Mm/s
 // up to a tenth of light speed, then multiples of c ("36 km/h",

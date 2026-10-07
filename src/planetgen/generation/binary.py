@@ -23,12 +23,14 @@ from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from stellarObjects.utils import (finite_domain, format_age_string, calculate_habitable_zone,
-                    calculate_hill_sphere, circular_orbital_speed_kms,
-                    format_distance_au, format_distance_km, format_galactic_orbit, format_relative_to_sol,
-                    minimum_update_interval_years, orbital_position_au,
-                    properties_to_string,
-                    format_period_years, format_speed_kms)
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit
+from planetgen.physics.orbits import (
+    calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
+)
+from planetgen.util.checks import finite_domain
+from planetgen.util.format import (
+    format_age_string, format_distance_au, format_distance_km, format_relative_to_sol, properties_to_string, format_period_years, format_speed_kms,
+)
 
 class BinaryStarProxy(Star):
     """
@@ -77,7 +79,7 @@ class BinaryStarProxy(Star):
     are each star's own offset from the pair's barycenter -- a proper
     two-body treatment alongside the pre-existing `binary_mutual_position_*`
     (still the secondary's position relative to the primary, unchanged --
-    see `utils.calculate_reflex_offset`'s docstring for why that vector is
+    see `orbits.calculate_reflex_offset`'s docstring for why that vector is
     never altered). `binary_secondary_mass_fraction` (a plain attribute,
     not a property) is the constant `secondary_mass / (primary_mass +
     secondary_mass)`, stored so `_db.advance_orbital_phases`' SQL never
@@ -180,7 +182,7 @@ class BinaryStarProxy(Star):
         # "primary" parameter is just whatever mass the orbit is around --
         # here that's the pair's own barycenter, so the combined mass is
         # exactly right, not an approximation). inclination/ascending_node
-        # get the same full-sphere random draw utils.orbital_position_au's
+        # get the same full-sphere random draw orbits.orbital_position_au's
         # other callers use for a rotation plane with no preferred
         # alignment -- unlike a planet/moon's, a binary pair's orbital plane
         # has no protoplanetary-disk reason to sit near any particular

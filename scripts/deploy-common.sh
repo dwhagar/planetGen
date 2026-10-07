@@ -85,7 +85,7 @@ ensure_gunicorn_daemon() {
 
 # The NLTK 'words' corpus, in a shared, world-readable directory (not a
 # per-user home directory) so it works for every user that imports
-# stellarObjects: a login shell running the generator, or Apache's
+# the generator: a login shell running the generator, or Apache's
 # www-data running the web app. planetgen/names/wordlists.py checks
 # nltk.data.find() before ever calling download(), so once this
 # directory (on nltk's default search path) has it, nothing downloads
@@ -238,11 +238,11 @@ import sys
 
 root = sys.argv[1]
 sys.path.insert(0, os.path.join(root, "src"))
-import stellarObjects  # noqa: E402,F401
+import planetgen.generation.system  # noqa: E402,F401
 from planetgen.web.app import create_app  # noqa: E402,F401
 EOF
     ); then
-        echo "The web app and stellarObjects import cleanly as $user with $PYTHON."
+        echo "The web app and the generator import cleanly as $user with $PYTHON."
     else
         echo "error: the web app does not import as $user with $PYTHON (see above)." >&2
         return 1

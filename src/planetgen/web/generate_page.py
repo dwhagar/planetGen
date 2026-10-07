@@ -59,7 +59,8 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.geometry import sector_address_at
-from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, pc_to_ly
+from planetgen.util.format import format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )

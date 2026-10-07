@@ -23,7 +23,7 @@ import random
 from planetgen.generation.evolution import get_evolutionary_timeline
 from planetgen import tuning
 from planetgen.util import log
-from stellarObjects.utils import get_star_evolutionary_profile, get_star_spectral_class
+from planetgen.generation.star import get_star_evolutionary_profile, get_star_spectral_class
 
 
 def get_viable_life_chemicals(planet, spectral_class=None):

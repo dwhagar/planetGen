@@ -12,11 +12,11 @@ actual body a planet/moon orbits, not always the star), and
 whether a moon is tidally locked, not a flat probability -- see [5.11.1]).
 Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `orbital_speed_kms`, derived from the orbital elements above via
-`utils.orbital_position_au`/`circular_orbital_speed_kms` and
+`orbits.orbital_position_au`/`circular_orbital_speed_kms` and
 `planetPhysics.update_orbital_position` (called both at generation and by
 `StarSystem.validate_system` whenever it corrects a planet's `distance`);
 and the floating-point update-guard follow-up after that:
-`Planet.min_update_interval_years` (`utils.minimum_update_interval_years`,
+`Planet.min_update_interval_years` (`orbits.minimum_update_interval_years`,
 `period_years * math.ulp(360.0) / 360` -- the shortest `elapsed_years`
 worth calling `_db.advance_orbital_phases` for before the phase delta
 added would be too small to change the stored value at all).
@@ -248,12 +248,12 @@ def test_serializable_fields_include_orbital_motion_attributes():
 
 # ---------------------------------------------------------------------------
 # Position/speed (CHANGELOG's "Add planet/moon position" entry): pure-math
-# helpers (`utils.orbital_position_au`/`circular_orbital_speed_kms`), plus
+# helpers (`orbits.orbital_position_au`/`circular_orbital_speed_kms`), plus
 # their wiring into generation via `generate_orbital_motion_properties`'s
 # call to `planetPhysics.update_orbital_position`.
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import circular_orbital_speed_kms, orbital_position_au
+from planetgen.physics.orbits import circular_orbital_speed_kms, orbital_position_au
 
 
 def test_orbital_position_au_lands_on_the_orbit_radius_sphere():
@@ -335,11 +335,11 @@ def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
 
 # ---------------------------------------------------------------------------
 # Floating-point update guard (CHANGELOG's "Floating-point update guard"
-# entry): `utils.minimum_update_interval_years`, plus its wiring into
+# entry): `orbits.minimum_update_interval_years`, plus its wiring into
 # generation via `planetPhysics.update_orbital_position`.
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import minimum_update_interval_years
+from planetgen.physics.orbits import minimum_update_interval_years
 
 
 def test_minimum_update_interval_years_matches_manual_formula():
@@ -403,7 +403,7 @@ def test_generated_bodies_have_finite_positive_min_update_interval(bodies):
 # format_period_years (UX.14, replacing years_to_time_string)
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import format_period_years
+from planetgen.util.format import format_period_years
 
 
 @pytest.mark.parametrize("years,expected", [
@@ -439,7 +439,7 @@ def test_format_period_years_zero():
 # of this -- see `calculate_reflex_offset`'s own docstring.
 # ---------------------------------------------------------------------------
 
-from stellarObjects.utils import calculate_reflex_offset
+from planetgen.physics.orbits import calculate_reflex_offset
 
 
 def test_calculate_reflex_offset_is_zero_with_no_children():

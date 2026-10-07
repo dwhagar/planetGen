@@ -32,7 +32,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
 from planetgen.galaxy.sector import _sample_poisson_count
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 
 FIELD_FAMILY = "dark"
 """str: The nebula family the field places (classes M-Q). Emission and

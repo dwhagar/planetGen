@@ -23,7 +23,7 @@ without any of that code needing to know compact remnants exist.
 
 A compact remnant's `luminosity` is tiny (a black hole's Hawking
 radiation, a neutron star's thermal glow) unless it has an accretion disk,
-which makes `utils.calculate_habitable_zone` naturally collapse its
+which makes `orbits.calculate_habitable_zone` naturally collapse its
 `habitable_zone` to (0, 0) AU -- there is no thermal habitable zone around a
 dark object -- without any special-casing in `StarSystem._generate_planets`.
 Likewise, `StarSystem._estimate_max_objects_from_disk_physics`'s snow-line
@@ -48,14 +48,13 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
-from stellarObjects.utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
-                    format_duration_seconds, format_galactic_orbit, format_length_km, format_relative_to_sol,
-                    generate_galactic_orbit_fields, properties_to_string)
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.physics.orbits import calculate_habitable_zone
+from planetgen.util.format import (
+    format_age_string, format_number, format_body_radius_km, format_distance_km, format_duration_seconds, format_length_km, format_relative_to_sol, properties_to_string,
+)
+from planetgen.util.random import log_uniform
 
-
-def _log_uniform(low, high):
-    """A value drawn uniformly in log space between `low` and `high`."""
-    return math.exp(random.uniform(math.log(low), math.log(high)))
 
 
 def hawking_temperature_k(mass_solar):
@@ -243,10 +242,10 @@ class BlackHole(CompactRemnant):
             raise ValueError(f"mass_class must be None or 'supermassive', got {mass_class!r}")
         if mass_class == "supermassive":
             self.mass_class = "supermassive"
-            self.mass_solar = _log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
+            self.mass_solar = log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
         elif random.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
             self.mass_class = "intermediate"
-            self.mass_solar = _log_uniform(*tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
+            self.mass_solar = log_uniform(*tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "intermediate-mass",
                        f"roll passed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
                        f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
@@ -272,7 +271,7 @@ class BlackHole(CompactRemnant):
         if self.mass_class == "supermassive":
             # Always some accretion flow, far below Eddington (Sgr A*).
             self.has_accretion_disk = True
-            eddington_ratio = _log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE)
+            eddington_ratio = log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE)
             self.luminosity = (
                 eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * self.mass_solar
             )

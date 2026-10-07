@@ -28,7 +28,9 @@ from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.util.format import format_distance_ly
 
 
 AU_PER_LY = 63241.077
@@ -109,7 +111,7 @@ class AsteroidField:
         galactic_orbital_speed_kms (float): Circular orbital speed around
             the galactic center, km/s -- an asteroid field is still
             gravitationally part of the galaxy even though it isn't bound
-            to any star (see `utils.generate_galactic_orbit_fields`, and
+            to any star (see `galactic_orbit.generate_galactic_orbit_fields`, and
             `nebulaData.Nebula`'s identical fields' docstring).
         galactic_orbital_period_gy (float): Orbital period, billions of years.
         galactic_orbital_phase_deg (float): Current angular position around

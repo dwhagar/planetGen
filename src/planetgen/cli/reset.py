@@ -30,7 +30,7 @@ table `schema.sql` defines except `schema_migrations`, so:
 
 Deliberately does NOT touch the separate control schema
 (`control_schema.sql` -- admin logins/sessions/API keys/audit log,
-`stellarObjects.control_mysql_config`'s own database): resetting the
+`planetgen.db.store.control_mysql_config`'s own database): resetting the
 galaxy's content has no reason to also sign every admin out or forget
 their accounts, and this script never even connects to that schema.
 

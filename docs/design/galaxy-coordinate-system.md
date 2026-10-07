@@ -21,7 +21,7 @@ prisms, the `sector_vertices` and `galaxy_shell_band` tables) is kept in
   not match any real sky frame.
 - Galaxy-scale distances are stored in parsecs (`_pc` columns); positions
   inside a sector in milliparsecs (`_mpc`); bodies inside a system in km
-  (shown in AU). `stellarObjects/utils.py` has `mpc_to_pc`, `pc_to_mpc`,
+  (shown in AU). `planetgen/physics/units.py` has `mpc_to_pc`, `pc_to_mpc`,
   `pc_to_ly` and `ly_to_pc`.
 
 ## 2. The cylindrical sector grid

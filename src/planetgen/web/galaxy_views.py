@@ -28,7 +28,7 @@ from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_m
 from planetgen.web.lib.pagination import page_slice, parse_page
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-from stellarObjects.utils import ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles
 
 from planetgen.api.limiter import page_limit

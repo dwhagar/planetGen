@@ -526,7 +526,7 @@ def test_nav_result_links_to_the_galaxy_map(client, fake):
 def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
     """`nav_page.galaxy_course` hands the map galaxy-frame parsecs; a
     course inside one sector names that sector instead."""
-    from stellarObjects.utils import ly_to_pc
+    from planetgen.physics.units import ly_to_pc
     from planetgen.web.nav_page import galaxy_course
 
     app = client.application

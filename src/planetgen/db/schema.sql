@@ -38,7 +38,7 @@
 -- unaffected by either convention -- those are copies of already-formatted
 -- display text (still AU/ly/km as the wiki shows today), independent of
 -- the raw column's storage unit. Conversion helpers live in
--- stellarObjects/utils.py: `ly_to_milliparsecs`/`milliparsecs_to_ly` for
+-- planetgen/physics/units.py: `ly_to_milliparsecs`/`milliparsecs_to_ly` for
 -- the sector-scale columns; AU-to-km needs no helper for the km columns,
 -- it's a single multiply by the existing `physical_constants.AU_TO_KM`.
 -- Generation/physics code is untouched either way and keeps using its own
@@ -221,7 +221,7 @@
 --   `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback's) distance
 --   from it via a simple rotation-curve model (see
 --   `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`'s comment and
---   `utils.calculate_galactic_orbit`) -- the same "fixed at generation
+--   `galactic_orbit.calculate_galactic_orbit`) -- the same "fixed at generation
 --   time, stored rather than re-derived on read" treatment
 --   `system_perimeter_km`/`heliosphere_radius_km` already get on this same
 --   table, since both ultimately depend on which sector (if any) the
@@ -237,7 +237,7 @@
 --   `orbital_speed_kms` (its constant circular-orbit speed). Position is
 --   derived from `distance_km` and the v9 orbital-motion columns
 --   (`orbital_inclination_deg`/`orbital_ascending_node_deg`/
---   `orbital_phase_deg`) via `utils.orbital_position_au` -- the same
+--   `orbital_phase_deg`) via `orbits.orbital_position_au` -- the same
 --   "each body positioned relative to its immediate primary" convention
 --   `docs/design/galaxy-coordinate-system.md` already uses one level up
 --   for sectors/systems relative to the galactic center (see v10 above).
@@ -254,7 +254,7 @@
 --   IEEE 754 double-precision resolution, so `MOD(orbital_phase_deg +
 --   delta, 360)` is guaranteed to round right back to the exact value
 --   already stored -- a wasted write that changes nothing. Derived purely
---   from `period_years` (`utils.minimum_update_interval_years`:
+--   from `period_years` (`orbits.minimum_update_interval_years`:
 --   `period_years * math.ulp(360.0) / 360` -- the coarsest representable
 --   step anywhere in `orbital_phase_deg`'s `[0, 360)` range, used as a
 --   single conservative bound rather than a per-row value that would
@@ -279,7 +279,7 @@
 --   `orbital_phase_deg` plays for a planet/moon, advanced by
 --   `_db.advance_orbital_phases` based on `galactic_orbital_period_gy`) and
 --   `galactic_min_update_interval_years` (the same floating-point update
---   guard v12 added for planets/moons, `utils.minimum_update_interval_years`
+--   guard v12 added for planets/moons, `orbits.minimum_update_interval_years`
 --   applied to `galactic_orbital_period_gy * 1e9` years instead of
 --   `period_years`). Both stars of a binary pair -- and `star_systems`'
 --   own `binary_galactic_orbital_phase_deg`/
@@ -297,7 +297,7 @@
 --   `binary_mutual_orbital_period_years`/`_speed_kms` are Kepler's third
 --   law and the standard circular-orbit speed formula
 --   (`planetPhysics.calculate_orbital_period_years`/
---   `utils.circular_orbital_speed_kms`) applied to the pair's already-
+--   `orbits.circular_orbital_speed_kms`) applied to the pair's already-
 --   stored `binary_separation_km`/`binary_effective_mass_kg` -- the same
 --   formulas a planet's orbit around its star already uses, just with the
 --   combined pair mass standing in for "the primary". `_inclination_deg`/
@@ -305,7 +305,7 @@
 --   3D and track the pair's current position within it (the "orbital
 --   direction" a binary's own orbital plane needs, unlike the galactic
 --   orbit above, which this generator treats as planar) -- the same
---   `utils.orbital_position_au` orbital-element convention planets/moons
+--   `orbits.orbital_position_au` orbital-element convention planets/moons
 --   already use, just with no small-tilt bias the way
 --   `PLANET_ORBITAL_INCLINATION_MAX_DEG` gives a planet's protoplanetary-
 --   disk-derived orbit: a binary pair's mutual orbital plane has no
@@ -322,7 +322,7 @@
 --   Cartesian position relative to the primary, derived from
 --   `binary_separation_km` and the v13 `binary_mutual_orbital_
 --   {inclination,ascending_node,phase}_deg` columns via
---   `utils.orbital_position_au`, the same "each body positioned relative
+--   `orbits.orbital_position_au`, the same "each body positioned relative
 --   to whatever it actually orbits" convention `planets`/`moons.
 --   position_x/y/z_km` already use one level down (a planet relative to
 --   its star, a moon relative to its parent planet -- see the v11 note
@@ -342,7 +342,7 @@
 --   system has two stars", true for either configuration) plus
 --   `binary_eccentricity`/`binary_periapsis_km`/`binary_apoapsis_km` (the
 --   pair's own orbital eccentricity and periapsis/apoapsis separation --
---   real and used for `utils.holman_wiegert_critical_semimajor_axis`, but
+--   real and used for `orbits.holman_wiegert_critical_semimajor_axis`, but
 --   NOT used to make the pair's live position/phase-advance tracking
 --   eccentric -- see `doubleStar.WideBinaryPair`'s module docstring for why
 --   that stays the existing circular approximation). These three are 0/
@@ -501,7 +501,7 @@
 --   still the true separation a large amount of existing physics
 --   (insolation, Hill sphere, tidal locking) depends on. New columns add
 --   the ORBITED body's own small "reflex offset"/"wobble" away from its
---   nominal fixed point instead -- see `utils.calculate_reflex_offset`'s
+--   nominal fixed point instead -- see `orbits.calculate_reflex_offset`'s
 --   docstring for the formula.
 --     `stars` gains `reflex_offset_x/y/z_km` -- a star's own displacement
 --   from the combined pull of every planet orbiting it directly

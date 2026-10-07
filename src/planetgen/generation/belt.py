@@ -23,7 +23,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import format_distance_au
+from planetgen.util.format import format_distance_au
 
 
 def generate_asteroid_composition():

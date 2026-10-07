@@ -2,13 +2,14 @@
 
 """
 Property-based / brute-force tests for the package's plumbing and pure
-math: `stellarObjects/utils.py` (unit conversions, formatters, orbital
-helpers, samplers), `appconfig.py` (hostile `config.json` contents),
+math: the helpers split out of the old `utils.py` (unit conversions,
+formatters, orbital helpers, samplers), `appconfig.py` (hostile `config.json` contents),
 `config.py` (`SystemConfig` round trips), `serialization.py`,
 `progress_file.py`, `log.py`'s credential redaction, and sanity of every
 constant in `physical_constants.py`/`tuning.py`.
 
-Name-generation helpers from `utils.py` live in `test_fuzz_names.py`.
+The name-generation helpers (`planetgen.names.wordsalad`) are in
+`test_fuzz_names.py`.
 See `fuzz_support.py` for the `ci`/`deep` profiles.
 """
 
@@ -26,7 +27,15 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import utils
+from planetgen.galaxy import galactic_orbit
+from planetgen.generation import star as star_module
+from planetgen.generation import wide_binary
+from planetgen.physics import formation
+from planetgen.physics import orbits
+from planetgen.physics import planets as planet_physics
+from planetgen.physics import units
+from planetgen.util import format as formatting
+from planetgen.util import random as sampling
 from planetgen.queue import progress_file
 from planetgen.db import store
 from planetgen.physics import constants as physical_constants
@@ -55,10 +64,10 @@ def _config(markdown):
 # ---------------------------------------------------------------------------
 
 _ROUND_TRIPS = [
-    (utils.ly_to_milliparsecs, utils.milliparsecs_to_ly),
-    (utils.mpc_to_pc, utils.pc_to_mpc),
-    (utils.pc_to_ly, utils.ly_to_pc),
-    (utils.ly_to_au, utils.au_to_ly),
+    (units.ly_to_milliparsecs, units.milliparsecs_to_ly),
+    (units.mpc_to_pc, units.pc_to_mpc),
+    (units.pc_to_ly, units.ly_to_pc),
+    (units.ly_to_au, units.au_to_ly),
 ]
 
 
@@ -82,8 +91,8 @@ def test_unit_conversions_propagate_non_finite_without_raising(x):
 def test_unit_conversions_agree_with_each_other():
     # ly -> mpc -> pc must equal ly -> pc directly.
     for ly in (1e-6, 1.0, 3.26156, 26_000.0, 1e9):
-        assert _close(utils.mpc_to_pc(utils.ly_to_milliparsecs(ly)), utils.ly_to_pc(ly), rel=1e-9)
-    assert _close(utils.pc_to_ly(1.0), 3.2616, rel=1e-3)
+        assert _close(units.mpc_to_pc(units.ly_to_milliparsecs(ly)), units.ly_to_pc(ly), rel=1e-9)
+    assert _close(units.pc_to_ly(1.0), 3.2616, rel=1e-3)
 
 
 # ---------------------------------------------------------------------------
@@ -96,7 +105,7 @@ _SCI_WIKI = re.compile(r"^\{\{Exp\|(-?\d+(?:\.\d+)?)\|(-?\d+)\}\}$")
 
 @given(x=normal_float, precision=st.integers(0, 8), markdown=st.booleans())
 def test_to_scientific_notation_parses_back_to_the_value(x, precision, markdown):
-    out = utils.to_scientific_notation(_config(markdown), x, precision)
+    out = formatting.to_scientific_notation(_config(markdown), x, precision)
     if x == 0:
         assert out == "0"
         return
@@ -115,7 +124,7 @@ def test_to_scientific_notation_parses_back_to_the_value(x, precision, markdown)
 @example(x=-9.9999e30, precision=2, markdown=True)
 @example(x=1e-320, precision=2, markdown=True)          # subnormal, was "10.02 x 10^-321"
 def test_to_scientific_notation_coefficient_is_normalized(x, precision, markdown):
-    out = utils.to_scientific_notation(_config(markdown), x, precision)
+    out = formatting.to_scientific_notation(_config(markdown), x, precision)
     coefficient = float((_SCI_MD if markdown else _SCI_WIKI).match(out).group(1))
     assert 1 <= abs(coefficient) < 10, out
 
@@ -126,24 +135,24 @@ def test_to_scientific_notation_coefficient_is_normalized(x, precision, markdown
 @example(x=-math.inf, markdown=False)
 @example(x=5e-324, markdown=True)   # was ZeroDivisionError
 def test_to_scientific_notation_never_raises(x, markdown):
-    assert isinstance(utils.to_scientific_notation(_config(markdown), x), str)
+    assert isinstance(formatting.to_scientific_notation(_config(markdown), x), str)
 
 
 @given(age=finite, precision=st.integers(0, 6))
 def test_format_age_string_picks_the_right_unit(age, precision):
-    out = utils.format_age_string(age, precision)
+    out = formatting.format_age_string(age, precision)
     assert out.endswith("Billion Years" if age >= 1.0 else "Million Years")
 
 
 @given(age=non_finite)
 def test_format_age_string_non_finite_does_not_raise(age):
-    assert isinstance(utils.format_age_string(age), str)
+    assert isinstance(formatting.format_age_string(age), str)
 
 
 @given(value=normal_float, threshold=finite, digits=st.integers(0, 6),
        sci=st.one_of(st.none(), st.integers(0, 6)), markdown=st.booleans())
 def test_format_length_km_never_raises_on_finite_values(value, threshold, digits, sci, markdown):
-    out = utils.format_length_km(_config(markdown), value, threshold, digits, sci)
+    out = formatting.format_length_km(_config(markdown), value, threshold, digits, sci)
     assert out.endswith(" km")
     if value <= threshold and "\u00d7" not in out:
         assert float(out[:-3].replace(",", "")) == round(value, digits)
@@ -154,7 +163,7 @@ def test_format_length_km_never_raises_on_finite_values(value, threshold, digits
 @given(value=normal_float.filter(lambda v: v != 0), markdown=st.booleans(), low=st.integers(0, 8))
 def test_format_relative_to_sol_picks_percent_or_multiplier(value, markdown, low):
     sol = physical_constants.SOLAR_MASS_TO_KG
-    out = utils.format_relative_to_sol(_config(markdown), value, sol, "kg", low)
+    out = formatting.format_relative_to_sol(_config(markdown), value, sol, "kg", low)
     ratio = value / sol
     if ratio < tuning.PERCENT_SOL_THRESHOLD_HIGH:
         assert out.endswith("% of Sol)")
@@ -168,7 +177,7 @@ _PERIOD_TEXT = re.compile(r"^-?[0-9.,]+(?: \u00d7 10[\u207b\u2070\u00b9\u00b2\u0
 
 @given(years=st.floats(min_value=0, max_value=1e15))
 def test_format_period_years_is_one_number_and_one_unit(years):
-    text = utils.format_period_years(years)
+    text = formatting.format_period_years(years)
     match = _PERIOD_TEXT.match(text)
     assert match, (years, text)
     unit = match.group(1)
@@ -179,23 +188,23 @@ def test_format_period_years_is_one_number_and_one_unit(years):
 
 @given(years=st.floats(min_value=-1e9, max_value=0))
 def test_format_period_years_non_positive_does_not_raise(years):
-    assert isinstance(utils.format_period_years(years), str)
+    assert isinstance(formatting.format_period_years(years), str)
 
 
 @given(sentences=st.lists(hostile_text, max_size=6))
 def test_to_paragraph_joins_with_single_spaces(sentences):
-    assert utils.to_paragraph(sentences) == " ".join(sentences)
+    assert formatting.to_paragraph(sentences) == " ".join(sentences)
 
 
 @given(props=st.dictionaries(st.text(alphabet="abcdefghij_", min_size=1, max_size=12), hostile_text, max_size=8),
        template=hostile_text, header=st.one_of(st.none(), hostile_text),
        key_map=st.one_of(st.none(), st.dictionaries(st.text(max_size=5), hostile_text, max_size=3)))
 def test_properties_to_string_shapes(props, template, header, key_map):
-    wiki = utils.properties_to_string(_config(False), props, template, header, key_map)
+    wiki = formatting.properties_to_string(_config(False), props, template, header, key_map)
     assert wiki.startswith("{{" + template + "\n") and wiki.endswith("\n}}")
     for key, value in props.items():
         assert f"\n|{key}={value}\n" in wiki
-    md = utils.properties_to_string(_config(True), props, template, header, key_map)
+    md = formatting.properties_to_string(_config(True), props, template, header, key_map)
     body = md.split("| Property | Value |\n|---|---|", 1)
     assert len(body) == 2
     if header:
@@ -211,7 +220,7 @@ def test_properties_to_string_shapes(props, template, header, key_map):
 
 @given(low=finite, high=finite, mode=any_float, spread=st.floats(0.5, 10))
 def test_sample_bounded_bell_stays_in_bounds(low, high, mode, spread):
-    value = utils.sample_bounded_bell(low, high, mode, spread, max_attempts=50)
+    value = sampling.sample_bounded_bell(low, high, mode, spread, max_attempts=50)
     if high <= low:
         assert value == low
     else:
@@ -220,62 +229,62 @@ def test_sample_bounded_bell_stays_in_bounds(low, high, mode, spread):
 
 @given(lum=st.floats(min_value=0, max_value=1e33))
 def test_habitable_zone_and_snow_line_are_ordered_and_scale_with_sqrt(lum):
-    inner, outer = utils.calculate_habitable_zone(lum)
+    inner, outer = orbits.calculate_habitable_zone(lum)
     assert 0 <= inner <= outer
-    snow = utils.snow_line_au(lum)
+    snow = formation.snow_line_au(lum)
     assert snow >= 0
     if lum > 0:
-        inner4, outer4 = utils.calculate_habitable_zone(4 * lum)
+        inner4, outer4 = orbits.calculate_habitable_zone(4 * lum)
         assert _close(inner4, 2 * inner) and _close(outer4, 2 * outer)
-        assert _close(utils.snow_line_au(4 * lum), 2 * snow)
+        assert _close(formation.snow_line_au(4 * lum), 2 * snow)
 
 
 def test_solar_reference_points():
-    inner, outer = utils.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY)
+    inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY)
     assert 0.9 < inner < 1.0 < outer < 1.5
-    assert _close(utils.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
-    assert _close(utils.snow_line_au(physical_constants.SOLAR_LUMINOSITY),
+    assert _close(formation.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
+    assert _close(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY),
                   physical_constants.SNOW_LINE_AU_AT_1_LSUN)
 
 
 @given(d=positive, m=positive, big=positive)
 def test_hill_sphere_scaling(d, m, big):
-    r = utils.calculate_hill_sphere(d, m, big)
+    r = orbits.calculate_hill_sphere(d, m, big)
     assert r > 0
-    assert _close(utils.calculate_hill_sphere(2 * d, m, big), 2 * r)
-    assert _close(utils.calculate_hill_sphere(d, 8 * m, big), 2 * r)
+    assert _close(orbits.calculate_hill_sphere(2 * d, m, big), 2 * r)
+    assert _close(orbits.calculate_hill_sphere(d, 8 * m, big), 2 * r)
 
 
 @given(sep=positive, mu=any_float, e=any_float)
 def test_holman_wiegert_is_clamped_and_positive(sep, mu, e):
     assume(not math.isnan(mu) and not math.isnan(e))
-    a = utils.holman_wiegert_critical_semimajor_axis(sep, mu, e)
+    a = orbits.holman_wiegert_critical_semimajor_axis(sep, mu, e)
     mu_lo, mu_hi = physical_constants.HOLMAN_WIEGERT_MU_RANGE
     e_lo, e_hi = physical_constants.HOLMAN_WIEGERT_ECCENTRICITY_RANGE
-    clamped = utils.holman_wiegert_critical_semimajor_axis(sep, min(max(mu, mu_lo), mu_hi), min(max(e, e_lo), e_hi))
+    clamped = orbits.holman_wiegert_critical_semimajor_axis(sep, min(max(mu, mu_lo), mu_hi), min(max(e, e_lo), e_hi))
     assert a == clamped
     assert 0 < a < sep
 
 
 @given(m1=positive, m2=positive, d1=positive, d2=positive, big=positive)
 def test_mutual_hill_radius_units_agree_and_are_symmetric(m1, m2, d1, d2, big):
-    au = utils.mutual_hill_radius_au(m1, m2, d1, d2, big)
-    m = utils.mutual_hill_radius_m(d1 * physical_constants.AU_TO_M, d2 * physical_constants.AU_TO_M, m1, m2, big)
+    au = orbits.mutual_hill_radius_au(m1, m2, d1, d2, big)
+    m = orbits.mutual_hill_radius_m(d1 * physical_constants.AU_TO_M, d2 * physical_constants.AU_TO_M, m1, m2, big)
     assert _close(m, au * physical_constants.AU_TO_M, rel=1e-9)
-    assert _close(au, utils.mutual_hill_radius_au(m2, m1, d2, d1, big))
+    assert _close(au, orbits.mutual_hill_radius_au(m2, m1, d2, d1, big))
     assert au > 0
 
 
 def test_wide_binary_samplers_stay_in_range():
     lo, hi = tuning.WIDE_BINARY_SEPARATION_MIN_AU, tuning.WIDE_BINARY_SEPARATION_MAX_AU
     for _ in range(scaled(60) * 20):
-        assert lo <= utils.sample_wide_binary_separation_au() <= hi
-        assert 0 <= utils.sample_wide_binary_eccentricity() <= tuning.WIDE_BINARY_ECCENTRICITY_MAX
+        assert lo <= wide_binary.sample_wide_binary_separation_au() <= hi
+        assert 0 <= wide_binary.sample_wide_binary_eccentricity() <= tuning.WIDE_BINARY_ECCENTRICITY_MAX
 
 
 @given(d=positive, snow=positive, scale=st.floats(0, 1e3))
 def test_mmsn_density_jumps_by_the_ice_factor_at_the_snow_line(d, snow, scale):
-    density = utils.mmsn_surface_density_gcm2(d, snow, scale)
+    density = formation.mmsn_surface_density_gcm2(d, snow, scale)
     bare = physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 * scale * d ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
     expected = bare * (physical_constants.SNOW_LINE_ICE_BOOST_FACTOR if d >= snow else 1)
     assert _close(density, expected)
@@ -284,26 +293,26 @@ def test_mmsn_density_jumps_by_the_ice_factor_at_the_snow_line(d, snow, scale):
 
 @given(d=st.floats(1e-3, 1e4), sigma=st.floats(1e-6, 1e4), star=st.floats(1e27, 1e33))
 def test_isolation_mass_scaling(d, sigma, star):
-    m = utils.isolation_mass_kg(d, sigma, star)
+    m = formation.isolation_mass_kg(d, sigma, star)
     assert m > 0 and math.isfinite(m)
-    assert _close(utils.isolation_mass_kg(d, 4 * sigma, star), 8 * m, rel=1e-9)
-    assert _close(utils.isolation_mass_kg(d, sigma, 4 * star), m / 2, rel=1e-9)
+    assert _close(formation.isolation_mass_kg(d, 4 * sigma, star), 8 * m, rel=1e-9)
+    assert _close(formation.isolation_mass_kg(d, sigma, 4 * star), m / 2, rel=1e-9)
 
 
 @given(distance=st.one_of(st.floats(max_value=0, allow_nan=False), st.floats(1e-6, 1e7)))
 def test_galactic_orbit(distance):
-    speed, period = utils.calculate_galactic_orbit(distance)
+    speed, period = galactic_orbit.calculate_galactic_orbit(distance)
     if distance <= 0:
         assert (speed, period) == (0.0, 0.0)
         return
     assert 0 < speed <= physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
     assert period > 0 and math.isfinite(period)
-    assert isinstance(utils.format_galactic_orbit(speed, period), str)
+    assert isinstance(galactic_orbit.format_galactic_orbit(speed, period), str)
 
 
 @given(distance=st.one_of(st.none(), st.floats(1, 1e6)), phase=st.one_of(st.none(), angle))
 def test_generate_galactic_orbit_fields(distance, phase):
-    speed, period, phase_out, interval = utils.generate_galactic_orbit_fields(distance, phase)
+    speed, period, phase_out, interval = galactic_orbit.generate_galactic_orbit_fields(distance, phase)
     assert speed > 0 and period > 0 and interval > 0
     if phase is None:
         assert 0 <= phase_out <= 360
@@ -313,25 +322,25 @@ def test_generate_galactic_orbit_fields(distance, phase):
 
 @given(d=positive, period=positive)
 def test_circular_orbital_speed_and_update_interval(d, period):
-    v = utils.circular_orbital_speed_kms(d, period)
-    assert v > 0 and _close(utils.circular_orbital_speed_kms(2 * d, period), 2 * v)
-    interval = utils.minimum_update_interval_years(period)
-    assert interval > 0 and _close(utils.minimum_update_interval_years(2 * period), 2 * interval)
+    v = orbits.circular_orbital_speed_kms(d, period)
+    assert v > 0 and _close(orbits.circular_orbital_speed_kms(2 * d, period), 2 * v)
+    interval = orbits.minimum_update_interval_years(period)
+    assert interval > 0 and _close(orbits.minimum_update_interval_years(2 * period), 2 * interval)
     # Advancing by the interval always moves the phase by at least one ulp near 360.
     assert interval / period * 360 >= math.ulp(360.0) * (1 - 1e-12)
 
 
 @given(r=st.floats(0, 1e6), inc=angle, node=angle, phase=angle)
 def test_orbital_position_lies_on_the_orbit(r, inc, node, phase):
-    x, y, z = utils.orbital_position_au(r, inc, node, phase)
+    x, y, z = orbits.orbital_position_au(r, inc, node, phase)
     assert _close(math.sqrt(x * x + y * y + z * z), r, rel=1e-9, abs_=1e-9)
-    _x0, _y0, z0 = utils.orbital_position_au(r, 0.0, node, phase)
+    _x0, _y0, z0 = orbits.orbital_position_au(r, 0.0, node, phase)
     assert z0 == 0.0 or abs(z0) < 1e-9 * max(r, 1)
 
 
 @given(parent=positive, children=st.lists(st.tuples(st.floats(0, 1e6), finite, finite, finite), max_size=6))
 def test_reflex_offset_is_a_sum_of_two_body_terms(parent, children):
-    ox, oy, oz = utils.calculate_reflex_offset(parent, children)
+    ox, oy, oz = orbits.calculate_reflex_offset(parent, children)
     ex = ey = ez = 0.0
     for m, x, y, z in children:
         mu = m / (parent + m)
@@ -339,12 +348,12 @@ def test_reflex_offset_is_a_sum_of_two_body_terms(parent, children):
         ey -= mu * y
         ez -= mu * z
     assert (ox, oy, oz) == (ex, ey, ez)
-    assert utils.calculate_reflex_offset(parent, []) == (0.0, 0.0, 0.0)
+    assert orbits.calculate_reflex_offset(parent, []) == (0.0, 0.0, 0.0)
 
 
 @given(radius=st.floats(0, 1e6), density=st.floats(0, 100))
 def test_calculate_object_mass_with_given_density(radius, density):
-    volume, mass = utils.calculate_object_mass("M", radius, {}, {}, object_density=density)
+    volume, mass = planet_physics.calculate_object_mass("M", radius, {}, {}, object_density=density)
     assert _close(volume, 4 / 3 * math.pi * radius ** 3)
     assert _close(mass, volume * physical_constants.KM_TO_M_FACTOR ** 3 * density * 1000)
     assert mass >= 0
@@ -354,7 +363,7 @@ def test_calculate_object_mass_with_given_density(radius, density):
 def test_calculate_object_mass_random_density_within_class_range(planet_class):
     kind = tuning.PLANET_CLASSES[planet_class]["type"]
     lo, hi = physical_constants.PLANET_DENSITY[kind]
-    volume, mass = utils.calculate_object_mass(planet_class, 1000.0, tuning.PLANET_CLASSES,
+    volume, mass = planet_physics.calculate_object_mass(planet_class, 1000.0, tuning.PLANET_CLASSES,
                                                physical_constants.PLANET_DENSITY)
     density = mass / (volume * physical_constants.KM_TO_M_FACTOR ** 3 * 1000)
     assert lo - 1e-9 <= density <= hi + 1e-9
@@ -366,8 +375,8 @@ def test_calculate_object_mass_random_density_within_class_range(planet_class):
 def test_star_class_helpers_on_fake_stars(letter, yerkes, age, lifespan, proxy):
     star = types.SimpleNamespace(type=letter + "2" + yerkes, yerkes_class=yerkes, age=age, lifespan=lifespan)
     target = types.SimpleNamespace(_primary=star) if proxy else star
-    assert utils.get_star_spectral_class(target) == letter.upper()  # (may be 2 chars, e.g. "ß" -> "SS")
-    profile = utils.get_star_evolutionary_profile(target)
+    assert star_module.get_star_spectral_class(target) == letter.upper()  # (may be 2 chars, e.g. "ß" -> "SS")
+    profile = star_module.get_star_evolutionary_profile(target)
     base = tuning.STAR_EVOLUTION.get(letter.upper(), {})
     if not base:
         assert profile == {}
@@ -564,14 +573,12 @@ def _serializable_classes():
     import importlib
     import pkgutil
     import planetgen
-    import stellarObjects
     found = {"config.SystemConfig": SERIALIZABLE_FIELDS}
-    for package in (planetgen, stellarObjects):
-        for info in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
-            module = importlib.import_module(info.name)
-            for name, obj in vars(module).items():
-                if isinstance(obj, type) and obj.__module__ == module.__name__ and "SERIALIZABLE_FIELDS" in vars(obj):
-                    found[f"{info.name}.{name}"] = obj.SERIALIZABLE_FIELDS
+    for info in pkgutil.walk_packages(planetgen.__path__, "planetgen."):
+        module = importlib.import_module(info.name)
+        for name, obj in vars(module).items():
+            if isinstance(obj, type) and obj.__module__ == module.__name__ and "SERIALIZABLE_FIELDS" in vars(obj):
+                found[f"{info.name}.{name}"] = obj.SERIALIZABLE_FIELDS
     return found
 
 

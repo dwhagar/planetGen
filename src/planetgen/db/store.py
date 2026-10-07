@@ -97,10 +97,9 @@ from planetgen.generation.star import Star
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import (
-    calculate_galactic_orbit, generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
-    milliparsecs_to_ly, mpc_to_pc, pc_to_ly,
-)
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
+from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
 SCHEMA_VERSION = 53
@@ -1898,7 +1897,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
     then a cross-level collision against an existing system's base name
     (renaming *that* system instead of this sector's own name -- see
     `_rename_existing_system_for_diminutive`). Draws an entirely fresh
-    candidate (`stellarObjects.utils.generate_sector_name`) and starts
+    candidate (`planetgen.names.wordsalad.generate_sector_name`) and starts
     over whenever any of those mechanisms is exhausted.
 
     The registry row is written first (`INSERT ... ON DUPLICATE KEY
@@ -4474,7 +4473,7 @@ def advance_galactic_positions(conn, elapsed_years):
     its galactic phase advances by (`advance_orbital_phases`): a system by
     its close pair's or primary star's period, a phenomenon by its own,
     a facility by the rotation curve at its radius
-    (`utils.calculate_galactic_orbit`). Sectors are fixed cells, so an
+    (`galactic_orbit.calculate_galactic_orbit`). Sectors are fixed cells, so an
     object that drifts into another generated sector is refiled there
     (`sector_id`, its sector-relative position, and later its octant,
     location text, containment and nearest systems -- see
@@ -6789,7 +6788,7 @@ def _migrate_v9_to_v10(conn):
     for a nullable column). `stars`' pair is `NOT NULL`, matching
     `system_perimeter_km`/`heliosphere_radius_km` on the same table, so
     every pre-existing row is backfilled with the value
-    `utils.calculate_galactic_orbit(physical_constants.GALACTIC_CENTER_DISTANCE_LY)`
+    `galactic_orbit.calculate_galactic_orbit(physical_constants.GALACTIC_CENTER_DISTANCE_LY)`
     itself produces -- the same fixed-fallback distance every pre-v10 row
     was already implicitly generated at (`Star.galactic_center_dist_ly`
     defaults to this same constant whenever a system isn't placed in a
@@ -6832,7 +6831,7 @@ def _migrate_v10_to_v11(conn):
     `distance_km`, `period_years`, and the v9 orbital-motion columns
     (`orbital_inclination_deg`/`orbital_ascending_node_deg`/
     `orbital_phase_deg`) -- so this backfills real values via the same
-    formula `advance_orbital_phases`/`utils.orbital_position_au` use,
+    formula `advance_orbital_phases`/`orbits.orbital_position_au` use,
     computed directly in SQL, rather than an arbitrary placeholder. The
     `ADD COLUMN ... DEFAULT 0` only has to satisfy `NOT NULL` for the
     instant between the `ALTER TABLE` and the `UPDATE` that immediately
@@ -6889,7 +6888,7 @@ def _migrate_v11_to_v12(conn):
 
     Every pre-existing row already has everything this is derived from --
     `period_years` -- so, like `_migrate_v10_to_v11`, this backfills real
-    values via the same formula `utils.minimum_update_interval_years`
+    values via the same formula `orbits.minimum_update_interval_years`
     uses, computed directly in SQL, rather than an arbitrary placeholder.
     `math.ulp(360.0)` is evaluated once in Python and spliced in as a
     literal -- SQL has no equivalent builtin, and this value is a fixed
@@ -6932,8 +6931,8 @@ def _migrate_v12_to_v13(conn):
     `binary_separation_km`, `binary_effective_mass_kg`) already stored --
     so, like `_migrate_v10_to_v11`/`_migrate_v11_to_v12`, those get
     backfilled with real derived values via the same formulas
-    `utils.minimum_update_interval_years`/`planetPhysics.
-    calculate_orbital_period_years`/`utils.circular_orbital_speed_kms` use,
+    `orbits.minimum_update_interval_years`/`planetPhysics.
+    calculate_orbital_period_years`/`orbits.circular_orbital_speed_kms` use,
     computed directly in SQL. There is no pre-existing record of what any
     body's random *phase*/orientation roll would have been, so
     `galactic_orbital_phase_deg`, `binary_galactic_orbital_phase_deg`, and
@@ -7026,7 +7025,7 @@ def _migrate_v13_to_v14(conn):
     from -- `binary_separation_km` and the v13 `binary_mutual_orbital_
     {inclination,ascending_node,phase}_deg` columns -- so, like
     `_migrate_v10_to_v11`, this backfills real values via the same formula
-    `utils.orbital_position_au` uses, computed directly in SQL (the same
+    `orbits.orbital_position_au` uses, computed directly in SQL (the same
     trig `advance_orbital_phases` already relies on for planets'/moons'
     position columns).
 
@@ -7286,7 +7285,7 @@ def _migrate_v19_to_v20(conn):
     (for the binary columns) each pair's already-stored
     `binary_mutual_position_x/y/z_km` plus both stars' own `mass_kg` --
     so this backfills every pre-existing row with real, correct values
-    using the exact same formulas `utils.calculate_reflex_offset`/this
+    using the exact same formulas `orbits.calculate_reflex_offset`/this
     file's own `advance_orbital_phases` use going forward, rather than
     leaving them `NULL` until the next `planetgen.cli.orbits` run.
 
@@ -9337,7 +9336,7 @@ def advance_orbital_phases(conn, elapsed_years):
     later expression sees an earlier assignment's *new* value) rather than
     a CTE -- tried first, but MariaDB (unlike MySQL 8) doesn't allow a CTE
     to be joined into a multi-table `UPDATE`; see
-    `utils.orbital_position_au`'s docstring for the same formula in its
+    `orbits.orbital_position_au`'s docstring for the same formula in its
     Python form.
 
     A row is skipped entirely (not just a no-op write, no `UPDATE` attempt
@@ -9345,7 +9344,7 @@ def advance_orbital_phases(conn, elapsed_years):
     own precomputed floor below which the phase delta added is smaller
     than `orbital_phase_deg`'s own floating-point resolution, so the write
     is guaranteed to round back to the exact value already stored (see
-    `utils.minimum_update_interval_years`'s docstring). In practice this
+    `orbits.minimum_update_interval_years`'s docstring). In practice this
     floor sits many orders of magnitude below any realistic `elapsed_years`
     (`planetgen.cli.orbits` runs "once a month or so"), so the guard exists for
     correctness against a caller advancing time in much smaller steps
@@ -9425,7 +9424,7 @@ def advance_orbital_phases(conn, elapsed_years):
     a proper two-body (barycentric) treatment layered on top of the
     existing relative-position model, never changing what any existing
     column means (see `schema.sql`'s "v20" header note and
-    `utils.calculate_reflex_offset`'s docstring for the underlying
+    `orbits.calculate_reflex_offset`'s docstring for the underlying
     formula):
       - `stars.reflex_offset_x/y/z_km`, from each star's own hosted
         planets (`planets.star_id`).
@@ -9517,7 +9516,7 @@ def advance_orbital_phases(conn, elapsed_years):
     # v20: each star's own reflex-offset "wobble" from the planets it
     # hosts (planets.star_id) -- a correlated subquery summing every
     # hosted planet's individual pairwise pull, the same
-    # utils.calculate_reflex_offset formula generation time uses (see its
+    # orbits.calculate_reflex_offset formula generation time uses (see its
     # docstring). Recomputed unconditionally on every run, using each
     # planet's just-advanced position_x/y/z_km above -- this is a cheap
     # derived value, not an independently advancing phase, so (unlike

@@ -31,7 +31,7 @@ those derived names in step when a system or star is renamed later.
 
 from planetgen.names.wordlists import (COMPANION_STAR_NAMES, COMPANION_STAR_PREFIXES, COMPANION_STAR_SUFFIXES, STAR_NAMES,
                     STAR_PREFIXES, STAR_SUFFIXES)
-from stellarObjects.utils import generate_phoneme_salad_name
+from planetgen.names.wordsalad import generate_phoneme_salad_name
 
 _ROMAN_PAIRS = (
     (1000, "M"), (900, "CM"), (500, "D"), (400, "CD"), (100, "C"), (90, "XC"),

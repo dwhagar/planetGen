@@ -85,7 +85,7 @@ def test_sector_zone_and_zone_bounds_ly_agree_with_the_ring_grid():
     # ring's whole radial extent -- zones are whole rings.
     from planetgen.galaxy.geometry import ring_bounds_pc
     from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
-    from stellarObjects.utils import ly_to_pc, pc_to_ly
+    from planetgen.physics.units import ly_to_pc, pc_to_ly
 
     edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     for ring_index in (0, 1, ZONE_RING_WIDTH, ZONE_RING_WIDTH * 3 + 2, 500):

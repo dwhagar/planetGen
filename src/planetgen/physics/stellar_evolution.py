@@ -175,9 +175,6 @@ def spectral_letter_and_subclass(temperature_k):
     return letter, subclass
 
 
-def _log_uniform(low, high, rng):
-    return math.exp(rng.uniform(math.log(low), math.log(high)))
-
 
 def giant_luminosity_bands(mass_sol):
     """

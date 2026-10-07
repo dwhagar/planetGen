@@ -13,7 +13,7 @@
          with --require-hashes.
       2. The NLTK 'words' corpus in <DataDir>\nltk_data, with NLTK_DATA
          set machine-wide (before the database step, which imports
-         stellarObjects and would otherwise fetch it into the admin's
+         planetgen and would otherwise fetch it into the admin's
          own profile).
       3. config.json from examples\windows\config.json.example when there
          is none (this install's folders, a new secret_key; you fill in

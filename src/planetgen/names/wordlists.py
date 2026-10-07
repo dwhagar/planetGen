@@ -336,7 +336,7 @@ Vietnamese, Austronesian, Polynesian, Bantu, Mesoamerican, Andean, Celtic,
 Finno-Ugric, and Caucasian), each written using only plain ASCII letters
 and apostrophes (no diacritics, since diacritics fall outside 7-bit ASCII).
 
-`generate_phoneme_salad_name` (see `stellarObjects/utils.py`) occasionally
+`generate_phoneme_salad_name` (see `planetgen/names/wordsalad.py`) occasionally
 splices one of these into the shuffled-syllable pool for every kind of
 name -- star, planet, moon, and sector alike, since they all funnel
 through that one shared function -- widening the cultural "naming budget"

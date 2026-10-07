@@ -293,7 +293,7 @@ def test_asteroid_field_within_configured_ranges():
 def test_galactic_orbital_fields_are_well_formed(cls):
     # Every phenomenon (compact remnant or standalone) shares this
     # quartet -- see nebulaData.Nebula's `galactic_orbital_*` docstring
-    # and utils.generate_galactic_orbit_fields.
+    # and galactic_orbit.generate_galactic_orbit_fields.
     for _ in range(TRIALS):
         obj = cls(make_config())
         assert math.isfinite(obj.galactic_orbital_speed_kms) and obj.galactic_orbital_speed_kms > 0

@@ -1,7 +1,7 @@
 // html/static/period.js
 //
 // The time-period ladder (UX.14): the browser mirror of
-// stellarObjects/utils.py `format_duration_seconds` and
+// planetgen/util/format.py `format_duration_seconds` and
 // `format_period_years`. A period is shown in the largest unit it is at
 // least 1 of, µs < ms < s < minutes < hours < days < years < ky < My < Gy,
 // to three significant figures, singular when the shown value is exactly 1

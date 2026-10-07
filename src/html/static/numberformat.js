@@ -1,7 +1,7 @@
 // html/static/numberformat.js
 //
 // The site's one number formatter for the browser (UX.20): the mirror of
-// stellarObjects/utils.py `format_number` and `scientific_text`. A number
+// planetgen/util/format.py `format_number` and `scientific_text`. A number
 // that would show 7 or more digits with no decimals, or 5 or more digits
 // before the decimal point with decimals (UX.36), is shown in scientific
 // notation with 3 significant figures ("1.23 × 10⁶"); anything shorter is
@@ -47,7 +47,7 @@ function showsTooManyDigits(text) {
 
 // Three significant figures, comma-grouped, trailing zeros dropped;
 // scientific past 6 whole digits (UX.36). The mirror of
-// stellarObjects/utils.py `_three_figures`; distance.js, speed.js and
+// planetgen/util/format.py `_three_figures`; distance.js, speed.js and
 // period.js share it.
 export function threeFigures(value) {
   if (value === 0 || !isFinite(value)) {

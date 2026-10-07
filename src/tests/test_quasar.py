@@ -18,7 +18,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.utils import pc_to_ly
+from planetgen.physics.units import pc_to_ly
 from tests.test_galaxy_gen import EDGE_PC, _seed_skeleton
 
 

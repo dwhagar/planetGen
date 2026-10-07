@@ -1,7 +1,7 @@
 # tests/test_distance_format.py
 
 """
-The distance ladder (UX.6): `stellarObjects.utils.
+The distance ladder (UX.6): `planetgen.util.format.
 format_distance_m` picks the largest of km < AU < mpc < cpc < ly < pc <
 kpc < Mpc < Gpc the value is at least 1 of, parsec values carry a ly/AU/km
 parenthetical, and body radii are always km in scientific notation. The
@@ -18,10 +18,8 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from stellarObjects.utils import (
-    DISTANCE_PAREN_MIN_LY,
-    distance_parenthetical, format_body_radius_km, format_distance_au, format_distance_km,
-    format_distance_ly, format_distance_m, format_distance_pc,
+from planetgen.util.format import (
+    DISTANCE_PAREN_MIN_LY, distance_parenthetical, format_body_radius_km, format_distance_au, format_distance_km, format_distance_ly, format_distance_m, format_distance_pc,
 )
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
