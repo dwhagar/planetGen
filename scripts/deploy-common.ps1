@@ -152,7 +152,10 @@ function Install-PythonDeps([switch]$Check) {
 function Install-Checkout([string]$Python) {
     Push-Location $env:SystemRoot
     try {
-        & $Python -c "import os, sys, planetgen; sys.exit(0 if os.path.normcase(os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__)))) == os.path.normcase(os.path.realpath(sys.argv[1])) else 1)" (Join-Path $Root "src") 2>$null
+        # find_spec answers without importing, so a missing planetgen
+        # writes no traceback (Windows PowerShell turns stderr from a
+        # native command into a terminating error under Stop).
+        & $Python -c "import os, sys, importlib.util; s = importlib.util.find_spec('planetgen'); sys.exit(0 if s and s.origin and os.path.normcase(os.path.dirname(os.path.dirname(os.path.realpath(s.origin)))) == os.path.normcase(os.path.realpath(sys.argv[1])) else 1)" (Join-Path $Root "src") 2>$null
         $current = ($LASTEXITCODE -eq 0)
     } finally {
         Pop-Location
