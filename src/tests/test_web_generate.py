@@ -665,7 +665,7 @@ def _step(label, code):
 def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
     progress = (
         "import sys; sys.path.insert(0, %r); "
-        "from stellarObjects import progressFile; "
+        "from planetgen.queue import progress_file; "
         "progress_file.report(3, 10, 'Sectors', force=True); print('made three')"
     ) % os.path.join(jobs.REPO_DIR, "src")
     job_id = jobs.start_job("galaxy", "Two steps", [
