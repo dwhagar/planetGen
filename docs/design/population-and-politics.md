@@ -79,7 +79,9 @@ intelligent_life`). That gives about one civilization per 7,000 systems;
 at the disk's local density (about 0.1 systems per cubic parsec)
 spacefaring neighbors sit roughly 150 to 200 ly apart, so territories at
 the 100 ly cap just about meet. Every other world past the milestone
-still gets its named dominant species, with no civilization.
+gets no species: since GEN.80 (PR #448) species, polities and
+population are made only for worlds with a technological civilization,
+and a population pass removes any stored species without one.
 
 A civilization is younger than its window. Its age is a log-uniform draw
 between 100 years (`CIVILIZATION_MIN_AGE_YEARS`) and the window (`system
@@ -197,8 +199,8 @@ changes.
 - `species`: id, name (unique), homeworld_planet_id (unique),
   star_system_id, life_chemical, life_stage (`multicellularity` or
   `technological_civilization`), build, climate, size,
-  civilization_age_years (NULL without a civilization), era (NULL
-  likewise), spacefaring.
+  civilization_age_years, era, spacefaring (every stored species has a
+  civilization since GEN.80).
 - `polities`: id, name (unique), species_id (unique), capital_system_id,
   government, color (`#rrggbb`), reach_ly.
 - `system_owners`: star_system_id (primary key), polity_id, distance_ly.

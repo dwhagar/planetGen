@@ -30,19 +30,14 @@ Done: all eight items landed in PR #442 (2026-10-07).
 |---|---|---|---|
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
-| ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) |  |  |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) |  |  |
 | GEN.78 | Some regions have a star probability of zero (bug) |  | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
 | GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | GEN.78 | Major bug (Boss 2026-10-07); merges the 2026-10-03 bulge report. |
-| GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) |  |  |
-| GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) |  |  |
 
 ### Bugfixes: console and progress
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
-| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Fixed with ADM.23's single-line rule if that lands first. Same summary record. |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) |  |  |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) |  |  |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | GEN.81 | Groundwork for GEN.81 on the web side. |
@@ -206,7 +201,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448).
 
 ## Open questions for Boss
 

@@ -415,7 +415,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
 | ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |
 | ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | open |
-| ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | open |
+| ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | open |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
@@ -539,9 +539,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | open |
 | GEN.78 | Some regions have a star probability of zero (bug) | none | open |
 | GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | open |
-| GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | open |
+| GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | done, PR #448 |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | open |
-| GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | open |
+| GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
 | GEN.83 | A planetary habitability index (PHI) | none | open |
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | open |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | open |
@@ -758,7 +758,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | open |
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
-| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | open |
+| OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
@@ -888,7 +888,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
-| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | open |
+| UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
