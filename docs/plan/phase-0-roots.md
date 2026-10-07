@@ -30,9 +30,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 |---|---|---|---|
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
-| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) |  |  |
-| GEN.78 | Some regions have a star probability of zero (bug) |  | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
-| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | GEN.78 | Major bug (Boss 2026-10-07); merges the 2026-10-03 bulge report. |
 
 ### Bugfixes: console and progress
 
@@ -49,12 +46,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | Built in the paused Sector and system pages lane, committed only in its container (may be lost). sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
 | UX.29 | Every comet in a system shows its type as a link (bug) |  | Built in the paused lane, committed only in its container (may be lost). _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | UX.24, UX.28 | Half built in the paused lane. 24, UX.28) is in phase 0. Same sector table as UX.24. |
-| NAV.41 | The NAV page's course map is too small to read (bug) |  | Boss 04:19Z. navmap.py 360-unit square at 22rem, 9px labels; widen and enlarge. |
-| UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
-| SEC.31 | Signing in as admin works but shows a "form expired" error (bug) |  |  |
-| UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) |  |  |
-| MAP.117 | Surface pressure missing from the planet and moon side panel (bug) |  |  |
-| MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) |  |  |
 
 ### Bugfixes: prevalence
 
@@ -69,8 +60,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) |  | _db.add_mysql_connection_args. |
-| OPS.7 | Update asks to fill a wiped database with population data (bug) |  | update.sh / update.ps1; one PR with OPS.8. |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
@@ -186,7 +175,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31, UX.40, ADM.34 | Moved into phase 0: UX.21 (a bug) needs it. Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.95, UX.26, UX.27, UX.31, UX.40, ADM.34 | Moved into phase 0: UX.21 (a bug) needs it. Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | MAP.68, UX.26, UX.27, UX.31, NAV.32, UX.37 | Moved into phase 0 (all bugs in phase 0), last. Bug, but a final pass over the finished pages. Judgment: its one known dead control (nebula '-' at the 1 ly limit) could be split out into phase 0. The nebula "-" control is split out to phase 0 as UX.38. |
 
 One thread at a time (Boss, 2026-10-03 and 2026-10-07). The
@@ -199,7 +188,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). MAP.115 is folded into MAP.116 (2026-10-07).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 

@@ -69,7 +69,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill |  | Merges the 2026-10-03 scatter-order item and the 2026-10-07 "generated through the entire galaxy first". |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | GEN.75, GEN.100 |  |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
-| GEN.102 | Investigate filling all near-zero-density void space at once | GEN.78 |  |
+| GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
 
 ### Habitability
@@ -190,8 +190,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.11 | An Alembic migration. |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
-| OPS.8 | Update reloads Apache itself when run as root | OPS.7 | 13 in the same update scripts. Not a bug, but the same files as OPS.7, so it rides along. |
-| OPS.13 | Every update records the version key, keeping the last 10 | OPS.7, OPS.8 | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
+| OPS.8 | Update reloads Apache itself when run as root |  | 13 in the same update scripts. Not a bug, but the same files as OPS.7, so it rides along. |
+| OPS.13 | Every update records the version key, keeping the last 10 | OPS.8 | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13, GEN.70 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |

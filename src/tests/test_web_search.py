@@ -278,3 +278,32 @@ def test_real_phenomenon_and_class_tags(db_client, mysql_config):
 
     panel = _panel(db_client.get("/search?phenomenon=black_hole").get_data(as_text=True), "phenomena")
     assert "(1)" in panel and "Black Hole" in panel
+
+    # UX.44: a class tag only narrows its own type, so the black hole
+    # stays beside the class D nebula.
+    html = db_client.get("/search?phenomenon=black_hole&phenomenon=nebula&phenomenon_class=nebula:D")
+    panel = _panel(html.get_data(as_text=True), "phenomena")
+    assert "(2)" in panel and "Crab Mist" in panel and "Black Hole" in panel and "Faint Veil" not in panel
+
+    panel = _panel(db_client.get("/search?phenomenon_class=nebula:D&phenomenon_class=nebula:A")
+                   .get_data(as_text=True), "phenomena")
+    assert "(2)" in panel and "Crab Mist" in panel and "Faint Veil" in panel
+
+
+def test_tags_in_one_group_combine_with_or(db_client, mysql_config):
+    # UX.44: a star has one spectral type, so two spectral tags mean
+    # either; a second group (luminosity) still narrows with AND.
+    sector = SpaceSector("Either Sector", edge_ly=10.0)
+    for star in ("G2V", "M5V", "K1III"):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = star
+        cfg.PLANETS = False
+        cfg.BINARY_SYSTEM = False
+        sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
+    store.save_sector(sector, config=mysql_config)
+
+    stars = _panel(db_client.get("/search?spectral=G&spectral=M").get_data(as_text=True), "stars")
+    assert "(2)" in stars and "G2V" in stars and "M5V" in stars and "K1III" not in stars
+
+    stars = _panel(db_client.get("/search?spectral=G&spectral=K&luminosity=V").get_data(as_text=True), "stars")
+    assert "(1)" in stars and "G2V" in stars and "K1III" not in stars

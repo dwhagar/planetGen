@@ -1,5 +1,46 @@
 # Changelog
 
+## [7.199.608] - 2026-10-07
+
+### Changed
+
+- `update.sh` and `update.ps1` no longer ask about or run the population pass, so an update that just wiped the database doesn't offer to fill it; the closing message says how to run `generate.py population` by hand. `POPULATION=1` and `-Population` are gone from the update; the installers keep their prompt (OPS.7).
+
+## [7.198.608] - 2026-10-07
+
+### Fixed
+
+- Signing in no longer ends on a "form expired" error when the sign-in (or two-step code) form is sent a second time after the first one already signed in; the second send goes back to the login page, which forwards the signed-in admin onward (SEC.31).
+
+## [7.197.608] - 2026-10-07
+
+### Fixed
+
+- Search: a Phenomenon Class tag only narrows its own phenomenon type, so picking Black Hole and Nebula with a nebula class keeps the black holes; tags in one group combine with OR and groups with AND (UX.44).
+
+## [7.196.608] - 2026-10-07
+
+### Fixed
+
+- The Galaxy Map no longer offers a planned sector outside the galaxy's stored outline (such as a layer above the top), which generation would refuse to fill (MAP.118).
+
+## [7.195.608] - 2026-10-07
+
+### Fixed
+
+- Admin scripts reject a `--mysql-port` outside 1 to 65535 with a usage error before connecting, instead of a connection error later (OPS.6).
+- Whole numbers stay in plain digits up to 999,999 and go scientific from 7 digits; numbers shown with decimals still go scientific from 5 whole digits (UX.36).
+- The System Map side panel shows a planet's or moon's surface pressure under its surface temperature (MAP.117).
+- The NAV page's course map spans the page's width, and its stop names, bearing and scale labels stay at body text size on phones and desktops; hop names that would overlap are left out (the route list below names every stop) (NAV.41).
+
+## [7.194.608] - 2026-10-07
+
+### Fixed
+
+- Every sector inside the galaxy's outline now has some chance of a star and of a bright star (GEN.78). The density model has a halo floor (`tuning.MIN_RELATIVE_DENSITY`, a thousandth of the local density, made of old stars), and the bright-star scatter and backfill no longer skip cells that expect under one star.
+- Bright stars follow the density model in every layer, including a large bulge (GEN.79). Old disk and bulge giants could never reach 1000 Lsun, so every bright star came from the young thin disk near the plane. A low-mass giant now spends a short bright tip (2% of its giant phase) between 1000 and 2500 Lsun, and the scatter reports how many layers actually drew stars.
+- A neighborhood started from a sparse sector at the galaxy's edge fills every sector in range (GEN.77, fixed by GEN.76; now tested), and skip notes no longer mention the old one-star threshold.
+
 ## [7.193.608] - 2026-10-07
 
 ### Changed

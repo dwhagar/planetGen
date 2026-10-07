@@ -510,7 +510,7 @@ import os, sys
 root = sys.argv[1]
 sys.path[:0] = [os.path.join(root, 'src', 'html'), os.path.join(root, 'src')]
 import stellarObjects
-from api.app import create_app
+from planetgen.api.app import create_app
 import web
 "@ $Root
     if ($LASTEXITCODE -ne 0) { throw "The web app does not import with $python (see above)." }

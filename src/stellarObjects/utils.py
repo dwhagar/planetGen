@@ -182,10 +182,15 @@ DISTANCE_PAREN_MIN_LY = 0.01
 DISTANCE_PAREN_MIN_AU = 0.01
 
 
-SCIENTIFIC_MIN_INTEGER_DIGITS = 5
-"""int: A number shown with this many digits before the decimal point or
-more is shown in scientific notation instead (UX.20, Boss 2026-10-01:
-"anything over 4 digits to the left of the decimal point")."""
+SCIENTIFIC_MIN_INTEGER_DIGITS = 7
+"""int: A number shown with no decimals and this many digits or more is
+shown in scientific notation instead (UX.36, Boss 2026-10-02: whole
+numbers stay plain past the 6th digit)."""
+
+SCIENTIFIC_MIN_DECIMAL_INTEGER_DIGITS = 5
+"""int: A number shown with decimals and this many digits before the
+decimal point or more is shown in scientific notation instead (UX.20,
+kept by UX.36: "the 4th when decimals are used")."""
 
 SCIENTIFIC_SIGNIFICANT_FIGURES = 3
 """int: Significant figures in `scientific_text`'s mantissa."""
@@ -207,7 +212,7 @@ def format_number(value, spec=",.0f"):
     """
     The site's one number formatter (UX.20): `value` formatted with `spec`
     (a `format()` spec, default whole and comma-grouped), unless that shows
-    `SCIENTIFIC_MIN_INTEGER_DIGITS` or more digits before the decimal point,
+    too many digits before the decimal point (`_shows_too_many_digits`),
     when it is `scientific_text(value)` instead. Counts and measurements
     alike go through it; IDs, years in dates, designations, page numbers
     and coordinates don't. `static/numberformat.js` mirrors it.
@@ -219,10 +224,17 @@ def format_number(value, spec=",.0f"):
     text = format(value, spec)
     if not math.isfinite(value):
         return text
-    whole = text.lstrip("-+").split(".")[0].replace(",", "")
-    if "e" in text or len(whole) >= SCIENTIFIC_MIN_INTEGER_DIGITS:
+    if "e" in text or _shows_too_many_digits(text):
         return scientific_text(value)
     return text
+
+
+def _shows_too_many_digits(text):
+    """True when formatted `text` should be scientific instead: 7 or more
+    whole digits with no decimals shown, 5 or more with decimals (UX.36)."""
+    whole, _point, decimals = text.lstrip("-+").partition(".")
+    limit = SCIENTIFIC_MIN_DECIMAL_INTEGER_DIGITS if decimals else SCIENTIFIC_MIN_INTEGER_DIGITS
+    return len(whole.replace(",", "")) >= limit
 
 
 def _three_figures(value):
@@ -233,7 +245,7 @@ def _three_figures(value):
     magnitude = math.floor(math.log10(abs(value)))
     decimals = max(0, 2 - magnitude)
     text = f"{round(value, decimals):,.{decimals}f}"
-    if len(text.lstrip("-").split(".")[0].replace(",", "")) >= SCIENTIFIC_MIN_INTEGER_DIGITS:
+    if _shows_too_many_digits(text):
         return scientific_text(value)
     if "." in text:
         text = text.rstrip("0").rstrip(".")

@@ -1047,12 +1047,66 @@ a:focus-visible .galaxymap-star-core {
    (planetgen/web/maps/navmap.py, html/nav.py) -- a static plot with no static/*.js
    file of its own, same reasoning as the Galaxy map above (a top-down,
    height-blind projection has no "rotate to inspect" need). */
+/* NAV.41: the full width of the page at the SVG's own 5:3 aspect; the
+   labels are HTML over it (.navmap-labels) so they stay at body text
+   size however wide it is drawn. */
 .navmap-viewport {
-  width: min(100%, 22rem);
-  aspect-ratio: 1 / 1;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 600 / 360;
   border-radius: var(--radius);
   background: var(--bg-subtle);
   overflow: hidden;
+}
+
+.navmap-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.navmap-label {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  font-size: 1rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  /* A halo in the map's own background keeps a label readable where it
+     crosses a route line. */
+  text-shadow: 0 0 3px var(--bg-subtle), 0 0 3px var(--bg-subtle), 0 0 2px var(--bg-subtle);
+  pointer-events: auto;
+}
+
+.navmap-anchor-start {
+  transform: translate(0, -100%);
+}
+
+.navmap-anchor-end {
+  transform: translate(-100%, -100%);
+}
+
+a.navmap-label {
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.navmap-label:hover,
+a.navmap-label:focus-visible {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.navmap-compass-label,
+.navmap-scale-label {
+  pointer-events: none;
+}
+
+@media (max-width: 599px) {
+  .navmap-label-wide {
+    display: none;
+  }
 }
 
 .navmap-svg {
@@ -1077,12 +1131,6 @@ a:focus-visible .galaxymap-star-core {
   cursor: pointer;
 }
 
-.navmap-point text {
-  fill: var(--text-muted);
-  font-size: 9px;
-  font-family: var(--font-sans);
-}
-
 .navmap-origin circle {
   fill: var(--bg-elevated);
   stroke: var(--text);
@@ -1105,26 +1153,20 @@ a:focus-visible .navmap-point circle {
 }
 
 .navmap-compass {
-  stroke: var(--border);
-  stroke-width: 1;
+  stroke: var(--text-muted);
+  stroke-width: 2;
 }
 
-.navmap-compass-label {
-  fill: var(--text-muted);
-  font-size: 9px;
-  font-family: var(--font-sans);
+.navmap-compass-ring {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 1;
 }
 
 .navmap-scale-bar,
 .navmap-scale-tick {
   stroke: var(--text-muted);
   stroke-width: 1;
-}
-
-.navmap-scale-label {
-  fill: var(--text-muted);
-  font-size: 9px;
-  font-family: var(--font-sans);
 }
 
 /* Search page: tag facets, name-search form, active-filter chips */
