@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.229.618] - 2026-10-07
+
+### Added
+
+- TODO item TEST.93: timing tests fail and MariaDB drops connections under full-suite load (phase 0, Bugfixes: ops and flakes).
+
 ## [7.228.618] - 2026-10-07
 
 ### Changed
