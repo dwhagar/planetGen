@@ -46,7 +46,7 @@
     # Security headers (Content-Security-Policy, X-Frame-Options,
     # X-Content-Type-Options, Referrer-Policy) come from the application,
     # not from here: html/web/__init__.py's SECURITY_HEADERS for every
-    # page, html/api/app.py for the API. That keeps one source per
+    # page, planetgen/api/app.py for the API. That keeps one source per
     # response and works the same without this file. Earlier versions of
     # this example also set three of them vhost-wide with `Header always
     # set`; remove those lines from an existing site config when you
@@ -65,7 +65,7 @@
     # Apache's own process environment (e.g. /etc/apache2/envvars, or an
     # `Environment=` line on the apache2 systemd unit). NOT SetEnv:
     # mod_wsgi only exposes SetEnv values through the per-request WSGI
-    # `environ`, never `os.environ`, and html/api/config.py reads
+    # `environ`, never `os.environ`, and planetgen/api/config.py reads
     # PLANETGEN_* from `os.environ` once, at process startup. Earlier
     # versions of this example had SetEnv lines here for the CGI pages;
     # remove them from an existing site config.
@@ -100,13 +100,6 @@
         Require all granted
     </Directory>
 
-    # html/api/ holds only importable Python source, never requested
-    # directly -- deny it outright (belt-and-suspenders: every URL outside
-    # /static/ goes to the app anyway).
-    <Directory /var/lib/planetGen/src/html/api>
-        Require all denied
-    </Directory>
-
     # static/ is plain CSS/JS/SVG -- served directly.
     #
     # Every page links its static files with `?v=<release version>`
@@ -138,7 +131,7 @@
     # configtest with "WSGI process group not yet configured".
     #
     # Keep `processes=1` unless PLANETGEN_RATELIMIT_STORAGE_URI (see
-    # html/api/config.py) is also set to a shared backend (e.g.
+    # planetgen/api/config.py) is also set to a shared backend (e.g.
     # redis://...): Flask-Limiter's default in-memory storage only counts
     # requests correctly within a single process, and `create_app` logs a
     # warning at startup if that assumption stops holding. `threads=5`

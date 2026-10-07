@@ -32,7 +32,7 @@ from flask import current_app, has_request_context, request
 from werkzeug.test import EnvironBuilder, run_wsgi_app
 
 from planetgen.web.lib import apiclient
-from api.limiter import IN_PROCESS_ENVIRON_KEY
+from planetgen.api.limiter import IN_PROCESS_ENVIRON_KEY
 
 API_PREFIX = "/api"
 

@@ -20,9 +20,9 @@ import time
 
 import pytest
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.queue import progress_file  # noqa: E402

@@ -3,7 +3,7 @@
 """
 Read-only statistics about one content database, for the admin stats page
 (`html/adminstats.py`, via `GET /api/admin/stats` and `GET
-/api/admin/duplicate-names` in `html/api/admin.py`).
+/api/admin/duplicate-names` in `planetgen/api/admin.py`).
 
 Kept out of `planetgen.db.query` because none of it is a query a visitor's page
 runs: it's bookkeeping about the database itself (table sizes, schema

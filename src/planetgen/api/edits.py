@@ -1,4 +1,4 @@
-# html/api/edits.py
+# planetgen/api/edits.py
 
 """
 Admin editing endpoints (TODO ADM.1): delete and regenerate one planet,

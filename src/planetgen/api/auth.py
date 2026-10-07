@@ -1,4 +1,4 @@
-# html/api/auth.py
+# planetgen/api/auth.py
 
 """
 Admin authentication endpoints: login/logout, forced credential rotation

@@ -1,4 +1,4 @@
-# html/api/loginguard.py
+# planetgen/api/loginguard.py
 
 """
 The checks around every password check (SEC.1, SEC.20, SEC.21): the

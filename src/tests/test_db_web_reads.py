@@ -14,8 +14,8 @@ import pymysql
 import pytest
 
 from planetgen.db import query as queryDb
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
@@ -213,7 +213,7 @@ def test_a_timed_out_api_request_is_a_504(client, monkeypatch):
     def slow(*_args, **_kwargs):
         raise pymysql.err.OperationalError(1969, "Query execution was interrupted (max_statement_time exceeded)")
 
-    monkeypatch.setattr("api.routes.list_phenomena", slow)
+    monkeypatch.setattr("planetgen.api.routes.list_phenomena", slow)
     response = client.get("/api/phenomena")
     assert response.status_code == 504
     assert "QUERY_TIMEOUT" in response.get_json()["error"]
@@ -223,6 +223,6 @@ def test_other_database_errors_stay_500(client, monkeypatch):
     def broken(*_args, **_kwargs):
         raise pymysql.err.OperationalError(2013, "Lost connection to MySQL server during query")
 
-    monkeypatch.setattr("api.routes.list_phenomena", broken)
+    monkeypatch.setattr("planetgen.api.routes.list_phenomena", broken)
     response = client.get("/api/phenomena")
     assert response.status_code == 500

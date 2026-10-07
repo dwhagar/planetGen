@@ -1,4 +1,4 @@
-# html/api/authz.py
+# planetgen/api/authz.py
 
 """
 Request-level admin authentication/authorization: resolving the calling

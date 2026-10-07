@@ -34,10 +34,10 @@ import re
 
 import pytest
 
-from api import auth as auth_routes
-from api.app import create_app
-from api.config import Config
-from api.limiter import limiter
+from planetgen.api import auth as auth_routes
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
+from planetgen.api.limiter import limiter
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig

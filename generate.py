@@ -2954,7 +2954,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     """
     Non-CLI counterpart to `run_local_neighborhood` -- for the admin web
     UI's "generate more sectors around this one" action
-    (`html/api/routes.py`'s `generate_sector_neighborhood_route`). Same
+    (`planetgen/api/routes.py`'s `generate_sector_neighborhood_route`). Same
     work, a plain result dict instead of prints, and a catchable
     `ValueError` instead of `SystemExit` for an invalid/unplaced sector.
 

@@ -1,4 +1,4 @@
-# html/api/routes.py
+# planetgen/api/routes.py
 
 """
 JSON endpoints over the planetGen database.
@@ -34,7 +34,7 @@ import sys
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
-# generate.py lives at the repo root, two levels above src/html/api/ (this
+# generate.py lives at the repo root, two levels above src/planetgen/api/ (this
 # file) -- src/ itself is already on sys.path (see html/wsgi.py's own
 # docstring), but the repo root isn't, so it's added here specifically for
 # this import. Only `generate_sector_neighborhood_route` below needs it.

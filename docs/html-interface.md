@@ -17,7 +17,7 @@ distance from whatever it orbits.
 
 This is a read-only browser, and the frontend half of `TODO.md`'s Phase 5
 web application: every page here is a thin server-rendered client of the
-Flask API in [`../src/html/api/`](api.md), never touching the database
+Flask API in [`../src/planetgen/api/`](api.md), never touching the database
 directly itself, though the search page (`/search`, see "Flask pages"
 below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a

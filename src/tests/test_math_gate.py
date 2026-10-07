@@ -132,9 +132,9 @@ def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
 
 def test_the_neighborhood_route_reports_the_failure(broken_math, monkeypatch):
     """The Sector page's button gets a 409 naming the failed check."""
-    from api import routes
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api import routes
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class _Config(Config):
         SECRET_KEY = "test-secret"

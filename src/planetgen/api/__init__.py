@@ -1,4 +1,4 @@
-# html/api/__init__.py
+# planetgen/api/__init__.py
 
 """
 JSON API over the planetGen database (Phase 5, TODO.md).

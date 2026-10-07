@@ -9,8 +9,8 @@ cookie (SEC.22), the common-password blocklist and site-word rule
 
 import pytest
 
-from api import loginguard
-from api.auth import DEVICE_COOKIE_NAME
+from planetgen.api import loginguard
+from planetgen.api.auth import DEVICE_COOKIE_NAME
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
@@ -130,8 +130,8 @@ def test_device_tokens_belong_to_one_admin_and_are_revoked_on_change(control_con
 
 @pytest.fixture
 def real_app(mysql_config):
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class RealConfig(Config):
         MYSQL_CONFIG = mysql_config
