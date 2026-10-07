@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, TEST.90, GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -3361,21 +3361,6 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.71 Intermittent failure in the admin planet-regenerate test (bug)**
-  `test_admin_edits.py::test_system_page_regenerates_a_planet` fails
-  about 1 run in 12 on main (seen by the TODO thread while testing
-  GEN.30, PRs #295 and #296, 2026-10-01). Likely cause (seen again in
-  the PR #425 run, passed on rerun): the random planet name can hold an
-  apostrophe (`Ilq'Ot`), which the page HTML-escapes, so the test's
-  plain-text match misses it. Done: the failing case is
-  found (loop the test over seeds or runs), the cause is fixed in the
-  test or in the code it found, and the test passes on every run tried.
-  [infra, ADM]
-  Plan (2026-10-07 18:18Z): Moved out of GEN.67 into the bugfix lane
-  (seen again after the package move): the test compares against
-  `html.escape(planet.name)`, so it passes whatever the name holds,
-  before and after codec names land.
-
 - [ ] **TEST.72 Intermittent failure in the two-step (2FA) sign-in test (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`): the two-step sign-in test failed once in a full run for PR #263
   and passed 3 of 3 times alone. Done: the failing case is found (loop
@@ -3385,24 +3370,6 @@ clears each one.
   Prerequisite: SEC.29.
   Plan (2026-10-07): Folded into SEC.29: the TOTP code moves to pyotp,
   and the test is fixed there.
-
-- [ ] **TEST.78 A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug)**
-  Reported by the Database thread (PR #342, 2026-10-02):
-  `_sector_rows` in `src/tests/test_gen_resume.py` selects
-  `s.ring_index`, `layer_index` and `ring_slot_index` with `GROUP BY
-  s.id`, which ONLY_FULL_GROUP_BY rejects on MariaDB 10.11 (error 1055),
-  so `test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards`
-  fails on main there. Done: the query is valid under ONLY_FULL_GROUP_BY
-  on both engines (group by every selected column, or no GROUP BY), and
-  the test passes on MariaDB 10.11 and SQLite. [infra, DB]
-
-- [ ] **TEST.82 Intermittent failure in the orbit-ceiling trim test (bug)**
-  `test_validation.py::test_trim_to_orbit_ceiling_returns_what_it_removed`
-  returned `[50.0, 6.0]` instead of `[50.0]` once in a full run and
-  passed on rerun (found by the Parallel path thread, PR #371,
-  2026-10-02). Physics area. Done: the failing case is found (loop the
-  test over seeds or runs), the cause is fixed in the test or in the
-  code it found, and the test passes on every run tried. [infra, GEN]
 
 - [ ] **TEST.83 Rate-limit tests fail under parallel load (bug)**
   `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone
@@ -3418,51 +3385,6 @@ clears each one.
   Prerequisite: SEC.30.
   Plan (2026-10-07): Folded into SEC.30: the limits move to
   Flask-Limiter on Redis, and the tests are fixed there.
-
-- [ ] **TEST.84 The every-column round-trip test depends on whether a quasar got placed (bug)**
-  `test_db_column_round_trip.py::test_every_column_is_written` fails
-  about 1 run in 5 locally on clean main (MySQL 8.0): the quasars'
-  `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc`,
-  `quadrant` and `sector_id` are sometimes written, so the test's
-  `NULL_IN_THIS_GALAXY` list depends on the random draw (seen by the
-  Binary pairs and single-system forcing thread, PR #373, 2026-10-02;
-  not fixed there). Done: the test no longer depends on the draw (a
-  fixed seed, or the list worked out from what the run produced), and
-  it passes on every run tried. [infra, DB]
-
-- [ ] **TEST.86 Intermittent failure in the concurrent-insert recovery test (bug)**
-  `test_galaxy_gen.py::test_ensure_sector_generated_recovers_from_a_concurrent_insert_race`
-  failed once in a full `pytest -n auto` run and passed 3 of 3 alone
-  (about 22 s each; seen by the Parallel path thread, PR #381,
-  2026-10-02). Done: the failing case is found (loop the test under
-  `-n auto`), the cause is fixed in the test or in the code it found,
-  and the test passes on every run tried. [infra, GEN]
-
-- [ ] **TEST.88 The facilities test fails when the drawn gas giant's sphere of influence is too small (bug)**
-  `test_facilities.py::test_facilities_are_stored_on_their_hosts`
-  places a starbase 500,000 km from the system's gas giant, but the
-  giant comes from a random draw, and on PR #434's CI (MariaDB 11.4,
-  2026-10-07) its sphere of influence was only 322,742 km, so
-  `_db.add_facility` refused the orbit. Done: the test picks its orbit
-  inside the drawn giant's sphere of influence (or fixes the system's
-  seed), and it passes on every run tried. [infra, ADM]
-
-- [ ] **TEST.89 The Galaxy Map drill-down browser test fails intermittently (bug)**
-  `test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
-  failed once in a full `pytest -n auto` run on MariaDB 10.11
-  (2026-10-07, reported by the Bugfixes lane during PR #442) and passed
-  3 of 3 run alone. Nothing in #442 touches the Galaxy Map. Done: the
-  cause is found (likely a click landing before the stage finishes
-  loading under parallel load), the test waits on the right condition,
-  and it passes repeatedly under `-n auto`. [infra, MAP]
-
-- [ ] **TEST.90 test_old_jobs_are_pruned raises JobBusy under parallel tests (bug)**
-  `src/tests/test_web_generate.py::test_old_jobs_are_pruned` raised
-  `JobBusy` once under `-n 4` (Bugfixes lane 1, 2026-10-07) and passed
-  on 3 reruns. Likely another worker's job holding the shared jobs
-  folder or lock. Done: the cause is found (loop the test under `-n 4`),
-  the test uses its own jobs folder or waits for the lock as the code
-  intends, and it passes on every run tried. [infra, ADM]
 
 ## USR: User accounts
 
