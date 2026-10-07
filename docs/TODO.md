@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -446,22 +446,6 @@ with `clamp()`.
   list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **UX.36 Scientific notation starts too early for whole numbers (bug)**
-  Boss (2026-10-02 04:29Z): "Also another bugfix TODO item, scientific
-  notation for numbers doiesn't start until it gets passed the 6th
-  digit when decimals are not used, and the 4th when decimals are
-  used." Checked on main: both copies of the formatter (`formatNumber`
-  and `threeFigures` in `static/numberformat.js`, `format_number` and
-  `_three_figures` in `src/stellarObjects/utils.py`, kept in step by
-  `tests/test_number_format.py`, from UX.20) switch to scientific
-  notation at 5 whole digits (`SCIENTIFIC_MIN_INTEGER_DIGITS = 5`)
-  whether or not the number shows decimals. Done: a number shown with
-  no decimals stays in plain digits up to 6 whole digits (999,999) and
-  goes scientific from 7; a number shown with decimals keeps today's
-  rule (scientific from 5 whole digits); both copies change together
-  and the shared test covers 6- and 7-digit whole numbers and 4- and
-  5-digit decimals. UX.23's unit ladder keeps this rule.
-
 - [ ] **UX.37 A UX sweep: remove redundant and duplicate controls so the interface gets out of the way**
   Boss (2026-10-02 04:42Z): "Add a UX sweep TODO item, we want to sweep
   the user interface and get rid of redundancies and duplicate buttons
@@ -488,7 +472,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31, UX.40, ADM.34.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, UX.26, UX.27, UX.31, UX.40, ADM.34.
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
 
@@ -549,15 +533,6 @@ with `clamp()`.
   then the base template and shared components restyled to it in both
   themes, with contrast and reduced motion kept.
   Prerequisites: UX.42, UX.37.
-
-- [ ] **UX.44 Search: mutually exclusive tags should combine with OR, the rest with AND (bug)**
-  Boss (2026-10-07 11:47Z): "Search tags that are mutually exclusive
-  (you cannot have a Type O and a Type M star for example) should be
-  considered OR while items that are not mutually exclusive are AND."
-  Today every facet in the search (`queryDb` search facets) is ANDed, so
-  picking two star types finds nothing. Done: tags in one exclusive
-  group (star type, planet class, phenomenon kind and the like) are ORed
-  within the group and groups are ANDed; a test covers both.
 
 - [ ] **UX.45 Bookmark management**
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
@@ -1032,18 +1007,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sector Map. The rules are one table in the code, and a test checks
   each level's counts on a dense and a sparse sector.
   Prerequisite: MAP.102.
-
-- [ ] **MAP.117 Surface pressure missing from the planet and moon side panel (bug)**
-  Boss (2026-10-03 05:38Z): "Surface pressure should appear in the
-  side-box for a planet or moon just below the temperature." Done: the
-  System Map side panel (`systemmap.js` line 503, `lib/systemmap.py`)
-  shows surface pressure under surface temperature.
-
-- [ ] **MAP.118 The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug)**
-  Boss (2026-10-07 11:47Z): "Galaxy map shows an unfilled sector above
-  the galaxy that cannot be filled." Done: the map draws only addresses
-  inside the layer's stored extent (or the fill accepts every address it
-  draws), and a test checks the top layer.
 
 - [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
   Boss (2026-10-03 05:38Z): "In the galaxy view, the expected star
@@ -1534,30 +1497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **NAV.41 The NAV page's course map is too small to read (bug)**
-  Boss (2026-10-02 04:19Z): "Add TODO item to queue, bugfix, the font is unreadable for the
-  navigation path through solar systems. make it a longer window that
-  spans the usable realestate of the device, with fonts big enough to
-  read and the system list below that and, just because we can, each
-  stop has the course and distance to the next stop in xxx mark yyy
-  zzz distance. And it should calculate the travel time using that
-  route assuming each planet gets stopped at." Checked on main: the NAV page's
-  course map (`lib/navmap.py`, `render_nav_map_panel`) is a square SVG
-  360 units across (`_SVG_SIZE`) shown at most 22rem wide
-  (`.navmap-viewport` in `static/style.css`), and its stop labels are
-  9px (`.navmap-point text`), so on most screens they are too small to
-  read; the route list ("Optimal Route", `nav.html`) already sits below
-  it. Done: the course map is a wide panel that spans the usable width
-  of the page on every device (a wider aspect than square on desktops,
-  full width on phones), its labels, scale and compass text are at
-  least the page's body text size at the size it is shown, labels do
-  not overlap on a crowded route (thinned or offset), the route list
-  stays below it, and a browser test checks the label size at phone
-  and desktop widths. The course and distance per stop are NAV.42; the
-  travel time over the route is NAV.11; the route strip's layout is
-  UX.35.
-  Design: [docs/design/course-routing.md](design/course-routing.md), section 4
-
 - [ ] **NAV.43 Find everything within a distance of a place: the query and the API**
   Boss (2026-10-02 04:39Z): "Add TODO items for I want the ability to
   select a location and ask the sytem what stuff (of any kind) is within
@@ -2007,7 +1946,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     change the same two scripts. Open question: Boss wrote "recalculate
     the seed value". The default reads that as recording the current
     key next to the unchanged seed, because a changed seed makes a
-    different galaxy. Prerequisites: OPS.7, OPS.8.
+    different galaxy. Prerequisite: OPS.8.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): The nltk corpus, offensive_words.txt and
     name-list hashes are dropped once GEN.71 lands; the lock-file hashes
@@ -2062,7 +2001,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Windows. Update leaves an existing schedule as it is and adds a
     missing one. The deployment docs say how to change the time or turn
     it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
-    them. Prerequisites: OPS.16, OPS.7, OPS.8, OPS.13.
+    them. Prerequisites: OPS.16, OPS.8, OPS.13.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.18 Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly**
@@ -3414,14 +3353,6 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   rate-limit tests pass alone and under `-n auto` (TEST.83).
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **SEC.31 Signing in as admin works but shows a "form expired" error (bug)**
-  Boss (2026-10-07 11:47Z): "Weird admin sign in signs me in but gives
-  me an error about form expired." The message is the CSRF check's
-  (`src/html/web/csrf.py` line 120). Likely a stale token after the
-  session changes on sign-in, or a second submit. Done: the cause is
-  found, signing in never shows the error, and a test signs in (with and
-  without two-step) and checks no 400 follows.
-
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -3664,28 +3595,6 @@ clears each one.
 ## OPS: Installers, hosting, CI, releases
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
-
-- [ ] **OPS.6 Admin scripts accept impossible `--mysql-port` values (bug)**
-  Found while building TEST.60 (PR #288): the admin scripts take
-  `--mysql-port 0`, `-1` or `70000` and only fail later with a
-  connection error, because `_db.add_mysql_connection_args` doesn't
-  range-check the port. Done: every script that takes `--mysql-port`
-  rejects anything outside 1 to 65535 with a clear argument error
-  before connecting, with a test in `test_admin_script_cli.py`.
-
-- [ ] **OPS.7 Update asks to fill a wiped database with population data (bug)**
-  Boss (2026-10-01): "if in the update the user selects to wipe the DB,
-  don't then ask to fill it with population data, in fact, remove that
-  question entirely from the update." Today step 5 of `update.sh` runs
-  `migrate_or_reset_db` and then `offer_population_pass`, so a user who
-  just chose to delete the database is asked to run the population pass
-  over an empty galaxy; `update.ps1` does the same through
-  `Invoke-OptionalPopulation`. Done: neither `update.sh` nor `update.ps1`
-  asks about or runs the population pass (the prompt, the `POPULATION=1`
-  variable and the `-Population` switch are gone from the update, with
-  their usage and header comments), and the closing message says to run
-  `generate.py population` by hand when wanted. The installers keep their
-  own prompt unless Boss says otherwise.
 
 - [ ] **OPS.8 Update reloads Apache itself when run as root**
   Boss (2026-10-01): "it should just automatically reload apache2 if
