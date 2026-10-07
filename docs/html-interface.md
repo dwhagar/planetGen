@@ -405,12 +405,12 @@ terminal on the server, as background jobs:
 
 | Form | Runs |
 |---|---|
-| New galaxy | planetgen.cli.reset --yes`, then `generate.py plan --no-bright-stars`, then the bright-star scatter (`generate.py plan --bright-stars-only`), then `generate.py galaxy` around a random start. |
+| New galaxy | `python3 -m planetgen.cli.reset --yes`, then `generate.py plan --no-bright-stars`, then the bright-star scatter (`generate.py plan --bright-stars-only`), then `generate.py galaxy` around a random start. |
 | Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc` for a filled sector found by name through `/galaxy/locate`, picked from a paged list of filled sectors (`/admin/generate/sectors`) or typed by ID; or `--ring --layer --slot --radius-pc` for a sector address or a galaxy-frame x, y, z in pc, turned into the address of the cell holding it with the plan's sector edge), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended), or a Galaxy Map block (`--block m.I.s.S`, optionally one `--block-layer`). The single-sector neighborhood radius can be given in light-years (13 ly up to the parsec limit). Sent with `Accept: application/json`, the form answers `202 {"job", "url", "status_url"}` (or `{"error"}`) so the Galaxy Map can start a job without leaving the map. The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. Before the job starts the page shows its size, time and the database disk's free space (`generate.py galaxy --estimate-only`) with a Generate button to confirm, or the refusal when the disk can't hold it; a JSON caller gets `409 {"error", "estimate", "confirm_field"}` and re-sends with `estimate_ok=1`. |
 | Plan the galaxy | `generate.py plan --no-bright-stars` with the galaxy shape fields, then the bright-star scatter as its own step (`generate.py plan --bright-stars-only`), so the job shows the scatter's progress bar and the count it placed. On New galaxy and Plan, "Skip the bright-star scatter" leaves that step out. |
 | Rebuild the bright stars | `generate.py plan --bright-stars-only` on the stored plan; "Leave filled sectors out" adds `--force` (otherwise the scatter refuses once any sector is filled). |
 | Add a dimmer layer of bright stars | `generate.py plan --bright-stars-down-to N`: keeps the bright stars already placed and adds only those from N up to the current star-fill level (shown on the panel), leaving filled sectors out. Disabled until a scatter has run. |
-| Reset | planetgen.cli.reset --yes`. |
+| Reset | `python3 -m planetgen.cli.reset --yes`. |
 
 Every section of the page folds (a `<details>` whose summary is the
 section's heading, ADM.4). Current job starts open; the others open or

@@ -14,5 +14,5 @@ if "%~1"=="" (
 )
 set "PLANETGEN_MYSQL_DATABASE=%~1"
 set "NLTK_DATA=C:\ProgramData\planetgen\nltk_data"
-cd /d C:\srv\planetGen
-"C:\srv\planetgen-venv\Scripts\python.exe" planetgen.cli.orbits
+cd /d C:\srv\planetGen\src
+"C:\srv\planetgen-venv\Scripts\python.exe" -m planetgen.cli.orbits

@@ -26,12 +26,13 @@
     <key>ProgramArguments</key>
     <array>
         <string>/usr/local/planetgen/venv/bin/python</string>
-        planetgen.cli.orbits</string>
+        <string>-m</string>
+        <string>planetgen.cli.orbits</string>
     </array>
     <key>UserName</key>
     <string>_www</string>
     <key>WorkingDirectory</key>
-    <string>/var/lib/planetGen</string>
+    <string>/var/lib/planetGen/src</string>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PLANETGEN_MYSQL_DATABASE</key>

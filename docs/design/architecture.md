@@ -61,7 +61,7 @@ planetGen has three layers that share one Python package:
    and the API reads through `planetgen.db.query` and `store.py`.
 
 Around those sit the installers (`install.sh`, `update.sh` and their
-Windows twins), maintenance tools `planetgen.cli.orbits`,
+Windows twins), maintenance tools (`planetgen.cli.orbits`,
 `planetgen.cli.migrate`, ...), the tests, and the release workflows.
 
 ```mermaid
@@ -73,7 +73,7 @@ flowchart LR
     WSGI --> Web["src/html/web/<br/>HTML pages"]
     Web --> Client["lib/apiclient.py<br/>(in-process)"]
     Client --> API["src/html/api/<br/>JSON API"]
-    API --> planetgen.db.query"]
+    API --> Q["planetgen.db.query"]
     Q --> MySQL
     API --> DB
     Web -. "admin Generate" .-> Jobs["web/jobs.py -> src/jobRunner.py"]
@@ -234,8 +234,8 @@ from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 
 | Path | What it holds |
 |---|---|
-| `planetgen.db.query`planetgen.db.query) | The read layer and a list/query CLI. `open_readonly`, the listings, `sector_detail`/`system_detail`, `search`, `nav_between`, every Galaxy Map query (`galaxy_tiles`, `galaxy_stage`, `galaxy_content_stamp`, `galaxy_changes`, `galaxy_locate` for the address bar), and the bright-star reads (`bright_star_scatter_status`, `bright_stars_in_sector`, `galaxy_bright_stars_in_box` with `unfilled_only`). The API's read routes call these. |
-| `planetgen.cli.migrate`planetgen.cli.migrate) | Brings the content database to the current schema (`_db.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
+| `planetgen.db.query` | The read layer and a list/query CLI. `open_readonly`, the listings, `sector_detail`/`system_detail`, `search`, `nav_between`, every Galaxy Map query (`galaxy_tiles`, `galaxy_stage`, `galaxy_content_stamp`, `galaxy_changes`, `galaxy_locate` for the address bar), and the bright-star reads (`bright_star_scatter_status`, `bright_stars_in_sector`, `galaxy_bright_stars_in_box` with `unfilled_only`). The API's read routes call these. |
+| `planetgen.cli.migrate` | Brings the content database to the current schema (`store.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
 | `planetgen.cli.reset` | Empties every generated table (`TRUNCATE`), keeping the schema and its version. |
 | `planetgen.cli.orbits` | Advances every orbit and galactic position by the real time elapsed since the last run. Meant for a monthly timer. |
 | `src/jobRunner.py` | Runs one admin Generate job's steps in order, writing `state.json` and `output.log`, honoring the `cancel` file. |
@@ -517,7 +517,7 @@ default `ensure_schema=True`) applies `schema.sql`. Every statement is
 `ensure_schema=False`, since their account may lack `CREATE`.
 
 **Migrating.** `schema.sql` always describes the current shape. An older
-database is moved forward by `_db.migrate_database`, which runs every
+database is moved forward by `store.migrate_database`, which runs every
 `_migrate_vN_to_vN+1` step above the stored version, in order
 (`_migration_steps`). `planetgen.cli.migrate` is the CLI wrapper with a progress
 bar. A schema change therefore touches three places: `schema.sql` (and its
@@ -732,7 +732,7 @@ flowchart TD
         I --> EX["examples/apache/*.sh<br/>permissions, cache + jobs dirs, debug log"]
         U --> EX
         T["examples/maintenance timers"] --> U
-        T --> planetgen.cli.orbits"]
+        T --> UO["planetgen.cli.orbits"]
     end
     subgraph Release["On GitHub"]
         PR["PR adds changes/NAME.LEVEL.md"] --> RN["release-note.yml<br/>bump_version.py --check-pr"]

@@ -37,7 +37,7 @@ on Windows, which call it) does.
 
     curl -s https://HOST/api/health
 
-Pass: `"schema_current": true`. If not: run `python3 -m `planetgen.cli.migrate`
+Pass: `"schema_current": true`. If not: run `python3 -m planetgen.cli.migrate`
 with the same database settings the site uses (`config.json`, or the
 same `PLANETGEN_MYSQL_*` variables), then check again.
 `python3 -m planetgen.cli.migrate --status` prints the current and target

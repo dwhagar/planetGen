@@ -555,7 +555,7 @@ forced credential change. They back the admin stats page
 - `POST /api/admin/lockouts/lift` `{"scope": "ip"|"user", "subject"}`, or
   `{"all": true}` — lifts lockouts and forgets their counts; returns
   `{"lifted": n}`; audited as `lockout.lift`. From a shell (for an admin
-  locked out of the site itself): `python3 -m `planetgen.cli.lockouts` lists
+  locked out of the site itself): `python3 -m planetgen.cli.lockouts` lists
   them, `--ip <address>`, `--user <name>` or `--all` lifts them, and
   `--forget-devices <name>` revokes that admin's trusted-device cookies.
 

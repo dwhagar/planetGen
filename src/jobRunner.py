@@ -231,6 +231,10 @@ def run(job_dir):
     env = dict(os.environ)
     env.update(job.get("env") or {})
     env["PYTHONUNBUFFERED"] = "1"
+    # Steps like `python -m planetgen.cli.reset` import planetgen from the
+    # checkout's src/ (this file's folder).
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    env["PYTHONPATH"] = os.pathsep.join(p for p in (src_dir, env.get("PYTHONPATH")) if p)
     env["PLANETGEN_PROGRESS_FILE"] = progress_path
 
     steps = job["steps"]

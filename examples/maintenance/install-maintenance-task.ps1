@@ -90,8 +90,8 @@ foreach ($db in $Database) {
         "rem Written by examples\maintenance\install-maintenance-task.ps1.",
         "set `"PLANETGEN_MYSQL_DATABASE=$db`"",
         "set `"NLTK_DATA=$nltk`"",
-        "cd /d `"$Root`"",
-        "`"$python`" planetgen.cli.orbits >> `"$logs\orbits-$db.log`" 2>&1"
+        "cd /d `"$(Join-Path $Root 'src')`"",
+        "`"$python`" -m planetgen.cli.orbits >> `"$logs\orbits-$db.log`" 2>&1"
     )
     Register-MonthlyTask "planetGen orbits ($db)" "03:30" $cmd
 }

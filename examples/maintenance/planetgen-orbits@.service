@@ -41,7 +41,7 @@ Type=oneshot
 # Matches the deployment layout examples/apache/planetgen.conf.example
 # documents (DocumentRoot at /var/lib/planetGen/src/html, i.e. this repo
 # checked out at /var/lib/planetGen) -- change if deployed elsewhere.
-WorkingDirectory=/var/lib/planetGen
+WorkingDirectory=/var/lib/planetGen/src
 # Optional: host/port/user/password shared by every instance. Must be a
 # read-write account (like sectorGen.py/systemGen.py use), not
 # planetgen.db.query's read-only one -- this script mutates rows. "-" prefix

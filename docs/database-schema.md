@@ -793,7 +793,7 @@ v7 adds columns, see below):
   value), `expires_at` (90 days after the login that made it),
   `last_used_at`. A login from a browser holding a valid one for that
   username skips the per-username lock. Deleted on a credentials change,
-  with planetgen.cli.lockouts --forget-devices <user>`, and (expired ones)
+  with `python3 -m planetgen.cli.lockouts --forget-devices <user>`, and (expired ones)
   when the admin's next device is made.
 - **`admin_totp`** (v4, SEC.26) — one row per admin who has set up an
   authenticator app: `secret` (the base32 key itself, as sensitive as a

@@ -5,7 +5,7 @@
 needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
-- New galaxy: wipe the database planetgen.cli.reset --yes`), build the
+- New galaxy: wipe the database (`python3 -m planetgen.cli.reset --yes`), build the
   density skeleton (`generate.py plan --no-bright-stars`), then generate
   a first neighborhood around a random start and only then scatter the
   bright stars, leaving those sectors out (`generate.py galaxy
@@ -466,7 +466,7 @@ def _build_job_steps(action, form, edge_pc=None):
     """`build_job`'s `(kind, title, steps)` before the math check step."""
     python = jobs.python_executable()
     generate = [python, jobs.GENERATE_SCRIPT]
-    reset_step = {"label": "Reset the galaxy", "argv": [python, jobs.RESET_SCRIPT, "--yes"]}
+    reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}
     if action == "new_galaxy":
         # GEN.30: the scatter runs after the sectors (`galaxy
         # --then-scatter`), so it leaves out every sector just filled.
