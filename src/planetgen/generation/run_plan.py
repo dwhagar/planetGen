@@ -12,13 +12,12 @@ scatter and its per-sector bands.
 """
 
 import math
-import multiprocessing
 import queue as queue_module
 import random
 import threading
 import time
 
-from planetgen.queue import progress_rate, work as workQueue
+from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
@@ -454,12 +453,11 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                 return layer_done
 
             stop = threading.Event()
-            manager = drain = None
+            channel = drain = None
             try:
                 with run_common._work_queue(args, label) as queue:
                     if queue.parallel:
-                        manager = multiprocessing.get_context("spawn").Manager()
-                        channel = manager.Queue()
+                        channel = queue.channel("scatter-progress")
                         drain = threading.Thread(target=_drain_channel, args=(channel, tracker, stop),
                                                  name="scatter-progress", daemon=True)
                         drain.start()
@@ -480,8 +478,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                 stop.set()
                 if drain is not None:
                     drain.join(timeout=5)
-                if manager is not None:
-                    manager.shutdown()
+                if isinstance(channel, redisqueue.Channel):
+                    channel.close()
                 run_common._finish_stats(args)
         finally:
             log.reset_console()
