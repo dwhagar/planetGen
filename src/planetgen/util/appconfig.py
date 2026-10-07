@@ -125,7 +125,7 @@ DEFAULT_CONFIG = {
         # credential field(s), not by a separate on/off switch (see
         # planetgen/api/config.py's WIKI_CONFIG, which computes this). Both
         # configured at once is exactly what lets a caller choose "the
-        # wiki of their choice" per upload (see wikiClient/client.py).
+        # wiki of their choice" per upload (see planetgen/wiki/client.py).
         "wikijs": {
             "base_url": "",
             "api_token": "",

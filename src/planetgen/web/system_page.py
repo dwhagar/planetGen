@@ -189,7 +189,7 @@ def run_generator(spec):
             argv.append("--system-file=" + file_path)
         argv += spec["argv"]
         try:
-            proc = subprocess.run(argv, cwd=jobs.SRC_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+            proc = subprocess.run(argv, cwd=jobs.REPO_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT, timeout=TIMEOUT_S)
             output = proc.stdout.decode("utf-8", errors="replace")
             ok = proc.returncode == 0

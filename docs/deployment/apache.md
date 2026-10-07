@@ -89,10 +89,11 @@ Libraries already installed that satisfy what needs them, apt's
 included, are kept as they are. apt packages are covered by apt's own
 signatures instead.
 
-planetGen itself runs straight from the checkout (every entry point adds
-`src/` to `sys.path`), with a `/usr/local/bin/planetgen` wrapper standing
-in for pip's console script on every host, so the CLI always runs the
-checkout's code.
+planetGen itself is installed as an editable package of the checkout
+(`pip install -e`, into the same system-wide site-packages), so the web
+app, the `planetgen` command and every `python3 -m planetgen.cli.NAME`
+tool run the checkout's code, and a `git pull` takes effect without a
+reinstall.
 
 `PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
 

@@ -115,7 +115,7 @@ if (-not $mathOk) {
     Write-Warning "The math check failed (step 4): bulk generation refuses to start until it passes."
 }
 Write-Host "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
-Write-Host "  cd $(Join-Path $Root 'src'); $(Get-VenvPython) -m planetgen.cli.generate population"
+Write-Host "  $(Get-VenvPython) -m planetgen.cli.generate population"
 if ($before -ne $after) {
     Write-Host "Done. Restart the app so the site runs the new code:"
     Write-Host "  $(Get-RestartHint)"

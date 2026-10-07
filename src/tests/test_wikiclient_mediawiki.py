@@ -1,7 +1,7 @@
 # tests/test_wikiclient_mediawiki.py
 
 """
-Unit tests for `wikiClient.mediawiki.MediaWikiBackend` -- every request/
+Unit tests for `planetgen.wiki.mediawiki.MediaWikiBackend` -- every request/
 response cycle is mocked at the backend's own cookie-jar opener (`opener.
 open`), so this file needs no live MediaWiki instance and no network access
 to run. See `test_wikiclient_mediawiki_integration.py` for the optional
@@ -14,8 +14,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wikiClient import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
-from wikiClient.mediawiki import MediaWikiBackend
+from planetgen.wiki import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
+from planetgen.wiki.mediawiki import MediaWikiBackend
 
 BASE_URL = "https://wiki.example.com/w"
 USERNAME = "Bot@planetgen"

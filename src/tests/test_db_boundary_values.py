@@ -119,14 +119,9 @@ def test_api_refuses_a_too_long_system_name(admin_client):
 def test_cli_refuses_a_too_long_name(tmp_path):
     result = subprocess.run(
         [sys.executable, "-m", "planetgen.cli.generate", "system", "--name", "N" * (store.SYSTEM_NAME_MAX_LENGTH + 1)],
-        cwd=_src_dir(), capture_output=True, text=True, timeout=120)
+        cwd=str(tmp_path), capture_output=True, text=True, timeout=120)
     assert result.returncode == 2
     assert "--name" in result.stderr and "Traceback" not in result.stderr
-
-
-def _src_dir():
-    import os
-    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 @pytest.mark.parametrize("name", ["Vega 🌌", "𝔙𝔢𝔤𝔞", "Ṽéga 星"])

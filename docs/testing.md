@@ -98,7 +98,7 @@ where the expected value comes from. It takes well under a second.
   [cli.md](cli.md#subcommands)); `update.sh`/`update.ps1` warn.
 
 ```sh
-cd src && python -m planetgen.physics.mathcheck -v   # the report, exit 1 on failure
+python -m planetgen.physics.mathcheck -v            # the report, exit 1 on failure
 pytest -m mathcheck                               # just the math check tests
 ```
 

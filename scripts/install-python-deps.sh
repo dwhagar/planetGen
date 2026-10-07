@@ -41,12 +41,12 @@
 # lock's sha256 hashes (--require-hashes), so nothing newer or altered on
 # PyPI gets in unnoticed. apt packages are apt's to verify.
 #
-# planetGen itself is never installed into site-packages: every entry
-# point puts the checkout's src/ on the import path itself
-# (src/html/wsgi.py, and the command-line tools run from src/ as
-# `python3 -m planetgen.cli.NAME`), and /usr/local/bin/planetgen is a small
-# wrapper that runs the checkout's planetgen.cli.generate. (The unmanaged path still
-# pip-installs the package, as it always has, but nothing runs that copy.)
+# planetGen itself is installed as an editable package of this checkout
+# (`pip install -e`, install_checkout below) on every path, so the web
+# app (src/html/wsgi.py) and every command-line tool
+# (`python3 -m planetgen.cli.NAME`, and the `planetgen` command) import
+# the checkout's code from anywhere, and a `git pull` takes effect with
+# no reinstall.
 #
 # Usage (as root):
 #   scripts/install-python-deps.sh           install.sh: full install
@@ -60,7 +60,8 @@
 # managed Python; pip on an unmanaged one). Nothing already present is
 # reinstalled. Both actions print one line per requirement with where it
 # came from, and exit non-zero if anything is still unusable. Both also
-# put back the /usr/local/bin/planetgen wrapper if it's missing or stale.
+# make the editable install of this checkout and the `planetgen` command
+# if either is missing or points elsewhere.
 #
 # Runs under macOS's bash 3.2 as well as Linux's bash: no associative
 # arrays or mapfile, and every array that can be empty is expanded as
@@ -99,7 +100,7 @@ MODE="${PLANETGEN_PYTHON_MODE:-auto}"
 LEGACY_VENV_DIR="${PLANETGEN_VENV_DIR:-/opt/planetgen/venv}"
 LEGACY_PTH_NAME="planetgen-venv.pth"
 VENV="${PLANETGEN_VENV:-/usr/local/planetgen/venv}"
-WRAPPER=/usr/local/bin/planetgen
+PLANETGEN_COMMAND=/usr/local/bin/planetgen
 # Exact versions and file hashes for everything pip installs
 # (scripts/lock-requirements.sh writes both). The server lock adds the
 # app server (gunicorn) for the venv path.
@@ -424,65 +425,51 @@ not_ok() {
     awk '$1 != "ok" {print $2}'
 }
 
-# Stands in for the `planetgen` console script pip would make, but runs
-# this checkout's planetgen.cli.generate (with src/ on PYTHONPATH, so a
-# relative path in its arguments still means the caller's directory), so
-# the CLI always runs the code that was
-# just pulled (like the web app, which imports from the checkout too)
-# without anything being reinstalled. Rewritten only when it differs.
-write_wrapper() {
-    local want
-    want="$(printf '%s\n' '#!/bin/sh' \
-        "# Written by planetGen's scripts/install-python-deps.sh." \
-        "PYTHONPATH=\"$SCRIPT_DIR/src\${PYTHONPATH:+:\$PYTHONPATH}\" exec \"$PYTHON\" -m planetgen.cli.generate \"\$@\"")"
-    if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
-        printf '%s\n' "$want" > "$WRAPPER"
-        echo "Wrote $WRAPPER (runs planetgen.cli.generate from $SCRIPT_DIR/src)."
+# Installs this checkout into $PYTHON as an editable package (`pip
+# install -e`, no dependencies: those come from the lock above), so
+# `planetgen` imports from anywhere, the web app and every command-line
+# tool run the checkout's code, and a `git pull` takes effect without a
+# reinstall. pip writes the `planetgen` console script into $PYTHON's
+# scripts directory; when that isn't /usr/local/bin (the macOS venv),
+# /usr/local/bin/planetgen links to it so the command is on PATH.
+# Skipped when the package already imports from this checkout and the
+# command is in place, so update.sh reinstalls nothing.
+install_checkout() {
+    local flags=() scripts
+    [[ "$MODE" == managed ]] && flags+=(--break-system-packages)
+    scripts="$("$PYTHON" -c 'import sysconfig; print(sysconfig.get_path("scripts"))')"
+    if ! (cd / && "$PYTHON" - "$SCRIPT_DIR/src" <<'EOF2'
+import os, sys
+import planetgen
+sys.exit(0 if os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__))) == os.path.realpath(sys.argv[1]) else 1)
+EOF2
+    ) 2>/dev/null || [[ ! -x "$scripts/planetgen" ]]; then
+        echo "Installing planetGen from $SCRIPT_DIR as an editable package."
+        "$PYTHON" -m pip install --quiet ${flags[@]+"${flags[@]}"} --no-deps -e "$SCRIPT_DIR"
     fi
-    chmod 755 "$WRAPPER"
+    if [[ "$scripts/planetgen" != "$PLANETGEN_COMMAND" && "$(readlink "$PLANETGEN_COMMAND" 2>/dev/null || true)" != "$scripts/planetgen" ]]; then
+        mkdir -p "$(dirname "$PLANETGEN_COMMAND")"
+        ln -sf "$scripts/planetgen" "$PLANETGEN_COMMAND"
+        echo "Linked $PLANETGEN_COMMAND to $scripts/planetgen."
+    fi
 }
 
 install_unmanaged() {
     echo "Python at $PYTHON is not externally managed: installing with pip."
-    # `pip install .` (a proper, build-isolated PEP 517 install), NOT the
-    # legacy `python3 setup.py install` this used to run. setuptools itself
-    # now prints "Please avoid running setup.py directly" for that direct
-    # invocation, and it's not just a style complaint: that legacy code path
-    # is where two separate production incidents happened back to back (see
-    # docs/TODO.md's "Deployment bugs found in production"). Both had the same
-    # root cause -- setuptools' own vendoring shim (`extern`) prefers a
-    # *real*, already-installed copy of a dependency it vendors
-    # (`importlib_metadata`, then `packaging`) over its own newer bundled
-    # copy whenever a real one is importable, so this system's old
-    # apt-provided copies of each one in turn silently shadowed the working
-    # vendored copy and crashed on a missing/changed API
-    # (`importlib_metadata.EntryPoints`, then
-    # `packaging.version.canonicalize_version`'s `strip_trailing_zero`
-    # kwarg) -- and chasing each one individually with another `pip install
-    # --upgrade <whatever's shadowed this time>` only fixes the specific
-    # dependency that happened to break today, not the next one. `pip
-    # install .`'s build isolation builds this package in a throwaway
-    # environment that can't see this system's site-packages at all (only
-    # the stdlib and pip's own freshly fetched build dependencies), so the
-    # shadowing can't happen there regardless of which dependency it would
-    # have hit -- avoiding this whole class of bug instead of patching it
-    # dependency-by-dependency. This also means the global `setuptools`
-    # system install no longer needs to be upgraded at all for this step,
-    # which is one less thing on this box's system-wide Python environment
-    # for this script to touch.
+    # planetGen itself goes in with install_checkout's `pip install -e`, a
+    # build-isolated PEP 517 install, NOT the legacy `python3 setup.py
+    # install` this once ran. That legacy path is where two production
+    # incidents happened back to back (docs/TODO.md's "Deployment bugs
+    # found in production"): setuptools' vendoring shim preferred this
+    # system's old apt copies of `importlib_metadata`, then `packaging`,
+    # over its own bundled ones and crashed on a changed API. Build
+    # isolation builds the package in a throwaway environment that can't
+    # see this system's site-packages at all, so that whole class of bug
+    # can't happen, and the system's own `setuptools` is never touched.
     #
-    # --force-reinstall (not a plain `pip install .`): plain `pip install .`
-    # skips reinstalling when pip thinks the same version is already
-    # installed -- true on every run between version bumps in
-    # `planetgen/_version.py` -- and install.sh is the full reinstall.
-    # (update.sh never comes here: it runs --check, which installs only
-    # what's missing. Nothing needs the pip-installed copy of planetGen to
-    # be current anyway, since every entry point imports from the checkout
-    # and write_wrapper below replaces pip's console script.)
-    #
-    # The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
-    # is included here, not left to a separate manual `pip install .[api]`
-    # some other doc might mention: every page under src/html/ is a thin
+    # The `api` extra's libraries (Flask/Flask-Limiter, see setup.py's
+    # `extras_require`) are in the lock, not left to a separate manual
+    # `pip install .[api]` some other doc might mention: every page under src/html/ is a thin
     # HTTP client over GET /api/... now (see planetgen/web/lib/apiclient.py's own
     # docstring), so the web interface this script exists to deploy simply
     # doesn't work without it -- confirmed in production as
@@ -517,10 +504,7 @@ install_unmanaged() {
     # them with --no-deps, since a local directory has no hash to check.
     "$PYTHON" -m pip install --upgrade pip
     "$PYTHON" -m pip install --ignore-installed --require-hashes -r "$LOCK"
-    "$PYTHON" -m pip install --upgrade --force-reinstall --ignore-installed --no-deps "$SCRIPT_DIR"
-    # Replaces pip's own console script, which would run the copy pip
-    # just installed and go stale after the next update.sh.
-    write_wrapper
+    install_checkout
     echo "Python install path: pip (unmanaged interpreter)."
     final_report
 }
@@ -536,7 +520,7 @@ install_managed() {
         echo "Installing those system-wide with pip."
         pip_install_needed "${need[@]}"
     fi
-    write_wrapper
+    install_checkout
     final_report
 }
 
@@ -578,7 +562,7 @@ check_venv() {
         echo "Missing, too old or not importable in $VENV: installing from requirements-server.lock."
         install_venv
     fi
-    write_wrapper
+    install_checkout
     final_report
 }
 
@@ -605,7 +589,7 @@ check_requirements() {
         fi
     fi
 
-    write_wrapper
+    install_checkout
     if ! final_report "$before_file"; then
         rm -f "$before_file"
         echo "  Running sudo ./install.sh does a full reinstall." >&2
@@ -630,7 +614,7 @@ if [[ "$MODE" == venv ]]; then
         check_venv
     else
         install_venv
-        write_wrapper
+        install_checkout
         echo "Python install path: venv ($VENV)."
         final_report
     fi

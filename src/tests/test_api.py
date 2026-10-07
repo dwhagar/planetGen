@@ -29,7 +29,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from wikiClient import WikiClientPageExistsError, WikiPage
+from planetgen.wiki import WikiClientPageExistsError, WikiPage
 from planetgen.db import query
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
@@ -168,7 +168,7 @@ def client_with_wiki(mysql_config):
     `POST .../wiki` routes' happy path, which `client`'s own unconfigured
     `WIKI_CONFIG` (nothing set in this test run's environment/config.json)
     would otherwise always reject with 501 before ever reaching
-    `wikiClient.WikiClient` at all."""
+    `planetgen.wiki.WikiClient` at all."""
     class TestConfig(Config):
         MYSQL_CONFIG = mysql_config
         WRITE_MYSQL_CONFIG = mysql_config
@@ -203,7 +203,7 @@ def admin_client_with_wiki(mysql_config, client_with_wiki):
 
 
 class _FakeWikiClient:
-    """Stand-in for `wikiClient.WikiClient` (monkeypatched over
+    """Stand-in for `planetgen.wiki.WikiClient` (monkeypatched over
     `api.routes.WikiClient`) so these tests never make a real network call
     against a wiki instance -- records every `create_page` call (backend/
     path/title/content) on the class itself and returns a canned

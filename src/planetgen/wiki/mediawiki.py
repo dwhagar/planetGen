@@ -1,9 +1,9 @@
-# wikiClient/mediawiki.py
+# planetgen/wiki/mediawiki.py
 
 """
 `MediaWikiBackend`: a small client for publishing pages to a
 [MediaWiki](https://www.mediawiki.org/) instance's Action API (`api.php`)
--- the other `wikiClient` backend (see `wikijs.py` for the Wiki.js one),
+-- the other `planetgen.wiki` backend (see `wikijs.py` for the Wiki.js one),
 dispatched to by `client.WikiClient`.
 
 Stdlib-only (`urllib.request`/`urllib.error`/`http.cookiejar`/`json`).

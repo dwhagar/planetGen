@@ -228,7 +228,7 @@ def mysql_config(_mysql_server_available):
 def wikijs_config():
     """
     Connection details for a real, disposable Wiki.js instance to test
-    `wikiClient.wikijs.WikiJsBackend` against end-to-end -- unlike
+    `planetgen.wiki.wikijs.WikiJsBackend` against end-to-end -- unlike
     `mysql_config` above, this project has no service of its own to
     provision one, so this is opt-in only: set `PLANETGEN_TEST_WIKIJS_BASE_URL`
     and `PLANETGEN_TEST_WIKIJS_TOKEN` (a Personal API Token from that
@@ -246,7 +246,7 @@ def wikijs_config():
     if not base_url or not api_token:
         pytest.skip(
             "No Wiki.js test instance configured -- set PLANETGEN_TEST_WIKIJS_BASE_URL "
-            "and PLANETGEN_TEST_WIKIJS_TOKEN to run wikiClient wikijs integration tests."
+            "and PLANETGEN_TEST_WIKIJS_TOKEN to run planetgen.wiki wikijs integration tests."
         )
 
     try:
@@ -271,7 +271,7 @@ def wikijs_config():
 def mediawiki_config():
     """
     Connection details for a real, disposable MediaWiki instance to test
-    `wikiClient.mediawiki.MediaWikiBackend` against end-to-end -- the
+    `planetgen.wiki.mediawiki.MediaWikiBackend` against end-to-end -- the
     MediaWiki counterpart of `wikijs_config` above, same opt-in treatment.
     Set `PLANETGEN_TEST_MEDIAWIKI_BASE_URL`, `PLANETGEN_TEST_MEDIAWIKI_USERNAME`
     (a `Special:BotPasswords` username, `"User@BotName"` form), and
@@ -290,7 +290,7 @@ def mediawiki_config():
         pytest.skip(
             "No MediaWiki test instance configured -- set PLANETGEN_TEST_MEDIAWIKI_BASE_URL, "
             "PLANETGEN_TEST_MEDIAWIKI_USERNAME, and PLANETGEN_TEST_MEDIAWIKI_PASSWORD to run "
-            "wikiClient mediawiki integration tests."
+            "planetgen.wiki mediawiki integration tests."
         )
 
     try:

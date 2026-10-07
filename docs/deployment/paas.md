@@ -40,6 +40,8 @@ usually cheaper.
 
 If you use one anyway:
 
+- Build with `pip install --require-hashes -r requirements-server.lock`
+  then `pip install --no-deps -e .`, so the planetgen package imports.
 - Start the app with gunicorn: `gunicorn --pythonpath src/html
   --workers 1 --worker-class gthread --threads 5 --bind 0.0.0.0:$PORT
   wsgi:application`.

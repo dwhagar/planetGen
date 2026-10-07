@@ -114,7 +114,7 @@ ensure_nltk_words() {
 # answer warns rather than stopping the install or update.
 ensure_redis() {
     local url host
-    url="$("$PYTHON" -c "import sys; sys.path.insert(0, sys.argv[1]); from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])" "$SCRIPT_DIR/src")" || {
+    url="$("$PYTHON" -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])")" || {
         echo "warning: couldn't read redis.url from config.json; skipping the Redis check." >&2
         return 0
     }
@@ -232,14 +232,9 @@ check_app_imports() {
     else
         user=root
     fi
-    if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - "$SCRIPT_DIR" <<'EOF'
-import os
-import sys
-
-root = sys.argv[1]
-sys.path.insert(0, os.path.join(root, "src"))
-import planetgen.generation.system  # noqa: E402,F401
-from planetgen.web.app import create_app  # noqa: E402,F401
+    if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - <<'EOF'
+import planetgen.generation.system  # noqa: F401
+from planetgen.web.app import create_app  # noqa: F401
 EOF
     ); then
         echo "The web app and the generator import cleanly as $user with $PYTHON."
@@ -250,9 +245,9 @@ EOF
 }
 
 # Runs one of planetGen's command-line tools, `python3 -m planetgen.cli.NAME
-# ARGS...`, from the checkout's src/ so the planetgen package imports.
+# ARGS...` (the editable install makes planetgen import from anywhere).
 run_cli() {
-    (cd "$SCRIPT_DIR/src" && "$PYTHON" -m "planetgen.cli.$1" "${@:2}")
+    "$PYTHON" -m "planetgen.cli.$1" "${@:2}"
 }
 
 # Brings the configured database up to the current schema. When a

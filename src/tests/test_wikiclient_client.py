@@ -1,7 +1,7 @@
 # tests/test_wikiclient_client.py
 
 """
-Unit tests for `wikiClient.client.WikiClient` -- the facade that dispatches
+Unit tests for `planetgen.wiki.client.WikiClient` -- the facade that dispatches
 `create_page` to whichever backend it was constructed with. Each backend's
 own request/response behavior is covered by `test_wikiclient_wikijs.py`/
 `test_wikiclient_mediawiki.py`; this file only checks that `WikiClient`
@@ -13,8 +13,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wikiClient import WikiClient
-from wikiClient.base import WikiPage
+from planetgen.wiki import WikiClient
+from planetgen.wiki.base import WikiPage
 
 
 def test_wikijs_backend_is_constructed_and_used():
@@ -25,9 +25,9 @@ def test_wikijs_backend_is_constructed_and_used():
     # `WikiClient.__init__` looks the backend class up from `_BACKENDS`
     # (built once at module import time), so the mock has to replace that
     # dict entry directly -- patching the `WikiJsBackend` name in
-    # `wikiClient.client`'s namespace wouldn't reach a reference `_BACKENDS`
+    # `planetgen.wiki.client`'s namespace wouldn't reach a reference `_BACKENDS`
     # already holds.
-    with patch.dict("wikiClient.client._BACKENDS", {"wikijs": mock_backend_cls}):
+    with patch.dict("planetgen.wiki.client._BACKENDS", {"wikijs": mock_backend_cls}):
         conduit = WikiClient(backend="wikijs", base_url="https://wiki.example.com", api_token="tok")
         result = conduit.create_page(path="p", title="t", content="c", tags=["x"])
 
@@ -41,7 +41,7 @@ def test_mediawiki_backend_is_constructed_and_used():
     mock_backend_cls = MagicMock()
     mock_backend_cls.return_value.create_page.return_value = fake_page
 
-    with patch.dict("wikiClient.client._BACKENDS", {"mediawiki": mock_backend_cls}):
+    with patch.dict("planetgen.wiki.client._BACKENDS", {"mediawiki": mock_backend_cls}):
         conduit = WikiClient(
             backend="mediawiki", base_url="https://wiki.example.com/w", username="Bot@x", password="pw"
         )

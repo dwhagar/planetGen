@@ -24,10 +24,6 @@ spectral types, why this isn't hand-authored per-class numeric bounds)
 and docs/TODO.md's "Physical-plausibility test suite (anomaly finder)"
 future idea for the original ask.
 
-This file lives at src/tests/, two levels under src/ where
-`stellarObjects` actually lives -- one dirname() up from this file's own
-directory reaches src/, added to sys.path below.
-
 Usage:
     python src/tests/physical_plausibility_cli.py
     python src/tests/physical_plausibility_cli.py --n 300 --no-moons
@@ -36,15 +32,13 @@ Usage:
 
 import argparse
 import logging
-import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from planetgen.generation import plausibility
 from planetgen import tuning as prog_c
 
-# Suppress transformers warnings pulled in transitively via stellarObjects.
+# Suppress transformers warnings pulled in transitively via planetgen.
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 

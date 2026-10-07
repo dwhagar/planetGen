@@ -655,7 +655,7 @@ def test_space_sector_module_does_not_import_the_generate_script():
     """
     Architectural regression guard: planetgen/galaxy/sector.py must not
     depend on the root `planetgen` script (once `systemGen.py`) -- root
-    scripts depend on the stellarObjects package, never the reverse. Checks
+    scripts depend on the planetgen package, never the reverse. Checks
     for an actual import statement, not a mention of the name in prose.
     """
     root_scripts = {"generate", "systemGen", "sectorGen"}

@@ -13,8 +13,8 @@ on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off check/migration outside of a deployment.
 
-Run it from the checkout's `src/` (`python3 -m` puts the current
-directory on sys.path, so `planetgen` imports).
+Run it as `python3 -m planetgen.cli.migrate` from anywhere (the editable
+install makes `planetgen` importable).
 
 Shows a progress bar while it migrates: one tick per migration step,
 with the elapsed time and an estimate of the time left (from how long the

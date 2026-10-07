@@ -39,8 +39,9 @@ def read_version():
 setup(
     name='planetGen',
     version=read_version(),
-    # Everything lives under src/ (src layout).
-    packages=find_packages(where='src'),
+    # Everything lives under src/planetgen (src layout); src/tests and
+    # src/html are not part of the package.
+    packages=find_packages(where='src', include=['planetgen', 'planetgen.*']),
     package_dir={'': 'src'},
     package_data={
         # Data files the modules read at run time (setuptools leaves non-.py

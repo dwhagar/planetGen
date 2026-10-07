@@ -10,10 +10,7 @@ one other users can write to.
 
 import os
 import stat
-import sys
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 

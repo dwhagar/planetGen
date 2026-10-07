@@ -1,4 +1,4 @@
-# wikiClient/client.py
+# planetgen/wiki/client.py
 
 """
 `WikiClient`: the single object callers construct once per wiki target and
@@ -18,7 +18,7 @@ pre-rendered content (`markdown_content` for `"wikijs"`, `wikitext_content`
 for `"mediawiki"` -- see `wikijs.py`/`mediawiki.py`'s own `create_page`
 docstrings).
 
-    from wikiClient import WikiClient
+    from planetgen.wiki import WikiClient
 
     conduit = WikiClient(backend="wikijs", base_url="https://wiki.example.com", api_token="...")
     page = conduit.create_page(path="systems/kepler-442", title="Kepler-442", content=markdown_content)

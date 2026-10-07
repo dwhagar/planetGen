@@ -10,12 +10,8 @@ Run with: pytest src/tests/test_galaxymap3d.py
 """
 import json
 import math
-import os
 import re
-import sys
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 

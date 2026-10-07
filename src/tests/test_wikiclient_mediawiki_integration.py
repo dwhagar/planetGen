@@ -1,7 +1,7 @@
 # tests/test_wikiclient_mediawiki_integration.py
 
 """
-End-to-end test for `wikiClient.mediawiki.MediaWikiBackend` against a real
+End-to-end test for `planetgen.wiki.mediawiki.MediaWikiBackend` against a real
 MediaWiki instance -- confirms the login/token/edit request shape
 `mediawiki.py` sends is one a real server actually accepts (the mocked
 tests in `test_wikiclient_mediawiki.py` can only prove the backend behaves
@@ -22,8 +22,8 @@ import uuid
 
 import pytest
 
-from wikiClient import WikiClientPageExistsError
-from wikiClient.mediawiki import MediaWikiBackend
+from planetgen.wiki import WikiClientPageExistsError
+from planetgen.wiki.mediawiki import MediaWikiBackend
 
 
 def test_create_page_against_real_instance(mediawiki_config):
@@ -37,7 +37,7 @@ def test_create_page_against_real_instance(mediawiki_config):
     page = client.create_page(
         path=title,
         title=title,
-        content="Created by planetGen's wikiClient mediawiki backend integration test.",
+        content="Created by planetGen's planetgen.wiki mediawiki backend integration test.",
         summary="planetgen-test",
     )
 
