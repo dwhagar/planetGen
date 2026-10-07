@@ -15,7 +15,8 @@ import json
 
 import pytest
 
-import generate
+from planetgen.generation import run_common
+from planetgen.generation import run_plan
 from planetgen.queue import progress_file
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
@@ -90,10 +91,10 @@ def test_the_average_follows_a_new_pace_at_the_time_constant():
 
 
 def test_the_remaining_column_shows_the_decaying_eta():
-    progress = generate._generation_progress()
+    progress = run_common._generation_progress()
     task_id = progress.add_task("Sectors", total=10)
     task = progress.tasks[0]
-    column = generate._DecayingRemainingColumn()
+    column = run_common._DecayingRemainingColumn()
     assert column.render(task).plain == "-:--:--"
     clock = _Clock()
     rate = task.fields["rate"]
@@ -154,9 +155,9 @@ def test_a_parallel_scatter_places_the_same_stars_as_a_serial_one(mysql_config, 
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
     # The galaxy's seed fixes the scatter's (GEN.39), so both draw alike.
     _seed_galaxy(mysql_config)
-    serial = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    serial = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
     serial_rows = _stored_stars(mysql_config)
-    parallel = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "2"))
+    parallel = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "2"))
     assert serial["total"] == parallel["total"] == len(serial_rows) > 20
     assert serial["counts"] == parallel["counts"]
     assert _stored_stars(mysql_config) == serial_rows

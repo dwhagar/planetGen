@@ -3,7 +3,7 @@
 Run any of these with:
 
 ```bash
-python generate.py system --system-file examples/systems/<file>.json
+planetgen system --system-file examples/systems/<file>.json
 ```
 
 That saves the system to the configured database; add `--output -` to

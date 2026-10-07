@@ -67,7 +67,7 @@ Measured 2026-10-01: 10,545 systems in 692 MB (66 KB each, over half
 of it moons)."""
 
 STATS_ENV_VAR = "PLANETGEN_GENERATION_STATS"
-"""str: `0` keeps `generate.py` from reading or recording any stats (the
+"""str: `0` keeps `planetgen` from reading or recording any stats (the
 test suite sets it, so test runs never touch a real server's numbers)."""
 
 FLUSH_SECONDS = 30

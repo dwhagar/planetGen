@@ -21,7 +21,7 @@ Two tiers of content, matching the sprite kinds
 - **Planned**: real, not-yet-generated sector *addresses* -- exact
   `(ring_index, layer_index, ring_slot_index)` grid cells this galaxy's own shape model
   predicts would qualify (see `galaxyDensity.predicted_star_count`, the
-  same >= 1 threshold `generate.py`'s `ensure_sector_generated`/
+  same >= 1 threshold `planetgen`'s `ensure_sector_generated`/
   `_BatchDensity` already gate real generation on), enumerated exactly
   via `galaxyGeometry.enumerate_sectors_within_radius` -- `planned_slots_in_view`.
   Deliberately capped to a small view radius (`PLANNED_RADIUS_CAP_PC`):
@@ -72,11 +72,11 @@ def qualifying_threshold_star_count():
     """
     The predicted-star-count threshold a slot must clear to be treated as
     "planned" (worth showing as a real, addressable, not-yet-generated
-    sector) rather than empty space -- exactly `generate.py`'s own
+    sector) rather than empty space -- exactly `planetgen`'s own
     `ensure_sector_generated`/`_BatchDensity` gate (`predicted_star_count
     >= 1.0`, i.e. "this position is predicted to hold at least one real
     star system"), restated here so this module's own callers don't need
-    to import `generate.py` (a script, not a library module) just for one
+    to import `planetgen` (a script, not a library module) just for one
     constant.
 
     Returns:
@@ -95,7 +95,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
     galaxymap3d.js` renders as small, dim, clickable dots (see the module
     docstring's own tier breakdown), each carrying its real
     `(ring_index, layer_index, ring_slot_index)` address and a copyable
-    provisional designation, ready to feed straight into `generate.py
+    provisional designation, ready to feed straight into `planetgen
     galaxy --ring I --layer J --slot K`.
 
     Args:
@@ -107,7 +107,7 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
                            view gets no addresses beyond that cap.
         edge_pc (float): The sector edge length, parsecs.
         shape (galaxyDensity.GalaxyShape or None): The galaxy's stored
-            shape parameters. `None` (no `generate.py plan` has been run
+            shape parameters. `None` (no `planetgen plan` has been run
             against this database yet) means there's no density model to
             qualify slots against, so every enumerated address is
             returned unfiltered (predicted star count/density fields are

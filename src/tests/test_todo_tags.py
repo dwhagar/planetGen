@@ -28,7 +28,7 @@ CATEGORIES = _bump_version.TODO_CATEGORIES
 
 # Where tags are checked: these directories (recursively) and top-level files.
 SCAN_DIRS = ("src", "scripts", "examples")
-SCAN_FILES = ("generate.py", "install.sh", "update.sh", "install.ps1", "update.ps1")
+SCAN_FILES = ("install.sh", "update.sh", "install.ps1", "update.ps1")
 
 # This file names tags on purpose.
 SKIP_FILES = {"test_todo_tags.py"}

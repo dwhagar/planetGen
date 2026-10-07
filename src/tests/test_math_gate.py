@@ -1,7 +1,7 @@
 # tests/test_math_gate.py
 
 """
-The math check in front of bulk generation (TEST.68): `generate.py
+The math check in front of bulk generation (TEST.68): `planetgen
 check-math`, the gate every bulk command and the Sector page's
 neighbourhood generation pass first (refusing, naming the failed checks,
 and writing nothing), the Generate page's first job step, and the warning
@@ -14,7 +14,9 @@ import sys
 
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.db import store
+from planetgen.generation import run_galaxy
 from planetgen.admin import activity_log
 from planetgen.physics import mathcheck as mathCheck
 
@@ -40,34 +42,34 @@ def handlers(monkeypatch):
     """Records which subcommand handlers ran and every activity log line,
     instead of generating anything."""
     ran, events = [], []
-    for name in list(generate._COMMAND_HANDLERS):
-        monkeypatch.setitem(generate._COMMAND_HANDLERS, name, lambda args, name=name: ran.append(name))
+    for name in list(generate_cli._COMMAND_HANDLERS):
+        monkeypatch.setitem(generate_cli._COMMAND_HANDLERS, name, lambda args, name=name: ran.append(name))
     monkeypatch.setattr(activity_log, "event", lambda *a, **k: events.append((a, k)))
     return ran, events
 
 
 def _main(monkeypatch, *argv):
-    monkeypatch.setattr(sys, "argv", ["generate.py", *argv])
-    generate.main()
+    monkeypatch.setattr(sys, "argv", ["planetgen", *argv])
+    generate_cli.main()
 
 
 def test_check_math_command_passes_on_real_math(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["generate.py", "check-math"])
-    generate.main()
+    monkeypatch.setattr(sys, "argv", ["planetgen", "check-math"])
+    generate_cli.main()
 
 
 def test_check_math_command_exits_1_naming_the_failure(monkeypatch):
     bad = mathCheck.Check("bad_check", "invariant", "bad", lambda: 1.0, 0.0, 0.0, "test", mode="max")
     monkeypatch.setattr(mathCheck, "all_checks", lambda: [bad])
-    monkeypatch.setattr(sys, "argv", ["generate.py", "check-math"])
+    monkeypatch.setattr(sys, "argv", ["planetgen", "check-math"])
     with pytest.raises(SystemExit) as exit_info:
-        generate.main()
+        generate_cli.main()
     assert exit_info.value.code == 1
 
 
-def test_check_math_runs_as_a_script():
-    result = subprocess.run([sys.executable, os.path.join(REPO, "generate.py"), "check-math", "-v"],
-                            capture_output=True, text=True, cwd=REPO, timeout=120)
+def test_check_math_runs_from_the_command_line():
+    result = subprocess.run([sys.executable, "-m", "planetgen.cli.generate", "check-math", "-v"],
+                            capture_output=True, text=True, cwd=os.path.join(REPO, "src"), timeout=120)
     assert result.returncode == 0, result.stdout + result.stderr
     assert "Math check passed" in result.stdout + result.stderr
     assert "sun_luminosity" in result.stdout + result.stderr
@@ -111,9 +113,9 @@ def test_neighborhood_generation_refuses_before_touching_the_database(broken_mat
     def no_database(*args, **kwargs):
         raise AssertionError("the database was touched")
 
-    monkeypatch.setattr(generate.store, "get_connection", no_database)
-    with pytest.raises(generate.MathCheckFailed, match="snow_line_1_lsun"):
-        generate.generate_sector_neighborhood(1)
+    monkeypatch.setattr(store, "get_connection", no_database)
+    with pytest.raises(run_galaxy.MathCheckFailed, match="snow_line_1_lsun"):
+        run_galaxy.generate_sector_neighborhood(1)
 
 
 def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
@@ -125,9 +127,9 @@ def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
     def reached(*args, **kwargs):
         raise Reached
 
-    monkeypatch.setattr(generate.store, "get_connection", reached)
+    monkeypatch.setattr(store, "get_connection", reached)
     with pytest.raises(Reached):
-        generate.generate_sector_neighborhood(1, estimate_only=True)
+        run_galaxy.generate_sector_neighborhood(1, estimate_only=True)
 
 
 def test_the_neighborhood_route_reports_the_failure(broken_math, monkeypatch):

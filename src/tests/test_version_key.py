@@ -3,7 +3,7 @@
 """
 DB.6: the 22-hex-digit version key, what made the galaxy (stored with
 its seed), and the run history (`generation_runs`, one row per
-`generate.py` run that changes the galaxy). OPS.10: the seed and version
+`planetgen` run that changes the galaxy). OPS.10: the seed and version
 line every generation run writes first.
 """
 
@@ -15,7 +15,7 @@ import time
 
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen._version import __version__
@@ -112,8 +112,8 @@ def _runs(mysql_config):
 
 def _generate(mysql_config, monkeypatch, *argv):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
-    monkeypatch.setattr(sys, "argv", ["generate.py", *argv] + _mysql_argv(mysql_config))
-    generate.main()
+    monkeypatch.setattr(sys, "argv", ["planetgen", *argv] + _mysql_argv(mysql_config))
+    generate_cli.main()
 
 
 def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch):

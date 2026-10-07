@@ -1,7 +1,7 @@
 # tests/test_bughunt_generation_fuzz.py
 
 """
-Tier 1 bug-hunt coverage: `generate.py system`/`sector`/`phenomenon` driven
+Tier 1 bug-hunt coverage: `planetgen system`/`sector`/`phenomenon` driven
 through many randomized, potentially-conflicting flag combinations (via
 the real CLI entry point, same convention as `test_bughunt_cli_edges.py`)
 -- unlike that file (one specific documented-incompatible combo per test),

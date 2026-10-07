@@ -273,27 +273,28 @@ function Invoke-MigrateOrReset {
     }
 }
 
-# Optionally runs the population pass (generate.py population: species,
+# Optionally runs the population pass (planetgen.cli.generate population: species,
 # civilizations and territories, docs\design\population-and-politics.md).
 # Off by default (Boss, 2026-10-01): it runs with -Population, or when
 # someone answers y to the prompt (y/N, 30 seconds, default N). With no
-# console it is skipped. generate.py population can always be run later.
-# The math check (generate.py check-math, TEST.68): known answers from
+# console it is skipped. The population pass can always be run later.
+# The math check (planetgen.cli.generate check-math, TEST.68): known answers from
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- and
 # returns $false so update.ps1 skips the population pass (which would
 # refuse anyway) and repeats the warning at the end.
 function Test-MathCheck {
     $python = Get-VenvPython
-    Push-Location $Root
+    # From src\ so `python -m planetgen.cli.*` finds the planetgen package.
+    Push-Location (Join-Path $Root "src")
     try {
-        & $python "generate.py" check-math | Out-Host
+        & $python -m planetgen.cli.generate check-math | Out-Host
         $ok = ($LASTEXITCODE -eq 0)
     } finally {
         Pop-Location
     }
     if (-not $ok) {
-        Write-Warning "The math check failed (above). Bulk generation refuses to start until it passes; run generate.py check-math -v for every check."
+        Write-Warning "The math check failed (above). Bulk generation refuses to start until it passes; run python -m planetgen.cli.generate check-math -v (from src) for every check."
     }
     return $ok
 }
@@ -307,14 +308,14 @@ function Invoke-OptionalPopulation([switch]$Run) {
     if ($answer -match "^(y|yes)$") {
         Write-Host "Running the population pass."
         $python = Get-VenvPython
-        Push-Location $Root
+        Push-Location (Join-Path $Root "src")
         try {
-            Invoke-Checked $python "generate.py" population
+            Invoke-Checked $python -m planetgen.cli.generate population
         } finally {
             Pop-Location
         }
     } else {
-        Write-Host "Skipping the population pass (run generate.py population any time, or pass -Population)."
+        Write-Host "Skipping the population pass (run python -m planetgen.cli.generate population from src any time, or pass -Population)."
     }
 }
 

@@ -537,7 +537,7 @@ def _ring_count_rule_violations():
 
 
 def _default_galaxy_shape():
-    """`generate.py plan`'s default galaxy shape."""
+    """`planetgen plan`'s default galaxy shape."""
     return galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
         bulge_amplitude=1.0, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)

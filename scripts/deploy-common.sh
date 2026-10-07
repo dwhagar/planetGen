@@ -287,28 +287,28 @@ migrate_or_reset_db() {
     run_cli migrate
 }
 
-# The math check (`generate.py check-math`, TEST.68): known answers from
+# The math check (`planetgen check-math`, TEST.68): known answers from
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- but sets
 # MATH_CHECK_FAILED=1, so offer_population_pass skips the population pass
 # (which would refuse anyway) and the closing message repeats the warning.
 MATH_CHECK_FAILED=0
 check_math() {
-    if "$PYTHON" "$SCRIPT_DIR/generate.py" check-math; then
+    if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else
         MATH_CHECK_FAILED=1
         echo "warning: the math check failed (above). Bulk generation refuses to start until it passes;" >&2
-        echo "         run '$PYTHON generate.py check-math -v' for every check." >&2
+        echo "         run 'planetgen check-math -v' for every check." >&2
     fi
 }
 
-# Optionally runs the population pass (`generate.py population`: species,
+# Optionally runs the population pass (`planetgen population`: species,
 # civilizations and territories, docs/design/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
 # when POPULATION=1 (or yes) is set, or when someone answers y to the
 # prompt (y/N, 30 seconds, default N). With no terminal it is skipped.
-# `generate.py population` can always be run by hand later.
+# `planetgen population` can always be run by hand later.
 offer_population_pass() {
     local answer=""
     if [[ "${MATH_CHECK_FAILED:-0}" == 1 ]]; then
@@ -325,8 +325,8 @@ offer_population_pass() {
     esac
     if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         echo "Running the population pass."
-        "$PYTHON" "$SCRIPT_DIR/generate.py" population
+        run_cli generate population
     else
-        echo "Skipping the population pass (run '$PYTHON generate.py population' any time, or set POPULATION=1)."
+        echo "Skipping the population pass (run 'planetgen population' any time, or set POPULATION=1)."
     fi
 }

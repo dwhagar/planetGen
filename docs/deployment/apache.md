@@ -128,11 +128,11 @@ After the database step, both scripts offer the population pass:
 
     Run the population pass now (species, civilizations, territories)? [y/N] (default N in 30s):
 
-`y` runs `generate.py population`, which names species, dates
+`y` runs `planetgen population`, which names species, dates
 civilizations and draws territories from what is already stored.
 Anything else, no answer within 30 seconds, or no terminal skips it.
 `sudo POPULATION=1 ./update.sh` (or `./install.sh`) runs it without
-asking, and `python3 generate.py population` runs it any time.
+asking, and `planetgen population` runs it any time.
 `install.sh --skip-database` skips both questions.
 
 ### Which Python and libraries Apache uses

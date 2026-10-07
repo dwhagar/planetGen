@@ -7,7 +7,7 @@ the estimate follows the run's current speed (a dense stretch of the
 galaxy, more workers, a busy database) instead of rich's own short
 window, and stays steady while many workers report at once.
 
-`generate.py`'s progress bars keep one `DecayingRate` per bar and show
+`planetgen`'s progress bars keep one `DecayingRate` per bar and show
 `eta()`; `progressFile` writes the same rate and ETA for the Generate
 page, so the terminal and the page agree.
 """

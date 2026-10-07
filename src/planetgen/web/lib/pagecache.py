@@ -22,7 +22,7 @@ A cached answer is dropped when any of these says it may be stale:
   database, one cheap call (`GET /api/galaxy/changes`, the stamp the
   Galaxy Map's tile cache uses, from the v27 `modified_at` columns) says
   whether sectors or systems were added, edited or deleted, by another
-  process too (a `generate.py` job, another web worker). A new stamp
+  process too (a `planetgen` job, another web worker). A new stamp
   drops that database's entries.
 - **Age.** Nothing is served older than `max_age_seconds`, the backstop
   for edits the stamp can't see (a rename of a single system from the

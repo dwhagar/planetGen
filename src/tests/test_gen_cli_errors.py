@@ -4,7 +4,7 @@
 `docs/TODO.md` TEST.28 (CLI errors by message) and TEST.29 (limits stay
 consistent).
 
-TEST.28: every `parser.error` in `generate.py`'s galaxy/plan/phenomenon/
+TEST.28: every `parser.error` in `planetgen`'s galaxy/plan/phenomenon/
 population validation (block, column, shell, center-sector, limit, plan
 shape, workers, population, phenomenon, mysql-port) is asserted by its
 own text on stderr, not just by `SystemExit` -- `test_galaxy_gen.py` and
@@ -16,7 +16,7 @@ refused (`MAX_GENERATE_RING`, `MAX_GENERATE_LIMIT`, the first and last
 `--block-layer`, `MAX_GENERATE_RADIUS_PC`, `MAX_NUM_ORBITS`, the MySQL
 port range).
 
-Everything goes through `generate.process_args()` with a patched
+Everything goes through `generate_cli.process_args()` with a patched
 `sys.argv`: validation runs in full and nothing connects to a database.
 
 TEST.29: `MAX_GENERATE_LIMIT` is `ring_sector_count(MAX_GENERATE_RING)`
@@ -30,7 +30,9 @@ import sys
 
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
+from planetgen.generation import run_galaxy
 from planetgen.generation import limits as generationLimits
 from planetgen.galaxy import skeleton
 from planetgen.galaxy.drill import parse_drill_key
@@ -43,8 +45,8 @@ MAX_ORBITS = generationLimits.MAX_NUM_ORBITS
 
 
 def _parse(monkeypatch, command, argv):
-    monkeypatch.setattr(sys, "argv", ["generate.py", command, *map(str, argv)])
-    return generate.process_args()
+    monkeypatch.setattr(sys, "argv", ["planetgen", command, *map(str, argv)])
+    return generate_cli.process_args()
 
 
 def _error(monkeypatch, capsys, command, argv):
@@ -55,7 +57,7 @@ def _error(monkeypatch, capsys, command, argv):
         _parse(monkeypatch, command, argv)
     assert excinfo.value.code == 2
     err = capsys.readouterr().err
-    prefix = f"generate.py {command}: error: "
+    prefix = f"planetgen {command}: error: "
     lines = [line for line in err.splitlines() if line.startswith(prefix)]
     assert len(lines) == 1, err
     return lines[0][len(prefix):]
@@ -182,7 +184,7 @@ def test_limit_at_max_is_accepted_and_one_past_is_refused(monkeypatch, capsys, m
 
 @pytest.mark.parametrize("key", ["3.2.1.0", "3.5.0.2", "3.0.0.-1", "27.1.0.0", "243.0.0.0"])
 def test_first_and_last_block_layer_are_accepted_and_their_neighbors_refused(monkeypatch, capsys, key):
-    layers = generate.block_layers(parse_drill_key(key))
+    layers = run_galaxy.block_layers(parse_drill_key(key))
     first, last = layers[0], layers[-1]
     assert layers == list(range(first, last + 1))
     for layer in (first, last):
@@ -307,7 +309,7 @@ def test_limits_are_derived_from_the_skeletons_max_ring():
     assert generationLimits.MAX_GENERATE_RING == skeleton.DEFAULT_MAX_RING
     assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(generationLimits.MAX_GENERATE_RING)
     # The plan subcommand's own default scan cap is the same number.
-    assert generate.DEFAULT_MAX_RING == skeleton.DEFAULT_MAX_RING
+    assert DEFAULT_MAX_RING == skeleton.DEFAULT_MAX_RING
 
 
 def test_no_ring_up_to_the_max_holds_more_slots_than_the_limit():
@@ -324,14 +326,14 @@ def test_no_ring_up_to_the_max_holds_more_slots_than_the_limit():
 @pytest.mark.parametrize("max_ring", [0, 1, 7, 3900, 250_000])
 def test_limits_follow_a_changed_default_max_ring(monkeypatch, capsys, max_ring):
     """Reloading `generationLimits` under another `DEFAULT_MAX_RING`
-    moves both limits together, and generate.py's checks and messages
+    moves both limits together, and the command line's checks and messages
     (which read them through the module) move with them."""
     try:
         monkeypatch.setattr(skeleton, "DEFAULT_MAX_RING", max_ring)
         importlib.reload(generationLimits)
         assert generationLimits.MAX_GENERATE_RING == max_ring
         assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(max_ring)
-        assert generate.limits is generationLimits
+        assert generate_cli.limits is generationLimits
 
         new_limit = generationLimits.MAX_GENERATE_LIMIT
         assert _parse(monkeypatch, "galaxy", ["--ring", max_ring]).ring == max_ring

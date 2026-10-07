@@ -23,7 +23,11 @@ import uuid
 import pymysql
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.galaxy.drill import parse_drill_key
+from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.generation import run_common
+from planetgen.generation import run_galaxy
 from planetgen.queue import work
 from planetgen.db import store
 from planetgen.names import uniqueness
@@ -130,15 +134,15 @@ def make_database(_mysql_server_available):
 
 def _run(command, argv, config, monkeypatch):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", config.database)
-    for counter in generate.RUN_COUNTS:
-        generate.RUN_COUNTS[counter] = 0
+    for counter in run_common.RUN_COUNTS:
+        run_common.RUN_COUNTS[counter] = 0
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py", command] + argv + _mysql_argv(config)
-        generate.main()
+        sys.argv = ["planetgen", command] + argv + _mysql_argv(config)
+        generate_cli.main()
     finally:
         sys.argv = old_argv
-    return dict(generate.RUN_COUNTS)
+    return dict(run_common.RUN_COUNTS)
 
 
 def _systems_per_sector(config):
@@ -172,7 +176,7 @@ def test_one_galaxy_seed_makes_the_same_sectors_at_any_worker_count(make_databas
         config = _seeded_galaxy(make_database)
         counts = _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(count)],
                       config, monkeypatch)
-        assert counts["sectors"] == len(_systems_per_sector(config)) == generate.ring_sector_count(1)
+        assert counts["sectors"] == len(_systems_per_sector(config)) == ring_sector_count(1)
         assert counts["systems"] == sum(_systems_per_sector(config).values())
         results[count] = galaxy_rows(config)
     assert results[1]["star_systems"] and results[1]["planets"]
@@ -287,7 +291,7 @@ def test_column_on_two_workers_fills_one_slot_on_every_layer_once(galaxy_db, mon
 
 def test_block_on_two_workers_fills_each_sector_once(galaxy_db, monkeypatch):
     block = "3.1.0.0"
-    expected = list(generate.block_addresses(generate.parse_drill_key(block), 0))
+    expected = list(run_galaxy.block_addresses(parse_drill_key(block), 0))
     argv = ["--block", block, "--block-layer", "0", "--limit", "4", "--yes"] + _workers()
     counts = _run("galaxy", argv, galaxy_db, monkeypatch)
     addresses = _check_run(galaxy_db, counts)

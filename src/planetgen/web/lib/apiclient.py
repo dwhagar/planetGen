@@ -455,7 +455,7 @@ def get_galaxy_phenomena(db):
 
 def get_galaxy_shape(db):
     """Returns `GET /api/galaxy/shape`'s `shape` dict -- the galaxy's
-    stored density-skeleton shape (`generate.py plan`'s output), or
+    stored density-skeleton shape (`planetgen plan`'s output), or
     `None` if that skeleton has never been built."""
     _require_db(db)
     return _request("/galaxy/shape", {"db": db})["shape"]

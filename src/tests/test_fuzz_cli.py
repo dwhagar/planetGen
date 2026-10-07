@@ -1,7 +1,7 @@
 # tests/test_fuzz_cli.py
 
 """
-Property-based fuzzing of `generate.py`'s command line: `build_parser()`/
+Property-based fuzzing of `planetgen`'s command line: `build_parser()`/
 `process_args()` on random argv lists assembled from the parser's *real*
 option names (read off the built parser, so a new option is fuzzed the
 day it's added) mixed with hostile values and junk tokens, plus full
@@ -41,7 +41,10 @@ import pytest
 from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.generation import run_galaxy
+from planetgen.generation import run_system
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.db import store
 from planetgen.generation import limits
@@ -109,9 +112,9 @@ def _restore_cli_globals():
 def _parse(argv):
     """`process_args()` on `argv`: the Namespace, or the SystemExit code."""
     old = sys.argv
-    sys.argv = ["generate.py"] + list(argv)
+    sys.argv = ["planetgen"] + list(argv)
     try:
-        return generate.process_args()
+        return generate_cli.process_args()
     except SystemExit as exc:
         return exc.code
     finally:
@@ -119,14 +122,14 @@ def _parse(argv):
 
 
 def _main(argv, *, seed=0, limit=60):
-    """Runs `generate.main()`: returns 0 for a normal return, else the
+    """Runs `generate_cli.main()`: returns 0 for a normal return, else the
     SystemExit code. Any other exception (a traceback) or a hang
     propagates, naming the argv."""
     old = sys.argv
-    sys.argv = ["generate.py"] + list(argv)
+    sys.argv = ["planetgen"] + list(argv)
     try:
         with _deterministic(seed), _time_limit(limit):
-            generate.main()
+            generate_cli.main()
         return 0
     except SystemExit as exc:
         return exc.code if isinstance(exc.code, int) else 1
@@ -138,10 +141,10 @@ def assert_clean(argv, *, seed=0, limit=60, allowed=(0, 1, 2)):
     try:
         code = _main(argv, seed=seed, limit=limit)
     except _Timeout as exc:
-        pytest.fail(f"hang: generate.py {' '.join(argv)!s}: {exc}")
+        pytest.fail(f"hang: planetgen {' '.join(argv)!s}: {exc}")
     except Exception as exc:  # noqa: BLE001 - a traceback is exactly the failure
-        pytest.fail(f"traceback: generate.py {' '.join(map(str, argv))}: {type(exc).__name__}: {exc}")
-    assert code in allowed, f"generate.py {' '.join(argv)} exited {code!r}"
+        pytest.fail(f"traceback: planetgen {' '.join(map(str, argv))}: {type(exc).__name__}: {exc}")
+    assert code in allowed, f"planetgen {' '.join(argv)} exited {code!r}"
     return code
 
 
@@ -149,7 +152,7 @@ def assert_clean(argv, *, seed=0, limit=60, allowed=(0, 1, 2)):
 # Option table, read off the real parser
 # ---------------------------------------------------------------------------
 
-_PARSER, _SUBPARSERS = generate.build_parser()
+_PARSER, _SUBPARSERS = generate_cli.build_parser()
 COMMANDS = sorted(_SUBPARSERS)
 _SKIP_DESTS = {"help", "version", "mysql_host", "mysql_port", "mysql_user", "mysql_password",
                "mysql_database", "system_file", "output", "debug"}
@@ -166,7 +169,7 @@ def _options(command):
             kind = "flag"
         elif action.type is int:
             kind = "int"
-        elif action.type in (float, generate.finite_float):
+        elif action.type in (float, generate_cli.finite_float):
             kind = "float"
         else:
             kind = "str"
@@ -277,7 +280,7 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
 
 # Float options whose validators use `x <= 0` / `x < 0 or x >= 1` style
 # checks, which NaN (every comparison False) used to slip straight through
-# (now rejected at parse time by `generate.finite_float`).
+# (now rejected at parse time by `generate_cli.finite_float`).
 _FLOAT_OPTIONS = sorted({(c, o) for c in COMMANDS for o, kind, _ in OPTION_TABLE[c] if kind == "float"})
 _BASE_ARGV = {"galaxy": ["--ring", "0"]}
 
@@ -319,7 +322,7 @@ SYSTEM_STAR_TYPES = ["G2V", "M9V", "O0V", "B0IA+", "M5VII", "K5VI", "A0III", "O5
 @st.composite
 def system_run_argv(draw):
     argv = ["system", "--quiet"]
-    for name, _attr, _desc in generate.TRISTATE_OPTIONS:
+    for name, _attr, _desc in run_system.TRISTATE_OPTIONS:
         sign = draw(st.sampled_from(["+", "-", None, None]))
         if sign:
             argv.append(f"{sign}{name}")
@@ -413,7 +416,7 @@ def test_unreachable_database_is_a_clean_error(mysql_config, port):
 @st.composite
 def sector_run_argv(draw):
     argv = ["sector", "--quiet"]
-    for name, _attr, _desc in generate.TRISTATE_OPTIONS:
+    for name, _attr, _desc in run_system.TRISTATE_OPTIONS:
         sign = draw(st.sampled_from(["+", "-", None, None, None]))
         if sign:
             argv.append(f"{sign}{name}")
@@ -458,7 +461,7 @@ class _TooManyConfigs(Exception):
 
 
 def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, monkeypatch):
-    real = generate.build_system_config
+    real = run_system.build_system_config
     calls = []
 
     def counting(args):
@@ -467,7 +470,7 @@ def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, mon
             raise _TooManyConfigs(f"{len(calls)} configs built for one sector")
         return real(args)
 
-    monkeypatch.setattr(generate, "build_system_config", counting)
+    monkeypatch.setattr(run_system, "build_system_config", counting)
     assert_clean(["sector", "--quiet", "--num-systems", "1000000000"] + mysql_argv(mysql_config), limit=60)
 
 
@@ -692,12 +695,12 @@ def test_galaxy_absurd_radius_is_clean(mysql_config, monkeypatch, tmp_path, radi
     center = _placed_sector_id(mysql_config)
     # The stub is the task itself, so it reaches the workers (PERF.21).
     monkeypatch.setenv(_ASKED_ENV, str(tmp_path / "asked.jsonl"))
-    monkeypatch.setattr(generate, "_fill_sector_task", _recording_fill_task)
-    monkeypatch.setattr(generate, "_log_saved", lambda *a, **k: None)
+    monkeypatch.setattr(run_galaxy, "_fill_sector_task", _recording_fill_task)
+    monkeypatch.setattr(run_galaxy, "_log_saved", lambda *a, **k: None)
     assert_clean(["galaxy", "--quiet", "--center-sector", str(center), "--radius-pc", radius,
                   "--num-systems", "1"] + mysql_argv(mysql_config), limit=10)
     asked = [tuple(address) for address in worker_patches.read_json_lines(str(tmp_path / "asked.jsonl"))]
-    cells = sum(generate.ring_sector_count(ring) for ring in range(_OUTER_RING + 1)) * 3
+    cells = sum(ring_sector_count(ring) for ring in range(_OUTER_RING + 1)) * 3
     assert len(asked) == len(set(asked)) <= cells
     assert all(0 <= ring <= _OUTER_RING and -1 <= layer <= 1 for ring, layer, _slot in asked)
     if radius in ("1e300", "1e308"):

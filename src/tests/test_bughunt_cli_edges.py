@@ -4,7 +4,7 @@
 Tier 1 bug-hunt coverage: every documented incompatible-option combo from
 `README.md`'s "Note on Incompatible Options", plus numeric boundary
 values for every option that takes one -- driven through the real CLI
-entry point (`generate.main()`, via `sys.argv`, same convention
+entry point (`generate_cli.main()`, via `sys.argv`, same convention
 `test_galaxy_gen.py` already uses) so a validation regression (an
 incompatible combo that stops being rejected, or a numeric boundary that
 starts crashing deep in generation instead of failing cleanly at argument
@@ -103,7 +103,7 @@ def test_sector_and_galaxy_runs_refuse_forcing_options(subcommand, option, mysql
         run_cli(subcommand, [option] + mysql_argv(mysql_config))
     assert exc.value.code == 2
     err = capsys.readouterr().err
-    assert option in err and "generate.py system" in err
+    assert option in err and "planetgen system" in err
 
 
 # --- Numeric boundary values that SHOULD be accepted --------------------
@@ -142,10 +142,10 @@ def test_version_flag_exits_cleanly(capsys):
 
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py", "--version"]
+        sys.argv = ["planetgen", "--version"]
         with pytest.raises(SystemExit) as exc_info:
-            import generate
-            generate.main()
+            from planetgen.cli import generate as generate_cli
+            generate_cli.main()
         assert exc_info.value.code in (0, None)
     finally:
         sys.argv = old_argv
@@ -158,9 +158,9 @@ def test_no_subcommand_exits_with_usage(capsys):
 
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py"]
+        sys.argv = ["planetgen"]
         with pytest.raises(SystemExit):
-            import generate
-            generate.main()
+            from planetgen.cli import generate as generate_cli
+            generate_cli.main()
     finally:
         sys.argv = old_argv

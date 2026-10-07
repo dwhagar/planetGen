@@ -396,7 +396,7 @@ def test_retry_reruns_a_cli_run_and_a_failed_sector(web_app, admin_client, contr
     monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, title, steps, kw))
                         or "20261001-000000-abcd")
     with pytest.raises(ValueError):
-        with workQueue.job_node("galaxy", "generate.py galaxy --ring 2", control_config,
+        with workQueue.job_node("galaxy", "planetgen galaxy --ring 2", control_config,
                                 argv=["galaxy", "--ring", "2"], database=control_config.database) as root:
             with workQueue.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
                 queue.submit("sector", "2,0,5", _broken, 0)

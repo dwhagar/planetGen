@@ -138,7 +138,7 @@ def exact_counts(conn):
 def bright_star_counts(conn):
     """
     How many pre-placed bright stars the galaxy's scatter wrote
-    (`generate.py plan`) and how many of them a sector fill has since built
+    (`planetgen plan`) and how many of them a sector fill has since built
     into a system.
 
     `placed` is read off the id run, not a `COUNT(*)` of tens of millions

@@ -14,7 +14,8 @@ import sys
 
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.generation import run_plan
 from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed
 from tests.test_galaxy_gen import _SKELETON_SHAPE, _mysql_argv, _seed_skeleton
@@ -82,9 +83,9 @@ def test_with_no_galaxy_seed_a_unit_leaves_the_stream_alone():
 
 def test_the_bright_star_seeds_come_from_the_galaxy_seed():
     skeleton = store.GalaxySkeletonInfo(_SKELETON_SHAPE, 1.0, 1, 1.0, SEED)
-    scatter = generate._bright_star_seed(skeleton, "scatter")
+    scatter = run_plan._bright_star_seed(skeleton, "scatter")
     assert scatter == galaxySeed.short_seed(SEED, "bright-stars", "scatter")
-    assert generate._bright_star_seed(skeleton, "band/100-500") != scatter
+    assert run_plan._bright_star_seed(skeleton, "band/100-500") != scatter
 
 
 # ---------------------------------------------------------------------------
@@ -101,9 +102,9 @@ def _stored_seed(mysql_config):
 
 def _plan(mysql_config, monkeypatch, *extra):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
-    monkeypatch.setattr(sys, "argv", ["generate.py", "plan", "--no-bright-stars", "--max-ring", "40", *extra]
+    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--no-bright-stars", "--max-ring", "40", *extra]
                         + _mysql_argv(mysql_config))
-    generate.main()
+    generate_cli.main()
 
 
 def test_the_seed_is_stored_bit_for_bit(mysql_config):
@@ -138,9 +139,9 @@ def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkey
     other = "F" * 32
     _plan(mysql_config, monkeypatch, "--seed", other)
     assert _stored_seed(mysql_config) == bytes.fromhex(other)
-    monkeypatch.setattr(sys, "argv", ["generate.py", "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
+    monkeypatch.setattr(sys, "argv", ["planetgen", "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
                                       "--backfill-from", "none"] + _mysql_argv(mysql_config))
-    generate.main()
+    generate_cli.main()
     with pytest.raises(SystemExit) as raised:
         _plan(mysql_config, monkeypatch, "--seed", SEED_HEX)
     assert raised.value.code == 1
@@ -150,8 +151,8 @@ def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkey
 
 
 def test_plan_refuses_a_malformed_seed(monkeypatch, capsys):
-    monkeypatch.setattr(sys, "argv", ["generate.py", "plan", "--seed", "1234"])
+    monkeypatch.setattr(sys, "argv", ["planetgen", "plan", "--seed", "1234"])
     with pytest.raises(SystemExit) as raised:
-        generate.main()
+        generate_cli.main()
     assert raised.value.code == 2
     assert "32 hex digits" in capsys.readouterr().err

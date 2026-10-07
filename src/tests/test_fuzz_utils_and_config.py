@@ -676,7 +676,7 @@ benign_arg = st.text(alphabet="abcdefghijklmnop-=_/.", max_size=12).filter(lambd
        joined=st.booleans())
 def test_redacted_argv_never_shows_a_password_value(secret, before, after, flag, joined):
     assume(not any(secret in a for a in before + after))
-    argv = ["generate.py", *before, *([f"{flag}={secret}"] if joined else [flag, secret]), *after]
+    argv = ["planetgen", *before, *([f"{flag}={secret}"] if joined else [flag, secret]), *after]
     with mock.patch.object(sys, "argv", argv):
         shown = log._redacted_argv()
     assert len(shown) == len(argv)
@@ -694,7 +694,7 @@ def test_redacted_argv_never_raises(argv):
 @example(secret="hunter2secret", cut=len("--mysql-pass"), joined=False)   # was logged in the clear
 def test_redacted_argv_covers_argparse_abbreviations(secret, cut, joined):
     option = "--mysql-password"[:cut]
-    argv = ["generate.py", *([f"{option}={secret}"] if joined else [option, secret])]
+    argv = ["planetgen", *([f"{option}={secret}"] if joined else [option, secret])]
     parser = argparse.ArgumentParser()
     store.add_mysql_connection_args(parser)
     if cut > len("--mysql-p"):  # "--mysql-p" alone is ambiguous with --mysql-port
@@ -704,7 +704,7 @@ def test_redacted_argv_covers_argparse_abbreviations(secret, cut, joined):
 
 
 def test_redacted_argv_leaves_other_options_alone():
-    argv = ["generate.py", "--mysql-host", "db", "--mysql-port", "3306", "--mysql-user", "u", "--name", "X"]
+    argv = ["planetgen", "--mysql-host", "db", "--mysql-port", "3306", "--mysql-user", "u", "--name", "X"]
     with mock.patch.object(sys, "argv", argv):
         assert log._redacted_argv() == argv
 
@@ -729,7 +729,7 @@ def test_sql_log_line_is_one_bounded_line(sql, params):
 def test_debug_log_file_never_contains_command_line_password(tmp_path):
     log_path = tmp_path / "planetgen.log"
     secret = "S3cr3t-Value-For-Redaction"
-    argv = ["generate.py", "--mysql-password", secret, f"--mysql-password={secret}x"]
+    argv = ["planetgen", "--mysql-password", secret, f"--mysql-password={secret}x"]
     with mock.patch.dict(os.environ, {"PLANETGEN_DEBUG": "1", "PLANETGEN_LOG_FILE": str(log_path)}), \
             mock.patch.object(sys, "argv", argv):
         try:

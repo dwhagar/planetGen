@@ -404,9 +404,9 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
     run = subprocess.Popen(
-        [sys.executable, os.path.join(REPO, "generate.py"), "galaxy", "--ring", str(GALAXY_RING),
+        [sys.executable, "-m", "planetgen.cli.generate", "galaxy", "--ring", str(GALAXY_RING),
          "--num-systems", str(NUM_SYSTEMS), "--workers", "2"] + _mysql_argv(control_config),
-        cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True)
+        cwd=os.path.join(REPO, "src"), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True)
     try:
         deadline = time.time() + 120
         while _sector_counts(control_config)[0] < 1:

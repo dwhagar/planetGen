@@ -34,12 +34,12 @@ import sys
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
-# generate.py lives at the repo root, three levels above src/planetgen/api/ (this
+# planetgen lives at the repo root, three levels above src/planetgen/api/ (this
 # file) -- src/ itself is already on sys.path (see html/wsgi.py's own
 # docstring), but the repo root isn't, so it's added here specifically for
 # this import. Only `generate_sector_neighborhood_route` below needs it.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-import generate  # noqa: E402
+from planetgen.generation import run_galaxy  # noqa: E402
 
 from planetgen.db.query import (
     facilities_for_system,
@@ -109,7 +109,7 @@ MAX_SECTOR_EDGE_LY = 1e9
 sector, well short of overflowing the unit conversion."""
 MAX_NEIGHBORHOOD_RADIUS_LY = generationLimits.MAX_GENERATE_RADIUS_LY
 """float: An upper bound on generate-neighborhood's `radius_ly` (about
-652 ly, the same 200 pc cap the Generate page and `generate.py` use), so
+652 ly, the same 200 pc cap the Generate page and `planetgen` use), so
 no request can ask for an unbounded run."""
 
 WRITE_RATE_LIMIT = "10 per minute"
@@ -701,7 +701,7 @@ def galaxy_phenomena():
 @bp.route("/galaxy/shape")
 def galaxy_shape():
     """
-    The galaxy's stored density-skeleton shape (`generate.py plan`'s own
+    The galaxy's stored density-skeleton shape (`planetgen plan`'s own
     output, `queryDb.galaxy_density_shape`) -- the real spiral/disk/bulge
     model the Galaxy Map (`/galaxy`) shades its "expected density"
     cloud from, for whatever space hasn't actually been generated yet.
@@ -1132,9 +1132,9 @@ def generate_sector_neighborhood_route(sector_id):
     """`POST /api/sectors/<id>/generate-neighborhood` -- generates every
     not-yet-generated sector within `radius_ly` (optional JSON body
     field; defaults to `tuning.DEFAULT_GENERATE_RADIUS_PC`,
-    12 pc, the sphere `generate.py galaxy`'s own random-start mode uses)
+    12 pc, the sphere `planetgen galaxy`'s own random-start mode uses)
     of this already galaxy-placed sector -- see
-    `generate.generate_sector_neighborhood`. Every new sector also gets
+    `run_galaxy.generate_sector_neighborhood`. Every new sector also gets
     the bright stars within 100 ly of it (GEN.23). **A large radius is
     genuinely large** (100 ly is ~2,000-3,000 candidate sector slots), so
     this can run for minutes to hours, not seconds. Runs synchronously like every
@@ -1165,17 +1165,17 @@ def generate_sector_neighborhood_route(sector_id):
         raise ApiError(f"'estimate_only' is invalid: {estimate_only!r}")
 
     try:
-        result = generate.generate_sector_neighborhood(
+        result = run_galaxy.generate_sector_neighborhood(
             sector_id, radius_ly=radius_ly, config=_resolve_requested_write_db_config(),
             estimate_only=estimate_only,
         )
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
-    except generate.GenerationRefused as exc:
+    except run_galaxy.GenerationRefused as exc:
         # PERF.3: the database disk can't hold it; nothing was written.
         raise ApiError(str(exc), status_code=507)
     except RuntimeError as exc:
-        # The galaxy's density skeleton (`generate.py plan`) has never
+        # The galaxy's density skeleton (`planetgen plan`) has never
         # been built -- generate_sector_neighborhood needs it to gate each
         # candidate slot's own generation on local stellar density.
         raise ApiError(str(exc), status_code=409)

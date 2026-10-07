@@ -37,7 +37,7 @@
 #      incident (`PermissionError: [Errno 13] ... '/var/www/nltk_data'`)
 #      this fixes. Then, unless --skip-database, it offers (y/N, 30
 #      seconds, default N; skipped with no terminal) to run the
-#      population pass, `generate.py population`; POPULATION=1 runs it
+#      population pass, `planetgen population`; POPULATION=1 runs it
 #      without asking (offer_population_pass in scripts/deploy-common.sh).
 #   4. Makes the repo's shell scripts (and `src/html/`'s Python files) executable, independent of whatever
 #      executable bit git happened to preserve on checkout (also see

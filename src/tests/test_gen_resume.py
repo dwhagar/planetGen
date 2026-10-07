@@ -23,7 +23,8 @@ import uuid
 import pymysql
 import pytest
 
-import generate
+from planetgen.generation import run_galaxy
+from planetgen.generation import run_plan
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
@@ -158,7 +159,7 @@ def _check_resumed_matches_uninterrupted(mysql_config, second_mysql_config, mode
 def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
     _seed_skeleton(mysql_config, layers=LAYERS)
-    calls = _fail_on_call(monkeypatch, tmp_path, generate, "generate_and_save_sector_at", 4)
+    calls = _fail_on_call(monkeypatch, tmp_path, run_galaxy, "generate_and_save_sector_at", 4)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
     assert worker_patches.count(calls) >= 4
@@ -248,13 +249,13 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     # still reach the skipped sectors next door.
     monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_TIERS", ((10.0, 100.0), (20.0, 250.0)))
     _seed_galaxy(mysql_config)
-    args = generate._default_generation_args(config=mysql_config)
+    args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
     for address in PRE_FILLED:
-        generate.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+        run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     before = _sector_rows(mysql_config)
 
-    forced = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--force"))
+    forced = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--force"))
     assert forced["total"] > 0
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 

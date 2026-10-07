@@ -22,7 +22,7 @@
          default N) and its progress bar. Skipped, with a note, while
          mysql.password is still the example's CHANGE-ME. Then it offers
          (y/N, 30 seconds, default N; skipped with no console) to run the
-         population pass, generate.py population.
+         population pass, planetgen.cli.generate population.
       4. The tile cache, jobs and log folders (<DataDir>\tiles, jobs, logs
          by default, or wherever config.json points).
       5. Permissions with icacls, as set-permissions.sh does on Linux: the
@@ -57,7 +57,7 @@
     yet (and for CI). Run update.ps1 once it is.
 
 .PARAMETER Population
-    Runs the population pass (generate.py population: species,
+    Runs the population pass (planetgen.cli.generate population: species,
     civilizations, territories) after the database step without asking.
     Off by default.
 #>

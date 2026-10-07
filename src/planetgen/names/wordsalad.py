@@ -332,15 +332,15 @@ def generate_sector_name():
     `SECTOR_SUFFIXES` base lists instead, so generated sectors draw on real
     astronomical regions (galactic arms, superclusters, nebulae) and
     science-fiction sector names rather than reusing star names verbatim.
-    No literal "Sector" suffix. `generate.py`'s `sector`/`galaxy` subcommands
+    No literal "Sector" suffix. `planetgen`'s `sector`/`galaxy` subcommands
     override this entirely via `--name`/`-n`, which hard-sets the whole
     name instead; `planetgen.db.store`'s name-uniqueness machinery
     (`nameUniqueness.py`) also calls this directly, to draw an entirely
     fresh sector name on the rare occasion a collision exhausts every
     decoration this project has for one -- both reasons this lives here,
-    in the `planetgen` package, rather than in `generate.py` itself, which
+    in the `planetgen` package, rather than in `planetgen` itself, which
     `store.py` can't import (it would be a backwards/circular dependency --
-    `generate.py` already imports `planetgen.db.store`).
+    `planetgen` already imports `planetgen.db.store`).
 
     Returns:
         str: A newly generated sector name, e.g. "Voranthis Kelmoor" --

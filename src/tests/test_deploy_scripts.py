@@ -160,8 +160,8 @@ def test_the_update_never_offers_the_population_pass():
         powershell = f.read()
     assert "offer_population_pass" not in shell and "POPULATION=" not in shell
     assert "Invoke-OptionalPopulation" not in powershell and "$Population" not in powershell
-    assert "generate.py population" in shell
-    assert "population" in powershell and "generate.py" in powershell
+    assert "planetgen population" in shell
+    assert "population" in powershell and "planetgen.cli.generate" in powershell
 
 
 # --- log-locations.py (OPS.5), run as the current user -----------------------

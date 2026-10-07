@@ -7,7 +7,7 @@ overlapping, for a binary), plus every nearby standalone phenomenon
 planet/interstellar comet/quasar), plus a small clickable indicator toward each
 immediately surrounding sector (`_neighbor_indicator_data`, see
 `queryDb.sector_neighbors`) -- linking straight to it if already
-generated, or showing its address (ready to feed into `generate.py galaxy
+generated, or showing its address (ready to feed into `planetgen galaxy
 --ring I --layer J --slot K`) if not -- rendered as a real WebGL scene (`static/sectormap.js`,
 via three.js -- vendored at `static/vendor/three.module.min.js`, see that
 directory's `THIRD_PARTY_NOTICES.txt`) instead of the CSS

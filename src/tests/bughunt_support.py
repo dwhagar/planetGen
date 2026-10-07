@@ -103,7 +103,7 @@ def run_seeded(fn: Callable[[int], None], seeds: Sequence[int] = FUZZ_SEEDS) -> 
 
 def run_cli(subcommand: str, argv: Sequence[str]) -> None:
     """
-    Runs `generate.py`'s real `main()` for the given subcommand
+    Runs `planetgen`'s real `main()` for the given subcommand
     (`system`/`sector`/`galaxy`/`plan`/`phenomenon`) via `sys.argv`,
     restoring it afterward -- generalizes `test_galaxy_gen.py`'s own
     `_run_cli`/`_run_sector_gen_cli` helpers (previously duplicated
@@ -116,11 +116,11 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
     for that argv.
 
     Args:
-        subcommand: One of generate.py's subcommands.
-        argv: The rest of the command line (excluding "generate.py" and
+        subcommand: One of planetgen's subcommands.
+        argv: The rest of the command line (excluding "planetgen" and
             the subcommand itself).
     """
-    import generate as _generate
+    from planetgen.cli import generate as generate_cli
     from planetgen import tuning
 
     # `build_system_config` writes --flavor-chance-*/--max-planet-flavor
@@ -130,8 +130,8 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
     saved = {name: getattr(tuning, name) for name in flavor_names}
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py", subcommand] + list(argv)
-        _generate.main()
+        sys.argv = ["planetgen", subcommand] + list(argv)
+        generate_cli.main()
     finally:
         sys.argv = old_argv
         for name, value in saved.items():
@@ -146,9 +146,9 @@ def forced_system_config(**fields):
     (GEN.51), but tests still want, say, planet-less systems so a large
     run stays cheap. Works for in-process runs (`PLANETGEN_WORKERS=1`).
     """
-    import generate as _generate
+    from planetgen.generation import run_system
 
-    real = _generate.build_system_config
+    real = run_system.build_system_config
 
     def build(args):
         config = real(args)
@@ -156,11 +156,11 @@ def forced_system_config(**fields):
             setattr(config, name, value)
         return config
 
-    _generate.build_system_config = build
+    run_system.build_system_config = build
     try:
         yield
     finally:
-        _generate.build_system_config = real
+        run_system.build_system_config = real
 
 
 def mysql_argv(mysql_config) -> list[str]:

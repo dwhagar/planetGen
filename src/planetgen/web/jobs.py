@@ -2,8 +2,8 @@
 
 """
 Background jobs for the admin Generate page (`web/generate_page.py`):
-resetting the galaxy, building its density skeleton (`generate.py plan`)
-and generating sectors (`generate.py galaxy`), started from the browser
+resetting the galaxy, building its density skeleton (`planetgen plan`)
+and generating sectors (`planetgen galaxy`), started from the browser
 and left running after the request that started them has returned.
 
 A job is a directory under the jobs directory (`jobs_dir()`):
@@ -15,7 +15,7 @@ A job is a directory under the jobs directory (`jobs_dir()`):
             runner.pid          the runner's pid, written when it is spawned
             cancel              written by Cancel; the runner stops when it sees it
             state.json          written by planetgen.cli.job as it goes
-            progress.json       written by generate.py (planetgen.queue.progress_file)
+            progress.json       written by planetgen (planetgen.queue.progress_file)
             output.log          every step's stdout and stderr
 
 `start_job` writes `job.json`, takes the lock and spawns
@@ -50,9 +50,11 @@ from planetgen.util import log
 from planetgen.util.appconfig import load_config
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-"""str: The planetGen checkout (`generate.py` lives here)."""
+"""str: The planetGen checkout."""
 
-GENERATE_SCRIPT = os.path.join(REPO_DIR, "generate.py")
+GENERATE_COMMAND = ["-m", "planetgen.cli.generate"]
+"""list: Runs the generator, `planetgen.cli.generate` (the job runner puts
+the checkout's `src/` on the steps' `PYTHONPATH`)."""
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
 """list: Runs `planetgen.cli.reset` (the job runner puts the checkout's
 `src/` on the steps' `PYTHONPATH`)."""

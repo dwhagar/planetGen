@@ -23,7 +23,7 @@
 
 <section class="panel" id="system-options" aria-labelledby="system-options-heading">
   <h2 id="system-options-heading">Options</h2>
-  <p class="hint">The same options as <code>generate.py system</code>. Blank means the generator decides.
+  <p class="hint">The same options as <code>planetgen system</code>. Blank means the generator decides.
   The system is only shown here; nothing is saved to the database.</p>
   <form method="post" action="{{ url_for('web.generate_system') }}#system-result" class="search-form">
     {{ csrf_field() }}

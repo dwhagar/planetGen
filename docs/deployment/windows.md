@@ -82,7 +82,7 @@ sets `NLTK_DATA`, writes `config.json` from
 step 7. The database step runs once `config.json` has your `mysql.*`
 settings; until then it says so, and `update.ps1` does it later, with the
 same migrate-or-delete question as `update.sh`. After the migration it
-offers the optional population pass (`generate.py population`: species,
+offers the optional population pass (`planetgen population`: species,
 civilizations, territories; y/N within 30 seconds, default N, skipped
 with no console); `-Population` runs it without asking. `-VenvDir`, `-DataDir`
 and `-ServiceAccount` change the defaults below (`-ServiceAccount "IIS

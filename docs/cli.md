@@ -1,33 +1,33 @@
 # Command-line reference
 
-Every option of `generate.py`, the one entry point for every generator.
+Every option of `planetgen`, the one entry point for every generator.
 For what planetGen is and a short tour, see the [README](../README.md);
 for installing it, [INSTALL.md](../INSTALL.md). On Windows run it with
 the venv's Python (`C:\srv\planetgen-venv\Scripts\python.exe`); on
 Linux and macOS the installer also adds a `planetgen` command that runs
-it. `python3 generate.py <command> --help` prints the same options.
+it. `planetgen <command> --help` prints the same options.
 ## Subcommands
 
-`generate.py` is the single command-line entry point for every generator in this project — one script, with a subcommand per generation scale:
+`planetgen` is the single command-line entry point for every generator in this project — one command, with a subcommand per generation scale:
 
 ```bash
-python3 generate.py system [options]      # one star system
-python3 generate.py sector [options]      # one or more independent sectors
-python3 generate.py galaxy [options]      # many sectors placed as one galaxy
-python3 generate.py plan [options]        # the galaxy's density skeleton
-python3 generate.py phenomenon [options]  # one exotic stellar phenomenon
-python3 generate.py population [options]  # species, civilizations and territories
-python3 generate.py check-math [-v]       # the math check bulk runs start with
+planetgen system [options]      # one star system
+planetgen sector [options]      # one or more independent sectors
+planetgen galaxy [options]      # many sectors placed as one galaxy
+planetgen plan [options]        # the galaxy's density skeleton
+planetgen phenomenon [options]  # one exotic stellar phenomenon
+planetgen population [options]  # species, civilizations and territories
+planetgen check-math [-v]       # the math check bulk runs start with
 ```
 
-Run `python3 generate.py <command> --help` for that command's own full option list. Every subcommand except `check-math` saves what it generates to the database.
+Run `planetgen <command> --help` for that command's own full option list. Every subcommand except `check-math` saves what it generates to the database.
 
 **The math check comes first.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. One system, one sector or one phenomenon is not gated. `update.sh` and `update.ps1` run it after updating and warn (and skip the population pass) if it fails.
 
 To generate a new star system:
 
 ```bash
-python3 generate.py system [options]
+planetgen system [options]
 ```
 
 To generate a whole sector of star systems at once, see [Sector Generation](#sector-generation) below.
@@ -100,13 +100,13 @@ it, `system` exits with an error and saves nothing.
 
 ### Sector Generation
 
-`generate.py sector` generates a whole sector of independently-random star systems in one pass, reusing `generate.py system`'s own generation logic for each one:
+`planetgen sector` generates a whole sector of independently-random star systems in one pass, reusing `planetgen system`'s own generation logic for each one:
 
 ```bash
-python3 generate.py sector [options]
+planetgen sector [options]
 ```
 
-Some of `system`'s options work here too, and apply *uniformly* to every system in the sector: `--star-type G2V` makes every star in the sector a G2V, and so on. The `+name`/`-name` forcing options are for a single system only: `sector` and `galaxy` refuse them with an error naming the option (a saved or queued command line that still has one gets the same message). `--system-file`, `--num-orbits`, and `system`'s own per-system `--name` aren't offered here either, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `generate.py system` for that.
+Some of `system`'s options work here too, and apply *uniformly* to every system in the sector: `--star-type G2V` makes every star in the sector a G2V, and so on. The `+name`/`-name` forcing options are for a single system only: `sector` and `galaxy` refuse them with an error naming the option (a saved or queued command line that still has one gets the same message). `--system-file`, `--num-orbits`, and `system`'s own per-system `--name` aren't offered here either, since those describe one specific, hand-crafted system rather than a sector of varied ones; use `planetgen system` for that.
 
 Sector-specific options:
 
@@ -119,27 +119,27 @@ Each run saves the whole generated sector — every system, star, planet, moon, 
 
 ### Sector-Level Exotic Phenomena
 
-Every generated sector also seeds a realistically sparse population of exotic phenomena: black holes, neutron stars, nebulae (including molecular clouds and planetary nebulae), supernova remnants, rogue planets and free-floating brown dwarfs, and interstellar comets. Each type is drawn per star from the research densities in [`design/interstellar-object-rates.md`](design/interstellar-object-rates.md) (`program_constants.PHENOMENON_DENSITY_PC3`, with a `PHENOMENON_RATE_SCALE` dial per type), so most sectors hold none of the rarer kinds, as real space this size usually doesn't. Isolated asteroid fields are not generated in sectors (they disperse); `generate.py phenomenon --type asteroid-field` still makes one on request. In a galaxy, molecular clouds (classes M-Q) belong to the galaxy rather than to one sector: they are drawn per 50 pc cell from the galaxy seed, more on the spiral arms and near the plane, and a sector gets every cloud that reaches it, stored once whichever sector it reaches is generated first (GEN.47). On an arm at the Sun's distance about one sector in eight sits in one, between the arms about one in twenty-five. Nebulae come with the stars that make them: every O star and half the B0-B2 stars sit in an H II region, and every planetary nebula has its own new hot white dwarf at the center. A galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): then the core sector at ring 0, layer 0, slot 0 gets a quasar at the galactic center; otherwise it gets a quiescent supermassive black hole.
+Every generated sector also seeds a realistically sparse population of exotic phenomena: black holes, neutron stars, nebulae (including molecular clouds and planetary nebulae), supernova remnants, rogue planets and free-floating brown dwarfs, and interstellar comets. Each type is drawn per star from the research densities in [`design/interstellar-object-rates.md`](design/interstellar-object-rates.md) (`program_constants.PHENOMENON_DENSITY_PC3`, with a `PHENOMENON_RATE_SCALE` dial per type), so most sectors hold none of the rarer kinds, as real space this size usually doesn't. Isolated asteroid fields are not generated in sectors (they disperse); `planetgen phenomenon --type asteroid-field` still makes one on request. In a galaxy, molecular clouds (classes M-Q) belong to the galaxy rather than to one sector: they are drawn per 50 pc cell from the galaxy seed, more on the spiral arms and near the plane, and a sector gets every cloud that reaches it, stored once whichever sector it reaches is generated first (GEN.47). On an arm at the Sun's distance about one sector in eight sits in one, between the arms about one in twenty-five. Nebulae come with the stars that make them: every O star and half the B0-B2 stars sit in an H II region, and every planetary nebula has its own new hot white dwarf at the center. A galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): then the core sector at ring 0, layer 0, slot 0 gets a quasar at the galactic center; otherwise it gets a quiescent supermassive black hole.
 
 Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `planetgen/galaxy/sector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cell instead.
 
 ## Galaxy Generation
 
-`generate.py galaxy` generates and persists many sectors as one galaxy, placed
+`planetgen galaxy` generates and persists many sectors as one galaxy, placed
 in real galaxy-frame 3D space (see
 [`docs/design/galaxy-coordinate-system.md`](design/galaxy-coordinate-system.md)):
 
 ```bash
-python3 generate.py galaxy --ring I [--layer J] [--slot K [--radius-pc R]] [options]
-python3 generate.py galaxy --ring I --slot K --column [options]
-python3 generate.py galaxy --ring I --shell [--limit N | --yes] [options]
-python3 generate.py galaxy --block M.I.S.SLAB [--block-layer J] [options]
-python3 generate.py galaxy --center-sector ID --radius-pc R [options]
-python3 generate.py galaxy [options]
+planetgen galaxy --ring I [--layer J] [--slot K [--radius-pc R]] [options]
+planetgen galaxy --ring I --slot K --column [options]
+planetgen galaxy --ring I --shell [--limit N | --yes] [options]
+planetgen galaxy --block M.I.S.SLAB [--block-layer J] [options]
+planetgen galaxy --center-sector ID --radius-pc R [options]
+planetgen galaxy [options]
 ```
 
-It reuses `generate.py sector`'s own generation logic per sector, so a sector
-generated here and one generated by `generate.py sector` directly are built by
+It reuses `planetgen sector`'s own generation logic per sector, so a sector
+generated here and one generated by `planetgen sector` directly are built by
 the same code path — the only difference is a real galaxy-frame position
 (and, in turn, the same sparse exotic-phenomena population every sector
 gets — see "Sector-Level Exotic Phenomena" above).
@@ -165,7 +165,7 @@ and `--block-layer J` narrows it to one of the block's layers. Blocks past
 the large-ring threshold need `--limit` or `--yes` too.
 
 Run with neither `--ring` nor `--center-sector` (i.e. no arguments at
-all), `generate.py galaxy` picks a uniformly random (by volume), not-yet-
+all), `planetgen galaxy` picks a uniformly random (by volume), not-yet-
 occupied sector address inside the galaxy's planned outline (every layer
 out to its stored edge, from the top of the galaxy to the bottom),
 generates it, and then generates every not-yet-generated sector within
@@ -177,7 +177,7 @@ is given every star from its distance tier's floor up to what was already
 placed there, once per sector, leaving filled sectors alone (GEN.23,
 GEN.44). `--max-ring` bounds how
 far out the random starting address can land (defaults to the galaxy's
-own edge from `generate.py plan`), `--radius-pc` overrides the default 12 pc
+own edge from `planetgen plan`), `--radius-pc` overrides the default 12 pc
 neighborhood radius, and `--min-start-density` requires the randomly
 chosen starting sector's own real density to be at least that many times
 local (e.g. `--min-start-density 1.0` for at least as dense as the
@@ -195,7 +195,7 @@ The web Generate page and the API check the same bounds
 
 ### Parallel generation
 
-`generate.py sector` (with `--num-sectors`) and every `generate.py galaxy`
+`planetgen sector` (with `--num-sectors`) and every `planetgen galaxy`
 mode fill several sectors at once, each in its own worker process: by
 default 80% of the machine's cores, one fewer when MySQL runs on the same
 machine (3 workers on 4 cores without a local MySQL, 2 with one). Workers
@@ -208,7 +208,7 @@ every run), and `--workers 1` generates one sector at a time in the run's
 own process, as before. On a 4-core machine with MySQL local, 60 sectors
 of ring 2000 took 16.5 s on one worker and 9.8 s on the default two.
 
-`generate.py plan` draws its bright stars the same way, one layer of the
+`planetgen plan` draws its bright stars the same way, one layer of the
 galaxy per task, densest layers first (`--workers` works there too).
 Each layer draws from its own random stream, so the same seed places the
 same stars on any number of workers. That seed is drawn at random and
@@ -261,8 +261,8 @@ the control database.
 
 ### Size and time estimates
 
-Before a bulk run writes anything (`generate.py galaxy` in every mode,
-`generate.py sector --num-sectors`), it works out how big and how long
+Before a bulk run writes anything (`planetgen galaxy` in every mode,
+`planetgen sector --num-sectors`), it works out how big and how long
 it will be and prints it:
 
 ```
@@ -303,20 +303,20 @@ random-start mode it is the estimate for one random start, so the real
 run's start (drawn again) differs.
 
 
-Most of the galaxy is never actually visited or generated; `generate.py plan`
+Most of the galaxy is never actually visited or generated; `planetgen plan`
 builds a small, cheap-to-recompute density "skeleton" (one singleton shape
 row plus one row per layer, from the top of the galaxy to the bottom, naming
-the last ring that layer reaches) that `generate.py galaxy` consults to decide, per
+the last ring that layer reaches) that `planetgen galaxy` consults to decide, per
 address, whether anything exists there at all before generating it lazily
 on demand. It also stores each ring's column bound (the highest and lowest
-layer that ring reaches). Every `generate.py galaxy` mode checks its
+layer that ring reaches). Every `planetgen galaxy` mode checks its
 address against this outline before generating anything, even when
 `--density` or `--num-systems` is given, so nothing is ever placed outside
 the galaxy: an address outside it is refused with the reason, and a
 neighborhood near the edge simply leaves out the sectors past it.
-`generate.py galaxy` refuses to run until `generate.py plan` has been run.
+`planetgen galaxy` refuses to run until `planetgen plan` has been run.
 
-**The galaxy seed.** The first `generate.py plan` stores the galaxy's
+**The galaxy seed.** The first `planetgen plan` stores the galaxy's
 128-bit seed, shown as 32 hex digits (`Galaxy seed 3F2A...C901 (drawn at
 random)`). `--seed <32 hex digits>` sets it instead; a later plan keeps
 the stored seed, and a different `--seed` is refused once any sector
@@ -340,7 +340,7 @@ debug log, and a Generate page job's log starts with the same line for
 the job before its first step. Design:
 [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 
-After the outline, `generate.py plan` also places every star of 500 solar
+After the outline, `planetgen plan` also places every star of 500 solar
 luminosities or more across the whole galaxy, before any sector is
 filled (about 60 million in a Milky Way, roughly 20 minutes of drawing
 plus the database load, about 10 GB of rows). `--bright-star-min-luminosity
@@ -366,7 +366,7 @@ scattered at 500 can later go down to 100 without redrawing anything
 brighter:
 
 ```bash
-generate.py plan --bright-stars-down-to 100
+planetgen plan --bright-stars-down-to 100
 ```
 
 Sectors already filled get none of the new stars: their own systems were
@@ -377,18 +377,18 @@ dimmer layer of bright stars".
 
 ## Exotic Phenomena Generation
 
-`generate.py phenomenon` generates a single exotic stellar phenomenon on demand,
+`planetgen phenomenon` generates a single exotic stellar phenomenon on demand,
 independent of any one sector (see "Sector-Level Exotic Phenomena" above
 for the population every generated sector gets automatically):
 
 ```bash
-python3 generate.py phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field,quasar} [options]
+planetgen phenomenon --type {black-hole,neutron-star,nebula,supernova-remnant,rogue-planet,comet,asteroid-field,quasar} [options]
 ```
 
 Omitting `--type` picks uniformly at random among the first seven; a quasar is only made when asked for by name, and `--sector-id` only accepts a ring-0, layer-0 (galactic core) sector for one, placing it at the galactic center. `--anchor-system`
 (black hole/neutron star only) builds a full star system around the
 compact remnant instead of describing it standalone — real pulsar planets
-exist (PSR B1257+12) — reusing all of `generate.py system`'s own orbit-placement
+exist (PSR B1257+12) — reusing all of `planetgen system`'s own orbit-placement
 logic; since a compact remnant's near-zero luminosity naturally collapses
 the disk-physics planet-count estimate toward zero (matching the real
 rarity of confirmed planets around black holes/neutron stars), pass
@@ -400,11 +400,11 @@ leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `database-schema.md`'s "v18"/"v21" notes.
 `--markdown`, `--debug`/`--quiet`/`--silent`, and the
 `--mysql-*` connection options all work the same way they do on
-`generate.py system`.
+`planetgen system`.
 
 ## Population
 
-`generate.py population` is an optional pass over what is already
+`planetgen population` is an optional pass over what is already
 stored: it names the dominant species of every world with complex life,
 gives technological civilizations an age and an era (Industrial through
 Elder), founds one polity per spacefaring species, and works out which
@@ -412,12 +412,12 @@ systems each polity owns (reach up to 100 ly from its capital). It is
 off by default and never runs on its own.
 
 ```bash
-python3 generate.py population                     # scan what isn't scanned yet
-python3 generate.py population --rescan            # forget everything and start over (new names, ages and borders)
-python3 generate.py population --territories-only  # only recompute who owns which system
+planetgen population                     # scan what isn't scanned yet
+planetgen population --rescan            # forget everything and start over (new names, ages and borders)
+planetgen population --territories-only  # only recompute who owns which system
 ```
 
-`generate.py sector` and `generate.py galaxy` run it after saving when
+`planetgen sector` and `planetgen galaxy` run it after saving when
 given `--population`. The install scripts offer it (y/N,
 default N after 30 seconds; `POPULATION=1` or `-Population` runs it
 without asking). The website hides species, polities and the Galaxy
@@ -433,15 +433,15 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
-| `generate.py check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
-| `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
+| `planetgen check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
+| `planetgen fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
 | Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
-| `generate.py repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
+| `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
 | Layer, ring and column ranges; a radial cylinder; N random neighborhoods | ADM.29, ADM.30, GEN.97 | 1 | New fill shapes, also on the Generate page. |
 | `--directive` | GEN.96 | 1 | Generation directives for a sector (density, at least N stars of a type, at least N habitable worlds). |
-| `generate.py reproduce --seed X --version Y` | OPS.12 | 3+ | Rebuild a galaxy or region into a fresh database from the seed, the run history and the settings file, and compare fingerprints. |
+| `planetgen reproduce --seed X --version Y` | OPS.12 | 3+ | Rebuild a galaxy or region into a fresh database from the seed, the run history and the settings file, and compare fingerprints. |
 
 Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
 
