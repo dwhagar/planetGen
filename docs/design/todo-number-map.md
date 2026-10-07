@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.49 |
 | MAP | MAP.128 |
 | NAV | NAV.50 |
-| GEN | GEN.118 |
+| GEN | GEN.120 |
 | PERF | PERF.31 |
 | DB | DB.14 |
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.91 |
+| TEST | TEST.92 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -577,6 +577,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
+| GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | open |
+| GEN.119 | The galaxy density model has no thick disk (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -883,12 +885,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
-| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | open |
+| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | open |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
 | UX.28 | Investigate icons instead of words on buttons | none | open |
-| UX.29 | Every comet in a system shows its type as a link (bug) | none | open |
+| UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
@@ -1090,6 +1092,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | done, PR #484 |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | done, PR #484 |
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
+| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

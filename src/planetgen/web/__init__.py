@@ -34,7 +34,7 @@ Pieces:
 import os
 
 from flask import Blueprint, current_app, has_app_context, request
-from markupsafe import Markup
+from markupsafe import Markup, escape
 
 # src/html/static/, which Apache serves directly.
 _STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
@@ -100,6 +100,26 @@ def static_url(filename):
     return f"{request.script_root}/{fmt_static_url(filename)}"
 
 
+ICON_NAMES = frozenset({"edit", "delete", "show-on-map", "filter", "navigate", "menu", "settings",
+                        "back", "forward", "up", "reset", "bookmark"})
+"""frozenset[str]: The symbols in `static/icons.svg` (UX.28)."""
+
+
+def icon(name):
+    """
+    One icon from the site's sprite (`static/icons.svg`, UX.28), as inline
+    `<svg>` markup hidden from screen readers: the button or link around it
+    carries the words, as an `aria-label` and a `title` tooltip.
+
+    Raises:
+        ValueError: `name` isn't in the sprite.
+    """
+    if name not in ICON_NAMES:
+        raise ValueError(f"no icon named {name!r} in static/icons.svg")
+    return Markup(f'<svg class="icon" aria-hidden="true" focusable="false">'
+                  f'<use href="{escape(static_url("icons.svg"))}#{name}"></use></svg>')
+
+
 def math_check_failures():
     """The names of the math checks that failed when this process started
     (`init_app`), shown to admins on every page; empty when all passed."""
@@ -120,6 +140,7 @@ def _template_globals():
         "site_version": STATIC_VERSION,
         "sections": visible_sections,
         "static_url": static_url,
+        "icon": icon,
         "page_url": page_url,
         "current_admin": current_admin,
         "csrf_field": csrf.csrf_field,

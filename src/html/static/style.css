@@ -1485,6 +1485,47 @@ a.btn.btn-active:visited {
   font-size: 0.85rem;
 }
 
+/* UX.28: an icon from static/icons.svg (`icon(name)`), sized to the text
+   around it and drawn in its color. */
+.icon {
+  width: 1.1em;
+  height: 1.1em;
+  vertical-align: -0.15em;
+  flex: none;
+}
+
+/* A button that is only an icon; its words are its aria-label and title
+   tooltip. Touch screens get a 44 px target. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--link);
+  line-height: 1;
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  background: var(--bg-elevated);
+}
+
+.icon-btn[hidden] {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .icon-btn {
+    min-width: 2.75rem;
+    min-height: 2.75rem;
+  }
+}
+
 /* UX.16: one rule for the space between buttons, on every page. Any box
    whose children include two or more buttons (`.btn`, `.btn-small`,
    `.starmap-btn`, a plain `<button>`, or forms that each hold one) gets
@@ -2086,9 +2127,9 @@ code {
   cursor: pointer;
 }
 
-.contents-group-list {
+.contents-group-table {
+  width: 100%;
   margin: 0.4rem 0 0;
-  padding-left: 1.1rem;
 }
 
 /* The Sector Map's Generate buttons for an unfilled neighbor (admins

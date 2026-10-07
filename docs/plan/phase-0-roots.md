@@ -29,6 +29,8 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) |  | Back burner (Boss 17:11Z): GEN.65's 18 edge tests pass (PR #476); waits for his error text. |
+| GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) |  | Boss 19:04Z: as close to the observed Milky Way as possible, not flattened. Needs a regenerate; merge on Boss's go. |
+| GEN.119 | The galaxy density model has no thick disk (bug) | GEN.118 | Same density code; may land with GEN.118. |
 
 ### Bugfixes: console and progress
 
@@ -40,9 +42,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.28 | Investigate icons instead of words on buttons |  | Icon set approved by Boss (2026-10-02); the icon sprite feeds UX.40. Survey and icon sprite; UX.25, UX.26 and UX.27 use its icons; MAP.55 (done, PR #369) left text labels with an icon hook. |
-| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) |  | Built in the paused Sector and system pages lane, committed only in its container (may be lost). sector_page.py / sector.html; before UX.25 and UX.26 change the same table and template. |
-| UX.29 | Every comet in a system shows its type as a link (bug) |  | Built in the paused lane, committed only in its container (may be lost). _comet_row_html in lib/systempage.py; before UX.30 rebuilds the rows. |
-| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | UX.24, UX.28 | Half built in the paused lane. 24, UX.28) is in phase 0. Same sector table as UX.24. |
+| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | UX.28 | Half built in the paused lane. Same sector table as UX.24 (done, PR #487). |
 
 ### Bugfixes: prevalence
 
@@ -57,6 +57,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) |  | From PR #481's browser-a11y run: the scene's svg or the sticky header takes the click. |
 
 ### Groundwork: layout and libraries
 
@@ -176,10 +177,10 @@ something else, the idea being to always have at least 1 thread going
 without even going tover the 2 dev 1 todo limit." GEN.65 is done (PR #476);
 GEN.116 keeps watch for Boss's error text.
 
-The Sector and system pages lane is paused: UX.24 and UX.29 were
-committed only in its container (not pushed) and UX.25 is half
-built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). The ops-and-flakes bugs TEST.71, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89 and TEST.90 are done (PR #484, which also added GEN.117's generator z-spread test). MAP.115 is folded into MAP.116 (2026-10-07).
+The Sector and system pages lane is paused. UX.24 and UX.29 were
+rebuilt by Bugfixes lane 1 and are done (PR #487); UX.25 is half
+built there and may be lost. UX.28's icon set is approved.
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). The ops-and-flakes bugs TEST.71, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89 and TEST.90 are done (PR #484, which also added GEN.117's generator z-spread test). UX.24 and UX.29 are done (PR #487). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 

@@ -101,7 +101,7 @@ def test_catalog_types_cover_the_tables():
     assert set(cat["asteroid-field"]["classes"]) == letters
     assert tuple(cat["black-hole"]["classes"]) == tuning.BLACK_HOLE_MASS_CLASSES
     assert tuple(cat["rogue-planet"]["classes"]) == tuning.ROGUE_PLANET_MASS_BIN_CHOICES
-    assert list(cat["comet"]["classes"]) == list(tuning.COMET_PERIOD_CLASSES)
+    assert list(cat["comet"]["classes"]) == [*tuning.COMET_PERIOD_CLASSES, classref.PARABOLIC_COMET_CLASS]
     # Built once and cached.
     assert classref.catalog() is cat
 
@@ -223,6 +223,23 @@ def test_system_list_links_classes(app):
     # Never inside a row's <summary> (a link in the disclosure button).
     for summary in html.split("<summary>")[1:]:
         assert "<a " not in summary.split("</summary>")[0]
+
+
+@pytest.mark.parametrize("orbit_type, period_class", [
+    *[("elliptical", code) for code in tuning.COMET_PERIOD_CLASSES], ("parabolic", None),
+])
+def test_every_comet_links_its_class(app, client, orbit_type, period_class):
+    """UX.29: a parabolic comet (no period class) links one too, and
+    every link opens a class page."""
+    from planetgen.web.class_pages import class_url
+    system = _system()
+    system["comets"][0].update(orbit_type=orbit_type, period_class=period_class)
+    with app.test_request_context("/system/1"):
+        html = system_list_html(system, _SECTIONS, class_url)
+    code = period_class or classref.PARABOLIC_COMET_CLASS
+    name = classref.class_entry("comet", code)["name"]
+    assert f'<a href="/classes/comet/{code}">{escape(name)}</a>' in html
+    assert name in _html(client, f"/classes/comet/{code}")
 
 
 def test_system_list_without_hook_or_known_class_stays_text(app):
