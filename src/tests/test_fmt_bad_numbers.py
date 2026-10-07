@@ -107,7 +107,7 @@ def _clean(text):
 
 
 def test_the_sweep_finds_the_formatters():
-    names = {(m.__name__, n) for m, n, _f in FORMATTERS}
+    names = {(m.__name__.rpartition(".")[2], n) for m, n, _f in FORMATTERS}
     assert {("fmt", "format_number"), ("fmt", "format_distance_km"), ("fmt", "format_density"),
             ("fmt", "format_temperature_k"), ("tabledisplay", "format_star_mass"),
             ("tabledisplay", "format_body_distance")} <= names

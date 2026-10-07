@@ -10,11 +10,9 @@ covered by `test_web_pages.py`. Same `sys.path` setup as
 
 import os
 import re
-import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _HTML_DIR = os.path.join(_SRC_DIR, "html")
-sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 
 from planetgen.web.lib import fmt  # noqa: E402
 import web  # noqa: E402
@@ -44,7 +42,9 @@ def test_no_page_links_an_unversioned_static_file():
     Apache example without ever being refreshed."""
     offenders = []
     web_dir = os.path.join(_HTML_DIR, "web")
-    for folder in (os.path.join(_HTML_DIR, "lib"), web_dir, os.path.join(web_dir, "templates"),
+    web_package = os.path.join(_SRC_DIR, "planetgen", "web")
+    for folder in (os.path.join(web_package, "lib"), os.path.join(web_package, "maps"), web_dir,
+                   os.path.join(web_dir, "templates"),
                    os.path.join(web_dir, "templates", "partials")):
         for name in os.listdir(folder):
             if name.endswith((".py", ".html")):
