@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.185.607] - 2026-10-07
+
+### Changed
+- **The population modules move into `planetgen.population` (OPS.24, step 6 of 14).** `population` and `facilities` are now `planetgen.population.model` and `planetgen.population.facilities`. Every caller moved with them.
+
 ## [7.184.607] - 2026-10-07
 
 ### Changed
