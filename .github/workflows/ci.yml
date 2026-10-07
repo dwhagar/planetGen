@@ -118,6 +118,17 @@ jobs:
           --health-interval=10s
           --health-timeout=5s
           --health-retries=10
+      # The work queue and rate limits move to Redis (OPS.21, PERF.24,
+      # SEC.30); tests will reach it at PLANETGEN_TEST_REDIS_URL.
+      redis:
+        image: redis:7
+        ports:
+          - 6379
+        options: >-
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
 
     env:
       PLANETGEN_TEST_MYSQL_HOST: 127.0.0.1
@@ -149,6 +160,7 @@ jobs:
       - name: Run tests
         env:
           PLANETGEN_TEST_MYSQL_PORT: ${{ job.services.mysql.ports['3306'] }}
+          PLANETGEN_TEST_REDIS_URL: redis://127.0.0.1:${{ job.services.redis.ports['6379'] }}/0
           PLANETGEN_WORKERS: ${{ matrix.workers || '1' }}
         # One worker per core (docs/testing.md, "Running in parallel");
         # worksteal rebalances the few minute-long tests across workers.

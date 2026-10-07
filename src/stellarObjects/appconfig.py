@@ -75,6 +75,12 @@ DEFAULT_CONFIG = {
         "statement_timeout_seconds": 10,
     },
     "control_database": "planetgen_control",
+    # The Redis server the work queue (PERF.24) and the rate limits
+    # (SEC.30) will use; install.sh and update.sh install or check it
+    # (OPS.21). Nothing reads it yet.
+    "redis": {
+        "url": "redis://127.0.0.1:6379/0",
+    },
     "ratelimit": {
         "default": "200 per day;50 per hour",
         "storage_uri": "memory://",
