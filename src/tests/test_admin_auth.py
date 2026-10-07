@@ -163,7 +163,7 @@ def test_migrate_db_prints_the_first_password_only_when_seeded(monkeypatch, caps
     monkeypatch.setattr(migrateDb, "_migrate_with_progress", lambda config: migrateDb.SCHEMA_VERSION)
     monkeypatch.setattr(migrateDb.sys, "argv", ["migrateDb.py"])
     for seeded, shown in ((("admin", "Zx9-random-first-pass"), True), (None, False)):
-        monkeypatch.setattr(migrateDb.adminAuth, "bootstrap_control_schema", lambda config, s=seeded: s)
+        monkeypatch.setattr(migrateDb.auth, "bootstrap_control_schema", lambda config, s=seeded: s)
         migrateDb.main()
         out = capsys.readouterr().out
         assert ("Zx9-random-first-pass" in out) is shown
