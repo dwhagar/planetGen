@@ -562,13 +562,15 @@ def test_fields_to_dict_raises_on_a_missing_attribute():
 def _serializable_classes():
     import importlib
     import pkgutil
+    import planetgen
     import stellarObjects
     found = {"config.SystemConfig": SERIALIZABLE_FIELDS}
-    for info in pkgutil.iter_modules(stellarObjects.__path__):
-        module = importlib.import_module(f"stellarObjects.{info.name}")
-        for name, obj in vars(module).items():
-            if isinstance(obj, type) and obj.__module__ == module.__name__ and "SERIALIZABLE_FIELDS" in vars(obj):
-                found[f"{info.name}.{name}"] = obj.SERIALIZABLE_FIELDS
+    for package in (planetgen, stellarObjects):
+        for info in pkgutil.walk_packages(package.__path__, package.__name__ + "."):
+            module = importlib.import_module(info.name)
+            for name, obj in vars(module).items():
+                if isinstance(obj, type) and obj.__module__ == module.__name__ and "SERIALIZABLE_FIELDS" in vars(obj):
+                    found[f"{info.name}.{name}"] = obj.SERIALIZABLE_FIELDS
     return found
 
 
