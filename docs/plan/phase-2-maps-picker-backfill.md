@@ -68,14 +68,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.42 | A pass that drops sectors from a region by probability | GEN.41 | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
 | GEN.43 | Don't over-filter: keep bright stars in odd places | GEN.42 |  |
-| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | PERF.19, PERF.24 | Backfill blocks become RQ jobs. Same stars as the one-process backfill for one seed needs GEN.39. |
+| PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | PERF.24 | Backfill blocks become RQ jobs. Same stars as the one-process backfill for one seed needs GEN.39. |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.41, GEN.42, GEN.43 | Parent; closes with its subitems. |
 
 ### Queue
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.20 | Short-term caching through the work queue and API (needs planning) | PERF.19, PERF.24 | Plans on RQ results and the new caches. Plan with Boss. |
+| PERF.20 | Short-term caching through the work queue and API (needs planning) | PERF.24 | Plans on RQ results and the new caches. Plan with Boss. |
 
 ### API
 

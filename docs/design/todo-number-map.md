@@ -800,7 +800,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.16 | Search names without scanning every row | none | done, PR #223 |
 | PERF.17 | A time limit on web database statements | none | done, PR #223 |
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
-| PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | open |
+| PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | done, PR #492 |
 | PERF.20 | Short-term caching through the work queue and API (needs planning) | none | open |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
