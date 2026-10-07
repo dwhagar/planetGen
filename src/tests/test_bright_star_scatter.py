@@ -308,6 +308,45 @@ def _cell_stars(conn, address):
                         " AND ring_slot_index = ?", address).fetchone()["n"]
 
 
+def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config):
+    """PERF.28: the backfill adds its own bar, ticks it once per sector it
+    visits, and the bar's ETA changes as they finish, down to 0."""
+    _seed_galaxy(mysql_config)
+    generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    progress = generate._generation_progress()
+    etas = []
+    advance = progress.advance
+
+    def watched_advance(task_id, amount=1):
+        advance(task_id, amount)
+        task = progress._tasks[task_id]
+        etas.append(task.fields["rate"].eta(task.total - task.completed))
+
+    progress.advance = watched_advance
+    summary = generate.backfill_bright_stars_around(
+        mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+    assert summary["sectors"] > 0
+    (task,) = progress.tasks
+    assert task.description.startswith("Bright-star backfill")
+    assert task.completed == task.total >= summary["sectors"]
+    assert len(etas) == task.total
+    assert len({eta for eta in etas if eta is not None}) > 1
+    assert etas[-1] == 0
+
+
+def test_a_single_slot_run_leaves_the_backfill_to_the_end_of_the_run(mysql_config, monkeypatch):
+    """PERF.28: `galaxy --slot` generates its sector without the inline
+    backfill (which stalled the sector bar at 0 of 1); `backfill_after_run`
+    does it afterwards, with its own bar. A map visit still backfills."""
+    _seed_galaxy(mysql_config)
+    calls = []
+    monkeypatch.setattr(generate, "backfill_bright_stars", lambda *args, **kwargs: calls.append(args))
+    assert generate.ensure_sector_generated(4, 0, 5, config=mysql_config, backfill=False)["created"]
+    assert calls == []
+    assert generate.ensure_sector_generated(4, 0, 6, config=mysql_config)["created"]
+    assert len(calls) == 1
+
+
 def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
     _seed_galaxy(mysql_config)
     generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))

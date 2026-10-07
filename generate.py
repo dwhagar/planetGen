@@ -2036,7 +2036,8 @@ def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=
     return backfill_bright_stars_around(config, [center_pc], radius_ly, min_luminosity_sol, tiers)
 
 
-def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminosity_sol=None, tiers=None):
+def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminosity_sol=None, tiers=None,
+                                 progress=None):
     """
     The bright-star backfill around generated sectors (GEN.23, tiered by
     GEN.30, per sector since GEN.44): every unfilled sector within the
@@ -2068,6 +2069,9 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
             defaults to `program_constants.BRIGHT_STAR_BACKFILL_TIERS`
             (100 L_sun under 10 ly, 250 to 25 ly, 500 to 50 ly, 750 to
             100 ly).
+        progress (Progress, optional): A live `_generation_progress`
+            display: the backfill adds its own bar, counting the sectors
+            it visits, with its ETA (PERF.28).
 
     Returns:
         dict: `sectors` (drawn now) and `stars` (placed now), both int;
@@ -2101,7 +2105,13 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
         filled = store.get_occupied_addresses(conn, {address[0] for address in floors})
         todo = sorted(address for address, floor in floors.items()
                       if address not in filled and _needs_band(levels.get(address), galaxy_level, floor))
-        drawn = _draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed)
+        on_sector = None
+        if progress is not None and todo:
+            task = progress.add_task("Bright-star backfill (sectors)", total=len(todo))
+
+            def on_sector():
+                progress.advance(task)
+        drawn = _draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed, on_sector=on_sector)
         summary["sectors"], summary["stars"] = drawn
     except BaseException:
         conn.rollback()
@@ -2146,7 +2156,8 @@ def _needs_band(level, galaxy_level, floor):
     return current is None or current > floor
 
 
-def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ceiling_cap=None, counts=None):
+def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ceiling_cap=None, counts=None,
+                       on_sector=None):
     """
     Draws each of `addresses` down to its floor (`floors`, a dict or one
     number) from the level it holds, `BACKFILL_CHUNK_SECTORS` at a time:
@@ -2156,6 +2167,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     writes the stars and the new levels, and commits. `ceiling_cap` caps
     the ceiling (a band run never draws above the galaxy's old level).
     `counts`, when given, adds up the stars written per population.
+    `on_sector`, when given, is called once per address visited (a
+    progress bar's tick, PERF.28).
 
     Returns:
         tuple: `(sectors drawn, stars written)`.
@@ -2175,6 +2188,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             floor = floors if isinstance(floors, (int, float)) else floors[address]
             level = locked.get(address)
             if address in filled or not _needs_band(level, galaxy_level, floor):
+                if on_sector is not None:
+                    on_sector()
                 continue
             ceiling = _effective_level(level, galaxy_level)
             if ceiling is None:
@@ -2189,6 +2204,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
                                                    ceiling, seed))
             new_levels[address] = floor
+            if on_sector is not None:
+                on_sector()
         store.insert_bright_stars(conn, rows)
         store.set_sector_bright_levels(conn, new_levels)
         conn.commit()
@@ -2255,7 +2272,13 @@ def backfill_after_run(args, edge_pc, started_at):
     if not centers:
         return summary
     log.normal(f"Backfilling the bright stars around {'every generated sector' if mode == 'all' else 'the requested sector'}...")
-    summary = backfill_bright_stars_around(config, centers)
+    # Its own bar and ETA (PERF.28): a backfill can take minutes.
+    with _generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            summary = backfill_bright_stars_around(config, centers, progress=progress)
+        finally:
+            log.reset_console()
     log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
     return summary
 
@@ -2360,7 +2383,7 @@ def _default_generation_args(config=None):
     return args
 
 
-def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None):
+def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
@@ -2375,6 +2398,10 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     `sectors`'s `UNIQUE (ring_index, layer_index, ring_slot_index)`: the
     losing `INSERT` raises `pymysql.err.IntegrityError`, caught here and
     turned into "return what the other call just created".
+
+    A new sector's bright-star backfill runs here too, unless `backfill`
+    is false: `generate.py galaxy --slot` leaves it to the end of the run
+    (`backfill_after_run`), where it has its own progress bar (PERF.28).
 
     Returns:
         dict: `created` (bool), `qualifies` (bool: inside the galaxy's
@@ -2431,7 +2458,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
             raise
         return {"created": False, "qualifies": True, "sector_id": existing_id, "sector_name": None}
 
-    backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
+    if backfill:
+        backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
     return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
 
 
@@ -3161,7 +3189,9 @@ def run_single_slot(args, edge_pc, progress):
         what += f" and the sectors within {args.radius_pc:g} pc of it"
     _check_estimate(args, sectors, what, progress)
     task = progress.add_task(f"Sector ({_format_address(address)})", total=1)
-    result = ensure_sector_generated(*address, config=mysql_config)
+    # The backfill waits for the end of the run (backfill_after_run), with
+    # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
+    result = ensure_sector_generated(*address, config=mysql_config, backfill=False)
     progress.update(task, advance=1)
 
     if not result["qualifies"]:
