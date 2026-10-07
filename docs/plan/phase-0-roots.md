@@ -28,6 +28,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| GEN.117 | Bright stars still sit in a thin band on the galactic plane after the GEN.79 fix (bug) |  | Boss's sweep screenshots (18:43Z); check old data or backfill first. Ahead of the flakes. |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) |  | Back burner (Boss 17:11Z): GEN.65's 18 edge tests pass (PR #476); waits for his error text. |
 
 ### Bugfixes: console and progress
