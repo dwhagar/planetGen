@@ -507,11 +507,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
 | GEN.47 | Nebulae almost never appear (bug) | none | done, PR #419 |
-| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | open |
+| GEN.48 | Forcing options are impractical for whole sectors; replace them with prevalence controls (bug) | none | done, PR #502 |
 | GEN.49 | `+habitable_world` silently fails on hot stars (bug) | none | done, PR #373 |
 | GEN.50 | `-planets +asteroid_belt` still makes an asteroid belt (bug) | none | done, PR #373 |
 | GEN.51 | Forcing options only for single-system generation | none | done, PR #398 |
-| GEN.52 | Prevalence controls for sector and galaxy runs | none | open |
+| GEN.52 | Prevalence controls for sector and galaxy runs | none | done, PR #502 |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
@@ -1076,7 +1076,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | done, PR #371 |
 | TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
-| TEST.75 | Tests for forcing and prevalence | none | open |
+| TEST.75 | Tests for forcing and prevalence | none | done, PR #502 |
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | done, PR #484 |

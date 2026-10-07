@@ -55,7 +55,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.29 | Fill a span of layers, rings or columns |  |  |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point |  |  |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
-| GEN.96 | Generation directives for a sector (an override button) | GEN.52 | A subset of what API recipes (API.18) later take. |
+| GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | UX.40, ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
