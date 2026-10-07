@@ -1,5 +1,22 @@
 # Changelog
 
+## [7.221.616] - 2026-10-07
+
+### Added
+- **The work-queue audit (PERF.19).** `docs/design/work-queue-audit.md` lists every path where the API or website generates or writes something, where each runs today (a web job, the generation work queue, or inside the request), and where each goes once the queue moves to Redis and RQ (PERF.24). Long generation leaves the request, short generation is queued and waited on, and plain row writes and logins stay in the request.
+
+## [7.220.616] - 2026-10-07
+
+### Fixed
+
+- The System Map browser test no longer fails now and then: it clicks each body on its dot instead of the middle of its marker, which can be empty map when the body's label sits to one side, and it measures from the star to the planet with moons, so a system with only one planet still works.
+- The Galaxy Map drill-down browser test no longer clicks the block it is already in when, under load, the map's tooltip still names it.
+
+## [7.219.616] - 2026-10-07
+
+### Fixed
+- The Windows installer no longer stops when planetGen isn't installed yet: the check for an existing editable install asks Python where the package is without importing it, so it prints no traceback.
+
 ## [7.218.616] - 2026-10-07
 
 ### Fixed

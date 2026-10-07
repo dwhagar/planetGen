@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.92 |
+| TEST | TEST.93 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -800,7 +800,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.16 | Search names without scanning every row | none | done, PR #223 |
 | PERF.17 | A time limit on web database statements | none | done, PR #223 |
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue | none | open |
-| PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | open |
+| PERF.19 | Everything the API or web site starts runs on the work queue (investigate) | none | done, PR #492 |
 | PERF.20 | Short-term caching through the work queue and API (needs planning) | none | open |
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
@@ -886,10 +886,10 @@ Parents marked "new parent" had no old number of their own.
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
-| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | open |
+| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
-| UX.28 | Investigate icons instead of words on buttons | none | open |
+| UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
@@ -1092,7 +1092,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | done, PR #484 |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | done, PR #484 |
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
-| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | open |
+| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
+| TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

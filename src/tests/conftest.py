@@ -50,6 +50,12 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 # it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 
+# A run with more than one worker queues its tasks on Redis (PERF.24):
+# the test server's, when PLANETGEN_TEST_REDIS_URL names one (CI does).
+# Without a Redis server such a run falls back to one worker.
+if os.environ.get("PLANETGEN_TEST_REDIS_URL"):
+    os.environ.setdefault("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
+
 # Test runs never read or add to the control database's generation speed
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.

@@ -43,22 +43,26 @@ node (`PARENT_ENV_VAR`). Each node keeps its state, start, end and
 duration; `load_tree` reads a whole tree back with every parent's
 totals, timings and ETA added up from its children.
 
-Workers are separate processes (`multiprocessing`'s spawn start method,
-so Linux, macOS and Windows behave the same) because generation is pure
-Python and threads would share one core. Each task seeds `random` from
+Workers are separate processes because generation is pure Python and
+threads would share one core. Since PERF.24 they are RQ workers on
+Redis (`planetgen.queue.redisqueue`): a parallel run queues its tasks
+on a queue of its own and starts that many burst workers for it, which
+inherit its environment and exit once the queue is empty. A task whose
+worker dies is run once more on a fresh one (`redisqueue.WorkerDied`
+when that dies too). With no Redis server to reach, the run says so and
+runs every task in this process instead. Each task seeds `random` from
 the run's seed and its own key (`task_seed`), so what a task generates
 doesn't depend on how many workers there are or which finished first.
 """
 
-import concurrent.futures
 import contextlib
 import hashlib
 import importlib
 import ipaddress
 import json
 import math
-import multiprocessing
 import os
+import pickle
 import random
 import re
 import secrets
@@ -67,6 +71,7 @@ import socket
 import threading
 import time
 
+from planetgen.queue import redisqueue
 from planetgen.util import log
 
 CPU_SHARE = 0.8
@@ -195,60 +200,6 @@ class Cancelled(SystemExit):
 
 WORKER_HOOKS_ENV = "PLANETGEN_WORKER_HOOKS"
 
-# Set in a worker once it has been sent SIGTERM (see `_worker_sigterm`).
-_worker_stopping = False
-
-# How long a worker stopped mid-task waits, after the task has ended,
-# before stopping itself (`_run_task`), so the task's result is sent first.
-WORKER_STOP_DELAY_SECONDS = 0.2
-
-
-def _worker_sigterm(signum, _frame):
-    global _worker_stopping
-    _worker_stopping = True
-    raise SystemExit(128 + signum)
-
-
-def _stop_worker_soon():
-    """
-    Sends this worker SIGTERM again once the task that the first one
-    ended has been reported (PERF.22). The pool runs every task inside
-    a `try` that catches `BaseException`, so a SIGTERM during a task
-    only ends that task; the worker would then wait for its next task
-    forever. When the pool itself is stopping a broken pool, it
-    terminates the workers and then joins them while holding its
-    shutdown lock (Python 3.12), so a worker that never exits hangs
-    the whole run.
-    """
-    # To the main thread itself: a process-wide signal can land on another
-    # thread, leaving the main thread blocked in its read.
-    timer = threading.Timer(WORKER_STOP_DELAY_SECONDS, signal.pthread_kill,
-                            (threading.main_thread().ident, signal.SIGTERM))
-    timer.daemon = True
-    timer.start()
-
-
-def _worker_init(log_level, debug_file):
-    lower_priority()
-    # SIGTERM (Cancel on the Generate page stops the whole process group,
-    # or a server shutting down) ends the worker's task with SystemExit,
-    # rolling back its unfinished sector like Ctrl+C does, instead of
-    # killing the worker outright: the pool stays whole and the run ends
-    # as cancelled, not failed with a broken pool (TEST.21).
-    if hasattr(signal, "SIGTERM") and os.name != "nt":
-        try:
-            signal.signal(signal.SIGTERM, _worker_sigterm)
-        except (ValueError, OSError):
-            pass
-    os.environ.pop("PLANETGEN_PROGRESS_FILE", None)
-    log.set_component("worker")
-    try:
-        log.configure(log_level, debug_file=debug_file, console=False)
-    except OSError:
-        log.configure(log_level, console=False)
-    _run_worker_hooks()
-
-
 def _run_worker_hooks():
     """
     Calls each `module:function` named in `$PLANETGEN_WORKER_HOOKS`
@@ -269,12 +220,35 @@ def _run_worker_hooks():
 def _run_task(fn, payload, seed):
     random.seed(seed)
     started = time.monotonic()
-    try:
-        result = fn(payload)
-    finally:
-        if _worker_stopping:
-            _stop_worker_soon()
+    result = fn(payload)
     return result, time.monotonic() - started
+
+
+def _rq_task(fn, payload, seed, log_level, debug_file):
+    """
+    One task in an RQ worker (`redisqueue.RQExecutor`): logs as a worker,
+    runs the test hooks, then the task, seeded from `seed`. The task's
+    own exception comes back as the result (`("error", exc, 0)`), so the
+    run raises that exception, not RQ's text of it; RQ only fails the job
+    when the worker itself dies, and then retries it.
+    """
+    os.environ.pop("PLANETGEN_PROGRESS_FILE", None)
+    log.set_component("worker")
+    try:
+        log.configure(log_level, debug_file=debug_file, console=False)
+    except OSError:
+        log.configure(log_level, console=False)
+    _run_worker_hooks()
+    try:
+        result, seconds = _run_task(fn, payload, seed)
+        pickle.dumps(result)
+    except Exception as exc:  # noqa: BLE001 -- handed back to the run
+        try:
+            pickle.dumps(exc)
+        except Exception:  # noqa: BLE001
+            exc = RuntimeError(f"{type(exc).__name__}: {exc}")
+        return ("error", exc, 0)
+    return ("ok", result, seconds)
 
 
 class _Task:
@@ -1224,7 +1198,20 @@ class WorkQueue:
     def parallel(self):
         return self.workers > 1
 
+    def channel(self, name):
+        """A `redisqueue.Channel` the run's workers can report through
+        (a parallel queue only)."""
+        return self._executor.channel(name)
+
     def __enter__(self):
+        if self.parallel:
+            try:
+                self._executor = redisqueue.RQExecutor(self.workers, _rq_task,
+                                                       f"planetgen-run-{secrets.token_hex(8)}")
+            except redisqueue.Unavailable as exc:
+                log.normal(f"{self.title}: {exc}; running every task in this process instead of "
+                           f"{self.workers} workers.")
+                self.workers = 1
         self.node = open_node("queue", self.title, self.control_config,
                               state="waiting" if self.parallel else "running", workers=self.workers,
                               holder=self.holder)
@@ -1245,12 +1232,6 @@ class WorkQueue:
         self._catch_sigterm()
         self._beat = threading.Thread(target=self._heartbeat, name="work-queue-heartbeat", daemon=True)
         self._beat.start()
-        self._executor = concurrent.futures.ProcessPoolExecutor(
-            max_workers=self.workers,
-            mp_context=multiprocessing.get_context("spawn"),
-            initializer=_worker_init,
-            initargs=(self.log_level, self.debug_file),
-        )
         return self
 
     def _take_lease(self):
@@ -1498,31 +1479,17 @@ class WorkQueue:
             return
         self._book("add_tasks", self.job_id, batch)
         self._book("start_tasks", batch)
-        for index, task in enumerate(batch):
-            try:
-                task.future = self._executor.submit(_run_task, task.fn, task.payload, task.seed)
-            except concurrent.futures.BrokenExecutor as exc:
-                # A worker died (killed, out of memory): the pool takes
-                # nothing more. The tasks it was running fail with the
-                # same error when collected; these never started.
-                for unsent in batch[index:]:
-                    self._book("finish_task", self.job_id, unsent, "cancelled",
-                               error=f"{type(exc).__name__}: {exc}")
-                if self._failure is None:
-                    self._failure = exc
-                self._waiting.clear()
-                return
+        for task in batch:
+            task.future = self._executor.submit(task.fn, task.payload, task.seed, self.log_level, self.debug_file)
             self._running.add(task)
 
     def _collect(self, block):
         if not self._running:
             return
-        by_future = {task.future: task for task in self._running}
-        done, _pending = concurrent.futures.wait(
-            by_future, timeout=None if block else 0, return_when=concurrent.futures.FIRST_COMPLETED,
-        )
+        by_future = {id(task.future): task for task in self._running}
+        done = self._executor.wait([task.future for task in self._running], block)
         for future in done:
-            task = by_future[future]
+            task = by_future[id(future)]
             self._running.discard(task)
             self.finished += 1
             try:
@@ -1587,7 +1554,7 @@ class WorkQueue:
             raise
         finally:
             if self._executor is not None:
-                self._executor.shutdown(wait=True, cancel_futures=True)
+                self._executor.shutdown([task.future for task in self._running])
             self._stop.set()
             self._restore_sigterm()
             self._close(state)
