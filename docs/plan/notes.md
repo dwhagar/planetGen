@@ -171,7 +171,7 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
-From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27.
+From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90.
 
 From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
 
@@ -252,7 +252,7 @@ DB.8, DB.7, NAV.10 (Alembic), ADM.15 (RQ workers), UX.3 (progress from RQ), UX.2
 Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 
 - **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
-- **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 drops Memurai from the installer and docs.
+- **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 dropped Memurai from the installer and docs (done, PR #475).
 - **Habitability score structure (GEN.84)**: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).
 - **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71.
 - **GEN.29 outside phase 0**: approved (stays in phase 2 with the class refactor).
