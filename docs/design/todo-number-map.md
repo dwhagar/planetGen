@@ -577,8 +577,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
-| GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | open |
-| GEN.119 | The galaxy density model has no thick disk (bug) | none | open |
+| GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
+| GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
