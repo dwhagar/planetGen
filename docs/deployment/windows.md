@@ -34,14 +34,20 @@ planetGen needs a Redis server (`redis.url` in `config.json`, default
 `redis://127.0.0.1:6379/0`) for the work queue and rate limits; nothing
 uses it yet. Redis has no supported native Windows build, so
 `install.ps1` and `update.ps1` don't install one; they only check that
-one answers and warn if not. Either:
+one answers and warn if not. Run Redis in WSL2:
 
-- **Memurai** (https://www.memurai.com/), a Redis-compatible server that
-  installs as a Windows service on port 6379, so the default `redis.url`
-  works unchanged; or
-- **Redis in WSL2**: `sudo apt install redis-server` in the WSL
-  distribution. WSL2 forwards `localhost` to Windows, so the default
-  `redis.url` reaches it while WSL is running.
+1. `wsl --install -d Ubuntu` if WSL isn't set up yet (see
+   [WSL2](#wsl2-the-linux-guides-on-windows) for turning on systemd).
+2. Inside Ubuntu: `sudo apt install redis-server`, then
+   `sudo systemctl enable --now redis-server`.
+3. Leave `redis.url` at its default. WSL2 forwards `localhost` to
+   Windows, so `redis://127.0.0.1:6379/0` reaches the server in WSL.
+4. Keep WSL running. Redis is only there while the WSL distribution is
+   running, and WSL starts only when a user starts it, so start it after
+   each logon (a scheduled task at logon running `wsl -d Ubuntu` works)
+   and check with `redis-cli ping` inside WSL that it answers. As the
+   [WSL2](#wsl2-the-linux-guides-on-windows) section says, nothing starts
+   it at boot with nobody logged in.
 
 ## Which setup
 

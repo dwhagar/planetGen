@@ -521,9 +521,9 @@ from planetgen.web.app import create_app
 # The Redis server at config.json's redis.url (OPS.21), which the work
 # queue and the rate limits will use. Redis has no supported native
 # Windows build, so nothing is installed here: it only checks that one
-# answers, and otherwise says to run Memurai (a Redis-compatible Windows
-# service) or Redis in WSL (docs/deployment/windows.md). Nothing uses
-# Redis yet, so a server that doesn't answer only warns.
+# answers, and otherwise says to run Redis in WSL2
+# (docs/deployment/windows.md#redis). Nothing uses Redis yet, so a
+# server that doesn't answer only warns.
 function Test-Redis {
     $python = Get-VenvPython
     $url = & $python -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])"
@@ -539,8 +539,8 @@ function Test-Redis {
         return
     }
     Write-Warning ("No Redis server answers at $url (config.json's redis.url). Redis has no native " +
-        "Windows build: install Memurai (https://www.memurai.com/) or run Redis in WSL " +
-        "(docs/deployment/windows.md). Nothing needs it yet; the work queue will.")
+        "Windows build: run it in WSL2 (sudo apt install redis-server) and keep WSL running " +
+        "(docs/deployment/windows.md#redis). Nothing needs it yet; the work queue will.")
     # A warning, not a failure: don't let the probe's exit code become the
     # script's (powershell -command exits with the last $LASTEXITCODE).
     $global:LASTEXITCODE = 0
