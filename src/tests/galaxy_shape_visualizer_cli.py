@@ -50,8 +50,6 @@ Usage:
 
 import argparse
 import math
-import os
-import sys
 
 import matplotlib
 
@@ -59,8 +57,6 @@ matplotlib.use("Agg")  # headless -- this tool only ever writes a PNG, never ope
 import matplotlib.pyplot as plt
 import numpy as np
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, _SRC_DIR)
 
 from planetgen.db import store  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape, relative_density  # noqa: E402

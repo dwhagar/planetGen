@@ -1,8 +1,8 @@
-# wikiClient/wikijs.py
+# planetgen/wiki/wikijs.py
 
 """
 `WikiJsBackend`: a small GraphQL client for publishing pages to a
-[Wiki.js](https://js.wiki/) instance -- one of two `wikiClient` backends
+[Wiki.js](https://js.wiki/) instance -- one of two `planetgen.wiki` backends
 (see `mediawiki.py` for the other), dispatched to by `client.WikiClient`.
 
 Stdlib-only (`urllib.request`/`urllib.error`/`json`). Authenticates with a

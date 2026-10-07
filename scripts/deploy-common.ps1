@@ -125,6 +125,7 @@ function Install-PythonDeps([switch]$Check) {
     if ($Check -and (Test-Path $python)) {
         $notOk = @(Get-RequirementStates $python | Where-Object { -not $_.StartsWith("ok ") })
         if ((Get-RequirementStates $python).Count -gt 0 -and $notOk.Count -eq 0) {
+            Install-Checkout $python
             Write-RequirementReport $python
             return
         }
@@ -140,7 +141,27 @@ function Install-PythonDeps([switch]$Check) {
     }
     Write-Host "Installing the locked libraries and waitress into $VenvDir."
     Invoke-Checked $python -m pip install --quiet --require-hashes -r (Join-Path $Root "requirements-server.lock")
+    Install-Checkout $python
     Write-RequirementReport $python
+}
+
+# This checkout as an editable package in the venv (`pip install -e`,
+# no dependencies: those come from the lock), so planetgen imports from
+# anywhere and a `git pull` takes effect without a reinstall. Skipped
+# when planetgen already imports from this checkout.
+function Install-Checkout([string]$Python) {
+    Push-Location $env:SystemRoot
+    try {
+        & $Python -c "import os, sys, planetgen; sys.exit(0 if os.path.normcase(os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__)))) == os.path.normcase(os.path.realpath(sys.argv[1])) else 1)" (Join-Path $Root "src") 2>$null
+        $current = ($LASTEXITCODE -eq 0)
+    } finally {
+        Pop-Location
+    }
+    if (-not $current) {
+        Write-Host "Installing planetGen from $Root as an editable package."
+        Invoke-Checked $Python -m pip install --quiet --no-deps -e $Root
+    }
+    $global:LASTEXITCODE = 0
 }
 
 # The NLTK 'words' corpus in a folder every account can read, with
@@ -249,28 +270,22 @@ function Read-AnswerWithTimeout([string]$Prompt, [int]$Seconds) {
 # progress bar). Nothing is asked when the database is already current.
 function Invoke-MigrateOrReset {
     $python = Get-VenvPython
-    # From src\ so `python -m planetgen.cli.*` finds the planetgen package.
-    Push-Location (Join-Path $Root "src")
-    try {
-        $status = @(& $python -m planetgen.cli.migrate --status)
-        if ($LASTEXITCODE -ne 0) { throw "planetgen.cli.migrate --status failed (see above)." }
-        $current, $target, $pending, $database = ("$($status[-1])".Trim() -split "\s+")
-        if ([int]$pending -gt 0) {
-            Write-Host "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
-            $answer = Read-AnswerWithTimeout "Delete all galaxy data in '$database' instead of migrating it? [y/N] (default N in 30s): " 30
-            if ($null -eq $answer) {
-                Write-Host "(No console to ask on: keeping the data and migrating it.)"
-            } elseif ($answer -match "^(y|yes)$") {
-                Write-Host "Deleting the galaxy data in '$database' (admin logins are kept)."
-                Invoke-Checked $python -m planetgen.cli.reset --yes
-            } else {
-                Write-Host "Keeping the data and migrating it."
-            }
+    $status = @(& $python -m planetgen.cli.migrate --status)
+    if ($LASTEXITCODE -ne 0) { throw "planetgen.cli.migrate --status failed (see above)." }
+    $current, $target, $pending, $database = ("$($status[-1])".Trim() -split "\s+")
+    if ([int]$pending -gt 0) {
+        Write-Host "Database '$database' is at schema v$current; this version needs v$target ($pending migration step(s))."
+        $answer = Read-AnswerWithTimeout "Delete all galaxy data in '$database' instead of migrating it? [y/N] (default N in 30s): " 30
+        if ($null -eq $answer) {
+            Write-Host "(No console to ask on: keeping the data and migrating it.)"
+        } elseif ($answer -match "^(y|yes)$") {
+            Write-Host "Deleting the galaxy data in '$database' (admin logins are kept)."
+            Invoke-Checked $python -m planetgen.cli.reset --yes
+        } else {
+            Write-Host "Keeping the data and migrating it."
         }
-        Invoke-Checked $python -m planetgen.cli.migrate
-    } finally {
-        Pop-Location
     }
+    Invoke-Checked $python -m planetgen.cli.migrate
 }
 
 # Optionally runs the population pass (planetgen.cli.generate population: species,
@@ -285,16 +300,10 @@ function Invoke-MigrateOrReset {
 # refuse anyway) and repeats the warning at the end.
 function Test-MathCheck {
     $python = Get-VenvPython
-    # From src\ so `python -m planetgen.cli.*` finds the planetgen package.
-    Push-Location (Join-Path $Root "src")
-    try {
-        & $python -m planetgen.cli.generate check-math | Out-Host
-        $ok = ($LASTEXITCODE -eq 0)
-    } finally {
-        Pop-Location
-    }
+    & $python -m planetgen.cli.generate check-math | Out-Host
+    $ok = ($LASTEXITCODE -eq 0)
     if (-not $ok) {
-        Write-Warning "The math check failed (above). Bulk generation refuses to start until it passes; run python -m planetgen.cli.generate check-math -v (from src) for every check."
+        Write-Warning "The math check failed (above). Bulk generation refuses to start until it passes; run python -m planetgen.cli.generate check-math -v for every check."
     }
     return $ok
 }
@@ -308,14 +317,9 @@ function Invoke-OptionalPopulation([switch]$Run) {
     if ($answer -match "^(y|yes)$") {
         Write-Host "Running the population pass."
         $python = Get-VenvPython
-        Push-Location (Join-Path $Root "src")
-        try {
-            Invoke-Checked $python -m planetgen.cli.generate population
-        } finally {
-            Pop-Location
-        }
+        Invoke-Checked $python -m planetgen.cli.generate population
     } else {
-        Write-Host "Skipping the population pass (run python -m planetgen.cli.generate population from src any time, or pass -Population)."
+        Write-Host "Skipping the population pass (run python -m planetgen.cli.generate population any time, or pass -Population)."
     }
 }
 
@@ -507,12 +511,9 @@ function Set-PlanetGenPermissions {
 function Test-AppImports {
     $python = Get-VenvPython
     & $python -c @"
-import os, sys
-root = sys.argv[1]
-sys.path.insert(0, os.path.join(root, 'src'))
 import planetgen.generation.system
 from planetgen.web.app import create_app
-"@ $Root
+"@
     if ($LASTEXITCODE -ne 0) { throw "The web app does not import with $python (see above)." }
     Write-Host "The web app and the generator import cleanly with $python."
 }
@@ -525,7 +526,7 @@ from planetgen.web.app import create_app
 # Redis yet, so a server that doesn't answer only warns.
 function Test-Redis {
     $python = Get-VenvPython
-    $url = & $python -c "import sys; sys.path.insert(0, sys.argv[1]); from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])" (Join-Path $Root "src")
+    $url = & $python -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])"
     if ($LASTEXITCODE -ne 0 -or -not $url) {
         Write-Warning "Couldn't read redis.url from config.json; skipping the Redis check."
         return

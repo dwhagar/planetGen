@@ -1,7 +1,7 @@
 # tests/test_wikiclient_wikijs_integration.py
 
 """
-End-to-end test for `wikiClient.wikijs.WikiJsBackend` against a real
+End-to-end test for `planetgen.wiki.wikijs.WikiJsBackend` against a real
 Wiki.js instance -- confirms the GraphQL request shape `wikijs.py` sends is
 one a real server actually accepts (the mocked tests in
 `test_wikiclient_wikijs.py` can only prove the backend behaves correctly
@@ -22,8 +22,8 @@ import uuid
 
 import pytest
 
-from wikiClient import WikiClientPageExistsError
-from wikiClient.wikijs import WikiJsBackend
+from planetgen.wiki import WikiClientPageExistsError
+from planetgen.wiki.wikijs import WikiJsBackend
 
 
 def test_create_page_against_real_instance(wikijs_config):
@@ -36,8 +36,8 @@ def test_create_page_against_real_instance(wikijs_config):
 
     page = client.create_page(
         path=path,
-        title="planetGen wikiClient wikijs backend test",
-        content="# Test page\n\nCreated by planetGen's wikiClient wikijs backend integration test.",
+        title="planetGen planetgen.wiki wikijs backend test",
+        content="# Test page\n\nCreated by planetGen's planetgen.wiki wikijs backend integration test.",
         description="Throwaway page created by an automated test.",
         tags=["planetgen-test"],
     )

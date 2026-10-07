@@ -207,7 +207,7 @@ def run_estimate(argv, env):
             generate without a limit).
     """
     try:
-        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, cwd=jobs.SRC_DIR,
+        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, cwd=jobs.REPO_DIR,
                               capture_output=True, text=True, timeout=ESTIMATE_TIMEOUT_S, check=False)
     except subprocess.TimeoutExpired:
         raise FormError("Working out the size and time took too long. Nothing was generated.") from None

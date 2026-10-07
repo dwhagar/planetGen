@@ -7,7 +7,7 @@ it) -- it lives alongside `physical_plausibility_cli.py` and shares its
 underlying engine (`planetgen/generation/plausibility.py`), but exists specifically
 to let a human iterate on one class's `albedo_range`,
 `atm_molar_density_range`, `atm_density_range`, and `greenhouse_multiplier_range`
-(see `stellarObjects/program_constants.PLANET_CLASSES`) without editing
+(see `planetgen.tuning.PLANET_CLASSES`) without editing
 source between runs: pass candidate values as CLI overrides, see the
 resulting temperature/pressure distribution (with a delta against a
 real-world reference where one exists -- Earth for Class M, Mars for K,
@@ -29,10 +29,8 @@ Usage:
 import argparse
 import contextlib
 import logging
-import os
 import sys
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from planetgen.generation import plausibility
 from planetgen import tuning as prog_c

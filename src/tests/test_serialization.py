@@ -1,6 +1,6 @@
 """
 Object-graph serialization regression tests
-(stellarObjects.{starData,doubleStar,asteroidData,planetData,systemData}).
+(the planetgen.generation star, binary, belt, planet and system objects).
 
 Round-trips each class's `to_dict()`/`from_dict()` and checks the
 invariants the design (see TODO.md's Phase 1) is meant to guarantee: every

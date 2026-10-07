@@ -22,11 +22,10 @@ import time
 
 import pytest
 
-from planetgen.web import jobs  # noqa: E402
+from planetgen.web import jobs
 
 PY = sys.executable
 REPO = jobs.REPO_DIR
-PYTHONPATH = os.pathsep.join([REPO, os.path.join(REPO, "src"), os.path.join(REPO, "src", "html")])
 
 
 @pytest.fixture
@@ -110,7 +109,7 @@ def test_many_processes_starting_at_once_start_one_job(jobs_root, tmp_path):
     """Separate processes, as two Apache workers would be."""
     os.makedirs(jobs_root)
     go = str(tmp_path / "go")
-    env = dict(os.environ, PYTHONPATH=PYTHONPATH, PLANETGEN_JOBS_DIR=jobs_root)
+    env = dict(os.environ, PLANETGEN_JOBS_DIR=jobs_root)
     procs = [subprocess.Popen([PY, "-c", STARTER, go], env=env, cwd=REPO,
                               stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
              for _ in range(6)]
@@ -334,7 +333,7 @@ def test_a_job_outlives_the_server_process_that_started_it(jobs_root):
     starts a job and is then killed with its whole group, as closing the
     browser can't but a server stop might: the runner, detached into its
     own session, carries on and finishes."""
-    env = dict(os.environ, PYTHONPATH=PYTHONPATH, PLANETGEN_JOBS_DIR=jobs_root)
+    env = dict(os.environ, PLANETGEN_JOBS_DIR=jobs_root)
     server = subprocess.Popen([PY, "-c", SERVER + "import time; time.sleep(60)"], env=env, cwd=REPO,
                               stdout=subprocess.PIPE, text=True, start_new_session=True)
     try:

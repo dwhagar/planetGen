@@ -1,7 +1,7 @@
 # tests/test_wikiclient_wikijs.py
 
 """
-Unit tests for `wikiClient.wikijs.WikiJsBackend` -- every request/response
+Unit tests for `planetgen.wiki.wikijs.WikiJsBackend` -- every request/response
 cycle is mocked at `urllib.request.urlopen`, so this file needs no live
 Wiki.js instance and no network access to run. See
 `test_wikiclient_wikijs_integration.py` for the optional live-instance
@@ -14,8 +14,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from wikiClient import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
-from wikiClient.wikijs import WikiJsBackend
+from planetgen.wiki import WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
+from planetgen.wiki.wikijs import WikiJsBackend
 
 BASE_URL = "https://wiki.example.com"
 API_TOKEN = "test-token-123"

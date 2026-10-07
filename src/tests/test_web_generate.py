@@ -686,10 +686,9 @@ def _step(label, code):
 
 def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
     progress = (
-        "import sys; sys.path.insert(0, %r); "
         "from planetgen.queue import progress_file; "
         "progress_file.report(3, 10, 'Sectors', force=True); print('made three')"
-    ) % os.path.join(jobs.REPO_DIR, "src")
+    )
     job_id = jobs.start_job("galaxy", "Two steps", [
         _step("First", "print('hello from one')"),
         _step("Second", progress),
@@ -1005,12 +1004,12 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
            "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
-                          cwd=jobs.SRC_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
+                          cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
     wiki = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
-                          cwd=jobs.SRC_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
+                          cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
 
 

@@ -53,14 +53,9 @@ REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 """str: The planetGen checkout."""
 
 GENERATE_COMMAND = ["-m", "planetgen.cli.generate"]
-"""list: Runs the generator, `planetgen.cli.generate` (the job runner puts
-the checkout's `src/` on the steps' `PYTHONPATH`)."""
+"""list: Runs the generator, `planetgen.cli.generate`."""
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
-"""list: Runs `planetgen.cli.reset` (the job runner puts the checkout's
-`src/` on the steps' `PYTHONPATH`)."""
-SRC_DIR = os.path.join(REPO_DIR, "src")
-"""str: The checkout's `src/`, where the job runner starts so that
-`python -m planetgen.cli.job` finds the planetgen package."""
+"""list: Runs `planetgen.cli.reset`."""
 
 DEFAULT_JOBS_DIR = "/var/lib/planetgen/jobs"
 """str: Used when neither `PLANETGEN_JOBS_DIR` nor `config.json`'s
@@ -640,7 +635,7 @@ def _spawn(path):
             proc = subprocess.Popen(
                 [python_executable(), "-m", "planetgen.cli.job", path],
                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                cwd=SRC_DIR, close_fds=True, **extra,
+                cwd=REPO_DIR, close_fds=True, **extra,
             )
             break
         except PermissionError:  # breakaway refused by the job object

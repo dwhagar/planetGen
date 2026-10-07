@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.206.610] - 2026-10-07
+
+### Changed
+- **`generate.py` is split into `planetgen.generation.run_*` and `planetgen.cli.generate` (OPS.24, step 14, first half).** Each command's work is in its own module (`run_system`, `run_sector`, `run_galaxy`, `run_plan`, `run_phenomenon`, `run_population`, with what they share in `run_common`), and the command line is `planetgen.cli.generate`. The root `generate.py` is gone: on Linux and macOS run `planetgen <command>` (the installer's `planetgen` command now runs `planetgen.cli.generate` from the checkout); on Windows run `python -m planetgen.cli.generate <command>` from the checkout's `src\`. The Generate page, the one-off system page, the job queue's retries and the install and update scripts run the generator the same way. Nothing a command does changes.
+
 ## [7.205.610] - 2026-10-07
 
 ### Fixed

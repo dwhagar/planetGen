@@ -879,7 +879,7 @@ names made unique, orbit ticks' current wobble and comet positions).
 `planetgen.cli.render_parity` compares the two on a database still at v28.
 `mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
 record where that page lives on each wiki, once `POST
-/api/systems/<id>/wiki` (`src/wikiClient/`, `web/system_pages.py`'s "Upload to
+/api/systems/<id>/wiki` (`src/planetgen/wiki/`, `web/system_pages.py`'s "Upload to
 Wiki" form) has actually uploaded it there — one system is one wiki page;
 individual stars/planets/moons are sections within that one page, not
 separate pages. Existence on a given wiki is never a separate stored

@@ -13,17 +13,12 @@ scheme (`planetgen/web/app.py`'s `_apply_proxy_fix`). See `docs/deployment/` for
 every platform. Also runnable directly (`python src/html/wsgi.py`) to
 start Flask's own dev server locally.
 
-The planetgen package lives in `src/`, one folder up. mod_wsgi's
-`WSGIScriptAlias` loads this file as a WSGI script module and doesn't
-reliably put any folder on `sys.path` first, so `src/` is added
-explicitly below. (Step 14 of the package move replaces this with an
-editable install.)
+The planetgen package is installed into the server's Python as an
+editable install of this checkout (`pip install -e .`, which install.sh,
+update.sh and their Windows twins run), so it imports from here with
+nothing added to `sys.path`, and a `git pull` takes effect on the next
+restart.
 """
-
-import os
-import sys
-
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from planetgen.web.app import create_app
 from planetgen.util import log

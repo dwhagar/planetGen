@@ -34,7 +34,7 @@ land, the map below describes the code as it is.
   - [examples/](#examples)
   - [src/stellarObjects/](#srcstellarobjects)
   - [src/ command-line tools](#src-command-line-tools)
-  - [src/wikiClient/](#srcwikiclient)
+  - [src/planetgen/wiki/](#srcplanetgenwiki)
   - [src/html/](#srchtml)
   - [src/tests/](#srctests)
   - [.github/workflows/ and changes/](#githubworkflows-and-changes)
@@ -229,7 +229,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 ### src/ command-line tools
 
-Each is run as `python3 src/<name>.py`. They read the database settings
+Each is run as `python3 -m planetgen.cli.<name>`. They read the database settings
 from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 
 | Path | What it holds |
@@ -243,7 +243,7 @@ from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 | `planetgen.cli.dedupe` | One-off backfill that resolves duplicate sector and system names in an older database. |
 | `planetgen.cli.render_parity` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
 
-### src/wikiClient/
+### src/planetgen/wiki/
 
 Publishes a page to Wiki.js or MediaWiki behind one `WikiClient` object.
 Used by the API's "Upload to Wiki" routes.

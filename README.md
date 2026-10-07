@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 7.205.610 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.206.610 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -127,8 +127,7 @@ and [`docs/api.md`](docs/api.md) the JSON API.
 
 `planetgen.cli.generate`, in the checkout, is the one entry point for
 every generator. On Linux and macOS the installer adds a `planetgen`
-command that runs it; on Windows run it from the checkout's `src\` with
-the venv's Python
+command that runs it; on Windows run it with the venv's Python
 (`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate`). Each
 subcommand saves what it makes to the database unless told otherwise:
 
@@ -171,7 +170,7 @@ system specification file format and the incompatible option pairs.
 
 ### Other tools
 
-All in `src/`; `python3 src/<tool>.py --help` shows each one's options:
+Each runs as `python3 -m <module>`; `--help` shows its options:
 
 - **`planetgen.cli.orbits`** advances the galaxy by the time elapsed since
   the last run: planets, moons and orbiting facilities around their

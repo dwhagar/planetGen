@@ -62,7 +62,7 @@ def _wiki_config(wiki_defaults):
     configured -- and so is offered as an "Upload to Wiki" target by
     `routes.py`'s `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`
     -- purely by having a non-empty `base_url` plus every credential field
-    its own `wikiClient` backend requires (see `_configured` below); an
+    its own `planetgen.wiki` backend requires (see `_configured` below); an
     empty `base_url` alone already means "don't offer this one", so a
     separate flag would only ever duplicate that check.
 
@@ -198,7 +198,7 @@ class Config:
 
     # See `_wiki_config` above -- read by `routes.py`'s
     # `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki` to build
-    # a `wikiClient.WikiClient(backend=..., base_url=..., ...)` per
+    # a `planetgen.wiki.WikiClient(backend=..., base_url=..., ...)` per
     # request, and by `GET /api/wiki-config` so the CGI browser knows
     # which backend(s) to offer without duplicating this resolution.
     WIKI_CONFIG = _wiki_config(_config_file["wiki"])

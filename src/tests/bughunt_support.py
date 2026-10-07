@@ -29,7 +29,7 @@ file follows the same split, formalized here as two tiers:
   license to skip real bugs.
 
 Since generation draws from the module-level `random` (every
-`stellarObjects/*.py` generator uses `import random`, not its own
+`planetgen.generation` module uses `import random`, not its own
 `random.Random` instance -- confirmed by grep), reproducibility here means
 seeding that global RNG before each fuzz iteration, exactly like the
 existing ad hoc `random.seed(...)` calls in `test_space_sector.py`/
