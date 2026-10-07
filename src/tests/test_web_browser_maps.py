@@ -143,6 +143,13 @@ def _active_scene(page):
     }""")
 
 
+def _click_body(marker):
+    """Click a System Map body on its dot. A marker's `<g>` also holds its
+    label, which the layout can push to one side, so the middle of the
+    whole group can be empty map that takes the click (TEST.91)."""
+    marker.locator("circle.sysmap-body-fill").click()
+
+
 def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     client = site_app.test_client()
     systems = client.get("/api/systems?limit=100").get_json()["items"]
@@ -158,19 +165,19 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
 
     # A body shows its details.
     body = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="star"]').first
-    body.click()
+    _click_body(body)
     assert page.locator("#sysmap-info h3").count() == 1
 
     # A planet with moons opens its moons; the crumb's button comes back.
     planet = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"][data-scene]').first
     moons = planet.get_attribute("data-scene")
-    planet.click()
+    _click_body(planet)
     assert _active_scene(page) == moons
     assert "Moons of" in page.locator("#sysmap-crumb").inner_text()
     # MAP.92: the planet and its moons show their radius and mass.
     info = page.locator("#sysmap-info").inner_text()
     assert "Radius" in info and "Mass" in info, info
-    page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first.click()
+    _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
     info = page.locator("#sysmap-info").inner_text()
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     page.click("#sysmap-crumb .sysmap-back-btn")
@@ -182,10 +189,10 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     measure.click()
     assert measure.get_attribute("aria-pressed") == "true"
     assert "Click two" in page.locator("#sysmap-info").inner_text()
-    markers = page.locator('#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"]')
-    assert markers.count() >= 2
-    markers.nth(0).click()
-    markers.nth(1).click()
+    # The star and the planet with moons: a system may have only one
+    # planet (TEST.91).
+    _click_body(body)
+    _click_body(planet)
     assert page.locator(".sysmap-measure-selected").count() == 2
     assert page.locator(".sysmap-measure-path").count() == 1
     assert re.search(r"\d", page.locator("#sysmap-info").inner_text())
@@ -292,7 +299,10 @@ def _wait_settled(page, before=None, timeout_s=15.0):
 
 def _hover_choice(page, wanted=None):
     """Moves the pointer over the map until the tooltip names a choice
-    (matching `wanted`, a regex); returns (x, y, text) or None."""
+    (matching `wanted`, a regex); returns (x, y, text) or None. A tooltip
+    naming where the map already is gets passed over: under load it can
+    still show the choice that was just clicked."""
+    here = _crumbs(page)[-1]
     box = page.locator("#galaxymap3d-canvas").bounding_box()
     tooltip = page.locator("#galaxymap3d-tooltip")
     for fy in [i / 24 for i in range(2, 23)]:
@@ -301,7 +311,7 @@ def _hover_choice(page, wanted=None):
             page.mouse.move(x, y)
             if tooltip.is_visible():
                 text = tooltip.inner_text()
-                if text and (wanted is None or re.search(wanted, text)):
+                if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
                     return x, y, text
     return None
 
