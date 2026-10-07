@@ -259,6 +259,9 @@ Work goes ahead on each default until Boss says otherwise.
 - **GEN.29 outside phase 0**: it is a bug, but the class refactor (GEN.90) is the sweep. Default: it stays in phase 2 with the refactor.
 - **Front-end build (UX.40, UX.41, MAP.102)**: Default: vendored ES module builds served by Flask, no bundler.
 - **Hilbert fill order (GEN.101)**: a pruned ball can't always be walked with unit steps and no backtracking. Default: keep the Hilbert order and allow a jump where the ball cuts the curve, logged.
+- **Orbital sectors and frames (GEN.109, GEN.115)**: the research document proposes cubic Morton-keyed cells and unrotated sector frames. Default: keep the ring, layer and slot sectors and their rotated frames for display; the physics sums forces in galactic coordinates over each sector and its neighbours.
+- **Scaling the galaxy's gravity (GEN.115)**: the research values are the Milky Way's. Default: those values at the default galaxy shape; lengths scale with the disk scale length otherwise.
+- **Orbital epoch (GEN.105)**: Default: J2000.0, as the research and spin documents use (was year 0 at generation); one in-game year per run.
 - GEN.65: still needs the error text before anyone starts it.
 
 ## Files that several items touch
