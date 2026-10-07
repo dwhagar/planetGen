@@ -162,7 +162,11 @@ def population_densities(position_pc, shape):
     x, y, z = position_pc
     r_3d = math.sqrt(x * x + y * y + z * z)
     bulge = shape.k_norm * shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
-    disk = relative_density(position_pc, shape) - bulge
+    model = shape.k_norm * _raw_density(position_pc, shape)
+    disk = model - bulge
+    # The halo floor's share (`tuning.MIN_RELATIVE_DENSITY`, GEN.78): old
+    # stars, wherever the model itself falls below it.
+    halo = relative_density(position_pc, shape) - model
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
@@ -180,6 +184,7 @@ def population_densities(position_pc, shape):
         weights, total = {name: 0.0 for name in weights}, 1.0
         weights["old"] = 1.0
     densities = {name: max(disk, 0.0) * weight / total for name, weight in weights.items()}
+    densities["old"] += max(halo, 0.0)
     densities["bulge"] = bulge
     return densities
 
@@ -195,11 +200,12 @@ def relative_density(position_pc, shape):
         shape (GalaxyShape): The galaxy's shape parameters.
 
     Returns:
-        float: `>= 0`. `1.0` at the calibration point; `> 1.0` in denser
-              regions (bulge, spiral arm crests near the core); `< 1.0`
-              in sparser ones (outer disk, inter-arm, off-plane).
+        float: `>= tuning.MIN_RELATIVE_DENSITY` (the halo floor, GEN.78).
+              `1.0` at the calibration point; `> 1.0` in denser regions
+              (bulge, spiral arm crests near the core); `< 1.0` in sparser
+              ones (outer disk, inter-arm, off-plane).
     """
-    return shape.k_norm * _raw_density(position_pc, shape)
+    return max(shape.k_norm * _raw_density(position_pc, shape), tuning.MIN_RELATIVE_DENSITY)
 
 
 def build_galaxy_shape(

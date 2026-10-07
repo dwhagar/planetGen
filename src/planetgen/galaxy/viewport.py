@@ -145,14 +145,19 @@ def planned_slots_in_view(center_pc, radius_pc, edge_pc, shape,
     return [_planned_entry(slot, distance_pc=slot[6]) for slot in closest]
 
 
-def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_addresses):
+def _qualifying_slots(slots, shape, expected_system_count_at_density_1, exclude_addresses, bounds=None):
     """Filters `enumerate_sectors_within_radius`-shaped tuples down to the
     ones worth showing as "planned" (see `planned_slots_in_view`), yielding
     `(ring_index, layer_index, ring_slot_index, x, y, z, distance_pc,
-    star_count, density)` -- the last two `None` when `shape` is `None`."""
+    star_count, density)` -- the last two `None` when `shape` is `None`.
+    With a non-empty `bounds` (`galaxySkeleton.GalaxyBounds`), a slot
+    outside the galaxy's stored outline is left out too: generation
+    refuses it, so the map mustn't offer it (MAP.118)."""
     threshold = qualifying_threshold_star_count()
     for ring_index, layer_index, slot_index, x, y, z, distance_pc in slots:
         if (ring_index, layer_index, slot_index) in exclude_addresses:
+            continue
+        if bounds and not bounds.contains(ring_index, layer_index):
             continue
         if shape is not None:
             star_count = predicted_star_count((x, y, z), shape, expected_system_count_at_density_1)
@@ -360,11 +365,12 @@ def _in_box(point, lo, hi):
 
 
 def planned_slots_in_tile(level, ix, iy, iz, edge_pc, shape,
-                          expected_system_count_at_density_1, exclude_addresses):
+                          expected_system_count_at_density_1, exclude_addresses, bounds=None):
     """
     Every planned slot (see `planned_slots_in_view` for what qualifies)
     whose center lies in this tile's half-open box -- so each slot belongs
-    to exactly one tile per level. Empty for tiles bigger than
+    to exactly one tile per level, and (with `bounds`) inside the
+    galaxy's stored outline. Empty for tiles bigger than
     `PLANNED_TILE_MAX_EDGE_PC`, or when the sector edge is so small the
     tile could hold more than `PLANNED_MAX_SLOTS_PER_TILE` slots.
 
@@ -386,7 +392,7 @@ def planned_slots_in_tile(level, ix, iy, iz, edge_pc, shape,
         if _in_box(slot[3:6], lo, hi)
     )
     slots = sorted(
-        _qualifying_slots(in_tile, shape, expected_system_count_at_density_1, exclude_addresses),
+        _qualifying_slots(in_tile, shape, expected_system_count_at_density_1, exclude_addresses, bounds),
         key=lambda slot: slot[:3],
     )
     return [_planned_entry(slot) for slot in slots]

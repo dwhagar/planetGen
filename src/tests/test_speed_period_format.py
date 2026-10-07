@@ -71,7 +71,7 @@ PERIOD_CASES = [
     (1e3 * _YEAR, "1 ky"),
     (2.36e8 * _YEAR, "236 My"),
     (13.8e9 * _YEAR, "13.8 Gy"),
-    (1.2e13 * _YEAR, "1.20 × 10⁴ Gy"),
+    (1.2e13 * _YEAR, "12,000 Gy"),
 ]
 
 

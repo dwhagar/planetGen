@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.49 |
-| MAP | MAP.127 |
+| MAP | MAP.128 |
 | NAV | NAV.50 |
 | GEN | GEN.116 |
 | PERF | PERF.31 |
@@ -536,9 +536,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | open |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
-| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | open |
-| GEN.78 | Some regions have a star probability of zero (bug) | none | open |
-| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | open |
+| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | done, PR #461 |
+| GEN.78 | Some regions have a star probability of zero (bug) | none | done, PR #461 |
+| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | done, PR #461 |
 | GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | done, PR #448 |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | open |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
@@ -689,13 +689,14 @@ Parents marked "new parent" had no old number of their own.
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | open |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
-| MAP.121 | The Sector Map shows the neighbouring sectors dimmed, fading the ones in the way | none | open |
+| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |

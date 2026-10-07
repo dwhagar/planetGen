@@ -26,16 +26,15 @@
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
 #   4. `generate.py check-math`: the math check (TEST.68). A failure only
-#      warns (repeated at the end) and skips the population pass below;
-#      bulk generation refuses to start until it passes.
+#      warns (repeated at the end); bulk generation refuses to start until
+#      it passes.
 #   5. `planetgen.cli.migrate`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see
-#      migrate_or_reset_db in scripts/deploy-common.sh. Then it offers
-#      (y/N, 30 seconds, default N; skipped with no terminal) to run the
-#      population pass, `generate.py population`; POPULATION=1 runs it
-#      without asking (offer_population_pass in scripts/deploy-common.sh).
+#      migrate_or_reset_db in scripts/deploy-common.sh. The update never
+#      runs the population pass (OPS.7); run `generate.py population` by
+#      hand when wanted.
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
@@ -57,7 +56,6 @@
 # Usage:
 #   sudo ./update.sh
 #   sudo PYTHON=/usr/bin/python3.12 ./update.sh   (a Python other than python3)
-#   sudo POPULATION=1 ./update.sh                 (also run the population pass)
 #
 # Forces the checkout to match origin's branch tip even if there are
 # uncommitted local changes to tracked files (a `git reset --hard` after
@@ -155,7 +153,6 @@ check_math
 echo
 echo "== 5/9: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
-offer_population_pass
 
 echo
 echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
@@ -190,6 +187,8 @@ echo
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
 fi
+echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
+echo "  $PYTHON $SCRIPT_DIR/generate.py population"
 if is_macos; then
     if [[ "$before" != "$after" ]]; then
         echo "Done. Reload gunicorn so the site runs the new code (a running Generate job is left alone):"

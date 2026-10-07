@@ -2,9 +2,9 @@
 
 """
 The site's one number formatter (UX.20): `stellarObjects.utils.
-format_number` shows anything with 5 or more digits before the decimal
-point in scientific notation (3 significant figures, Unicode
-superscripts), and `html/static/numberformat.js` mirrors it, checked
+format_number` shows a whole number with 7 or more digits, or a number
+with decimals and 5 or more digits before the decimal point, in
+scientific notation (UX.36; 3 significant figures, Unicode superscripts), and `html/static/numberformat.js` mirrors it, checked
 against the same table when Node is installed.
 """
 
@@ -24,13 +24,15 @@ CASES = [
     (0, ",.0f", 0, "0"),
     (42, ",.0f", 0, "42"),
     (9_999, ",.0f", 0, "9,999"),
-    (9_999.4, ",.0f", 0, "9,999"),
-    (9_999.6, ",.0f", 0, "1.00 × 10⁴"),  # rounds to 5 digits
-    (10_000, ",.0f", 0, "1.00 × 10⁴"),
+    (10_000, ",.0f", 0, "10,000"),
+    (999_999, ",.0f", 0, "999,999"),  # UX.36: 6 whole digits stay plain
+    (999_999.4, ",.0f", 0, "999,999"),
+    (999_999.6, ",.0f", 0, "1.00 × 10⁶"),  # rounds to 7 digits
     (1_234_567, ",.0f", 0, "1.23 × 10⁶"),
-    (-54_321, ",.0f", 0, "-5.43 × 10⁴"),
-    (1234.567, ",.2f", 2, "1,234.57"),
-    (12345.6, ",.1f", 1, "1.23 × 10⁴"),
+    (-54_321, ",.0f", 0, "-54,321"),
+    (-7_654_321, ",.0f", 0, "-7.65 × 10⁶"),
+    (1234.567, ",.2f", 2, "1,234.57"),  # 4 whole digits with decimals: plain
+    (12345.6, ",.1f", 1, "1.23 × 10⁴"),  # 5 with decimals: scientific
     (0.5, ",.2f", 2, "0.50"),
 ]
 
@@ -44,16 +46,17 @@ def test_scientific_text_negative_exponent():
     assert scientific_text(0.000123) == "1.23 × 10⁻⁴"
 
 
-def test_distance_ladder_goes_scientific_past_four_digits():
+def test_distance_ladder_goes_scientific_past_six_digits():
     assert format_distance_km(9_999) == "9,999 km"
-    assert format_distance_km(384_400) == "3.84 × 10⁵ km"
+    assert format_distance_km(384_400) == "384,400 km"
 
 
-def test_periods_go_scientific_past_four_digits_of_years():
+def test_periods_go_scientific_past_six_digits_of_years():
     # Past 999 years the period ladder moves to ky, so a period only goes
-    # scientific past 9,999 Gy.
+    # scientific past 999,999 Gy.
     assert format_period_years(9_000) == "9 ky"
-    assert format_period_years(1.2346e13) == "1.23 × 10⁴ Gy"
+    assert format_period_years(1.2346e13) == "12,346 Gy"
+    assert format_period_years(1.2346e15) == "1.23 × 10⁶ Gy"
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

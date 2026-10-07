@@ -10,8 +10,10 @@ stars only, so its expected total is unchanged.
 The scatter works ring by ring, never sector by sector (a full galaxy
 has billions of cells): each ring's expected count per stellar
 population is averaged over angle bins, drawn as a Poisson count, and
-each star then lands in a qualifying slot of a bin picked in proportion
-to that population's density.
+each star then lands in a slot of a bin picked in proportion to that
+population's density. Every cell inside the outline can draw one, however
+sparse (GEN.78): the density never falls below the halo floor
+(`tuning.MIN_RELATIVE_DENSITY`).
 
 The backfill (GEN.23, `backfill_cells`) goes the other way: around each
 generated sector, block by block, it adds the stars between a lower floor
@@ -44,7 +46,7 @@ import random
 
 from planetgen.physics import constants
 from planetgen import tuning
-from planetgen.galaxy.density import population_densities, predicted_star_count
+from planetgen.galaxy.density import population_densities
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc,
     layer_bounds_pc,
@@ -69,9 +71,8 @@ the ring has fewer slots). The spiral arms' density varies smoothly over
 a bin this size."""
 
 SLOT_REDRAWS = 8
-"""int: How many angles a star tries before giving up when it keeps
-landing in a slot too sparse to ever be filled (only at a qualifying
-edge, where a bin straddles it)."""
+"""int: How many points a star tries before giving up when rounding to
+whole milliparsecs keeps carrying it over its cell's edge."""
 
 MPC_PER_PC = 1000
 
@@ -135,13 +136,10 @@ def _densities(position_pc, shape):
     return {population: max(density, 0.0) for population, density in population_densities(position_pc, shape).items()}
 
 
-def _qualifies(position_pc, shape, expected_at_density_1):
-    return predicted_star_count(position_pc, shape, expected_at_density_1) >= 1.0
-
-
 def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
-    """Per angle bin, the population densities at the ring's centerline
-    (zeroed where the bin's own center doesn't qualify)."""
+    """Per angle bin, the population densities at the ring's centerline.
+    No bin is zeroed for being sparse (GEN.78): every cell in the outline
+    keeps its chance of a bright star."""
     slots = ring_sector_count(ring_index)
     count = min(slots, ANGLE_BINS)
     radius = ring_radius_pc(ring_index, edge_pc)
@@ -150,18 +148,14 @@ def _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc):
     for k in range(count):
         theta = (k + 0.5) * 2 * math.pi / count
         point = (radius * math.cos(theta), radius * math.sin(theta), z)
-        if _qualifies(point, shape, expected_at_density_1):
-            bins.append(_densities(point, shape))
-        else:
-            bins.append(None)
+        bins.append(_densities(point, shape))
     return slots, bins
 
 
-def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_density_1, edge_pc):
-    """A uniform point in a qualifying slot of a bin picked by `weights`,
-    as `(slot, (x, y, z))` in whole milliparsecs (as stored), or `None` if
-    every try landed in a slot too sparse to be filled. A point whose
-    rounding carries it over the cell's edge is redrawn too."""
+def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
+    """A uniform point in a slot of a bin picked by `weights`, as `(slot,
+    (x, y, z))` in whole milliparsecs (as stored), or `None` if rounding
+    carried every try over its cell's edge (a point that does is redrawn)."""
     total = sum(weights)
     bin_width = 2 * math.pi / len(weights)
     slot_width = 2 * math.pi / slots
@@ -177,8 +171,6 @@ def _place_one(rng, weights, ring_index, layer_index, slots, shape, expected_at_
             k = max(index for index, weight in enumerate(weights) if weight > 0)
         theta = (k + rng.random()) * bin_width
         slot = min(int(theta / slot_width), slots - 1)
-        if not _qualifies(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape, expected_at_density_1):
-            continue
         stored = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
         if stored is not None:
             return slot, stored
@@ -300,8 +292,6 @@ def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_de
         for j in range(bins):
             theta = (j + 0.5) * 2 * math.pi / bins
             point = (radius * math.cos(theta), radius * math.sin(theta), z)
-            if not _qualifies(point, shape, expected_at_density_1):
-                continue
             densities = _densities(point, shape)
             ring_expected += sum(densities[population] * fractions[population] for population in POPULATIONS)
         expected += expected_at_density_1 * slots / bins * ring_expected * step
@@ -357,7 +347,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
         slots_per_bin = slots / len(bins)
         means = {}
         for population in POPULATIONS:
-            weights = [densities[population] if densities else 0.0 for densities in bins]
+            weights = [densities[population] for densities in bins]
             means[population] = (weights, expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population])
             expected_left += max(means[population][1], 0.0)
         rings.append((ring_index, slots, means))
@@ -369,8 +359,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             expected_left -= mean
             count = _sample_poisson_count(mean, rng=rng)
             for pending in range(count, 0, -1):
-                spot = _place_one(rng, weights, ring_index, layer_index, slots, shape,
-                                  expected_at_density_1, edge_pc)
+                spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
                 if spot is not None and (ring_index, layer_index, spot[0]) not in skip_addresses:
                     placed[population].append((ring_index, spot[0], spot[1]))
                 if on_progress is not None:
@@ -396,7 +385,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     sectors a backfill reaches, GEN.23, one by one since GEN.44): the band
     below what was already placed there, so no star is drawn twice.
 
-    Per qualifying cell, fixed band (`canonical_bands`) and population, a
+    Per cell (every one, however sparse: GEN.78), fixed band (`canonical_bands`) and population, a
     Poisson count with mean `expected_at_density_1 * density * band
     share` at the cell's center (the per-cell rate `scatter` averages over
     a bin), each star uniform in the cell. Each cell and band draws from
@@ -422,8 +411,6 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
               for k, low, high in bands for population in POPULATIONS}
     for ring_index, layer_index, slot in addresses:
         center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
-        if not _qualifies(center, shape, expected_at_density_1):
-            continue
         densities = _densities(center, shape)
         slots = ring_sector_count(ring_index)
         for k, low, high in bands:

@@ -244,7 +244,7 @@ their own pass over what is already stored (`generate.py population`,
 `planetgen/population/model.py`), not during system generation. The pass
 is opt-in: `generate.py sector` and `galaxy` run it only with
 `--population`, the admin Generate page never passes that flag, and
-`install.sh`/`update.sh` (and the PowerShell twins) ask y/N with a
+`install.sh` (and `install.ps1`) ask y/N with a
 30-second timeout that defaults to No and skip the question with no
 terminal; `POPULATION=1` (`-Population`) runs it without asking. The pages
 and the Galaxy Map's Territories button hide themselves when there is no

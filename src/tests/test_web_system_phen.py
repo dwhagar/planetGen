@@ -380,7 +380,7 @@ def test_quasar_detail(client, fake):
     html = client.get("/phenomenon/quasar/1").get_data(as_text=True)
     assert '<span class="badge">Quasar</span>' in html
     assert "<h2 id=\"phenomenon-data-heading\">Quasar Data</h2>" in html
-    assert "2.50 × 10⁹ solar masses" in html and "<td>42%</td>" in html and "1.50 × 10⁵ ly" in html
+    assert "2.50 × 10⁹ solar masses" in html and "<td>42%</td>" in html and "150,000 ly" in html
     assert "Galactic Orbital" not in html
 
 

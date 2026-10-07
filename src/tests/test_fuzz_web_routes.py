@@ -50,6 +50,7 @@ import os
 import re
 import tempfile
 import uuid
+from urllib.parse import urlsplit
 from urllib.parse import quote, urlencode, urlsplit
 
 import pymysql
@@ -911,6 +912,11 @@ def test_csrf_token_is_bound_to_the_login_session(app, session):
             continue
         wrong = csrf_pair(session=other)[1]
         response = client.post("/login", data={"username": "x", "password": "y", csrf.FIELD_NAME: wrong})
+        if session and other == "":
+            # SEC.31: the pre-login token sent again after signing in goes
+            # back to the login page; the view still never runs.
+            assert response.status_code == 303 and urlsplit(response.headers["Location"]).path == "/login"
+            continue
         assert response.status_code == 400, other
     right = csrf_pair(session=session)[1]
     response = client.post("/login", data={"username": "nobody", "password": "wrong-password", csrf.FIELD_NAME: right})

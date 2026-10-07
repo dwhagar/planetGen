@@ -30,9 +30,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 |---|---|---|---|
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
-| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) |  |  |
-| GEN.78 | Some regions have a star probability of zero (bug) |  | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
-| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | GEN.78 | Major bug (Boss 2026-10-07); merges the 2026-10-03 bulge report. |
 
 ### Bugfixes: console and progress
 
@@ -53,7 +50,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | UX.36 | Scientific notation starts too early for whole numbers (bug) |  | Boss 04:29Z. numberformat.js and utils.py: whole numbers scientific from 7 digits, decimals from 5. |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) |  |  |
 | UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) |  |  |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) |  |  |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) |  |  |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) |  |  |
 
@@ -170,7 +166,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) |  |  |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | MAP.65, MAP.111 |  |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | MAP.79 | The toggle is one of MAP.79's per-kind buttons. |
-| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | MAP.102 |  |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | MAP.102 | Also the per-zoom rule for which objects show; folds MAP.115 (Boss 2026-10-07 16:26Z). |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | NAV.15 | Fixed by pick mode on the shared layer (NAV.15). |
 
 ### Groundwork: nebula shapes
@@ -200,7 +196,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 

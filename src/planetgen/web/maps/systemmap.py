@@ -77,7 +77,7 @@ import colorsys
 import math
 import statistics
 
-from planetgen.web.lib.fmt import esc, format_distance_km, format_speed_kms, format_temperature_k
+from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
 from planetgen.web.maps.starmap import _star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_mass, format_body_radius, format_period, format_star_luminosity, format_star_mass, format_star_radius,
@@ -771,6 +771,15 @@ def _atmosphere_text(planet):
     return atmosphere if atmosphere and atmosphere != "None" else "None (airless)"
 
 
+def _pressure_text(planet, has_atmosphere):
+    """MAP.117: the side panel's surface pressure, "None" for an airless
+    body, left out when the row has no value."""
+    if not has_atmosphere:
+        return "None"
+    pressure_pa = planet.get("atmospheric_pressure_pa")
+    return None if pressure_pa is None else to_plain_text(format_pressure_pa(pressure_pa))
+
+
 def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
     atmosphere = planet.get("atmosphere")
     has_atmosphere = bool(atmosphere) and atmosphere != "None"
@@ -801,6 +810,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "atmosphere": _atmosphere_text(planet),
         "composition": planet.get("composition"),
         "surfacetemp": format_temperature_k(surface_temp_k) if surface_temp_k is not None else None,
+        "surfacepressure": _pressure_text(planet, has_atmosphere),
         # Presence alone (not the description text) is what the 3D preview
         # needs to decide whether to draw an atmosphere glow shell at all --
         # `_data_attrs` omits a `None` value entirely, so this attribute's

@@ -51,7 +51,7 @@ import random
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, evolve_star, main_sequence_lifetime_gy,
+    _power_law_integral, _sample_power_law, evolve_star, giant_bright_chance, main_sequence_lifetime_gy,
     main_sequence_luminosity_sol, population_age_range_gy, sample_living_star, star_params,
 )
 
@@ -63,20 +63,10 @@ def _overlap(low, high, window):
     return max(0.0, min(high, window[1]) - max(low, window[0]))
 
 
-def _giant_luminosity_range(mass_sol):
-    if mass_sol >= tuning.BRIGHT_GIANT_MIN_MASS_SOL:
-        return tuning.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL
-    return tuning.GIANT_LUMINOSITY_RANGE_SOL
-
-
 def _giant_bright_chance(mass_sol, min_luminosity_sol):
-    """The chance a giant's log-uniform luminosity is >= the threshold."""
-    low, high = _giant_luminosity_range(mass_sol)
-    if min_luminosity_sol <= low:
-        return 1.0
-    if min_luminosity_sol >= high:
-        return 0.0
-    return math.log(high / min_luminosity_sol) / math.log(high / low)
+    """The chance a giant's luminosity is >= the threshold
+    (`stellarEvolution.giant_bright_chance`)."""
+    return giant_bright_chance(mass_sol, min_luminosity_sol)
 
 
 def _supergiant_bright_chance(ms_luminosity_sol, min_luminosity_sol):
