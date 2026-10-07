@@ -772,7 +772,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | open |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | open |
-| OPS.23 | A package layout plan for the reorganization | none | open |
+| OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
 | OPS.24 | Move the code into the new package layout, one package per PR | none | open |
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |

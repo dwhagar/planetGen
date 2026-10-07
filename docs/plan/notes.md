@@ -268,7 +268,7 @@ Work goes ahead on each default until Boss says otherwise.
 
 | Files | Items | Order |
 |---|---|---|
-| Every module (the package move) | OPS.23, OPS.24 | Land before the library swaps; every open branch merges main after each move PR. |
+| Every module (the package move) | OPS.24 | Land before the library swaps; every open branch merges main after each move PR. |
 | stellarObjects/workQueue.py, jobRunner.py, web/jobs.py | PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20 | PERF.19's audit, then PERF.24 with OPS.19, then ADM.22. |
 | _db.py and migrateDb.py | TEST.81, TEST.87, DB.12, OPS.25, DB.11, DB.13, GEN.71, DB.7, NAV.10, API.11 | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
 | Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, TEST.71, VIEW.4, API.12 | One stream, in TODO order. |
@@ -283,7 +283,7 @@ Work goes ahead on each default until Boss says otherwise.
 
 ## Near-cycles and how they are broken
 
-- **The library swaps and the package move**: both touch every module. Broken by order: the layout plan and the move (OPS.23, OPS.24) land first, then each swap.
+- **The library swaps and the package move**: both touch every module. Broken by order: the layout plan (OPS.23, done in PR #435) and the move (OPS.24) land first, then each swap.
 - **The class refactor and the habitability index**: the classes need the scores and the scores read the classes' atmospheres. Broken by order: habitability inputs and score in phase 1 on today's classes, the refactor in phase 2.
 - **MAP.61 and the map bugs**: the engine items moved into phase 0 because the 2026-10-03 map bugs fold into them.
 - **API.6 and USR.2**, **NAV.4 and USR.1**: unchanged (keys and saved courses follow accounts).
