@@ -1,5 +1,15 @@
 # Changelog
 
+## [7.175.606] - 2026-10-07
+
+### Fixed
+- **`pip install` failed after the first package move.** `setup.py` mapped `planetgen.util` to a folder named `src/planetgen.util`; subpackages now map to their real folders.
+
+## [7.174.606] - 2026-10-07
+
+### Changed
+- **The code starts moving into the `planetgen` package (OPS.24, step 1 of 14).** `log`, `appconfig` and `serialization` are now `planetgen.util.log`, `planetgen.util.appconfig` and `planetgen.util.serialization`. The version file is now `src/planetgen/_version.py`. Every caller moved with them, with no compatibility stubs left behind.
+
 ## [7.173.606] - 2026-10-07
 
 ### Added
