@@ -31,7 +31,7 @@ import math
 import pytest
 
 from stellarObjects import plausibility
-from stellarObjects import program_constants as prog_c
+from planetgen import tuning as prog_c
 
 # Small on purpose -- see module docstring. Large enough to exercise each
 # (class, zone) pair's random draws a few times over; still fast (well

@@ -18,7 +18,8 @@ import random
 
 import pytest
 
-from stellarObjects import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning as program_constants
 from stellarObjects import spaceSector as spaceSector_module
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import (
@@ -179,7 +180,7 @@ def test_expected_system_count_matches_density_times_volume():
     expected = sector.expected_system_count()
 
     assert sector.volume_ly3 == pytest.approx(11.5 ** 3)
-    assert expected == pytest.approx(11.5 ** 3 * physical_constants.LOCAL_STELLAR_DENSITY_LY3)
+    assert expected == pytest.approx(11.5 ** 3 * constants.LOCAL_STELLAR_DENSITY_LY3)
     # Sanity check against the module docstring's own worked example: a
     # sector this size should realistically hold only a handful of systems.
     assert 1 < expected < 10
@@ -445,7 +446,7 @@ def test_sample_poisson_count_mean_and_spread_are_approximately_correct():
 # --- Mean nearest-neighbor distance ---
 
 def test_mean_nearest_neighbor_ly_matches_known_formula_and_value():
-    density = physical_constants.LOCAL_STELLAR_DENSITY_LY3
+    density = constants.LOCAL_STELLAR_DENSITY_LY3
     expected = math.gamma(4 / 3) * (3 / (4 * math.pi * density)) ** (1 / 3)
     assert mean_nearest_neighbor_ly() == pytest.approx(expected)
     # Sanity check against the module docstring's own worked example (~3.9 ly).
@@ -700,7 +701,7 @@ def test_hill_radius_ly_works_on_a_bare_compact_remnant_not_just_a_star_system()
     # A standalone BlackHole IS the Star-like object (no .star wrapper) --
     # hill_radius_ly must read its own system_perimeter directly.
     assert hill_radius_ly(black_hole) == pytest.approx(
-        black_hole.system_perimeter * physical_constants.AU_TO_LY
+        black_hole.system_perimeter * constants.AU_TO_LY
     )
     assert hill_radius_ly(black_hole) > 0
 

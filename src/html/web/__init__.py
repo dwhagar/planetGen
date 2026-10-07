@@ -108,8 +108,8 @@ def static_url(filename):
 def math_check_failures():
     """The names of the math checks that failed when this process started
     (`init_app`), shown to admins on every page; empty when all passed."""
-    from stellarObjects import mathCheck
-    return [result.name for result in mathCheck.startup_failures()]
+    from planetgen.physics import mathcheck
+    return [result.name for result in mathcheck.startup_failures()]
 
 
 def edit_flashes():

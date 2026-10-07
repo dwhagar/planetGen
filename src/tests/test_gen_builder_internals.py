@@ -11,7 +11,8 @@ helper is exercised on hand-placed bodies.
 """
 import pytest
 
-from stellarObjects import program_constants, systemData
+from stellarObjects import systemData
+from planetgen import tuning
 from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
@@ -74,8 +75,8 @@ def test_slot_asteroid_belt_spans_from_the_estimated_distance(system):
         obj = system.generate_slot_object({"type": "asteroid_belt"}, 3.0)
         assert isinstance(obj, AsteroidBelt) and obj.body_type == 'a'
         assert obj.distance == obj.lower_limit == 3.0
-        assert (3.0 * program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN <= obj.upper_limit
-                <= 3.0 * program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+        assert (3.0 * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN <= obj.upper_limit
+                <= 3.0 * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
 
 
 def test_slot_planet_honours_class_and_moon_count(system):
@@ -120,7 +121,7 @@ def test_distance_unchanged_when_the_class_already_fits(system, planet_class, zo
 
 def test_ecosphere_class_is_moved_inside_the_zone_with_margin(system):
     inner, outer = system.star.habitable_zone
-    margin = min(program_constants.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
+    margin = min(tuning.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
     for estimated in (inner * 0.1, outer * 10):
         for _ in range(DRAWS):
             distance = system.calculate_distance_for_class("M", estimated)
@@ -268,7 +269,7 @@ def test_reconcile_reclassifies_a_planet_pushed_out_of_its_zone(system):
     assert system._reconcile_moved_planet(planet) is True
     assert planet.zone == 'c'
     assert planet.planet_class != "M"
-    assert program_constants.PLANET_CLASSES[planet.planet_class]['c']
+    assert tuning.PLANET_CLASSES[planet.planet_class]['c']
     assert planet.distance == outer * 4  # the move itself is kept
 
 
@@ -288,7 +289,7 @@ def test_reconcile_carries_moons_into_the_parents_new_zone(system):
     system._reconcile_moved_planet(planet)
     for moon in planet.moons:
         assert moon.zone == planet.zone == 'c'
-        assert program_constants.PLANET_CLASSES[moon.planet_class]['c']
+        assert tuning.PLANET_CLASSES[moon.planet_class]['c']
 
 
 # --- _clear_circumbinary_floor --------------------------------------------

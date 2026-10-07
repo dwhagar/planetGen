@@ -15,7 +15,8 @@ its row (with what points at it).
 
 import uuid
 
-from . import _db, physical_constants
+from . import _db
+from planetgen.physics import constants
 
 PHENOMENON_TABLES = {
     "black_hole": "black_holes",
@@ -108,9 +109,9 @@ def _delete_missing(conn, table, column, owner_id, kept_ids):
 
 
 def _save_belt(conn, system_id, star_id, index, belt):
-    lower_km = belt.lower_limit * physical_constants.AU_TO_KM
-    upper_km = belt.upper_limit * physical_constants.AU_TO_KM
-    distance_km = belt.distance * physical_constants.AU_TO_KM
+    lower_km = belt.lower_limit * constants.AU_TO_KM
+    upper_km = belt.upper_limit * constants.AU_TO_KM
+    distance_km = belt.distance * constants.AU_TO_KM
     if getattr(belt, "db_id", None) is None:
         belt.db_id = _db.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
         return
@@ -143,7 +144,7 @@ _STAR_COLUMNS = (
 
 
 def _star_values(star):
-    au = physical_constants.AU_TO_KM
+    au = constants.AU_TO_KM
     return (
         star.name, star.type, star.yerkes_class, star.mass, star.radius,
         star.temperature, star.luminosity, star.age, _db._lifespan_gy(star.lifespan),
@@ -210,7 +211,7 @@ def save_system_edits(conn, system_id, system, stars=()):
 
 
 def _save_comet_orbit(conn, comet):
-    au = physical_constants.AU_TO_KM
+    au = constants.AU_TO_KM
     conn.execute(
         "UPDATE comets SET perihelion_distance_km = ?, orbital_period_years = ?, primary_mass_solar = ?,"
         " distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?, orbital_speed_kms = ?,"

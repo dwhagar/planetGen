@@ -60,7 +60,7 @@ def to_plain_text(formatted):
     return _SUP_HTML_RE.sub(lambda m: m.group(1).translate(_SUPERSCRIPT_DIGITS), formatted)
 
 try:
-    from stellarObjects import physical_constants
+    from planetgen.physics import constants
     from stellarObjects.config import SystemConfig
     from stellarObjects.utils import (
         format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol,
@@ -93,13 +93,13 @@ def _dash_unless_positive(formatter):
 def format_star_mass(mass_kg):
     if _HTML_CONFIG is None:
         return f"{mass_kg} kg"
-    return format_relative_to_sol(_HTML_CONFIG, mass_kg, physical_constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+    return format_relative_to_sol(_HTML_CONFIG, mass_kg, constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
 
 
 def format_star_luminosity(luminosity_w):
     if _HTML_CONFIG is None:
         return f"{luminosity_w} W"
-    return format_relative_to_sol(_HTML_CONFIG, luminosity_w, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+    return format_relative_to_sol(_HTML_CONFIG, luminosity_w, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
 
 def format_star_radius(radius_km):
@@ -156,7 +156,7 @@ def format_body_radius(radius_km):
     every body radius, then in Earth radii."""
     if _HTML_CONFIG is None:
         return f"{radius_km} km"
-    ratio = radius_km / physical_constants.EARTH_RADIUS_KM
+    ratio = radius_km / constants.EARTH_RADIUS_KM
     return f"{format_body_radius_km(_HTML_CONFIG, radius_km)} ({_times_reference(ratio)} Earth radii)"
 
 
@@ -165,8 +165,8 @@ def format_body_mass(mass_kg, gas_giant=False):
     in Earth masses, or Jupiter masses for a gas giant."""
     if _HTML_CONFIG is None:
         return f"{mass_kg} kg"
-    reference, label = ((physical_constants.JUPITER_MASS_TO_KG, "Jupiter masses") if gas_giant
-                        else (physical_constants.EARTH_MASS_TO_KG, "Earth masses"))
+    reference, label = ((constants.JUPITER_MASS_TO_KG, "Jupiter masses") if gas_giant
+                        else (constants.EARTH_MASS_TO_KG, "Earth masses"))
     return f"{to_scientific_notation(_HTML_CONFIG, mass_kg)} kg ({_times_reference(mass_kg / reference)} {label})"
 
 

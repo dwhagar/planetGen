@@ -945,7 +945,7 @@ def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
 def _generated_sectors(mysql_config, luminosities):
     """One grid-placed sector per entry of `luminosities` along +X, 4 pc
     apart, each holding one single star of that luminosity (solar)."""
-    from stellarObjects import physical_constants
+    from planetgen.physics import constants
 
     sector_ids = [
         _place_sector(mysql_config, f"Lit {i}", (2.0 + 4.0 * i, 2.0, 0.0), address=(i, 0, 0))
@@ -957,7 +957,7 @@ def _generated_sectors(mysql_config, luminosities):
             conn.execute(
                 "UPDATE stars SET luminosity_w = ? WHERE star_system_id IN "
                 "(SELECT id FROM star_systems WHERE sector_id = ?)",
-                (lum * physical_constants.SOLAR_LUMINOSITY, sector_id),
+                (lum * constants.SOLAR_LUMINOSITY, sector_id),
             )
         conn.commit()
         star_ids = [
@@ -2139,11 +2139,11 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     from stellarObjects.galaxyGeometry import sector_position_pc
     from stellarObjects.utils import ly_to_pc
 
-    from stellarObjects import program_constants
+    from planetgen import tuning
 
-    edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+    edge_pc = float(tuning.DEFAULT_SECTOR_EDGE_PC)
     center = sector_position_pc(3, -1, 5, edge_pc)
-    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY,
+    sector_id = _place_sector(mysql_config, "Cell Sector", center, edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY,
                               address=(3, -1, 5))
 
     by_address = client.get("/api/galaxy/cell?ring=3&layer=-1&slot=5").get_json()

@@ -23,7 +23,8 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db, adminAuth, program_constants  # noqa: E402
+from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen import tuning
 from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
@@ -376,7 +377,7 @@ def test_generate_neighborhood_starts_a_job_then_redirects_to_get(app, client, f
     assert kind == "galaxy" and kw["database"] == DB
     assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
     assert steps[-1]["argv"][-5:] == ["galaxy", "--center-sector", "5", "--radius-pc",
-                                      str(program_constants.DEFAULT_GENERATE_RADIUS_PC)]
+                                      str(tuning.DEFAULT_GENERATE_RADIUS_PC)]
     html = client.get("/sector/5").get_data(as_text=True)
     assert "keeps running if you close this page" in html
     # The message is shown once.

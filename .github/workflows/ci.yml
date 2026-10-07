@@ -27,7 +27,7 @@ concurrency:
 
 jobs:
   mathcheck:
-    # The math check gate (TEST.67, stellarObjects/mathCheck.py): known
+    # The math check gate (TEST.67, planetgen/physics/mathcheck.py): known
     # answers from real astronomy, identities and sampler distributions.
     # It runs first, on its own, and every other job waits for it: with
     # the math broken, their failures would only be noise.
@@ -51,7 +51,7 @@ jobs:
 
       - name: Math check report
         working-directory: src
-        run: python -m stellarObjects.mathCheck --verbose
+        run: python -m planetgen.physics.mathcheck --verbose
 
       - name: Math check tests
         run: pytest src/tests/test_math_check.py -p no:cacheprovider

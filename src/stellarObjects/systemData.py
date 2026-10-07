@@ -26,7 +26,9 @@ from .bodyNames import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from . import physical_constants, planetLife, program_constants, validation
+from . import planetLife, validation
+from planetgen.physics import constants
+from planetgen import tuning
 from planetgen.util import log
 from .planetData import Planet
 from .starData import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
@@ -195,7 +197,7 @@ class StarSystem:
                 system creates (see `Star.calculate_system_perimeter`'s
                 docstring). `None` (the default) leaves every constituent
                 star's Hill-sphere calculation on the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
                 the correct behavior for a system with no galaxy placement
                 (e.g. `sectorGen.py`'s own standalone CLI).
             compact_remnant (BlackHole or NeutronStar, optional): A
@@ -274,10 +276,10 @@ class StarSystem:
             # model -- so its class, luminosity and temperature follow from
             # its own mass (GEN.54). A specified-type primary has no model
             # initial mass; its present mass stands in for it.
-            mass_ratio = random.uniform(*program_constants.BINARY_MASS_RATIO_RANGE)
+            mass_ratio = random.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
             primary_initial_mass_sol = self.primary_star.initial_mass_sol
             if primary_initial_mass_sol is None:
-                primary_initial_mass_sol = self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG
+                primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
             star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
                            "age_gy": self.primary_star.age}
             with log.timed_phase("secondary star generation"):
@@ -294,8 +296,8 @@ class StarSystem:
             # needs moving.
             if self.secondary_star.mass > self.primary_star.mass:
                 log.choice("Binary primary", "swapped",
-                           f"secondary {self.secondary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun "
-                           f"outweighs primary {self.primary_star.mass / physical_constants.SOLAR_MASS_TO_KG:.3g} Msun")
+                           f"secondary {self.secondary_star.mass / constants.SOLAR_MASS_TO_KG:.3g} Msun "
+                           f"outweighs primary {self.primary_star.mass / constants.SOLAR_MASS_TO_KG:.3g} Msun")
                 self.primary_star, self.secondary_star = self.secondary_star, self.primary_star
                 self.star = self.primary_star
                 self.stars = [self.primary_star]
@@ -307,8 +309,8 @@ class StarSystem:
             # the gate for even having a second star at all.
             is_wide = self.system_config.WIDE_BINARY
             if is_wide is None:
-                is_wide = random.random() < program_constants.WIDE_BINARY_DEFAULT_CHANCE
-                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({program_constants.WIDE_BINARY_DEFAULT_CHANCE})"
+                is_wide = random.random() < tuning.WIDE_BINARY_DEFAULT_CHANCE
+                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({tuning.WIDE_BINARY_DEFAULT_CHANCE})"
             else:
                 reason = "forced by +wide_binary/-wide_binary"
             self.binary_type = "wide" if is_wide else "close"
@@ -355,7 +357,7 @@ class StarSystem:
         # list's outermost planet if the two stars' own disks would
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
-        for _attempt in range(program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS):
+        for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
             with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
                 primary_ceiling_au = self._orbit_ceiling_au(self.star)
                 self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
@@ -393,7 +395,7 @@ class StarSystem:
                           f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
                           f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
                 break
-            log.debug(f"Planet generation attempt {_attempt + 1}/{program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+            log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
                       f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
                       f"required and found: {belt_satisfied})")
 
@@ -403,7 +405,7 @@ class StarSystem:
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
         if self.unmet_requirements:
-            log.debug(f"Planet generation gave up after {program_constants.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
+            log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
 
         # A pair's two stars share one age (GEN.53): a close pair's proxy
@@ -448,13 +450,13 @@ class StarSystem:
         # more than once) reads this rather than re-rolling and double-counting
         # system_flavor_count on every render.
         self.system_flavor_text = None
-        if random.random() < program_constants.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL:
-            self.system_flavor_text = random.choice(program_constants.SYSTEM_FLAVOR)
+        if random.random() < tuning.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL:
+            self.system_flavor_text = random.choice(tuning.SYSTEM_FLAVOR)
             self.system_config.system_flavor_count += 1
             log.choice("System flavor text", self.system_flavor_text,
-                       f"roll passed FLAVOR_CHANCE_SYSTEM ({program_constants.FLAVOR_CHANCE_SYSTEM}) and "
+                       f"roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
                        f"system_flavor_count ({self.system_config.system_flavor_count - 1}) was under "
-                       f"MAX_FLAVOR_TOTAL ({program_constants.MAX_FLAVOR_TOTAL})")
+                       f"MAX_FLAVOR_TOTAL ({tuning.MAX_FLAVOR_TOTAL})")
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
@@ -570,9 +572,9 @@ class StarSystem:
         for a comet to satisfy there. Instead this rolls independently,
         once per star, honoring `SystemConfig.COMETS`'s tri-state contract
         the same way `ASTEROID_BELT`/`HABITABLE_WORLD` do elsewhere:
-        `True` forces at least `program_constants.SYSTEM_COMET_COUNT_RANGE[0]`
+        `True` forces at least `tuning.SYSTEM_COMET_COUNT_RANGE[0]`
         comets, `False` forces none, `None` rolls
-        `program_constants.SYSTEM_COMET_CHANCE`.
+        `tuning.SYSTEM_COMET_CHANCE`.
 
         Args:
             star: The `Star` or `BinaryStarProxy` this comet population is
@@ -587,12 +589,12 @@ class StarSystem:
         if self.system_config.COMETS is False:
             return []
 
-        has_comets = self.system_config.COMETS is True or random.random() < program_constants.SYSTEM_COMET_CHANCE
+        has_comets = self.system_config.COMETS is True or random.random() < tuning.SYSTEM_COMET_CHANCE
         if not has_comets:
             return []
 
-        count = random.randint(*program_constants.SYSTEM_COMET_COUNT_RANGE)
-        primary_mass_solar = star.mass / physical_constants.SOLAR_MASS_TO_KG
+        count = random.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
+        primary_mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
         return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
 
     @staticmethod
@@ -624,7 +626,7 @@ class StarSystem:
         rolls real chance instead of always coming out single.
 
         That "real chance" is
-        `program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
+        `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`,
         keyed by the *primary* star's already-resolved spectral letter
         (`self.primary_star.type[0]`) -- real stellar-multiplicity surveys
         (Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
@@ -642,7 +644,7 @@ class StarSystem:
             return bool(self.system_config.BINARY_SYSTEM)
 
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
-        probability = program_constants.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
+        probability = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
         return random.random() < probability
 
     @staticmethod
@@ -657,7 +659,7 @@ class StarSystem:
         beyond its whole habitable zone, so nearly every planet came out
         cold.
         """
-        return habitable_zone[0] * random.uniform(*program_constants.FIRST_PLANET_HZ_FRACTION_RANGE)
+        return habitable_zone[0] * random.uniform(*tuning.FIRST_PLANET_HZ_FRACTION_RANGE)
 
     def _disk_outer_edge_au(self, star):
         """
@@ -672,7 +674,7 @@ class StarSystem:
         (`_orbit_floor_au`) no longer describes its disk, so it gets no
         edge.
         """
-        edge_au = program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au(star.luminosity)
+        edge_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line_au(star.luminosity)
         return edge_au if edge_au > self._orbit_floor_au(star) else math.inf
 
     def _orbit_floor_au(self, star):
@@ -797,7 +799,7 @@ class StarSystem:
                     # constant *ratio* apart, not a constant number of AU, so a
                     # dim star's planets stay as close-packed as its habitable
                     # zone is small instead of marching out into the cold.
-                    spacing_ratio = random.uniform(*program_constants.PLANET_SPACING_RATIO_RANGE)
+                    spacing_ratio = random.uniform(*tuning.PLANET_SPACING_RATIO_RANGE)
                     if last_planet.body_type == 'a':
                         estimated_distance = last_planet.upper_limit * spacing_ratio
                         last_asteroid = True
@@ -843,7 +845,7 @@ class StarSystem:
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
                     obj = self.generate_slot_object(slot_spec, estimated_distance, planets=planets)
-                    if getattr(obj, 'planet_class', None) in program_constants.HABITABLE_PLANET_CLASSES:
+                    if getattr(obj, 'planet_class', None) in tuning.HABITABLE_PLANET_CLASSES:
                         found_hab = True
                     if getattr(obj, 'body_type', None) == 'a':
                         found_belt = True
@@ -915,17 +917,17 @@ class StarSystem:
                 force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
 
                 if self.system_config.ASTEROID_BELT is not False and (
-                    force_belt or (not last_asteroid and not hz and (random.random() < program_constants.ASTEROID_BELT_PROBABILITY or i == belt_index))
+                    force_belt or (not last_asteroid and not hz and (random.random() < tuning.ASTEROID_BELT_PROBABILITY or i == belt_index))
                 ):
                     if force_belt:
                         belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
                     elif i == belt_index:
                         belt_reason = "matched the pre-selected guaranteed belt slot"
                     else:
-                        belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({program_constants.ASTEROID_BELT_PROBABILITY})"
+                        belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({tuning.ASTEROID_BELT_PROBABILITY})"
                     log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
                     min_distance = estimated_distance
-                    max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+                    max_distance = estimated_distance * random.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
@@ -975,10 +977,10 @@ class StarSystem:
             yerkes = getattr(member, "yerkes_class", None)
             if yerkes in ("VII", "D"):
                 if member.initial_mass_sol is not None:
-                    radius_au = max(radius_au, program_constants.WD_PROGENITOR_ENGULFMENT_AU)
+                    radius_au = max(radius_au, tuning.WD_PROGENITOR_ENGULFMENT_AU)
             elif yerkes not in (None, "V", "VI"):
-                radius_au = max(radius_au, program_constants.GIANT_ENGULFMENT_RADIUS_FACTOR
-                                * member.radius / physical_constants.AU_TO_KM)
+                radius_au = max(radius_au, tuning.GIANT_ENGULFMENT_RADIUS_FACTOR
+                                * member.radius / constants.AU_TO_KM)
         return radius_au
 
     def _apply_star_history(self, planets, star):
@@ -994,7 +996,7 @@ class StarSystem:
         """
         engulfed_au = self._engulfment_radius_au(star)
         explicit_request = self.system_config.HABITABLE_WORLD is True or bool(self.system_config.SLOTS)
-        too_young = (star.age is not None and star.age < program_constants.PLANET_MIN_STAR_AGE_GY
+        too_young = (star.age is not None and star.age < tuning.PLANET_MIN_STAR_AGE_GY
                      and not explicit_request)
         kept = []
         for body in planets:
@@ -1070,7 +1072,7 @@ class StarSystem:
         orbital cycle, not just at generation time.
 
         If that worst-case gap is smaller than
-        `physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR` mutual
+        `constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR` mutual
         Hill radii, the offending outermost planet is removed -- starting
         with whichever star's outermost planet has the least margin to its
         own `a_crit_au` -- and the check repeats until clearance holds or
@@ -1088,7 +1090,7 @@ class StarSystem:
         the Gladman mutual-Hill-radius criterion below only applies when
         BOTH stars' outermost objects are real planets; if either one is a
         belt, this falls back to a plain geometric non-overlap requirement
-        (worst-case gap must clear `program_constants.
+        (worst-case gap must clear `tuning.
         MIN_ASTEROID_BELT_SEPARATION`, the same fixed buffer
         `validate_system` already uses between same-star neighbors),
         since a belt has no mass to derive a dynamical-stability margin
@@ -1336,7 +1338,7 @@ class StarSystem:
 
         if slot_type == "asteroid_belt":
             min_distance = estimated_distance
-            max_distance = estimated_distance * random.uniform(program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, program_constants.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+            max_distance = estimated_distance * random.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
             return AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)
 
         if slot_type == "planet":
@@ -1375,7 +1377,7 @@ class StarSystem:
             float: `estimated_distance`, or an adjusted distance (in AU) that
                   falls within a zone supporting `planet_class`.
         """
-        class_data = program_constants.PLANET_CLASSES.get(planet_class)
+        class_data = tuning.PLANET_CLASSES.get(planet_class)
         if class_data is None:
             return estimated_distance
 
@@ -1445,7 +1447,7 @@ class StarSystem:
                   outside every already-placed belt's span when `planets`
                   is given.
         """
-        margin = min(program_constants.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
+        margin = min(tuning.MIN_ASTEROID_BELT_SEPARATION, (outer - inner) / 4)
         lo, hi = inner + margin, outer - margin
         if planets:
             return self._distance_avoiding_belts(lo, hi, planets)
@@ -1573,7 +1575,7 @@ class StarSystem:
         Counts the number of potentially habitable worlds in the system.
 
         This method iterates through all planets and their moons, checking their
-        classification against `program_constants.HABITABLE_PLANET_CLASSES` to
+        classification against `tuning.HABITABLE_PLANET_CLASSES` to
         determine if they are potentially habitable, and also keeps a separate
         count of Class M worlds, which are considered the most Earth-like. This
         is used for the system summary output.
@@ -1588,7 +1590,7 @@ class StarSystem:
         """
         if planets is None:
             planets = self.planets + self.secondary_planets
-        habitable_classes = program_constants.HABITABLE_PLANET_CLASSES
+        habitable_classes = tuning.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
         for planet in planets:
             if planet.body_type != 'a':
@@ -1682,12 +1684,12 @@ class StarSystem:
         (`utils.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
         2002), then space apart from their neighbors by the same *mutual*
         Hill radius `_mutual_min_distance_au` already enforces during
-        placement (`program_constants.MUTUAL_HILL_RADII_SEPARATION`) --
+        placement (`tuning.MUTUAL_HILL_RADII_SEPARATION`) --
         so this walk and that spacing rule are provably consistent with
         each other, unlike the old log-mass formula, which had no
         relationship to it at all.
 
-        The walk starts at `program_constants.INITIAL_PLANET_DISTANCE_FACTOR
+        The walk starts at `tuning.INITIAL_PLANET_DISTANCE_FACTOR
         * star_factor` (where `_generate_planets` seeded its first slot
         before GEN.37 scaled that with the habitable zone instead) and
         steps outward -- at each step, computing the local isolation
@@ -1696,7 +1698,7 @@ class StarSystem:
         line via `utils.snow_line_au`), then advancing by that embryo's
         own mutual-Hill-radius feeding zone -- until reaching the disk's
         outer edge, at
-        `program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
+        `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
         the snow line (real disks are truncated far short of `star`'s own
         `system_perimeter`'s galactic-tidal scale; see that constant's
         docstring), or `ABSOLUTE_MAX_SYSTEM_OBJECTS` isolation-mass
@@ -1706,7 +1708,7 @@ class StarSystem:
         real N-body integrations of the subsequent giant-impact phase
         (Chambers 2001) show most merge or get ejected -- so the raw slot
         count is scaled down by
-        `program_constants.GIANT_IMPACT_SURVIVAL_FRACTION` before being
+        `tuning.GIANT_IMPACT_SURVIVAL_FRACTION` before being
         returned.
 
         Args:
@@ -1722,19 +1724,19 @@ class StarSystem:
                 names it).
         """
         star_mass_kg = star.mass
-        star_factor = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+        star_factor = star_mass_kg / constants.SOLAR_MASS_TO_KG
         snow_line = snow_line_au(star.luminosity)
         density_scale = disk_surface_density_scale(star_mass_kg)
         outer_edge_au = min(
-            program_constants.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
+            tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
             star.system_perimeter,
         )
 
-        distance_au = program_constants.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
+        distance_au = tuning.INITIAL_PLANET_DISTANCE_FACTOR * star_factor
         oligarch_count = 0
         while (
             distance_au < outer_edge_au
-            and oligarch_count < program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
+            and oligarch_count < tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS
         ):
             surface_density = mmsn_surface_density_gcm2(distance_au, snow_line, density_scale)
             embryo_mass_kg = isolation_mass_kg(distance_au, surface_density, star_mass_kg)
@@ -1743,7 +1745,7 @@ class StarSystem:
             # (2 * embryo_mass_kg is the pair's combined mass) -- the same
             # kappa/clamp `_mutual_min_distance_au` uses, so this step and
             # that later spacing check agree on how far apart is "enough."
-            kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+            kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (
                 (2 * embryo_mass_kg) / (3 * star_mass_kg)
             ) ** (1 / 3)
             kappa = min(kappa, 1.8)
@@ -1751,8 +1753,8 @@ class StarSystem:
             distance_au *= (1 + kappa / 2) / (1 - kappa / 2)
             oligarch_count += 1
 
-        max_objects = math.ceil(oligarch_count * program_constants.GIANT_IMPACT_SURVIVAL_FRACTION)
-        return min(max_objects, program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS)
+        max_objects = math.ceil(oligarch_count * tuning.GIANT_IMPACT_SURVIVAL_FRACTION)
+        return min(max_objects, tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS)
 
     def validate_system(self, planets=None):
         """
@@ -1770,7 +1772,7 @@ class StarSystem:
         Two adjacent planets' minimum separation is enforced via their
         *mutual* Hill radius (`_mutual_min_separation_au`), not either
         one's own individual Hill radius alone -- see
-        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         why. A belt has no mass/Hill-radius concept of its own, so any
         correction involving one uses the single real planet's own
         `min_orbit_distance` (5 Hill radii) on whichever side of the belt
@@ -1826,7 +1828,7 @@ class StarSystem:
         won't move again this pass), via their *mutual* Hill radius
         (`utils.mutual_hill_radius_m`) rather than either one's own
         individual Hill radius alone -- see
-        `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+        `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         the stability-literature basis.
 
         Solved in closed form for `planet`'s own distance rather than

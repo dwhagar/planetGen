@@ -48,13 +48,14 @@ import functools
 import math
 import random
 
-from . import physical_constants, program_constants
-from .stellarEvolution import (
+from planetgen.physics import constants
+from planetgen import tuning
+from planetgen.physics.stellar_evolution import (
     _power_law_integral, _sample_power_law, evolve_star, main_sequence_lifetime_gy,
     main_sequence_luminosity_sol, population_age_range_gy, sample_living_star, star_params,
 )
 
-POPULATIONS = tuple(program_constants.STELLAR_POPULATION_AGE_RANGES_GY)
+POPULATIONS = tuple(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
 """The named stellar populations, in `population_densities` order."""
 
 
@@ -63,9 +64,9 @@ def _overlap(low, high, window):
 
 
 def _giant_luminosity_range(mass_sol):
-    if mass_sol >= program_constants.BRIGHT_GIANT_MIN_MASS_SOL:
-        return program_constants.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL
-    return program_constants.GIANT_LUMINOSITY_RANGE_SOL
+    if mass_sol >= tuning.BRIGHT_GIANT_MIN_MASS_SOL:
+        return tuning.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL
+    return tuning.GIANT_LUMINOSITY_RANGE_SOL
 
 
 def _giant_bright_chance(mass_sol, min_luminosity_sol):
@@ -80,7 +81,7 @@ def _giant_bright_chance(mass_sol, min_luminosity_sol):
 
 def _supergiant_bright_chance(ms_luminosity_sol, min_luminosity_sol):
     """The chance a supergiant's uniform luminosity growth takes it >= the threshold."""
-    low, high = program_constants.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
+    low, high = tuning.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
     need = min_luminosity_sol / ms_luminosity_sol
     if need <= low:
         return 1.0
@@ -96,7 +97,7 @@ def _bright_windows(mass_sol, min_luminosity_sol):
     within the window its age puts it in a phase whose luminosity clears
     the threshold with probability `chance`. Mirrors `evolve_star`.
     """
-    pc = program_constants
+    pc = tuning
     t_ms = main_sequence_lifetime_gy(mass_sol)
     t_sub = t_ms * pc.SUBGIANT_PHASE_END_MS_FRACTION
     t_giant = t_ms * pc.GIANT_PHASE_END_MS_FRACTION
@@ -130,9 +131,9 @@ def _living_measure(mass_sol, window):
     """The chance a star of this mass, of an age uniform in `window`, has
     not collapsed (times the window's length); see `evolve_star`."""
     span = window[1] - window[0]
-    if mass_sol < program_constants.SUPERGIANT_MIN_MASS_SOL:
+    if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
-    dead_from = main_sequence_lifetime_gy(mass_sol) * program_constants.GIANT_PHASE_END_MS_FRACTION
+    dead_from = main_sequence_lifetime_gy(mass_sol) * tuning.GIANT_PHASE_END_MS_FRACTION
     return span - _overlap(dead_from, math.inf, window)
 
 
@@ -143,7 +144,7 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
     splits: each phase's window, stretched over every mass in the cell
     (lifetimes fall and luminosities rise with mass), at its best chance.
     """
-    pc = program_constants
+    pc = tuning
     t_long = main_sequence_lifetime_gy(low_mass)
     t_short = main_sequence_lifetime_gy(high_mass)
     l_max = main_sequence_luminosity_sol(high_mass)
@@ -165,7 +166,7 @@ def _mass_grid():
     """Log-spaced cell edges over the IMF's range, with every mass where
     the IMF slope or a phase rule changes added as an edge, and each
     cell's IMF slope and continuity factor."""
-    pc = program_constants
+    pc = tuning
     low, high = pc.IMF_BREAKS_SOL[0], pc.IMF_BREAKS_SOL[-1]
     cells = pc.BRIGHT_STAR_MASS_GRID_CELLS
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
@@ -186,9 +187,9 @@ def _mass_grid():
 def _check_threshold(min_luminosity_sol):
     if not (isinstance(min_luminosity_sol, (int, float)) and math.isfinite(min_luminosity_sol)):
         raise ValueError(f"luminosity threshold must be a finite number, got {min_luminosity_sol!r}")
-    if min_luminosity_sol < program_constants.WD_LUMINOSITY_RANGE_SOL[1]:
+    if min_luminosity_sol < tuning.WD_LUMINOSITY_RANGE_SOL[1]:
         raise ValueError(f"luminosity threshold {min_luminosity_sol} Lsun must be at least the brightest white dwarf "
-                         f"({program_constants.WD_LUMINOSITY_RANGE_SOL[1]} Lsun)")
+                         f"({tuning.WD_LUMINOSITY_RANGE_SOL[1]} Lsun)")
 
 
 # Quadrature points per cell for `bright_star_fraction`: the cell's IMF
@@ -253,7 +254,7 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
     cells, cumulative, window = table["cells"], table["cumulative"], table["window"]
     if not cells:
         raise ValueError(f"no star in population window {window} Gy reaches {min_luminosity_sol} Lsun")
-    for _ in range(program_constants.STAR_MODEL_MAX_REDRAWS):
+    for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
         mass = _sample_power_law(a, b, alpha, rng)
@@ -274,7 +275,7 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
         # on a phase boundary).
         if state is not None and state["luminosity_sol"] >= min_luminosity_sol:
             return star_params(mass, age, state)
-    raise ValueError(f"no bright star drawn in {program_constants.STAR_MODEL_MAX_REDRAWS} tries")
+    raise ValueError(f"no bright star drawn in {tuning.STAR_MODEL_MAX_REDRAWS} tries")
 
 
 BAND_REDRAWS = 10000
@@ -286,7 +287,7 @@ thin almost every star overshoots it)."""
 def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
     """One star with `min <= luminosity < max`: a star drawn above `min`,
     redrawn while it reaches `max` (the brighter band already placed)."""
-    max_w = max_luminosity_sol * physical_constants.SOLAR_LUMINOSITY
+    max_w = max_luminosity_sol * constants.SOLAR_LUMINOSITY
     for _ in range(BAND_REDRAWS):
         params = _sample_one_bright(table, min_luminosity_sol, rng)
         if params["luminosity_w"] < max_w:

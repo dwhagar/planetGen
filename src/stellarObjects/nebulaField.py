@@ -27,7 +27,8 @@ import functools
 import math
 import random
 
-from . import galaxyDensity, galaxySeed, program_constants
+from . import galaxyDensity, galaxySeed
+from planetgen import tuning
 from .config import SystemConfig
 from .nebulaData import Nebula, NEBULA_CLASS_LETTERS
 from .spaceSector import _sample_poisson_count
@@ -44,10 +45,10 @@ FALLBACK_SEED = bytes(16)
 v51): still fixed, so its sectors agree with each other."""
 
 FIELD_CLASSES = tuple(letter for letter in NEBULA_CLASS_LETTERS
-                      if program_constants.NEBULA_CLASSES[letter]["family"] == FIELD_FAMILY)
+                      if tuning.NEBULA_CLASSES[letter]["family"] == FIELD_FAMILY)
 """tuple: The field's class letters."""
 
-MAX_CLOUD_RADIUS_PC = max(ly_to_pc(program_constants.NEBULA_CLASSES[letter]["radius_range_ly"][1])
+MAX_CLOUD_RADIUS_PC = max(ly_to_pc(tuning.NEBULA_CLASSES[letter]["radius_range_ly"][1])
                           for letter in FIELD_CLASSES)
 """float: The largest cloud the field can place, parsecs: how far around
 a sector its cells are read."""
@@ -69,10 +70,10 @@ def _gas_tracer(position_pc, shape):
     """
     young = galaxyDensity.population_densities(position_pc, shape)["young"]
     arm_cos = galaxyDensity._arm_cosine(position_pc[0], position_pc[1], shape)
-    star_contrast = 1 + program_constants.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
+    star_contrast = 1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE["young"] * arm_cos
     if star_contrast <= 0.0:
         return 0.0
-    return max(young, 0.0) / star_contrast * (1 + program_constants.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos)
+    return max(young, 0.0) / star_contrast * (1 + tuning.NEBULA_FIELD_ARM_AMPLITUDE * arm_cos)
 
 
 @functools.lru_cache(maxsize=8)
@@ -98,13 +99,13 @@ def gas_factor(position_pc, shape):
     reference = _reference_gas(shape)
     if reference <= 0.0:
         return 0.0
-    return min(program_constants.NEBULA_FIELD_MAX_GAS_FACTOR,
-               (_gas_tracer(position_pc, shape) / reference) ** program_constants.GMC_GAS_DENSITY_EXPONENT)
+    return min(tuning.NEBULA_FIELD_MAX_GAS_FACTOR,
+               (_gas_tracer(position_pc, shape) / reference) ** tuning.GMC_GAS_DENSITY_EXPONENT)
 
 
 def cell_index(position_pc):
     """The `(i, j, k)` field cell holding `position_pc`."""
-    edge = program_constants.NEBULA_FIELD_CELL_PC
+    edge = tuning.NEBULA_FIELD_CELL_PC
     return tuple(math.floor(coordinate / edge) for coordinate in position_pc)
 
 
@@ -113,11 +114,11 @@ def cell_clouds(galaxy_seed, shape, index):
     The clouds of field cell `index`, from its own seed: a list of
     `(Nebula, center_pc)`, the same every time for the same galaxy.
     """
-    edge = program_constants.NEBULA_FIELD_CELL_PC
+    edge = tuning.NEBULA_FIELD_CELL_PC
     low = tuple(i * edge for i in index)
     middle = tuple(corner + edge / 2 for corner in low)
-    mean = (program_constants.PHENOMENON_DENSITY_PC3["molecular-cloud"]
-            * program_constants.PHENOMENON_RATE_SCALE.get("molecular-cloud", 1.0)
+    mean = (tuning.PHENOMENON_DENSITY_PC3["molecular-cloud"]
+            * tuning.PHENOMENON_RATE_SCALE.get("molecular-cloud", 1.0)
             * edge ** 3 * gas_factor(middle, shape))
     clouds = []
     with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "nebula-cell", index):
@@ -135,7 +136,7 @@ def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):
     (a sector's center and half diagonal, as `_db.sectors_reached_by`
     tests it), as `(Nebula, center_pc)` pairs, nearest cell first.
     """
-    edge = program_constants.NEBULA_FIELD_CELL_PC
+    edge = tuning.NEBULA_FIELD_CELL_PC
     span = MAX_CLOUD_RADIUS_PC + reach_pc
     low = cell_index(tuple(c - span for c in center_pc))
     high = cell_index(tuple(c + span for c in center_pc))

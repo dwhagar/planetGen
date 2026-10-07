@@ -38,7 +38,7 @@ analysis figure), and own persistence, if any.
 import math
 from collections import namedtuple
 
-from . import program_constants
+from planetgen import tuning
 
 GalaxyShape = namedtuple(
     "GalaxyShape",
@@ -142,7 +142,7 @@ def population_densities(position_pc, shape):
     """
     `relative_density` at `position_pc` split by stellar population
     (young, intermediate, old disk stars and bulge stars; see
-    `program_constants.STELLAR_POPULATION_*`), so a sector can draw each
+    `tuning.STELLAR_POPULATION_*`), so a sector can draw each
     system's age from the mix where it sits.
 
     The components always sum to `relative_density`, so no sector's total
@@ -164,15 +164,15 @@ def population_densities(position_pc, shape):
     bulge = shape.k_norm * shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
     disk = relative_density(position_pc, shape) - bulge
 
-    ages = program_constants.STELLAR_POPULATION_AGE_RANGES_GY
-    formation_span = program_constants.STAR_FORMATION_AGE_RANGE_GY[1] - program_constants.STAR_FORMATION_AGE_RANGE_GY[0]
+    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
+    formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
     arm_cos = _arm_cosine(x, y, shape)
     weights = {}
-    for name, ratio in program_constants.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
+    for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
         share = (ages[name][1] - ages[name][0]) / formation_span
         weights[name] = (share * _sech_squared(z / height) / height
-                         * (1 + program_constants.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
+                         * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
     total = sum(weights.values())
     if total <= 0.0:
         # Far enough off the plane that every profile underflows: the

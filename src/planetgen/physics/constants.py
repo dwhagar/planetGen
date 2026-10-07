@@ -1,4 +1,4 @@
-# stellarObjects/physical_constants.py
+# planetgen/physics/constants.py
 
 """
 Physical, Mathematical, and Astronomical Constants

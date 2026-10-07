@@ -85,7 +85,7 @@ from tabledisplay import (
 )
 
 try:
-    from stellarObjects.program_constants import PLANET_CLASSES
+    from planetgen.tuning import PLANET_CLASSES
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # the map still works, just without each class's one-line flavor

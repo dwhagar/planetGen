@@ -2,7 +2,7 @@
 
 """
 `docs/TODO.md` TEST.30 (grid seams and the nucleus), on the real sector
-grid (`program_constants.DEFAULT_SECTOR_EDGE_PC`, 4 pc):
+grid (`tuning.DEFAULT_SECTOR_EDGE_PC`, 4 pc):
 
 - the angular seam: points at theta just under 2*pi (including a `y` so
   small that `atan2(y, x) % 2*pi` rounds to exactly 2*pi, the case
@@ -26,7 +26,8 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db, program_constants
+from stellarObjects import _db
+from planetgen import tuning
 from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxyDrill import parse_drill_key
 from stellarObjects.galaxyGeometry import (
@@ -41,8 +42,8 @@ from stellarObjects.galaxySkeleton import (
 
 from tests.bughunt_support import mysql_argv, run_cli
 
-EDGE = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
-THRESHOLD = 1.0 / expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE = float(tuning.DEFAULT_SECTOR_EDGE_PC)
+THRESHOLD = 1.0 / expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
 TWO_PI = 2 * math.pi
 JUST_UNDER_TWO_PI = math.nextafter(TWO_PI, 0.0)
 

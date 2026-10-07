@@ -2,7 +2,7 @@
 
 """
 Every way a caller can pin a planet's class, radius and mass before
-generation (`planetPhysics.generate_planet_properties`'s eight branches:
+generation (`planets.generate_planet_properties`'s eight branches:
 none, class, radius, mass, class+radius, class+mass, radius+mass, all
 three), in every zone, with values drawn from inside, on the edge of and
 outside each class's declared ranges -- plus the scalar physics helpers
@@ -20,14 +20,15 @@ import pytest
 from hypothesis import assume, example, given
 from hypothesis import strategies as st
 
-from stellarObjects import planetPhysics, program_constants as prog_c
+from planetgen.physics import planets
+from planetgen import tuning as prog_c
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.starData import Star
 from tests.fuzz_support import any_float
 
 CLASSES = sorted(prog_c.PLANET_CLASSES)
-MASS_RANGES = planetPhysics.get_planet_mass_ranges()
+MASS_RANGES = planets.get_planet_mass_ranges()
 
 
 @pytest.fixture(scope="module")
@@ -134,21 +135,21 @@ def test_every_class_has_a_sane_mass_and_radius_range():
 def test_sampled_class_radius_stays_in_range(cls):
     low, high = prog_c.PLANET_CLASSES[cls]["radius_range"]
     for _ in range(25):
-        assert low <= planetPhysics._sample_class_radius(cls, low, high) <= high
+        assert low <= planets._sample_class_radius(cls, low, high) <= high
 
 
 @given(st.lists(st.sampled_from(CLASSES), min_size=1, unique=True))
 def test_weighted_class_choice_only_returns_offered_classes(classes):
-    assert planetPhysics._choose_weighted_planet_class(classes) in classes
+    assert planets._choose_weighted_planet_class(classes) in classes
 
 
 # --- orbital period ------------------------------------------------------------
 
 @given(st.floats(1e-6, 1e6), st.floats(1e20, 1e33))
 def test_orbital_period_obeys_keplers_third_law(distance, mass):
-    period = planetPhysics.calculate_orbital_period_years(distance, mass)
+    period = planets.calculate_orbital_period_years(distance, mass)
     assert math.isfinite(period) and period > 0
-    doubled = planetPhysics.calculate_orbital_period_years(distance * 4, mass)
+    doubled = planets.calculate_orbital_period_years(distance * 4, mass)
     assert doubled == pytest.approx(period * 8, rel=1e-9)
 
 
@@ -161,4 +162,4 @@ def test_orbital_period_rejects_non_positive_inputs_cleanly(distance, mass):
     to slip past the `<= 0` check and come back as NaN)."""
     assume(not (distance > 0 and mass > 0 and math.isfinite(distance) and math.isfinite(mass)))
     with pytest.raises(ValueError):
-        planetPhysics.calculate_orbital_period_years(distance, mass)
+        planets.calculate_orbital_period_years(distance, mass)

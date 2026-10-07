@@ -23,8 +23,8 @@ import math
 
 import pytest
 
-from stellarObjects import keplerMotion as km
-from stellarObjects import planetPhysics as pp
+from planetgen.physics import kepler as km
+from planetgen.physics import planets as pp
 
 
 # --- calculate_orbital_period_years -----------------------------------

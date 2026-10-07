@@ -15,7 +15,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from stellarObjects import asteroidFieldData, cometData, nebulaData, physical_constants, program_constants
+from stellarObjects import asteroidFieldData, cometData, nebulaData
+from planetgen.physics import constants
+from planetgen import tuning
 from stellarObjects import roguePlanetData, supernovaRemnantData
 from stellarObjects.compactRemnant import BlackHole, NeutronStar, infer_black_hole_mass_class
 from stellarObjects.config import SystemConfig
@@ -27,10 +29,10 @@ from stellarObjects.systemData import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 
-PC = program_constants
+PC = tuning
 CLASSES = PC.NEBULA_CLASSES
-JUPITER = physical_constants.JUPITER_MASS_TO_KG
-EARTH = physical_constants.EARTH_MASS_TO_KG
+JUPITER = constants.JUPITER_MASS_TO_KG
+EARTH = constants.EARTH_MASS_TO_KG
 
 
 @pytest.fixture(autouse=True)

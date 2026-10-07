@@ -47,8 +47,8 @@ what real system generation would actually produce. Class R was skipped — it d
 (it can only be force-assigned via `zone_override`, out of scope here).
 
 Scripts used are not part of the repo (scratch analysis only); the underlying formulas
-referenced below are in `stellarObjects/planetPhysics.py` and
-`stellarObjects/physical_constants.py`.
+referenced below are in `planetgen/physics/planets.py` and
+`planetgen/physics/constants.py`.
 
 ## Class definitions confirmed (program_constants.PLANET_CLASSES)
 
@@ -293,7 +293,7 @@ decision, so it's flagged here rather than changed.
 
 ## Fix applied
 
-`stellarObjects/physical_constants.py`'s `ATMOSPHERE_DENSITY["t"]` comment previously read
+`planetgen/physics/constants.py`'s `ATMOSPHERE_DENSITY["t"]` comment previously read
 "Terrestrial: Range from Mars to Venus" for the range `(0.02, 1.2)` kg/m³. Real Venus surface
 air density is ~65 kg/m³ — roughly 50x this range's own ceiling — while real Earth sea-level
 air density (~1.225 kg/m³) matches the range's ceiling almost exactly. The comment was

@@ -15,7 +15,8 @@ import statistics
 
 import pytest
 
-from stellarObjects import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import (holman_wiegert_critical_semimajor_axis,
@@ -75,8 +76,8 @@ def test_holman_wiegert_decreases_with_eccentricity():
 def test_holman_wiegert_clamps_out_of_range_inputs():
     # mu/e outside the fit's validated range are clamped, not extrapolated
     # or raised (see the function's own docstring).
-    mu_min, mu_max = physical_constants.HOLMAN_WIEGERT_MU_RANGE
-    e_min, e_max = physical_constants.HOLMAN_WIEGERT_ECCENTRICITY_RANGE
+    mu_min, mu_max = constants.HOLMAN_WIEGERT_MU_RANGE
+    e_min, e_max = constants.HOLMAN_WIEGERT_ECCENTRICITY_RANGE
     assert holman_wiegert_critical_semimajor_axis(100.0, -1.0, -1.0) == pytest.approx(
         holman_wiegert_critical_semimajor_axis(100.0, mu_min, e_min)
     )
@@ -91,7 +92,7 @@ def test_holman_wiegert_clamps_out_of_range_inputs():
 
 def test_mutual_hill_radius_hand_computed_example():
     earth_mass_kg = 5.972e24
-    solar_mass_kg = physical_constants.SOLAR_MASS_TO_KG
+    solar_mass_kg = constants.SOLAR_MASS_TO_KG
     # Two Earth-mass planets, both at 1 AU, around a 1 solar mass central body.
     expected = ((2 * earth_mass_kg) / (3 * solar_mass_kg)) ** (1 / 3) * 1.0
     assert mutual_hill_radius_au(earth_mass_kg, earth_mass_kg, 1.0, 1.0, solar_mass_kg) == pytest.approx(expected)
@@ -99,7 +100,7 @@ def test_mutual_hill_radius_hand_computed_example():
 
 def test_mutual_hill_radius_scales_with_average_distance():
     m = 5.972e24
-    central = physical_constants.SOLAR_MASS_TO_KG
+    central = constants.SOLAR_MASS_TO_KG
     r_at_1_1 = mutual_hill_radius_au(m, m, 1.0, 1.0, central)
     r_at_2_2 = mutual_hill_radius_au(m, m, 2.0, 2.0, central)
     assert r_at_2_2 == pytest.approx(2 * r_at_1_1)
@@ -111,8 +112,8 @@ def test_mutual_hill_radius_scales_with_average_distance():
 # ---------------------------------------------------------------------------
 
 def test_separation_sampler_stays_in_range_and_is_log_uniform():
-    lo = program_constants.WIDE_BINARY_SEPARATION_MIN_AU
-    hi = program_constants.WIDE_BINARY_SEPARATION_MAX_AU
+    lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
+    hi = tuning.WIDE_BINARY_SEPARATION_MAX_AU
     samples = [sample_wide_binary_separation_au() for _ in range(500)]
     assert all(lo <= s <= hi for s in samples)
 
@@ -126,7 +127,7 @@ def test_separation_sampler_stays_in_range_and_is_log_uniform():
 
 
 def test_eccentricity_sampler_stays_in_range_and_follows_thermal_distribution():
-    e_max = program_constants.WIDE_BINARY_ECCENTRICITY_MAX
+    e_max = tuning.WIDE_BINARY_ECCENTRICITY_MAX
     samples = [sample_wide_binary_eccentricity() for _ in range(1000)]
     assert all(0 <= e < e_max for e in samples)
 
@@ -361,10 +362,10 @@ def test_wide_binary_system_generates_and_stays_within_bounds(star_type):
         assert system.secondary_star.mass <= system.primary_star.mass
         assert system.wide_binary is not None
 
-        lo = program_constants.WIDE_BINARY_SEPARATION_MIN_AU
-        hi = program_constants.WIDE_BINARY_SEPARATION_MAX_AU
+        lo = tuning.WIDE_BINARY_SEPARATION_MIN_AU
+        hi = tuning.WIDE_BINARY_SEPARATION_MAX_AU
         assert lo <= system.wide_binary.separation_au <= hi
-        assert 0 <= system.wide_binary.eccentricity < program_constants.WIDE_BINARY_ECCENTRICITY_MAX
+        assert 0 <= system.wide_binary.eccentricity < tuning.WIDE_BINARY_ECCENTRICITY_MAX
         assert system.wide_binary.periapsis_au <= system.wide_binary.separation_au <= system.wide_binary.apoapsis_au
 
         assert system.primary_star.a_crit_au is not None

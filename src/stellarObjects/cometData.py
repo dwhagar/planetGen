@@ -6,7 +6,7 @@ Star-Bound Comet Generation
 
 This module contains the `Comet` class: a comet gravitationally bound to
 a star, propagated via real two-body Kepler/Barker orbital mechanics (see
-`keplerMotion.py`) -- contrast `roguePlanetData.InterstellarComet`, an
+`kepler.py`) -- contrast `roguePlanetData.InterstellarComet`, an
 unbound object passing through on a fixed hyperbolic trajectory,
 encountered independently of any star system.
 
@@ -18,7 +18,7 @@ the two that were missing (`InterstellarComet` already covers the third,
 
 - "elliptical" (`0 <= eccentricity < 1`): a periodic, bound orbit that
   returns every `orbital_period_years` -- further tagged with a
-  `period_class` (`program_constants.COMET_PERIOD_CLASSES`) purely for
+  `period_class` (`tuning.COMET_PERIOD_CLASSES`) purely for
   descriptive/plausibility flavor (Jupiter-family/Halley-type/long-period
   -- propagation itself is identical for every subtype).
 - "parabolic" (`eccentricity` just under 1, always propagated as an exact
@@ -39,10 +39,11 @@ import math
 import random
 
 from .config import SystemConfig
-from . import keplerMotion, physical_constants, program_constants
+from planetgen.physics import constants as physical_constants, kepler
+from planetgen import tuning
 from planetgen.util import log
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from .planetPhysics import calculate_orbital_period_years
+from planetgen.physics.planets import calculate_orbital_period_years
 from .roguePlanetData import format_comet_composition_summary
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (
@@ -54,7 +55,7 @@ PERIOD_CLASS_LABELS = {
     "halley_type": "Halley-type",
     "long_period": "long-period",
 }
-"""dict: Human-readable label per `program_constants.COMET_PERIOD_CLASSES`
+"""dict: Human-readable label per `tuning.COMET_PERIOD_CLASSES`
 key, for `Comet.to_paragraph_list`'s descriptive text -- presentation
 only, not consulted by generation or propagation."""
 
@@ -115,9 +116,9 @@ def _activity_chance(perihelion_distance_au):
         float: Activity chance, in `[COMET_ACTIVITY_MIN_CHANCE,
               COMET_ACTIVITY_MAX_CHANCE]`.
     """
-    threshold = program_constants.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU
-    max_chance = program_constants.COMET_ACTIVITY_MAX_CHANCE
-    min_chance = program_constants.COMET_ACTIVITY_MIN_CHANCE
+    threshold = tuning.COMET_ACTIVITY_PERIHELION_THRESHOLD_AU
+    max_chance = tuning.COMET_ACTIVITY_MAX_CHANCE
+    min_chance = tuning.COMET_ACTIVITY_MIN_CHANCE
     fraction = min(1.0, max(0.0, perihelion_distance_au / threshold))
     return max_chance - fraction * (max_chance - min_chance)
 
@@ -132,13 +133,13 @@ class Comet:
         name (str): A generated or explicitly given name.
         orbit_type (str): `"elliptical"` or `"parabolic"`.
         period_class (str or None): One of
-            `program_constants.COMET_PERIOD_CLASSES`'s keys for an
+            `tuning.COMET_PERIOD_CLASSES`'s keys for an
             elliptical comet (`"jupiter_family"`/`"halley_type"`/
             `"long_period"`); `None` for a parabolic comet (no period to
             classify).
         nucleus_diameter_km (float): Nucleus diameter, in kilometers.
         composition (list): A list of composition component strings,
-            sampled from `program_constants.COMET_COMPOSITION`.
+            sampled from `tuning.COMET_COMPOSITION`.
         perihelion_distance_au (float): Perihelion distance `q`, in AU.
         eccentricity (float): Orbital eccentricity.
         inclination_deg (float): Orbital plane tilt, in degrees.
@@ -152,7 +153,7 @@ class Comet:
             `Planet.orbital_phase_deg`, advancing linearly with time
             (`0-360`, wraps). `None` for a parabolic comet.
         parabolic_mean_anomaly (float or None): Current parabolic mean
-            anomaly (see `keplerMotion.parabolic_mean_anomaly`) -- `None`
+            anomaly (see `kepler.parabolic_mean_anomaly`) -- `None`
             for an elliptical comet. Unlike `mean_anomaly_deg`, this does
             NOT wrap: a parabolic pass is a one-shot event, not periodic,
             and may be negative (still approaching perihelion).
@@ -199,7 +200,7 @@ class Comet:
             name (str, optional): An explicit name. Random if omitted.
             orbit_type (str, optional): Force `"elliptical"` or
                 `"parabolic"` rather than rolling
-                `program_constants.COMET_PARABOLIC_CHANCE`.
+                `tuning.COMET_PARABOLIC_CHANCE`.
         """
         self.system_config = system_config
         # A placeholder: `_db.insert_star_system` replaces it with the
@@ -213,26 +214,26 @@ class Comet:
             log.debug(f"Comet orbit type: {orbit_type!r} (forced)")
         else:
             self.orbit_type = (
-                "parabolic" if random.random() < program_constants.COMET_PARABOLIC_CHANCE else "elliptical"
+                "parabolic" if random.random() < tuning.COMET_PARABOLIC_CHANCE else "elliptical"
             )
             log.choice("Comet orbit type", self.orbit_type,
-                       f"roll against COMET_PARABOLIC_CHANCE ({program_constants.COMET_PARABOLIC_CHANCE})")
+                       f"roll against COMET_PARABOLIC_CHANCE ({tuning.COMET_PARABOLIC_CHANCE})")
 
-        self.nucleus_diameter_km = random.uniform(*program_constants.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
-        num_components = min(3, len(program_constants.COMET_COMPOSITION))
-        self.composition = random.sample(program_constants.COMET_COMPOSITION, k=num_components)
+        self.nucleus_diameter_km = random.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        num_components = min(3, len(tuning.COMET_COMPOSITION))
+        self.composition = random.sample(tuning.COMET_COMPOSITION, k=num_components)
 
-        self.perihelion_distance_au = random.uniform(*program_constants.COMET_PERIHELION_DISTANCE_RANGE_AU)
+        self.perihelion_distance_au = random.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
         self.arg_periapsis_deg = random.uniform(0, 360)
         self.ascending_node_deg = random.uniform(0, 360)
 
         if self.orbit_type == "elliptical":
-            class_names = list(program_constants.COMET_PERIOD_CLASSES.keys())
-            weights = [program_constants.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
+            class_names = list(tuning.COMET_PERIOD_CLASSES.keys())
+            weights = [tuning.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
             self.period_class = random.choices(class_names, weights=weights, k=1)[0]
             log.choice("Comet period class", self.period_class,
                        f"weighted draw among {class_names} (weights {weights})")
-            class_data = program_constants.COMET_PERIOD_CLASSES[self.period_class]
+            class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
 
             self.eccentricity = random.uniform(*class_data["eccentricity_range"])
             self.inclination_deg = random.uniform(0, class_data["inclination_max_deg"])
@@ -246,8 +247,8 @@ class Comet:
             self.min_update_interval_years = minimum_update_interval_years(self.orbital_period_years)
         else:
             self.period_class = None
-            self.eccentricity = random.uniform(*program_constants.PARABOLIC_COMET_ECCENTRICITY_RANGE)
-            self.inclination_deg = random.uniform(0, program_constants.PARABOLIC_COMET_INCLINATION_MAX_DEG)
+            self.eccentricity = random.uniform(*tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE)
+            self.inclination_deg = random.uniform(0, tuning.PARABOLIC_COMET_INCLINATION_MAX_DEG)
 
             self.orbital_period_years = None
             self.mean_anomaly_deg = None
@@ -272,7 +273,7 @@ class Comet:
         Recomputes `distance_au`, `position_x/y/z_au`, and
         `orbital_speed_kms` from this comet's current orbital elements and
         anomaly (`mean_anomaly_deg` or `parabolic_mean_anomaly`, whichever
-        applies to `orbit_type`), via `keplerMotion.comet_orbital_state`.
+        applies to `orbit_type`), via `kepler.comet_orbital_state`.
 
         Called at generation time (right after the anomaly is rolled) and
         meant to be called again by any future periodic updater once
@@ -282,7 +283,7 @@ class Comet:
         plays for a planet/moon after its own `orbital_phase_deg` changes.
         """
         mean_anomaly_rad = math.radians(self.mean_anomaly_deg) if self.mean_anomaly_deg is not None else None
-        state = keplerMotion.comet_orbital_state(
+        state = kepler.comet_orbital_state(
             self.orbit_type, self.perihelion_distance_au, self.eccentricity,
             self.inclination_deg, self.arg_periapsis_deg, self.ascending_node_deg,
             self.primary_mass_solar,

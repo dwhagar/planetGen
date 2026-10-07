@@ -1,4 +1,4 @@
-# stellarObjects/keplerMotion.py
+# planetgen/physics/kepler.py
 
 """
 Kepler Orbital Motion
@@ -44,8 +44,8 @@ angle instead. No new rotation math is needed.
 
 import math
 
-from . import physical_constants
-from .utils import finite_domain, orbital_position_au
+from planetgen.physics import constants
+from stellarObjects.utils import finite_domain, orbital_position_au
 
 TWO_PI = 2 * math.pi
 
@@ -325,7 +325,7 @@ def vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar):
     mu = gravitational_parameter_au3_yr2(primary_mass_solar)
     inv_a = 0.0 if math.isinf(semi_major_axis_au) else 1 / semi_major_axis_au
     speed_au_per_year = math.sqrt(mu * (2 / distance_au - inv_a))
-    au_per_year_to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+    au_per_year_to_kms = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
     return speed_au_per_year * au_per_year_to_kms
 
 

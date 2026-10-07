@@ -21,7 +21,7 @@ the star's final age rather than a provisional pre-adjustment one.
 import random
 
 from .evolution import get_evolutionary_timeline
-from . import program_constants
+from planetgen import tuning
 from planetgen.util import log
 from .utils import get_star_evolutionary_profile, get_star_spectral_class
 
@@ -46,7 +46,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
               normalized float probabilities (e.g., {"Melanin": 0.6}).
     """
     # Retrieve the base list of possible chemicals for this specific planet class
-    planet_data = program_constants.PLANET_CLASSES.get(planet.planet_class)
+    planet_data = tuning.PLANET_CLASSES.get(planet.planet_class)
     if not planet_data or not planet_data.get("life_chemical"):
         return {}
 
@@ -74,7 +74,7 @@ def get_viable_life_chemicals(planet, spectral_class=None):
     # Intersect the lists using substring matching and collect raw probabilities
     for p_chem in planet_chems:
         if any(p_chem in s_chem for s_chem in star_chems):
-            chem_prob = program_constants.LIFE_CHEMICALS.get(p_chem, {}).get(
+            chem_prob = tuning.LIFE_CHEMICALS.get(p_chem, {}).get(
                 "star_spectra_probabilities", {}).get(spectral_class, 0)
 
             if chem_prob > 0:
@@ -126,12 +126,12 @@ def get_evolutionary_speed(planet, spectral_class=None):
 
     # 2. Get the speeds supported by the chemical (if one is assigned)
     if planet.life_chemical:
-        chem_data = program_constants.LIFE_CHEMICALS.get(planet.life_chemical)
+        chem_data = tuning.LIFE_CHEMICALS.get(planet.life_chemical)
         if chem_data and chem_data.get("evolutionary_time_scale"):
             chem_speeds = chem_data["evolutionary_time_scale"]
 
             # Ensure it's a list for intersection logic, even though
-            # program_constants.py currently stores it as a single string
+            # tuning.py currently stores it as a single string
             if isinstance(chem_speeds, str):
                 chem_speeds = [chem_speeds]
 
@@ -181,7 +181,7 @@ def apply_life_data(planet):
         log.choice("Life chemistry", planet.life_chemical,
                    f"weighted draw among {len(viable_chems)} viable chemicals for spectral class "
                    f"{spectral_class!r}: {viable_chems}")
-        life_chem_data = program_constants.LIFE_CHEMICALS.get(planet.life_chemical, {})
+        life_chem_data = tuning.LIFE_CHEMICALS.get(planet.life_chemical, {})
         planet.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
         planet.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
     else:
@@ -220,8 +220,8 @@ def decide_flavor_text(planet):
                          `recent_flavor_texts` are updated when a flavor is
                          selected.
     """
-    if not (random.random() < program_constants.FLAVOR_CHANCE_PLANET
-            and planet.system_config.system_flavor_count < program_constants.MAX_FLAVOR_TOTAL):
+    if not (random.random() < tuning.FLAVOR_CHANCE_PLANET
+            and planet.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
         log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
         return
 
@@ -229,20 +229,20 @@ def decide_flavor_text(planet):
     system_config = planet.system_config
 
     # Filter out recently used flavor texts
-    available_habitable_flavor = [f for f in program_constants.HABITABLE_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_planet_flavor = [f for f in program_constants.PLANET_FLAVOR if f not in system_config.recent_flavor_texts]
-    available_orbital_flavor = [f for f in program_constants.ORBITAL_FLAVOR if f not in system_config.recent_flavor_texts]
+    available_habitable_flavor = [f for f in tuning.HABITABLE_FLAVOR if f not in system_config.recent_flavor_texts]
+    available_planet_flavor = [f for f in tuning.PLANET_FLAVOR if f not in system_config.recent_flavor_texts]
+    available_orbital_flavor = [f for f in tuning.ORBITAL_FLAVOR if f not in system_config.recent_flavor_texts]
 
     # If all flavors of a category have been recently used, reset to the full list
     if not available_habitable_flavor:
-        available_habitable_flavor = program_constants.HABITABLE_FLAVOR
+        available_habitable_flavor = tuning.HABITABLE_FLAVOR
     if not available_planet_flavor:
-        available_planet_flavor = program_constants.PLANET_FLAVOR
+        available_planet_flavor = tuning.PLANET_FLAVOR
     if not available_orbital_flavor:
-        available_orbital_flavor = program_constants.ORBITAL_FLAVOR
+        available_orbital_flavor = tuning.ORBITAL_FLAVOR
 
     # Check for habitable and multicellular/technological life
-    is_habitable = planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES
+    is_habitable = planet.planet_class in tuning.HABITABLE_PLANET_CLASSES
     has_multicellular_life = False
     if is_habitable and planet.evolutionary_data:
         for stage_paragraph in planet.evolutionary_data:
@@ -271,5 +271,5 @@ def decide_flavor_text(planet):
         # Add the selected flavor text to the recent list
         system_config.recent_flavor_texts.append(selected_flavor)
         # Keep the recent_flavor_texts list to a maximum size
-        if len(system_config.recent_flavor_texts) > program_constants.MAX_RECENT_FLAVOR_TEXTS:
+        if len(system_config.recent_flavor_texts) > tuning.MAX_RECENT_FLAVOR_TEXTS:
             system_config.recent_flavor_texts.pop(0) # Remove the oldest entry

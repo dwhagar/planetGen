@@ -121,13 +121,13 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
             the subcommand itself).
     """
     import generate as _generate
-    from stellarObjects import program_constants
+    from planetgen import tuning
 
     # `build_system_config` writes --flavor-chance-*/--max-planet-flavor
     # straight into `program_constants`; put them back so a boundary value
     # (e.g. 0.0) doesn't leak into later tests.
     flavor_names = ("FLAVOR_CHANCE_SYSTEM", "FLAVOR_CHANCE_PLANET", "MAX_FLAVOR_TOTAL")
-    saved = {name: getattr(program_constants, name) for name in flavor_names}
+    saved = {name: getattr(tuning, name) for name in flavor_names}
     old_argv = sys.argv
     try:
         sys.argv = ["generate.py", subcommand] + list(argv)
@@ -135,7 +135,7 @@ def run_cli(subcommand: str, argv: Sequence[str]) -> None:
     finally:
         sys.argv = old_argv
         for name, value in saved.items():
-            setattr(program_constants, name, value)
+            setattr(tuning, name, value)
 
 
 @contextlib.contextmanager

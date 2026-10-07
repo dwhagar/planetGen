@@ -17,9 +17,10 @@ import statistics
 
 import pytest
 
-from stellarObjects import physical_constants as pc
-from stellarObjects import planetPhysics, validation
-from stellarObjects import program_constants as prog_c
+from planetgen.physics import constants as pc
+from stellarObjects import validation
+from planetgen.physics import planets as planetPhysics
+from planetgen import tuning as prog_c
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.roguePlanetData import RoguePlanet

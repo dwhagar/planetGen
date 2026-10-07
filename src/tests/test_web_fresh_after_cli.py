@@ -46,11 +46,12 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import pagecache  # noqa: E402
 import tilecache  # noqa: E402
-from stellarObjects import _db, program_constants  # noqa: E402
+from stellarObjects import _db  # noqa: E402
+from planetgen import tuning
 from stellarObjects.galaxyDensity import build_galaxy_shape  # noqa: E402
 from stellarObjects.utils import ly_to_pc  # noqa: E402
 
-EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
 # The same small toy galaxy test_galaxy_gen.py plans: ring 0 holds three
 # slots, all deep inside it, so `galaxy --ring 0` is quick.

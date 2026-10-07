@@ -1,6 +1,6 @@
 """
 Regression tests for the four Track A physics fixes to the planet
-atmosphere/density model (see planetPhysics.py and plausibility.py):
+atmosphere/density model (see planets.py and plausibility.py):
 
   1. Gas-giant density: once a core/envelope blend, now set by the giant
      mass-radius relation (GEN.34).
@@ -19,10 +19,10 @@ import statistics
 
 import pytest
 
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 from stellarObjects import plausibility
-from stellarObjects import planetPhysics
-from stellarObjects import program_constants as prog_c
+from planetgen.physics import planets
+from planetgen import tuning as prog_c
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.roguePlanetData import RoguePlanet
@@ -52,14 +52,14 @@ def test_gas_giant_density_is_its_mass_over_its_volume(host_star):
     whatever the two make (no separately drawn density)."""
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, GAS_GIANT_ZONE)
-    low_kg, high_kg = planetPhysics.giant_mass_range_kg(GAS_GIANT_CLASS)
+    low_kg, high_kg = planets.giant_mass_range_kg(GAS_GIANT_CLASS)
     for _ in range(50):
         planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
                         planet_class=GAS_GIANT_CLASS, zone_override=GAS_GIANT_ZONE, moon_count=0)
         assert low_kg <= planet.mass <= high_kg
         volume_m3 = (4 / 3) * math.pi * (planet.radius * 1000) ** 3
         assert planet.density == pytest.approx(planet.mass / volume_m3 / 1000, rel=1e-9)
-        median_km = planetPhysics.giant_radius_km(planet.mass)
+        median_km = planets.giant_radius_km(planet.mass)
         sigma = max(pc.GIANT_RADIUS_SCATTER.values())
         low_r, high_r = prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]["radius_range"]
         assert max(low_r, median_km * (1 - 3 * sigma)) * (1 - 1e-9) <= planet.radius
@@ -78,7 +78,7 @@ def test_giant_with_a_given_mass_keeps_it(host_star):
 @pytest.mark.parametrize("mass_earth, radius_earth", [(17.15, 3.88), (95.16, 9.45), (317.8, 11.21)])
 def test_giant_mass_radius_relation_hits_the_solar_system(mass_earth, radius_earth):
     """Neptune, Saturn and Jupiter land within 10% of their real radii."""
-    radius_km = planetPhysics.giant_radius_km(mass_earth * pc.EARTH_MASS_TO_KG)
+    radius_km = planets.giant_radius_km(mass_earth * pc.EARTH_MASS_TO_KG)
     assert radius_km / pc.EARTH_RADIUS_KM == pytest.approx(radius_earth, rel=0.10)
 
 
@@ -93,8 +93,8 @@ def test_rogue_gas_giant_radius_follows_the_giant_relation(mass_bin):
         rogue = RoguePlanet(SystemConfig(), mass_bin=mass_bin)
         if rogue.planet_type != "g":
             continue
-        median = planetPhysics.giant_radius_km(rogue.mass_kg)
-        sigma = pc.GIANT_RADIUS_SCATTER[planetPhysics.giant_regime(rogue.mass_kg)]
+        median = planets.giant_radius_km(rogue.mass_kg)
+        sigma = pc.GIANT_RADIUS_SCATTER[planets.giant_regime(rogue.mass_kg)]
         assert median * (1 - 3 * sigma) <= rogue.radius_km <= median * (1 + 3 * sigma)
         density = rogue.mass_kg / ((4 / 3) * math.pi * (rogue.radius_km * 1000) ** 3) / 1000
         assert 0.1 < density < 50.0  # 13 Jupiter masses at 0.8 of Jupiter's radius is ~40 g/cm3
@@ -105,8 +105,8 @@ def test_rogue_gas_giant_radius_follows_the_giant_relation(mass_bin):
 def test_small_rogue_gas_giants_are_smaller_than_large_ones():
     """A 0.05 Jupiter-mass rogue is far smaller than a 10 Jupiter-mass one
     (GEN.60: both used to be drawn around Jupiter's radius)."""
-    small = planetPhysics.giant_radius_km(0.05 * pc.JUPITER_MASS_TO_KG)
-    large = planetPhysics.giant_radius_km(10 * pc.JUPITER_MASS_TO_KG)
+    small = planets.giant_radius_km(0.05 * pc.JUPITER_MASS_TO_KG)
+    large = planets.giant_radius_km(10 * pc.JUPITER_MASS_TO_KG)
     assert small < 0.5 * large
     assert small / pc.EARTH_RADIUS_KM == pytest.approx(3.9, rel=0.15)
 
@@ -136,14 +136,14 @@ def test_density_range_override_skips_the_blend(monkeypatch, host_star):
     core_density_gcm3 = 42.0  # within the injected density_range above
 
     queued = [core_density_gcm3]
-    real_uniform = planetPhysics.random.uniform
+    real_uniform = planets.random.uniform
 
     def fake_uniform(a, b):
         if queued:
             return queued.pop(0)
         return real_uniform(a, b)
 
-    monkeypatch.setattr(planetPhysics.random, "uniform", fake_uniform)
+    monkeypatch.setattr(planets.random, "uniform", fake_uniform)
 
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, zone)
@@ -235,13 +235,13 @@ def test_class_n_is_hotter_on_average_than_class_m():
 # ---------------------------------------------------------------------------
 
 def test_atmosphere_retention_factor_is_normalized_at_earth_gravity():
-    assert planetPhysics._atmosphere_retention_factor(1.0) == pytest.approx(1.0)
+    assert planets._atmosphere_retention_factor(1.0) == pytest.approx(1.0)
 
 
 def test_atmosphere_retention_factor_increases_with_gravity():
-    low = planetPhysics._atmosphere_retention_factor(0.3)
-    earth = planetPhysics._atmosphere_retention_factor(1.0)
-    high = planetPhysics._atmosphere_retention_factor(3.0)
+    low = planets._atmosphere_retention_factor(0.3)
+    earth = planets._atmosphere_retention_factor(1.0)
+    high = planets._atmosphere_retention_factor(3.0)
     assert low < earth < high
 
 
@@ -366,9 +366,9 @@ def test_reclassifying_into_an_airless_class_clears_the_old_atmosphere(host_star
     planet.planet_class = "C"
     planet.radius = None
     planet.mass = None
-    planetPhysics.generate_planet_properties(planet, zone_override="e")
-    planetPhysics.calculate_surface_gravity(planet)
-    planetPhysics.calculate_atmospheric_conditions(planet)
+    planets.generate_planet_properties(planet, zone_override="e")
+    planets.calculate_surface_gravity(planet)
+    planets.calculate_atmospheric_conditions(planet)
 
     assert planet.atmosphere == "None"
     assert planet.atm_density is None
@@ -389,7 +389,7 @@ def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, 
         luminosity = host_star.luminosity * 1e-12
 
     planet.star = DimStar()
-    planetPhysics.calculate_atmospheric_conditions(planet)
+    planets.calculate_atmospheric_conditions(planet)
     assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
@@ -411,6 +411,6 @@ def test_reclassifying_a_moved_planet_keeps_its_distance(host_star):
         moved_to = inner + 0.95 * (outer - inner)
         planet.distance = moved_to
 
-        assert planetPhysics.reconcile_zone_and_class(planet, host_star.mass)
+        assert planets.reconcile_zone_and_class(planet, host_star.mass)
         assert planet.zone == "e"
         assert planet.distance == moved_to

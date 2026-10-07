@@ -44,7 +44,8 @@ import pymysql
 
 from stellarObjects._db import (add_mysql_connection_args, escape_like, get_connection, get_galaxy_shape,
                                 mysql_config_from_args, surrounding_cloud)
-from stellarObjects import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects.brightStars import MPC_PER_PC
 from planetgen._version import VersionAction, __version__, version_banner
@@ -68,9 +69,9 @@ from stellarObjects.navGraph import build_route_graph, shortest_path
 from stellarObjects.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
 )
-from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS
+from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from stellarObjects.evolution import life_stage_from_paragraphs
-from stellarObjects.program_constants import (
+from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
@@ -1199,8 +1200,8 @@ def interstellar_debris_count(star_count):
     Returns:
         float: The estimated count (0 for an empty sector).
     """
-    return (program_constants.INTERSTELLAR_DEBRIS_DENSITY_PC3
-            / program_constants.REFERENCE_STELLAR_DENSITY_PC3 * star_count)
+    return (tuning.INTERSTELLAR_DEBRIS_DENSITY_PC3
+            / tuning.REFERENCE_STELLAR_DENSITY_PC3 * star_count)
 
 
 _PHENOMENON_TABLES = (
@@ -1750,7 +1751,7 @@ def _heliopause_au(conn, system, cloud):
         radius_km = star["heliosphere_radius_km"] if star else None
     if radius_km is None:
         return None, None
-    open_space_au = radius_km / physical_constants.AU_TO_KM
+    open_space_au = radius_km / constants.AU_TO_KM
     if cloud is None:
         return open_space_au, open_space_au
     return open_space_au, compressed_heliosphere_radius(open_space_au, cloud["density_cm3"], cloud["temperature_k"])
@@ -1922,7 +1923,7 @@ def _with_life_fields(body, stages, colonized=()):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its class is one of
-    `program_constants.HABITABLE_PLANET_CLASSES`, the same test
+    `tuning.HABITABLE_PLANET_CLASSES`, the same test
     `StarSystem.count_habitable` uses), `life_stage` (the most advanced
     evolutionary milestone its timeline reached, or `None`) and
     `inhabited` (habitable and reached a technological civilization --
@@ -2543,13 +2544,13 @@ def bright_star_scatter_status(conn):
         "scattered": scattered,
         "min_luminosity_sol": float(row["bright_star_min_luminosity_sol"]) if scattered else None,
         "seed": row["bright_star_seed"] if scattered else None,
-        "default_min_luminosity_sol": program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        "default_min_luminosity_sol": tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
     }
 
 
 def _radius_sol(radius_km):
     """A star's radius in solar radii, from kilometres (`None` stays `None`)."""
-    return None if radius_km is None else radius_km * 1000.0 / physical_constants.SOLAR_RADIUS_M
+    return None if radius_km is None else radius_km * 1000.0 / constants.SOLAR_RADIUS_M
 
 
 def _bright_star_entry(row):
@@ -2559,7 +2560,7 @@ def _bright_star_entry(row):
         "id": row["id"],
         "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
         "z": row["position_z_mpc"] / MPC_PER_PC,
-        "luminosity_sol": row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY,
+        "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY,
         "temperature_k": row["temperature_k"], "radius_sol": _radius_sol(row["radius_km"]),
         "star_type": row["star_type"],
         "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
@@ -2834,14 +2835,14 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         LIMIT ?
         """,
         (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride,
-         float(min_luminosity_sol) * physical_constants.SOLAR_LUMINOSITY, int(limit)),
+         float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY, int(limit)),
     ).fetchall()
     return [{
         "id": row["id"], "name": row["name"],
         "x": round(row["center_x_pc"] + row["position_x_mpc"] / MPC_PER_PC, 3),
         "y": round(row["center_y_pc"] + row["position_y_mpc"] / MPC_PER_PC, 3),
         "z": round(row["center_z_pc"] + row["position_z_mpc"] / MPC_PER_PC, 3),
-        "luminosity_sol": float("%.4g" % (row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY)),
+        "luminosity_sol": float("%.4g" % (row["luminosity_w"] / constants.SOLAR_LUMINOSITY)),
         "temperature_k": round(row["temperature_k"]),
         "radius_sol": float("%.3g" % _radius_sol(row["radius_km"])),
         "star_type": row["star_type"], "ring_index": row["ring_index"], "layer_index": row["layer_index"],
@@ -2905,7 +2906,7 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
         ).fetchall()
         found += [{
             "type": type_label, "id": row["id"], "name": row["name"], "descriptor": row["descriptor"],
-            "luminosity_sol": float("%.4g" % (row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY)),
+            "luminosity_sol": float("%.4g" % (row["luminosity_w"] / constants.SOLAR_LUMINOSITY)),
             "x": round(row["center_x_pc"], 3), "y": round(row["center_y_pc"], 3), "z": round(row["center_z_pc"], 3),
         } for row in rows]
     found.sort(key=lambda point: (-point["luminosity_sol"], point["type"], point["id"]))
@@ -3734,7 +3735,7 @@ def _search_facet_phenomenon(conn):
 def _search_phenomenon_class_label(type_label, value):
     if type_label == "asteroid_field":
         return f"{value} asteroid field"
-    entry = program_constants.NEBULA_CLASSES.get(value)
+    entry = tuning.NEBULA_CLASSES.get(value)
     return f"{value}: {entry['name']}" if entry else value
 
 

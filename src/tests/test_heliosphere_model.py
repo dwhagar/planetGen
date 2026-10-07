@@ -21,7 +21,7 @@ Run with: pytest tests/test_heliosphere_model.py
 import math
 
 from stellarObjects.starData import Star
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 
 
 def _implied_mass_loss_rate_msun_per_year(heliosphere_au, mass_kg, radius_km, wind_velocity_factor):

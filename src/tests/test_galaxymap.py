@@ -89,7 +89,7 @@ def test_sector_zone_and_zone_bounds_ly_agree_with_the_ring_grid():
     # A ring's own zone, fed back into zone_bounds_ly, must contain that
     # ring's whole radial extent -- zones are whole rings.
     from stellarObjects.galaxyGeometry import ring_bounds_pc
-    from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
+    from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
     from stellarObjects.utils import ly_to_pc, pc_to_ly
 
     edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)

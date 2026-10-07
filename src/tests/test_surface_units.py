@@ -8,7 +8,7 @@ Surface conditions in customary units alongside metric (Boss, 2026-10-01):
 
 import pytest
 
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 from stellarObjects.utils import format_pressure_atm, format_pressure_pa, format_temperature_k
 
 

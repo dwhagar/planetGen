@@ -21,7 +21,7 @@ from stellarObjects.galaxyGeometry import (
     cylindrical_radius_pc, layer_center_z_pc, ring_bounds_pc, ring_radius_pc, ring_sector_count,
     sector_address_at, sector_cell_vertices_pc, sector_position_pc,
 )
-from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_PC
+from planetgen.tuning import DEFAULT_SECTOR_EDGE_PC
 
 # Every test runs at the real sector edge (4 pc) and at a round 10 pc,
 # so a seam that only lines up for one edge length still shows (TEST.5).

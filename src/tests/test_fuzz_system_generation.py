@@ -44,8 +44,11 @@ import pytest
 from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
-from stellarObjects import evolution, keplerMotion as km, physical_constants as pc
-from stellarObjects import planetLife, planetPhysics as pp, program_constants as prog
+from stellarObjects import evolution
+from planetgen.physics import constants as pc, kepler as km
+from stellarObjects import planetLife
+from planetgen.physics import planets as pp
+from planetgen import tuning as prog
 from stellarObjects import cometData, starData, utils
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig

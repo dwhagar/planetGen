@@ -28,7 +28,7 @@ own module docstring).
 import math
 
 try:
-    from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
+    from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated fallback, matching every other lib/ module's identical

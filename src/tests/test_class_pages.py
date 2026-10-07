@@ -18,10 +18,11 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
-from stellarObjects import physical_constants, program_constants  # noqa: E402
+from planetgen.physics import constants  # noqa: E402
+from planetgen import tuning
 from stellarObjects.cometData import PERIOD_CLASS_LABELS  # noqa: E402
 from stellarObjects.nebulaData import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
-from stellarObjects.stellarEvolution import YERKES_CLASS_NAMES  # noqa: E402
+from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
 from systempage import stars_html, system_list_html  # noqa: E402
 
 DB = "planetgen_web_test"
@@ -91,41 +92,41 @@ def test_catalog_types_cover_the_tables():
     cat = classref.catalog()
     assert list(cat) == ["star-spectral", "star-luminosity", "planet", "nebula", "supernova-remnant",
                          "asteroid-field", "black-hole", "rogue-planet", "comet"]
-    assert list(cat["star-spectral"]["classes"]) == list(physical_constants.SPECTRAL_CLASS_COLORS)
+    assert list(cat["star-spectral"]["classes"]) == list(constants.SPECTRAL_CLASS_COLORS)
     assert set(cat["star-luminosity"]["classes"]) == set(YERKES_CLASS_NAMES) - {"D"}
-    assert list(cat["planet"]["classes"]) == list(program_constants.PLANET_CLASSES)
+    assert list(cat["planet"]["classes"]) == list(tuning.PLANET_CLASSES)
     assert tuple(cat["nebula"]["classes"]) == NEBULA_CLASS_LETTERS
     assert tuple(cat["supernova-remnant"]["classes"]) == REMNANT_CLASS_LETTERS
-    letters = {letter for family in program_constants.ASTEROID_FIELD_COMPOSITIONS.values()
+    letters = {letter for family in tuning.ASTEROID_FIELD_COMPOSITIONS.values()
                for letter in family["letters"].values()}
     assert set(cat["asteroid-field"]["classes"]) == letters
-    assert tuple(cat["black-hole"]["classes"]) == program_constants.BLACK_HOLE_MASS_CLASSES
-    assert tuple(cat["rogue-planet"]["classes"]) == program_constants.ROGUE_PLANET_MASS_BIN_CHOICES
-    assert list(cat["comet"]["classes"]) == list(program_constants.COMET_PERIOD_CLASSES)
+    assert tuple(cat["black-hole"]["classes"]) == tuning.BLACK_HOLE_MASS_CLASSES
+    assert tuple(cat["rogue-planet"]["classes"]) == tuning.ROGUE_PLANET_MASS_BIN_CHOICES
+    assert list(cat["comet"]["classes"]) == list(tuning.COMET_PERIOD_CLASSES)
     # Built once and cached.
     assert classref.catalog() is cat
 
 
 def test_class_pages_show_the_constants(client):
-    nebula = program_constants.NEBULA_CLASSES["D"]
+    nebula = tuning.NEBULA_CLASSES["D"]
     html = _html(client, "/classes/nebula/D")
     assert str(escape(nebula["name"])) in html
     assert str(escape(nebula["species"])) in html
 
-    remnant = program_constants.NEBULA_CLASSES["T"]
+    remnant = tuning.NEBULA_CLASSES["T"]
     assert str(escape(remnant["name"])) in _html(client, "/classes/supernova-remnant/T")
 
-    planet = program_constants.PLANET_CLASSES["M"]
+    planet = tuning.PLANET_CLASSES["M"]
     html = _html(client, "/classes/planet/M")
     low, high = planet["radius_range"]
     assert f"{classref.number(low)} to {classref.number(high)} km" in html  # UX.20: 1 × 10⁴ km
     assert "<th scope=\"row\">Habitable</th><td>Yes</td>" in html
     assert planet["composition"][1:] in html
 
-    low_k, high_k = physical_constants.TEMP_RANGES["G"]
+    low_k, high_k = constants.TEMP_RANGES["G"]
     html = _html(client, "/classes/star-spectral/G")
     assert f"{classref.number(low_k)} to {classref.number(high_k)} K" in html
-    assert physical_constants.SPECTRAL_CLASS_COLORS["G"] in html
+    assert constants.SPECTRAL_CLASS_COLORS["G"] in html
 
     html = _html(client, "/classes/star-luminosity/IA+")
     assert YERKES_CLASS_NAMES["IA+"] in html
@@ -133,21 +134,21 @@ def test_class_pages_show_the_constants(client):
     html = _html(client, "/classes/comet/halley_type")
     assert PERIOD_CLASS_LABELS["halley_type"] in html
 
-    family = program_constants.ASTEROID_FIELD_COMPOSITIONS["metallic"]
+    family = tuning.ASTEROID_FIELD_COMPOSITIONS["metallic"]
     html = _html(client, f"/classes/asteroid-field/{family['letters']['dense']}")
     assert family["description"][1:] in html
     # One letter can stand for several densities.
-    basaltic = program_constants.ASTEROID_FIELD_COMPOSITIONS["basaltic"]["letters"]
+    basaltic = tuning.ASTEROID_FIELD_COMPOSITIONS["basaltic"]["letters"]
     assert basaltic["sparse"] == basaltic["typical"]
     facts = dict(classref.class_entry("asteroid-field", basaltic["sparse"])["facts"])
     assert facts["Density"] == "Sparse, typical"
     html = _html(client, "/classes/asteroid-field")
     assert "10^d to 10^(d+1) AU" in html
 
-    low, high = program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
+    low, high = tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
     assert f"{classref.number(low)} to {classref.number(high)} solar masses" in _html(client, "/classes/black-hole/intermediate")
 
-    low, high = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+    low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
     assert f"{low:.0f} to {high:.0f} Jupiter masses" in _html(client, "/classes/rogue-planet/brown-dwarf")
 
 
@@ -278,8 +279,8 @@ def test_system_page_links_classes(client, fake):
 
 
 @pytest.mark.parametrize("kind, detail, label, url", [
-    ("nebula", {"nebula_class": "D"}, "D: " + program_constants.NEBULA_CLASSES["D"]["name"], "/classes/nebula/D"),
-    ("supernova_remnant", {"remnant_class": "T"}, "T: " + program_constants.NEBULA_CLASSES["T"]["name"],
+    ("nebula", {"nebula_class": "D"}, "D: " + tuning.NEBULA_CLASSES["D"]["name"], "/classes/nebula/D"),
+    ("supernova_remnant", {"remnant_class": "T"}, "T: " + tuning.NEBULA_CLASSES["T"]["name"],
      "/classes/supernova-remnant/T"),
     ("asteroid_field", {"field_class": "C3"}, "C3", "/classes/asteroid-field/C"),
     ("black_hole", {"mass_class": "supermassive"}, "Supermassive", "/classes/black-hole/supermassive"),

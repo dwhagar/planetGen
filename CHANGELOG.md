@@ -707,7 +707,7 @@
 
 ### Added
 - **A math check that runs first (TEST.63 to TEST.67).** A new module,
-  `stellarObjects/mathCheck.py`, checks the generator's math against 49
+  `planetgen/physics/mathcheck.py`, checks the generator's math against 49
   fixed answers before anything trusts it: known values from real
   astronomy (the Sun's luminosity, lifetime and temperature, Earth's and
   Jupiter's orbits, Earth's Hill sphere, the habitable zone and snow line,
@@ -720,7 +720,7 @@
   Each check says where its expected value comes from. It takes under a
   second. The test suite runs it before any test and stops if it fails,
   CI runs it as its own first job, and the website runs it at startup and
-  shows admins a warning if it fails. `python -m stellarObjects.mathCheck -v`
+  shows admins a warning if it fails. `python -m planetgen.physics.mathcheck -v`
   prints the report.
 
 ### Fixed
@@ -6407,7 +6407,7 @@ enhancements") for where this started as a plan.
 
 ### Fixed
 - **Atmospheric pressure is no longer independent of gravity**
-  (`stellarObjects/planetPhysics.py`): the barometric-formula pressure
+  (`planetgen/physics/planets.py`): the barometric-formula pressure
   calculation algebraically canceled gravity out entirely (`atmospheric_pressure
   = atm_density * R * T / atm_molar_density`), so a Neptune-gravity gas giant
   and a Jupiter-gravity one produced the same pressure. A new
@@ -6432,7 +6432,7 @@ enhancements") for where this started as a plan.
 ## [5.3.4] - 2026-09-07
 
 ### Fixed
-- **Gas-giant density blend** (`stellarObjects/planetPhysics.py`): the
+- **Gas-giant density blend** (`planetgen/physics/planets.py`): the
   core/atmosphere blend used a mass fraction as an arithmetic-mean weight
   between two densities, which is dimensionally wrong and could produce
   gas giants as low as 0.026 g/cm^3. Replaced with the mass-weighted
@@ -6442,7 +6442,7 @@ enhancements") for where this started as a plan.
   hard-invariant gravity bounds) was updated in lockstep, including its
   docstring's justification for corner-evaluation (still valid: the new
   formula is monotonic in each argument, just no longer multilinear).
-- **Inverted greenhouse factor** (`stellarObjects/planetPhysics.py`): the
+- **Inverted greenhouse factor** (`planetgen/physics/planets.py`): the
   formula rewarded an atmosphere for being *far* from CO2's molar density
   rather than for actually containing more CO2 — backwards from physical
   reality. Now scales directly with `atm_molar_density`, the only

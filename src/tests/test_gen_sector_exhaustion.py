@@ -33,7 +33,8 @@ from unittest import mock
 
 import pytest
 
-from stellarObjects import physical_constants as pc, program_constants as prog
+from planetgen.physics import constants as pc
+from planetgen import tuning as prog
 from stellarObjects import spaceSector as ss
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import SectorCell

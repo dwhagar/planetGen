@@ -9,7 +9,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth, adminEdits, editStore, program_constants, validation
+from stellarObjects import _db, adminAuth, adminEdits, editStore, validation
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.spaceSector import SpaceSector
@@ -401,7 +402,7 @@ def test_unrecommended_class_needs_force(admin, mysql_config):
     system = _load(mysql_config, system_id)
     planet = _first_planet(system)
     recommended = adminEdits.recommended_classes(system, planet, system.planets)
-    other = next(c for c in sorted(program_constants.PLANET_CLASSES)
+    other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c not in recommended and c != planet.planet_class)
     assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other}).status_code == 409
     assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": "?"}).status_code == 400
