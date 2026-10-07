@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.223.617] - 2026-10-07
+
+### Added
+
+- TODO item TEST.92: the web job runner's first-failure test sometimes reports the job as interrupted under full-suite load (phase 0, Bugfixes: ops and flakes).
+
 ## [7.222.617] - 2026-10-07
 
 ### Changed
