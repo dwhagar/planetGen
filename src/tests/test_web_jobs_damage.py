@@ -22,7 +22,6 @@ import time
 
 import pytest
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
 from web import jobs  # noqa: E402
 
 PY = sys.executable

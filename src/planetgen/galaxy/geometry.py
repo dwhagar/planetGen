@@ -540,7 +540,7 @@ def sector_zone(ring_index, edge_ly, zone_target_ly=100.0):
     """
     The Zone index -- a fixed-width band of consecutive rings about
     `zone_target_ly` light-years wide that the Galaxy pages group sectors
-    by (`html/lib/galaxymap.py`'s identically-named concept). Takes
+    by (`planetgen/web/maps/galaxymap.py`'s identically-named concept). Takes
     light-years, unlike the rest of this module.
 
     Returns:
@@ -554,7 +554,7 @@ def sector_quadrant(x_pc, y_pc):
     """
     Classifies a galaxy-frame `(x, y)` position into one of 4 azimuthal
     Quadrants, numbered 1-4 counterclockwise from `+X` -- the same split
-    as `html/lib/galaxymap.py`'s `sector_quadrant` (labelled "I"-"IV").
+    as `planetgen/web/maps/galaxymap.py`'s `sector_quadrant` (labelled "I"-"IV").
 
     Returns:
         int: 1, 2, 3, or 4.

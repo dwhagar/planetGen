@@ -8,8 +8,8 @@ An API write clears the page cache at once (`test_page_cache.py`), but a
 command-line run happens in another process, so the only things that
 can notice it are the galaxy's content stamp (`GET /api/galaxy/changes`)
 -- checked at most once per `page_cache.stamp_seconds` by the page cache
-(`lib/pagecache.py`) and once per `STAMP_TTL_SECONDS` by the Galaxy Map's
-disk tile cache (`lib/tilecache.py`) -- and the page cache's age limit.
+(`planetgen/web/lib/pagecache.py`) and once per `STAMP_TTL_SECONDS` by the Galaxy Map's
+disk tile cache (`planetgen/web/lib/tilecache.py`) -- and the page cache's age limit.
 
 Each test warms the pages and both caches, runs `generate.py` through
 its real entry point (`main()`, via `sys.argv`, as
@@ -42,10 +42,10 @@ from api.app import create_app
 from api.config import Config
 
 import generate
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
-import pagecache  # noqa: E402
-import tilecache  # noqa: E402
+import web
+from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import pagecache  # noqa: E402
+from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402

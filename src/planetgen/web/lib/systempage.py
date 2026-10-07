@@ -1,4 +1,4 @@
-# html/lib/systempage.py
+# planetgen/web/lib/systempage.py
 
 """
 The HTML pieces of the system page (`/system/<id>`, `web/system_pages.py`)
@@ -26,10 +26,10 @@ disclosure button would be a control nested in a control); it opens the
 row's detail instead.
 """
 
-from classref import class_entry, star_type_classes
-from fmt import esc, format_distance_km, format_number, format_speed_kms
-from mdconvert import markdown_to_html
-from tabledisplay import (
+from planetgen.web.lib.classref import class_entry, star_type_classes
+from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
+from planetgen.web.lib.mdconvert import markdown_to_html
+from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
 )
 

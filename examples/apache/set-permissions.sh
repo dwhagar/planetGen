@@ -37,12 +37,12 @@
 #     traverse and list them but other local users can't.
 #   - Regular files: 640 (owner rw, group r, others none).
 #   - Every `*.py` file anywhere under html-dir, at any subdirectory
-#     depth (`html/wsgi.py`, `html/lib/*.py`, ...): 750 (owner+group
+#     depth (`html/wsgi.py`, `html/web/*.py`, ...): 750 (owner+group
 #     read, so mod_wsgi's daemon can import them; mod_wsgi only needs
 #     read access, the execute bit is a leftover from the old CGI pages
 #     and harmless). Reported with a count at the end so a wrong
 #     `html-dir` path is obvious rather than silently matching zero files.
-#   - html/lib is included in the general file/directory pass like any
+#   - html/api is included in the general file/directory pass like any
 #     other subdirectory -- direct web access to it is denied at the
 #     Apache config level (see examples/apache/planetgen.conf.example), not by
 #     filesystem permissions, since Apache's own worker still needs to
@@ -88,7 +88,7 @@ apply_permissions() {
     find "$dir" -type f -exec chmod 640 {} +
 
     # No -maxdepth here on purpose: this must reach *.py files at any
-    # subdirectory depth (html/lib/*.py included), not just directly
+    # subdirectory depth (html/web/*.py included), not just directly
     # inside $dir -- a previous version of this script effectively only
     # fixed the top-level scripts, which is exactly what was reported
     # broken.

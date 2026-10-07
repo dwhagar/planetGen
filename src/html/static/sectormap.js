@@ -1,6 +1,6 @@
 // html/static/sectormap.js
 //
-// Renders the 3D sector map built by `lib/starmap.py` as a real WebGL
+// Renders the 3D sector map built by `planetgen/web/maps/starmap.py` as a real WebGL
 // scene (three.js, vendored at `static/vendor/three.module.min.js` -- see
 // that directory's `THIRD_PARTY_NOTICES.txt` for why it's vendored rather
 // than loaded from a CDN) instead of the CSS `transform-style:
@@ -31,7 +31,7 @@
 // name can contain arbitrary characters via `--name`).
 
 // Sibling modules are imported with this module's own `?v=<version>`
-// query (html/lib/fmt.py's `static_url`), so they are cached and
+// query (planetgen/web/lib/fmt.py's `static_url`), so they are cached and
 // refreshed with the page's script. A plain static `import "./x.js"`
 // would drop the query: an update could then leave a stale copy cached,
 // and a page that also loaded the same file by its versioned URL would
@@ -160,7 +160,7 @@ function showNeighborInfo(panel, entry) {
 }
 
 // A plain `<a href>` to the entry's own page (`href`, built server-side by
-// lib/starmap.py), so Back, open-in-new-tab and copy-link all work.
+// planetgen/web/maps/starmap.py), so Back, open-in-new-tab and copy-link all work.
 function navLink(entry, label) {
   var link = document.createElement("a");
   link.href = entry.href || "#";
@@ -226,7 +226,7 @@ function makeNebulaTexture(coreColor, edgeColor) {
   ]);
 }
 
-// Reproduces lib/starmap.py's old (now retired) `_ASTEROID_FIELD_BACKGROUND`
+// Reproduces planetgen/web/maps/starmap.py's old (now retired) `_ASTEROID_FIELD_BACKGROUND`
 // -- a soft tan base disc under three dark "clump" splotches -- as three
 // canvas radial-gradient fills instead of four stacked CSS ones. Not
 // pixel-identical (CSS's own unsized `radial-gradient(circle at X% Y%, ...)`
@@ -269,7 +269,7 @@ function makeAsteroidTexture() {
 }
 
 // Every cloud kind besides "nebula" is a fixed recipe (never a function of
-// per-instance data beyond which kind/descriptor it is) -- lib/starmap.py
+// per-instance data beyond which kind/descriptor it is) -- planetgen/web/maps/starmap.py
 // only ever sends `kind`, these draw what it used to mean by
 // `_BLACK_HOLE_ACCRETING_BACKGROUND`/`_BLACK_HOLE_QUIESCENT_BACKGROUND`/
 // `_NEUTRON_STAR_BACKGROUND` (also now retired from there).
@@ -349,7 +349,7 @@ var CLOUD_GLOW_RECIPES = {
 function glowRecipeForCloud(cloud) {
   if (cloud.kind === "nebula") {
     // cloud.coreColor is an 8-digit RGBA hex (alpha baked in, see
-    // lib/starmap.py's own data["coreColor"]) -- stripped to a plain
+    // planetgen/web/maps/starmap.py's own data["coreColor"]) -- stripped to a plain
     // 6-digit color for the glow shader's own uniform, which controls
     // opacity itself via glowStrength rather than a texture alpha
     // channel.
@@ -360,7 +360,7 @@ function glowRecipeForCloud(cloud) {
 }
 
 // How much fainter a neighboring sector's cloud reaching into this one
-// is drawn (lib/starmap.py marks it `neighbor`, MAP.45), so it reads as
+// is drawn (planetgen/web/maps/starmap.py marks it `neighbor`, MAP.45), so it reads as
 // coming from outside rather than belonging to this sector.
 var NEIGHBOR_CLOUD_DIM = 0.4;
 
@@ -444,7 +444,7 @@ var CLOUD_VOLUME_FRAGMENT_SHADER = [
 ].join("\n");
 
 // Per kind: innerRatio (0 for a filled cloud), density, and the color and
-// peak opacity (a nebula's come from lib/starmap.py's per-type coreColor).
+// peak opacity (a nebula's come from planetgen/web/maps/starmap.py's per-type coreColor).
 var CLOUD_VOLUMES = {
   nebula: { innerRatio: 0, density: 1.6 },
   supernovaRemnant: { innerRatio: 0.82, density: 3.0, color: "#ff8a5c", alpha: 0.5 },
@@ -454,7 +454,7 @@ function makeCloudVolume(cloud, volume) {
   var color = volume.color || (cloud.coreColor || "#c9a8e090").slice(0, 7);
   var alpha = volume.alpha;
   if (alpha === undefined) {
-    // coreColor's last two hex digits are its alpha (lib/starmap.py).
+    // coreColor's last two hex digits are its alpha (planetgen/web/maps/starmap.py).
     var baked = parseInt((cloud.coreColor || "#c9a8e090").slice(7, 9), 16);
     alpha = Math.min(0.45, (isNaN(baked) ? 0x90 : baked) / 255);
   }
@@ -486,13 +486,13 @@ function makeCloudVolume(cloud, volume) {
 
 // --- Points of light (MAP.15) ----------------------------------------------
 //
-// Every star, and every phenomenon lib/starmap.py sends a `light` for, is
+// Every star, and every phenomenon planetgen/web/maps/starmap.py sends a `light` for, is
 // drawn the way static/galaxymap3d.js draws its bright stars: a point
 // sprite a fixed number of pixels across (never sized by distance), a core
 // `corePx` across in a soft halo `sizePx` across whose strength is `glow`,
 // the core `bright` opaque and whitened toward its middle (by `whiten`, 1
 // unless the entry says otherwise: an accreting black hole's core keeps
-// its disc's orange). lib/starmap.py works every number out (from the
+// its disc's orange). planetgen/web/maps/starmap.py works every number out (from the
 // star's radius, luminosity and temperature, or a fixed recipe for a
 // phenomenon). The halo falls off a little more slowly than the Galaxy
 // Map's, so even a red dwarf shows a bright aura on this smaller map (Boss:
@@ -652,7 +652,7 @@ export function initStarmap(canvasEl, data, options) {
   var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, 1, 5e6);
 
   // The world-unit distance at which a sphere of radius `sceneHalfPx`
-  // (lib/starmap.py's own scale reference -- every position/radius in
+  // (planetgen/web/maps/starmap.py's own scale reference -- every position/radius in
   // `data` is expressed in these units) exactly fills the frame
   // vertically -- this is what "zoom = 1" means for a real camera, the
   // direct replacement for the old CSS version's `scale(1)`.
@@ -776,7 +776,7 @@ export function initStarmap(canvasEl, data, options) {
 
   // Not in interactiveGroup: a click on a marker's empty middle should
   // still reach whatever is behind it. Rogue planets are points of light
-  // (lib/starmap.py's _ROGUE_LIGHT); "Mark rogue planets" (off by
+  // (planetgen/web/maps/starmap.py's _ROGUE_LIGHT); "Mark rogue planets" (off by
   // default) swaps in each one's markedLight and shows these rings.
   var rogueMarkers = new THREE.Group();
   rogueMarkers.visible = false;
@@ -855,7 +855,7 @@ export function initStarmap(canvasEl, data, options) {
   });
 
   // Neighboring-sector indicators: a small flat dot at the scene's own
-  // edge, in the real direction of that neighbor (see lib/starmap.py's
+  // edge, in the real direction of that neighbor (see planetgen/web/maps/starmap.py's
   // own `_neighbor_indicator_data`) -- a plain billboard `THREE.Sprite`
   // (not a real 3D body like a star/cloud above) suits these fine, the
   // same reasoning the highlight ring and compass label below are

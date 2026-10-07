@@ -1,7 +1,7 @@
 # tests/test_fmt_bad_numbers.py
 
 """
-TEST.53: the page formatters (`html/lib/fmt.py`, `html/lib/tabledisplay.py`)
+TEST.53: the page formatters (`planetgen/web/lib/fmt.py`, `planetgen/web/lib/tabledisplay.py`)
 fed bad numbers -- NaN, the infinities, negatives, zero, `None`, 1e300 and
 an int past float range -- never raise, and never print "nan"/"inf": a
 value that isn't a number shows a dash (`&ndash;` from the distance
@@ -22,10 +22,9 @@ import re
 
 import pytest
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import fmt  # noqa: E402
-import pagination  # noqa: E402
-import tabledisplay  # noqa: E402
+from planetgen.web.lib import fmt  # noqa: E402
+from planetgen.web.lib import pagination  # noqa: E402
+from planetgen.web.lib import tabledisplay  # noqa: E402
 
 BAD_NUMBERS = [
     float("nan"), float("inf"), float("-inf"), -1, -1.5, -5e10, -1e300, 0, 0.0, -0.0, None, 1e300, 10 ** 400,
@@ -108,7 +107,7 @@ def _clean(text):
 
 
 def test_the_sweep_finds_the_formatters():
-    names = {(m.__name__, n) for m, n, _f in FORMATTERS}
+    names = {(m.__name__.rpartition(".")[2], n) for m, n, _f in FORMATTERS}
     assert {("fmt", "format_number"), ("fmt", "format_distance_km"), ("fmt", "format_density"),
             ("fmt", "format_temperature_k"), ("tabledisplay", "format_star_mass"),
             ("tabledisplay", "format_body_distance")} <= names

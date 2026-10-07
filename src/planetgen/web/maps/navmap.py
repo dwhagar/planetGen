@@ -1,4 +1,4 @@
-# html/lib/navmap.py
+# planetgen/web/maps/navmap.py
 
 """
 NAV map: a flat, top-down SVG plot of the galactic X-Y plane showing a
@@ -32,7 +32,7 @@ angles away from what they actually are).
 
 import math
 
-from fmt import esc, format_distance_ly
+from planetgen.web.lib.fmt import esc, format_distance_ly
 
 _SVG_SIZE = 360.0
 _CENTER = _SVG_SIZE / 2

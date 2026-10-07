@@ -11,9 +11,7 @@ Takes the `mysql_config` fixture (see `conftest.py`): skipped, not failed,
 without a MySQL test server, like every other database-backed test.
 """
 
-import os
 import random
-import sys
 
 import pytest
 
@@ -22,9 +20,8 @@ from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
 
-import systemmap as sm  # noqa: E402
+from planetgen.web.maps import systemmap as sm  # noqa: E402
 from tests.test_systemmap import drawn_outside_view  # noqa: E402
 
 

@@ -8,14 +8,12 @@ and `static/localtime.js` rewrites it in the viewer's zone.
 
 import datetime
 import os
-import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-from fmt import utc_time_html  # noqa: E402
+from planetgen.web.lib.fmt import utc_time_html  # noqa: E402
 
 EXPECTED = '<time datetime="2026-09-30T21:26:41Z" data-local-time>2026-09-30 21:26 UTC</time>'
 

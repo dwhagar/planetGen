@@ -201,8 +201,7 @@ def test_properties_to_string_shapes(props, template, header, key_map):
     if header:
         assert md.startswith(header)
     # The rendered page must stay inert whatever the values hold.
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
-    import mdconvert
+    from planetgen.web.lib import mdconvert
     assert "<script" not in mdconvert.markdown_to_html(md).lower()
 
 

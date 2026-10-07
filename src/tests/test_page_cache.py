@@ -1,7 +1,7 @@
 # tests/test_page_cache.py
 
 """
-The pages' in-memory API response cache (`lib/pagecache.py`, PERF.2):
+The pages' in-memory API response cache (`planetgen/web/lib/pagecache.py`, PERF.2):
 the cache on its own with a fake clock, then the Flask pages serving a
 repeat visit without the API, and an API write clearing it.
 """
@@ -11,9 +11,9 @@ import pytest
 from api.app import create_app
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
-import pagecache  # noqa: E402
+import web
+from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 

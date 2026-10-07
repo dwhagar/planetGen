@@ -331,7 +331,7 @@ export function cellCoordinates(b) {
 // A block is at least this many CSS pixels across at the view's focus.
 // Finer than that, single blocks stop being something a viewer can pick
 // out or click. The page passes its own (data.blockMinPx, from
-// lib/galaxymap3d.py); this is the default.
+// planetgen/web/maps/galaxymap3d.py); this is the default.
 export var BLOCK_MIN_PX = 4;
 // The most blocks one view draws (default; the page passes
 // data.blockBudget). Past it, blocks get three times bigger.

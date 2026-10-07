@@ -1,5 +1,5 @@
 """
-html/lib/systemmap.py regression tests.
+planetgen/web/maps/systemmap.py regression tests.
 
 Covers the true-position layout engine that replaced the old schematic
 "every planet due east of its star" System Map: the shared log-radial
@@ -7,9 +7,7 @@ scale (`_radial_scale_bounds`/`_radial_px`), real-angle placement
 (`_polar_to_px`), the mass-weighted binary barycenter split
 (`_binary_star_positions_km`), marker de-overlap (`_relax_markers`), 2D
 label collision avoidance (`_label_sides_2d`), and the full rendered panel
-for single-star/'close'-binary/'wide'-binary/empty systems. Same `sys.path`
-setup as `test_starmap.py`/`test_navmap.py` (`html/lib` isn't part of the
-installed `stellarObjects` package, CGI-only plumbing); no database
+for single-star/'close'-binary/'wide'-binary/empty systems. no database
 needed, since `render_system_map_panel` takes plain dicts, the same shape
 `queryDb.system_detail` returns.
 
@@ -17,17 +15,12 @@ Run with: pytest src/tests/test_systemmap.py
 """
 import html as html_lib
 import math
-import os
 import random
 import re
-import sys
-
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-import systemmap as sm  # noqa: E402
+from planetgen.web.maps import systemmap as sm  # noqa: E402
 
 AU_KM = 1.496e8
 

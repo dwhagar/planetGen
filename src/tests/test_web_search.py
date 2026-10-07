@@ -11,8 +11,7 @@ from urllib.parse import urlencode
 
 import pytest
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402

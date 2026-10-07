@@ -29,7 +29,7 @@ from urllib.parse import urlencode
 
 from flask import request, url_for
 
-from pagination import PAGE_SIZE, page_offset, parse_page, render_pagination
+from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page, render_pagination
 
 from .helpers import page_url, trusted_html
 from .sector_page import PHENOMENON_TYPE_LABELS

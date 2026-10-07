@@ -1,4 +1,4 @@
-# html/lib/tilecache.py
+# planetgen/web/lib/tilecache.py
 
 """
 On-disk cache of the 3D Galaxy Map's cube tiles, kept by the web layer so
@@ -42,8 +42,8 @@ import re
 import tempfile
 import time
 
-from apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
-from privatedir import ensure_private_dir
+from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
+from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.appconfig import load_config
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.viewport import parse_tile_key, tile_key

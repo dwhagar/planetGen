@@ -96,8 +96,7 @@ def test_deploy_paths_env_wins_and_max_mb_0_turns_the_cache_off(tmp_path):
 
 def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
     """Mirrors `tilecache.configured_cache_dir` / `jobs.configured_jobs_dir`."""
-    sys.path.insert(0, os.path.join(REPO_DIR, "src", "html", "lib"))
-    import tilecache
+    from planetgen.web.lib import tilecache
     from web import jobs
 
     config = {"tile_cache": {"dir": "/srv/tiles", "max_mb": 50}, "jobs": {"dir": "/srv/jobs"}}

@@ -1,5 +1,5 @@
 """
-html/lib/starmap.py regression tests.
+planetgen/web/maps/starmap.py regression tests.
 
 Covers `_rotate_to_galaxy_frame` -- the fix for the Sector Map's star dots
 being plotted as if their own sector-local (x, y, z) axes already ran
@@ -18,8 +18,7 @@ HTML, but check the same underlying behavior the old assertions did
 (rotation agreement, phenomenon labels/kinds, radius scaling, click hint
 text).
 
-Same `sys.path` setup as `test_navmap.py` (`html/lib` isn't part of the
-installed `stellarObjects` package, CGI-only plumbing); no database
+no database
 needed, since `render_map_panel`/`_rotate_to_galaxy_frame` take plain
 dicts/tuples.
 
@@ -29,20 +28,16 @@ import json
 import math
 import os
 import re
-import sys
-
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-from starmap import _rotate_to_galaxy_frame, render_map_panel  # noqa: E402
+from planetgen.web.maps.starmap import _rotate_to_galaxy_frame, render_map_panel  # noqa: E402
 
 
 def _link(name, **params):
     """Stands in for `web.helpers.page_url`: `/<name>?k=v&...`."""
     return f"/{name}?" + "&".join(f"{key}={value}" for key, value in sorted(params.items()))
-from starmap import _phenomenon_cloud_radius_px  # noqa: E402
+from planetgen.web.maps.starmap import _phenomenon_cloud_radius_px  # noqa: E402
 
 
 def _vec_norm(v):
@@ -223,7 +218,7 @@ def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
 
 
 def test_cell_outline_arcs_follow_the_ring_radius():
-    import starmap
+    from planetgen.web.maps import starmap
     from planetgen.galaxy.geometry import ring_bounds_pc, sector_position_pc
     from stellarObjects.utils import mpc_to_pc
 
@@ -286,7 +281,7 @@ def test_phenomenon_cloud_radius_grows_with_radius_ly():
 def test_phenomenon_cloud_radius_is_capped_for_a_nebula_far_larger_than_the_sector():
     # A 200 ly emission nebula next to a small sector must not blow out
     # into an unbounded sprite size -- see `_MAX_CLOUD_RADIUS_PX`.
-    from starmap import _MAX_CLOUD_RADIUS_PX
+    from planetgen.web.maps.starmap import _MAX_CLOUD_RADIUS_PX
     huge = _phenomenon_cloud_radius_px(200.0, half_edge=100.0)
     assert huge <= _MAX_CLOUD_RADIUS_PX
 
@@ -343,7 +338,7 @@ def test_phenomenon_cloud_radius_floors_at_minimum_for_a_point_like_object():
     # black_hole/neutron_star always query radius_ly as a literal 0 (see
     # queryDb._PHENOMENON_TABLES) -- must still floor at a visible minimum,
     # not collapse to an invisible 0px marker.
-    from starmap import _MAX_CLOUD_RADIUS_PX
+    from planetgen.web.maps.starmap import _MAX_CLOUD_RADIUS_PX
     radius = _phenomenon_cloud_radius_px(0.0, half_edge=5000.0)
     assert 0 < radius <= _MAX_CLOUD_RADIUS_PX
 
@@ -437,7 +432,7 @@ def test_render_map_panel_neighbor_indicator_sits_along_its_own_direction():
     # Placed at a fixed reach past the scene's own edge, in the given
     # direction -- along +x here, so y/z should stay at (approximately)
     # zero and x should be positive and clearly past the scene's own
-    # half-edge (see lib/starmap.py's own `_NEIGHBOR_INDICATOR_REACH`).
+    # half-edge (see planetgen/web/maps/starmap.py's own `_NEIGHBOR_INDICATOR_REACH`).
     system = _make_system()
     neighbor = _neighbor(direction_pc=(1.0, 0.0, 0.0))
     scene = _scene_data(render_map_panel(
@@ -479,14 +474,14 @@ def test_render_map_panel_links_are_plain_hrefs():
 # --- MAP.87: the faint end drawn brighter ---------------------------------------------
 
 def _light_for(luminosity_solar, radius_solar=1.0, temperature_k=5772.0):
-    import starmap
+    from planetgen.web.maps import starmap
 
     return starmap._star_light(luminosity_solar * starmap.SOLAR_LUMINOSITY, radius_solar * 696000.0, temperature_k)
 
 
 def _unboosted(luminosity_solar, radius_solar=1.0):
     """`_star_light`'s sizes before MAP.87 (no boost)."""
-    import starmap
+    from planetgen.web.maps import starmap
 
     share = starmap._log_share(luminosity_solar, starmap._LIGHT_LOG_LUMINOSITY)
     core = starmap._lerp(starmap._LIGHT_CORE_PX, starmap._log_share(radius_solar, starmap._LIGHT_LOG_RADIUS))
@@ -498,7 +493,7 @@ def _unboosted(luminosity_solar, radius_solar=1.0):
 
 
 def test_light_boost_is_four_at_the_dim_end_and_none_from_1000_suns():
-    from starmap import star_light_boost
+    from planetgen.web.maps.starmap import star_light_boost
 
     assert star_light_boost(1e-4) == pytest.approx(4.0)
     assert star_light_boost(1e-6) == pytest.approx(4.0)
@@ -508,7 +503,7 @@ def test_light_boost_is_four_at_the_dim_end_and_none_from_1000_suns():
 
 
 def test_light_boost_tapers_without_a_jump():
-    from starmap import star_light_boost
+    from planetgen.web.maps.starmap import star_light_boost
 
     luminosities = [10 ** (e / 20) for e in range(-100, 81)]
     boosts = [star_light_boost(lum) for lum in luminosities]
@@ -521,7 +516,7 @@ def test_a_brighter_star_is_never_drawn_fainter():
     """The halo's light (strength x area) never falls as luminosity
     rises, on the Sector Map and with the Galaxy Map's own ranges
     (galaxymap3d.js's STAR_MIN_PX..STAR_MAX_PX and STAR_GLOW)."""
-    import starmap
+    from planetgen.web.maps import starmap
 
     def galaxy_light(lum):
         share = starmap._log_share(lum, (-4.0, 6.0))

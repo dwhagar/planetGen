@@ -175,7 +175,7 @@ cython_debug/
 
 .claude/
 
-# but keep html/lib despite the generic lib/ ignore rule above
-!src/html/lib/
-!src/html/lib/**
-src/html/lib/**/__pycache__/
+# but keep planetgen/web/lib despite the generic lib/ ignore rule above
+!src/planetgen/web/lib/
+!src/planetgen/web/lib/**
+src/planetgen/web/lib/**/__pycache__/

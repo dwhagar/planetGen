@@ -18,8 +18,8 @@ import re
 
 from flask import abort, current_app, request, url_for
 
-import apiclient
-from pagination import fetch_page, parse_page
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.pagination import fetch_page, parse_page
 from planetgen.queue import work as workQueue
 from planetgen.admin import activity_log
 from planetgen.util import log

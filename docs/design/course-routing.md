@@ -30,7 +30,7 @@ item and phase.
   direct distance only.
 - The NAV page lists the route as a vertical list (`<ol class="nav-route">`
   in `nav.html`) and draws it on one square map at one scale
-  (`lib/navmap.py`).
+  (`planetgen/web/maps/navmap.py`).
 
 What goes wrong (from the study):
 
@@ -102,7 +102,7 @@ every system on the route (Boss, 2026-10-02 04:19Z).
 ## 4. Showing the route
 
 - **A readable course map (NAV.41, phase 0, bug).** The NAV page's map
-  (`lib/navmap.py`) becomes a wide panel across the usable width of the
+  (`planetgen/web/maps/navmap.py`) becomes a wide panel across the usable width of the
   device, with labels at least body-text size, and the route list stays
   below it (Boss, 2026-10-02 04:19Z).
 - **Course and distance per stop (NAV.42, phase 1).** Each stop shows the

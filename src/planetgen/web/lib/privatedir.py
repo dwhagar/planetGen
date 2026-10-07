@@ -1,4 +1,4 @@
-# html/lib/privatedir.py
+# planetgen/web/lib/privatedir.py
 
 """
 A private directory in a shared place (the system temp directory), for the

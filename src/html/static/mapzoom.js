@@ -4,7 +4,7 @@
 // `<svg>` map -- phenomenonmap.js (a stellar phenomenon's own AU-scale
 // diagram) is this module's one caller today (the Galaxy Map used to be
 // a second one, static/galaxymap.js, before it became a real 3D scene --
-// see lib/galaxymap3d.py); written generically rather than folded into
+// see planetgen/web/maps/galaxymap3d.py); written generically rather than folded into
 // that one caller directly, so a future flat SVG map can reuse it the
 // same way instead of hand-rolling the same wheel-zoom/drag-pan/
 // click-vs-drag logic again.

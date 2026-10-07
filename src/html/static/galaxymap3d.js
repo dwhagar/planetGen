@@ -1,7 +1,7 @@
 // html/static/galaxymap3d.js
 // (Why three.js and not another renderer: docs/html-interface.md.)
 //
-// Renders the interactive 3D Galaxy Map (lib/galaxymap3d.py) as a real
+// Renders the interactive 3D Galaxy Map (planetgen/web/maps/galaxymap3d.py) as a real
 // WebGL scene (three.js, vendored at ./vendor/three.module.min.js -- see
 // sectormap.js's own docstring for why it's vendored rather than loaded
 // from a CDN). Unlike sectormap.js's scene (every star/cloud baked into
@@ -44,7 +44,7 @@
 // page -- see "Stars".
 
 // Sibling modules are imported with this module's own `?v=<version>`
-// query (html/lib/fmt.py's `static_url`), so they are cached and
+// query (planetgen/web/lib/fmt.py's `static_url`), so they are cached and
 // refreshed with the page's script. A plain static `import "./x.js"`
 // would drop the query: an update could then leave a stale copy cached,
 // and a page that also loaded the same file by its versioned URL would
@@ -89,7 +89,7 @@ function sectorUrl(id) {
 
 export { formatAddress };
 
-// The map's control buttons (lib/galaxymap3d.py's panel), by their
+// The map's control buttons (planetgen/web/maps/galaxymap3d.py's panel), by their
 // data-action: what each does, given the map's own parts in `ctx`
 // ({stageView, setTerritories(on, button), territoriesWanted()}). A button whose action isn't here does nothing.
 export function mapControlHandlers(ctx) {
@@ -257,7 +257,7 @@ function showCellInfo(cell) {
   panel.appendChild(corners);
 
   // A sector that isn't generated yet: for a logged-in admin
-  // (sceneData.generate, set by lib/galaxymap3d.py only then), the same
+  // (sceneData.generate, set by planetgen/web/maps/galaxymap3d.py only then), the same
   // Generate buttons the Sector Map gives a neighbor.
   if (single && !(cell.filled > 0) && sceneData.generate) {
     panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot,
@@ -338,7 +338,7 @@ function showHint(text, keep) {
 // --- Clouds: nebulae and supernova remnants --------------------------------
 
 // A nebula's color by its type, the same hues the Sector Map uses
-// (lib/starmap.py's _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core
+// (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core
 // and edge opacity). A dark nebula is a near-black silhouette.
 var NEBULA_LOOKS = {
   diffuse: ["#e3a6c8", 0.47, 0.14],
@@ -515,7 +515,7 @@ function makeLabelTexture(text, color) {
 
 // --- Filled-sector colors ---------------------------------------------
 //
-// Unlike lib/starmap.py (size/color baked server-side, once), these run
+// Unlike planetgen/web/maps/starmap.py (size/color baked server-side, once), these run
 // client-side for EVERY fetch (initial payload and every live re-fetch
 // alike) -- see galaxymap3d.py's own module docstring for why: almost
 // everything drawn here arrives through a live fetch that never passes
@@ -525,7 +525,7 @@ function makeLabelTexture(text, color) {
 // A placed sector's own REAL stellar density (system_count / edge_ly^3),
 // relative to physical_constants.LOCAL_STELLAR_DENSITY_LY3 (the real
 // local-neighborhood average this whole generator already calibrates
-// against -- see lib/galaxymap3d.py's own referenceDensityPerLy3
+// against -- see planetgen/web/maps/galaxymap3d.py's own referenceDensityPerLy3
 // comment) -- 1.0 means exactly average, >1 denser, <1 sparser. `null`
 // when edge_ly isn't available (a sector placed before per-sector edge
 // tracking existed) rather than a false 0, so a generated sector's block
@@ -818,7 +818,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // tileRootEdgePc on a side centered on the galactic origin, each level
   // halves the edge, and a tile's key is "level/ix/iy/iz". neededTiles()
   // picks the smallest level whose tiles are at least the view radius
-  // across (so at most 27 tiles cover the view). lib/galaxymap3d.py's
+  // across (so at most 27 tiles cover the view). planetgen/web/maps/galaxymap3d.py's
   // initial_tile_request does the same in Python for the first frame.
   // Once the view's own tiles are in, the tiles one click-zoom step in and
   // out are fetched too (prefetchTiles), so zooming never waits on them.
@@ -826,7 +826,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // A tile's contents depend only on its key and the database's content
   // stamp, so tiles are cached three ways: in memory here, in this
   // browser's localStorage (so a revisit or reload doesn't refetch them),
-  // and on the server's disk (lib/tilecache.py) -- only tiles in none of
+  // and on the server's disk (planetgen/web/lib/tilecache.py) -- only tiles in none of
   // those reach the API and database. Every response carries the current
   // stamp; when it differs from ours, the response also lists which tiles
   // changed since (history), and only those are dropped and refetched. A
