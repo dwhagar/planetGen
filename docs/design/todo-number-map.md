@@ -885,12 +885,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
-| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | open |
+| UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | open |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
 | UX.28 | Investigate icons instead of words on buttons | none | open |
-| UX.29 | Every comet in a system shows its type as a link (bug) | none | open |
+| UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
