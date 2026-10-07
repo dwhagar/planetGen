@@ -1,5 +1,5 @@
 """
-`generate.py system` never saves a system that misses a forced option
+`planetgen system` never saves a system that misses a forced option
 (GEN.49), and refuses contradictory forcing options up front (GEN.50).
 """
 
@@ -8,9 +8,10 @@ import random
 
 import pytest
 
-import generate
+pass
 from planetgen import tuning
 from planetgen.generation.system import StarSystem
+from planetgen.generation import run_system
 from tests.bughunt_support import run_cli
 
 
@@ -23,7 +24,7 @@ def _never_habitable(monkeypatch):
             built.append(self)
             self.unmet_requirements = ["a habitable world"]
 
-    monkeypatch.setattr(generate, "StarSystem", NeverHabitable)
+    monkeypatch.setattr(run_system, "StarSystem", NeverHabitable)
     return built
 
 
@@ -56,14 +57,14 @@ def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, mon
     them; now every saved system has one, and a run either writes one or
     exits with an error."""
     kept = []
-    real = generate.StarSystem
+    real = StarSystem
 
     def build(*args, **kwargs):
         system = real(*args, **kwargs)
         kept.append(system)
         return system
 
-    monkeypatch.setattr(generate, "StarSystem", build)
+    monkeypatch.setattr(run_system, "StarSystem", build)
     for seed in range(8):
         random.seed(seed)
         kept.clear()

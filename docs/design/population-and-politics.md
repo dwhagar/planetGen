@@ -147,7 +147,7 @@ its polity, and the polity's reach is a sphere around its capital.
 
 ### When it runs
 
-`generate.py population` is a separate pass over what is already stored
+`planetgen population` is a separate pass over what is already stored
 (`population.run_pass`), so it works on a galaxy generated before v44
 with no regenerate:
 
@@ -170,7 +170,7 @@ territory, and scan every planet again) and `--territories-only` (only
 step 3). The two can't be combined.
 
 Population is optional and off by default (Boss, 2026-10-01): nothing
-runs it unless asked. `generate.py galaxy` and `generate.py sector` run
+runs it unless asked. `planetgen galaxy` and `planetgen sector` run
 the whole pass after they save only with `--population` (this replaced
 7.49.0's `--no-population`); the admin Generate page's jobs don't pass
 it. `install.sh` (and `install.ps1`) offer to
@@ -280,7 +280,7 @@ Boss accepted every recommended default on 2026-10-01:
 
 ## Open points found in this review
 
-- `generate.py population --rescan`'s help says it gives "new names,
+- `planetgen population --rescan`'s help says it gives "new names,
   ages and borders". Names are new, and so are governments and colors
   (they follow the new species ids), but ages, traits and the
   civilization draw are seeded by the planet id and come out the same,

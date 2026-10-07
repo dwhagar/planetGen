@@ -31,7 +31,7 @@ Workers never share database state:
 ## Generation at several worker counts
 
 A real run hands its sectors and bright-star layers to worker processes.
-CI runs the tests marked `generation` (the files that run `generate.py` or
+CI runs the tests marked `generation` (the files that run `planetgen` or
 the work queue; `conftest.py` adds the marker) again with 2 and 4 workers
 (TEST.74). To do the same locally:
 
@@ -94,7 +94,7 @@ where the expected value comes from. It takes well under a second.
 - The website runs it once when it starts and shows admins a warning on
   every page if it failed (the site keeps serving).
 - Bulk generation runs it first and refuses to start if it fails:
-  `generate.py check-math` by hand, and every bulk path (see
+  `planetgen check-math` by hand, and every bulk path (see
   [cli.md](cli.md#subcommands)); `update.sh`/`update.ps1` warn.
 
 ```sh
@@ -167,7 +167,7 @@ than MariaDB, so a query that works locally can still fail there.
   - `test_fuzz_text_rendering.py`: wikitext and Markdown output.
   - `test_fuzz_utils_and_config.py`: physics helpers, formatting, config
     loading, logging and progress files.
-  - `test_fuzz_cli.py`: every `generate.py` command and option.
+  - `test_fuzz_cli.py`: every `planetgen` command and option.
   - `test_fuzz_web_routes.py` and `test_fuzz_api_auth.py`: every web page
     and API endpoint, logins, CSRF and API keys.
 

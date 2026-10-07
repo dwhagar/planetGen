@@ -7,7 +7,7 @@ Runs one background job the web interface's admin Generate page started
 from the web server, then returns right away).
 
 A job is a list of steps, each one command line (`planetgen.cli.reset`, then
-`generate.py plan`, then `generate.py galaxy ...`). This runs them in
+`planetgen plan`, then `planetgen galaxy ...`). This runs them in
 order, appends every step's output to `<job dir>/output.log`, and keeps
 `<job dir>/state.json` current, so the page can show which step is
 running and how the job ended:
@@ -25,7 +25,7 @@ this job's, so the next job can start.
 
 The job is also the root of a job tree (ADM.12, `work.open_node`):
 a "web-job" node with one "step" node per step, each step's
-`generate.py` run hanging its own nodes under its step
+`planetgen` run hanging its own nodes under its step
 (`work.PARENT_ENV_VAR`), so the admin queue page shows the whole
 job with timings. That part is best effort.
 
@@ -130,7 +130,7 @@ def _run_line(job):
     """
     The job log's first line (OPS.10): the galaxy seed when the job
     starts, the PlanetGen version with its key, and the job's title
-    (`version_key.run_line`). Each `generate.py` step then writes its own
+    (`version_key.run_line`). Each `planetgen` step then writes its own
     as its first line. Never raises: without planetGen's modules or the
     database, the line says what it can.
     """

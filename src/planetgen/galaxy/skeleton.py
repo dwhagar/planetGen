@@ -206,7 +206,7 @@ def column_extents(layer_extents):
 class GalaxyBounds:
     """
     The galaxy's stored outline (`galaxy_layer`), for checking an address
-    *before* anything is generated there: every `generate.py galaxy` path
+    *before* anything is generated there: every `planetgen galaxy` path
     and visit-time generation go through `contains`.
 
     Attributes:

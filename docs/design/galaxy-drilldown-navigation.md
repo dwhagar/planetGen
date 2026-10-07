@@ -16,7 +16,7 @@ segment, MAP.56 onward) are still planned.
 | Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.27 | 7.52.0, PR #176 |
 | Map Generate buttons and the light-year radius dialog | 6 | MAP.20 (map side) | 7.53.0, PR #177 |
 | Sector Map pick mode and Nav from/to links | 9.1, 9.2 | MAP.21 | 7.58.0, PR #178 |
-| Generate this layer or slab (`generate.py galaxy --block`, the Generate page's block form) | 6 | MAP.20 | 7.60.174 |
+| Generate this layer or slab (`planetgen galaxy --block`, the Generate page's block form) | 6 | MAP.20 | 7.60.174 |
 | NAV page pickers: Pick on Galaxy Map, Pick in this sector, the Bookmarks select | 9 | MAP.22 | 7.94.253 (the picks earlier) |
 | Bookmarks (`static/bookmarks.js`): the breadcrumb ☆, page buttons, the map menu, keys 1-9 (MAP.81) | 8.2 | MAP.23 | 7.94.253 |
 | "Show on Galaxy Map" links with `?sector=` from sector, system and search pages | 8.1 | MAP.25 | 7.64.174 |
@@ -453,7 +453,7 @@ inside a level-3 block.
 
 | Button | What runs | Size |
 | --- | --- | --- |
-| Generate this sector | `generate.py galaxy --ring i --layer j --slot k` (today's `slot` mode) | 1 |
+| Generate this sector | `planetgen galaxy --ring i --layer j --slot k` (today's `slot` mode) | 1 |
 | Generate this layer (once one layer of sectors is shown) | New `--block 3.J.s.S --block-layer j`: the block's ungenerated allowed sectors on that layer (section 3.5) | Up to about 15 |
 | Generate neighborhood… | `slot` mode with `--radius-pc`, after the radius dialog below | Grows with the radius cubed |
 
@@ -746,7 +746,7 @@ Each has a default, and work can start on it.
 | MAP.28 | Nested ladder geometry, JS and Python, with a parity test (section 3). **Built, 7.41.2, PR #160** | Galaxy Map | none |
 | MAP.29 | Stage contents API and caching (section 7). **Built, 7.41.3, PR #160** | Galaxy Map | MAP.28 |
 | MAP.16 | The stages: views, hover, pull-out, flight, breadcrumb, URLs, keys, touch (sections 4, 5, 8.1). **Built, 7.44.0, PR #171** | Galaxy Map | MAP.28, MAP.29, MAP.3 |
-| MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177; `--block` and the form built, 7.60.174** | Web (`generate.py`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
+| MAP.20 | Admin generation at the sector level: `--block` mode, Generate page form, map buttons, radius dialog, progress (section 6). **Map buttons and radius dialog built, 7.53.0, PR #177; `--block` and the form built, 7.60.174** | Web (`planetgen`, Generate page) and Galaxy Map (buttons) | MAP.28 (Python), MAP.16 |
 | MAP.21 | Sector Map pick mode and Nav from/to links (sections 9.1, 9.2). **Built, 7.58.0, PR #178** | Web | the URL formats only |
 | MAP.22 | NAV page: Pick on Galaxy Map, Pick in this sector, Bookmarks (section 9). **Built** | Web | MAP.16, MAP.21 |
 | MAP.23 | Bookmarks (section 8.2). **Built** | Galaxy Map (module, map menu) and Web (NAV, Sector Map) | MAP.16 |

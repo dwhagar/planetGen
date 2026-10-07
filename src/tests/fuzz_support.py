@@ -59,7 +59,7 @@ settings.load_profile(os.environ.get("PLANETGEN_FUZZ_PROFILE") or "ci")
 def deterministic_entropy(seed):
     """Seeds the global `random` module, which every generator draws from
     (GEN.39), and pins the two draws that still come from `secrets` (a
-    `generate.py` run's own seed and a new galaxy's seed), so a whole
+    `planetgen` run's own seed and a new galaxy's seed), so a whole
     system or galaxy is a pure function of `seed` for the duration of the
     block."""
     rng = random.Random(seed)

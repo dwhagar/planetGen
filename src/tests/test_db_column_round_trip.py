@@ -3,7 +3,7 @@
 """
 TEST.11: every column of every content table is written by the code that
 saves its rows and read back by the code that loads them. A small galaxy
-is built through the real `generate.py` commands (`rich_galaxy_support`),
+is built through the real `planetgen` commands (`rich_galaxy_support`),
 then every column in information_schema must hold a value in some row
 (so a new column the INSERT forgot, left NULL, fails), and must be read
 by the loaders and the API's detail endpoints (so a column nothing ever

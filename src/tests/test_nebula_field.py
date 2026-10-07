@@ -10,7 +10,7 @@ import math
 
 import pytest
 
-import generate as galaxyGen
+from planetgen.generation import run_galaxy
 from planetgen.db import store as _db
 from planetgen.galaxy import nebula_field
 from planetgen import tuning
@@ -104,12 +104,12 @@ def test_a_neighborhood_finds_clouds_at_realistic_rates():
 
 
 def _generate_at(mysql_config, address):
-    args = galaxyGen._default_generation_args(mysql_config)
+    args = run_galaxy._default_generation_args(mysql_config)
     args.num_systems = 1
     args.density = None
     position = sector_position_pc(*address, EDGE_PC)
     with forced_system_config(PLANETS=False):
-        return galaxyGen.generate_and_save_sector_at(args, address, position, EDGE_PC)
+        return run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
 
 
 def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypatch):

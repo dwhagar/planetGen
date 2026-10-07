@@ -50,7 +50,7 @@ a given galaxy means running SHA-256 backwards (about 2^128 tries).
 
 - One 128-bit galaxy seed, stored in `galaxy_shape` as `BINARY(16)`,
   shown as 32 uppercase hex digits, written once when the galaxy is
-  first planned. `generate.py plan --seed <32 hex>` sets it; without it
+  first planned. `planetgen plan --seed <32 hex>` sets it; without it
   one is drawn at random.
 - Each unit of work gets its own seed:
 
@@ -66,7 +66,7 @@ a given galaxy means running SHA-256 backwards (about 2^128 tries).
 - The version is not mixed into the hash: a release that changes one
   formula changes only what that formula touches.
 - The bright-star scatter's 63-bit seed (today
-  `random.SystemRandom().getrandbits(63)` in `generate.py`) is derived
+  `random.SystemRandom().getrandbits(63)` in `planetgen`) is derived
   from the galaxy seed too, so no step throws bits away.
 - Odds, from the seed math report: two of a billion random 128-bit seeds
   match with a chance of about 1.5 x 10^-21; two of 12 billion sectors
@@ -90,7 +90,7 @@ choices (a random start's address) still draw from the run's stream.
 As built (DB.6): `planetgen/galaxy/version_key.py` computes the key
 (`version_key`) and the versions stored beside it (`current`). The galaxy
 records them in `galaxy_shape` whenever its seed is written (schema
-v52), and every `generate.py` run that changes the galaxy writes a
+v52), and every `planetgen` run that changes the galaxy writes a
 `generation_runs` row with its command line, its own run seed, the
 galaxy seed, the key and its outcome.
 
@@ -120,17 +120,17 @@ used, so the OS, architecture and Python parts cover the maths library.
 
 ## 5. Every draw seeded, every sector independent (phase 1)
 
-- **The log line (OPS.10, phase 0).** Every `generate.py` subcommand,
+- **The log line (OPS.10, phase 0).** Every `planetgen` subcommand,
   web or API job and work queue run first writes, at normal level, the
   galaxy seed, the version with its key, and the run's command, for
   example `Galaxy seed 3f2a...c901, PlanetGen 7.127.352
-  (0007007F000160030C0300), run: sector 12 3 0`. Today `generate.py`
+  (0007007F000160030C0300), run: sector 12 3 0`. Today `planetgen`
   logs its `secrets.randbits(128)` run seed at debug level only.
   As built (OPS.10): `versionKey.run_line` writes it, first thing after
-  `generate.py` sets up logging (a `plan --seed` names the seed given,
+  `planetgen` sets up logging (a `plan --seed` names the seed given,
   otherwise the stored one, `none yet` before the first plan), and
   `planetgen.cli.job` writes it at the top of a job's `output.log` with the
-  job's title. A work queue always runs inside a `generate.py` run, so
+  job's title. A work queue always runs inside a `planetgen` run, so
   its line is that run's.
 - **The run history (DB.6, phase 0).** A `generation_runs` table, one
   row per run that changes the galaxy (command and options, version,
@@ -158,7 +158,7 @@ used, so the OS, architecture and Python parts cover the maths library.
   and the other is renamed from its own seeded stream (with GEN.46);
   population seeds stop keying on row ids; the backfill stops depending
   on which sectors are already filled (with GEN.44).
-- **Fingerprint (GEN.58).** `generate.py fingerprint` prints a canonical
+- **Fingerprint (GEN.58).** `planetgen fingerprint` prints a canonical
   SHA-256 per sector and for a region, in address order with canonical
   number formatting, skipping ids and timestamps, either as first
   generated or with the settings file applied.
@@ -180,12 +180,12 @@ used, so the OS, architecture and Python parts cover the maths library.
   and `update.ps1` compute the running key and add one row per galaxy
   to a control-database table: the galaxy seed (unchanged by an update),
   the key, the corpus and lock hashes, and the date. Only the last 10
-  rows per galaxy are kept; `generate.py` can list them. Lands after
+  rows per galaxy are kept; `planetgen` can list them. Lands after
   OPS.7 and OPS.8, which change the same scripts.
 - **Mismatch warning (OPS.14, phase 1).** One check compares the running
   key and hashes with the galaxy's (and each sector's) and names every
   field that differs ("Python 3.12.3 now, 3.11.9 when generated").
-  `generate.py`, the Generate page, the fingerprint output and the
+  `planetgen`, the Generate page, the fingerprint output and the
   reproduce report all print it.
 - **Did this update change output? (OPS.15, phase 2).** The update
   fingerprints a small fixed region from the galaxy seed under the new
@@ -277,7 +277,7 @@ OPS.18.
 
 ## 9. Damage: check and repair
 
-- **Check (DB.8, phase 0).** `generate.py check-db` and an Admin
+- **Check (DB.8, phase 0).** `planetgen check-db` and an Admin
   dashboard button (run as a job) check the galaxy and control databases
   without changing anything: schema against the recorded migration
   level, orphan rows, ids against `id_blocks`, name registries against
@@ -291,7 +291,7 @@ OPS.18.
   (path in `config.json`) holds Reed-Solomon parity over groups of
   sector exports, so one damaged sector per group can be rebuilt; it is
   updated as sectors are saved or edited and carries its own checksum.
-  `generate.py repair-db` finds damage with DB.8's check and rebuilds
+  `planetgen repair-db` finds damage with DB.8's check and rebuilds
   from parity; where parity can't and the key matches the running code
   (OPS.14), it regenerates the sector from its seed and replays its
   edits. It checks again and lists anything it could not repair.
@@ -304,9 +304,9 @@ The seed and the parity file cover different risks: the seed rebuilds
 the galaxy as generated, with admin changes replayed on top; the parity
 file repairs damage to the database as it is now, with no rebuild.
 
-## 10. The end state: `generate.py reproduce` (OPS.12, phase 3+)
+## 10. The end state: `planetgen reproduce` (OPS.12, phase 3+)
 
-`generate.py reproduce --seed X --version Y` rebuilds a galaxy or region
+`planetgen reproduce --seed X --version Y` rebuilds a galaxy or region
 into a fresh database from the seed, the run history and the settings
 file, then compares fingerprints with the live galaxy (or a given one)
 and lists any sector that differs. It refuses, naming the release to

@@ -46,7 +46,7 @@ os.environ.setdefault("PLANETGEN_LOG_DIR", tempfile.mkdtemp(prefix="planetgen-te
 # Generation runs one sector at a time, in-process, unless a test asks for
 # workers itself (tests/test_work_queue.py) or the run sets
 # PLANETGEN_WORKERS: CI's worker legs (TEST.74) run the `generation` tests
-# at 2 and 4 workers too. A test that patches generate.py for a run does
+# at 2 and 4 workers too. A test that patches planetgen for a run does
 # it with tests/worker_patches.py, which reaches the workers as well.
 os.environ.setdefault("PLANETGEN_WORKERS", "1")
 

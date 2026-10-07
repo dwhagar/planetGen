@@ -9,7 +9,7 @@ grid (`tuning.DEFAULT_SECTOR_EDGE_PC`, 4 pc):
   `sector_address_at`'s clamp exists for) and at `-0.0`, each landing in
   a slot whose real cell holds it;
 - the outermost planned ring and layer of a real plan (the Milky-Way
-  defaults `generate.py plan` uses, and a small toy shape) against
+  defaults `planetgen plan` uses, and a small toy shape) against
   `GalaxyBounds`: the last ring and layer are inside, one more is not,
   and the faces between them fall on the documented side;
 - the nucleus sector (ring 0, slot 0) on layers 0 and -1: the axis, the
@@ -25,7 +25,7 @@ import random
 
 import pytest
 
-import generate
+from planetgen.generation import run_galaxy
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
@@ -47,7 +47,7 @@ THRESHOLD = 1.0 / expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_
 TWO_PI = 2 * math.pi
 JUST_UNDER_TWO_PI = math.nextafter(TWO_PI, 0.0)
 
-# generate.py plan's own defaults (a real Milky-Way-scale outline, ~3,900
+# planetgen plan's own defaults (a real Milky-Way-scale outline, ~3,900
 # rings) and test_galaxy_gen.py's small toy shape.
 _MILKY_WAY = dict(disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
                   bulge_amplitude=1.0, arm_count=2, pitch_angle_deg=15.0, arm_amplitude=0.4)
@@ -288,7 +288,7 @@ def test_random_addresses_reach_but_never_pass_the_outermost_ring(plan):
 
 
 def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
-    """`generate.py plan` stores exactly the outline `build_layer_extents`
+    """`planetgen plan` stores exactly the outline `build_layer_extents`
     computes, and `store.get_galaxy_bounds` hands it back on the same
     4 pc grid, outermost ring and layer included."""
     _shape_, extents, outer = _plan("toy")
@@ -394,11 +394,11 @@ def test_nucleus_designations_are_distinct_and_round_trip():
 
 def test_the_central_drill_block_holds_both_nucleus_layers():
     block = parse_drill_key("3.0.0.0")
-    assert generate.block_layers(block) == [-1, 0, 1]
-    everything = set(generate.block_addresses(block))
+    assert run_galaxy.block_layers(block) == [-1, 0, 1]
+    everything = set(run_galaxy.block_addresses(block))
     assert set(NUCLEUS) <= everything
-    assert (0, -1, 0) in set(generate.block_addresses(block, -1))
-    assert (0, 0, 0) in set(generate.block_addresses(block, 0))
+    assert (0, -1, 0) in set(run_galaxy.block_addresses(block, -1))
+    assert (0, 0, 0) in set(run_galaxy.block_addresses(block, 0))
 
 
 @pytest.mark.parametrize("plan", ["milky_way", "toy"])

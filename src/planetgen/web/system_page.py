@@ -2,10 +2,10 @@
 
 """
 `/admin/generate/system`: a one-off star system from the browser, with
-every option `generate.py system` takes, shown as Markdown (or wikitext)
+every option `planetgen system` takes, shown as Markdown (or wikitext)
 on the page and never saved to the database.
 
-The page runs the real command-line generator, `generate.py system
+The page runs the real command-line generator, `planetgen system
 --output FILE`, in a throwaway directory and reads the page back, so the
 browser and the terminal can never disagree on what an option means. A
 separate process also keeps the flavor-text overrides (which set
@@ -35,8 +35,8 @@ from planetgen.web.lib.mdconvert import markdown_to_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
 
 TRISTATE_FIELDS = (
-    # (generate.py option name, label) -- the same ten, in the same order,
-    # as generate.py's TRISTATE_OPTIONS (a test checks they still match).
+    # (planetgen option name, label) -- the same ten, in the same order,
+    # as planetgen's TRISTATE_OPTIONS (a test checks they still match).
     ("habitable_world", "Habitable world"),
     ("asteroid_belt", "Asteroid belt"),
     ("comets", "Star-bound comet"),
@@ -65,7 +65,7 @@ SYSTEM_FILE_EXAMPLE = """{
 }"""
 
 TIMEOUT_S = 120
-"""int: How long the page waits for `generate.py` before giving up."""
+"""int: How long the page waits for `planetgen` before giving up."""
 
 MAX_LOG_BYTES = 256 * 1024
 """int: The most generator output (and debug log) the page shows."""
@@ -84,8 +84,8 @@ def _text(form, name):
 
 def system_request(form):
     """
-    The `generate.py system` options a form asks for, checked the way
-    `generate.py`'s `validate_system_args` checks them.
+    The `planetgen system` options a form asks for, checked the way
+    `planetgen`'s `validate_system_args` checks them.
 
     Returns:
         dict: `argv` (the options after `system`, without `--output` or
@@ -168,7 +168,7 @@ def _tail(text, limit=MAX_LOG_BYTES):
 
 def run_generator(spec):
     """
-    Runs `generate.py system --output` for a `system_request` and reads
+    Runs `planetgen system --output` for a `system_request` and reads
     the page back. Nothing touches the database.
 
     Returns:
@@ -180,7 +180,7 @@ def run_generator(spec):
         page_path = os.path.join(tmp, "system.txt")
         # With --debug the generator narrates every choice to stdout, which
         # the page shows as the debug log; otherwise only errors.
-        argv = [jobs.python_executable(), jobs.GENERATE_SCRIPT, "system", "--output", page_path,
+        argv = [jobs.python_executable(), *jobs.GENERATE_COMMAND, "system", "--output", page_path,
                 "--debug" if spec["debug"] else "--quiet"]
         if spec["system_file"] is not None:
             file_path = os.path.join(tmp, "system.json")
@@ -189,7 +189,7 @@ def run_generator(spec):
             argv.append("--system-file=" + file_path)
         argv += spec["argv"]
         try:
-            proc = subprocess.run(argv, cwd=jobs.REPO_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+            proc = subprocess.run(argv, cwd=jobs.SRC_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
                                   stderr=subprocess.STDOUT, timeout=TIMEOUT_S)
             output = proc.stdout.decode("utf-8", errors="replace")
             ok = proc.returncode == 0

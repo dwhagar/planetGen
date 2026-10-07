@@ -42,10 +42,10 @@
 # PyPI gets in unnoticed. apt packages are apt's to verify.
 #
 # planetGen itself is never installed into site-packages: every entry
-# point adds the checkout's src/ to sys.path itself (generate.py,
-# src/planetgen/web/lib/apiclient.py, src/html/wsgi.py, and planetgen.cli.migrate
-# through its own sys.path[0]), and /usr/local/bin/planetgen is a small
-# wrapper around the checkout's generate.py. (The unmanaged path still
+# point puts the checkout's src/ on the import path itself
+# (src/html/wsgi.py, and the command-line tools run from src/ as
+# `python3 -m planetgen.cli.NAME`), and /usr/local/bin/planetgen is a small
+# wrapper that runs the checkout's planetgen.cli.generate. (The unmanaged path still
 # pip-installs the package, as it always has, but nothing runs that copy.)
 #
 # Usage (as root):
@@ -425,17 +425,19 @@ not_ok() {
 }
 
 # Stands in for the `planetgen` console script pip would make, but runs
-# this checkout's generate.py, so the CLI always runs the code that was
+# this checkout's planetgen.cli.generate (with src/ on PYTHONPATH, so a
+# relative path in its arguments still means the caller's directory), so
+# the CLI always runs the code that was
 # just pulled (like the web app, which imports from the checkout too)
 # without anything being reinstalled. Rewritten only when it differs.
 write_wrapper() {
     local want
     want="$(printf '%s\n' '#!/bin/sh' \
         "# Written by planetGen's scripts/install-python-deps.sh." \
-        "exec \"$PYTHON\" \"$SCRIPT_DIR/generate.py\" \"\$@\"")"
+        "PYTHONPATH=\"$SCRIPT_DIR/src\${PYTHONPATH:+:\$PYTHONPATH}\" exec \"$PYTHON\" -m planetgen.cli.generate \"\$@\"")"
     if [[ "$(cat "$WRAPPER" 2>/dev/null || true)" != "$want" ]]; then
         printf '%s\n' "$want" > "$WRAPPER"
-        echo "Wrote $WRAPPER (runs $SCRIPT_DIR/generate.py)."
+        echo "Wrote $WRAPPER (runs planetgen.cli.generate from $SCRIPT_DIR/src)."
     fi
     chmod 755 "$WRAPPER"
 }

@@ -86,9 +86,9 @@ def test_debug_log_records_timestamped_lines_with_their_source(debug_log):
 
 
 def test_passwords_on_the_command_line_are_withheld(monkeypatch):
-    monkeypatch.setattr(sys, "argv", ["generate.py", "sector", "--mysql-password", "hunter2",
+    monkeypatch.setattr(sys, "argv", ["planetgen", "sector", "--mysql-password", "hunter2",
                                       "--mysql-password=hunter3", "--name", "X"])
-    assert log._redacted_argv() == ["generate.py", "sector", "--mysql-password", "<withheld>",
+    assert log._redacted_argv() == ["planetgen", "sector", "--mysql-password", "<withheld>",
                                     "--mysql-password=<withheld>", "--name", "X"]
 
 

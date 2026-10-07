@@ -4662,7 +4662,7 @@ def refresh_after_motion(conn, refiled_sectors=()):
 
 # ---------------------------------------------------------------------------
 # Bright-star pre-placement (schema v43) -- storage. The scatter itself
-# (generate.py plan) and the fill draw stars from Physics' sampling API.
+# (planetgen plan) and the fill draw stars from Physics' sampling API.
 # ---------------------------------------------------------------------------
 
 BRIGHT_STAR_COLUMNS = (
@@ -4750,7 +4750,7 @@ def sector_bright_level_keys(conn):
     """
     Every sector a backfill took to its own level (`bright_level_sol` above
     0, GEN.44), as `(ring, layer, slot) -> level`: what a staged scatter
-    (`generate.py plan --bright-stars-down-to`) leaves out of its layers
+    (`planetgen plan --bright-stars-down-to`) leaves out of its layers
     and tops up sector by sector instead.
     """
     rows = conn.execute("SELECT ring_index, layer_index, ring_slot_index, bright_level_sol FROM sector_stats"
@@ -4932,7 +4932,7 @@ def delete_unfinished_band(conn, below_luminosity_w, keep_addresses=(), batch_si
     """
     Deletes the unbuilt bright stars below `below_luminosity_w` (the
     galaxy's star-fill level) outside `keep_addresses`: what a band run
-    (`generate.py plan --bright-stars-down-to`) that stopped part way left
+    (`planetgen plan --bright-stars-down-to`) that stopped part way left
     in the layers it got through, since the level only moves once a band
     is whole (GEN.32). Every finished scatter or band is at or above the
     level, and the stars below it that belong there (a backfilled block's,
@@ -5580,7 +5580,7 @@ def get_occupied_addresses(conn, ring_indices):
     """
     Returns every already-occupied `(ring_index, layer_index,
     ring_slot_index)` address among the given rings -- used by
-    `generate.py galaxy`'s batch and neighborhood modes to skip addresses a
+    `planetgen galaxy`'s batch and neighborhood modes to skip addresses a
     sector already exists at, in one query rather than one per candidate.
 
     Args:
@@ -5645,7 +5645,7 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
         edge_pc (float): The sector edge length this skeleton was built
                          at, parsecs.
         outer_ring_index (int): The last ring with any qualifying
-            content (`generate.py plan`'s own discovered galaxy edge).
+            content (`planetgen plan`'s own discovered galaxy edge).
         expected_system_count_at_density_1 (float): See
             `galaxySkeleton.expected_system_count_at_density_1`.
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -5740,7 +5740,7 @@ def start_generation_run(conn, command, arguments, run_seed=None):
 
     Args:
         conn (Connection): An open connection to the galaxy database.
-        command (str): The `generate.py` subcommand.
+        command (str): The `planetgen` subcommand.
         arguments (list): Its command line, without the --mysql-* and
             --debug options (stored as JSON).
         run_seed (int, optional): The run's own 128-bit seed.
@@ -6702,7 +6702,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
 
     edge_ly = milliparsecs_to_ly(row["edge_mpc"])
     # The cell isn't stored, but a galaxy-placed sector's is fully
-    # determined by its ring and edge (as generate.py builds it).
+    # determined by its ring and edge (as planetgen builds it).
     cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
     sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
 
@@ -8279,7 +8279,7 @@ def _migrate_v32_to_v33(conn):
     skeleton is rebuilt from it at the standard edge (`galaxy_shape.
     edge_pc`, `expected_system_count_at_density_1` and `outer_ring_index`
     are rewritten and `galaxy_layer` is filled), so the galaxy keeps its
-    shape without re-running `generate.py plan`.
+    shape without re-running `planetgen plan`.
 
     Args:
         conn (Connection): An open connection, mid-migration (not yet
@@ -8725,7 +8725,7 @@ def _migrate_v42_to_v43(conn):
     """
     Adds bright-star pre-placement's storage -- see `schema.sql`'s "v43"
     header note: the `bright_stars` table (empty; the next
-    `generate.py plan` scatters) and `galaxy_shape`'s threshold and seed.
+    `planetgen plan` scatters) and `galaxy_shape`'s threshold and seed.
 
     Args:
         conn (Connection): An open connection, mid-migration.
@@ -8742,7 +8742,7 @@ def _migrate_v43_to_v44(conn):
     Adds population and politics' storage (POP.1 to POP.4) -- see
     `schema.sql`'s "v44" header note: the `species`, `polities`,
     `system_owners` and `population_state` tables, empty until the next
-    `generate.py population` pass.
+    `planetgen population` pass.
 
     Args:
         conn (Connection): An open connection, mid-migration.

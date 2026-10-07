@@ -53,10 +53,10 @@ distance first.
   bright-sweep system of a galaxy-placed sector in one pass, before the
   name registry sees the rest, so these objects never touch
   `system_name_registry`.
-- A standalone save with a galaxy position (`generate.py phenomenon
+- A standalone save with a galaxy position (`planetgen phenomenon
   --sector-id`) claims its ID the same way.
 - A name given by hand (`--name`) is kept.
-- An object with no galaxy position (`generate.py sector`, a
+- An object with no galaxy position (`planetgen sector`, a
   `phenomenon` with no sector) keeps its generated name or designation,
   and its core stays `<remnant> Core`.
 - Rows saved before this keep their names; GEN.39 already calls for a

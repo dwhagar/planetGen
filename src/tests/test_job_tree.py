@@ -18,7 +18,8 @@ import time
 
 import pytest
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.galaxy.geometry import ring_sector_count
 from planetgen.cli import job as jobRunner
 from planetgen.queue import work
 from planetgen.db import store as _db
@@ -280,20 +281,20 @@ def test_timing_by_kind(control_config):
 
 
 # ---------------------------------------------------------------------------
-# generate.py and the job runner
+# planetgen and the job runner
 # ---------------------------------------------------------------------------
 
 def test_the_run_argv_leaves_out_the_database_and_debug_options():
     argv = ["galaxy", "--ring", "3", "--mysql-password", "secret", "--debug", "f.log", "--layer=1",
             "--mysql-user=u", "--mysql-database", "db", "--debug", "--yes"]
-    assert generate._run_argv(argv) == ["galaxy", "--ring", "3", "--layer=1", "--yes"]
+    assert generate_cli._run_argv(argv) == ["galaxy", "--ring", "3", "--layer=1", "--yes"]
 
 
 def _run(argv):
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py"] + argv
-        generate.main()
+        sys.argv = ["planetgen"] + argv
+        generate_cli.main()
     finally:
         sys.argv = old_argv
 
@@ -308,7 +309,7 @@ def test_a_galaxy_run_is_a_tree_down_to_its_sectors(control_config):
     assert "secret" not in tree["title"] and control_config.database not in tree["title"]
     assert tree["database_name"] == control_config.database
     queue = tree["children"][0]
-    expected = generate.ring_sector_count(1)
+    expected = ring_sector_count(1)
     assert queue["kind"] == "queue" and queue["tasks_total"] == expected
     assert tree["totals"]["done"] == expected and {task["kind"] for task in queue["tasks"]} == {"sector"}
 

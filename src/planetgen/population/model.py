@@ -11,7 +11,7 @@ territories. See `docs/design/population-and-politics.md`.
 
 Everything here works from what is already stored -- the planets'
 evolutionary paragraphs (`evolution.get_evolutionary_timeline`) and the
-systems' positions -- so it runs as its own pass (`generate.py
+systems' positions -- so it runs as its own pass (`planetgen
 population`, and after every `galaxy`/`sector` run) on a galaxy that was
 generated before it existed. Nothing in system generation changes.
 
@@ -284,7 +284,7 @@ def _one_pass_at_a_time(conn):
     """
     Holds this database's population lock (`GET_LOCK`) for a whole pass,
     so two passes at once -- a `--population` run finishing while
-    another, or `generate.py population`, is still going (TEST.37) --
+    another, or `planetgen population`, is still going (TEST.37) --
     take turns: the second waits, then sees the first's species and
     watermark, rather than both naming the same worlds and one failing
     on a duplicate homeworld or species name.

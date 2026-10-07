@@ -2,7 +2,7 @@
 Unified CLI Logging
 ====================
 
-A single, shared logging channel for `generate.py` and every planetGen
+A single, shared logging channel for `planetgen` and every planetGen
 module -- everything routes through here instead of bare
 `print()` calls, so `--debug`/`--quiet`/`--silent` behave consistently
 everywhere.
@@ -16,18 +16,18 @@ threshold filtering is just `Logger.setLevel`, not reinvented:
     DEBUG   (logging.DEBUG)    -- everything, always timestamped, and
                                    optionally mirrored to a file.
 
-`configure()` is called exactly once, from `generate.py`'s `main()`, right
+`configure()` is called exactly once, from `planetgen`'s `main()`, right
 after argument parsing. Every other module just does
 `from planetgen.util import log` and calls `log.debug(...)`/`log.normal(...)`/
 `log.error(...)`.
 
 Separately from the console, `config.json`'s `"debug": true` (or
 `PLANETGEN_DEBUG=1`) turns on the **debug log**: every entry point --
-`generate.py`, the maintenance scripts, the `html/` CGI pages and the
+`planetgen`, the maintenance scripts, the `html/` CGI pages and the
 Flask API -- appends everything at DEBUG severity to `/var/log/
 planetgen.log` (`"log_file"`/`PLANETGEN_LOG_FILE` to move it), whatever
 the console's own level is. Each line carries a millisecond timestamp,
-the process (`generate.py[1234]`, `web/system.py[88]`, `api[77]`) and the
+the process (`planetgen[1234]`, `web/system.py[88]`, `api[77]`) and the
 source line that logged it. On top of the narrated decisions below, the
 debug log also gets:
 
@@ -47,7 +47,7 @@ none of this is installed and nothing is written.
 `set_console`/`reset_console` let a caller with a live `rich.progress.Progress`
 bar redirect this module's console output through `progress.console.print(...)`
 instead of a raw stdout write, which is required while that bar is live (see
-`generate.py`'s `_generation_progress()` docstring) -- a plain stdout write
+`planetgen`'s `_generation_progress()` docstring) -- a plain stdout write
 fights the bar's own redraw.
 """
 
@@ -595,6 +595,6 @@ def timed_phase(label):
 
 
 # Sensible default so anything that imports planetgen modules directly
-# (tests, `python -c`, etc.) without going through `generate.py`'s `main()`
+# (tests, `python -c`, etc.) without going through `planetgen`'s `main()`
 # still gets today's plain, untimed output rather than silence.
 configure(NORMAL)

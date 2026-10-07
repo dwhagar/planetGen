@@ -25,7 +25,7 @@
 #      reinstalled: the web app, the maintenance scripts and the
 #      `planetgen` wrapper all run the checkout's code directly.
 #   3. The NLTK 'words' corpus: fetched only if it's missing.
-#   4. `generate.py check-math`: the math check (TEST.68). A failure only
+#   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end); bulk generation refuses to start until
 #      it passes.
 #   5. `planetgen.cli.migrate`: brings the database up to the current schema
@@ -33,7 +33,7 @@
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see
 #      migrate_or_reset_db in scripts/deploy-common.sh. The update never
-#      runs the population pass (OPS.7); run `generate.py population` by
+#      runs the population pass (OPS.7); run `planetgen population` by
 #      hand when wanted.
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
@@ -188,7 +188,7 @@ if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
 fi
 echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
-echo "  $PYTHON $SCRIPT_DIR/generate.py population"
+echo "  planetgen population"
 if is_macos; then
     if [[ "$before" != "$after" ]]; then
         echo "Done. Reload gunicorn so the site runs the new code (a running Generate job is left alone):"

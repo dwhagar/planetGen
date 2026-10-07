@@ -1,5 +1,5 @@
 """
-generate.generate_sector_name regression tests (generate.py's `sector`
+generate.generate_sector_name regression tests (planetgen's `sector`
 subcommand).
 
 Covers the two-word invariant: `generate_sector_name` joins two independent
@@ -9,7 +9,7 @@ unchecked, that silently produced 3-4 word sector names instead of 2.
 
 Run with: pytest tests/test_sector_gen.py
 """
-from generate import generate_sector_name
+from planetgen.names.wordsalad import generate_sector_name
 
 TRIALS = 500
 
@@ -31,7 +31,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import generate as sectorGen
+from planetgen.cli import generate as generate_cli
+from planetgen.generation import run_sector
 from planetgen import tuning
 from planetgen.generation.phenomena.compact_remnant import BlackHole
 from planetgen.generation.config import SystemConfig
@@ -66,7 +67,7 @@ def _rate(kind):
 
 def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_poisson_mean(monkeypatch):
     sector = _seeded_sector(7)
-    star_count = sectorGen.sector_star_count(sector)
+    star_count = run_sector.sector_star_count(sector)
     assert star_count >= 7
 
     captured_means = []
@@ -75,13 +76,13 @@ def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_
         captured_means.append(mean)
         return 0  # no actual placement needed for this test
 
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake_sample_poisson_count)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake_sample_poisson_count)
 
     args = SimpleNamespace(markdown=False)
-    entries = sectorGen.generate_sector_phenomena(sector, args)
+    entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert entries == []
-    expected_means = [_rate(kind) * star_count for kind, _type, _factory in sectorGen.SECTOR_PHENOMENON_KINDS]
+    expected_means = [_rate(kind) * star_count for kind, _type, _factory in run_sector.SECTOR_PHENOMENON_KINDS]
     assert sorted(captured_means) == pytest.approx(sorted(expected_means))
 
 
@@ -112,11 +113,11 @@ def _only(kind, count):
 def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     sector = _seeded_sector(4)
     fake = _only("planetary-nebula", 3)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
     args = SimpleNamespace(markdown=False)
-    entries = sectorGen.generate_sector_phenomena(sector, args)
+    entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert len(entries) == 3
     assert all(e.phenomenon_type == "nebula" for e in entries)
@@ -126,31 +127,31 @@ def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     assert len(sector.entries) == 4 + 3
     for entry in entries:
         host = next(e for e in sector.entries if e.position == entry.position)
-        assert sectorGen._spectral_code(host.star_system.stars[0]) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+        assert run_sector._spectral_code(host.star_system.stars[0]) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
 
 
 def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):
     sector = _seeded_sector(2)
     fake = _only("molecular-cloud", 2)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
     assert [e.phenomenon.nebula_type for e in entries] == ["dark", "dark"]
     assert all(e.phenomenon.nebula_class in "MNPQ" for e in entries)
 
 
 def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", lambda mean: 0)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", lambda mean: 0)
     sector = SpaceSector("Hosted Nebula Sector")
     for star_type in ("O5V", "G2V", "M3V"):
         system, cfg = _make_cheap_system(star_type)
         cfg.BINARY_SYSTEM = False
         sector.add_system(system, system_config=cfg)
     hot = sector.entries[0]
-    assert sectorGen._spectral_code(hot.star_system.stars[0]) == "O5V"
+    assert run_sector._spectral_code(hot.star_system.stars[0]) == "O5V"
 
-    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
     assert len(entries) == 1
     assert entries[0].position == hot.position
     assert entries[0].phenomenon.nebula_class in ("C", "D", "E")
@@ -159,10 +160,10 @@ def test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing(monkeypatch):
 def test_brown_dwarfs_are_rogue_planet_rows(monkeypatch):
     sector = _seeded_sector(2)
     fake = _only("brown-dwarf", 2)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
-    entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+    entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
     assert [e.phenomenon_type for e in entries] == ["rogue-planet", "rogue-planet"]
     assert all(e.phenomenon.mass_bin == "brown-dwarf" for e in entries)
 
@@ -173,12 +174,12 @@ def test_generate_sector_phenomena_threads_galactic_center_dist_ly_to_compact_re
     # galactic center, not the fallback constant.
     sector = _seeded_sector(1)
     fake = _only("black-hole", 1)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
     args = SimpleNamespace(markdown=False)
     galactic_center_dist_ly = 5000.0
-    entries = sectorGen.generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
+    entries = run_sector.generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly)
 
     assert len(entries) == 1
     black_hole = entries[0].phenomenon
@@ -195,8 +196,8 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
     # silently skip that one draw rather than crashing the whole sector.
     sector = _seeded_sector(1)
     fake = _only("black-hole", 2)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
     def fake_add_phenomenon(self, phenomenon, phenomenon_type, position=None, min_separation_ly=None):
         raise ValueError("no room -- simulated placement failure")
@@ -204,7 +205,7 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
     monkeypatch.setattr(SpaceSector, "add_phenomenon", fake_add_phenomenon)
 
     args = SimpleNamespace(markdown=False)
-    entries = sectorGen.generate_sector_phenomena(sector, args)
+    entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert entries == []  # both draws failed to place and were skipped, no crash
 
@@ -212,11 +213,11 @@ def test_generate_sector_phenomena_skips_a_massive_draw_that_cannot_be_placed(mo
 def test_generate_sector_phenomena_honors_markdown_flag(monkeypatch):
     sector = _seeded_sector(1)
     fake = _only("comet", 4)
-    fake.stars = sectorGen.sector_star_count(sector)
-    monkeypatch.setattr(sectorGen, "_sample_poisson_count", fake)
+    fake.stars = run_sector.sector_star_count(sector)
+    monkeypatch.setattr(run_sector, "_sample_poisson_count", fake)
 
     args = SimpleNamespace(markdown=True)
-    entries = sectorGen.generate_sector_phenomena(sector, args)
+    entries = run_sector.generate_sector_phenomena(sector, args)
 
     assert len(entries) == 4
     assert all(e.phenomenon.system_config.MARKDOWN is True for e in entries)
@@ -224,11 +225,11 @@ def test_generate_sector_phenomena_honors_markdown_flag(monkeypatch):
 
 def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
     sector = _seeded_sector(9)
-    stars = sectorGen.sector_star_count(sector)
+    stars = run_sector.sector_star_count(sector)
     counts = []
     for _ in range(5):
         sector.phenomena.clear()
-        entries = sectorGen.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
+        entries = run_sector.generate_sector_phenomena(sector, SimpleNamespace(markdown=False))
         counts.append(sum(1 for e in entries if e.phenomenon_type == "rogue-planet"))
     mean = sum(counts) / len(counts)
     expected = (_rate("rogue-planet") + _rate("brown-dwarf")) * stars
@@ -238,7 +239,7 @@ def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
 def test_flag_fast_stars(monkeypatch):
     sector = _seeded_sector(20)
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "runaway-star", 1 / 0.015)
-    assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=26000.0) == 20
+    assert run_sector.flag_fast_stars(sector, galactic_center_dist_ly=26000.0) == 20
     for entry in sector.entries:
         system = entry.star_system
         assert system.runaway_class in ("runaway", "hypervelocity")
@@ -250,7 +251,7 @@ def test_flag_fast_stars(monkeypatch):
     sector = _seeded_sector(5)
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "runaway-star", 0.0)
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "hypervelocity-star", 1e12)
-    assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=1.0) == 5
+    assert run_sector.flag_fast_stars(sector, galactic_center_dist_ly=1.0) == 5
     assert all(e.star_system.runaway_class == "hypervelocity" for e in sector.entries)
     assert all(500 <= e.star_system.runaway_speed_kms <= 1000 for e in sector.entries)
 
@@ -265,17 +266,17 @@ def test_flag_fast_stars(monkeypatch):
 # ---------------------------------------------------------------------------
 
 def _real_sector_args(num_systems, name, planets=None):
-    """A real `sector` subcommand namespace, built via generate.py's own
+    """A real `sector` subcommand namespace, built via planetgen's own
     parser/validators -- generate_sector reads far more of `args` (via
     build_sector_configs/build_system_config) than a hand-built
     SimpleNamespace could safely stand in for. `planets=False` makes every
     system planet-less (cheap); `sector` takes no `-planets` option any
     more (GEN.51), so it is set on the namespace build_system_config reads."""
-    parser, command_parsers = sectorGen.build_parser()
+    parser, command_parsers = generate_cli.build_parser()
     args = parser.parse_args(["sector", "--num-systems", str(num_systems), "--name", name])
     command_parser = command_parsers["sector"]
-    sectorGen.validate_shared_generation_args(args, command_parser)
-    sectorGen.validate_sector_args(args, command_parser)
+    generate_cli.validate_shared_generation_args(args, command_parser)
+    generate_cli.validate_sector_args(args, command_parser)
     args.planets = planets
     return args
 
@@ -297,7 +298,7 @@ def test_generate_sector_stops_gracefully_once_a_system_cannot_be_placed(monkeyp
     monkeypatch.setattr(SpaceSector, "add_system", flaky_add_system)
 
     args = _real_sector_args(10, "CapacityTestSector", planets=False)
-    _sector_name, sector = sectorGen.generate_sector(args)
+    _sector_name, sector = run_sector.generate_sector(args)
 
     assert len(sector.entries) == 3  # stopped right after the 3 successful placements
     assert call_count["n"] == 4  # the 4th (failing) attempt, then no more
@@ -329,7 +330,7 @@ def test_generate_sector_does_not_generate_systems_past_the_first_placement_fail
     monkeypatch.setattr(StarSystem, "__init__", counting_init)
 
     args = _real_sector_args(10, "NoWastedGenerationSector", planets=False)
-    sectorGen.generate_sector(args)
+    run_sector.generate_sector(args)
 
     # 2 successful placements + the 1 that triggered the failure -- not
     # all 10 requested configs.
@@ -345,6 +346,6 @@ def test_generate_sector_real_capacity_overflow_returns_a_partial_sector():
     # planet/moon generation) without touching the real placement logic
     # this test actually cares about.
     args = _real_sector_args(120, "RealCapacityOverflowSector", planets=False)
-    _sector_name, sector = sectorGen.generate_sector(args)
+    _sector_name, sector = run_sector.generate_sector(args)
 
     assert 0 < len(sector.entries) < 120

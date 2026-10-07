@@ -69,7 +69,7 @@ addresses that keep guessing admin passwords.
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.
 - **An optional population pass.** After the database step, the install
-  and update scripts ask whether to run `generate.py population`
+  and update scripts ask whether to run `planetgen population`
   (species, civilizations, territories): y/N, default N after 30
   seconds, and skipped when there is no terminal or console to ask on.
   `POPULATION=1` (`-Population` on Windows) runs it without asking. It

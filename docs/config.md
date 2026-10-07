@@ -2,7 +2,7 @@
 
 This document describes `config.json`, the single per-deployment
 configuration file for the whole planetGen project -- the command-line
-tools (`generate.py`, `planetgen.db.query`, `planetgen.cli.migrate`, `planetgen.cli.orbits`,
+tools (`planetgen`, `planetgen.db.query`, `planetgen.cli.migrate`, `planetgen.cli.orbits`,
 `planetgen.cli.reset`, ...) and the Flask app (the API in
 `../src/planetgen/api/` and the pages in `../src/planetgen/web/`) all read it -- and
 [`../config.json.example`](../config.json.example), the committed
@@ -59,7 +59,7 @@ it by hand: `sudo chown root:www-data config.json && sudo chmod 640 config.json`
 
 Every setting below has up to four sources, checked in this order:
 
-1. An explicit function/CLI argument (e.g. `generate.py sector --mysql-password ...`,
+1. An explicit function/CLI argument (e.g. `planetgen sector --mysql-password ...`,
    or a test building its own `MySQLConfig(...)` directly) -- always wins.
 2. The matching `PLANETGEN_*` environment variable, if set.
 3. `config.json`.
@@ -97,8 +97,8 @@ now, `config.json`).
 | `admin_cookie_insecure` | When true, the admin session cookie is sent over plain HTTP. Only for local development without TLS in front of the app (e.g. `python src/html/wsgi.py`) -- a production deployment must never set this. Equivalent to `PLANETGEN_ADMIN_COOKIE_INSECURE=1`. |
 | `secret_key` | Signs the CSRF tokens on the Flask-served pages' forms (`src/planetgen/web/csrf.py`). Set it to a long random string (e.g. `python3 -c "import secrets; print(secrets.token_hex(32))"`) and keep it private. If empty, the app makes a random one at startup and logs a warning: forms still work, but a form left open across an app restart fails once and has to be resubmitted. Equivalent to `PLANETGEN_SECRET_KEY`. |
 | `tile_cache.dir`/`tile_cache.max_mb` | Where the web pages (the Flask-served `/galaxy` and `/galaxy/tiles`, in the WSGI daemon) keep their on-disk cache of 3D Galaxy Map tiles (see `../src/planetgen/web/lib/tilecache.py`), and roughly how big that cache may grow before its oldest files are pruned. An empty `dir` (the default) means `/var/cache/planetgen/tiles` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`, which also creates a `dir` you set here); if it's missing and Apache can't create it, the cache falls back to a private (mode 0700) `planetgen-tiles` folder in the system temp directory; an existing one that isn't a real directory owned by Apache's user, or that other users can write to, is refused (the cache is then off) rather than reused. `max_mb` of `0` turns the disk cache off. Equivalent to `PLANETGEN_TILE_CACHE_DIR`/`PLANETGEN_TILE_CACHE_MAX_MB`. |
-| `page_cache.enabled`/`max_entries`/`max_mb`/`stamp_seconds`/`max_age_seconds` | Optional (not in `config.json.example`; the defaults are `true`, 2000, 64, 15 and 300). The web pages keep the API's public answers in memory, per WSGI process (see `../src/planetgen/web/lib/pagecache.py`), so a repeat visit doesn't query the database. Any successful write through the API clears it; a new galaxy stamp (sectors or systems added, edited or deleted, by `generate.py` jobs too) is noticed within `stamp_seconds`; nothing is kept longer than `max_age_seconds`. `PLANETGEN_PAGE_CACHE=off` (or `enabled: false`) turns it off. |
-| `jobs.dir`/`jobs.keep`/`jobs.python` | The admin Generate page's background jobs (see `../src/planetgen/web/jobs.py`). `dir` is where each job's command lines, status and output are kept; empty (the default) means `/var/lib/planetgen/jobs` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`), falling back to a private (mode 0700) `planetgen-jobs` folder in the system temp directory, refused under the same conditions as the tile cache's fallback. `keep` is how many finished jobs are kept (default 20). `python` is the interpreter that runs `generate.py` and `planetgen.cli.reset`; empty means the web app's own Python (under mod_wsgi, `<sys.prefix>/bin/python3`). Equivalent to `PLANETGEN_JOBS_DIR`/`PLANETGEN_PYTHON`; `keep` has no environment variable. |
+| `page_cache.enabled`/`max_entries`/`max_mb`/`stamp_seconds`/`max_age_seconds` | Optional (not in `config.json.example`; the defaults are `true`, 2000, 64, 15 and 300). The web pages keep the API's public answers in memory, per WSGI process (see `../src/planetgen/web/lib/pagecache.py`), so a repeat visit doesn't query the database. Any successful write through the API clears it; a new galaxy stamp (sectors or systems added, edited or deleted, by `planetgen` jobs too) is noticed within `stamp_seconds`; nothing is kept longer than `max_age_seconds`. `PLANETGEN_PAGE_CACHE=off` (or `enabled: false`) turns it off. |
+| `jobs.dir`/`jobs.keep`/`jobs.python` | The admin Generate page's background jobs (see `../src/planetgen/web/jobs.py`). `dir` is where each job's command lines, status and output are kept; empty (the default) means `/var/lib/planetgen/jobs` (set it explicitly on Windows), which `install.sh`/`update.sh` create for Apache's user (via `examples/apache/create-cache-dir.sh`), falling back to a private (mode 0700) `planetgen-jobs` folder in the system temp directory, refused under the same conditions as the tile cache's fallback. `keep` is how many finished jobs are kept (default 20). `python` is the interpreter that runs `planetgen` and `planetgen.cli.reset`; empty means the web app's own Python (under mod_wsgi, `<sys.prefix>/bin/python3`). Equivalent to `PLANETGEN_JOBS_DIR`/`PLANETGEN_PYTHON`; `keep` has no environment variable. |
 | `wiki.wikijs.base_url`/`.api_token` | The target Wiki.js instance's root URL and a Personal API Token (Admin -> API Access) -- see `../src/wikiClient/wikijs.py`. Leaving `base_url` empty (the default) means Wiki.js isn't offered as an "Upload to Wiki" target at all. Equivalent to `PLANETGEN_WIKIJS_BASE_URL`/`PLANETGEN_WIKIJS_API_TOKEN`. |
 | `wiki.mediawiki.base_url`/`.username`/`.password` | The target MediaWiki instance's API entry point directory (everything up to, not including, `api.php`) and a [Bot Password](https://www.mediawiki.org/wiki/Special:BotPasswords) (`username` in `"User@BotName"` form) -- see `../src/wikiClient/mediawiki.py`. Leaving `base_url` empty (the default) means MediaWiki isn't offered as an upload target. Equivalent to `PLANETGEN_MEDIAWIKI_BASE_URL`/`PLANETGEN_MEDIAWIKI_USERNAME`/`PLANETGEN_MEDIAWIKI_PASSWORD`. |
 
@@ -135,7 +135,7 @@ at 200 characters.
 | `AUTH` | `login.ok`; `login.failed` (wrong username or password); `login.locked` (refused unchecked while the address or username is locked, with `scope=ip` or `scope=user` and `retry_after=`); `lockout.start` (a failure that started a lock, with `scope=`, `subject=` and `seconds=`); `login.ratelimited` (past the per-address limit); `logout`; `credentials.changed` (with `old_user=` after a rename); `password.failed` (a wrong current password on `/account`); `login.password_ok` (right password, two-factor code still to come); `totp.failed` (a wrong two-factor code); `totp.recovery_used` (with `left=`); `totp.enabled`, `totp.disabled`; `apikey.create`, `apikey.revoke` |
 | `AUTHZ` | `login.required` (an admin route with no session or key); `session.invalid` (an expired, ended or unknown session cookie); `apikey.invalid` (an unknown or revoked API key); `credentials.unchanged` (an admin route refused until the first credentials are changed); `admin.required` (an admin-only page action refused); `csrf.failed` (a form token that doesn't match); each with `path=` |
 | `DB` | every write through the web interface or API (`sector.create`, `system.update`, `star.rename`, `facility.create`, `lockout.lift`, ...: the same action names as `admin_audit_log`, with `target=` and `detail=`; `planetgen.cli.lockouts` writes `lockout.lift`, `devices.revoke` and `totp.reset` too); `migrate` (each schema migration step, `db=`, `from_version=`, `to_version=`) |
-| `GEN` | `generate.start` and `generate.finish` for each `generate.py` run that writes the database (`command=`, `db=`; the finish line adds `status=ok/failed/interrupted`, `seconds=`, `sectors=`, `systems=`, `phenomena=`); `job.start` and `job.cancel` for the admin Generate page |
+| `GEN` | `generate.start` and `generate.finish` for each `planetgen` run that writes the database (`command=`, `db=`; the finish line adds `status=ok/failed/interrupted`, `seconds=`, `sectors=`, `systems=`, `phenomena=`); `job.start` and `job.cancel` for the admin Generate page |
 
 Failed and locked sign-ins and wrong current passwords also go into the
 control database's `admin_audit_log` (kept 90 days), which the admin
@@ -181,7 +181,7 @@ program rotates `logs\planetgen.log` itself (`log_rotation` `"app"`),
 keeping up to 30 numbered copies. A process that can't open the file
 carries on without it and prints one warning to stderr (only when the
 folder exists, so a development checkout stays quiet). A login user who
-runs `generate.py` from a shell needs to be in the web server's group to
+runs `planetgen` from a shell needs to be in the web server's group to
 append to it, as for the debug log.
 
 ## Why the real file is gitignored but the example isn't

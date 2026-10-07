@@ -10,7 +10,8 @@ import math
 
 import pytest
 
-import generate
+from planetgen.generation import run_galaxy
+from planetgen.generation import run_sector
 from planetgen.db import query
 from planetgen.db import store
 from planetgen import tuning
@@ -74,17 +75,17 @@ def test_random_phenomenon_choice_never_picks_a_quasar():
 
 
 def test_add_galactic_nucleus_respects_the_chance(monkeypatch):
-    args = generate._default_generation_args()
+    args = run_galaxy._default_generation_args()
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 0.0)
     sector = SpaceSector("Quiet Core")
-    quiet = generate.add_galactic_nucleus(sector, args, 4.0)
+    quiet = run_sector.add_galactic_nucleus(sector, args, 4.0)
     assert quiet.phenomenon_type == "black-hole"
     assert quiet.phenomenon.mass_class == "supermassive"
     assert quiet.position == (-4.0, 0.0, 0.0)
     sector.phenomena.clear()
 
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
-    entry = generate.add_galactic_nucleus(sector, args, 4.0)
+    entry = run_sector.add_galactic_nucleus(sector, args, 4.0)
     assert entry.phenomenon_type == "quasar"
     assert entry.position == (-4.0, 0.0, 0.0)
 
@@ -97,7 +98,7 @@ def test_core_sector_quasar_is_stored_at_the_galactic_center(mysql_config, monke
 
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     sector = SpaceSector("Core Host")
-    generate.add_galactic_nucleus(sector, generate._default_generation_args(), distance_ly)
+    run_sector.add_galactic_nucleus(sector, run_galaxy._default_generation_args(), distance_ly)
     placement = store._galaxy_placement_from_sector_offset(
         {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z}, sector.phenomena[0].position,
     )
@@ -123,13 +124,13 @@ def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch
     _seed_skeleton(mysql_config, layers=[(1, 0), (0, 0), (-1, 0)])
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     monkeypatch.setattr(
-        generate, "generate_sector",
+        run_sector, "generate_sector",
         lambda args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None: ("Fake", SpaceSector("Fake")),
     )
 
     for layer in (-1, 0, 1):
         for slot in range(n_0):
-            generate.ensure_sector_generated(0, layer, slot, config=mysql_config)
+            run_galaxy.ensure_sector_generated(0, layer, slot, config=mysql_config)
 
     conn = store.get_connection(mysql_config)
     try:
@@ -191,7 +192,7 @@ def test_a_quiescent_nucleus_is_stored_as_a_supermassive_black_hole_at_the_cente
 
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 0.0)
     sector = SpaceSector("Quiet Host")
-    generate.add_galactic_nucleus(sector, generate._default_generation_args(), distance_ly)
+    run_sector.add_galactic_nucleus(sector, run_galaxy._default_generation_args(), distance_ly)
     sector_id = _core_sector(mysql_config, sector=sector)
     conn = store.get_connection(mysql_config)
     try:

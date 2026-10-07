@@ -150,7 +150,7 @@ It runs eight steps and prints each one:
 After step 3 it also offers to run the optional population pass
 (species, civilizations and territories; y/N, defaulting to N after 30
 seconds). `sudo POPULATION=1 ./install.sh` runs it without asking, and
-`generate.py population` runs it any time later. A new galaxy has no
+`planetgen population` runs it any time later. A new galaxy has no
 worlds yet, so there is nothing for it to do on a first install.
 
 `sudo ./install.sh --skip-database` leaves out step 2 and the population
@@ -237,7 +237,7 @@ Where the examples live:
 | [`examples/windows/`](examples/windows/) | IIS `web.config`, Caddy and Apache Lounge configs, WinSW service files, `config.json` example, orbit-update command | [windows.md](docs/deployment/windows.md) |
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
 | [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`), Task Scheduler tasks (`install-maintenance-task.ps1`) | [below](#scheduled-maintenance) |
-| [`examples/systems/`](examples/systems/) | Example system files for `generate.py system --system-file` | [system-file-format.md](docs/system-file-format.md) |
+| [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/system-file-format.md) |
 
 ## 6. HTTPS and the first admin login
 
@@ -264,13 +264,13 @@ later, and so do the Generate buttons on the Galaxy Map and Sector Map.
 **On the command line**, from the checkout:
 
 ```bash
-python3 generate.py plan      # the galaxy's shape and its bright stars; once, before anything else
-python3 generate.py galaxy    # a random start and every sector within 100 ly of it
+planetgen plan      # the galaxy's shape and its bright stars; once, before anything else
+planetgen galaxy    # a random start and every sector within 100 ly of it
 ```
 
-On Windows use the venv's Python
-(`C:\srv\planetgen-venv\Scripts\python.exe generate.py ...`), and on
-macOS `/usr/local/planetgen/venv/bin/python`.
+On Windows run them from the checkout's `src\` with the venv's Python
+(`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate ...`).
+On Linux and macOS the installer adds the `planetgen` command.
 
 **Planning takes a while and needs space.** The plan places every star
 of 500 solar luminosities or more across the whole galaxy, about 60
@@ -312,7 +312,7 @@ When the update includes a schema migration, it first asks whether to
 seconds; admin logins are kept either way). Answer `y` when the release
 notes say to regenerate, then generate the galaxy again
 ([step 7](#7-generate-the-galaxy)). The update never runs the
-population pass; run `generate.py population` by hand when wanted. Then
+population pass; run `planetgen population` by hand when wanted. Then
 reload the site as the script's last line says (Apache reload on Linux,
 a `SIGHUP` to gunicorn on macOS, restarting the service or app pool on
 Windows).
@@ -342,8 +342,8 @@ keeps the data when a migration is pending.
 
 The generator does not need the website. Run the installer anyway (it
 sets up the libraries, database and NLTK corpus) and skip step 5. Then
-run `generate.py` from the checkout. On Linux and macOS the installer
-also adds a `planetgen` command that runs it.
+run `planetgen`, the command the installer adds on Linux and macOS (on
+Windows, `python -m planetgen.cli.generate` from the checkout's `src\`).
 
 ## Development setup
 

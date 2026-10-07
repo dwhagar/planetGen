@@ -48,7 +48,7 @@ land, the map below describes the code as it is.
 
 planetGen has three layers that share one Python package:
 
-1. **Generation.** `generate.py` and the `src/stellarObjects/` package
+1. **Generation.** `planetgen` and the `src/stellarObjects/` package
    build stars, planets, sectors and whole galaxies from physics models
    and random draws.
 2. **Storage.** `src/planetgen/db/store.py` writes those objects into a
@@ -66,7 +66,7 @@ Windows twins), maintenance tools (`planetgen.cli.orbits`,
 
 ```mermaid
 flowchart LR
-    CLI["generate.py<br/>(CLI)"] --> SO["src/stellarObjects/<br/>generation + physics"]
+    CLI["planetgen<br/>(CLI)"] --> SO["src/stellarObjects/<br/>generation + physics"]
     SO --> DB["store.py"]
     DB --> MySQL[("MySQL<br/>content schema<br/>+ control schema")]
     Browser["Browser"] --> WSGI["src/html/wsgi.py"]
@@ -86,9 +86,9 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`generate.py`](../../generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
+| [`planetgen`](../.planetgen) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
-| [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `generate.py population` by hand). Safe to run on a schedule. |
+| [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
 | [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `install.ps1 -Population` runs the population pass without asking. |
 | `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
 | `requirements.lock`, `requirements-server.lock` | Hash-pinned dependency locks, written by `scripts/lock-requirements.sh`. |
@@ -123,7 +123,7 @@ Copy-and-edit configuration for each kind of server. The guides in
 | `examples/systemd/` | The gunicorn service and a drop-in that reloads the web server after an update. |
 | `examples/windows/` | IIS (`web.config`), Caddy, Apache Lounge, waitress service wrapper and the orbit-update task. |
 | `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS) and the Windows `install-maintenance-task.ps1`. |
-| `examples/systems/` | Sample system files for `generate.py system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
+| `examples/systems/` | Sample system files for `planetgen system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
 
 ### src/stellarObjects/
 
@@ -157,7 +157,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 |---|---|
 | `stellarEvolution.py` | Draws a star as physics: Kroupa IMF mass, age from the star-formation history, evolved state (main sequence through remnant). |
 | `stellarPopulation.py` | The population model split at a luminosity threshold: bright stars for plan time, dim stars for sector fill. |
-| [`brightStars.py`](../../src/stellarObjects/brightStars.py) | Galaxy-wide bright-star scatter after `generate.py plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
+| [`brightStars.py`](../../src/stellarObjects/brightStars.py) | Galaxy-wide bright-star scatter after `planetgen plan` (ring by ring, into `bright_stars`), the per-block backfill around each generated sector (`backfill_cells`, GEN.23), and `FillContext`, which a sector fill uses to build systems around its pre-placed stars. |
 
 #### Exotic phenomena (outside any system)
 
@@ -176,7 +176,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 | [`spaceSector.py`](../../src/stellarObjects/spaceSector.py) | `SpaceSector` and `SectorSystemEntry`: a region of space holding placed systems and phenomena, with Hill-sphere spacing. |
 | [`galaxyGeometry.py`](../../src/stellarObjects/galaxyGeometry.py) | The cylindrical sector grid: ring, layer and slot addresses, `SectorCell`, sector positions, neighbors, designations. See [galaxy-coordinate-system.md](galaxy-coordinate-system.md). |
 | [`galaxyDensity.py`](../../src/stellarObjects/galaxyDensity.py) | The disk, bulge and spiral-arm density model (`GalaxyShape`, `relative_density`). See [galaxy-disk-density.md](galaxy-disk-density.md). |
-| `galaxySkeleton.py` | The galaxy's outline: which layers hold content and how far out each reaches. Stored by `generate.py plan`. |
+| `galaxySkeleton.py` | The galaxy's outline: which layers hold content and how far out each reaches. Stored by `planetgen plan`. |
 | `galaxyViewport.py` | The Galaxy Map's data layer: cube tile keys and what each tile holds. |
 | `galaxyDrill.py` | The Galaxy Map's drill-down block ladder (243, 27, 3, 1 sectors a side). Mirrored in `static/galaxyprisms.js`. See [galaxy-drilldown-navigation.md](galaxy-drilldown-navigation.md). |
 
@@ -296,7 +296,7 @@ the browser loads.
 | `nav_page.py` | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | `admin_pages.py` | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
 | `generate_page.py` | `/admin/generate` (new galaxy, plan, generate sectors, reset), `/admin/generate/status`, `/admin/generate/jobs/<id>`. |
-| `system_page.py` | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `generate.py system --output`). |
+| `system_page.py` | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `planetgen system --output`). |
 | `jobs.py` | Background job directories, the one-job lock, spawning `planetgen.cli.job` detached, cancel, listing. |
 | `transport.py` | The in-process transport that lets `apiclient` call the API routes without a socket. |
 | `helpers.py` | `render_page`, `db_name`, `page_url`, breadcrumbs, `current_admin`, `generate_target`. |
@@ -386,19 +386,19 @@ without it. See [testing.md](../testing.md).
 
 ## Flow 1: generating a galaxy
 
-A galaxy is built in two passes. `generate.py plan` stores the galaxy's
+A galaxy is built in two passes. `planetgen plan` stores the galaxy's
 shape and outline and scatters its bright stars. Then sectors are filled
-one at a time, either in bulk (`generate.py galaxy`) or on demand when an
+one at a time, either in bulk (`planetgen galaxy`) or on demand when an
 admin asks for a neighborhood.
 
 ```mermaid
 flowchart TD
-    Plan["generate.py plan<br/>run_plan"] --> Skel["build_skeleton<br/>galaxyDensity.build_galaxy_shape<br/>galaxySkeleton.build_layer_extents"]
+    Plan["planetgen plan<br/>run_plan"] --> Skel["build_skeleton<br/>galaxyDensity.build_galaxy_shape<br/>galaxySkeleton.build_layer_extents"]
     Skel --> SaveSkel["_db.clear_bright_stars<br/>store.replace_galaxy_layers<br/>store.save_galaxy_shape"]
     SaveSkel --> Scatter["scatter_bright_stars<br/>brightStars.scatter<br/>(stellarPopulation, stellarEvolution)"]
     Scatter --> BS[("bright_stars table")]
 
-    Galaxy["generate.py galaxy<br/>run_galaxy"] --> Bounds["_db.get_galaxy_bounds<br/>(refuses if never planned)"]
+    Galaxy["planetgen galaxy<br/>run_galaxy"] --> Bounds["_db.get_galaxy_bounds<br/>(refuses if never planned)"]
     Bounds --> Mode["mode: random start, ring, column,<br/>shell, one slot, neighborhood"]
     Mode --> At["generate_and_save_sector_at<br/>(per address)"]
     OnDemand["API: generate-neighborhood<br/>generate_sector_neighborhood"] --> At
@@ -414,7 +414,7 @@ flowchart TD
     Save --> DB[("sectors, star_systems, stars,<br/>planets, moons, phenomena")]
 ```
 
-**Plan.** `run_plan` in `generate.py` builds a `GalaxyShape`
+**Plan.** `run_plan` in `planetgen` builds a `GalaxyShape`
 (`galaxyDensity.py`) and finds each layer's reach with
 `galaxySkeleton.build_layer_extents`. It clears old bright stars and stores
 the outline (`galaxy_layer`, `galaxy_column`) and shape (`galaxy_shape`).
@@ -449,21 +449,21 @@ inserts stars, planets, moons, belts and comets), marks bright stars
 filled, inserts phenomena with their galaxy-frame placement, and refreshes
 cloud containment and nearest-system rows.
 
-`generate.py system` and `generate.py sector` build the same objects
-without a galaxy (a cube sector, no address). `generate.py system
+`planetgen system` and `planetgen sector` build the same objects
+without a galaxy (a cube sector, no address). `planetgen system
 --output FILE` writes the page and saves nothing.
 
 **Population (optional).** Species, civilizations, polities and
 territories are a separate pass over what is already stored, so system
 generation does not change and an old galaxy can be populated without a
-regenerate. It is off by default: it runs from `generate.py population`,
-after `generate.py sector` or `galaxy` only with `--population`, or when
+regenerate. It is off by default: it runs from `planetgen population`,
+after `planetgen sector` or `galaxy` only with `--population`, or when
 someone answers y to the installer's prompt (Flow 5).
 
 ```mermaid
 flowchart TD
-    PopCLI["generate.py population<br/>run_population"] --> Pass["population.run_pass"]
-    After["generate.py sector / galaxy<br/>--population<br/>run_population_after"] --> Pass
+    PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_pass"]
+    After["planetgen sector / galaxy<br/>--population<br/>run_population_after"] --> Pass
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
     Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
     Scan --> Civ["refresh_civilizations<br/>era_for_age, found or dissolve polities,<br/>reach_ly"]
@@ -494,7 +494,7 @@ accounts for the whole deployment. Each has its own version table.
 
 ```mermaid
 flowchart TD
-    Any["any writer<br/>(generate.py, tests)"] --> GC["_db.get_connection<br/>ensure_schema=True"]
+    Any["any writer<br/>(planetgen, tests)"] --> GC["_db.get_connection<br/>ensure_schema=True"]
     GC --> ES["_ensure_schema<br/>runs schema.sql (CREATE IF NOT EXISTS)<br/>seeds schema_migrations = SCHEMA_VERSION"]
     ES --> Content[("content schema")]
 
@@ -671,7 +671,7 @@ flowchart TD
 
     Gen["POST /admin/generate<br/>web/generate_page.py<br/>(CSRF + fresh admin)"] --> SJ["web/jobs.start_job<br/>job.json, take 'active' lock"]
     SJ --> Spawn["spawn detached:<br/>python3 -m planetgen.cli.job JOBDIR"]
-    Spawn --> Steps["each step in order:<br/>planetgen.cli.reset --yes, generate.py plan --no-bright-stars,<br/>generate.py plan --bright-stars-only, generate.py galaxy ..."]
+    Spawn --> Steps["each step in order:<br/>planetgen.cli.reset --yes, planetgen plan --no-bright-stars,<br/>planetgen plan --bright-stars-only, planetgen galaxy ..."]
     Steps --> Files["state.json, output.log,<br/>progress.json (progressFile.py)"]
     Poll["static/generatejobs.js<br/>GET /admin/generate/status"] --> Files
 ```
@@ -699,13 +699,13 @@ into a new job directory, takes the one-job `active` lock, and spawns
 `planetgen.cli.job` detached from the web server, so a request timeout or a
 server reload does not stop it. The runner runs each step with the site's
 database in `PLANETGEN_MYSQL_*` and `PLANETGEN_PROGRESS_FILE` set; it
-writes `state.json` and `output.log`, and `generate.py` writes
+writes `state.json` and `output.log`, and `planetgen` writes
 `progress.json`. The page only reads those files
 (`/admin/generate/status`, polled by `static/generatejobs.js`). Cancel
 writes a `cancel` file the runner watches. A lock left by a dead runner is
 cleared by the next `start_job`.
 
-Planning runs the bright-star scatter as its own step (`generate.py plan
+Planning runs the bright-star scatter as its own step (`planetgen plan
 --bright-stars-only` after `plan --no-bright-stars`), so the job shows its
 progress bar and count; "Skip the bright-star scatter" leaves it out, and
 "Rebuild the bright stars" runs it alone on the stored plan. Generate
@@ -714,7 +714,7 @@ asks for a radius in light years, 13 to 652, and asks again past about
 5,000 sectors.
 
 The one-off system page (`/admin/generate/system`, `web/system_page.py`)
-does not use jobs: it runs `generate.py system --output` in a temporary
+does not use jobs: it runs `planetgen system --output` in a temporary
 directory and waits, since a system takes about a second.
 
 ## Flow 5: install, update and releases
@@ -729,7 +729,7 @@ flowchart TD
         DC --> NL["NLTK words corpus"]
         DC --> MR["migrate_or_reset_db -> planetgen.cli.migrate"]
         I --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
-        POP -->|"y"| GP["generate.py population"]
+        POP -->|"y"| GP["planetgen population"]
         DC --> WS["Apache modules / gunicorn daemon"]
         I --> EX["examples/apache/*.sh<br/>permissions, cache + jobs dirs, debug log"]
         U --> EX
@@ -755,7 +755,7 @@ Libraries come from `scripts/install-python-deps.sh` (pip with
 `--require-hashes` from `requirements.lock`, or apt on an externally
 managed Python). The database step is `planetgen.cli.migrate` (Flow 2).
 After it (in `install.sh`, after the NLTK corpus, which the species names
-need), `offer_population_pass` asks whether to run `generate.py
+need), `offer_population_pass` asks whether to run `planetgen
 population`. The answer defaults to No after 30 seconds, and with no
 terminal the question is skipped. `POPULATION=1` (`-Population` on
 Windows) runs it without asking. The update scripts never ask or run it

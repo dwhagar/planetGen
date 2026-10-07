@@ -228,7 +228,17 @@ so each PR's modules import ones that already moved:
     (section 6.4); `stellarObjects` is gone.
 14. `generate.py` into `planetgen.generation.run_*` and
     `planetgen.cli.generate`; the root file is gone, and `pytest.ini`'s
-    `pythonpath` is gone.
+    `pythonpath` is gone. Done in two PRs: the split first, then the
+    editable install with the `sys.path` pushes and `pythonpath`. What
+    every command shares (the progress bar, the `--strict`
+    refuse-or-warn rule, the run's counts, the work queue, the
+    statistics and estimate) went to `planetgen.generation.run_common`,
+    so the run modules import downward only (system, sector, galaxy, then
+    plan); the bright-star band drawing moved from the galaxy section to
+    `run_plan`, which owns the scatter. Command options stay in
+    `planetgen.cli.generate`; `run_galaxy` imports the shared generation
+    options from it inside `_default_generation_args`, the one place a
+    run module needs them.
 
 ### 6.6 Deployment
 
