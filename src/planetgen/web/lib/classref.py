@@ -369,6 +369,11 @@ def _rogue_planet():
     }
 
 
+PARABOLIC_COMET_CLASS = "parabolic"
+"""str: The comet class code of a comet on an open (parabolic) orbit,
+which has no period class (UX.29)."""
+
+
 def _comet():
     total = sum(data["weight"] for data in pc.COMET_PERIOD_CLASSES.values())
     classes = {}
@@ -381,11 +386,20 @@ def _comet():
             ("Inclination", f"0 to {number(data['inclination_max_deg'])}°"),
             ("Share of periodic comets", percent(data["weight"] / total)),
         ])
+    # UX.29: a comet on an open (parabolic) orbit has no period class, so
+    # it gets a class of its own and every comet row can link one.
+    classes[PARABOLIC_COMET_CLASS] = _entry(
+        PARABOLIC_COMET_CLASS, "Single-apparition comet",
+        "Comets on open (parabolic) orbits: each passes its star once and never returns.", [
+            ("Orbit", "Open (parabolic), eccentricity 1"),
+            ("Inclination", f"0 to {number(pc.PARABOLIC_COMET_INCLINATION_MAX_DEG)}°"),
+        ])
     return {
         "name": "Comet Classes",
         "label": "Comet class",
-        "summary": "A star's periodic comets, by the length of their orbits.",
-        "notes": ["Only comets on closed (elliptical) orbits have a period class; single-apparition comets have none."],
+        "summary": "A star's comets: periodic ones by the length of their orbits, and single-apparition ones.",
+        "notes": ["Comets on closed (elliptical) orbits have a period class; comets on open (parabolic) orbits "
+                  "are single-apparition comets."],
         "classes": classes,
     }
 
