@@ -1,5 +1,27 @@
 # Changelog
 
+## [7.203.610] - 2026-10-07
+
+### Fixed
+
+- The console no longer tells the user no (GEN.81). A run the database disk is too small for, a ring, shell or block past 2,000 sectors without `--limit` or `--yes`, an address named outside the galaxy's outline, `--min-habitable` above a sector's drawn count, and a forced body no system had room for each print a warning, and the run goes ahead: the named address is generated at the halo density, the sector gets that many systems, the last system tried is kept. Bad arguments are still refused. `--strict` (on `system`, `sector` and `galaxy`) keeps the old stop for scripts.
+- The installer no longer mixes apt's NumPy 1.x builds with pip's NumPy 2 (OPS.26). On Ubuntu 24.04 pip put NumPy 2.5.3 into /usr/local as a dependency of a newer scipy, and apt's astropy (erfa) and scikit-image, built for NumPy 1.x, stopped importing. NumPy, scipy, astropy with pyerfa and scikit-image now always come from one place: when pip must provide any of them, or would pull any of them in, it installs all of them from `requirements.lock`, and the report says so.
+
+## [7.202.610] - 2026-10-07
+
+### Changed
+- TODO: Boss's answers to the open decisions are recorded. Wide-binary planets are named from two words (GEN.71). Orbital updates follow real time, one day per day, with an option to advance more (GEN.105). The orbital neighbour search is checked against the ring, layer and slot sectors (GEN.109). GEN.65 becomes a test across neighbourhood centres. New OPS.27 points the Windows installer at Redis in WSL.
+
+## [7.201.610] - 2026-10-07
+
+### Changed
+- **The HTML pages and the app factory move into `planetgen.web` (OPS.24, step 12 of 14).** `src/html/web/`, with its templates, is now `src/planetgen/web/`, and `create_app` moved from `planetgen.api.app` to `planetgen.web.app`. `src/html/` now holds only `wsgi.py` and `static/`, so the Apache, gunicorn and waitress setup doesn't change. `wsgi.py` adds only `src/` to `sys.path`, and the tests no longer need `src/html` on it.
+
+## [7.200.610] - 2026-10-07
+
+### Added
+- TODO: OPS.26 (bug) records Boss's Ubuntu 24.04 install failure. apt's NumPy-1 builds of astropy, erfa and scikit-image cannot load alongside the NumPy 2 that pip pulls in, so the requirements probe reports them as unusable.
+
 ## [7.199.608] - 2026-10-07
 
 ### Changed

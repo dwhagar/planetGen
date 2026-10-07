@@ -359,21 +359,35 @@ def test_center_sector_without_galaxy_position_is_rejected(mysql_config):
     assert len(_all_sectors(mysql_config)) == 1
 
 
-def test_ring_batch_mode_rejects_large_ring_without_limit_or_yes(mysql_config):
+def test_ring_batch_mode_rejects_large_ring_without_limit_or_yes_under_strict(mysql_config):
     """Ring 400 holds 2,516 slots (above LARGE_RING_WARNING_THRESHOLD's
-    2,000) -- a bare --ring 400 must be refused rather than silently
+    2,000) -- under --strict a bare --ring 400 is refused rather than
     attempting to generate all of them."""
     assert ring_sector_count(400) > galaxyGen.LARGE_RING_WARNING_THRESHOLD
     _plan_wide_galaxy(mysql_config)
 
     with pytest.raises(SystemExit):
-        _run_cli(["--ring", "400", "--num-systems", "1"] + _mysql_argv(mysql_config))
+        _run_cli(["--ring", "400", "--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
 
     assert len(_all_sectors(mysql_config)) == 0
 
     # --limit bypasses the guard even without --yes.
     _run_cli(["--ring", "400", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 2
+
+
+@pytest.mark.parametrize("argv", [
+    ["--ring", "1", "--layer", "0"],
+    ["--ring", "1", "--shell"],
+    ["--block", "3.2.1.0"],
+])
+def test_a_large_run_without_limit_or_yes_warns_and_goes_ahead(mysql_config, monkeypatch, capsys, argv):
+    # GEN.81: a threshold of 3 makes these "large"; they warn and run whole.
+    monkeypatch.setattr(galaxyGen, "LARGE_RING_WARNING_THRESHOLD", 3)
+    _seed_skeleton(mysql_config, layers=[(1, 9), (0, 9), (-1, 9)])
+    _run_cli(argv + ["--num-systems", "1"] + _mysql_argv(mysql_config), planets=False)
+    assert len(_all_sectors(mysql_config)) > 3
+    assert "a very large run" in " ".join(capsys.readouterr().out.split())
 
 
 def test_column_mode_generates_one_slot_through_every_layer(mysql_config):
@@ -399,10 +413,10 @@ def test_shell_mode_generates_every_slot_of_a_ring_through_every_layer(mysql_con
     }
 
 
-def test_shell_mode_needs_limit_or_yes_when_large(mysql_config):
+def test_shell_mode_needs_limit_or_yes_when_large_under_strict(mysql_config):
     _plan_wide_galaxy(mysql_config)
     with pytest.raises(SystemExit):
-        _run_cli(["--ring", "30", "--shell", "--num-systems", "1"] + _mysql_argv(mysql_config))
+        _run_cli(["--ring", "30", "--shell", "--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 0
     _run_cli(["--ring", "30", "--shell", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 2
@@ -460,13 +474,18 @@ def test_block_mode_skips_what_the_outline_leaves_out(mysql_config):
     _run_cli(["--block", "3.2.1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
     assert {_address(row)[1] for row in _all_sectors(mysql_config)} == {0}
     with pytest.raises(SystemExit):
-        _run_cli(["--block", "3.2.1.0", "--block-layer", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+        _run_cli(["--block", "3.2.1.0", "--block-layer", "1", "--num-systems", "1", "--strict"]
+                 + _mysql_argv(mysql_config))
+    # GEN.81: without --strict, a warning and nothing to generate.
+    before = len(_all_sectors(mysql_config))
+    _run_cli(["--block", "3.2.1.0", "--block-layer", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == before
 
 
-def test_block_mode_needs_limit_or_yes_when_large(mysql_config):
+def test_block_mode_needs_limit_or_yes_when_large_under_strict(mysql_config):
     _plan_wide_galaxy(mysql_config)
     with pytest.raises(SystemExit):
-        _run_cli(["--block", "27.2.0.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
+        _run_cli(["--block", "27.2.0.0", "--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 0
     _run_cli(["--block", "27.2.0.0", "--limit", "2", "--num-systems", "1"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 2
@@ -1265,8 +1284,9 @@ def test_ring_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql
     Deterministic companion to the neighborhood test above (that one's
     outcome depends on where the random draw lands; this one doesn't): a
     ring chosen well beyond the real skeleton's own discovered outer edge
-    is refused up front, before anything is generated -- even with an
-    explicit --num-systems, which once skipped every galaxy check.
+    is refused up front under --strict, before anything is generated --
+    even with an explicit --num-systems, which once skipped every galaxy
+    check.
     """
     summary = _build_real_skeleton(mysql_config)
     beyond_edge_ring = summary["outer_ring_index"] + 10
@@ -1274,7 +1294,7 @@ def test_ring_batch_generates_nothing_beyond_the_real_skeletons_outer_edge(mysql
     for extra in ([], ["--num-systems", "1"]):
         with pytest.raises(SystemExit):
             _run_cli([
-                "--ring", str(beyond_edge_ring), "--limit", "25",
+                "--ring", str(beyond_edge_ring), "--limit", "25", "--strict",
             ] + extra + _mysql_argv(mysql_config), planets=False)
 
     assert _all_sectors(mysql_config) == []
@@ -1597,11 +1617,24 @@ def test_galaxy_refuses_to_run_before_a_plan(mysql_config):
     ["--ring", "3", "--layer", "0", "--slot", "0"],
     ["--ring", "0", "--layer", "2", "--slot", "0"],
 ])
-def test_addresses_outside_the_outline_are_refused_before_generating(mysql_config, argv):
+def test_addresses_outside_the_outline_are_refused_before_generating_under_strict(mysql_config, argv):
     _seed_skeleton(mysql_config, layers=[(1, 1), (0, 2), (-1, 1)])
     with pytest.raises(SystemExit):
-        _run_cli(argv + ["--num-systems", "1"] + _mysql_argv(mysql_config))
+        _run_cli(argv + ["--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
     assert _all_sectors(mysql_config) == []
+
+
+@pytest.mark.parametrize("argv, expected", [
+    (["--ring", "3", "--layer", "0", "--slot", "0"], {(3, 0, 0)}),
+    (["--ring", "0", "--layer", "2", "--slot", "0"], {(0, 2, 0)}),
+    (["--ring", "1", "--layer", "2"], {(1, 2, slot) for slot in range(ring_sector_count(1))}),
+])
+def test_an_address_named_outside_the_outline_warns_and_is_generated(mysql_config, capsys, argv, expected):
+    # GEN.81: the console never says no to an address the user named.
+    _seed_skeleton(mysql_config, layers=[(1, 1), (0, 2), (-1, 1)])
+    _run_cli(argv + _mysql_argv(mysql_config), planets=False)
+    assert {_address(row) for row in _all_sectors(mysql_config)} == expected
+    assert "WARNING:" in capsys.readouterr().out
 
 
 def test_neighborhood_is_trimmed_to_the_outline_even_with_explicit_num_systems(mysql_config):
@@ -1634,8 +1667,12 @@ def test_neighborhood_around_a_sector_outside_the_outline_is_refused(mysql_confi
     center_id = _all_sectors(mysql_config)[0]["id"]
 
     with pytest.raises(SystemExit):
-        _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1"]
+        _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1", "--strict"]
                  + _mysql_argv(mysql_config))
+    # GEN.81: without --strict, a warning; the sphere holds nothing inside
+    # the outline, so nothing more is generated.
+    _run_cli(["--center-sector", str(center_id), "--radius-pc", "12", "--num-systems", "1"]
+             + _mysql_argv(mysql_config))
     with pytest.raises(ValueError):
         galaxyGen.generate_sector_neighborhood(center_id, radius_ly=10.0, config=mysql_config)
     assert len(_all_sectors(mysql_config)) == 1

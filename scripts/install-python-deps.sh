@@ -137,6 +137,18 @@ REQUIREMENTS=(
     "scikit-image>=0.22.0 python3-skimage"
 )
 
+# NumPy and the libraries built against its C API (OPS.26). A compiled
+# extension only works with the NumPy major version it was built for:
+# apt's python3-astropy, python3-erfa and python3-skimage are built for
+# apt's NumPy 1.x, so once pip puts a NumPy 2 in /usr/local (say, as a
+# dependency of a newer scipy than apt has) they fail to import. So these
+# always come from one place: when pip has to provide any of them, or
+# would pull any of them in, it provides all of them, with pyerfa
+# (astropy's compiled half), from requirements.lock, and apt's copies are
+# shadowed together.
+NUMPY_STACK=("numpy>=1.26.0" "scipy>=1.13.0" "astropy>=6.0.0" "scikit-image>=0.22.0" "pyerfa>=2.0")
+NUMPY_STACK_NAMES=" numpy scipy astropy scikit-image pyerfa "
+
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2
     exit 1
@@ -231,16 +243,33 @@ apt_install() {
 # the version in requirements.lock, and the install uses --require-hashes,
 # so pip only accepts the exact files the lock names.
 pip_install_system() {
+    # --whole: resolve as if nothing were installed, so every library the
+    # requirements need comes from pip (the NumPy stack, NUMPY_STACK).
+    local whole=0
+    if [[ "${1:-}" == --whole ]]; then whole=1; shift; fi
     if ! "$PYTHON" -m pip --version >/dev/null 2>&1 && command -v apt-get >/dev/null 2>&1; then
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends python3-pip || true
     fi
-    local flags=() hashed status=0 pins=()
+    local flags=() resolve_flags=() hashed status=0 pins=() pin
     [[ "$MODE" == managed ]] && flags+=(--break-system-packages)
+    resolve_flags=(${flags[@]+"${flags[@]}"})
+    (( whole )) && resolve_flags+=(--ignore-installed)
     hashed="$(mktemp)"
-    "$PYTHON" -I "$LOCK_PINS" resolve "$LOCK" "$hashed" ${flags[@]+"${flags[@]}"} -- "$@" || status=$?
+    "$PYTHON" -I "$LOCK_PINS" resolve "$LOCK" "$hashed" ${resolve_flags[@]+"${resolve_flags[@]}"} -- "$@" \
+        || status=$?
     if (( status != 3 )); then
         if (( status == 0 )); then
             read_lines pins < <(awk '{print $1}' "$hashed")
+        fi
+        if (( ! whole )); then
+            for pin in ${pins[@]+"${pins[@]}"}; do
+                if [[ "$NUMPY_STACK_NAMES" == *" ${pin%%==*} "* ]]; then
+                    # Would mix pip's NumPy stack with apt's: the caller
+                    # installs the whole stack instead (OPS.26).
+                    rm -f "$hashed"
+                    return 4
+                fi
+            done
         fi
         if (( ${#pins[@]} )); then
             # An older copy pip itself installed (outside apt's
@@ -281,6 +310,25 @@ EOF
     rm -f "$hashed"
 }
 
+# pip-installs the given requirements system-wide (pip_install_system),
+# except that the NumPy stack (NUMPY_STACK) is installed whole whenever
+# any of it is asked for or would be pulled in (OPS.26).
+pip_install_needed() {
+    local spec rest=() stack=0 status=0
+    for spec in "$@"; do
+        if [[ "$NUMPY_STACK_NAMES" == *" ${spec%%>=*} "* ]]; then stack=1; else rest+=("$spec"); fi
+    done
+    if (( ${#rest[@]} )); then
+        pip_install_system ${rest[@]+"${rest[@]}"} || status=$?
+        (( status == 4 )) && stack=1
+    fi
+    if (( stack )); then
+        echo "NumPy and the libraries built on it (${NUMPY_STACK[*]}) must come from one place:" \
+             "installing all of them with pip."
+        pip_install_system --whole "${NUMPY_STACK[@]}" || true
+    fi
+}
+
 # Earlier versions put the fallback libraries in a venv that a .pth file
 # put first on sys.path. Removed before anything is checked, so the
 # check sees the system Python on its own and fills any gap system-wide.
@@ -315,7 +363,9 @@ source_of() {
     fi
     pkg="$(package_of "$spec")"
     candidate="$(apt_candidate "$pkg")"
-    if [[ -z "$candidate" ]]; then
+    if [[ "$NUMPY_STACK_NAMES" == *" ${spec%%>=*} "* ]]; then
+        echo "pip, with the rest of NumPy's stack; apt's $pkg is ${candidate:-not available}"
+    elif [[ -z "$candidate" ]]; then
         echo "pip, apt has no $pkg"
     elif dpkg --compare-versions "$candidate" lt "${spec#*>=}" 2>/dev/null; then
         echo "pip, apt's $pkg is $candidate, below ${spec#*>=}"
@@ -482,7 +532,7 @@ install_managed() {
     if (( ${#need[@]} )); then
         echo "Not provided well enough by apt (missing, too old or broken): ${need[*]}"
         echo "Installing those system-wide with pip."
-        pip_install_system "${need[@]}"
+        pip_install_needed "${need[@]}"
     fi
     write_wrapper
     final_report
@@ -549,7 +599,7 @@ check_requirements() {
             fi
         fi
         if (( ${#need[@]} )); then
-            pip_install_system "${need[@]}"
+            pip_install_needed "${need[@]}"
         fi
     fi
 

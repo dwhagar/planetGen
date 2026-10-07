@@ -28,15 +28,14 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
+| GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | No longer held (Boss 17:11Z): a test of neighbourhoods near the galaxy's edge and other places, through web and CLI; last in its group. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
 
 ### Bugfixes: console and progress
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) |  |  |
-| ADM.33 | The owner can override "no room" warnings and generate anyway | GEN.81 | Groundwork for GEN.81 on the web side. |
+| ADM.33 | The owner can override "no room" warnings and generate anyway |  | Groundwork for GEN.81 on the web side. |
 
 ### Bugfixes: maps and pages
 
@@ -66,7 +65,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) |  | test_facilities.py; a random giant's sphere of influence can be under the test's 500,000 km orbit. |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) |  | test_web_browser_maps.py drill-down by clicks; failed once under -n auto on MariaDB 10.11, passed 3 of 3 alone. |
-| OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) |  | Boss's install on Ubuntu 24.04 (2026-10-07 16:57Z); fix after the current test run. |
 
 ### Groundwork: layout and libraries
 
@@ -112,6 +110,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | PERF.24 | The work queue and web jobs on Redis with RQ | PERF.19 | Replaces workQueue.py and jobRunner.py; folds OPS.19 and settles PERF.19. |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | PERF.24 | Folded into PERF.24: the job store moves with the queue. jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
 | PERF.25 | The page cache on cachetools; the tile cache stays |  | tilecache.py stays (JSON only, Boss 13:27Z); diskcache, sqlitedict, cachelib and Flask-Caching are out. PERF.20 plans short-term API caching on top of it. |
+| OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai |  | Boss 2026-10-07 17:11Z: "Let's say Redis in WSL". |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | PERF.24 | Folds the four log and progress bugs below. |
 | ADM.23 | Log output wraps with hard line breaks (bug) | ADM.22 |  |
 | ADM.24 | A failed action's log closes before it can be read (bug) | ADM.22 |  |
@@ -183,13 +182,16 @@ One thread at a time (Boss, 2026-10-03 and 2026-10-07). The
 bugfix lane is the threads named "Bugfixes: ...", the groundwork
 lane those named "Groundwork: ...". Default order: Bugfixes: CI red
 first, then Groundwork: layout and libraries (so code moves once),
-then the lanes alternate group by group. GEN.65 is held until Boss
-sends the error text.
+then the lanes alternate group by group. Boss (2026-10-07 17:11Z):
+"When one thread is idle waiting for CI we can start another thread on
+something else, the idea being to always have at least 1 thread going
+without even going tover the 2 dev 1 todo limit." GEN.65 is no longer
+held: it is a test across many neighbourhood centres (see TODO.md).
 
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). MAP.115 is folded into MAP.116 (2026-10-07).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 

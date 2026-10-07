@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.26, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, ADM.33, UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, OPS.27, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -2217,8 +2217,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.65 A generation run fails from the web UI but not from the CLI (bug)**
-  High priority, top of phase 0; not started until Boss says so. Boss
-  (2026-10-02 08:08Z): "I had a strange generation error from the web
+  Boss (2026-10-02 08:08Z): "I had a strange generation error from the web
   UI but it didn't happen in the CLI, that needs investigation.   Add a
   TODO item with a high priority bugfix but don't start yet." The error
   text and which page and options he used are not known yet; ask Boss
@@ -2227,7 +2226,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and CLI paths that causes it is found and fixed, and a test runs the
   same generation through both paths. [generation, web]
   Plan (2026-10-07): May be the same failure as GEN.76 (sectors below
-  the star threshold); still held until Boss sends the error text.
+  the star threshold). Boss (2026-10-07 17:11Z): "I do not have the
+  error message, keep an eye out for it, but put it on the back burner
+  for something to watch out for, design a test that will test for it
+  in a variety of situations, I think this error occurred when I was
+  attempting to generate  a neighborhood when the center was close to
+  the edge of the galaxy." So it is no longer held, but comes last in
+  its group. Done now means: a test generates neighbourhoods through
+  both the web job path and the CLI, centred at the galaxy's rim, just
+  inside and just outside it, at the top and bottom layers, at the core
+  and in a sparse region; any failure it finds is fixed; and if Boss
+  sees the error again, its text goes here.
 
 - [ ] **GEN.66 Physics on scipy, and astropy constants and units**
   Today `keplerMotion.py` solves Kepler and Barker by hand and
@@ -2286,9 +2295,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     as "<system> I", moons, belts, sectors, phenomena), and `names.py`,
     `bodyNames.py`, `nameUniqueness.py`, `dedupeNames.py`, the nltk
     corpus and the name registry tables go, with an Alembic migration.
-    Wide-binary naming (GEN.62) is re-expressed on codec names (open
-    question for Boss; default: the pair shares the codec name with "A"
-    and "B").
+    Wide binaries: Boss (2026-10-07 17:11Z): "No, we should never have
+    A I or such for planet names.  Adjust the algorithm to produce 2
+    words from the name.  A says word 1 I, word 1 II, etc...  B planets
+    say word 2 I, word 2 II, etc..." So a wide pair's codec name has two
+    words; star A's planets are "<word 1> I", "<word 1> II" and so on,
+    and star B's are "<word 2> I", "<word 2> II". No planet name carries
+    "A" or "B", and a test checks it.
     Prerequisites: GEN.69, GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2337,14 +2350,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level for the Galaxy Map, and a containment test that tells whether a
   point is inside; nebula sectors and `surrounding_cloud` use that test.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.81 The console refuses runs instead of warning and doing what was asked (bug)**
-  Boss (2026-10-07 11:47Z): "The console will never tell the user no.
-  It will warn about expected size but it will not say no. If there is a
-  user at the command line, you do what the user has asked." Done: every
-  `generate.py` refusal that isn't a bad argument (density, qualify,
-  size, "no room") becomes a warning and the run goes ahead; scripts
-  that want the old stop get `--strict`.
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
   Boss (2026-10-03 05:38Z): "Create a habitability index based on the
@@ -2575,7 +2580,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moves only what has visibly moved, counts what changed, and lets
   nearby masses bend paths, with "reasonable limitations for when the
   math breaks down at the edge cases". `updateOrbits.py` is today's
-  positional update. Done when its subitems are.
+  positional update. Time step, Boss (2026-10-07 17:11Z): "No 1 year
+  per orbital update or turn, rather, once set up and configured we
+  follow orbital paths in real time.  The update script should have an
+  option to update for more time in 1 go if specified.  Default is 1
+  day = 1 day." So each run advances the galaxy by the real time since
+  its last update (one day of real time is one day of orbit), and an
+  option advances it by a stated extra span in one go. Done when its
+  subitems are.
   Prerequisites: GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -2653,8 +2665,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     handled per system. "Computational Astrodynamics.md" adds the
     routines: flybys deflect analytically, and a pair inside a mutual
     Hill sphere is sub-stepped by a 4th-order integrator with the Roche
-    limit and contact checked each sub-step. Done: trajectories change only at updates,
-    warnings go to the debug and activity logs.
+    limit and contact checked each sub-step. Boss (2026-10-07 17:11Z)
+    approved keeping the ring, layer and slot sectors with forces summed
+    in galactic coordinates, "but verify the algorithm will work with
+    our sector geometry." Rings hold different slot counts, so a
+    sector's neighbours across a ring or layer don't line up one to one.
+    Done: trajectories change only at updates; warnings go to the debug
+    and activity logs; neighbours are found by distance from the
+    sector's bounds, not by index; and a test confirms that the
+    influencer search finds the same nearest bodies as a brute-force
+    search for sectors at the core, at mid radius, at the rim, at the
+    top and bottom layers and across the slot-0 seam.
     Prerequisites: GEN.106, GEN.108, GEN.115.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -3294,7 +3315,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   room (density, Hill spheres, size), the Owner (and admins until
   accounts exist) gets a "Generate anyway" choice that is logged in the
   activity log.
-  Prerequisite: GEN.81.
 
 - [ ] **ADM.34 One admin menu per screen, holding only that screen's actions**
   Boss (2026-10-07 11:47Z): "All admin items are hidden under a simple
@@ -3637,28 +3657,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Plan (2026-10-07): Folded into PERF.24: the web jobs move to RQ, and
   the jobs folder default is fixed in the same PR.
 
-- [ ] **OPS.26 Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug)**
-  Boss (2026-10-07 16:57Z): "let's go ahead and tell the TODO to file
-  the following bug and then pass it to the bugfix lane to be fixed
-  after the tests run." His install on Ubuntu 24.04 (Python 3.12) ends
-  with "error: some Python libraries are still unusable": numpy 2.5.3
-  is "present (pip, as a newer dependency of another library than
-  apt's 1:1.26.4+ds-6ubuntu1)", astropy is "failed (broken:
-  ImportError:numpy.core.multiarray_failed_to_import)" because apt's
-  `/usr/lib/python3/dist-packages/erfa` was "compiled using NumPy 1.x
-  cannot be run in NumPy 2.5.3", and scikit-image is "failed (broken:
-  ValueError:numpy.dtype_size_changed,_may_indicate_binary_incompatibility)".
-  The traceback starts in `scripts/probe_requirements.py` line 53. The
-  installer takes some libraries from apt (built against NumPy 1) and
-  others from pip, and a pip library pulled NumPy 2 into
-  `/usr/local/lib/python3.12/dist-packages`, which shadows apt's NumPy.
-  Done: compiled libraries that link against NumPy (numpy, scipy,
-  astropy with pyerfa, scikit-image) always come from the same source,
-  so apt's builds are never paired with a pip NumPy 2 (for example,
-  pip installs all of them when any one needs pip); a fresh install and
-  an update on Ubuntu 24.04 end with every library usable; the probe
-  says which library pulled in the newer NumPy when this happens; and
-  a test covers the choice.
+- [ ] **OPS.27 The Windows installer and docs point at Redis in WSL, not Memurai**
+  Boss (2026-10-07 17:11Z), on Redis for Windows: "Let's say Redis in
+  WSL". Today `scripts/deploy-common.ps1` (Test-Redis),
+  `docs/deployment/windows.md` and `docs/design/library-migration.md`
+  offer Memurai or Redis in WSL. Done: they name Redis in WSL2 only,
+  with the setup steps (`sudo apt install redis-server`, WSL2's
+  localhost forwarding, and keeping WSL running), and the warning says
+  the same.
 
 - [ ] **OPS.20 Move the code base from zero dependencies to third-party open-source libraries**
   Boss (2026-10-03 05:38Z): "Transition the code to open source 3rd

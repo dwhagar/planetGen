@@ -242,15 +242,27 @@ def test_estimate_only_writes_nothing(mysql_config, capsys):
     assert _all_sectors(mysql_config) == []
 
 
-def test_a_run_the_disk_cant_hold_is_refused_before_anything_is_written(mysql_config, monkeypatch, capsys):
+def test_a_run_the_disk_cant_hold_is_refused_before_anything_is_written_under_strict(mysql_config, monkeypatch,
+                                                                                      capsys):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
     with pytest.raises(SystemExit) as exit_info:
-        _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
+        _run_cli(RING_0 + ["--yes", "--strict"] + _mysql_argv(mysql_config))
     assert exit_info.value.code == 1
     assert _all_sectors(mysql_config) == []
     assert "at least 5.0 GB must stay free" in capsys.readouterr().out
+
+
+def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch, capsys):
+    # GEN.81: the console never says no; it warns and does what was asked.
+    _plan_wide_galaxy(mysql_config)
+    monkeypatch.setattr(generationStats, "database_disk",
+                        lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
+    _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == 3
+    out = capsys.readouterr().out
+    assert "WARNING:" in out and "at least 5.0 GB must stay free" in out
 
 
 def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):

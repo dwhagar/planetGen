@@ -435,6 +435,30 @@ def validate_logging_args(args, parser):
                      "(there's nowhere else for debug output to go).")
 
 
+STRICT_HELP = ("Stop instead of warning: a run the console would otherwise go ahead with after a "
+               "warning (the database disk too small, a ring or block past "
+               "LARGE_RING_WARNING_THRESHOLD sectors without --limit or --yes, an address outside the "
+               "galaxy's outline, --min-habitable above a sector's drawn count, a forced body no "
+               "system had room for) ends with an error and nothing generated, as before GEN.81.")
+
+
+def _strict(args):
+    """Whether this run stops on what the console otherwise only warns
+    about (`--strict`, GEN.81). The console never tells the user no: it
+    warns, then does what was asked."""
+    return bool(getattr(args, "strict", False))
+
+
+def _refuse_or_warn(args, message, code=1):
+    """GEN.81: under `--strict`, logs `message` as an error and exits with
+    `code`; otherwise logs it as a warning and returns, so the run goes
+    ahead."""
+    if _strict(args):
+        log.error(message)
+        raise SystemExit(code)
+    log.normal(f"WARNING: {message} Going ahead (--strict stops here instead).")
+
+
 def add_system_arguments(parser):
     """
     Adds every option the `system` subcommand accepts (besides
@@ -463,6 +487,8 @@ def add_system_arguments(parser):
 
     # Database persistence
     store.add_mysql_connection_args(parser)
+
+    parser.add_argument('--strict', action='store_true', help=STRICT_HELP)
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
@@ -775,10 +801,10 @@ def run_system(args):
                   f"around {system.primary_star.type}; trying a new system")
     else:
         star = f"--star-type {system_config.STAR_TYPE}" if system_config.STAR_TYPE else "the drawn star"
-        log.error(f"Error: no system with {' and '.join(system.unmet_requirements)} came out of {attempts} "
-                  f"tries for {star}; nothing was saved. Hot, short-lived and very large stars often have "
-                  f"no room for one: try another star type or drop the forced option.")
-        raise SystemExit(1)
+        # GEN.81: the last try is kept, without the body it had no room for.
+        _refuse_or_warn(args, f"No system with {' and '.join(system.unmet_requirements)} came out of "
+                              f"{attempts} tries for {star}; the last one is kept without it. Hot, "
+                              f"short-lived and very large stars often have no room for one.")
 
     if args.output:
         text = render_star_system(system, "markdown" if system_config.MARKDOWN else "wikitext")
@@ -901,6 +927,7 @@ def add_shared_generation_options(parser):
                         help="Also run the population pass (species, civilizations, territories) "
                              "after the sectors are saved. Off by default; 'generate.py population' "
                              "runs it any time.")
+    parser.add_argument('--strict', action='store_true', help=STRICT_HELP)
 
     add_logging_arguments(parser)
 
@@ -1040,11 +1067,11 @@ def build_sector_configs(args):
               system the sector will contain.
 
     Raises:
-        SystemExit: If `--min-habitable` exceeds `args.num_systems` -- always
-            caught earlier by `validate_shared_generation_args` for an
-            explicit `--num-systems`, but only knowable here for a
-            `--density`-driven count, which isn't resolved until generation
-            time.
+        SystemExit: Under `--strict`, if `--min-habitable` exceeds a
+            `--density`-driven count (an explicit `--num-systems` is
+            checked earlier by `validate_shared_generation_args`); without
+            it, a warning and the sector gets `--min-habitable` systems
+            (GEN.81).
     """
     return list(iter_sector_configs(args))
 
@@ -1063,13 +1090,12 @@ def iter_sector_configs(args):
     """
     count = args.num_systems
     if args.min_habitable > count:
-        log.error(
-            f"Error: --min-habitable ({args.min_habitable}) exceeds this sector's generated system "
-            f"count ({count}); with --density, the count is randomly sampled per sector and can "
-            f"land below --min-habitable. Try a smaller --min-habitable, a higher --density, or "
-            f"--num-systems for an exact count instead."
-        )
-        raise SystemExit(1)
+        # GEN.81: the sector gets the habitable systems asked for, so it
+        # holds that many systems at least.
+        _refuse_or_warn(args, f"--min-habitable ({args.min_habitable}) exceeds this sector's drawn system "
+                              f"count ({count}) (with --density the count is drawn per sector); it gets "
+                              f"{args.min_habitable} systems instead.")
+        count = args.min_habitable
     if count <= 0:
         return
 
@@ -1941,24 +1967,26 @@ class _BatchDensity:
         self._load()
         return self._bounds
 
-    def resolve(self, args, address, position_pc):
+    def resolve(self, args, address, position_pc, outside_ok=False):
         """
         Args:
             args (argparse.Namespace): The `galaxy` subcommand's own parsed
                 (and validated) arguments.
             address (tuple): This sector's `(ring, layer, slot)`.
             position_pc (tuple): This sector's `(x, y, z)` center, parsecs.
+            outside_ok (bool): Resolve an address outside the outline too
+                (one the user named outright, GEN.81) instead of `None`.
 
         Returns:
             argparse.Namespace or None: `None` if this address is outside
-                the galaxy's stored outline. Otherwise `args` itself when a
+                the galaxy's stored outline (and `outside_ok` is false). Otherwise `args` itself when a
                 density/count was given explicitly, else a fresh copy with
                 `.density` set to this position's own `relative_density`
                 and `.num_systems` cleared. A sparse address is never
                 skipped (GEN.76): the predicted density only sets how many
                 systems the draw expects, and the draw always runs.
         """
-        if not self.bounds.contains(address[0], address[1]):
+        if not outside_ok and not self.bounds.contains(address[0], address[1]):
             return None
         if args.density is not None or args.num_systems is not None:
             return args
@@ -2384,7 +2412,8 @@ def _default_generation_args(config=None):
     return args
 
 
-def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True):
+def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True,
+                            outside_ok=False):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
@@ -2404,9 +2433,13 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     is false: `generate.py galaxy --slot` leaves it to the end of the run
     (`backfill_after_run`), where it has its own progress bar (PERF.28).
 
+    An address outside the galaxy's stored outline is generated only with
+    `outside_ok` (`generate.py galaxy --slot` naming it outright, GEN.81),
+    at the halo floor's density.
+
     Returns:
         dict: `created` (bool), `qualifies` (bool: inside the galaxy's
-              stored outline), `sector_id` (int or `None`), `sector_name`
+              stored outline; a sector made with `outside_ok` is not), `sector_id` (int or `None`), `sector_name`
               (str or `None`, only when `created`).
 
     Raises:
@@ -2433,7 +2466,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
         conn.close()
 
     position_pc = sector_position_pc(ring_index, layer_index, ring_slot_index, skeleton.edge_pc)
-    if not bounds.contains(ring_index, layer_index):
+    qualifies = bounds.contains(ring_index, layer_index)
+    if not qualifies and not outside_ok:
         # Past the layer's stored outer ring -- galaxySkeleton's bound is
         # exact, so this is a certain "no".
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
@@ -2461,7 +2495,7 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
 
     if backfill:
         backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
-    return {"created": True, "qualifies": True, "sector_id": sector_id, "sector_name": sector_name}
+    return {"created": True, "qualifies": qualifies, "sector_id": sector_id, "sector_name": sector_name}
 
 
 def _log_saved(saved, address, suffix=""):
@@ -2651,8 +2685,7 @@ def _check_estimate(args, sector_args_list, what, progress=None):
     args._estimate_checked = True
     log.normal(f"Estimate for {what}: {result.summary()}")
     if result.refusal:
-        log.error(f"{result.refusal} Nothing was generated.")
-        raise SystemExit(1)
+        _refuse_or_warn(args, result.refusal)
     if result.sectors > 1 and not getattr(args, "yes", False) and _interactive():
         if _ask(progress, f"Generate these {result.sectors:,} sectors? [y/N] ") not in ("y", "yes"):
             log.normal("Nothing was generated.")
@@ -2719,12 +2752,19 @@ def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, 
     queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
 
 
-def _require_inside(bounds, ring_index, layer_index, what):
-    """Stops the run, before anything is generated, when `(ring_index,
-    layer_index)` lies outside the galaxy's stored outline."""
-    if not bounds.contains(ring_index, layer_index):
-        log.error(f"Nothing generated: {what} -- {bounds.describe_miss(ring_index, layer_index)}.")
-        raise SystemExit(1)
+def _require_inside(args, bounds, ring_index, layer_index, what):
+    """
+    Warns (GEN.81), or under `--strict` stops the run before anything is
+    generated, when `(ring_index, layer_index)` lies outside the galaxy's
+    stored outline.
+
+    Returns:
+        bool: Whether it lies inside.
+    """
+    if bounds.contains(ring_index, layer_index):
+        return True
+    _refuse_or_warn(args, f"{what} -- {bounds.describe_miss(ring_index, layer_index)}.")
+    return False
 
 
 def run_ring_batch(args, edge_pc, progress):
@@ -2743,25 +2783,24 @@ def run_ring_batch(args, edge_pc, progress):
             once per slot visited.
 
     Raises:
-        SystemExit: If the ring and layer lie outside the galaxy's stored
-                   outline, or the ring's slot count exceeds
-                   `LARGE_RING_WARNING_THRESHOLD` and neither `--limit`
-                   nor `--yes` was given.
+        SystemExit: Under `--strict`, if the ring and layer lie outside the
+                   galaxy's stored outline, or the ring's slot count
+                   exceeds `LARGE_RING_WARNING_THRESHOLD` and neither
+                   `--limit` nor `--yes` was given. Without it each is a
+                   warning and the ring is generated (GEN.81).
     """
     ring_index, layer_index = args.ring, args.layer
     total_slots = ring_sector_count(ring_index)
 
     if total_slots > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        log.error(
-            f"Ring {ring_index} holds {total_slots} sector slots -- generating a whole ring this large "
-            f"is likely impractical. Pass --limit N to generate only the first N not-yet-generated "
-            f"slots, or --yes to confirm generating all {total_slots}."
-        )
-        raise SystemExit(1)
+        _refuse_or_warn(args, f"Ring {ring_index} holds {total_slots} sector slots, a very large run "
+                              f"(--limit N generates only the first N not-yet-generated slots).")
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
-    _require_inside(batch_density.bounds, ring_index, layer_index, f"ring {ring_index} layer {layer_index}")
+    # Named outright, so generated even outside the outline (GEN.81).
+    outside_ok = not _require_inside(args, batch_density.bounds, ring_index, layer_index,
+                                     f"ring {ring_index} layer {layer_index}")
 
     conn = store.get_connection(mysql_config)
     try:
@@ -2780,7 +2819,7 @@ def run_ring_batch(args, edge_pc, progress):
             continue
 
         position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
-        sector_args = batch_density.resolve(args, address, position_pc)
+        sector_args = batch_density.resolve(args, address, position_pc, outside_ok=outside_ok)
         if sector_args is None:
             log.debug(f"{_format_address(address)}: skipped (outside its layer's "
                       f"stored extent)")
@@ -2899,7 +2938,7 @@ def run_local_neighborhood(args, edge_pc, progress):
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     center_ring, center_layer, _slot = sector_address_at(center, edge_pc)
-    _require_inside(batch_density.bounds, center_ring, center_layer,
+    _require_inside(args, batch_density.bounds, center_ring, center_layer,
                     f"sector_id={args.center_sector} sits at {_format_address(sector_address_at(center, edge_pc))}")
     candidates, occupied, outside = _neighborhood_candidates(
         center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
@@ -3166,7 +3205,9 @@ def run_single_slot(args, edge_pc, progress):
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
-    _require_inside(batch_density.bounds, args.ring, args.layer, _format_address(address))
+    # Named outright, so generated even outside the outline (GEN.81).
+    outside_ok = not _require_inside(args, batch_density.bounds, args.ring, args.layer,
+                                     _format_address(address))
     position_pc = sector_position_pc(*address, edge_pc)
     conn = store.get_connection(mysql_config)
     try:
@@ -3178,7 +3219,7 @@ def run_single_slot(args, edge_pc, progress):
         # As `ensure_sector_generated` does it: density-driven.
         single = _default_generation_args(config=mysql_config)
         single.density = single.num_systems = None
-        sector_args = batch_density.resolve(single, address, position_pc)
+        sector_args = batch_density.resolve(single, address, position_pc, outside_ok=outside_ok)
     sectors = [sector_args] if sector_args is not None else []
     what = _format_address(address)
     if args.radius_pc is not None:
@@ -3192,15 +3233,8 @@ def run_single_slot(args, edge_pc, progress):
     task = progress.add_task(f"Sector ({_format_address(address)})", total=1)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
-    result = ensure_sector_generated(*address, config=mysql_config, backfill=False)
+    result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok)
     progress.update(task, advance=1)
-
-    if not result["qualifies"]:
-        log.error(
-            f"{_format_address(address)} is outside the galaxy's stored outline (past its layer's "
-            f"outer ring), so there is no sector to generate there."
-        )
-        raise SystemExit(1)
 
     designation = provisional_sector_designation(*address)
     if result["created"]:
@@ -3321,16 +3355,13 @@ def run_block(args, edge_pc, progress):
         if not bounds.contains(address[0], address[1]):
             continue
         addresses.append(address)
-        if not confirmed and len(addresses) > LARGE_RING_WARNING_THRESHOLD:
-            # A big block can hold millions of sectors: stop counting here.
-            log.error(
-                f"{where.capitalize()} holds more than {LARGE_RING_WARNING_THRESHOLD} sector slots -- pass "
-                f"--limit N to generate only the first N, or --yes to confirm generating all of them."
-            )
-            raise SystemExit(1)
+        if not confirmed and len(addresses) == LARGE_RING_WARNING_THRESHOLD + 1:
+            _refuse_or_warn(args, f"{where.capitalize()} holds more than {LARGE_RING_WARNING_THRESHOLD} "
+                                  f"sector slots, a very large run (--limit N generates only the first N).")
     if not addresses:
-        log.error(f"The galaxy's outline allows no sector in {where}.")
-        raise SystemExit(1)
+        _refuse_or_warn(args, f"The galaxy's outline allows no sector in {where}, so there is nothing "
+                              f"to generate.")
+        return
     _generate_addresses(args, addresses, where, edge_pc, progress, batch_density)
 
 
@@ -3353,7 +3384,9 @@ def run_column(args, edge_pc, progress):
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     layers = _layers_reaching(batch_density.bounds, args.ring)
     if not layers:
-        _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+        _require_inside(args, batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+        log.normal(f"No layer of the outline reaches ring {args.ring}: nothing to generate.")
+        return
     addresses = [(args.ring, layer, args.slot) for layer in layers]
     _generate_addresses(args, addresses, f"the column at ring {args.ring} slot {args.slot}",
                         edge_pc, progress, batch_density)
@@ -3372,16 +3405,15 @@ def run_shell(args, edge_pc, progress):
     batch_density = _BatchDensity(store.mysql_config_from_args(args))
     layers = _layers_reaching(batch_density.bounds, args.ring)
     if not layers:
-        _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+        _require_inside(args, batch_density.bounds, args.ring, 0, f"ring {args.ring}")
+        log.normal(f"No layer of the outline reaches ring {args.ring}: nothing to generate.")
+        return
     total_slots = ring_sector_count(args.ring)
     total = total_slots * len(layers)
     if total > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
-        log.error(
-            f"The shell at ring {args.ring} holds {total} sector slots ({total_slots} slots across "
-            f"{len(layers)} layers) -- pass --limit N to generate only the first N, or --yes to "
-            f"confirm generating all of them."
-        )
-        raise SystemExit(1)
+        _refuse_or_warn(args, f"The shell at ring {args.ring} holds {total} sector slots ({total_slots} "
+                              f"slots across {len(layers)} layers), a very large run (--limit N generates "
+                              f"only the first N).")
     addresses = [(args.ring, layer, slot) for layer in layers for slot in range(total_slots)]
     _generate_addresses(args, addresses, f"the shell at ring {args.ring}", edge_pc, progress, batch_density)
 
