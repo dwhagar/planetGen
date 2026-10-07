@@ -2,8 +2,8 @@
 
 """
 Property-based / brute-force tests for name generation and name-uniqueness
-decoration: `stellarObjects/names.py` (the word lists themselves),
-`stellarObjects/nameUniqueness.py` (`resolve_greek_roman_collision`,
+decoration: `planetgen/names/wordlists.py` (the word lists themselves),
+`planetgen/names/uniqueness.py` (`resolve_greek_roman_collision`,
 `resolve_diminutive`, `strip_decoration`) and the
 name-generation helpers in `stellarObjects/utils.py` that consume them
 (`split_into_syllables`, `is_name_valid`, `split_long_word`,
@@ -25,14 +25,15 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import names, utils
-from stellarObjects import nameUniqueness as nu
+from stellarObjects import utils
+from planetgen.names import wordlists
+from planetgen.names import uniqueness as nu
 from tests.fuzz_support import hostile_text, scaled
 
 DECORATION_TOKENS = (
-    set(names.GREEK_LETTERS)
-    | set(names.DIMINUTIVE_PREFIXES)
-    | set(names.ROMAN_NUMERALS_BY_VALUE.values())
+    set(wordlists.GREEK_LETTERS)
+    | set(wordlists.DIMINUTIVE_PREFIXES)
+    | set(wordlists.ROMAN_NUMERALS_BY_VALUE.values())
 )
 
 # A plain base-name word: letters (plus an embedded apostrophe, as real
@@ -43,22 +44,22 @@ plain_word = st.text(alphabet=string.ascii_letters + "'", min_size=1, max_size=1
 plain_base = st.lists(plain_word, min_size=1, max_size=3).map(" ".join)
 
 NAME_SOURCES = {
-    "star": (names.STAR_NAMES, names.STAR_PREFIXES, names.STAR_SUFFIXES),
-    "planet": (names.PLANET_NAMES, names.PLANET_PREFIXES, names.PLANET_SUFFIXES),
-    "moon": (names.MOON_NAMES, names.MOON_PREFIXES, names.MOON_SUFFIXES),
+    "star": (wordlists.STAR_NAMES, wordlists.STAR_PREFIXES, wordlists.STAR_SUFFIXES),
+    "planet": (wordlists.PLANET_NAMES, wordlists.PLANET_PREFIXES, wordlists.PLANET_SUFFIXES),
+    "moon": (wordlists.MOON_NAMES, wordlists.MOON_PREFIXES, wordlists.MOON_SUFFIXES),
 }
 
 
 # ---------------------------------------------------------------------------
-# names.py -- the word lists every generator and decorator depends on
+# wordlists.py -- the word lists every generator and decorator depends on
 # ---------------------------------------------------------------------------
 
 def test_decoration_vocabularies_are_pairwise_disjoint_single_tokens():
     vocabularies = {
-        "greek": names.GREEK_LETTERS,
-        "diminutive": names.DIMINUTIVE_PREFIXES,
-        "companion": names.COMPANION_SUFFIXES,
-        "roman": list(names.ROMAN_NUMERALS_BY_VALUE.values()),
+        "greek": wordlists.GREEK_LETTERS,
+        "diminutive": wordlists.DIMINUTIVE_PREFIXES,
+        "companion": wordlists.COMPANION_SUFFIXES,
+        "roman": list(wordlists.ROMAN_NUMERALS_BY_VALUE.values()),
     }
     for label, words in vocabularies.items():
         assert words, label
@@ -70,34 +71,34 @@ def test_decoration_vocabularies_are_pairwise_disjoint_single_tokens():
 
 
 def test_greek_and_roman_tables_are_consistent():
-    assert len(names.GREEK_LETTERS) == 24
-    assert list(names.ROMAN_NUMERALS_BY_VALUE) == names.ROMAN_NUMERAL_VALUES
-    assert names.ROMAN_NUMERAL_VALUES == sorted(set(names.ROMAN_NUMERAL_VALUES))
-    assert all(v > 0 for v in names.ROMAN_NUMERAL_VALUES)
-    assert nu.GREEK_ROMAN_CAPACITY == len(names.GREEK_LETTERS) + len(names.ROMAN_NUMERAL_VALUES)
+    assert len(wordlists.GREEK_LETTERS) == 24
+    assert list(wordlists.ROMAN_NUMERALS_BY_VALUE) == wordlists.ROMAN_NUMERAL_VALUES
+    assert wordlists.ROMAN_NUMERAL_VALUES == sorted(set(wordlists.ROMAN_NUMERAL_VALUES))
+    assert all(v > 0 for v in wordlists.ROMAN_NUMERAL_VALUES)
+    assert nu.GREEK_ROMAN_CAPACITY == len(wordlists.GREEK_LETTERS) + len(wordlists.ROMAN_NUMERAL_VALUES)
 
 
 def test_offensive_word_list_is_usable_by_the_lowercase_substring_filter():
     # `is_name_valid` lowercases the candidate and does `word in name`: an
     # empty entry would reject every name (infinite retry), an uppercase or
     # padded entry could never match anything.
-    assert names.NSFW_WORDS
-    for word in names.NSFW_WORDS:
+    assert wordlists.NSFW_WORDS
+    for word in wordlists.NSFW_WORDS:
         assert word, "empty offensive word would reject every name"
         assert word == word.strip() and word == word.lower(), repr(word)
 
 
 def test_filter_word_lists_are_sane():
-    assert names.DICTIONARY_WORDS
-    assert isinstance(names.WORD_SIZE_MEAN, int) and 1 <= names.WORD_SIZE_MEAN <= 30
-    assert set(names.VOWELS) == set("aeiou")
-    for cluster in names.BAD_CONSONANTS:
-        assert cluster and cluster == cluster.lower() and not set(cluster) & set(names.VOWELS), cluster
+    assert wordlists.DICTIONARY_WORDS
+    assert isinstance(wordlists.WORD_SIZE_MEAN, int) and 1 <= wordlists.WORD_SIZE_MEAN <= 30
+    assert set(wordlists.VOWELS) == set("aeiou")
+    for cluster in wordlists.BAD_CONSONANTS:
+        assert cluster and cluster == cluster.lower() and not set(cluster) & set(wordlists.VOWELS), cluster
 
 
 @pytest.mark.parametrize("source", ["star", "planet", "moon", "sector"])
 def test_base_lists_have_no_blank_entries(source):
-    lists = NAME_SOURCES.get(source) or (names.SECTOR_NAMES, names.SECTOR_PREFIXES, names.SECTOR_SUFFIXES)
+    lists = NAME_SOURCES.get(source) or (wordlists.SECTOR_NAMES, wordlists.SECTOR_PREFIXES, wordlists.SECTOR_SUFFIXES)
     for words in lists:
         assert words
         for word in words:
@@ -120,7 +121,7 @@ def test_greek_roman_result_shape_for_any_count(base, count):
         assert new_name == base and rename is None
     if rename is not None:
         old, renamed = rename
-        assert count in (1, len(names.GREEK_LETTERS))
+        assert count in (1, len(wordlists.GREEK_LETTERS))
         assert nu.strip_decoration(old) == base == nu.strip_decoration(renamed)
         assert old != renamed and renamed != new_name
 
@@ -177,7 +178,7 @@ def test_same_level_simulated_insert_run_stays_unique(inserts):
 # ---------------------------------------------------------------------------
 
 @pytest.mark.parametrize("resolver, words", [
-    (nu.resolve_diminutive, names.DIMINUTIVE_PREFIXES),
+    (nu.resolve_diminutive, wordlists.DIMINUTIVE_PREFIXES),
 ])
 def test_index_resolvers_walk_every_word_once_then_stop(resolver, words):
     seen, index = [], None
@@ -195,7 +196,7 @@ def test_index_resolvers_walk_every_word_once_then_stop(resolver, words):
 
 @given(index=st.one_of(st.none(), st.integers(0, 10**40)))
 def test_index_resolvers_for_any_non_negative_index(index):
-    for resolver, words in ((nu.resolve_diminutive, names.DIMINUTIVE_PREFIXES),):
+    for resolver, words in ((nu.resolve_diminutive, wordlists.DIMINUTIVE_PREFIXES),):
         word, nxt = resolver(index)
         expected_next = 0 if index is None else index + 1
         if expected_next >= len(words):
@@ -230,9 +231,9 @@ def test_strip_decoration_never_raises_and_only_removes_whole_edge_tokens(name):
 
 
 @given(base=plain_base,
-       greek=st.sampled_from(names.GREEK_LETTERS),
-       roman=st.sampled_from(list(names.ROMAN_NUMERALS_BY_VALUE.values())),
-       diminutive=st.sampled_from(names.DIMINUTIVE_PREFIXES))
+       greek=st.sampled_from(wordlists.GREEK_LETTERS),
+       roman=st.sampled_from(list(wordlists.ROMAN_NUMERALS_BY_VALUE.values())),
+       diminutive=st.sampled_from(wordlists.DIMINUTIVE_PREFIXES))
 def test_strip_decoration_inverts_each_single_decoration(base, greek, roman, diminutive):
     for decorated in (f"{greek} {base}", f"{greek} {base} {roman}",
                       f"{diminutive} {base}", f"{greek} {diminutive} {base}"):
@@ -240,7 +241,7 @@ def test_strip_decoration_inverts_each_single_decoration(base, greek, roman, dim
 
 
 @given(base=plain_base, count=st.integers(1, nu.GREEK_ROMAN_CAPACITY - 2),
-       diminutives=st.integers(1, len(names.DIMINUTIVE_PREFIXES)))
+       diminutives=st.integers(1, len(wordlists.DIMINUTIVE_PREFIXES)))
 @example(base="Voranthis", count=1, diminutives=2)   # "Little Beta ...", "Petit Little ..."
 @example(base="Voranthis", count=30, diminutives=1)  # "Little Alpha Voranthis <roman>"
 def test_strip_decoration_inverts_the_stacks_db_actually_builds(base, count, diminutives):
@@ -317,12 +318,12 @@ def test_is_name_valid_never_raises_and_rejects_every_offensive_substring(name):
     result = utils.is_name_valid(name)
     assert isinstance(result, bool)
     lower = name.lower()
-    if lower in names.DICTIONARY_WORDS or any(w in lower for w in names.NSFW_WORDS):
+    if lower in wordlists.DICTIONARY_WORDS or any(w in lower for w in wordlists.NSFW_WORDS):
         assert result is False
 
 
 @given(prefix=st.text(alphabet=string.ascii_lowercase, max_size=4),
-       word=st.sampled_from(sorted(w for w in names.NSFW_WORDS if w.isalpha())),
+       word=st.sampled_from(sorted(w for w in wordlists.NSFW_WORDS if w.isalpha())),
        suffix=st.text(alphabet=string.ascii_lowercase, max_size=4))
 def test_is_name_valid_rejects_embedded_offensive_words(prefix, word, suffix):
     assert utils.is_name_valid(prefix + word + suffix) is False
@@ -334,7 +335,7 @@ def test_is_name_valid_rejects_three_in_a_row(run, pad):
 
 
 @given(prefix=st.text(alphabet="bdgklmnprt", max_size=3),
-       word=st.sampled_from(sorted(w for w in names.NSFW_WORDS if w.isalpha() and len(w) >= 3)),
+       word=st.sampled_from(sorted(w for w in wordlists.NSFW_WORDS if w.isalpha() and len(w) >= 3)),
        cut=st.integers(1, 10), suffix=st.text(alphabet="aeiou", max_size=2))
 @example(prefix="ge", word="paki", cut=3, suffix="")   # generated "Gepak'I Conio"
 @example(prefix="aln", word="kike", cut=1, suffix="m")  # generated "Alnik'Ikem" (via "i" + "k'ike")
@@ -350,7 +351,7 @@ def test_is_name_valid_sees_through_embedded_apostrophes(prefix, word, cut, suff
 @given(name=st.text(alphabet=string.ascii_lowercase + "'", min_size=0, max_size=40))
 def test_split_long_word_properties(name):
     out = utils.split_long_word(name)
-    if len(name) <= names.WORD_SIZE_MEAN or out == name:
+    if len(name) <= wordlists.WORD_SIZE_MEAN or out == name:
         assert out == name
         return
     assert out.count(" ") == 1
@@ -405,7 +406,7 @@ def _check_generated(name, sector=False):
     # split on any whitespace run here.)
     assert name and name == name.strip()
     assert name[0].isupper(), name
-    assert not any(word in lower for word in names.NSFW_WORDS), name
+    assert not any(word in lower for word in wordlists.NSFW_WORDS), name
     for word in name.split():
         assert word and not word.startswith("'") and not word.endswith("'"), name
     if sector:

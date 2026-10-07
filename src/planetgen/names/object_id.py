@@ -1,4 +1,4 @@
-# stellarObjects/objectId.py
+# planetgen/names/object_id.py
 
 """
 The 76-bit position ID every interstellar object is named by (GEN.64).

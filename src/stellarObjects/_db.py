@@ -62,7 +62,8 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, objectId
+from . import activitylog
+from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
@@ -80,9 +81,9 @@ from planetgen.galaxy.drill import DrillBlock
 from planetgen.galaxy.geometry import (
     SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
 )
-from .bodyNames import rename_prefix, wide_pair_first_word
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from .nameUniqueness import (
+from planetgen.names.bodies import rename_prefix, wide_pair_first_word
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
     word_limit_for,
 )
@@ -1648,7 +1649,7 @@ def insert_system_config(conn, config: SystemConfig) -> int:
 
 
 # ---------------------------------------------------------------------------
-# Name-uniqueness reservation (stellarObjects/nameUniqueness.py, v24) --
+# Name-uniqueness reservation (planetgen/names/uniqueness.py, v24) --
 # one reserve/confirm pair per naming level (sector, system), called from
 # insert_sector/insert_star_system below. "Reserve" runs *before* that
 # level's own INSERT (it doesn't know the new row's id yet, but may need
@@ -7684,7 +7685,7 @@ def _migrate_v23_to_v24(conn):
     """
     Adds v24's three name-uniqueness registry tables (`sector_name_registry`/
     `system_name_registry`/`body_name_registry`) -- see `schema.sql`'s
-    "v24" header note and `stellarObjects/nameUniqueness.py`. Real `CREATE
+    "v24" header note and `planetgen/names/uniqueness.py`. Real `CREATE
     TABLE` steps (not `ALTER TABLE` -- these are new tables, not new
     columns on an existing one), copied verbatim from `schema.sql` so a
     migrated database ends up with exactly the same shape a fresh one

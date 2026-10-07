@@ -86,7 +86,7 @@ ensure_gunicorn_daemon() {
 # The NLTK 'words' corpus, in a shared, world-readable directory (not a
 # per-user home directory) so it works for every user that imports
 # stellarObjects: a login shell running the generator, or Apache's
-# www-data running the web app. stellarObjects/names.py checks
+# www-data running the web app. planetgen/names/wordlists.py checks
 # nltk.data.find() before ever calling download(), so once this
 # directory (on nltk's default search path) has it, nothing downloads
 # again. See docs/TODO.md's "Deployment bugs found in production" for

@@ -24,7 +24,8 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import _db, nameUniqueness, workQueue
+from stellarObjects import _db, workQueue
+from planetgen.names import uniqueness
 from stellarObjects._db import MySQLConfig
 
 from tests.conftest import _test_server_kwargs
@@ -202,7 +203,7 @@ def _systems_by_sector(config):
         values = tuple(row.values())
         # Which of two colliding names keeps the plain one depends on what
         # else is filled (GEN.57, phase 1): compare without it.
-        name = nameUniqueness.strip_decoration(values[3])
+        name = uniqueness.strip_decoration(values[3])
         by_sector.setdefault(values[:3], []).append((name,) + values[4:])
     return {address: sorted(systems) for address, systems in by_sector.items()}
 

@@ -1,4 +1,4 @@
-# stellarObjects/names.py
+# planetgen/names/wordlists.py
 
 """
 Name Generation Constants
@@ -346,7 +346,7 @@ type's own base `_NAMES` list.
 
 # --- Name-Uniqueness Decoration Constants ---
 #
-# Used by `stellarObjects/nameUniqueness.py` to keep every sector and
+# Used by `planetgen/names/uniqueness.py` to keep every sector and
 # system name in a database distinct -- see that module's own docstring
 # for the sector > system hierarchy these feed into. Kept here, alongside every other naming word list, rather
 # than in `nameUniqueness.py` itself, so all of this project's naming

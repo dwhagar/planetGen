@@ -22,7 +22,7 @@ import math
 import random
 
 from .asteroidData import AsteroidBelt
-from .bodyNames import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
+from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy

@@ -25,7 +25,7 @@ import random
 
 import pytest
 
-from stellarObjects.names import (
+from planetgen.names.wordlists import (
     PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
     SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
     STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,

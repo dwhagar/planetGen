@@ -25,15 +25,15 @@ admin request would stall the whole site (see `docs/deployment/apache.md`):
 """
 
 from stellarObjects import _db
-from stellarObjects.names import DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERALS_BY_VALUE
-from stellarObjects.nameUniqueness import strip_decoration
+from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERALS_BY_VALUE
+from planetgen.names.uniqueness import strip_decoration
 
 NAME_REGISTRIES = (
     ("sector", "sector_name_registry", "occurrence_count > 1"),
     ("system", "system_name_registry", "(occurrence_count > 1 OR diminutive_index IS NOT NULL)"),
 )
 """tuple: `(level, registry table, collided condition)` for each level of
-the naming hierarchy -- see `stellarObjects/nameUniqueness.py`. Every
+the naming hierarchy -- see `planetgen/names/uniqueness.py`. Every
 name gets a registry row when it's first used, so only the rows matching
 the condition had to be decorated: a sector or system name used more than
 once (Greek/Roman), or a system named after a sector (a diminutive).

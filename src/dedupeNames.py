@@ -7,10 +7,10 @@ that duplicate each other (within or across those two levels) and
 resolves them with the same Greek/Roman and diminutive decoration
 `stellarObjects/_db.py`'s `insert_sector`/`insert_star_system` already
 apply automatically to every *new* row (v24, see
-`stellarObjects/nameUniqueness.py`'s own module docstring for the
+`planetgen/names/uniqueness.py`'s own module docstring for the
 sector > system hierarchy) -- for a database that predates that feature,
 or already holds duplicate names from before it existed. Planets and
-moons are named from their system (`stellarObjects/bodyNames.py`, v34), so
+moons are named from their system (`planetgen/names/bodies.py`, v34), so
 a renamed system's derived names follow it (`_db.rename_star_system`).
 
 Live generation already guarantees no new duplicate ever lands in the
@@ -50,7 +50,7 @@ from collections import defaultdict
 import pymysql
 
 from stellarObjects import _db
-from stellarObjects.nameUniqueness import strip_decoration
+from planetgen.names.uniqueness import strip_decoration
 
 
 def _group_by_base(rows):
@@ -149,7 +149,7 @@ def main():
         description="Scan the configured database for sector/system names that duplicate "
                      "each other (within or across those two levels) and resolve them with the same "
                      "Greek/Roman and diminutive decoration new generation runs already apply "
-                     "automatically (see stellarObjects/nameUniqueness.py).",
+                     "automatically (see planetgen/names/uniqueness.py).",
     )
     _db.add_mysql_connection_args(parser)
     args = parser.parse_args()

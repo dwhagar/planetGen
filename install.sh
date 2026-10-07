@@ -29,7 +29,7 @@
 #      location (not a per-user home directory) so it works under any
 #      user that later imports `stellarObjects` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
-#      running the `src/html/` web app. `stellarObjects/names.py` checks
+#      running the `src/html/` web app. `planetgen/names/wordlists.py` checks
 #      `nltk.data.find()` before ever calling `download()`, so once this
 #      step has populated a directory nltk's default search path already
 #      covers, nothing later attempts a download of its own. See

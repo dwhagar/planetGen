@@ -13,7 +13,7 @@ number formatting); just enough for the tests to say "same galaxy".
 import re
 
 from stellarObjects import _db
-from stellarObjects.names import DIMINUTIVE_PREFIXES, GREEK_LETTERS
+from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 
 _DECORATION = re.compile(r"\b(?:%s) (?=[A-Z])" % "|".join(GREEK_LETTERS + DIMINUTIVE_PREFIXES))
 """A name-collision decoration word (`nameUniqueness`) before a name.

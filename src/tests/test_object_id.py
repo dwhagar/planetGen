@@ -1,7 +1,7 @@
 # tests/test_object_id.py
 
 """
-GEN.64: the 76-bit position ID (`stellarObjects/objectId.py`) every
+GEN.64: the 76-bit position ID (`planetgen/names/object_id.py`) every
 interstellar object and bright-sweep system is named by, and how a sector
 save claims those IDs (`_db._claim_object_ids`, `insert_sector`).
 
@@ -11,7 +11,8 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 
 import pytest
 
-from stellarObjects import _db, objectId
+from stellarObjects import _db
+from planetgen.names import object_id as objectId
 from stellarObjects.config import SystemConfig
 from planetgen.galaxy.navigation import course_between
 from stellarObjects.roguePlanetData import RoguePlanet

@@ -1,4 +1,4 @@
-# stellarObjects/nameUniqueness.py
+# planetgen/names/uniqueness.py
 
 """
 Name-uniqueness decoration -- pure functions, no database access.
@@ -40,7 +40,7 @@ these functions actually get called, against the `sector_name_registry`/
 through these schemes.
 """
 
-from .names import (
+from planetgen.names.wordlists import (
     DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERAL_VALUES, ROMAN_NUMERALS_BY_VALUE,
 )
 

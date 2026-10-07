@@ -2399,7 +2399,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   (`Voranthis Kelmoor`, `Voranthis Ostra`) instead of `Voranthis` and
   `Voranthis B`; a close pair's planets use the system name and a wide
   pair's use their own star's (`Voranthis Kelmoor I`). See
-  `src/stellarObjects/bodyNames.py`.
+  `src/planetgen/names/bodies.py`.
 - **Planet and moon names are no longer searched for duplicates.** They
   derive from the system name, which is already unique, so saving a
   system skips a registry lookup and write per planet and moon, and the
@@ -4119,7 +4119,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 ## [5.39.0] - 2026-09-18
 
 ### Added
-- **Galaxy-wide name uniqueness.** `stellarObjects/nameUniqueness.py`
+- **Galaxy-wide name uniqueness.** `planetgen/names/uniqueness.py`
   tracks every sector/system/planet-or-moon base name ever generated
   (`sector_name_registry`/`system_name_registry`/`body_name_registry`,
   schema v24) and decorates a colliding name instead of letting two rows
@@ -6895,7 +6895,7 @@ enhancements") for where this started as a plan.
   enables Apache's `cgid` module, and runs `apache/set-permissions.sh`;
   prints the one remaining manual step (copying/enabling the example
   vhost) rather than touching Apache's site configuration itself.
-- `stellarObjects/names.py` gained `UNIVERSAL_PHONEMES`: a pool of ~100
+- `planetgen/names/wordlists.py` gained `UNIVERSAL_PHONEMES`: a pool of ~100
   short, ASCII-7-bit-printable phoneme chunks romanized from roughly 18
   language families (Romance, Germanic, Slavic, Arabic/Hebrew/Persian,
   Turkish, South Asian, Mandarin, Japanese, Korean, Vietnamese,
@@ -6907,7 +6907,7 @@ enhancements") for where this started as a plan.
   base name list.
 
 ### Changed
-- Removed `SECTOR_DESIGNATORS` from `stellarObjects/names.py` (dead code
+- Removed `SECTOR_DESIGNATORS` from `planetgen/names/wordlists.py` (dead code
   — defined but never referenced anywhere).
 - `generate_phoneme_salad_name` gained an `allow_split` parameter
   (default `True`, unchanged for stars/planets/moons); see the sector
@@ -6922,7 +6922,7 @@ enhancements") for where this started as a plan.
   into one name — an internal split on either half silently produced
   3-4 words in the final result. `generate_sector_name` now passes the
   new `allow_split=False` for both halves.
-- `stellarObjects/names.py` unconditionally called
+- `planetgen/names/wordlists.py` unconditionally called
   `nltk.download('words', quiet=True)` at import time; `nltk`'s
   `download()` always targets the *current user's* default download
   directory and attempts to create it, regardless of whether the corpus
@@ -6959,7 +6959,7 @@ enhancements") for where this started as a plan.
 - Sector name generation: sectors now get a random two-word name (e.g.
   "Voranthis Kelmoor") drawn from a new sector-flavored name list
   (`SECTOR_NAMES`/`SECTOR_PREFIXES`/`SECTOR_SUFFIXES` in
-  `stellarObjects/names.py`, pulling from real galactic structures and
+  `planetgen/names/wordlists.py`, pulling from real galactic structures and
   well-known science-fiction sector names) instead of reusing star names
   with "Sector" appended.
 - `Star`, `Planet`, `BinaryStarProxy`, and `AsteroidBelt` each gained a

@@ -46,7 +46,7 @@ import pymysql
 from stellarObjects._db import (
     add_mysql_connection_args, get_connection, load_star_system, mysql_config_from_args,
 )
-from stellarObjects.names import COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES
+from planetgen.names.wordlists import COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES
 from stellarObjects.systemRender import render_star_system
 
 _LIVE_LINE = re.compile(r"wobble|comet|parabolic|perihelion|apoapsis|aphelion", re.IGNORECASE)

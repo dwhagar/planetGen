@@ -23,7 +23,7 @@ import random
 
 from .config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import log
