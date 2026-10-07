@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.88 |
+| TEST | TEST.89 |
 | USR | USR.9 |
 | OPS | OPS.26 |
 | DOC | DOC.4 |
@@ -1081,6 +1081,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
 | TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | open |
+| TEST.88 | Intermittent failure in the exact-density sector test (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
