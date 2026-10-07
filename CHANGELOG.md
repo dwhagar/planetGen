@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.196.608] - 2026-10-07
+
+### Fixed
+
+- The Galaxy Map no longer offers a planned sector outside the galaxy's stored outline (such as a layer above the top), which generation would refuse to fill (MAP.118).
+
 ## [7.195.608] - 2026-10-07
 
 ### Fixed
