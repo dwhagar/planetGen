@@ -21,6 +21,7 @@ import pickle
 import queue as queue_module
 import subprocess
 import sys
+import threading
 import time
 
 import redis
@@ -61,6 +62,22 @@ def queue(name, connection):
     return rq.Queue(name, connection=connection)
 
 
+def fetch_job(job_id, connection=None):
+    """The RQ job `job_id`, or `None` when there is none (never queued, or
+    expired).
+
+    Raises:
+        Unavailable: No Redis server answers.
+    """
+    connection = connection or connect()
+    try:
+        return rq.job.Job.fetch(job_id, connection=connection)
+    except rq.exceptions.NoSuchJobError:
+        return None
+    except redis.RedisError as exc:
+        raise Unavailable(f"no Redis server answers: {exc}") from exc
+
+
 def worker_class():
     """RQ's forking `Worker`, or `SpawnWorker` where there's no fork
     (Windows)."""
@@ -72,6 +89,45 @@ def worker_argv(names, url, name=None, python=None):
     `name` when given, run by `python` (default this interpreter)."""
     return [python or sys.executable, "-m", "planetgen.cli.worker", "--burst", "--url", url,
             *(["--name", name] if name else []), *names]
+
+
+def detached_options():
+    """
+    `subprocess.Popen` options, most detached first, that start a process
+    apart from the web server: its own session on POSIX; on Windows
+    (where `start_new_session` is ignored) its own process group with no
+    console, first also broken away from the server's job object (IIS and
+    some service wrappers kill a job object's processes on a recycle),
+    then without that when the job object doesn't allow it.
+    """
+    if os.name != "nt":
+        return [{"start_new_session": True}]
+    flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
+    return [{"creationflags": flags | subprocess.CREATE_BREAKAWAY_FROM_JOB}, {"creationflags": flags}]
+
+
+def start_detached(argv, cwd):
+    """
+    Starts `argv` apart from this process (`detached_options`) and reaps
+    it when it exits, so it doesn't linger as a zombie of the web server
+    process; if this process goes first, init adopts it instead.
+
+    Returns:
+        subprocess.Popen: The started process.
+    """
+    options = detached_options()
+    for index, extra in enumerate(options):
+        try:
+            proc = subprocess.Popen(
+                argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                cwd=cwd, close_fds=True, **extra,
+            )
+            break
+        except PermissionError:  # breakaway refused by the job object
+            if index == len(options) - 1:
+                raise
+    threading.Thread(target=proc.wait, name=f"planetgen-worker-{proc.pid}", daemon=True).start()
+    return proc
 
 
 class Unavailable(Exception):

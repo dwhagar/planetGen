@@ -1022,35 +1022,28 @@ def delete_facility(cookie_header, db, facility_id):
 
 
 _NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS = 1800
-"""float: `generate_sector_neighborhood` below can legitimately run for a
-very long time -- its default 12 pc radius holds about 100 candidate
-sector slots, but a 100 ly radius holds on the order of 2,000-3,000
-(see that route's own docstring), each generated one at a time, synchronously (see
-`routes.py`'s own note on this route having no background job queue to
-hand off to) -- unlike every other quick CRUD call this module makes,
-where `_TIMEOUT_SECONDS` alone would make a real, still-working request
-look like a failure. Even this generous a timeout may not be enough for a
-genuinely dense/large region -- there's no fully solving that without a
-real job queue, which this project doesn't have; a caller triggering this
-against an unfamiliar/large radius should pass a smaller `radius_ly`
-first."""
+"""float: `generate_sector_neighborhood` below reads the whole region's
+density to count its candidate slots (and, with `estimate_only` off, to
+refuse a run that won't fit), which on a large radius takes longer than a
+quick CRUD call; `_TIMEOUT_SECONDS` alone would make a working request
+look like a failure."""
 
 
 def generate_sector_neighborhood(cookie_header, sector_id, radius_ly=None, estimate_only=False):
     """
-    `POST /api/sectors/<id>/generate-neighborhood` -- generates every
-    not-yet-generated sector within `radius_ly` (`None` for the API's own
-    default, 12 pc) of this already galaxy-placed sector. The admin-only
-    "generate more sectors around this one" action on `sector.py`. Uses
+    `POST /api/sectors/<id>/generate-neighborhood` -- the not-yet-generated
+    sectors within `radius_ly` (`None` for the API's own default, 12 pc) of
+    this already galaxy-placed sector. The admin-only "generate more
+    sectors around this one" action on `sector.py`. Uses
     `_NEIGHBORHOOD_GENERATION_TIMEOUT_SECONDS` rather than this module's
     usual, much shorter timeout -- see that constant's own docstring.
 
     Returns:
-        dict: `generated`/`already_existed`/`candidates` -- see
-            `generate.generate_sector_neighborhood`'s own docstring.
-
-        With `estimate_only`, nothing is generated: the counts and the
-        size and time `estimate` (PERF.3) only.
+        dict: With `estimate_only`, nothing is generated: the counts
+            (`already_existed`/`candidates`/...) and the size and time
+            `estimate` (PERF.3). Without it, the run is queued (PERF.24)
+            and this is the `202` body: `job_id` and `status_url`
+            (`GET /api/jobs/<id>`).
 
     Raises:
         ApiError: `status_code == 404` if the sector doesn't exist or was

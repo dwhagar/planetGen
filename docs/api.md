@@ -438,18 +438,20 @@ connectivity to that specific schema rather than the default one.
 - `POST /api/sectors/<id>/generate-neighborhood` — generate every
   not-yet-generated sector within `radius_ly` (optional JSON body field,
   default 12 pc, at most the generator's own radius cap) of this
-  galaxy-placed sector, synchronously. Returns counts: `generated`,
-  `already_existed`, `skipped`, `candidates` and `outside_galaxy`, plus
-  the size and time `estimate` (see [`cli.md`](cli.md#size-and-time-estimates)).
-  `"estimate_only": true` returns the counts and `estimate` without
-  generating anything; a run the database disk can't hold is refused
-  with `507` and nothing written. `404`
-  for an unknown or unplaced sector, `409`
-  when the galaxy has never been planned (`planetgen plan`). Every new
+  galaxy-placed sector. The run is queued on Redis (see "Queued jobs"
+  below) and the answer is `202` with `job_id` and `status_url`; its
+  result is the counts `generated`, `already_existed`, `skipped`,
+  `candidates` and `outside_galaxy`, plus the size and time `estimate`
+  (see [`cli.md`](cli.md#size-and-time-estimates)).
+  `"estimate_only": true` answers `200` at once with the counts and
+  `estimate` and queues nothing. Before anything is queued: `404` for an
+  unknown or unplaced sector, `409` when the galaxy has never been planned
+  (`planetgen plan`) or the math check failed, `507` when the database
+  disk can't hold the run. `503` when no Redis server answers. Every new
   sector also gets the bright stars (100 L_sun and up) within 100 ly of it
   (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
-  so this can run for a long time; a reverse proxy's timeout may need raising for it. The sector
-  page's admin form calls it.
+  so this can run for a long time. The sector page asks for its
+  `estimate`, then starts the real run as a Generate page job.
 - `POST /api/systems` — generate and create a system, standalone or in
   an existing sector.
 - `PATCH /api/systems/<id>` — rename a system (its stars, planets and
@@ -1086,6 +1088,20 @@ couldn't be reached.
 Editing individual generated bodies (stars/planets/moons/belts) isn't
 supported via this API beyond renaming them; regenerate the whole system
 in place instead (see "Regenerating a system" above).
+
+## Queued jobs
+
+A route that would hold a web worker for minutes queues its work on Redis
+(PERF.24) and answers `202 Accepted` with `{"status": "accepted",
+"job_id": ..., "status_url": "/api/jobs/<id>"}` and a `Location` header.
+Each job has its own queue and a burst worker started for it, detached
+from the web server, so a proxy timeout or a reload doesn't stop it.
+
+- `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error"}`.
+  `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
+  what the work returned once it succeeded; `error` is the last line of
+  its error text once it failed. `404` for an unknown or expired id
+  (results are kept for a day), `503` when no Redis server answers.
 
 ## Rate limiting
 
