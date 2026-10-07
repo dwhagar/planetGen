@@ -3885,6 +3885,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
         dict: Stars written per population.
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
+    drew = set()
     # Densest layers (nearest the plane) first, so no worker is left
     # with a big one at the end while the others sit idle.
     layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
@@ -3909,6 +3910,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         counts[population] += count
                     tracker.layer_done(layer_index)
                     stars = sum(layer_counts.values())
+                    if stars:
+                        drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
                     _generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars)
@@ -3946,6 +3949,13 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                 _finish_stats(args)
         finally:
             log.reset_console()
+    # Every layer is walked, but only the ones that drew a star count as
+    # holding any (GEN.79).
+    if drew:
+        log.normal(f"{label}: stars landed in {len(drew):,} of {len(layers):,} layers "
+                   f"(layers {min(drew)} to {max(drew)}).")
+    else:
+        log.normal(f"{label}: no stars landed in any of the {len(layers):,} layers.")
     return counts
 
 

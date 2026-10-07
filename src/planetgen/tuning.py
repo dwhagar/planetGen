@@ -492,6 +492,15 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # Giant-branch luminosity (log-uniform, Lsun) and temperature (K) ranges.
 GIANT_LUMINOSITY_RANGE_SOL = (50.0, 1000.0)
 BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)
+# A low-mass giant spends a short last stretch of its giant phase above
+# GIANT_LUMINOSITY_RANGE_SOL's top: the upper red giant branch up to its tip
+# near 2500 Lsun (M_bol ~ -3.7; Salaris & Cassisi 2005) and the bright end
+# of the asymptotic giant branch, together a few percent of the phase. That
+# share is drawn log-uniform over GIANT_TIP_LUMINOSITY_RANGE_SOL. Without it
+# no old disk or bulge star reached the 1000 Lsun bright-star threshold, so
+# bright stars stayed in the young thin disk near the plane (GEN.79).
+GIANT_TIP_LUMINOSITY_RANGE_SOL = (1000.0, 2500.0)
+GIANT_TIP_FRACTION = 0.02
 GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # A subgiant brightens to about twice its main-sequence luminosity and
 # cools toward the base of the giant branch while crossing.
@@ -573,6 +582,14 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
 }
 STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 80 / 350, "intermediate": 200 / 350, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# The lowest relative density anywhere (GEN.78): the exponential disk and
+# bulge fall toward zero far off the plane and toward the edge, but a sparse
+# stellar halo fills the space between, at about a thousandth of the local
+# disk density near the Sun (Juric et al. 2008, ApJ 673:864). So every
+# sector inside the galaxy's outline has some chance of a star, and of a
+# bright one. The floor's stars are old (`galaxyDensity.population_densities`).
+MIN_RELATIVE_DENSITY = 1.0e-3
 
 # Pre-placed bright stars (stellarPopulation.sample_bright_stars): the
 # mass grid, in log-spaced cells over the IMF's range, on which the chance

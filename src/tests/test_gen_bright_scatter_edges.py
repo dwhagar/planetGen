@@ -4,10 +4,11 @@
 TEST.24 Bright-star scatter edge cases and TEST.25 Interrupted bright-star
 scatter (docs/TODO.md).
 
-TEST.24: `brightStars._place_one` running out of redraws (a slot that
-never qualifies, a point that always rounds out of its cell), a zero-weight
-bin picked by float rounding, a layer where nothing qualifies,
-`outer_ring=0`, empty extents, and a threshold below every white dwarf.
+TEST.24: `brightStars._place_one` running out of redraws (a point that
+always rounds out of its cell), a zero-weight bin picked by float
+rounding, a sparse layer far above the disk (which still has its chance
+since GEN.78), `outer_ring=0`, empty extents, and a threshold below every
+white dwarf.
 
 TEST.25: a scatter worker that fails after some of its 10,000-row commits
 (the threshold and seed are written only at the end) leaves a partial
@@ -35,7 +36,8 @@ from tests.test_bright_star_scatter import (
 )
 
 EMPTY_LAYER = 40
-"""A layer of the toy galaxy far above its disk: no slot qualifies."""
+"""A layer of the toy galaxy far above its disk, where only the halo floor
+is left (`tuning.MIN_RELATIVE_DENSITY`, GEN.78)."""
 
 
 class _CountingRandom(random.Random):
@@ -70,15 +72,17 @@ class _ScriptedRandom(random.Random):
 
 # --- TEST.24: _place_one ----------------------------------------------------
 
-def test_place_one_gives_up_after_its_redraws_when_no_slot_qualifies():
+def test_place_one_places_a_star_in_a_slot_far_above_the_disk():
+    # GEN.78: a sparse slot is never turned away; the first try lands.
     ring_index = 3
     slots = ring_sector_count(ring_index)
     rng = _CountingRandom(4)
     spot = brightStars._place_one(rng, [1.0] * min(slots, brightStars.ANGLE_BINS), ring_index, EMPTY_LAYER,
-                                  slots, SHAPE, E_VALUE, EDGE_PC)
-    assert spot is None
-    # Two draws (bin, angle) per try, and no point drawn in a cell.
-    assert rng.draws == 2 * brightStars.SLOT_REDRAWS
+                                  slots, EDGE_PC)
+    assert spot is not None
+    # Two draws (bin, angle), then the point in the cell (angle, radius,
+    # height).
+    assert rng.draws == 5
 
 
 def test_place_one_gives_up_when_every_point_rounds_out_of_its_cell(monkeypatch):
@@ -90,7 +94,7 @@ def test_place_one_gives_up_when_every_point_rounds_out_of_its_cell(monkeypatch)
 
     monkeypatch.setattr(brightStars, "_point_in_cell", never_inside)
     slots = ring_sector_count(1)
-    spot = brightStars._place_one(random.Random(2), [1.0] * slots, 1, 0, slots, SHAPE, E_VALUE, EDGE_PC)
+    spot = brightStars._place_one(random.Random(2), [1.0] * slots, 1, 0, slots, EDGE_PC)
     assert spot is None
     assert len(calls) == brightStars.SLOT_REDRAWS
 
@@ -109,15 +113,13 @@ def test_a_layer_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
 def test_a_zero_weight_bin_is_never_picked_by_float_rounding():
     # 0.1 + 0.2 + 0.3 rounds up, so the top of the range (`random()` just
     # under 1) is left over after every positive bin, and the old walk fell
-    # through to the last bin, whose weight is zero. Ring 1's slots all
-    # qualify, so only the weights keep a star out of bins 3..8.
+    # through to the last bin, whose weight is zero. Only the weights keep
+    # a star out of bins 3..8.
     ring_index, layer_index = 1, 0
     slots = ring_sector_count(ring_index)
     weights = [0.1, 0.2, 0.3] + [0.0] * (slots - 3)
-    assert all(generate.brightStars._qualifies(sector_position_pc(ring_index, layer_index, slot, EDGE_PC),
-                                               SHAPE, E_VALUE) for slot in range(slots))
     rng = _ScriptedRandom([1.0 - 2.0 ** -53, 0.5])
-    spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, SHAPE, E_VALUE, EDGE_PC)
+    spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, EDGE_PC)
     assert spot is not None
     assert spot[0] in (0, 1, 2)
     # A walk that ends on the last bin by rounding lands in the last bin
@@ -133,7 +135,7 @@ def test_leading_and_trailing_zero_weight_bins_get_no_stars():
     rng = random.Random(17)
     picked = set()
     for _ in range(300):
-        spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, SHAPE, E_VALUE, EDGE_PC)
+        spot = brightStars._place_one(rng, weights, ring_index, layer_index, slots, EDGE_PC)
         assert spot is not None
         picked.add(spot[0])
     assert picked == {2, 3}
@@ -141,19 +143,18 @@ def test_leading_and_trailing_zero_weight_bins_get_no_stars():
 
 # --- TEST.24: layers and extents ---------------------------------------------
 
-def test_a_layer_where_nothing_qualifies_draws_and_reports_nothing():
+def test_a_layer_far_above_the_disk_keeps_a_small_chance_of_a_bright_star():
+    # GEN.78: no bin is zeroed for being sparse; the halo floor is old stars.
     slots, bins = brightStars._ring_bins(5, EMPTY_LAYER, SHAPE, E_VALUE, EDGE_PC)
-    assert bins and all(densities is None for densities in bins)
-    reports = []
-    rows = list(brightStars.scatter_layer(SHAPE, EMPTY_LAYER, 8, EDGE_PC, E_VALUE, THRESHOLD, 3,
-                                          on_progress=lambda *report: reports.append(report)))
-    assert rows == [] and reports == []
+    assert bins and all(sum(densities.values()) == pytest.approx(tuning.MIN_RELATIVE_DENSITY) for densities in bins)
+    assert all(densities["old"] > 0.99 * tuning.MIN_RELATIVE_DENSITY for densities in bins)
     fractions = brightStars.band_fractions(THRESHOLD)
-    assert brightStars.layer_expected_stars(SHAPE, EMPTY_LAYER, 8, EDGE_PC, E_VALUE, fractions) == 0.0
-    # A scatter whose outline is only that layer still finishes it.
+    expected = brightStars.layer_expected_stars(SHAPE, EMPTY_LAYER, 8, EDGE_PC, E_VALUE, fractions)
+    assert 0.0 < expected < 1.0
+    # A scatter whose outline is only that layer finishes it.
     done = []
-    assert list(brightStars.scatter(SHAPE, [(EMPTY_LAYER, 8)], EDGE_PC, E_VALUE, THRESHOLD, 3,
-                                    on_layer=lambda *report: done.append(report))) == []
+    list(brightStars.scatter(SHAPE, [(EMPTY_LAYER, 8)], EDGE_PC, E_VALUE, THRESHOLD, 3,
+                             on_layer=lambda *report: done.append(report)))
     assert done == [(1, 1)]
 
 
