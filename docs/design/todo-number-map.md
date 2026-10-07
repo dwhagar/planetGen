@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.89 |
+| TEST | TEST.90 |
 | USR | USR.9 |
 | OPS | OPS.26 |
 | DOC | DOC.4 |
@@ -455,7 +455,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
-| DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | open |
+| DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -535,7 +535,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | open |
-| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | open |
+| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | open |
 | GEN.78 | Some regions have a star probability of zero (bug) | none | open |
 | GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | open |
@@ -688,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
-| MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | open |
+| MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | open |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
@@ -774,7 +774,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | open |
 | OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
 | OPS.24 | Move the code into the new package layout, one package per PR | none | open |
-| OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | open |
+| OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | done, PR #442 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -801,7 +801,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.24 | The work queue and web jobs on Redis with RQ | none | open |
 | PERF.25 | The page cache on cachetools; the tile cache stays | none | open |
 | PERF.26 | Size estimates don't match what generation stores (bug) | none | open |
-| PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | open |
+| PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | done, PR #442 |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | open |
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
@@ -1074,15 +1074,16 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.77 | A golden-seed regression test | none | open |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
 | TEST.79 | Route edge cases, written before NAV.12 | none | done, PR #427 |
-| TEST.80 | Intermittent failure in the admin change-star test (bug) | none | open |
-| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | open |
+| TEST.80 | Intermittent failure in the admin change-star test (bug) | none | done, PR #442 |
+| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | done, PR #442 |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
 | TEST.83 | Rate-limit tests fail under parallel load (bug) | none | open |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
-| TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | open |
+| TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | done, PR #442 |
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | open |
+| TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

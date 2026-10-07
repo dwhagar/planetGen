@@ -22,14 +22,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 ### Bugfixes: CI red
 
-| ID | Item | Needs | Note |
-|---|---|---|---|
-| TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) |  | CI red: also hit on MySQL 8.4 on PR #431 (2026-10-02). _db._reserve_id_block, 1213 deadlock on MariaDB 10.11. |
-| TEST.87 | The two-process id-block test times out under full parallel load (bug) |  | test_db_id_blocks_edges.py; _queue.Empty under -n auto, passes alone 3/3. Same path as TEST.81. |
-| OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) |  | CI red on main (linux-update leg, seen on PR #431). |
-| PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) |  | CI red on the Python 3.9 leg (seen on PR #431). |
-| DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) |  | CI red on the MariaDB legs (seen on PR #431). |
-| MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) |  | CI red on the browser-a11y leg (seen on PR #431). |
+Done: all eight items landed in PR #442 (2026-10-07).
 
 ### Bugfixes: generation
 
@@ -38,9 +31,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) |  |  |
-| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) |  | Boss commented out the `star_count < 1.0` checks (commits c6a5f20, 64f02e7); this finishes the fix. Main's CI is red until it lands: two `test_galaxy_gen.py` tests still expect a sparse sector not to qualify. |
-| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | GEN.76 |  |
-| GEN.78 | Some regions have a star probability of zero (bug) | GEN.76 | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
+| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) |  |  |
+| GEN.78 | Some regions have a star probability of zero (bug) |  | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
 | GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | GEN.78 | Major bug (Boss 2026-10-07); merges the 2026-10-03 bulge report. |
 | GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) |  |  |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) |  |  |
@@ -52,7 +44,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) |  | sector_generation_summary_lines in generate.py; one PR with OPS.9. |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | UX.34 | Fixed with ADM.23's single-line rule if that lands first. Same summary record. |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) |  |  |
-| GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | GEN.76 |  |
+| GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) |  |  |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | GEN.81 | Groundwork for GEN.81 on the web side. |
 
 ### Bugfixes: maps and pages
@@ -87,11 +79,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) |  | _db.add_mysql_connection_args. |
 | OPS.7 | Update asks to fill a wiped database with population data (bug) |  | update.sh / update.ps1; one PR with OPS.8. |
 | TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
-| TEST.80 | Intermittent failure in the admin change-star test (bug) |  |  |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) |  | test_facilities.py; a random giant's sphere of influence can be under the test's 500,000 km orbit. |
+| TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) |  | test_web_browser_maps.py drill-down by clicks; failed once under -n auto on MariaDB 10.11, passed 3 of 3 alone. |
 
 ### Groundwork: layout and libraries
 
@@ -214,7 +206,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114).
 
 ## Open questions for Boss
 

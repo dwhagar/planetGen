@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | TEST.81, TEST.87, OPS.25, PERF.27, DB.12, MAP.114, GEN.65, PERF.26, ADM.27, GEN.76, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.80, TEST.82, TEST.84, TEST.86, TEST.88, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, ADM.27, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -1007,12 +1007,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them off from the display." Done: Escape or a click on the selected
   nebula clears it, and the Sector Map's nebula toggle hides them.
   Prerequisite: MAP.79.
-
-- [ ] **MAP.114 The Sector Map's Reset view leaves the picture unchanged (bug)**
-  Seen on PR #431's CI (2026-10-02, browser-a11y): after turning the
-  Sector Map, its Reset view button leaves the picture unchanged. Done:
-  Reset view returns the camera to the preset (as MAP.97 does on the
-  Galaxy Map) and the browser test is green.
 
 - [ ] **MAP.115 Comets, rogue planets and asteroid fields show above the sector level (bug)**
   Boss (2026-10-03 05:38Z): "Comets don't need to show up in a sector
@@ -2184,7 +2178,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - [ ] **API.16 The API reports the galaxy's seed, version and run history**
     Done: an API route returns the galaxy seed, the version that made it
     and the run history (DB.6), documented with the API; API.12's
-    download uses the same fields. Prerequisites: API.5.
+    download uses the same fields. Prerequisite: API.5.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **API.17 Remote generation reproduces what the server would make**
@@ -2387,36 +2381,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point is inside; nebula sectors and `surrounding_cloud` use that test.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.76 A sector with no qualifying stars never generates or is marked generated (bug)**
-  Boss (2026-10-03 05:38Z): "Sectors do not generate or mark as
-  generated if they do not contain any stars. ... Specifically got this
-  line:  "ring 2790 layer 122 slot 7537 doesn't qualify -- it would hold
-  no real content at this galaxy's own predicted density (below the
-  1-star-per-sector threshold, or outside the layer's stored extent)."
-  All sectors once generated should be filled with something and then
-  let's use our lowest-solar luminosity value for back filling a sector
-  to say if it has been generated or not, if that value is 0 then it has
-  been fully generated and filled, if it is not 0 it has not been
-  filled.  No sector should generate and not fill with stuff even if
-  there are no star systems." Boss (2026-10-07 11:47Z): "Star generation
-  should always actually take place, so even if a sector has 0 expected
-  stars, we'll try anyway because there's always a chance. The projected
-  density is just to be used in generation, not to block generation
-  anywhere." Boss commented out the two `star_count < 1.0` checks in
-  `generate.py` (lines 1928 and 2378: "system needs to generate a sector
-  no matter if it has stars in it or not. Might break things."). Done:
-  every address inside the galaxy's bounds can be generated; a run
-  always draws (systems may come out zero) and always adds the sector's
-  rogue planets, comets and fields; `sector_stats.bright_level_sol` = 0
-  is the one "generated" flag the maps and lists read; the leftover
-  qualify wording and dead code go; and tests generate an empty-density
-  sector and check it is marked generated. Main's CI has been red since
-  those commits (seen on PR #434, 2026-10-07, every database leg): two
-  tests still expect a sparse sector not to qualify,
-  `test_galaxy_gen.py::test_ensure_sector_generated_checks_exact_density_within_a_stored_band`
-  and `test_random_start_neighborhood_matches_the_real_skeleton_plan`;
-  they are rewritten for the new rule here.
-
 - [ ] **GEN.77 Neighborhood generation fails when its first sector is below the star threshold (bug)**
   Boss (2026-10-03 05:38Z): "Sector generation even fails if
   neighborhood mode is used and the distance is pushed out so some
@@ -2424,7 +2388,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   something to do with the first sector being below the star threshold."
   Done: a neighborhood run from a sparse centre fills every sector in
   range, and a test runs one at the galaxy's edge.
-  Prerequisite: GEN.76.
 
 - [ ] **GEN.78 Some regions have a star probability of zero (bug)**
   Boss (2026-10-03 05:38Z): "No region of the galaxy should have a star
@@ -2437,7 +2400,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   have a small floor probability everywhere inside the galaxy's bounds
   (`galaxyDensity.py`, `brightStars.py` zeroing bins whose centre
   "doesn't qualify"), and a test samples the far edge and the halo.
-  Prerequisite: GEN.76.
 
 - [ ] **GEN.79 Bright stars only land between layers -121 and 121, so the bulge never shows (bug)**
   Boss (2026-10-03 05:38Z): "Backfill bright stars should show the
@@ -2471,7 +2433,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `generate.py` refusal that isn't a bad argument (density, qualify,
   size, "no room") becomes a warning and the run goes ahead; scripts
   that want the old stop get `--strict`.
-  Prerequisite: GEN.76.
 
 - [ ] **GEN.82 Black holes show a Hawking temperature and luminosity of zero (bug)**
   Boss (2026-10-07 11:47Z): "Recheck calculations on Hawking temperature
@@ -2942,14 +2903,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per-star constants are corrected, the findings are written down, and a
   test keeps the estimate within a stated margin of a measured run.
 
-- [ ] **PERF.27 On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug)**
-  Seen on PR #431's CI (2026-10-02, Python 3.9 tests): passing
-  `--workers=--` and similar values makes the parsed option a list
-  instead of a number, and generate.py's CLI checks crash instead of
-  printing a usage error. Done: on every supported Python the bad value
-  gives a clear usage error with exit status 2, and the 3.9 leg is
-  green.
-
 - [ ] **PERF.28 The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug)**
   Boss (2026-10-07 11:47Z): "In the console the secondary progress bar
   for star back fill after sector generation does not update it's ETA."
@@ -2966,7 +2919,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   population), so a check lists every partly filled sector and the steps
   it still needs; the level rule of GEN.44 (-1 untouched, a positive
   L_sun, 0 generated) stays the summary.
-  Prerequisite: GEN.76.
 
 - [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
   Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
@@ -3054,13 +3006,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and batching behaviour is kept (TEST.81 and TEST.87 stay fixed).
   Prerequisite: OPS.24.
   Design: [docs/design/library-migration.md](design/library-migration.md)
-
-- [ ] **DB.12 MariaDB reads a stored -0.0 back as +0.0 (bug)**
-  Seen on PR #431's CI (2026-10-02, MariaDB tests): a value stored as
-  -0.0 reads back as +0.0, so a round-trip test that compares signs
-  fails. Done: either stored values are normalised so -0.0 is never
-  written (a coordinate or velocity of zero has no sign that matters) or
-  the test compares with that rule, and the MariaDB legs are green.
 
 - [ ] **DB.13 Every stored value in its own column, not in JSON blocks, and indexed for search**
   Boss (2026-10-07 11:47Z): "Ensure to have all database information to
@@ -3579,28 +3524,6 @@ clears each one.
   on both engines (group by every selected column, or no GROUP BY), and
   the test passes on MariaDB 10.11 and SQLite. [infra, DB]
 
-- [ ] **TEST.80 Intermittent failure in the admin change-star test (bug)**
-  `test_admin_edits.py::test_change_star_keeps_classes_and_saves_the_type`
-  failed once under `pytest -n auto` (a planet's class 'J' came back as
-  'L' after a star-type edit) and passed on rerun (seen by the Geometry
-  and names thread, 2026-10-02). Done: the failing case is found (loop
-  the test over seeds or runs), the cause is fixed in the test or in
-  the code it found, and the test passes on every run tried.
-  [infra, ADM]
-
-- [ ] **TEST.81 Two processes reserving id blocks of one table can deadlock (bug)**
-  `test_db_id_blocks_edges.py::test_two_processes_using_up_blocks_of_one_table_never_collide`
-  fails about 2 runs in 12 locally on MariaDB 10.11, at any worker
-  count, with a 1213 deadlock in `_db._reserve_id_block` when two
-  processes reserve blocks of the same table (found by the Parallel
-  path thread, PR #371, 2026-10-02; not fixed there). Done: the cause
-  is found, block reservation retries or orders its locks so two
-  processes never deadlock, and the test passes on every run tried.
-  [infra, DB]
-  Plan (2026-10-07): Also failed on MySQL 8.4 on PR #431's CI
-  (2026-10-02, the ID-block test deadlocked), so it is CI red: first in
-  the bugfix lane.
-
 - [ ] **TEST.82 Intermittent failure in the orbit-ceiling trim test (bug)**
   `test_validation.py::test_trim_to_orbit_ceiling_returns_what_it_removed`
   returned `[50.0, 6.0]` instead of `[50.0]` once in a full run and
@@ -3643,18 +3566,6 @@ clears each one.
   `-n auto`), the cause is fixed in the test or in the code it found,
   and the test passes on every run tried. [infra, GEN]
 
-- [ ] **TEST.87 The two-process id-block test times out under full parallel load (bug)**
-  `test_db_id_blocks_edges.py::test_two_processes_using_up_blocks_of_one_table_never_collide`
-  times out with `_queue.Empty` in a full `pytest -n auto` run and
-  passed 3 of 3 alone (seen by the Binary pairs thread, PR #403,
-  2026-10-02). The test spawns two processes that reserve id blocks of
-  one table and reads their results from a queue, so a slow spawn under
-  load can outrun the queue wait. Related: TEST.81 (the same two-process
-  reservation can deadlock on MariaDB 10.11). Done: the cause is found
-  (a wait too short for a loaded machine, or a real stall in
-  `_db._reserve_id_block`), fixed in the test or the code, and the test
-  passes on every full `-n auto` run tried. [infra, DB]
-
 - [ ] **TEST.88 The facilities test fails when the drawn gas giant's sphere of influence is too small (bug)**
   `test_facilities.py::test_facilities_are_stored_on_their_hosts`
   places a starbase 500,000 km from the system's gas giant, but the
@@ -3663,6 +3574,15 @@ clears each one.
   `_db.add_facility` refused the orbit. Done: the test picks its orbit
   inside the drawn giant's sphere of influence (or fixes the system's
   seed), and it passes on every run tried. [infra, ADM]
+
+- [ ] **TEST.89 The Galaxy Map drill-down browser test fails intermittently (bug)**
+  `test_web_browser_maps.py::test_galaxy_map_drill_down_by_clicks`
+  failed once in a full `pytest -n auto` run on MariaDB 10.11
+  (2026-10-07, reported by the Bugfixes lane during PR #442) and passed
+  3 of 3 run alone. Nothing in #442 touches the Galaxy Map. Done: the
+  cause is found (likely a click landing before the stage finishes
+  loading under parallel load), the test waits on the right condition,
+  and it passes repeatedly under `-n auto`. [infra, MAP]
 
 ## USR: User accounts
 
@@ -3903,14 +3823,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     the utility modules, and `generate.py` becomes a thin entry point
     over the generation package.
     Design: [docs/design/library-migration.md](design/library-migration.md)
-
-- [ ] **OPS.25 Update tries to drop bright_star_blocks, a table that no longer exists (bug)**
-  Seen on PR #431's CI (2026-10-02, the linux-update job): the upgrade
-  check tries to drop `bright_star_blocks`, which galaxy schema v53
-  already removed (`_db.py` around lines 8982 to 9007 move each block
-  level onto its sectors and drop the table). Done: the upgrade path
-  only drops the table when it exists, a galaxy already past v53
-  upgrades cleanly, and the linux-update job is green.
 
 ## VIEW: The view from a planet
 
