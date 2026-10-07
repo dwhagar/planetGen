@@ -45,6 +45,7 @@ connection pool (`DBUtils.PooledDB`) rather than opening a fresh TCP
 connection per call, per TODO.md's "add real connection pooling" note.
 """
 
+import argparse
 import contextlib
 import hashlib
 import json
@@ -269,6 +270,19 @@ own test suite) uses this implicitly by passing `config=None` through to
 `get_connection`."""
 
 
+def _mysql_port(text):
+    """argparse `type` for `--mysql-port`: a whole number from 1 to 65535,
+    so an impossible port is a usage error up front instead of a
+    connection error later (OPS.6)."""
+    try:
+        port = int(text)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"invalid int value: {text!r}")
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError(f"must be from 1 to 65535, got {port}")
+    return port
+
+
 def add_mysql_connection_args(parser):
     """
     Adds the `--mysql-host`/`--mysql-port`/`--mysql-user`/
@@ -290,7 +304,7 @@ def add_mysql_connection_args(parser):
     """
     parser.add_argument('--mysql-host', type=str,
                          help="MySQL host. Defaults to $PLANETGEN_MYSQL_HOST, or 127.0.0.1.")
-    parser.add_argument('--mysql-port', type=int,
+    parser.add_argument('--mysql-port', type=_mysql_port,
                          help="MySQL port. Defaults to $PLANETGEN_MYSQL_PORT, or 3306.")
     parser.add_argument('--mysql-user', type=str,
                          help="MySQL user. Defaults to $PLANETGEN_MYSQL_USER, or 'planetgen'.")

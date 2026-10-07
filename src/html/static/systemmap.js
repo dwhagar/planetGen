@@ -501,6 +501,7 @@ function showInfo(el) {
     addField(dl, "Atmosphere", el.dataset.atmosphere);
     addField(dl, "Surface composition", el.dataset.composition);
     addField(dl, "Surface temperature", el.dataset.surfacetemp);
+    addField(dl, "Surface pressure", el.dataset.surfacepressure);
     addField(dl, "Life Chemistry", el.dataset.life);
     if (kind === "moon") {
       addField(dl, "Orbits", el.dataset.parent);

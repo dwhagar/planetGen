@@ -41,7 +41,7 @@ def _star(id_, mass_kg=1.989e30, radius_km=696_000, star_type="G2V", temperature
 
 def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet_class="G", body_type="t",
             moons=None, life_chemical=None, zone="e", period_years=1.0, gravity_g=1.0,
-            atmosphere=None, composition=None, surface_temperature_k=None):
+            atmosphere=None, composition=None, surface_temperature_k=None, atmospheric_pressure_pa=None):
     return {
         "id": id_, "star_id": star_id, "name": f"Planet {id_}",
         "position_x_km": x_km, "position_y_km": y_km, "position_z_km": 0.0,
@@ -50,6 +50,7 @@ def _planet(id_, star_id, x_km, y_km, distance_km=None, radius_km=6371.0, planet
         "zone": zone, "period_years": period_years, "gravity_g": gravity_g,
         "life_chemical": life_chemical, "moons": moons or [],
         "atmosphere": atmosphere, "composition": composition, "surface_temperature_k": surface_temperature_k,
+        "atmospheric_pressure_pa": atmospheric_pressure_pa,
     }
 
 
@@ -599,6 +600,16 @@ def test_planet_attrs_formats_surface_temperature():
     attrs = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, surface_temperature_k=287.6))
     assert attrs["surfacetemp"] == "288 K (14 °C, 58 °F)"
     assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, surface_temperature_k=None))["surfacetemp"] is None
+
+
+def test_planet_attrs_formats_surface_pressure():
+    # MAP.117: under the temperature in the side panel.
+    attrs = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, atmosphere="Nitrogen-Oxygen",
+                                     atmospheric_pressure_pa=101_325.0))
+    assert attrs["surfacepressure"] == "101 kPa (1 atm, 14.7 psi)"
+    assert sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))["surfacepressure"] == "None"
+    no_value = sm._planet_attrs(_planet(3, 10, AU_KM, 0.0, atmosphere="Nitrogen", atmospheric_pressure_pa=None))
+    assert no_value["surfacepressure"] is None
 
 
 def test_render_system_map_panel_includes_the_spheres_canvas_whenever_there_are_stars():

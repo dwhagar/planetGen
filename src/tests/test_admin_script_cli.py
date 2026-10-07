@@ -374,11 +374,13 @@ def test_a_non_numeric_port_is_a_usage_error(name, port, monkeypatch, capsys):
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))
 @pytest.mark.parametrize("port", ["0", "-1", "70000"])
-def test_an_out_of_range_port_is_reported_cleanly(name, port, monkeypatch, capsys):
+def test_an_out_of_range_port_is_a_usage_error(name, port, monkeypatch, capsys):
+    # OPS.6: rejected by argparse before any connection is tried.
+    monkeypatch.setattr(store, "get_connection", lambda *a, **k: pytest.fail("connected"))
     argv = _script_argv(name, ["--mysql-host", "127.0.0.1", "--mysql-port", port, "--mysql-user", "nobody",
                                "--mysql-password", "x", "--mysql-database", "nothing"])
-    assert _run_main(SCRIPTS[name][0], argv, monkeypatch) != 0
-    assert "error" in capsys.readouterr().err.lower()
+    assert _run_main(SCRIPTS[name][0], argv, monkeypatch) == 2
+    assert "--mysql-port: must be from 1 to 65535" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))
