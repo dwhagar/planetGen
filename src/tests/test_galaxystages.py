@@ -34,7 +34,7 @@ def _shape():
     """The test shape with the galaxy's sector threshold, as the page
     embeds it (lib/galaxymap3d._density_shape)."""
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
 
     return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 

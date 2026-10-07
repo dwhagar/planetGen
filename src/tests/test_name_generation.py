@@ -1,5 +1,5 @@
 """
-Regression tests for `stellarObjects.utils.generate_phoneme_salad_name`.
+Regression tests for `planetgen.names.wordsalad.generate_phoneme_salad_name`.
 
 A base name containing a literal apostrophe (e.g. `PLANET_NAMES`'s
 "Hi'iaka") splits into a syllable that *starts* with "'" (see
@@ -31,7 +31,7 @@ from planetgen.names.wordlists import (
     STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES,
     UNIVERSAL_PHONEMES,
 )
-from stellarObjects.utils import generate_phoneme_salad_name, split_into_syllables, split_long_word
+from planetgen.names.wordsalad import generate_phoneme_salad_name, split_into_syllables, split_long_word
 
 
 def test_apostrophe_base_name_splits_into_a_leading_apostrophe_syllable():
@@ -99,10 +99,10 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
         # landing the two apostrophes adjacent once joined.
         return 2
 
-    monkeypatch.setattr("stellarObjects.utils.random.choice", fake_choice)
-    monkeypatch.setattr("stellarObjects.utils.random.random", fake_random_random)
-    monkeypatch.setattr("stellarObjects.utils.random.shuffle", fake_shuffle)
-    monkeypatch.setattr("stellarObjects.utils.random.randint", fake_randint)
+    monkeypatch.setattr("planetgen.names.wordsalad.random.choice", fake_choice)
+    monkeypatch.setattr("planetgen.names.wordsalad.random.random", fake_random_random)
+    monkeypatch.setattr("planetgen.names.wordsalad.random.shuffle", fake_shuffle)
+    monkeypatch.setattr("planetgen.names.wordsalad.random.randint", fake_randint)
 
     # Should not raise IndexError.
     name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)

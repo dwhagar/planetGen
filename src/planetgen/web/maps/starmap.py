@@ -83,7 +83,7 @@ try:
         sector_position_pc,
         slot_angle_bounds,
     )
-    from stellarObjects.utils import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
+    from planetgen.physics.units import ly_to_milliparsecs, milliparsecs_to_ly, mpc_to_pc, pc_to_mpc
 except ImportError:
     # Same deployment gap as above -- without these, a sector with no
     # galaxy placement (or one this deployment can't reach the geometry

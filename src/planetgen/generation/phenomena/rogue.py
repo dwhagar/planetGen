@@ -28,9 +28,10 @@ from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
-                    generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name, sample_power_law)
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.util.format import format_body_radius_km, format_number, format_speed_kms
+from planetgen.util.random import sample_power_law
 
 
 def format_comet_composition_summary(composition):

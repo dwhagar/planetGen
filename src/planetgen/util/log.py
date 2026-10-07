@@ -594,7 +594,7 @@ def timed_phase(label):
         _logger.debug(f"{label}: {elapsed_ms:.3f}ms", stacklevel=3)
 
 
-# Sensible default so anything that imports stellarObjects modules directly
+# Sensible default so anything that imports planetgen modules directly
 # (tests, `python -c`, etc.) without going through `generate.py`'s `main()`
 # still gets today's plain, untimed output rather than silence.
 configure(NORMAL)

@@ -16,7 +16,7 @@ from planetgen.galaxy import nebula_field
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 
 from tests.bughunt_support import forced_system_config
 

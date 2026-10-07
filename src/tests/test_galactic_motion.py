@@ -15,7 +15,7 @@ from planetgen.galaxy.geometry import (
 )
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import pc_to_ly
+from planetgen.physics.units import pc_to_ly
 
 EDGE_PC = 4.0
 RING = 10

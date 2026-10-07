@@ -24,7 +24,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 
 
 def _failed():
-    check = mathCheck.Check("snow_line_1_lsun", "reference", "utils.snow_line_au(L_sun)",
+    check = mathCheck.Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
                             lambda: 2.6, 2.7, 1e-6, "test")
     return mathCheck.run_check(check)
 

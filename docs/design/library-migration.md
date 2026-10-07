@@ -184,7 +184,16 @@ is unchanged (reproducible-galaxies.md):
 - `_log_uniform` (generate.py, compactRemnant, quasarData,
   stellarEvolution, rogueSurface): one `planetgen.util.random.log_uniform`
   where the draws match; a copy whose draw order differs stays local,
-  with a note, until a seeded test proves the swap is safe.
+  with a note, until a seeded test proves the swap is safe. Done in step
+  13: every copy made the same single `uniform` draw, so all of them
+  (and nebula's `_draw_in_range` and the wide-binary separation) now call
+  `log_uniform`; stellarEvolution's copy was unused and went.
+- utils.py's helpers the table above doesn't name went to their one
+  caller's module: the star-profile helpers (`get_star_spectral_class`,
+  `get_star_evolutionary_profile`) to `planetgen.generation.star`,
+  `calculate_object_mass` to `planetgen.physics.planets`, the wide-binary
+  samplers to `planetgen.generation.wide_binary`, and `to_paragraph` and
+  `properties_to_string` to `planetgen.util.format`.
 - `sys.path` pushes: all four go (the editable install makes them
   unnecessary).
 

@@ -20,7 +20,7 @@ URL" still has to either edit code or set half a dozen `SetEnv`/
 edited once per deployment, holding every one of those settings in one
 place.
 
-It is loaded by [`../src/stellarObjects/appconfig.py`](../src/stellarObjects/appconfig.py),
+It is loaded by [`../src/planetgen/util/appconfig.py`](../src/planetgen/util/appconfig.py),
 a small, dependency-free (standard library `json`/`os`/`copy` only) loader
 module, and merged onto its own built-in defaults -- a `config.json` that
 only sets the fields it needs to change is enough; anything it omits
@@ -81,7 +81,7 @@ now, `config.json`).
 | `site_name` | Display name for this deployment, e.g. `"planetGen"`. The pages show it in the header, the home page heading, every `<title>`, and the footer (when it isn't the default). |
 | `base_url` | The base URL this deployment is served from, e.g. `"http://localhost/"` or `"https://planetgen.example.com/"`. Not yet read by any page -- reserved for future absolute-URL generation (e.g. constructing shareable links) that can't be derived from a request alone. |
 | `api_base_url` | Base URL of the Flask API's `/api` mount point, used by `../src/planetgen/web/lib/apiclient.py` only outside the Flask app (the pages call the API in-process). Defaults to `http://127.0.0.1/api`; override when the API is deployed at a different host/port. Equivalent to `PLANETGEN_API_BASE_URL`. |
-| `debug` | When true, every part of planetGen -- the generator CLI, the maintenance scripts, the `html/` pages and the API -- writes a verbose debug log to `log_file`: every decision the generator makes and why, every random roll (with the source line that asked for it and the probabilities or thresholds that line refers to), every SQL statement, every web request, API call and admin access check, and every error with its traceback, each line timestamped to the millisecond and tagged with its process. Off when missing. The log grows fast (a single sector writes megabytes), so `install.sh`/`update.sh` install a logrotate config for it (daily, or past 100 MB; 7 compressed copies kept). The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See `../src/stellarObjects/log.py`. Equivalent to `PLANETGEN_DEBUG` (`1` on, `0` off). |
+| `debug` | When true, every part of planetGen -- the generator CLI, the maintenance scripts, the `html/` pages and the API -- writes a verbose debug log to `log_file`: every decision the generator makes and why, every random roll (with the source line that asked for it and the probabilities or thresholds that line refers to), every SQL statement, every web request, API call and admin access check, and every error with its traceback, each line timestamped to the millisecond and tagged with its process. Off when missing. The log grows fast (a single sector writes megabytes), so `install.sh`/`update.sh` install a logrotate config for it (daily, or past 100 MB; 7 compressed copies kept). The web interface never shows tracebacks on its pages, debug or not; with debug on, a 500 page says the traceback is in the debug log. See `../src/planetgen/util/log.py`. Equivalent to `PLANETGEN_DEBUG` (`1` on, `0` off). |
 | `log_file` | Where the debug log goes; default `/var/log/planetgen.log` (set it explicitly on Windows). With `debug` on, `install.sh`/`update.sh` create it (owned by Apache's user and group, mode 0660) and point the logrotate config at it. A login user who runs the generator from a shell must be in Apache's group (`sudo usermod -aG www-data <user>`, then log in again) to append to it; root can always write to it. A process that can't open it carries on without a debug log and prints one warning to stderr. Equivalent to `PLANETGEN_LOG_FILE`. |
 | `log_dir` | The folder of the always-on **activity log** (`planetgen.log`; see [The activity log](#the-activity-log) below). Empty (the default) means the platform's standard place: `/var/log/planetgen` on Linux, `/Library/Logs/planetgen` on macOS, `logs` under the checkout on Windows. `install.sh`/`update.sh` create it (root and Apache's group, mode 2770; the file Apache's user and group, mode 0660); `install.ps1`/`update.ps1` create it and give the app's account write access. Equivalent to `PLANETGEN_LOG_DIR`. |
 | `log_rotation` | How the activity log is rotated: `"auto"` (the default), `"system"` or `"app"`. `"system"` leaves it to logrotate or newsyslog (the program reopens the file after it is moved); `"app"` makes the program rotate it itself (100 MB per file, 30 old copies). `"auto"` means `"system"` where `install.sh`/`update.sh` installed `/etc/logrotate.d/planetgen-log` or `/etc/newsyslog.d/planetgen-log.conf`, else `"app"` (always on Windows). No environment variable. |
@@ -106,7 +106,7 @@ now, `config.json`).
 
 Separate from the debug log, planetGen always writes a short record of
 who did what to `planetgen.log` in `log_dir` (SEC.28,
-`../src/stellarObjects/activitylog.py`): sign-ins, refused requests and
+`../src/planetgen/admin/activity_log.py`): sign-ins, refused requests and
 every change to the database. It is on whatever `debug` says; with
 `debug` on, each line is copied into the debug log too. Passwords,
 session tokens and API keys are never written.

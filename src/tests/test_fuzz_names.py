@@ -5,7 +5,7 @@ Property-based / brute-force tests for name generation and name-uniqueness
 decoration: `planetgen/names/wordlists.py` (the word lists themselves),
 `planetgen/names/uniqueness.py` (`resolve_greek_roman_collision`,
 `resolve_diminutive`, `strip_decoration`) and the
-name-generation helpers in `stellarObjects/utils.py` that consume them
+name-generation helpers in `planetgen/names/wordsalad.py` that consume them
 (`split_into_syllables`, `is_name_valid`, `split_long_word`,
 `generate_phoneme_salad_name`, `generate_sector_name`).
 
@@ -25,7 +25,7 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import utils
+from planetgen.names import wordsalad
 from planetgen.names import wordlists
 from planetgen.names import uniqueness as nu
 from tests.fuzz_support import hostile_text, scaled
@@ -272,18 +272,18 @@ def test_generated_words_are_never_decoration_tokens(token, other):
     """Regression: `is_name_valid` accepted decoration words ("liten",
     "klein", "ohana", "amigo", ...), so a plain generated sector name like
     "Liten Gughoe" was stripped to "Gughoe" and grouped with another base."""
-    assert utils.is_name_valid(token.lower()) is False
-    assert utils.is_name_valid(f"{token.lower()} {other}") is False
-    assert utils.is_name_valid(other) is True  # the rejection is the token's, not the filler's
+    assert wordsalad.is_name_valid(token.lower()) is False
+    assert wordsalad.is_name_valid(f"{token.lower()} {other}") is False
+    assert wordsalad.is_name_valid(other) is True  # the rejection is the token's, not the filler's
 
 
 def test_split_halves_of_generated_names_are_never_decoration_tokens():
     """A long name split in two can land a decoration word as either half
     ("Kavel Ohana"); the generator must draw again rather than return it."""
     splits = iter(["kavel Ohana", "kavel Onami"])
-    with mock.patch.object(utils, "is_name_valid", return_value=True), \
-            mock.patch.object(utils, "split_long_word", side_effect=lambda _name: next(splits)):
-        name = utils.generate_phoneme_salad_name(*NAME_SOURCES["star"])
+    with mock.patch.object(wordsalad, "is_name_valid", return_value=True), \
+            mock.patch.object(wordsalad, "split_long_word", side_effect=lambda _name: next(splits)):
+        name = wordsalad.generate_phoneme_salad_name(*NAME_SOURCES["star"])
     assert name == "Kavel Onami"
 
 
@@ -307,7 +307,7 @@ def test_resolvers_reject_any_negative_index(n):
 
 @given(name=hostile_text)
 def test_split_into_syllables_is_a_partition(name):
-    syllables = utils.split_into_syllables(name)
+    syllables = wordsalad.split_into_syllables(name)
     assert "".join(syllables) == name
     assert all(syllables)
     assert (syllables == []) == (name == "")
@@ -315,7 +315,7 @@ def test_split_into_syllables_is_a_partition(name):
 
 @given(name=hostile_text)
 def test_is_name_valid_never_raises_and_rejects_every_offensive_substring(name):
-    result = utils.is_name_valid(name)
+    result = wordsalad.is_name_valid(name)
     assert isinstance(result, bool)
     lower = name.lower()
     if lower in wordlists.DICTIONARY_WORDS or any(w in lower for w in wordlists.NSFW_WORDS):
@@ -326,12 +326,12 @@ def test_is_name_valid_never_raises_and_rejects_every_offensive_substring(name):
        word=st.sampled_from(sorted(w for w in wordlists.NSFW_WORDS if w.isalpha())),
        suffix=st.text(alphabet=string.ascii_lowercase, max_size=4))
 def test_is_name_valid_rejects_embedded_offensive_words(prefix, word, suffix):
-    assert utils.is_name_valid(prefix + word + suffix) is False
+    assert wordsalad.is_name_valid(prefix + word + suffix) is False
 
 
 @given(run=st.sampled_from(["aei", "ouu", "bcd", "rst", "xyzq"]), pad=st.text(alphabet="ab", max_size=4))
 def test_is_name_valid_rejects_three_in_a_row(run, pad):
-    assert utils.is_name_valid(pad + run + pad) is False
+    assert wordsalad.is_name_valid(pad + run + pad) is False
 
 
 @given(prefix=st.text(alphabet="bdgklmnprt", max_size=3),
@@ -344,13 +344,13 @@ def test_is_name_valid_sees_through_embedded_apostrophes(prefix, word, cut, suff
     "pak'") hid an offensive word from the substring filter."""
     cut = min(cut, len(word) - 1)
     hidden = prefix + word[:cut] + "'" + word[cut:] + suffix
-    assert utils.is_name_valid(hidden) is False
-    assert utils.is_name_valid(hidden.replace("'", " ")) is False
+    assert wordsalad.is_name_valid(hidden) is False
+    assert wordsalad.is_name_valid(hidden.replace("'", " ")) is False
 
 
 @given(name=st.text(alphabet=string.ascii_lowercase + "'", min_size=0, max_size=40))
 def test_split_long_word_properties(name):
-    out = utils.split_long_word(name)
+    out = wordsalad.split_long_word(name)
     if len(name) <= wordlists.WORD_SIZE_MEAN or out == name:
         assert out == name
         return
@@ -367,7 +367,7 @@ def test_split_long_word_properties(name):
 @example(words=["ethel", "nacyon"])   # base "El Nath" -> generated "Ethel  Nacyon"
 def test_split_long_word_never_doubles_an_existing_space(words):
     name = " ".join(words)
-    out = utils.split_long_word(name)
+    out = wordsalad.split_long_word(name)
     assert "  " not in out
     assert out.count(" ") <= max(1, name.count(" "))
 
@@ -385,14 +385,14 @@ def test_generate_phoneme_salad_name_terminates_on_arbitrary_inputs(base_list, p
     """Any word lists either yield a valid name or a clean RuntimeError --
     never another exception, never a hang (attempt cap lowered here so
     even an always-rejecting input is quick)."""
-    with mock.patch.object(utils, "MAX_NAME_GENERATION_ATTEMPTS", 60):
+    with mock.patch.object(wordsalad, "MAX_NAME_GENERATION_ATTEMPTS", 60):
         try:
-            name = utils.generate_phoneme_salad_name(base_list, prefixes, suffixes, allow_split=allow_split,
+            name = wordsalad.generate_phoneme_salad_name(base_list, prefixes, suffixes, allow_split=allow_split,
                                                      syllable_fraction=fraction, max_length=max_length)
         except RuntimeError:
             return
     assert name and name[0] == name[0].upper()
-    assert utils.is_name_valid(name.replace(" ", "").lower()) or " " in name
+    assert wordsalad.is_name_valid(name.replace(" ", "").lower()) or " " in name
     if max_length is not None:
         assert len(name.replace(" ", "")) <= max_length
     if not allow_split:
@@ -419,19 +419,19 @@ def _check_generated(name, sector=False):
 def test_bulk_generated_names_are_clean(kind):
     source = NAME_SOURCES[kind]
     for _ in range(scaled(60) * 25):
-        _check_generated(utils.generate_phoneme_salad_name(*source))
+        _check_generated(wordsalad.generate_phoneme_salad_name(*source))
 
 
 def test_bulk_generated_sector_names_are_clean():
     for _ in range(scaled(60) * 25):
-        _check_generated(utils.generate_sector_name(), sector=True)
+        _check_generated(wordsalad.generate_sector_name(), sector=True)
 
 
 def test_generation_is_bounded_even_when_every_candidate_is_rejected():
-    with mock.patch.object(utils, "is_name_valid", return_value=False) as validator:
+    with mock.patch.object(wordsalad, "is_name_valid", return_value=False) as validator:
         with pytest.raises(RuntimeError):
-            utils.generate_phoneme_salad_name(*NAME_SOURCES["star"])
-    assert validator.call_count == utils.MAX_NAME_GENERATION_ATTEMPTS
+            wordsalad.generate_phoneme_salad_name(*NAME_SOURCES["star"])
+    assert validator.call_count == wordsalad.MAX_NAME_GENERATION_ATTEMPTS
 
 
 @given(huge=st.integers(10**6, 10**40))

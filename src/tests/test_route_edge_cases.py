@@ -40,7 +40,7 @@ from planetgen.tuning import (
 )
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 EDGE_LY = DEFAULT_SECTOR_EDGE_LY
 SUN_LY = (pc_to_ly(7896.0), 0.0, 0.0)  # the study's home: the Sun's radius, in the plane

@@ -49,7 +49,7 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 
 from tests import worker_patches
 from tests.bughunt_support import mysql_argv

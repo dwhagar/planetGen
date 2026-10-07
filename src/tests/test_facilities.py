@@ -12,7 +12,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import circular_orbital_speed_kms
+from planetgen.physics.orbits import circular_orbital_speed_kms
 from planetgen.db import query
 
 

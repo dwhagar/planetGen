@@ -21,8 +21,10 @@ from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name)
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.util.format import format_distance_ly, format_number
+from planetgen.util.random import log_uniform
 
 
 NEBULA_CLASS_LETTERS = tuple(
@@ -43,7 +45,7 @@ def _draw_in_range(low, high):
     (a log scale can't start at nothing)."""
     if low <= 0:
         return random.uniform(low, high)
-    return math.exp(random.uniform(math.log(low), math.log(high)))
+    return log_uniform(low, high)
 
 
 def _mid_of_range(low, high):
@@ -141,7 +143,7 @@ class Nebula:
         galactic_orbital_speed_kms (float): Circular orbital speed around
             the galactic center, km/s -- a nebula is still gravitationally
             part of the galaxy even though it isn't bound to any star (see
-            `utils.generate_galactic_orbit_fields`).
+            `galactic_orbit.generate_galactic_orbit_fields`).
         galactic_orbital_period_gy (float): Orbital period, billions of
             years.
         galactic_orbital_phase_deg (float): Current angular position

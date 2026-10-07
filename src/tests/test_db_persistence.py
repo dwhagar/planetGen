@@ -35,7 +35,9 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
+from planetgen.physics.orbits import (
+    circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
+)
 
 
 def _drop_v17_phenomenon_columns(conn):
@@ -1668,7 +1670,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
     with both star-hosted planets and a moon-having planet, and confirms
     `migrate_database` backfills `stars.reflex_offset_*_km`/
     `planets.reflex_offset_*_km` with real derived values -- the exact
-    same `utils.calculate_reflex_offset` formula generation time uses --
+    same `orbits.calculate_reflex_offset` formula generation time uses --
     rather than leaving them `NULL`. See `_migrate_v19_to_v20`'s docstring.
     """
     system = None
@@ -2070,7 +2072,7 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     """
     from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
     from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
-    from stellarObjects.utils import ly_to_pc
+    from planetgen.physics.units import ly_to_pc
 
     monkeypatch.setattr(store, "_V27_BACKFILL_BATCH_SIZE", 1)
     center_pc = (4000.0, 3000.0, 20.0)
@@ -2910,7 +2912,7 @@ def test_nearest_systems_cross_sector_boundaries(mysql_config):
     """UX.18 (v41): a system at a sector's edge lists a system just
     across the boundary once that sector is generated."""
     from planetgen.db import query as queryDb
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
 
     edge_ly = pc_to_ly(4.0)
     first = store.save_sector(_sector_with_systems("Westmark", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),

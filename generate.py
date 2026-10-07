@@ -86,7 +86,7 @@ from rich.progress import (
 )
 from rich.text import Text
 
-# stellarObjects lives at src/stellarObjects (src layout) -- add src/ to the
+# The planetgen package lives at src/planetgen (src layout) -- add src/ to the
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
@@ -124,7 +124,8 @@ from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import render_star_system
-from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
+from planetgen.names.wordsalad import generate_sector_name
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
 logging.getLogger("transformers").setLevel(logging.ERROR)
@@ -281,7 +282,7 @@ def _generation_progress(disable=False):
     calls `log.set_console(progress.console)` right after opening this
     context manager (and `log.reset_console()` once it's closed), so every
     `log.normal(...)`/`log.debug(...)` call made anywhere during a galaxy
-    run -- including deep inside `stellarObjects` modules -- is
+    run -- including deep inside `planetgen` modules -- is
     automatically routed through `progress.console.print(...)` instead of a
     raw stdout write for as long as the bar is live. Routed that way, rich
     prints each line safely *above* the live region and leaves the bar

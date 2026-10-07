@@ -808,7 +808,7 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     smallest are dropped. Point-like phenomena aren't clouds."""
     from planetgen.generation.phenomena.nebula import Nebula
     from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
 
     cfg = SystemConfig()
     sector_id = _place_sector(mysql_config, "Cloud Home", (0.0, 0.0, 0.0))
@@ -2139,7 +2139,7 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     address or by a point inside the cell, with its coordinates and 8
     corners, and names the generated sector there if one exists."""
     from planetgen.galaxy.geometry import sector_position_pc
-    from stellarObjects.utils import ly_to_pc
+    from planetgen.physics.units import ly_to_pc
 
     from planetgen import tuning
 

@@ -89,7 +89,7 @@ try:
     )
     from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
     from planetgen.tuning import GALAXY_RADIUS_PC
-    from stellarObjects.utils import ly_to_pc, pc_to_ly
+    from planetgen.physics.units import ly_to_pc, pc_to_ly
 except ImportError:
     TILE_ROOT_EDGE_PC = 65536.0
     TILE_MAX_LEVEL = 12

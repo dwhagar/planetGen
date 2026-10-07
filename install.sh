@@ -7,7 +7,7 @@
 # on macOS under gunicorn and launchd with Homebrew's nginx in front
 # (docs/deployment/macos.md). install.ps1 is the Windows counterpart;
 # the three follow the same steps, so a change to one belongs in all. `setup.py` stays scoped to the Python side only (the
-# `stellarObjects` package plus the `sectorgen`/`systemgen` console
+# `planetgen` package plus the `sectorgen`/`systemgen` console
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:
 #
@@ -24,10 +24,10 @@
 #      `SetEnv` directives once deployed), bringing it up to the current
 #      schema (`planetgen/db/schema.sql`) if it isn't already. A no-op
 #      for a database that's already current. Needs step 1 done first,
-#      since it imports `stellarObjects`.
+#      since it imports `planetgen`.
 #   3. Pre-fetches (unless it's already there) the NLTK `words` corpus into a shared, world-readable
 #      location (not a per-user home directory) so it works under any
-#      user that later imports `stellarObjects` -- a login shell running
+#      user that later imports `planetgen` -- a login shell running
 #      `sectorgen`/`systemgen`, or Apache's own locked-down `www-data`
 #      running the `src/html/` web app. `planetgen/names/wordlists.py` checks
 #      `nltk.data.find()` before ever calling `download()`, so once this

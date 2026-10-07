@@ -85,7 +85,8 @@ from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import render_system_sections, render_system_text
-from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
+from planetgen.util.format import format_distance_ly
 from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin

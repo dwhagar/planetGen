@@ -29,7 +29,7 @@ from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.galaxy.drill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402
-from stellarObjects.utils import pc_to_ly  # noqa: E402
+from planetgen.physics.units import pc_to_ly  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 
 DB = "planetgen_map_fixture"

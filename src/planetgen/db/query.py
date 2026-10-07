@@ -68,7 +68,7 @@ from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
-from stellarObjects.utils import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
 
 def open_readonly(config=None, statement_timeout_s=None):
@@ -2045,8 +2045,8 @@ def galaxy_density_shape(conn):
 # Interactive 3D Galaxy Map viewport queries -- the placed-sector shape
 # the cube tiles below reuse. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
 # called once per page load for the flat, whole-galaxy overview map),
-# these are scoped to a moving viewport -- see `stellarObjects.
-# galaxyViewport`'s own module docstring for the three content tiers
+# these are scoped to a moving viewport -- see `planetgen.galaxy.
+# viewport`'s own module docstring for the three content tiers
 # (placed/planned/density) this combines.
 # ---------------------------------------------------------------------
 
@@ -2060,8 +2060,8 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
     """
     Every galaxy-placed sector within `radius_pc` of `(center_x_pc,
     center_y_pc, center_z_pc)`, closest first -- the "placed" tier of the
-    interactive 3D Galaxy Map's live viewport (see `stellarObjects.
-    galaxyViewport`'s module docstring), unlike `galaxy_placed_sectors`
+    interactive 3D Galaxy Map's live viewport (see `planetgen.galaxy.
+    viewport`'s module docstring), unlike `galaxy_placed_sectors`
     (the whole galaxy, once, for the flat overview map's own quadrant/ring
     tables).
 

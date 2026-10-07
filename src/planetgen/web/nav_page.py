@@ -43,7 +43,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.navmap import render_nav_map_panel
 from planetgen.galaxy.navigation import format_course
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 
 from . import bp
 from .sector_page import PHENOMENON_TYPE_LABELS

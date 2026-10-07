@@ -319,7 +319,7 @@ function Invoke-OptionalPopulation([switch]$Run) {
 }
 
 # The two logs (OPS.5), worked out the way the program does
-# (stellarObjects\appconfig.py): the debug log is PLANETGEN_LOG_FILE, else
+# (planetgen\util\appconfig.py): the debug log is PLANETGEN_LOG_FILE, else
 # "log_file" in config.json, else its default; the always-on activity log
 # is planetgen.log in PLANETGEN_LOG_DIR, else "log_dir", else logs under
 # the checkout. One object per log: Name, File, Dir and Setting (what to
@@ -509,11 +509,11 @@ function Test-AppImports {
 import os, sys
 root = sys.argv[1]
 sys.path.insert(0, os.path.join(root, 'src'))
-import stellarObjects
+import planetgen.generation.system
 from planetgen.web.app import create_app
 "@ $Root
     if ($LASTEXITCODE -ne 0) { throw "The web app does not import with $python (see above)." }
-    Write-Host "The web app and stellarObjects import cleanly with $python."
+    Write-Host "The web app and the generator import cleanly with $python."
 }
 
 # The Redis server at config.json's redis.url (OPS.21), which the work

@@ -1,13 +1,13 @@
 # tests/test_bughunt_name_exhaustion.py
 
 """
-Tier 1 bug-hunt coverage: `utils.generate_phoneme_salad_name`'s retry loop
+Tier 1 bug-hunt coverage: `wordsalad.generate_phoneme_salad_name`'s retry loop
 under name-validity exhaustion.
 
 Confirmed (via a real 5-second `timeout`-wrapped subprocess, before any
 fix) that this function hung forever -- an unconditional `while True` with
 `is_name_valid` mocked to always return False never terminated. Fixed by
-capping the loop at `utils.MAX_NAME_GENERATION_ATTEMPTS` and raising a
+capping the loop at `wordsalad.MAX_NAME_GENERATION_ATTEMPTS` and raising a
 clean `RuntimeError` on exhaustion (see that constant's own docstring).
 Every star/planet/moon/sector name in this generator funnels through this
 one function, so an unbounded hang here is an unbounded hang for the
@@ -25,7 +25,7 @@ from unittest import mock
 
 import pytest
 
-from stellarObjects import utils
+from planetgen.names import wordsalad
 
 
 class _AlarmTimeout(Exception):
@@ -52,11 +52,11 @@ def test_phoneme_salad_name_raises_cleanly_when_every_candidate_invalid():
     """Regression: previously hung forever (confirmed via a real 5s
     subprocess timeout before the fix); now bounded by
     MAX_NAME_GENERATION_ATTEMPTS and raises RuntimeError."""
-    with mock.patch.object(utils, "is_name_valid", return_value=False):
+    with mock.patch.object(wordsalad, "is_name_valid", return_value=False):
         with pytest.raises(RuntimeError):
             _run_with_wall_clock_timeout(
                 10,
-                lambda: utils.generate_phoneme_salad_name(
+                lambda: wordsalad.generate_phoneme_salad_name(
                     ["test", "testing", "example"], ["pre"], ["suf"]
                 ),
             )
@@ -67,10 +67,10 @@ def test_phoneme_salad_name_exhaustion_is_fast_not_just_bounded():
     cheap string validation should finish in well under a second, so a
     real misconfiguration fails fast during generation, not after a
     multi-second stall."""
-    with mock.patch.object(utils, "is_name_valid", return_value=False):
+    with mock.patch.object(wordsalad, "is_name_valid", return_value=False):
         start = time.monotonic()
         with pytest.raises(RuntimeError):
-            utils.generate_phoneme_salad_name(["test", "testing", "example"], ["pre"], ["suf"])
+            wordsalad.generate_phoneme_salad_name(["test", "testing", "example"], ["pre"], ["suf"])
         elapsed = time.monotonic() - start
     assert elapsed < 5.0, f"exhaustion took {elapsed}s, expected well under 5s"
 
@@ -79,7 +79,7 @@ def test_phoneme_salad_name_still_succeeds_normally():
     """Sanity check the fix didn't change normal (non-exhausted)
     behavior -- a real name pool with is_name_valid unmocked must still
     return quickly, well within the cap."""
-    name = utils.generate_phoneme_salad_name(
+    name = wordsalad.generate_phoneme_salad_name(
         ["aurora", "nebula", "zenith", "corvus"], ["ka", "el", "or"], ["us", "ia", "on"]
     )
     assert isinstance(name, str) and len(name) > 0
@@ -89,6 +89,6 @@ def test_sector_name_generator_also_bounded_under_exhaustion():
     """generate_sector_name joins two generate_phoneme_salad_name calls --
     confirms the fix propagates to it too, not just the lower-level
     function directly."""
-    with mock.patch.object(utils, "is_name_valid", return_value=False):
+    with mock.patch.object(wordsalad, "is_name_valid", return_value=False):
         with pytest.raises(RuntimeError):
-            _run_with_wall_clock_timeout(10, utils.generate_sector_name)
+            _run_with_wall_clock_timeout(10, wordsalad.generate_sector_name)

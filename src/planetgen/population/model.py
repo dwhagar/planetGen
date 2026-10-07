@@ -34,7 +34,8 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from stellarObjects.utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 _YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}
 

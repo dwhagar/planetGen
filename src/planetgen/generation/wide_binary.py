@@ -35,16 +35,18 @@ merged or wrapped.
 import math
 import random
 
+from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
+from planetgen.util.random import log_uniform
 from planetgen.generation.star import Star
-from stellarObjects.utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
-                    holman_wiegert_critical_semimajor_axis,
-                    minimum_update_interval_years, orbital_position_au,
-                    properties_to_string, sample_wide_binary_eccentricity,
-                    sample_wide_binary_separation_au,
-                    format_period_years, format_speed_kms)
+from planetgen.physics.orbits import (
+    circular_orbital_speed_kms, holman_wiegert_critical_semimajor_axis, minimum_update_interval_years, orbital_position_au,
+)
+from planetgen.util.format import (
+    format_distance_au, format_distance_km, properties_to_string, format_period_years, format_speed_kms,
+)
 
 
 class WideBinaryPair:
@@ -70,7 +72,7 @@ class WideBinaryPair:
             ascending node, in degrees.
         phase_deg (float): The secondary's current position within its
             orbit around the primary, in degrees.
-        min_update_interval_years (float): See `utils.minimum_update_interval_years`.
+        min_update_interval_years (float): See `orbits.minimum_update_interval_years`.
         position_x_au/position_y_au/position_z_au (float): The secondary's
             current position relative to the primary, in AU.
     """
@@ -301,3 +303,39 @@ class WideBinaryPair:
             "secondary_limit": "Secondary's Planetary Limit",
         }
         return [properties_to_string(self.system_config, pair_properties, "Wide Binary System Data", markdown_key_map=markdown_key_map)]
+
+
+def sample_wide_binary_separation_au():
+    """
+    Draws an S-type (wide) binary's separation (semi-major axis), log-
+    uniformly between `tuning.WIDE_BINARY_SEPARATION_MIN_AU`
+    and `WIDE_BINARY_SEPARATION_MAX_AU` -- see those constants' own
+    docstring for why log-uniform (not linear-uniform) sampling is used.
+    One `random.uniform` draw (`planetgen.util.random.log_uniform`).
+
+    Returns:
+        float: A separation, in AU.
+    """
+    low = tuning.WIDE_BINARY_SEPARATION_MIN_AU
+    high = tuning.WIDE_BINARY_SEPARATION_MAX_AU
+    return log_uniform(low, high)
+
+
+def sample_wide_binary_eccentricity():
+    """
+    Draws an S-type (wide) binary's orbital eccentricity from a "thermal"
+    distribution, `f(e) = 2e`, capped at
+    `tuning.WIDE_BINARY_ECCENTRICITY_MAX` -- see that constant's
+    own docstring for why wide pairs (unlike the close/P-type pair) keep a
+    realistic, generally non-zero eccentricity.
+
+    Derivation: the thermal PDF `f(e) = 2e` restricted to `[0, e_max]` and
+    renormalized is still exactly proportional to `e` (just rescaled), so
+    its CDF is `F(e) = (e / e_max)^2` and the closed-form inverse-CDF
+    sample is `e = e_max * sqrt(u)`, `u ~ Uniform(0, 1)` -- no rejection
+    sampling needed.
+
+    Returns:
+        float: An eccentricity, in [0, `WIDE_BINARY_ECCENTRICITY_MAX`).
+    """
+    return tuning.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())

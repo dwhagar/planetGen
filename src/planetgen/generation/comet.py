@@ -46,9 +46,9 @@ from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import (
-    format_distance_au, format_period_years, format_speed_kms, generate_phoneme_salad_name, minimum_update_interval_years,
-)
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.physics.orbits import minimum_update_interval_years
+from planetgen.util.format import format_distance_au, format_period_years, format_speed_kms
 
 PERIOD_CLASS_LABELS = {
     "jupiter_family": "Jupiter-family",
@@ -159,7 +159,7 @@ class Comet:
             and may be negative (still approaching perihelion).
         min_update_interval_years (float or None): The floating-point
             update guard `mean_anomaly_deg` needs (see
-            `utils.minimum_update_interval_years`) -- `None` for a
+            `orbits.minimum_update_interval_years`) -- `None` for a
             parabolic comet, which has no periodic angle to guard the
             same way (see `parabolic_mean_anomaly`'s own docstring).
         primary_mass_solar (float): The host star's mass, in solar

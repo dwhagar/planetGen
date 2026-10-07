@@ -46,7 +46,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from stellarObjects import utils
+from planetgen.galaxy import galactic_orbit
+from planetgen.physics import formation
+from planetgen.physics import orbits
+from planetgen.physics import units
+from planetgen.util import random as sampling
 from planetgen.galaxy import density as galaxyDensity, geometry, sector as spaceSector
 from planetgen.physics import constants as pc, kepler, stellar_evolution
 from planetgen import tuning
@@ -249,7 +253,7 @@ def _bin_counts(values, edges):
 def _seeded_global_random(seed):
     """
     Seeds the global `random` module for samplers that draw from it
-    (`utils.sample_bounded_bell`, `planets._choose_weighted_planet_class`),
+    (`sampling.sample_bounded_bell`, `planets._choose_weighted_planet_class`),
     then puts its state back. The debug log's per-draw tracing and DEBUG
     lines are switched off meanwhile, so a check run never floods the log
     with thousands of rolls.
@@ -312,21 +316,21 @@ def _reference_checks():
         Check("earth_orbital_speed_vis_viva", "reference", "kepler.vis_viva_speed_kms(1, 1, 1)",
               lambda: kepler.vis_viva_speed_kms(1.0, 1.0, 1.0), 29.78, 0.001,
               "Earth's mean orbital speed, 29.78 km/s (NASA planetary fact sheet)", unit="km/s"),
-        Check("earth_orbital_speed_circular", "reference", "utils.circular_orbital_speed_kms(1, 1)",
-              lambda: utils.circular_orbital_speed_kms(1.0, 1.0), 29.78, 0.001,
+        Check("earth_orbital_speed_circular", "reference", "orbits.circular_orbital_speed_kms(1, 1)",
+              lambda: orbits.circular_orbital_speed_kms(1.0, 1.0), 29.78, 0.001,
               "Earth's mean orbital speed, 29.78 km/s (NASA planetary fact sheet)", unit="km/s"),
-        Check("earth_hill_sphere", "reference", "utils.calculate_hill_sphere(1 AU, M_earth, M_sun)",
-              lambda: utils.calculate_hill_sphere(pc.AU_M, pc.EARTH_MASS_TO_KG, sun_kg) / 1e9, 1.5, 0.01,
+        Check("earth_hill_sphere", "reference", "orbits.calculate_hill_sphere(1 AU, M_earth, M_sun)",
+              lambda: orbits.calculate_hill_sphere(pc.AU_M, pc.EARTH_MASS_TO_KG, sun_kg) / 1e9, 1.5, 0.01,
               "Earth's Hill sphere, about 1.5 million km (Murray & Dermott, Solar System Dynamics)",
               unit="million km"),
-        Check("habitable_zone_inner_1_lsun", "reference", "utils.calculate_habitable_zone(L_sun)[0]",
-              lambda: utils.calculate_habitable_zone(pc.SOLAR_LUMINOSITY)[0], 0.95, 0.01,
+        Check("habitable_zone_inner_1_lsun", "reference", "orbits.calculate_habitable_zone(L_sun)[0]",
+              lambda: orbits.calculate_habitable_zone(pc.SOLAR_LUMINOSITY)[0], 0.95, 0.01,
               "inner habitable zone edge for the Sun, about 0.95 AU (Kasting et al. 1993)", unit="AU"),
-        Check("habitable_zone_outer_1_lsun", "reference", "utils.calculate_habitable_zone(L_sun)[1]",
-              lambda: utils.calculate_habitable_zone(pc.SOLAR_LUMINOSITY)[1], 1.37, 0.01,
+        Check("habitable_zone_outer_1_lsun", "reference", "orbits.calculate_habitable_zone(L_sun)[1]",
+              lambda: orbits.calculate_habitable_zone(pc.SOLAR_LUMINOSITY)[1], 1.37, 0.01,
               "outer habitable zone edge for the Sun, about 1.37 AU (Kasting et al. 1993)", unit="AU"),
-        Check("snow_line_1_lsun", "reference", "utils.snow_line_au(L_sun)",
-              lambda: utils.snow_line_au(pc.SOLAR_LUMINOSITY), 2.7, 1e-6,
+        Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
+              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.7, 1e-6,
               "snow line at 2.7 AU for 1 L_sun (Hayashi 1981)", unit="AU"),
         Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
               lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
@@ -339,31 +343,31 @@ def _reference_checks():
               "Schwarzschild radius of 1 M_sun, 2.953 km (2GM/c^2 with GM_sun = 1.3271e20 m^3/s^2)",
               unit="km"),
         Check("sun_galactic_radius", "reference", "physical_constants.GALACTIC_CENTER_DISTANCE_LY",
-              lambda: utils.ly_to_pc(gc_ly) / 1000, 8.2, 0.05,
+              lambda: units.ly_to_pc(gc_ly) / 1000, 8.2, 0.05,
               "the Sun's distance from the galactic center, 8.2 kpc (GRAVITY Collaboration 2019)",
               unit="kpc"),
-        Check("sun_galactic_orbital_speed", "reference", "utils.calculate_galactic_orbit(Sun)[0]",
-              lambda: utils.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
+        Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0]",
+              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
               "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014)",
               unit="km/s"),
-        Check("sun_galactic_year", "reference", "utils.calculate_galactic_orbit(Sun)[1]",
-              lambda: utils.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
+        Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
+              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
               "the galactic year, about 230 million years", unit="My"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
-              "utils.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
-              lambda: utils.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,
+              "orbits.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
+              lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,
               "Holman & Wiegert 1999, AJ 117:621, eq. 1 at mu = 0.5, e = 0", unit="a_bin"),
         Check("holman_wiegert_s_type_eccentric", "reference",
-              "utils.holman_wiegert_critical_semimajor_axis(1, 0.3, 0.5)",
-              lambda: utils.holman_wiegert_critical_semimajor_axis(1.0, 0.3, 0.5), 0.14505, 1e-9,
+              "orbits.holman_wiegert_critical_semimajor_axis(1, 0.3, 0.5)",
+              lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.3, 0.5), 0.14505, 1e-9,
               "Holman & Wiegert 1999, AJ 117:621, eq. 1 at mu = 0.3, e = 0.5", unit="a_bin"),
         Check("holman_wiegert_p_type_equal_circular", "reference",
-              "utils.holman_wiegert_circumbinary_a_crit_au(1, 0.5, 0)",
-              lambda: utils.holman_wiegert_circumbinary_a_crit_au(1.0, 0.5, 0.0), 2.3875, 1e-9,
+              "orbits.holman_wiegert_circumbinary_a_crit_au(1, 0.5, 0)",
+              lambda: orbits.holman_wiegert_circumbinary_a_crit_au(1.0, 0.5, 0.0), 2.3875, 1e-9,
               "Holman & Wiegert 1999, AJ 117:621, eq. 3 at mu = 0.5, e = 0", unit="a_bin"),
         Check("holman_wiegert_p_type_eccentric", "reference",
-              "utils.holman_wiegert_circumbinary_a_crit_au(1, 0.3, 0.3)",
-              lambda: utils.holman_wiegert_circumbinary_a_crit_au(1.0, 0.3, 0.3), 3.361141, 1e-9,
+              "orbits.holman_wiegert_circumbinary_a_crit_au(1, 0.3, 0.3)",
+              lambda: orbits.holman_wiegert_circumbinary_a_crit_au(1.0, 0.3, 0.3), 3.361141, 1e-9,
               "Holman & Wiegert 1999, AJ 117:621, eq. 3 at mu = 0.3, e = 0.3", unit="a_bin"),
         Check("kepler_equation_meeus_30a", "reference", "kepler.solve_eccentric_anomaly(5 deg, 0.1)",
               lambda: math.degrees(kepler.solve_eccentric_anomaly(math.radians(5.0), 0.1)),
@@ -392,14 +396,14 @@ def _reference_checks():
 def _unit_round_trips():
     pairs = []
     for x in _log_sweep(1e-9, 1e12, 200):
-        pairs.append((utils.ly_to_pc(utils.pc_to_ly(x)), x))
-        pairs.append((utils.pc_to_ly(utils.ly_to_pc(x)), x))
-        pairs.append((utils.au_to_ly(utils.ly_to_au(x)), x))
-        pairs.append((utils.ly_to_au(utils.au_to_ly(x)), x))
-        pairs.append((utils.mpc_to_pc(utils.pc_to_mpc(x)), x))
-        pairs.append((utils.pc_to_mpc(utils.mpc_to_pc(x)), x))
-        pairs.append((utils.milliparsecs_to_ly(utils.ly_to_milliparsecs(x)), x))
-        pairs.append((utils.ly_to_milliparsecs(utils.milliparsecs_to_ly(x)), x))
+        pairs.append((units.ly_to_pc(units.pc_to_ly(x)), x))
+        pairs.append((units.pc_to_ly(units.ly_to_pc(x)), x))
+        pairs.append((units.au_to_ly(units.ly_to_au(x)), x))
+        pairs.append((units.ly_to_au(units.au_to_ly(x)), x))
+        pairs.append((units.mpc_to_pc(units.pc_to_mpc(x)), x))
+        pairs.append((units.pc_to_mpc(units.mpc_to_pc(x)), x))
+        pairs.append((units.milliparsecs_to_ly(units.ly_to_milliparsecs(x)), x))
+        pairs.append((units.ly_to_milliparsecs(units.milliparsecs_to_ly(x)), x))
         pairs.append((x * pc.AU_TO_KM / pc.AU_TO_KM, x))
     return _sweep_max(pairs)
 
@@ -408,9 +412,9 @@ def _unit_chain_consistency():
     """pc -> ly, pc -> mpc -> ly and pc -> AU -> ly must all agree."""
     pairs = []
     for x in _log_sweep(1e-6, 1e6, 100):
-        direct = utils.pc_to_ly(x)
-        pairs.append((utils.milliparsecs_to_ly(utils.pc_to_mpc(x)), direct))
-        pairs.append((utils.au_to_ly(x * pc.AU_PER_PARSEC), direct))
+        direct = units.pc_to_ly(x)
+        pairs.append((units.milliparsecs_to_ly(units.pc_to_mpc(x)), direct))
+        pairs.append((units.au_to_ly(x * pc.AU_PER_PARSEC), direct))
     return _sweep_max(pairs)
 
 
@@ -571,18 +575,18 @@ def _non_finite_outputs():
         rad = stellar_evolution.main_sequence_radius_sol(m)
         outputs += [lum, rad, stellar_evolution.main_sequence_lifetime_gy(m),
                     stellar_evolution.effective_temperature_k(lum, rad),
-                    *utils.calculate_habitable_zone(lum * pc.SOLAR_LUMINOSITY),
-                    utils.snow_line_au(lum * pc.SOLAR_LUMINOSITY),
+                    *orbits.calculate_habitable_zone(lum * pc.SOLAR_LUMINOSITY),
+                    formation.snow_line_au(lum * pc.SOLAR_LUMINOSITY),
                     stellar_evolution.white_dwarf_radius_km(min(m, 1.4)),
                     _schwarzschild_radius_km(m)]
     for a in _log_sweep(0.01, 1e5, 40):
         outputs += [planets.calculate_orbital_period_years(a, pc.SOLAR_MASS_TO_KG),
                     kepler.vis_viva_speed_kms(a, a, 1.0),
-                    utils.calculate_hill_sphere(a * pc.AU_M, pc.EARTH_MASS_TO_KG, pc.SOLAR_MASS_TO_KG)]
+                    orbits.calculate_hill_sphere(a * pc.AU_M, pc.EARTH_MASS_TO_KG, pc.SOLAR_MASS_TO_KG)]
         for e in (0.0, 0.5, 0.99):
             outputs += list(kepler.true_anomaly_and_distance_elliptical(a, e, a))
     for ly in (1.0, 100.0, 25800.0, 60000.0, 1e6):
-        outputs += list(utils.calculate_galactic_orbit(ly))
+        outputs += list(galactic_orbit.calculate_galactic_orbit(ly))
     for mp in (-1e9, -10.0, -1e-9, 0.0, 1e-9, 10.0, 1e9):
         outputs += list(kepler.true_anomaly_and_distance_parabolic(mp, 1.0))
     for r in (0.0, 1.0, 1e3, 1e4, 3e4):
@@ -595,7 +599,7 @@ def _invariant_checks():
     exact = "exact identity"
     return [
         Check("unit_round_trips", "invariant",
-              "utils.pc_to_ly/ly_to_pc, ly_to_au/au_to_ly, pc_to_mpc/mpc_to_pc, ly_to_milliparsecs/milliparsecs_to_ly",
+              "units.pc_to_ly/ly_to_pc, ly_to_au/au_to_ly, pc_to_mpc/mpc_to_pc, ly_to_milliparsecs/milliparsecs_to_ly",
               _unit_round_trips, 1e-12, 0.0, f"{exact}: converting there and back changes nothing",
               mode="max", unit="relative error"),
         Check("unit_chains_agree", "invariant", "pc -> ly directly, through mpc and through AU",
@@ -604,8 +608,8 @@ def _invariant_checks():
         Check("parsec_in_au", "invariant", "physical_constants.AU_PER_PARSEC",
               lambda: pc.AU_PER_PARSEC, 648000 / math.pi, 1e-12,
               "IAU 2015 Resolution B2: 1 pc = 648,000/pi AU", unit="AU"),
-        Check("parsec_in_ly", "invariant", "utils.pc_to_ly(1)",
-              lambda: utils.pc_to_ly(1.0), 3.261564, 1e-6,
+        Check("parsec_in_ly", "invariant", "units.pc_to_ly(1)",
+              lambda: units.pc_to_ly(1.0), 3.261564, 1e-6,
               "1 pc = 3.261564 ly (IAU 2012 AU, Julian-year light-year)", unit="ly"),
         Check("speed_of_light_consistent", "invariant",
               "physical_constants.SPEED_OF_LIGHT_M_S, SPEED_OF_LIGHT_KMS, LIGHTYEAR_M",
@@ -733,7 +737,7 @@ def _truncated_normal_cdf(x, mean, sd, lo, hi):
 def _bounded_bell_p_value():
     """`sample_bounded_bell(0, 1, 0.27)` is a normal(0.27, 0.09) cut to [0, 1]."""
     with _seeded_global_random(SEED + 6):
-        draws = [utils.sample_bounded_bell(0.0, 1.0, 0.27) for _ in range(4000)]
+        draws = [sampling.sample_bounded_bell(0.0, 1.0, 0.27) for _ in range(4000)]
     mean, sd = 0.27, 0.27 / 3
     edges = [i / 20 for i in range(21)]
     shares = [_truncated_normal_cdf(b, mean, sd, 0.0, 1.0) - _truncated_normal_cdf(a, mean, sd, 0.0, 1.0)
@@ -773,7 +777,7 @@ def _distribution_checks():
               _poisson_large_mean_z, 4.0, 0.0,
               "Poisson mean 800 (normal approximation): sample mean within 4 standard errors",
               mode="max", unit="standard errors"),
-        Check("bounded_bell_shape", "distribution", "utils.sample_bounded_bell(0, 1, 0.27)",
+        Check("bounded_bell_shape", "distribution", "sampling.sample_bounded_bell(0, 1, 0.27)",
               _bounded_bell_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"normal(0.27, 0.09) truncated to [0, 1]; {chi}", mode="min", unit="p"),
         Check("planet_class_shares", "distribution", "planets._choose_weighted_planet_class",

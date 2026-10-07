@@ -18,7 +18,8 @@ import random
 
 from planetgen import tuning
 from planetgen.util import log
-from stellarObjects.utils import format_age_string, get_star_evolutionary_profile, to_paragraph
+from planetgen.generation.star import get_star_evolutionary_profile
+from planetgen.util.format import format_age_string, to_paragraph
 # Removed: from . import config # Import the config module
 
 MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")

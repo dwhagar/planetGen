@@ -20,7 +20,7 @@ import math
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
 EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
 # --- Distance ladder (Boss's exact values, in meters) ---
-# Every displayed distance goes through `utils.format_distance`, which picks
+# Every displayed distance goes through `format.format_distance_m`, which picks
 # the largest of these units the value is at least 1 of: km < AU < mpc <
 # cpc < ly < pc < kpc < Mpc < Gpc. Every other length conversion below is
 # derived from these, so none of them is rounded on its own.
@@ -36,10 +36,10 @@ GIGAPARSEC_M = PARSEC_M * 1e9
 AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
 G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
 SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (compactRemnant.BlackHole)
-CELSIUS_ZERO_K = 273.15  # 0 °C in K (utils.format_temperature_k)
-STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (utils.format_pressure_pa)
-PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (utils.format_pressure_pa)
-SPEED_OF_LIGHT_KMS = 299_792.458  # Exact (the SI definition), km/s -- the speed ladder's c (utils.format_speed_kms, static/speed.js)
+CELSIUS_ZERO_K = 273.15  # 0 °C in K (format.format_temperature_k)
+STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (format.format_pressure_pa)
+PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (format.format_pressure_pa)
+SPEED_OF_LIGHT_KMS = 299_792.458  # Exact (the SI definition), km/s -- the speed ladder's c (format.format_speed_kms, static/speed.js)
 R = 8.314  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
 REDUCED_PLANCK = 1.054571817e-34  # hbar, J*s (CODATA 2018) -- Hawking radiation (compactRemnant)
@@ -62,7 +62,7 @@ JUPITER_RADIUS_KM = 71492  # Jupiter's mean equatorial radius in kilometers
 # the much larger *gas* surface density Hayashi's model is often quoted
 # with (~1700 g/cm^2 at 1 AU) -- using the gas value here would overstate
 # every isolation mass below by roughly (1700/7)^1.5 ~= 3800x. See
-# `utils.mmsn_surface_density_gcm2`/`utils.isolation_mass_kg`, used by
+# `formation.mmsn_surface_density_gcm2`/`formation.isolation_mass_kg`, used by
 # `StarSystem._estimate_max_objects_from_disk_physics`.
 MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0
 MMSN_SURFACE_DENSITY_EXPONENT = -1.5
@@ -75,14 +75,14 @@ SNOW_LINE_ICE_BOOST_FACTOR = 30 / 7
 
 # Where the snow line (ice condensation point, ~170K) sits for a 1-solar-
 # luminosity star, in AU (Hayashi 1981). Scales as sqrt(L/Lsun) for other
-# luminosities -- the same shape `utils.calculate_habitable_zone` already
+# luminosities -- the same shape `orbits.calculate_habitable_zone` already
 # uses for the (physically related, both driven by stellar flux falling
 # off as 1/distance^2) habitable-zone boundaries. See
-# `utils.snow_line_au`.
+# `formation.snow_line_au`.
 SNOW_LINE_AU_AT_1_LSUN = 2.7
 
 # Rotation-curve model for a star's circular orbit around the galactic
-# center (see `utils.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /
+# center (see `galactic_orbit.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /
 # sqrt(r^2 + CORE_RADIUS^2) -- a pseudo-isothermal-halo-style curve that
 # rises ~linearly (near-solid-body) inside the core radius and flattens to
 # the asymptotic velocity well outside it, the same qualitative shape real
@@ -425,14 +425,14 @@ ROTATION_PERIOD_RANGE_HOURS = {
 MOON_TIDAL_DISSIPATION_Q = 100.0
 MOON_TIDAL_LOVE_NUMBER_K2 = 0.03
 
-# --- S-type (wide) binary stability (utils.holman_wiegert_a_crit_au,
-# utils.mutual_hill_radius_au, systemData.StarSystem) ---
+# --- S-type (wide) binary stability (orbits.holman_wiegert_critical_semimajor_axis,
+# orbits.mutual_hill_radius_au, systemData.StarSystem) ---
 
 # Holman & Wiegert (1999), AJ 117:621, "Long-Term Stability of Planets in
 # Binary Systems" -- their numerically-fit S-type critical semi-major axis
 # formula was tested over companion mass fraction mu in [0.1, 0.9] and
 # binary eccentricity e in [0.0, 0.7-0.8]; inputs are clamped to this range
-# (utils.holman_wiegert_a_crit_au) rather than extrapolated.
+# (orbits.holman_wiegert_critical_semimajor_axis) rather than extrapolated.
 HOLMAN_WIEGERT_MU_RANGE = (0.1, 0.9)
 HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 
@@ -444,5 +444,5 @@ HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 # systemData.StarSystem._validate_cross_star_clearance as a physically-
 # motivated extension of this criterion across two planets that orbit
 # *different* stars of a wide binary rather than one shared star -- see
-# that method's docstring and utils.mutual_hill_radius_au for the caveat.
+# that method's docstring and orbits.mutual_hill_radius_au for the caveat.
 GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)

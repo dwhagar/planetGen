@@ -2,7 +2,7 @@
 
 """
 The speed ladder (UX.13) and the time-period ladder (UX.14):
-`stellarObjects.utils.format_speed_kms` shows a speed in one of km/h <
+`planetgen.util.format.format_speed_kms` shows a speed in one of km/h <
 km/s < Mm/s < c, and `format_duration_seconds` / `format_period_years` a
 period in the largest of µs < ms < s < minutes < hours < days < years < ky
 < My < Gy it is at least 1 of. The browser copies (`html/static/speed.js`,
@@ -19,9 +19,9 @@ import subprocess
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects.utils import (
-    PERIOD_LADDER, SPEED_LADDER,
-    format_duration_seconds, format_galactic_orbit, format_period_years, format_speed_kms, format_speed_ms,
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit
+from planetgen.util.format import (
+    PERIOD_LADDER, SPEED_LADDER, format_duration_seconds, format_period_years, format_speed_kms, format_speed_ms,
 )
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
