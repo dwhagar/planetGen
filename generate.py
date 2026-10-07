@@ -2781,8 +2781,8 @@ def run_ring_batch(args, edge_pc, progress):
         position_pc = sector_position_pc(ring_index, layer_index, slot_index, edge_pc)
         sector_args = batch_density.resolve(args, address, position_pc)
         if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
+            log.debug(f"{_format_address(address)}: skipped (outside its layer's "
+                      f"stored extent)")
             skipped += 1
             continue
         batch.append((address, position_pc, sector_args, ""))
@@ -2791,7 +2791,7 @@ def run_ring_batch(args, edge_pc, progress):
     outer_task = progress.add_task(f"Sectors ({what})", total=len(batch))
     _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, outer_task)
     generated = len(batch)
-    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
+    skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in ring {ring_index} layer {layer_index} "
         f"({total_slots} total slots, {len(occupied)} already existed{skip_note})."
@@ -2847,8 +2847,8 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
             continue
         sector_args = batch_density.resolve(args, address, (x, y, z))
         if sector_args is None:
-            log.debug(f"{_format_address(address)}: skipped (below the 1-star-per-sector threshold, or "
-                      f"outside its layer's stored extent)")
+            log.debug(f"{_format_address(address)}: skipped (outside its layer's "
+                      f"stored extent)")
             skipped += 1
             continue
         batch.append((address, (x, y, z), sector_args, suffix.format(distance=distance_pc)))
@@ -2914,7 +2914,7 @@ def run_local_neighborhood(args, edge_pc, progress):
                   edge_pc, progress, outer_task)
     generated = len(batch)
 
-    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
+    skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
     log.normal(
         f"Generated {generated} new sector(s) within {args.radius_pc} pc of sector_id={args.center_sector} "
@@ -3256,7 +3256,7 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
     task = progress.add_task(f"Sectors ({what})", total=len(batch))
     _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, task)
     generated = len(batch)
-    skip_note = f", {skipped} skipped (below the star-count threshold)" if skipped else ""
+    skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     log.normal(
         f"Generated {generated} new sector(s) in {what} ({len(addresses)} total, "
         f"{len(addresses) - len(pending)} already existed{skip_note})."
@@ -3885,6 +3885,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
         dict: Stars written per population.
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
+    drew = set()
     # Densest layers (nearest the plane) first, so no worker is left
     # with a big one at the end while the others sit idle.
     layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
@@ -3909,6 +3910,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         counts[population] += count
                     tracker.layer_done(layer_index)
                     stars = sum(layer_counts.values())
+                    if stars:
+                        drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
                     _generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars)
@@ -3946,6 +3949,13 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                 _finish_stats(args)
         finally:
             log.reset_console()
+    # Every layer is walked, but only the ones that drew a star count as
+    # holding any (GEN.79).
+    if drew:
+        log.normal(f"{label}: stars landed in {len(drew):,} of {len(layers):,} layers "
+                   f"(layers {min(drew)} to {max(drew)}).")
+    else:
+        log.normal(f"{label}: no stars landed in any of the {len(layers):,} layers.")
     return counts
 
 

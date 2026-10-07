@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 7.190.607 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.194.608 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -200,6 +200,7 @@ All in `src/`; `python3 src/<tool>.py --help` shows each one's options:
 | [docs/TODO.md](docs/TODO.md) | Open work, and the index of the phase plans |
 | [docs/plan/](docs/plan/) | The phase plans: order, dependencies and research notes for each phase of the open work |
 | [docs/plan/tier-plan.html](docs/plan/tier-plan.html) | Every open item by phase, lane and dependency, as one page to open in a browser |
+| [docs/plan/todo-reference.html](docs/plan/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (both pages are rebuilt by `python scripts/build_todo_docs.py`) |
 | [docs/testing.md](docs/testing.md) | Running the tests |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
 

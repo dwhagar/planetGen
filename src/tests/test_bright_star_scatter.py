@@ -44,14 +44,14 @@ def _row_dict(row):
     return dict(zip(store.BRIGHT_STAR_COLUMNS, row))
 
 
-def test_scattered_stars_sit_in_their_own_qualifying_cell_and_are_bright():
+def test_scattered_stars_sit_in_their_own_cell_inside_the_outline_and_are_bright():
     rows = _scatter()
     assert len(rows) > 20
     for row in map(_row_dict, rows):
         point = (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000, row["position_z_mpc"] / 1000)
         address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
         assert sector_address_at(point, EDGE_PC) == address
-        assert predicted_star_count(sector_position_pc(*address, EDGE_PC), SHAPE, E_VALUE) >= 1.0
+        assert address[1] in dict(EXTENTS) and address[0] <= dict(EXTENTS)[address[1]]
         assert row["luminosity_w"] >= THRESHOLD * constants.SOLAR_LUMINOSITY * 0.99
         assert row["population"] in brightStars.POPULATIONS
 
@@ -166,6 +166,20 @@ def test_plan_scatter_stores_stars_and_fill_builds_their_systems(mysql_config):
     assert len(linked) == len(preplaced)
     for row in linked:
         assert row["built"] == pytest.approx(row["stored_w"])
+
+
+def test_the_scatter_reports_only_the_layers_that_drew_stars(mysql_config, monkeypatch):
+    # GEN.79: "all 5685 layers were generated" hid that only the middle
+    # ones held any stars. Layer 1 here draws none.
+    _seed_galaxy(mysql_config)
+    real = brightStars.scatter_layer
+    monkeypatch.setattr(brightStars, "scatter_layer",
+                        lambda shape, layer_index, *args, **kwargs:
+                        iter(()) if layer_index == 1 else real(shape, layer_index, *args, **kwargs))
+    messages = []
+    monkeypatch.setattr(generate.log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    assert any("stars landed in 2 of 3 layers (layers -1 to 0)" in message for message in messages)
 
 
 def test_scatter_always_leaves_filled_sectors_out(mysql_config):
