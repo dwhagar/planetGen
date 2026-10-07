@@ -89,19 +89,22 @@
   </dl>
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
-  {%- else %}
+  <p class="hint">You can still generate it. Generating anyway is recorded in the activity log.</p>
+  {%- endif %}
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     {%- for name, value in estimate_fields %}
     <input type="hidden" name="{{ name }}" value="{{ value }}">
     {%- endfor %}
     <input type="hidden" name="{{ estimate_confirm_field }}" value="1">
+    {%- if estimate.refused %}
+    <input type="hidden" name="{{ generate_anyway_field }}" value="1">
+    {%- endif %}
     <div class="search-actions">
-      <button type="submit" class="btn"{% if active %} disabled{% endif %}>Generate</button>
+      <button type="submit" class="btn"{% if active %} disabled{% endif %}>{{ "Generate anyway" if estimate.refused else "Generate" }}</button>
       <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
     </div>
   </form>
-  {%- endif %}
 </section>
 {%- endif %}
 
