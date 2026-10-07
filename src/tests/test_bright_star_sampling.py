@@ -129,7 +129,7 @@ def test_young_stars_hug_the_plane_and_the_bulge_is_old():
     assert plane["young"] > 100 * high["young"]
     assert high["old"] > 0.9
     assert shares((0, 0, 800))["bulge"] > 0.5
-    assert shares((8000, 0, 0))["bulge"] < 1e-6
+    assert shares((8000, 0, 0))["bulge"] < 1e-3
 
 
 def test_pick_population_follows_the_densities():

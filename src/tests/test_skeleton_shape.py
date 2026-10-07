@@ -31,10 +31,10 @@ EDGE_PC = EDGE_LY / 3.26156
 
 # planetgen's own `plan` defaults (--disk-scale-length-pc etc.).
 DEFAULT_SHAPE = build_galaxy_shape(
-    disk_scale_length_pc=2800.0,
-    disk_scale_height_pc=350.0,
-    bulge_scale_radius_pc=200.0,
-    bulge_amplitude=1.0,
+    disk_scale_length_pc=2600.0,
+    disk_scale_height_pc=300.0,
+    bulge_scale_radius_pc=1580.0,
+    bulge_amplitude=3.11,
     arm_count=2,
     pitch_angle_rad=math.radians(15.0),
     arm_amplitude=0.4,
@@ -89,9 +89,10 @@ def test_qualifying_slots_trace_a_flattened_disk_not_a_ball():
     # The disk reaches out to many scale lengths...
     assert max_r > 10000.0
     # ...but stays thin: a ball would have its heights comparable to its
-    # in-plane extent.
-    assert heights[-1] < 0.15 * max_r
-    assert p95_height < 0.1 * max_r
+    # in-plane extent. (The thick disk and bulge reach about 4 kpc up over
+    # the center, a quarter of the radius.)
+    assert heights[-1] < 0.3 * max_r
+    assert p95_height < 0.2 * max_r
 
 
 def test_disk_thins_toward_its_outer_edge():

@@ -72,7 +72,7 @@ def test_dense_layers_weigh_more_than_edge_layers_and_rings_count_too():
     assert middle > edge
     assert middle_stars > edge_stars
     assert middle == pytest.approx(middle_stars + bright_stars.RING_WEIGHT_STARS * 9)
-    empty, empty_stars = bright_stars.layer_weight(SHAPE, 40, 3, EDGE_PC, E_VALUE, fractions)
+    empty, empty_stars = bright_stars.layer_weight(SHAPE, 120, 3, EDGE_PC, E_VALUE, fractions)
     # Far above the disk only the halo floor is left (GEN.78): a small
     # chance, never none.
     assert 0.0 < empty_stars < 1.0

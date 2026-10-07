@@ -36,7 +36,7 @@ from tests.test_bright_star_scatter import (
     E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy,
 )
 
-EMPTY_LAYER = 40
+EMPTY_LAYER = 120
 """A layer of the toy galaxy far above its disk, where only the halo floor
 is left (`tuning.MIN_RELATIVE_DENSITY`, GEN.78)."""
 
