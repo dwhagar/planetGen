@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.49 |
 | MAP | MAP.128 |
 | NAV | NAV.50 |
-| GEN | GEN.116 |
+| GEN | GEN.117 |
 | PERF | PERF.31 |
 | DB | DB.14 |
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.90 |
+| TEST | TEST.91 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -421,7 +421,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
-| ADM.33 | The owner can override "no room" warnings and generate anyway | none | open |
+| ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
 | ADM.34 | One admin menu per screen, holding only that screen's actions | none | open |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
 | ADM.36 | Change an object's trajectory vector | none | open |
@@ -524,7 +524,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
-| GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | open |
+| GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
 | GEN.67 | Names from IDs: replace word-salad name generation | none | open |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
@@ -575,6 +575,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | open |
 | GEN.114 | Add the chosen anomalies to the starmap | none | open |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
+| GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -777,7 +778,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.24 | Move the code into the new package layout, one package per PR | none | done, PR #473 |
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | done, PR #442 |
 | OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) | none | done, PR #467 |
-| OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | open |
+| OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1087,6 +1088,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | done, PR #442 |
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | open |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | open |
+| TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
