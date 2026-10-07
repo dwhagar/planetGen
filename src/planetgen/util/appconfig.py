@@ -26,7 +26,7 @@ explicit function/CLI argument, then the matching `PLANETGEN_*`
 environment variable (so a single shared `config.json` can still be
 overridden per-process -- e.g. `planetgen-orbits@.service`'s per-instance
 `PLANETGEN_MYSQL_DATABASE=%i`), then `config.json`, then the built-in
-default below. Callers (`stellarObjects._db`, `html/api/config.py`,
+default below. Callers (`planetgen.db.store`, `html/api/config.py`,
 `html/lib/apiclient.py`) each still read their own
 `os.environ.get(VAR, ...)` for the middle two steps; this module only
 supplies the `config.json` layer.
@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     "api_base_url": "http://127.0.0.1/api",
     "debug": False,
     "log_file": "/var/log/planetgen.log",
-    # The always-on activity log's folder (stellarObjects/activitylog.py).
+    # The always-on activity log's folder (planetgen/admin/activity_log.py).
     # Empty means the platform's standard place (`default_log_dir`).
     "log_dir": "",
     # "auto", "system" (logrotate/newsyslog moves the file) or "app" (the

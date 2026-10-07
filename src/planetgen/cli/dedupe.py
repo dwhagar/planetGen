@@ -1,24 +1,24 @@
 #!/usr/bin/env python3
-# src/dedupeNames.py
+# planetgen.cli.dedupe
 
 """
 One-off backfill: scans an existing database for sector/system names
 that duplicate each other (within or across those two levels) and
 resolves them with the same Greek/Roman and diminutive decoration
-`stellarObjects/_db.py`'s `insert_sector`/`insert_star_system` already
+`planetgen/db/store.py`'s `insert_sector`/`insert_star_system` already
 apply automatically to every *new* row (v24, see
 `planetgen/names/uniqueness.py`'s own module docstring for the
 sector > system hierarchy) -- for a database that predates that feature,
 or already holds duplicate names from before it existed. Planets and
 moons are named from their system (`planetgen/names/bodies.py`, v34), so
-a renamed system's derived names follow it (`_db.rename_star_system`).
+a renamed system's derived names follow it (`store.rename_star_system`).
 
 Live generation already guarantees no new duplicate ever lands in the
 database going forward; this script is only for cleaning up whatever's
 already there. Processes one level at a time, top-down (sectors, then
 systems) -- exactly the order `nameUniqueness`'s own hierarchy needs,
 since a system's cross-level check against `sector_name_registry` has to
-see the sectors' *final*, already-resolved state. Reuses `_db.py`'s own `reserve_*_name`/`confirm_*_name` functions
+see the sectors' *final*, already-resolved state. Reuses `store.py`'s own `reserve_*_name`/`confirm_*_name` functions
 directly -- the same two-phase reservation `insert_sector`/etc. call --
 rather than a second, parallel implementation of the same rules.
 
@@ -27,20 +27,19 @@ how many rows currently share it is left untouched, so re-running this
 script against a database it's already cleaned (with no new duplicates
 added by some other means in between) is a no-op.
 
-This file lives alongside `stellarObjects/` under `src/`, so Python's own
-sys.path[0] (the running script's directory) already makes
-`stellarObjects` importable -- no sys.path shim needed.
+Run it from the checkout's `src/` (`python3 -m` puts the current
+directory on sys.path, so `planetgen` imports).
 
 Usage:
-    python3 src/dedupeNames.py [--mysql-host HOST] [--mysql-port PORT]
+    python3 -m planetgen.cli.dedupe [--mysql-host HOST] [--mysql-port PORT]
                                [--mysql-user USER] [--mysql-password PASSWORD]
                                [--mysql-database DATABASE]
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
-    `stellarObjects._db.MySQLConfig`). The configured account needs
+    `planetgen.db.store.MySQLConfig`). The configured account needs
     ordinary `SELECT`/`INSERT`/`UPDATE` grants on the content database --
-    no `CREATE`/`ALTER` (this never touches DDL, unlike `migrateDb.py`).
+    no `CREATE`/`ALTER` (this never touches DDL, unlike `planetgen.cli.migrate`).
 """
 
 import argparse
@@ -49,7 +48,7 @@ from collections import defaultdict
 
 import pymysql
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.names.uniqueness import strip_decoration
 
 
@@ -89,7 +88,7 @@ def _dedupe_sectors(conn):
     for base, group in _group_by_base(rows).items():
         already_done = _already_resolved_count(conn, "sector_name_registry", base)
         for row in group[already_done:]:
-            new_name, _name_base = _db.reserve_sector_name(conn, base, row["id"])
+            new_name, _name_base = store.reserve_sector_name(conn, base, row["id"])
             if new_name != row["name"]:
                 conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (new_name, row["id"]))
                 renamed += 1
@@ -109,11 +108,11 @@ def _dedupe_systems(conn):
     for base, group in _group_by_base(rows).items():
         already_done = _already_resolved_count(conn, "system_name_registry", base)
         for row in group[already_done:]:
-            new_name, name_base, diminutive_index = _db.reserve_system_name(conn, base)
+            new_name, name_base, diminutive_index = store.reserve_system_name(conn, base)
             if new_name != row["name"]:
-                _db.rename_star_system(conn, row["id"], new_name)
+                store.rename_star_system(conn, row["id"], new_name)
                 renamed += 1
-            _db.confirm_system_name(conn, name_base, row["id"], diminutive_index)
+            store.confirm_system_name(conn, name_base, row["id"], diminutive_index)
     return renamed
 
 
@@ -131,7 +130,7 @@ def dedupe_names(config=None):
             count of rows this run actually renamed (`0` for every key
             means nothing needed fixing).
     """
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with conn:
             sectors_renamed = _dedupe_sectors(conn)
@@ -151,13 +150,13 @@ def main():
                      "Greek/Roman and diminutive decoration new generation runs already apply "
                      "automatically (see planetgen/names/uniqueness.py).",
     )
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
     args = parser.parse_args()
 
-    config = _db.mysql_config_from_args(args)
+    config = store.mysql_config_from_args(args)
     try:
         counts = dedupe_names(config)
-    except (pymysql.MySQLError, _db.SchemaTooNewError) as exc:
+    except (pymysql.MySQLError, store.SchemaTooNewError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)
 

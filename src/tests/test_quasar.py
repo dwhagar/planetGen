@@ -11,8 +11,8 @@ import math
 import pytest
 
 import generate
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
@@ -33,7 +33,7 @@ def _core_sector(mysql_config, slot=0, sector=None):
     }
     if sector is None:
         sector = SpaceSector(f"Core {slot}")
-    return _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+    return store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
 
 def test_quasar_physics_follows_from_mass_and_eddington_ratio():
@@ -98,17 +98,17 @@ def test_core_sector_quasar_is_stored_at_the_galactic_center(mysql_config, monke
     monkeypatch.setattr(tuning, "QUASAR_ACTIVE_NUCLEUS_CHANCE", 1.0)
     sector = SpaceSector("Core Host")
     generate.add_galactic_nucleus(sector, generate._default_generation_args(), distance_ly)
-    placement = _db._galaxy_placement_from_sector_offset(
+    placement = store._galaxy_placement_from_sector_offset(
         {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z}, sector.phenomena[0].position,
     )
     assert placement["galactic_radius_pc"] == pytest.approx(0.0, abs=1e-9)
 
     sector_id = _core_sector(mysql_config, sector=sector)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM quasars WHERE sector_id = ?", (sector_id,)).fetchone()
-        matches = queryDb.phenomena_near_sector(conn, sector_id)
-        detail = queryDb.phenomenon_detail(conn, "quasar", row["id"])
+        matches = query.phenomena_near_sector(conn, sector_id)
+        detail = query.phenomenon_detail(conn, "quasar", row["id"])
     finally:
         conn.close()
 
@@ -131,7 +131,7 @@ def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch
         for slot in range(n_0):
             generate.ensure_sector_generated(0, layer, slot, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute(
             "SELECT q.galactic_radius_pc, s.layer_index, s.ring_slot_index FROM quasars q JOIN sectors s ON s.id = q.sector_id"
@@ -145,7 +145,7 @@ def test_only_the_first_core_sector_rolls_for_a_quasar(mysql_config, monkeypatch
 
 def test_save_phenomenon_places_a_quasar_only_at_the_core_and_only_once(mysql_config):
     cfg = SystemConfig()
-    outer_id = _db.save_sector(
+    outer_id = store.save_sector(
         SpaceSector("Outer"), config=mysql_config,
         galaxy_position={
             "center_x_pc": 50.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 50.0,
@@ -153,15 +153,15 @@ def test_save_phenomenon_places_a_quasar_only_at_the_core_and_only_once(mysql_co
         },
     )
     with pytest.raises(ValueError, match="ring-0, layer-0"):
-        _db.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=outer_id)
+        store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=outer_id)
 
     core_id = _core_sector(mysql_config, slot=1)
-    quasar_id = _db.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
+    quasar_id = store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
     with pytest.raises(ValueError, match="already has a quasar"):
-        _db.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
+        store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=core_id)
 
     # Above or below the plane at ring 0 is not the core either.
-    above_id = _db.save_sector(
+    above_id = store.save_sector(
         SpaceSector("Above"), config=mysql_config,
         galaxy_position={
             "center_x_pc": 1.76, "center_y_pc": 0.0, "center_z_pc": EDGE_PC, "galactic_radius_pc": 3.94,
@@ -169,15 +169,15 @@ def test_save_phenomenon_places_a_quasar_only_at_the_core_and_only_once(mysql_co
         },
     )
     with pytest.raises(ValueError, match="ring-0, layer-0"):
-        _db.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=above_id)
+        store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config, sector_id=above_id)
 
     # Unplaced quasars (no sector) are still allowed, like every other type.
-    _db.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config)
+    store.save_phenomenon(Quasar(cfg), cfg, "quasar", config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM quasars WHERE id = ?", (quasar_id,)).fetchone()
-        assert queryDb.count_phenomena(conn) == 2
+        assert query.count_phenomena(conn) == 2
     finally:
         conn.close()
     # Snapped to the center rather than jittered around the sector.
@@ -193,7 +193,7 @@ def test_a_quiescent_nucleus_is_stored_as_a_supermassive_black_hole_at_the_cente
     sector = SpaceSector("Quiet Host")
     generate.add_galactic_nucleus(sector, generate._default_generation_args(), distance_ly)
     sector_id = _core_sector(mysql_config, sector=sector)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM black_holes WHERE sector_id = ?", (sector_id,)).fetchone()
         assert conn.execute("SELECT COUNT(*) AS n FROM quasars").fetchone()["n"] == 0

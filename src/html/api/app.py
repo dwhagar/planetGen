@@ -12,7 +12,8 @@ import time
 import pymysql
 from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
-from stellarObjects import _db, activitylog
+from planetgen.db import store
+from planetgen.admin import activity_log
 from planetgen.util import log
 
 from .admin import bp as admin_bp
@@ -236,7 +237,7 @@ def _register_error_handlers(app):
         # PERF.17: a read that ran past `mysql.statement_timeout_seconds`
         # is a 504 with a plain message; any other database error is
         # still the generic 500.
-        if not (exc.args and exc.args[0] in _db.STATEMENT_TIMEOUT_ERRORS):
+        if not (exc.args and exc.args[0] in store.STATEMENT_TIMEOUT_ERRORS):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
         if _is_api_request():
@@ -304,7 +305,7 @@ def _register_error_handlers(app):
         if request.path in _SIGN_IN_PATHS:
             # A password guesser past the per-address limit (SEC.20);
             # the form never got as far as reading a username.
-            activitylog.event("AUTH", "login.ratelimited", path=request.path)
+            activity_log.event("AUTH", "login.ratelimited", path=request.path)
         if not _is_api_request() and request.endpoint != "web.galaxy_tiles":
             return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429

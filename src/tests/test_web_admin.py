@@ -24,7 +24,8 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen.db import store as _db  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from web import admin_pages, csrf  # noqa: E402
 
 DB = "planetgen_web_test"

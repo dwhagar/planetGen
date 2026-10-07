@@ -15,7 +15,7 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed
 from tests.test_galaxy_gen import _SKELETON_SHAPE, _mysql_argv, _seed_skeleton
 
@@ -81,7 +81,7 @@ def test_with_no_galaxy_seed_a_unit_leaves_the_stream_alone():
 
 
 def test_the_bright_star_seeds_come_from_the_galaxy_seed():
-    skeleton = _db.GalaxySkeletonInfo(_SKELETON_SHAPE, 1.0, 1, 1.0, SEED)
+    skeleton = store.GalaxySkeletonInfo(_SKELETON_SHAPE, 1.0, 1, 1.0, SEED)
     scatter = generate._bright_star_seed(skeleton, "scatter")
     assert scatter == galaxySeed.short_seed(SEED, "bright-stars", "scatter")
     assert generate._bright_star_seed(skeleton, "band/100-500") != scatter
@@ -92,9 +92,9 @@ def test_the_bright_star_seeds_come_from_the_galaxy_seed():
 # ---------------------------------------------------------------------------
 
 def _stored_seed(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return _db.get_galaxy_seed(conn)
+        return store.get_galaxy_seed(conn)
     finally:
         conn.close()
 
@@ -110,9 +110,9 @@ def test_the_seed_is_stored_bit_for_bit(mysql_config):
     for seed in (SEED, b"\xff" * 16, b"\x00" * 16, bytes(range(16))):
         _seed_skeleton(mysql_config, galaxy_seed=seed)
         assert _stored_seed(mysql_config) == seed
-        conn = _db.get_connection(mysql_config)
+        conn = store.get_connection(mysql_config)
         try:
-            assert _db.get_galaxy_shape(conn).galaxy_seed == seed
+            assert store.get_galaxy_shape(conn).galaxy_seed == seed
         finally:
             conn.close()
 

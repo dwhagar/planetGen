@@ -3,7 +3,7 @@
 """
 Admin authentication endpoints: login/logout, forced credential rotation
 off the seeded default, "who am I", and API key management. See
-`stellarObjects/adminAuth.py` for the underlying credential/session/key
+`planetgen/admin/auth.py` for the underlying credential/session/key
 logic and `authz.py` for the `require_admin` decorator every other
 write/admin route in this API uses.
 
@@ -23,7 +23,7 @@ import hashlib
 from flask import Blueprint, current_app, g, jsonify, request
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
-from stellarObjects import activitylog, adminAuth
+from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
 
 from .authz import SESSION_COOKIE_NAME, audit, require_admin
@@ -43,7 +43,7 @@ attacker has any reason to hammer (password guessing against the one
 login form), so it gets its own tight per-IP limit
 regardless of how the global default is configured. Failed logins are
 also counted per address and per username in the control database
-(`loginguard.py`, `stellarObjects/loginThrottle.py`): 3 from one address
+(`loginguard.py`, `planetgen/admin/throttle.py`): 3 from one address
 lock it for 5 minutes doubling to a day, and 10 for one username lock it
 for 1 s doubling to 15 minutes."""
 
@@ -166,7 +166,7 @@ def login():
     if _totp_on(conn, admin["id"]):
         # Right password, second step still to come (SEC.26): no session
         # yet, and the failure counts stay until the code is right too.
-        activitylog.event("AUTH", "login.password_ok", user=admin["username"])
+        activity_log.event("AUTH", "login.password_ok", user=admin["username"])
         return jsonify({"totp_required": True, "pending": _pending_serializer().dumps(
             {"id": admin["id"], "h": _hash_fingerprint(admin["password_hash"])})})
     guard.succeeded()
@@ -174,7 +174,7 @@ def login():
 
 
 def _finish_login(conn, admin):
-    activitylog.event("AUTH", "login.ok", user=admin["username"])
+    activity_log.event("AUTH", "login.ok", user=admin["username"])
     raw_token = adminAuth.create_session(conn, admin["id"])
     resp = jsonify(_admin_public_dict(admin))
     _set_session_cookie(resp, raw_token)
@@ -249,7 +249,7 @@ def login_totp():
         raise ApiError("that code isn't right", status_code=401)
     guard.succeeded()
     if used == "recovery":
-        activitylog.event("AUTH", "totp.recovery_used", user=admin["username"],
+        activity_log.event("AUTH", "totp.recovery_used", user=admin["username"],
                           left=adminAuth.totp_status(conn, admin["id"])["recovery_codes_left"])
     return _finish_login(conn, admin)
 
@@ -259,7 +259,7 @@ def login_totp():
 def logout():
     """`POST /api/auth/logout` -- ends the current session, clears the cookie."""
     adminAuth.end_session(get_control_db(), request.cookies.get(SESSION_COOKIE_NAME))
-    activitylog.event("AUTH", "logout", user=g.admin_user["username"])
+    activity_log.event("AUTH", "logout", user=g.admin_user["username"])
     resp = jsonify({"status": "ok"})
     _clear_session_cookie(resp)
     return resp
@@ -314,7 +314,7 @@ def change_credentials():
 
     guard.succeeded()
     updated = conn.execute("SELECT * FROM admin_users WHERE id = ?", (g.admin_user["id"],)).fetchone()
-    activitylog.event("AUTH", "credentials.changed", user=updated["username"],
+    activity_log.event("AUTH", "credentials.changed", user=updated["username"],
                       old_user=g.admin_user["username"] if g.admin_user["username"] != updated["username"] else None)
     raw_token = adminAuth.create_session(conn, updated["id"])
     resp = jsonify(_admin_public_dict(updated))
@@ -360,7 +360,7 @@ def totp_setup():
     an authenticator app: returns `{"secret", "uri", "qr_svg"}` (the QR
     code encodes `uri`). Nothing changes at sign-in until `confirm`.
     """
-    from stellarObjects import totp
+    from planetgen.admin import totp
     body = require_json_body()
     refused = _check_current_password(body)
     if refused is not None:
@@ -387,7 +387,7 @@ def totp_confirm():
         codes = adminAuth.confirm_totp_setup(get_control_db(), g.admin_user["id"], body.get("code"))
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)
-    activitylog.event("AUTH", "totp.enabled", user=g.admin_user["username"])
+    activity_log.event("AUTH", "totp.enabled", user=g.admin_user["username"])
     audit("totp.enable", target=f"admin:{g.admin_user['id']}")
     return jsonify({"recovery_codes": codes})
 
@@ -399,7 +399,7 @@ def totp_disable():
     """
     `POST /api/auth/totp/disable` `{"current_password", "code"}` -- turns
     two-factor sign-in off; needs the password and a current code (or a
-    recovery code). Lost both? `src/loginLockouts.py --reset-two-factor`.
+    recovery code). Lost both? `python3 -m planetgen.cli.lockouts --reset-two-factor`.
     Forgets every trusted device of this admin and gives the caller a
     new one.
     """
@@ -419,7 +419,7 @@ def totp_disable():
     # more (TEST.46); this browser gets a fresh one, like after a
     # credentials change.
     adminAuth.revoke_devices(conn, g.admin_user["id"])
-    activitylog.event("AUTH", "totp.disabled", user=g.admin_user["username"])
+    activity_log.event("AUTH", "totp.disabled", user=g.admin_user["username"])
     audit("totp.disable", target=f"admin:{g.admin_user['id']}")
     resp = jsonify({"enabled": False})
     _issue_device_cookie(resp, conn, g.admin_user["id"])
@@ -464,7 +464,7 @@ def create_api_key():
         raise ApiError(f"'label' must be at most {MAX_API_KEY_LABEL_LENGTH} characters")
 
     key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label)
-    activitylog.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label)
+    activity_log.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label)
     return jsonify({"id": key_id, "label": label, "key": raw_key}), 201
 
 
@@ -476,5 +476,5 @@ def revoke_api_key(key_id):
     revoked = adminAuth.revoke_api_key(get_control_db(), g.admin_user["id"], key_id)
     if not revoked:
         raise ApiError(f"no active API key {key_id} for this admin", status_code=404)
-    activitylog.event("AUTH", "apikey.revoke", user=g.admin_user["username"], key_id=key_id)
+    activity_log.event("AUTH", "apikey.revoke", user=g.admin_user["username"], key_id=key_id)
     return jsonify({"status": "ok"})

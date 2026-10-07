@@ -22,7 +22,8 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from fmt import linkify_location, nearest_neighbors_location  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen.db import store  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
@@ -473,7 +474,7 @@ def _save_system(mysql_config, name=None, moons=True):
             break
         system = StarSystem(system_config=cfg)
     assert system.planet_count
-    return _db.save_system(system, cfg, config=mysql_config)
+    return store.save_system(system, cfg, config=mysql_config)
 
 
 def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
@@ -503,8 +504,8 @@ def test_real_system_in_sector_links_neighbours(db_app, mysql_config):
         cfg.PLANETS = False
         cfg.BINARY_SYSTEM = False
         sector.add_system(StarSystem(system_config=cfg), position=position, system_config=cfg)
-    sector_id = _db.save_sector(sector, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         ids = [r["id"] for r in conn.execute(
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
@@ -524,7 +525,7 @@ def test_real_system_name_is_escaped(db_app, mysql_config):
 
 
 def test_real_unknown_system_is_404(db_app, mysql_config):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     resp = db_app.test_client().get("/system/999999999")
     assert resp.status_code == 404
     assert "Traceback" not in resp.get_data(as_text=True)
@@ -536,7 +537,7 @@ def test_real_phenomena_list_and_detail(db_app, mysql_config):
     sector = SpaceSector(name="Phenomena Sector", edge_ly=40.0)
     sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
     sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet")
-    _db.save_sector(sector, config=mysql_config)
+    store.save_sector(sector, config=mysql_config)
     client = db_app.test_client()
 
     html = client.get("/phenomena").get_data(as_text=True)

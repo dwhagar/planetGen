@@ -2,7 +2,7 @@
 
 """
 Schema v29: a system's wikitext/Markdown page is no longer stored but
-rendered from its database rows (`stellarObjects/systemRender.py`) -- see
+rendered from its database rows (`planetgen/db/render.py`) -- see
 `schema.sql`'s "v29" header note. These tests pin the property that made
 dropping the stored copies safe: rendering a system from the database
 gives exactly what rendering the freshly generated object gave (which is
@@ -13,15 +13,15 @@ import random
 
 import pytest
 
-import checkRenderParity
-from stellarObjects import _db
+from planetgen.cli import render_parity
+from planetgen.db import store
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from stellarObjects.systemRender import render_star_system, render_system_sections, render_system_text
+from planetgen.db.render import render_star_system, render_system_sections, render_system_text
 from planetgen.generation.wide_binary import WideBinaryPair
 
 _VARIANTS = [
@@ -45,13 +45,13 @@ def _config(**overrides):
 @pytest.mark.parametrize("overrides", _VARIANTS)
 def test_rendering_from_the_database_matches_the_generated_system(mysql_config, overrides):
     random.seed(hash(tuple(sorted(overrides.items()))) & 0xFFFF)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for _ in range(4):
             cfg = _config(**overrides)
             system = StarSystem(system_config=cfg)
             with conn:
-                system_id = _db.insert_star_system(conn, system, cfg)
+                system_id = store.insert_star_system(conn, system, cfg)
             for fmt in ("wikitext", "markdown"):
                 assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt), fmt
     finally:
@@ -62,10 +62,10 @@ def test_rendering_from_the_database_matches_the_generated_system(mysql_config, 
 def test_rendering_a_compact_remnant_anchored_system(mysql_config, remnant_class):
     cfg = SystemConfig()
     system = StarSystem(system_config=cfg, compact_remnant=remnant_class(cfg))
-    system_id = _db.save_phenomenon(
+    system_id = store.save_phenomenon(
         system, cfg, "black-hole" if remnant_class is BlackHole else "neutron-star", config=mysql_config,
     )
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for fmt in ("wikitext", "markdown"):
             assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt)
@@ -92,10 +92,10 @@ def _swapped_pair(mysql_config, wide):
 @pytest.mark.parametrize("wide", [False, True])
 def test_binary_orientation_survives_the_round_trip(mysql_config, wide):
     system, cfg = _swapped_pair(mysql_config, wide)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
         for fmt in ("wikitext", "markdown"):
             assert render_system_text(conn, system_id, fmt) == render_star_system(system, fmt)
     finally:
@@ -120,8 +120,8 @@ def test_from_dict_puts_the_heavier_star_first():
 
 def test_rendering_follows_a_rename(mysql_config):
     cfg = _config(BINARY_SYSTEM=False, PLANETS=False)
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    system_id = store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("UPDATE star_systems SET name = 'Somewhere Else' WHERE id = ?", (system_id,))
@@ -135,8 +135,8 @@ def test_rendering_follows_a_rename(mysql_config):
 def test_sections_split_the_page_per_body(mysql_config):
     cfg = _config(BINARY_SYSTEM=False, MOONS=True, COMETS=True, ASTEROID_BELT=True)
     system = StarSystem(system_config=cfg)
-    system_id = _db.save_system(system, cfg, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    system_id = store.save_system(system, cfg, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         sections = render_system_sections(conn, system_id)
         markdown = render_system_text(conn, system_id, "markdown")
@@ -155,9 +155,9 @@ def test_sections_split_the_page_per_body(mysql_config):
 
 def test_migrate_v28_to_v29_drops_the_stored_page_text(mysql_config):
     cfg = _config(BINARY_SYSTEM=False, PLANETS=False)
-    system_id = _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    system_id = store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("ALTER TABLE star_systems ADD COLUMN wikitext_content LONGTEXT, ADD COLUMN markdown_content LONGTEXT")
         conn.execute("UPDATE star_systems SET wikitext_content = 'old', markdown_content = 'old'")
@@ -167,18 +167,18 @@ def test_migrate_v28_to_v29_drops_the_stored_page_text(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
-        assert not columns & set(_db.V29_DROPPED_COLUMNS)
+        assert not columns & set(store.V29_DROPPED_COLUMNS)
         assert render_system_text(conn, system_id, "markdown").startswith("# ")
     finally:
         conn.close()
 
     # Already current: a no-op.
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_life_stage_is_read_back_from_the_timeline_paragraph():
@@ -194,10 +194,10 @@ def test_life_stage_is_read_back_from_the_timeline_paragraph():
 def test_parity_check_sorts_differences():
     names = ["Onoshur Kin", "Onoshur"]
     stored = "= Onoshur =\n|wobble=1 km from its nominal position\nSame line"
-    assert checkRenderParity.classify(stored, stored, names) is None
-    assert checkRenderParity.classify(stored, stored.replace("= Onoshur =", "= Onoshur Kin ="), names) == "names"
-    assert checkRenderParity.classify(stored, stored.replace("1 km", "2 km"), names) == "live"
-    assert checkRenderParity.classify(stored, stored.replace("Same line", "Changed line"), names) == "other"
+    assert render_parity.classify(stored, stored, names) is None
+    assert render_parity.classify(stored, stored.replace("= Onoshur =", "= Onoshur Kin ="), names) == "names"
+    assert render_parity.classify(stored, stored.replace("1 km", "2 km"), names) == "live"
+    assert render_parity.classify(stored, stored.replace("Same line", "Changed line"), names) == "other"
 
 
 def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mysql_config):
@@ -209,8 +209,8 @@ def test_rendering_keeps_an_anchored_black_holes_fractional_disk_temperature(mys
     black_hole.has_accretion_disk = True
     black_hole.temperature = 9064.7
     system = StarSystem(system_config=cfg, compact_remnant=black_hole)
-    system_id = _db.save_phenomenon(system, cfg, "black-hole", config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    system_id = store.save_phenomenon(system, cfg, "black-hole", config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for fmt in ("wikitext", "markdown"):
             text = render_system_text(conn, system_id, fmt)

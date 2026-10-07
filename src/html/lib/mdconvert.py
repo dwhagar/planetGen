@@ -153,7 +153,7 @@ def markdown_to_html(text):
     `markdown_to_html_with_headings` instead.
 
     Args:
-        text (str): The Markdown source, e.g. from `stellarObjects.systemRender`.
+        text (str): The Markdown source, e.g. from `planetgen.db.render`.
 
     Returns:
         str: HTML markup. Empty string for `None`/empty input.
@@ -169,7 +169,7 @@ def markdown_to_html_with_headings(text):
     rendered content.
 
     Args:
-        text (str): The Markdown source, e.g. from `stellarObjects.systemRender`.
+        text (str): The Markdown source, e.g. from `planetgen.db.render`.
 
     Returns:
         tuple: `(html, headings)` -- `html` as `markdown_to_html` returns;

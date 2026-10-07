@@ -11,7 +11,7 @@ Also: every step applied twice in a row, and an empty or gapped
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from tests.db_schema_support import (
     load_old_schema,
     old_schema_versions,
@@ -33,7 +33,7 @@ def fresh_snapshot(beside):
     server = (beside.host, beside.port)
     if server not in _fresh_snapshots:
         with scratch_database(beside) as fresh:
-            _db.get_connection(fresh).close()
+            store.get_connection(fresh).close()
             _fresh_snapshots[server] = schema_snapshot(fresh)
     return _fresh_snapshots[server]
 
@@ -41,7 +41,7 @@ def fresh_snapshot(beside):
 def assert_like_new(config):
     differences = schema_differences(schema_snapshot(config), fresh_snapshot(config))
     assert not differences, "\n".join(differences)
-    assert _db.schema_status(config) == (_db.SCHEMA_VERSION, 0)
+    assert store.schema_status(config) == (store.SCHEMA_VERSION, 0)
 
 
 def _crashing(step, when):
@@ -69,28 +69,28 @@ def _start_for(target):
     return max(version for version in old_schema_versions() if version < target)
 
 
-STEP_TARGETS = [target for target, _step in _db._migration_steps()]
+STEP_TARGETS = [target for target, _step in store._migration_steps()]
 
 
 @pytest.mark.parametrize("when", ["after_first_change", "before_version"])
 @pytest.mark.parametrize("target", STEP_TARGETS)
 def test_a_step_that_crashed_is_finished_by_the_next_run(mysql_config, monkeypatch, target, when):
     load_old_schema(mysql_config, _start_for(target))
-    real_steps = _db._migration_steps()
+    real_steps = store._migration_steps()
     crashing = [(version, _crashing(step, when) if version == target else step) for version, step in real_steps]
-    monkeypatch.setattr(_db, "_migration_steps", lambda: crashing)
+    monkeypatch.setattr(store, "_migration_steps", lambda: crashing)
     with pytest.raises(InjectedCrash):
-        _db.migrate_database(mysql_config)
-    assert _db.schema_status(mysql_config)[0] < target
+        store.migrate_database(mysql_config)
+    assert store.schema_status(mysql_config)[0] < target
 
-    monkeypatch.setattr(_db, "_migration_steps", lambda: real_steps)
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    monkeypatch.setattr(store, "_migration_steps", lambda: real_steps)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert_like_new(mysql_config)
 
 
 def test_every_step_applied_twice(mysql_config, monkeypatch):
     load_old_schema(mysql_config, 8)
-    real_steps = _db._migration_steps()
+    real_steps = store._migration_steps()
 
     def twice(step):
         def run(conn):
@@ -98,28 +98,28 @@ def test_every_step_applied_twice(mysql_config, monkeypatch):
             step(conn)
         return run
 
-    monkeypatch.setattr(_db, "_migration_steps", lambda: [(version, twice(step)) for version, step in real_steps])
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    monkeypatch.setattr(store, "_migration_steps", lambda: [(version, twice(step)) for version, step in real_steps])
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert_like_new(mysql_config)
 
 
 def test_rerunning_a_finished_migration_changes_nothing(mysql_config):
     load_old_schema(mysql_config, 20)
-    _db.migrate_database(mysql_config)
+    store.migrate_database(mysql_config)
     before = schema_snapshot(mysql_config)
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert schema_snapshot(mysql_config) == before
 
 
 def test_empty_schema_migrations_on_a_current_database_is_taken_as_current(mysql_config):
-    _db.get_connection(mysql_config).close()
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    store.get_connection(mysql_config).close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM schema_migrations")
         conn.commit()
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert_like_new(mysql_config)
 
 
@@ -127,13 +127,13 @@ def test_gapped_schema_migrations_counts_its_highest_version(mysql_config):
     """Rows 8 and 20 only (9-19 lost): the database is v20, and the steps
     from 21 on run."""
     load_old_schema(mysql_config, 20)
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM schema_migrations")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8), (20)")
         conn.commit()
     finally:
         conn.close()
-    assert _db.schema_status(mysql_config) == (20, _db.SCHEMA_VERSION - 20)
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.schema_status(mysql_config) == (20, store.SCHEMA_VERSION - 20)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert_like_new(mysql_config)

@@ -289,7 +289,7 @@ def test_star_system_round_trip_binary_keeps_secondary_config_shared():
     # LARGE_STAR off on it, restoring the original value right after --
     # see that method's own docstring), not a `copy.deepcopy`d fork of its
     # own: a deep copy used to leave a post-generation MARKDOWN toggle
-    # (`_db.py.insert_star_system`, rendering both wikitext_content and
+    # (`store.insert_star_system`, rendering both wikitext_content and
     # markdown_content from the same generated system) unable to reach the
     # secondary's own data table at all, mixing the two formats together
     # in a binary system's stored output.

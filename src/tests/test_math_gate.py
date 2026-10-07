@@ -15,7 +15,7 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen.physics import mathcheck as mathCheck
 
 pytestmark = pytest.mark.mathcheck
@@ -42,7 +42,7 @@ def handlers(monkeypatch):
     ran, events = [], []
     for name in list(generate._COMMAND_HANDLERS):
         monkeypatch.setitem(generate._COMMAND_HANDLERS, name, lambda args, name=name: ran.append(name))
-    monkeypatch.setattr(activitylog, "event", lambda *a, **k: events.append((a, k)))
+    monkeypatch.setattr(activity_log, "event", lambda *a, **k: events.append((a, k)))
     return ran, events
 
 
@@ -111,7 +111,7 @@ def test_neighborhood_generation_refuses_before_touching_the_database(broken_mat
     def no_database(*args, **kwargs):
         raise AssertionError("the database was touched")
 
-    monkeypatch.setattr(generate._db, "get_connection", no_database)
+    monkeypatch.setattr(generate.store, "get_connection", no_database)
     with pytest.raises(generate.MathCheckFailed, match="snow_line_1_lsun"):
         generate.generate_sector_neighborhood(1)
 
@@ -125,7 +125,7 @@ def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
     def reached(*args, **kwargs):
         raise Reached
 
-    monkeypatch.setattr(generate._db, "get_connection", reached)
+    monkeypatch.setattr(generate.store, "get_connection", reached)
     with pytest.raises(Reached):
         generate.generate_sector_neighborhood(1, estimate_only=True)
 

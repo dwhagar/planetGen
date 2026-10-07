@@ -40,7 +40,7 @@ by the new libraries rather than patched in the old code.
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
 | Work queue and web jobs | `workQueue.py` (1,600 lines), `jobRunner.py`, the `work_lease` table | RQ on Redis | See section 3. |
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |
-| Database | `_db.py` (9,800 lines), `migrateDb.py` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
+| Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
 | Physics | `keplerMotion.py`, `physical_constants.py` | scipy, astropy | Results checked against today's within stated tolerances. |
 | Job logs and progress | `generatejobs.js`, `generatefolds.js`, `jobs.py`, `progressRate.py` | Xterm.js over Server-Sent Events, native `<progress>` | See section 4. |
@@ -94,11 +94,11 @@ The plan for OPS.24's move. Boss approves it before the move starts.
 ### 6.1 Where things live today
 
 - `src/stellarObjects/`: 75 flat modules, 46,000 lines, among them
-  `_db.py` (9,800), `program_constants.py` (2,900), `systemData.py`
+  `store.py` (9,800), `program_constants.py` (2,900), `systemData.py`
   (2,100) and `utils.py` (1,900, a mix of formatting, unit conversion,
   random sampling, orbital formulas and word-salad names).
 - `generate.py` (4,600 lines) at the repo root, and nine scripts in
-  `src/` (`queryDb.py` alone is 4,300).
+  `src/` (`planetgen.db.query` alone is 4,300).
 - `src/html/`: `api/` and `web/` import as top-level packages and the 17
   modules in `lib/` as top-level modules, because `wsgi.py`,
   `web/__init__.py`, `routes.py` and `apiclient.py` each push a folder
@@ -151,16 +151,16 @@ import cycle can form between them.
 | `planetgen.generation` | `config` (config: SystemConfig), `star` (starData), `planet` (planetData), `system` (systemData), `binary` (doubleStar), `wide_binary` (wideBinary), `belt` (asteroidData), `comet` (cometData), `life` (planetLife), `evolution` (evolution), `star_population` (stellarPopulation), `bright_stars` (brightStars), `limits` (generationLimits), `stats` (generationStats), `validation` (validation), `plausibility` (plausibility), `phenomena_plausibility` (phenomenaPlausibility); and `run_system`, `run_sector`, `run_galaxy`, `run_plan`, `run_phenomenon`, `run_population` (generate.py's sections) |
 | `planetgen.generation.phenomena` | `asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue` (rogue planets and interstellar comets), `supernova_remnant` (the six phenomenon `*Data.py` modules) |
 | `planetgen.population` | `model` (population), `facilities` (facilities) |
-| `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats), `migrate`, `reset`, `orbits`, `dedupe`, `render_parity` (the logic of migrateDb, resetDb, updateOrbits, dedupeNames, checkRenderParity) |
-| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits), `lockouts` (loginLockouts' logic) |
+| `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats) |
+| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits) |
 | `planetgen.queue` | `work` (workQueue), `runner` (jobRunner's logic), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
 | `planetgen.api` | everything in `src/html/api/` under the same module names |
 | `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |
 | `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
-| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query`, `migrate`, `reset`, `orbits`, `dedupe`, `lockouts`, `render_parity`, `job` (jobRunner) |
+| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query` (queryDb's command line), `migrate` (migrateDb), `reset` (resetDb), `orbits` (updateOrbits), `dedupe` (dedupeNames), `lockouts` (loginLockouts), `render_parity` (checkRenderParity), `job` (jobRunner). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into `planetgen.db` buys nothing. |
 
-Large modules move whole. `_db.py` is split by DB.11 (SQLAlchemy), and
-`queryDb.py` with it; splitting them during the move would make every
+Large modules move whole. `store.py` is split by DB.11 (SQLAlchemy), and
+`planetgen.db.query` with it; splitting them during the move would make every
 open branch conflict twice. `utils.py`, `fmt.py` and `generate.py` are
 the exceptions: they are split as listed, because nothing replaces them
 later.
@@ -205,7 +205,10 @@ so each PR's modules import ones that already moved:
 5. `planetgen.generation` and its phenomena.
 6. `planetgen.population`.
 7. `planetgen.admin`.
-8. `planetgen.db`, with the `src/` scripts into `planetgen.cli`.
+8. `planetgen.db`, with the `src/` scripts into `planetgen.cli`. Until
+   step 14's editable install, they run as `python3 -m planetgen.cli.<name>`
+   from the checkout's `src/`; install and update do that, and the job
+   runner puts `src/` on its steps' `PYTHONPATH`.
 9. `planetgen.queue`, with jobRunner.
 10. `planetgen.web.lib` and `planetgen.web.maps`.
 11. `planetgen.api`.

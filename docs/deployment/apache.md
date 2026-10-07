@@ -120,7 +120,7 @@ the current schema. Anything else, no answer within 30 seconds, or no
 terminal to ask on (the maintenance timer) keeps the data and migrates it.
 Nothing is asked when the database is already current. The migration
 shows a progress bar with one tick per step, the elapsed time and an
-estimate of the time left. `python3 src/migrateDb.py --status` prints the
+estimate of the time left. `python3 -m planetgen.cli.migrate --status` prints the
 current and target versions and how many steps are pending, without
 changing anything.
 

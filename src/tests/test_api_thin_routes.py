@@ -22,7 +22,7 @@ reachable MySQL test server.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
 from tests.test_api import (  # noqa: F401
@@ -38,7 +38,7 @@ still accepts it, so the query itself must cope."""
 def _schema(mysql_config):
     """Lays the content schema down on the empty throwaway database, so a
     read is a real "nothing there", not "no table yet"."""
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
 
 
 def _assert_json_error(response, status):
@@ -48,7 +48,7 @@ def _assert_json_error(response, status):
 
 
 def _one(mysql_config, sql, params=()):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute(sql, params).fetchone()
     finally:
@@ -370,7 +370,7 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
 
     assert admin_client.patch(f"/api/sectors/{sector_id}",
                               json={"wiki_url": "https://wiki.example.com/Doomed"}).status_code == 200
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("UPDATE star_systems SET wikijs_url = ? WHERE id = ?",

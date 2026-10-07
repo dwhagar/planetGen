@@ -1,13 +1,13 @@
 """
 A nebula or supernova remnant around a system presses its heliopause in
 (`starData.compressed_heliosphere_radius`): the system text says so, and
-`queryDb.system_detail` returns the squeezed radius navigation uses.
+`query.system_detail` returns the squeezed radius navigation uses.
 """
 
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.physics import constants
 from planetgen.generation.star import cloud_pressure_pa, compressed_heliosphere_radius
 from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
@@ -37,20 +37,20 @@ def test_hot_remnant_gas_squeezes_through_its_thermal_pressure():
 
 
 def test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause(mysql_config):
-    sector_id = _db.save_sector(_sector_with_one_system("Smothered"), config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(_sector_with_one_system("Smothered"), config=mysql_config, galaxy_position={
         "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
-        before = queryDb.system_detail(conn, system_id)
+        before = query.system_detail(conn, system_id)
         assert before["inside"] is None
         assert before["heliopause_au"] == before["heliopause_open_space_au"] > 0
 
         with conn:
             nebula_id = _placed_nebula(conn, sector_id, (100.0, 0.0, 0.0), radius_ly=50.0)
             conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 10 WHERE id = ?", (nebula_id,))
-        detail = queryDb.system_detail(conn, system_id)
+        detail = query.system_detail(conn, system_id)
         assert detail["inside"]["id"] == nebula_id
         assert detail["inside"]["density_cm3"] == 3000
         assert detail["heliopause_open_space_au"] == pytest.approx(before["heliopause_open_space_au"])
@@ -58,7 +58,7 @@ def test_a_system_inside_a_dense_nebula_reports_its_squeezed_heliopause(mysql_co
             detail["heliopause_open_space_au"], 3000, 10))
         assert detail["heliopause_au"] < detail["heliopause_open_space_au"] / 10
 
-        system = _db.load_star_system(conn, system_id)
+        system = store.load_star_system(conn, system_id)
         assert system.surrounding_cloud["id"] == nebula_id
         name = detail["inside"]["name"]
         assert f"the gas of {name} around the system presses it in" in system.summary_paragraph()

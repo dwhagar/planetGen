@@ -11,7 +11,7 @@ import pytest
 from api.app import create_app
 from api.config import Config
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation import phenomena_plausibility as pp
@@ -112,12 +112,12 @@ def test_phenomenon_page_contents_and_sector_map_show_the_class():
 
 
 def test_class_is_stored_and_backfilled_by_the_v47_migration(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            planet_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="jupiter"))
-            dwarf_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="brown-dwarf"))
-            rocky_id = _db.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="terrestrial"))
+            planet_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="jupiter"))
+            dwarf_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="brown-dwarf"))
+            rocky_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="terrestrial"))
         row = conn.execute("SELECT planet_class FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
         assert row["planet_class"] == "J"
         conn.execute("ALTER TABLE rogue_planets DROP COLUMN planet_class")
@@ -127,9 +127,9 @@ def test_class_is_stored_and_backfilled_by_the_v47_migration(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         classes = {row["id"]: row["planet_class"]
                    for row in conn.execute("SELECT id, planet_class FROM rogue_planets").fetchall()}

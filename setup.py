@@ -49,10 +49,13 @@ setup(
     packages=find_packages(where='src'),
     package_dir={pkg: 'src/' + pkg.replace('.', '/') for pkg in find_packages(where='src')},
     package_data={
-        # planetgen.names.wordlists reads this at import time; setuptools does not
-        # include non-.py files in a package by default, so without this the
-        # installed package is missing the file and crashes on first import.
-        'stellarObjects': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
+        # Data files the modules read at run time (setuptools leaves non-.py
+        # files out of a package by default, and the module would crash on
+        # first use): the common-password list (planetgen.admin.auth),
+        # the offensive-word list (planetgen.names.wordlists) and the two
+        # database schemas (planetgen.db.store).
+        'planetgen.admin': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
+        'planetgen.db': ['schema.sql', 'control_schema.sql'],
         'planetgen.names': ['offensive_words.txt'],
     },
     py_modules=['generate'],
@@ -66,15 +69,15 @@ setup(
         # known security advisories as of this writing, so patch releases
         # keep flowing without needing this file edited for each one.
         'nltk>=3.9.1',
-        # MySQL persistence (stellarObjects/_db.py, TODO.md Phase 5) --
+        # MySQL persistence (planetgen/db/store.py, TODO.md Phase 5) --
         # every entry point that touches the database (generate.py,
-        # queryDb.py, migrateDb.py, the html/ CGI browser) needs these,
+        # planetgen.db.query, planetgen.cli.migrate, the html/ CGI browser) needs these,
         # not just the Flask API, so they're core requirements rather
         # than the 'api' extra below.
         'pymysql>=1.1.1',
         'dbutils>=3.1.0',
-        # Admin password hashing (stellarObjects/adminAuth.py's lazy
-        # `werkzeug.security` import) -- migrateDb.py calls
+        # Admin password hashing (planetgen/admin/auth.py's lazy
+        # `werkzeug.security` import) -- planetgen.cli.migrate calls
         # bootstrap_control_schema() unconditionally (install.sh/update.sh
         # both always run it), so this needs to be installed regardless of
         # whether the 'api' extra (the Flask API itself) is, same

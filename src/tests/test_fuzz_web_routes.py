@@ -62,8 +62,9 @@ from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.common import is_http_url
 from api.config import Config
-from stellarObjects import _db, adminAuth
-from stellarObjects._db import MySQLConfig
+from planetgen.db import store
+from planetgen.admin import auth as adminAuth
+from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
@@ -202,15 +203,15 @@ def fuzz_db(_mysql_server_available):
         system_b, cfg_b = _small_system("M5V")
         sector.add_system(system_b, position=(-2.0, 0.5, 3.0), system_config=cfg_b)
         center = (5.0, 5.0, 5.0)
-        sector_id = _db.save_sector(sector, config=config, galaxy_position={
+        sector_id = store.save_sector(sector, config=config, galaxy_position={
             "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
             "galactic_radius_pc": math.dist(center, (0.0, 0.0, 0.0)),
         })
         scratch = SpaceSector("Fuzz Scratch", edge_ly=10.0)
         system_c, cfg_c = _small_system("K1V")
         scratch.add_system(system_c, position=(0.0, 0.0, 0.0), system_config=cfg_c)
-        scratch_sector_id = _db.save_sector(scratch, config=config)
-        conn = _db.get_connection(config)
+        scratch_sector_id = store.save_sector(scratch, config=config)
+        conn = store.get_connection(config)
         try:
             system_ids = [row["id"] for row in conn.execute(
                 "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
@@ -219,10 +220,10 @@ def fuzz_db(_mysql_server_available):
         finally:
             conn.close()
         nebula_cfg = SystemConfig()
-        nebula_id = _db.save_phenomenon(Nebula(nebula_cfg), nebula_cfg, "nebula", config=config)
+        nebula_id = store.save_phenomenon(Nebula(nebula_cfg), nebula_cfg, "nebula", config=config)
 
         _username, first_password = adminAuth.bootstrap_control_schema(config)
-        conn = _db.get_control_connection(config, ensure_schema=False)
+        conn = store.get_control_connection(config, ensure_schema=False)
         try:
             admin = adminAuth.authenticate(conn, adminAuth.DEFAULT_ADMIN_USERNAME, first_password)
             adminAuth.change_credentials(conn, admin["id"], first_password, ADMIN_USERNAME, ADMIN_PASSWORD)
@@ -232,7 +233,7 @@ def fuzz_db(_mysql_server_available):
         yield {"config": config, "sector_id": sector_id, "system_ids": system_ids, "nebula_id": nebula_id,
                "scratch_sector_id": scratch_sector_id, "scratch_system_id": scratch_system_id}
     finally:
-        _db.close_pool(config)
+        store.close_pool(config)
         admin_conn = pymysql.connect(**kwargs)
         try:
             with admin_conn.cursor() as cur:
@@ -712,7 +713,7 @@ def test_api_databases_never_lists_system_schemas(app):
     check_response(response, "/api/databases")
     names = {item["name"] for item in response.get_json()["items"]}
     assert not names & {"mysql", "information_schema", "performance_schema", "sys"}
-    assert _db.configured_control_database() not in names  # security #47
+    assert store.configured_control_database() not in names  # security #47
 
 
 @pytest.mark.parametrize("params,status", [
@@ -1180,7 +1181,7 @@ def test_default_credentials_admin_is_sent_to_account(fuzz_db, _mysql_server_ava
         conn.close()
     config = MySQLConfig(database=db_name, **kwargs)
     try:
-        _db.get_connection(config).close()
+        store.get_connection(config).close()
         _username, first_password = adminAuth.bootstrap_control_schema(config)
         client = make_app(config).test_client()
         login_api(client, adminAuth.DEFAULT_ADMIN_USERNAME, first_password)
@@ -1198,7 +1199,7 @@ def test_default_credentials_admin_is_sent_to_account(fuzz_db, _mysql_server_ava
             assert client.get(path).status_code == 403
         assert client.post("/api/sectors", json={"name": "x", "edge_ly": 5}).status_code == 403
     finally:
-        _db.close_pool(config)
+        store.close_pool(config)
         conn = pymysql.connect(**kwargs)
         try:
             with conn.cursor() as cur:

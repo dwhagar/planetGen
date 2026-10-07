@@ -26,7 +26,8 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import _db, progressFile, utils
+from stellarObjects import progressFile, utils
+from planetgen.db import store
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
 from planetgen.util import appconfig, log, serialization
@@ -656,7 +657,7 @@ def test_progress_report_never_raises_on_unserializable_values(tmp_path_factory,
 
 
 # ---------------------------------------------------------------------------
-# log.py / _db.py credential redaction
+# log.py / store.py credential redaction
 # ---------------------------------------------------------------------------
 
 secret_value = st.text(alphabet="abcdefghijklmnopqrstuvwxyz0123456789!@#", min_size=12, max_size=24)
@@ -688,7 +689,7 @@ def test_redacted_argv_covers_argparse_abbreviations(secret, cut, joined):
     option = "--mysql-password"[:cut]
     argv = ["generate.py", *([f"{option}={secret}"] if joined else [option, secret])]
     parser = argparse.ArgumentParser()
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
     if cut > len("--mysql-p"):  # "--mysql-p" alone is ambiguous with --mysql-port
         assert parser.parse_args(argv[1:]).mysql_password == secret  # argparse really takes it
     with mock.patch.object(sys, "argv", argv):
@@ -706,16 +707,16 @@ def test_redacted_argv_leaves_other_options_alone():
        padding=st.text(alphabet=" \n\t", max_size=3))
 def test_sql_log_line_withholds_params_of_credential_statements(secret, column, padding):
     sql = f"UPDATE admin_users SET{padding}{column} = ? WHERE id = ?"
-    line = _db._sql_for_log(sql, (secret, 1))
+    line = store._sql_for_log(sql, (secret, 1))
     assert secret not in line and "<withheld: credentials>" in line
     assert "\n" not in line
 
 
 @given(sql=hostile_text, params=st.lists(hostile_text, max_size=4))
 def test_sql_log_line_is_one_bounded_line(sql, params):
-    line = _db._sql_for_log(sql, tuple(params))
+    line = store._sql_for_log(sql, tuple(params))
     assert "\n" not in line.split(" | params=")[0]
-    assert len(line) <= _db._SQL_LOG_LIMIT + 40
+    assert len(line) <= store._SQL_LOG_LIMIT + 40
 
 
 def test_debug_log_file_never_contains_command_line_password(tmp_path):
@@ -726,7 +727,7 @@ def test_debug_log_file_never_contains_command_line_password(tmp_path):
             mock.patch.object(sys, "argv", argv):
         try:
             log.configure(log.NORMAL)
-            log.trace("SQL line: %s", _db._sql_for_log("UPDATE admin_users SET password_hash = ?", (secret,)))
+            log.trace("SQL line: %s", store._sql_for_log("UPDATE admin_users SET password_hash = ?", (secret,)))
             for handler in logging.getLogger("planetgen").handlers:
                 handler.flush()
         finally:

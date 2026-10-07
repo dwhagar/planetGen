@@ -2,7 +2,7 @@
 
 """
 Tests for the admin stats endpoints (`html/api/admin.py`, backed by
-`src/adminStats.py`): `GET /api/admin/stats` and `GET
+`planetgen.db.stats`): `GET /api/admin/stats` and `GET
 /api/admin/duplicate-names`. Needs a MySQL test server like every other
 database-backed test (see `conftest.py`).
 """
@@ -11,10 +11,11 @@ import os
 
 import pytest
 
-import adminStats
+from planetgen.db import stats as adminStats
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from planetgen.db import store
+from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig
 from planetgen.names.uniqueness import strip_decoration
 from planetgen.galaxy.sector import SpaceSector
@@ -50,7 +51,7 @@ def _login(client, first_password, change_credentials=True):
 @pytest.fixture
 def admin_client(mysql_config, client):
     _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     _login(client, first_password)
     return client
 
@@ -62,21 +63,21 @@ def _insert_system(conn, name):
     system = StarSystem(system_config=cfg)
     system.name = name
     with conn:
-        return _db.insert_star_system(conn, system, cfg)
+        return store.insert_star_system(conn, system, cfg)
 
 
 @pytest.fixture
 def colliding_names(mysql_config):
     """Two sectors named "Sol", two systems named "Terra", and a system
     named after a sector ("Mars"), so every registry has a row."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Sol"))
+            store.insert_sector(conn, SpaceSector(name="Sol"))
         with conn:
-            _db.insert_sector(conn, SpaceSector(name="Sol"))
+            store.insert_sector(conn, SpaceSector(name="Sol"))
         with conn:
-            mars_sector_id = _db.insert_sector(conn, SpaceSector(name="Mars"))
+            mars_sector_id = store.insert_sector(conn, SpaceSector(name="Mars"))
         _insert_system(conn, "Terra")
         _insert_system(conn, "Terra")
         little_mars_id = _insert_system(conn, "Mars")
@@ -110,7 +111,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
 
     database = body["database"]
     assert database["reachable"] is True
-    assert database["schema_version"] == _db.SCHEMA_VERSION
+    assert database["schema_version"] == store.SCHEMA_VERSION
     assert database["schema_current"] is True
     assert database["counts"] == {"sectors": 3, "star_systems": 4}
     assert database["bright_stars"] == {"placed": 0, "filled": 0, "unfilled": 0}
@@ -119,7 +120,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     assert {"sectors", "star_systems", "planets", "moons"} <= {t["name"] for t in database["tables"]}
 
     stamps = {t["table"]: t for t in database["timestamps"]}
-    assert set(stamps) == set(_db.TIMESTAMPED_TABLES)
+    assert set(stamps) == set(store.TIMESTAMPED_TABLES)
     assert stamps["star_systems"]["newest_created_at"] is not None
     assert stamps["star_systems"]["last_modified_at"] is not None
     assert stamps["black_holes"]["last_modified_at"] is None
@@ -166,7 +167,7 @@ def test_duplicate_names_paginates_by_base_name(admin_client, colliding_names):
 def test_duplicate_names_leaves_out_planets_named_after_a_decorated_system(mysql_config):
     """Planets are named from their system (`Alpha Terra I`), which reads
     like a roman-numeral decoration of "Terra" -- they aren't listed."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for _ in range(2):
             cfg = SystemConfig()
@@ -176,7 +177,7 @@ def test_duplicate_names_leaves_out_planets_named_after_a_decorated_system(mysql
             system = StarSystem(system_config=cfg)
             system.name = "Terra"
             with conn:
-                _db.insert_star_system(conn, system, cfg)
+                store.insert_star_system(conn, system, cfg)
 
         result = adminStats.duplicate_names(conn)
         (item,) = [item for item in result["items"] if item["base_name"] == "Terra"]

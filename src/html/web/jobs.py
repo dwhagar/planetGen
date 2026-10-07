@@ -53,7 +53,9 @@ REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.pa
 """str: The planetGen checkout (`generate.py` lives here)."""
 
 GENERATE_SCRIPT = os.path.join(REPO_DIR, "generate.py")
-RESET_SCRIPT = os.path.join(REPO_DIR, "src", "resetDb.py")
+RESET_COMMAND = ["-m", "planetgen.cli.reset"]
+"""list: Runs `planetgen.cli.reset` (the job runner puts the checkout's
+`src/` on the steps' `PYTHONPATH`)."""
 RUNNER_SCRIPT = os.path.join(REPO_DIR, "src", "jobRunner.py")
 
 DEFAULT_JOBS_DIR = "/var/lib/planetgen/jobs"

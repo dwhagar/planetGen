@@ -1,4 +1,4 @@
-# stellarObjects/adminEdits.py
+# planetgen/admin/edits.py
 
 """
 An admin's edits to a stored star system, made on the `StarSystem` object

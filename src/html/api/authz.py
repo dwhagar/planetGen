@@ -5,7 +5,7 @@ Request-level admin authentication/authorization: resolving the calling
 admin from either the session cookie (browser) or an `Authorization:
 Bearer <api-key>` header (programmatic callers), the `require_admin`
 route decorator built on that, and the audit-log helper every write
-route calls after succeeding. See `stellarObjects/adminAuth.py` for the
+route calls after succeeding. See `planetgen/admin/auth.py` for the
 actual credential/session/key logic this wraps.
 """
 
@@ -13,7 +13,7 @@ from functools import wraps
 
 from flask import g, request
 
-from stellarObjects import activitylog, adminAuth
+from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
 
 from .common import ApiError, get_control_db
@@ -54,7 +54,7 @@ def require_admin(fresh=False, session_only=False):
             admin route except `/api/auth/me`, `/api/auth/logout`, and
             `/api/auth/change-credentials` itself sets this, so the
             seeded first `admin` login (random password printed once by
-            `migrateDb.py`) can authenticate but
+            `planetgen.cli.migrate`) can authenticate but
             can't do anything else until credentials are actually
             changed (see `adminAuth`'s module docstring and
             `control_schema.sql`'s `admin_users` comment).
@@ -83,12 +83,12 @@ def require_admin(fresh=False, session_only=False):
             if session_only and bearer:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: API keys can't manage "
                           f"the account (403)")
-                activitylog.event("AUTHZ", "apikey.refused", user=admin["username"], path=request.path)
+                activity_log.event("AUTHZ", "apikey.refused", user=admin["username"], path=request.path)
                 raise ApiError("an API key can't do this; sign in with your password instead", status_code=403)
             if fresh and admin["must_change_credentials"]:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
                           f"not changed yet (403)")
-                activitylog.event("AUTHZ", "credentials.unchanged", user=admin["username"], path=request.path)
+                activity_log.event("AUTHZ", "credentials.unchanged", user=admin["username"], path=request.path)
                 raise ApiError(
                     "default credentials must be changed (POST /api/auth/change-credentials) "
                     "before this action is allowed",
@@ -114,11 +114,11 @@ def _log_refusal(bearer):
     isn't logged.
     """
     if bearer:
-        activitylog.event("AUTHZ", "apikey.invalid", path=request.path)
+        activity_log.event("AUTHZ", "apikey.invalid", path=request.path)
     elif request.cookies.get(SESSION_COOKIE_NAME):
-        activitylog.event("AUTHZ", "session.invalid", path=request.path)
+        activity_log.event("AUTHZ", "session.invalid", path=request.path)
     elif request.path != "/api/auth/me":
-        activitylog.event("AUTHZ", "login.required", path=request.path)
+        activity_log.event("AUTHZ", "login.required", path=request.path)
 
 
 def audit(action, target=None, detail=None):
@@ -138,4 +138,4 @@ def audit(action, target=None, detail=None):
     """
     admin = g.admin_user
     adminAuth.record_audit(get_control_db(), admin["id"], admin["username"], action, target=target, detail=detail)
-    activitylog.event("DB", action, user=admin["username"], target=target, detail=detail)
+    activity_log.event("DB", action, user=admin["username"], target=target, detail=detail)

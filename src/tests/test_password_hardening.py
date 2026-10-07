@@ -11,7 +11,8 @@ import pytest
 
 from api import loginguard
 from api.auth import DEVICE_COOKIE_NAME
-from stellarObjects import _db, adminAuth
+from planetgen.db import store
+from planetgen.admin import auth as adminAuth
 
 # --- SEC.24: the policy -------------------------------------------------------
 
@@ -66,7 +67,7 @@ def test_new_hashes_use_pbkdf2_600000():
 
 @pytest.fixture
 def control_conn(mysql_config):
-    conn = _db.get_control_connection(mysql_config, ensure_schema=True)
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
     try:
         yield conn
     finally:
@@ -226,7 +227,7 @@ def test_change_credentials_refuses_a_common_password_and_reissues_the_device(re
     assert response.status_code == 200
     new_device = client.get_cookie(DEVICE_COOKIE_NAME).value
     assert new_device != old_device
-    conn = _db.get_control_connection(real_app.config["CONTROL_MYSQL_CONFIG"])
+    conn = store.get_control_connection(real_app.config["CONTROL_MYSQL_CONFIG"])
     try:
         assert adminAuth.device_username(conn, old_device) is None
         assert adminAuth.device_username(conn, new_device) == "admin"
@@ -235,9 +236,9 @@ def test_change_credentials_refuses_a_common_password_and_reissues_the_device(re
 
 
 def test_command_line_forgets_devices(mysql_config, capsys, monkeypatch):
-    import loginLockouts
+    from planetgen.cli import lockouts as loginLockouts
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = _db.get_control_connection(mysql_config)
+    conn = store.get_control_connection(mysql_config)
     try:
         admin_id = conn.execute("SELECT id FROM admin_users WHERE username = 'admin'").fetchone()["id"]
         raw = adminAuth.create_device(conn, admin_id)
@@ -246,10 +247,10 @@ def test_command_line_forgets_devices(mysql_config, capsys, monkeypatch):
     args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(_db, "configured_control_database", lambda: mysql_config.database)
+    monkeypatch.setattr(store, "configured_control_database", lambda: mysql_config.database)
     assert loginLockouts.main(["--forget-devices", "admin"] + args) == 0
     assert "Revoked 1 trusted device of admin." in capsys.readouterr().out
-    conn = _db.get_control_connection(mysql_config)
+    conn = store.get_control_connection(mysql_config)
     try:
         assert adminAuth.device_username(conn, raw) is None
     finally:

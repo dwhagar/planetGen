@@ -30,7 +30,7 @@ from tests import sql_reserved_words
 
 SRC = Path(__file__).resolve().parent.parent
 
-SCHEMA_FILES = ("stellarObjects/schema.sql", "stellarObjects/control_schema.sql")
+SCHEMA_FILES = ("planetgen/db/schema.sql", "planetgen/db/control_schema.sql")
 
 # MySQL 8.0's replacement for VALUES(col), `INSERT ... VALUES (...) AS new
 # ON DUPLICATE KEY UPDATE x = new.x`, is a syntax error on MariaDB (10.11
@@ -41,14 +41,14 @@ SCHEMA_FILES = ("stellarObjects/schema.sql", "stellarObjects/control_schema.sql"
 # them all when MySQL removes VALUES() or MariaDB gains the row alias.
 # {file: {column, ...}} -- "__expr__" is a column an f-string names.
 VALUES_FUNCTION_ALLOWED = {
-    "stellarObjects/_db.py": {
+    "planetgen/db/store.py": {
         "occurrence_count", "first_object_table", "first_star_system_id", "first_object_id",
         "diminutive_index", "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
         "bulge_amplitude", "arm_count", "pitch_angle_rad", "arm_amplitude", "spiral_reference_radius_pc",
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
         "outer_ring_index",
     },
-    "stellarObjects/population.py": {"scanned_planet_id"},
+    "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }
 
@@ -462,8 +462,8 @@ def sources():
 def test_the_lint_finds_the_sql_it_should_check(sources):
     where = {w.split(":")[0] for w, _sql in sources}
     assert set(SCHEMA_FILES) <= where
-    assert {"stellarObjects/_db.py", "queryDb.py"} <= where
-    assert sum(1 for w, _sql in sources if w.startswith("queryDb.py")) > 100
+    assert {"planetgen/db/store.py", "planetgen/db/query.py"} <= where
+    assert sum(1 for w, _sql in sources if w.startswith("planetgen/db/query.py")) > 100
     assert any("CREATE TABLE" in sql for w, sql in sources if w.startswith(SCHEMA_FILES[0]))
 
 

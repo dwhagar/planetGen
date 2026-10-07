@@ -3,7 +3,7 @@
 # examples/maintenance/install-maintenance-timer.sh
 #
 # Sets up planetGen's periodic maintenance as systemd timers -- the
-# "once a month or so" orbit update updateOrbits.py's own header comment
+# "once a month or so" orbit update planetgen.cli.orbits's own header comment
 # and docs/database-schema.md's cron example call for, plus (by default)
 # the same `sudo ./update.sh` a human would otherwise have to remember to
 # run -- packaged the Ubuntu/Debian-native way (systemd units + journald
@@ -16,7 +16,7 @@
 # update timer for (a deployment with more than one game database -- see
 # `PLANETGEN_MYSQL_DATABASE_PREFIX` in docs/database-schema.md -- gets one
 # timer instance per database). Defaults to $PLANETGEN_MYSQL_DATABASE, or
-# "planetgen" if that's unset too, matching updateOrbits.py's own default.
+# "planetgen" if that's unset too, matching planetgen.cli.orbits's own default.
 #
 # --skip-update-timer: only install the orbit-update timer(s), not
 # planetgen-update.timer. Use this if this deployment's branch should

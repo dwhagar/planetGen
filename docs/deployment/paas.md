@@ -53,6 +53,6 @@ If you use one anyway:
   number of proxies the platform documents in front of your app (usually
   1), or every visitor shares one rate-limit budget
   ([`README.md`](README.md#behind-a-reverse-proxy-proxy_fix)).
-- Run `python src/migrateDb.py` once per deploy (a release or pre-deploy
+- Run `python3 -m planetgen.cli.migrate` once per deploy (a release or pre-deploy
   command) and read the first admin password from its output.
 - Serve over HTTPS; the admin pages need it.

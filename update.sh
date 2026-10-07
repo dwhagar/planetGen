@@ -28,7 +28,7 @@
 #   4. `generate.py check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end) and skips the population pass below;
 #      bulk generation refuses to start until it passes.
-#   5. `src/migrateDb.py`: brings the database up to the current schema
+#   5. `planetgen.cli.migrate`: brings the database up to the current schema
 #      (a no-op when it already is), with a progress bar. When a migration
 #      is pending, it first asks (y/N, 30 seconds, default N) whether to
 #      delete the galaxy data instead of migrating it; see

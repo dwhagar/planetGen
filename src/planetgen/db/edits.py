@@ -1,4 +1,4 @@
-# stellarObjects/editStore.py
+# planetgen/db/edits.py
 
 """
 Writes an admin's edits back to the content database (TODO ADM.1): a
@@ -7,7 +7,7 @@ or a new star), a phenomenon regenerated in place, and a sector deleted
 with everything in it.
 
 A system edit keeps every row it can: a body loaded from the database
-(`_db.load_star_system` gives each one its row `db_id`) is updated in
+(`store.load_star_system` gives each one its row `db_id`) is updated in
 place, so its id, its facilities and anything else pointing at it stay.
 Only a body that is new gets a new row, and only one that is gone loses
 its row (with what points at it).
@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from . import _db
+from planetgen.db import store
 from planetgen.physics import constants
 
 PHENOMENON_TABLES = {
@@ -71,10 +71,10 @@ def _star_ids(conn, system_id, system):
 def _update_body(conn, table, body, assignments, key_values):
     """UPDATEs one `planets`/`moons` row from `body` and rewrites its
     paragraph and spectrum rows."""
-    columns = list(assignments) + list(_db._BODY_COLUMNS)
+    columns = list(assignments) + list(store._BODY_COLUMNS)
     if table == "planets":
-        columns += list(_db._PLANET_ONLY_COLUMNS)
-    values = list(key_values) + _db.body_row_values(body)
+        columns += list(store._PLANET_ONLY_COLUMNS)
+    values = list(key_values) + store.body_row_values(body)
     conn.execute(
         f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in columns)}"
         " WHERE id = ?",
@@ -83,7 +83,7 @@ def _update_body(conn, table, body, assignments, key_values):
     prefix, id_column = ("moon", "moon_id") if table == "moons" else ("planet", "planet_id")
     conn.execute(f"DELETE FROM {prefix}_evolutionary_paragraphs WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_reflection_spectrum WHERE {id_column} = ?", (body.db_id,))
-    _db.body_child_rows(conn, body, body.db_id)
+    store.body_child_rows(conn, body, body.db_id)
 
 
 def _save_moons(conn, system_id, star_id, planet):
@@ -94,7 +94,7 @@ def _save_moons(conn, system_id, star_id, planet):
             _update_body(conn, "moons", moon, ("planet_id", "star_id", "orbital_index"),
                          (planet.db_id, star_id, index))
         else:
-            moon.db_id = _db.insert_moon(conn, moon, system_id, star_id, planet.db_id, index)
+            moon.db_id = store.insert_moon(conn, moon, system_id, star_id, planet.db_id, index)
         kept.append(moon.db_id)
     _delete_missing(conn, "moons", "planet_id", planet.db_id, kept)
 
@@ -113,7 +113,7 @@ def _save_belt(conn, system_id, star_id, index, belt):
     upper_km = belt.upper_limit * constants.AU_TO_KM
     distance_km = belt.distance * constants.AU_TO_KM
     if getattr(belt, "db_id", None) is None:
-        belt.db_id = _db.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
+        belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
         return
     conn.execute(
         "UPDATE asteroid_belts SET star_id = ?, orbital_index = ?, distance_km = ?, lower_limit_km = ?,"
@@ -147,7 +147,7 @@ def _star_values(star):
     au = constants.AU_TO_KM
     return (
         star.name, star.type, star.yerkes_class, star.mass, star.radius,
-        star.temperature, star.luminosity, star.age, _db._lifespan_gy(star.lifespan),
+        star.temperature, star.luminosity, star.age, store._lifespan_gy(star.lifespan),
         star.habitable_zone[0] * au, star.habitable_zone[1] * au,
         star.system_perimeter * au, star.heliosphere_radius * au,
         star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy,
@@ -168,7 +168,7 @@ def save_star(conn, star):
 
 def save_system_edits(conn, system_id, system, stars=()):
     """
-    Writes an edited `StarSystem` (loaded with `_db.load_star_system`) back
+    Writes an edited `StarSystem` (loaded with `store.load_star_system`) back
     to its rows: every planet, moon and belt it still holds is updated in
     place or inserted, in its current orbital order, and every one it no
     longer holds is deleted. `stars` lists the stars whose own rows
@@ -189,7 +189,7 @@ def save_system_edits(conn, system_id, system, stars=()):
                 kept_belts.append(body.db_id)
                 continue
             if getattr(body, "db_id", None) is None:
-                body.db_id = _db.insert_planet(conn, body, system_id, star_id, index)
+                body.db_id = store.insert_planet(conn, body, system_id, star_id, index)
                 for moon in body.moons:
                     moon.db_id = None
                 rows = conn.execute("SELECT id FROM moons WHERE planet_id = ? ORDER BY orbital_index",
@@ -207,7 +207,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
-    _db.touch_star_system(conn, system_id)
+    store.touch_star_system(conn, system_id)
 
 
 def _save_comet_orbit(conn, comet):
@@ -276,7 +276,7 @@ def replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, phenomenon)
         raise EditError("not found")
     if row.get("star_id") is not None:
         raise EditError("this is the star of a star system; regenerate the system instead")
-    inserter = _db._PHENOMENON_INSERTERS[GENERATOR_TYPES[phenomenon_type]]
+    inserter = store._PHENOMENON_INSERTERS[GENERATOR_TYPES[phenomenon_type]]
     placement = {key: row.get(key) for key in ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc")}
     # A throwaway name for the stand-in row, so reserving it never
     # collides with (and renames) the kept row's own name.
@@ -310,7 +310,7 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
     table = PHENOMENON_TABLES[phenomenon_type]
     conn.execute("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", (table, phenomenon_id))
     conn.execute(f"DELETE FROM {table} WHERE id = ?", (phenomenon_id,))
-    _db.touch_sector(conn, row.get("sector_id"))
+    store.touch_sector(conn, row.get("sector_id"))
     return True
 
 
@@ -355,7 +355,7 @@ def delete_sector_with_contents(conn, sector_id):
     conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
     # GEN.44: the slot goes back to the bright-star level it had unfilled.
-    _db.forget_sector_fill(conn, (row["ring_index"], row["layer_index"], row["ring_slot_index"]))
+    store.forget_sector_fill(conn, (row["ring_index"], row["layer_index"], row["ring_slot_index"]))
     if row["center_x_pc"] is not None:
         refresh_nearest_around(conn, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]))
     return {"systems": systems, "phenomena": phenomena}
@@ -364,10 +364,10 @@ def delete_sector_with_contents(conn, sector_id):
 def refresh_nearest_around(conn, center_pc):
     """Refreshes the nearest-system lists of every sector close enough to
     `center_pc` to have listed something there."""
-    half_diagonal = _db._edge_pc(conn) * 3 ** 0.5 / 2
-    near = _db._sectors_near(conn, {0: center_pc}, 2 * half_diagonal + _db.NEAREST_SYSTEMS_SEARCH_PC)
+    half_diagonal = store._edge_pc(conn) * 3 ** 0.5 / 2
+    near = store._sectors_near(conn, {0: center_pc}, 2 * half_diagonal + store.NEAREST_SYSTEMS_SEARCH_PC)
     if near:
-        _db.refresh_nearest_systems(conn, near.keys())
+        store.refresh_nearest_systems(conn, near.keys())
 
 
 def system_sector_center(conn, system_id):

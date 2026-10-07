@@ -5,7 +5,7 @@
 needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
-- New galaxy: wipe the database (`src/resetDb.py --yes`), build the
+- New galaxy: wipe the database (`python3 -m planetgen.cli.reset --yes`), build the
   density skeleton (`generate.py plan --no-bright-stars`), then generate
   a first neighborhood around a random start and only then scatter the
   bright stars, leaving those sectors out (`generate.py galaxy
@@ -29,7 +29,7 @@ needs a terminal on the server. Four actions, each a background job
 
 New galaxy and Reset delete every generated sector and system, so both
 ask for the database name to be typed back, the same confirmation
-`resetDb.py` asks for in a terminal.
+`planetgen.cli.reset` asks for in a terminal.
 
 The page shows the running job (step, progress bar, elapsed time and the
 tail of its output), refreshed every few seconds by
@@ -53,7 +53,7 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen.generation import stats
 from planetgen import tuning
 from planetgen.util import log
@@ -466,7 +466,7 @@ def _build_job_steps(action, form, edge_pc=None):
     """`build_job`'s `(kind, title, steps)` before the math check step."""
     python = jobs.python_executable()
     generate = [python, jobs.GENERATE_SCRIPT]
-    reset_step = {"label": "Reset the galaxy", "argv": [python, jobs.RESET_SCRIPT, "--yes"]}
+    reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}
     if action == "new_galaxy":
         # GEN.30: the scatter runs after the sectors (`galaxy
         # --then-scatter`), so it leaves out every sector just filled.
@@ -520,7 +520,7 @@ def _admin_or_redirect():
 def _admin_or_403():
     admin = current_admin()
     if admin is None or admin.get("must_change_credentials"):
-        activitylog.event("AUTHZ", "admin.required", user=admin.get("username") if admin else None,
+        activity_log.event("AUTHZ", "admin.required", user=admin.get("username") if admin else None,
                           path=request.path)
         abort(403, description="Only a logged-in admin can do that.")
     return admin
@@ -689,7 +689,7 @@ def generate():
         job_id = request.form.get("job") or ""
         try:
             if jobs.cancel_job(job_id):
-                activitylog.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
+                activity_log.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
         except OSError as exc:
             log.error(f"Could not cancel job {job_id}: {exc}")
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
@@ -722,7 +722,7 @@ def generate():
                                       if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD)])
     try:
         job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
-        activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
+        activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                           title=title)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"

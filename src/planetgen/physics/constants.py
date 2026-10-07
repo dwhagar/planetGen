@@ -248,7 +248,7 @@ AU_PER_PARSEC = PARSEC_M / AU_M
 float: The IAU-defined parsec, in Astronomical Units (AU). Used only as the
 conversion path for the database persistence layer's sector-position
 storage (star_systems.position_x/y/z_mpc, sectors.edge_mpc -- see
-stellarObjects/schema.sql) -- not used anywhere in generation/physics code,
+planetgen/db/schema.sql) -- not used anywhere in generation/physics code,
 which keeps its own native light-year units for sector geometry.
 """
 AU_PER_MILLIPARSEC = AU_PER_PARSEC / 1000

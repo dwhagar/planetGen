@@ -35,7 +35,7 @@ from .helpers import page_url, trusted_html
 from .sector_page import PHENOMENON_TYPE_LABELS
 
 # Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
-# through the API, so it doesn't import queryDb).
+# through the API, so it doesn't import planetgen.db.query).
 TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life",

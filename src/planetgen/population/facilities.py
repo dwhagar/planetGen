@@ -1,4 +1,4 @@
-# stellarObjects/facilities.py
+# planetgen/population/facilities.py
 
 """
 Facilities: starbases, colonies and outposts (schema v42).
@@ -19,7 +19,7 @@ import random
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.planets import calculate_orbital_period_years
-from .utils import circular_orbital_speed_kms
+from stellarObjects.utils import circular_orbital_speed_kms
 
 PLACEMENTS = ("terrestrial", "orbital", "asteroid", "standalone")
 """tuple: Every `facilities.placement`."""

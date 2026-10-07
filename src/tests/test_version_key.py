@@ -16,7 +16,7 @@ import time
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
@@ -77,9 +77,9 @@ def test_the_running_code_has_a_key():
 # ---------------------------------------------------------------------------
 
 def _maker(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return _db.get_galaxy_maker(conn)
+        return store.get_galaxy_maker(conn)
     finally:
         conn.close()
 
@@ -87,7 +87,7 @@ def _maker(mysql_config):
 def test_a_new_galaxy_records_what_made_it_and_a_re_plan_keeps_it(mysql_config, monkeypatch):
     _seed_skeleton(mysql_config, galaxy_seed=SEED)
     made = _maker(mysql_config)
-    assert made == _db.GalaxyMaker(**versionKey.current())
+    assert made == store.GalaxyMaker(**versionKey.current())
 
     monkeypatch.setattr(versionKey, "__version__", "99.0.0")
     _seed_skeleton(mysql_config)  # same seed kept
@@ -103,7 +103,7 @@ def test_a_new_galaxy_records_what_made_it_and_a_re_plan_keeps_it(mysql_config, 
 # ---------------------------------------------------------------------------
 
 def _runs(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute("SELECT * FROM generation_runs ORDER BY id").fetchall()
     finally:
@@ -154,7 +154,7 @@ def test_the_history_never_stops_a_run(mysql_config, monkeypatch):
     def broken(*_args, **_kwargs):
         raise RuntimeError("no history table")
 
-    monkeypatch.setattr(_db, "start_generation_run", broken)
+    monkeypatch.setattr(store, "start_generation_run", broken)
     _seed_skeleton(mysql_config, layers=[(0, 5)])
     _generate(mysql_config, monkeypatch, "galaxy", "--ring", "1", "--limit", "1", "--num-systems", "1",
               "--backfill-from", "none")

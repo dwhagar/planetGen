@@ -23,7 +23,7 @@ import math
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
@@ -436,10 +436,10 @@ def test_insert_and_reload_standalone_black_hole(mysql_config):
     cfg = make_config()
     bh = BlackHole(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            black_hole_id = _db.insert_black_hole(conn, bh)
+            black_hole_id = store.insert_black_hole(conn, bh)
         row = conn.execute("SELECT * FROM black_holes WHERE id = ?", (black_hole_id,)).fetchone()
     finally:
         conn.close()
@@ -455,10 +455,10 @@ def test_insert_and_reload_standalone_neutron_star(mysql_config):
     cfg = make_config()
     ns = NeutronStar(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            neutron_star_id = _db.insert_neutron_star(conn, ns)
+            neutron_star_id = store.insert_neutron_star(conn, ns)
         row = conn.execute("SELECT * FROM neutron_stars WHERE id = ?", (neutron_star_id,)).fetchone()
     finally:
         conn.close()
@@ -472,10 +472,10 @@ def test_insert_and_reload_nebula(mysql_config):
     cfg = make_config()
     nebula = Nebula(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            nebula_id = _db.insert_nebula(conn, nebula)
+            nebula_id = store.insert_nebula(conn, nebula)
         row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
     finally:
         conn.close()
@@ -493,10 +493,10 @@ def test_insert_and_reload_supernova_remnant_with_embedded_compact_remnant(mysql
     else:
         pytest.fail("could not generate a supernova remnant with a visible compact remnant")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            remnant_id = _db.insert_supernova_remnant(conn, remnant)
+            remnant_id = store.insert_supernova_remnant(conn, remnant)
         row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
     finally:
         conn.close()
@@ -516,10 +516,10 @@ def test_insert_and_reload_rogue_planet(mysql_config):
     cfg = make_config()
     planet = RoguePlanet(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            planet_id = _db.insert_rogue_planet(conn, planet)
+            planet_id = store.insert_rogue_planet(conn, planet)
         row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
     finally:
         conn.close()
@@ -532,10 +532,10 @@ def test_insert_and_reload_interstellar_comet_with_composition(mysql_config):
     cfg = make_config()
     comet = InterstellarComet(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            comet_id = _db.insert_interstellar_comet(conn, comet)
+            comet_id = store.insert_interstellar_comet(conn, comet)
         row = conn.execute("SELECT * FROM interstellar_comets WHERE id = ?", (comet_id,)).fetchone()
         composition_rows = conn.execute(
             "SELECT component FROM interstellar_comet_composition WHERE comet_id = ? ORDER BY position", (comet_id,)
@@ -551,10 +551,10 @@ def test_insert_and_reload_asteroid_field_with_composition(mysql_config):
     cfg = make_config()
     field = AsteroidField(cfg)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            field_id = _db.insert_asteroid_field(conn, field)
+            field_id = store.insert_asteroid_field(conn, field)
         row = conn.execute("SELECT * FROM asteroid_fields WHERE id = ?", (field_id,)).fetchone()
         composition_rows = conn.execute(
             "SELECT component, concentration FROM asteroid_field_composition WHERE field_id = ? ORDER BY position",
@@ -574,10 +574,10 @@ def test_star_system_anchored_by_black_hole_persists_satellite_row(mysql_config)
     bh = BlackHole(cfg)
     system = StarSystem(system_config=cfg, compact_remnant=bh)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
         star_row = conn.execute(
             "SELECT * FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)
         ).fetchone()
@@ -602,16 +602,16 @@ def test_load_star_system_reconstructs_anchored_compact_remnant(cls, mysql_confi
     # unconditionally call Star.from_dict, silently reconstructing an
     # anchored compact remnant as a plain Star (losing its extra fields
     # and remnant-specific rendering) rather than dispatching on the
-    # black_holes/neutron_stars satellite row. See _db._load_single_star.
+    # black_holes/neutron_stars satellite row. See store._load_single_star.
     cfg = make_config()
     remnant = cls(cfg)
     system = StarSystem(system_config=cfg, compact_remnant=remnant)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
-        reloaded = _db.load_star_system(conn, system_id)
+            system_id = store.insert_star_system(conn, system, cfg)
+        reloaded = store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
@@ -633,9 +633,9 @@ def test_load_star_system_reconstructs_anchored_compact_remnant(cls, mysql_confi
 def test_save_phenomenon_dispatches_by_type(mysql_config):
     cfg = make_config()
     comet = InterstellarComet(cfg)
-    comet_id = _db.save_phenomenon(comet, cfg, "comet", config=mysql_config)
+    comet_id = store.save_phenomenon(comet, cfg, "comet", config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         row = conn.execute("SELECT * FROM interstellar_comets WHERE id = ?", (comet_id,)).fetchone()
     finally:

@@ -6,9 +6,9 @@ throwaway MySQL database (see `conftest.py`'s `mysql_config` fixture) --
 every test here is skipped, not failed, when no MySQL test server is
 configured/reachable.
 
-Seeds a small, real sector (via `stellarObjects._db.save_sector`, the same
+Seeds a small, real sector (via `planetgen.db.store.save_sector`, the same
 path `sectorGen.py` uses) rather than hand-building rows, so these tests
-exercise the exact same read path (`queryDb.py`/`stellarObjects._db.load_sector`/
+exercise the exact same read path (`planetgen.db.query`/`planetgen.db.store.load_sector`/
 `load_star_system`) production traffic does.
 """
 
@@ -21,15 +21,16 @@ import pytest
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from planetgen.db import store as _db
+from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
-from stellarObjects._db import MySQLConfig
+from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
-import queryDb
+from planetgen.db import query
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
 
@@ -124,7 +125,7 @@ def default_admin_client(mysql_config, client, first_admin_password):
     # routes._write_conn) -- a real deployment's content schema already
     # exists by the time an admin account is in use. This throwaway test
     # database starts completely empty, so lay the content schema down
-    # here the same way any first `sectorGen.py`/`migrateDb.py` run would.
+    # here the same way any first `sectorGen.py`/`planetgen.cli.migrate` run would.
     _db.get_connection(mysql_config).close()
     response = client.post("/api/auth/login", json={
         "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_admin_password,
@@ -268,7 +269,7 @@ def test_health_reports_an_uninitialized_schema_without_erroring(client):
 
 def test_unreachable_database_returns_503_not_a_crash():
     """
-    Regression guard for a fixed bug: `queryDb.open_readonly` raises a
+    Regression guard for a fixed bug: `query.open_readonly` raises a
     bare `SystemExit` (correct for its own CLI callers) when the
     configured MySQL server is unreachable. `SystemExit` is a
     `BaseException`, not an `Exception` -- left uncaught, it would
@@ -534,7 +535,7 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
     """
     Regression test for a real bug this endpoint's own manual testing
     caught: `route["positions"]` can have both a plain-int key (a system
-    hop) and a `queryDb._phenomenon_nav_key`-shaped string key (a
+    hop) and a `query._phenomenon_nav_key`-shaped string key (a
     phenomenon endpoint) once phenomenon endpoints exist -- Flask's
     `jsonify` sorts dict keys by default, and comparing an int key
     against a string key mid-sort raised a 500 `TypeError` here before
@@ -774,9 +775,9 @@ def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
     lo, hi = (-100.0, -100.0, -100.0), (100.0, 100.0, 100.0)
     conn = _db.get_connection(mysql_config)
     try:
-        exact = queryDb.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0)
-        grouped = queryDb.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0, max_cells=4)
-        coarse = queryDb.galaxy_filled_in_box(conn, lo, hi, 3 * 4.0 * queryDb.GALAXY_TILE_FILLED_SCALE, 4.0)
+        exact = query.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0)
+        grouped = query.galaxy_filled_in_box(conn, lo, hi, 200.0, 4.0, max_cells=4)
+        coarse = query.galaxy_filled_in_box(conn, lo, hi, 3 * 4.0 * query.GALAXY_TILE_FILLED_SCALE, 4.0)
     finally:
         conn.close()
     assert exact["g"] == 1
@@ -821,10 +822,10 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
         nebula_id = _db.insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
         remnant_id = _db.insert_supernova_remnant(conn, remnant, sector_id=sector_id, placement=placement)
         conn.commit()
-        home = queryDb.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0))
-        reached = queryDb.galaxy_clouds_in_box(conn, (25.0, -10.0, -10.0), (45.0, 10.0, 10.0))
-        corner = queryDb.galaxy_clouds_in_box(conn, (25.0, 25.0, 25.0), (45.0, 45.0, 45.0))
-        capped = queryDb.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0), max_clouds=1)
+        home = query.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0))
+        reached = query.galaxy_clouds_in_box(conn, (25.0, -10.0, -10.0), (45.0, 10.0, 10.0))
+        corner = query.galaxy_clouds_in_box(conn, (25.0, 25.0, 25.0), (45.0, 45.0, 45.0))
+        capped = query.galaxy_clouds_in_box(conn, (-10.0, -10.0, -10.0), (10.0, 10.0, 10.0), max_clouds=1)
     finally:
         conn.close()
 
@@ -855,7 +856,7 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
     import random
 
     if ranges_per_ring:
-        monkeypatch.setattr(queryDb, "BRIGHT_STAR_MAX_EXACT_RANGES", 1)
+        monkeypatch.setattr(query, "BRIGHT_STAR_MAX_EXACT_RANGES", 1)
 
     edge = 3.5
     rng = random.Random(7)
@@ -879,13 +880,13 @@ def test_galaxy_bright_stars_in_box_matches_a_brute_force_search(mysql_config, m
             boxes.append((corner, tuple(c + size for c in corner)))
         for lo, hi in boxes:
             for limit in (5, 400):
-                got = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=limit)
+                got = query.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=limit)
                 inside = [
                     (-lum, star_id) for star_id, (p, lum) in zip(ids, stars)
                     if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))
                 ]
                 assert [s["id"] for s in got] == [star_id for _l, star_id in sorted(inside)[:limit]], (lo, hi, limit)
-        top = queryDb.galaxy_bright_stars_in_box(conn, (-300, -300, -300), (300, 300, 300), edge, limit=1)[0]
+        top = query.galaxy_bright_stars_in_box(conn, (-300, -300, -300), (300, 300, 300), edge, limit=1)[0]
     finally:
         conn.close()
     best = max(range(len(stars)), key=lambda i: stars[i][1])
@@ -907,7 +908,7 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
     for _ in range(600):
         r, theta = 150.0 * math.sqrt(rng.random()), rng.uniform(0, 2 * math.pi)
         stars.append(((r * math.cos(theta), r * math.sin(theta), rng.uniform(-10.0, 10.0)), rng.uniform(500, 5e5)))
-    monkeypatch.setattr(queryDb, "GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET", 0)
+    monkeypatch.setattr(query, "GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET", 0)
     conn = _db.get_connection(mysql_config)
     try:
         _db.insert_bright_stars(conn, (_bright_row(p, lum, edge) for p, lum in stars))
@@ -919,16 +920,16 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
         def sample_of(count):
             def brightest():
                 reads.append(count)
-                return queryDb.galaxy_brightest_stars(conn, count)
+                return query.galaxy_brightest_stars(conn, count)
             return brightest
 
-        assert [s["id"] for s in queryDb.galaxy_brightest_stars(conn, 5)] == [i for i, _s in ranked[:5]]
+        assert [s["id"] for s in query.galaxy_brightest_stars(conn, 5)] == [i for i, _s in ranked[:5]]
         for lo, hi in [((-200, -200, -50), (200, 200, 50)), ((0, 0, -50), (200, 200, 50)), ((20, -60, -5), (90, 10, 5))]:
             inside = [i for i, (p, _lum) in ranked if all(lo[a] <= round(p[a] * 1000) / 1000 < hi[a] for a in range(3))]
-            whole = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=20, brightest=sample_of(len(stars)))
+            whole = query.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=20, brightest=sample_of(len(stars)))
             assert [s["id"] for s in whole] == inside[:20]
             top = {i for i, _s in ranked[:100]}
-            thinned = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=400, brightest=sample_of(100))
+            thinned = query.galaxy_bright_stars_in_box(conn, lo, hi, edge, limit=400, brightest=sample_of(100))
             assert [s["id"] for s in thinned] == [i for i in inside if i in top]
         assert reads
     finally:
@@ -938,7 +939,7 @@ def test_galaxy_bright_stars_in_box_takes_big_boxes_from_the_galaxy_wide_sample(
 def test_galaxy_bright_stars_in_box_is_empty_without_a_scatter(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
-        assert queryDb.galaxy_bright_stars_in_box(conn, (-10, -10, -10), (10, 10, 10), 3.5) == []
+        assert query.galaxy_bright_stars_in_box(conn, (-10, -10, -10), (10, 10, 10), 3.5) == []
     finally:
         conn.close()
 
@@ -985,21 +986,21 @@ def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql
     lo, hi = (0.0, 0.0, -5.0), (64.0, 64.0, 5.0)
     conn = _db.get_connection(mysql_config)
     try:
-        every = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
+        every = query.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
         assert [s["id"] for s in every] == [star_ids[i] for i in (2, 3, 1, 4, 0)]
         top = every[0]
         assert top["luminosity_sol"] == pytest.approx(40.0, rel=1e-3)
         assert (top["x"], top["y"], top["z"]) == pytest.approx((10.0, 2.0, 0.0), abs=0.01)
         assert (top["ring_index"], top["layer_index"], top["ring_slot_index"]) == (2, 0, 0)
         assert top["radius_sol"] > 0 and top["temperature_k"] > 0 and top["system_id"] and top["name"]
-        floored = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.25, len(lums))
+        floored = query.galaxy_generated_stars_in_box(conn, lo, hi, 0.25, len(lums))
         assert [s["id"] for s in floored] == [star_ids[i] for i in (2, 3, 1)]
-        assert len(queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums), limit=2)) == 2
-        assert queryDb.galaxy_generated_stars_in_box(conn, (100.0, 0.0, -5.0), (164.0, 64.0, 5.0), 0.0, 1) == []
-        assert queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 0) == []
+        assert len(query.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums), limit=2)) == 2
+        assert query.galaxy_generated_stars_in_box(conn, (100.0, 0.0, -5.0), (164.0, 64.0, 5.0), 0.0, 1) == []
+        assert query.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 0) == []
 
-        monkeypatch.setattr(queryDb, "GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET", 2)
-        sampled = queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
+        monkeypatch.setattr(query, "GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET", 2)
+        sampled = query.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, len(lums))
         assert {s["id"] for s in sampled} == {
             star for sector, star in zip(sector_ids, star_ids) if zlib.crc32(str(sector).encode()) % 3 == 0
         }
@@ -1009,7 +1010,7 @@ def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql
         _db.insert_bright_stars(conn, [_bright_row((10.0, 2.0, 0.0), 600.0, 4.0)])
         conn.execute("UPDATE bright_stars SET star_system_id = ?", (system_id,))
         conn.commit()
-        assert star_ids[2] not in [s["id"] for s in queryDb.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 5)]
+        assert star_ids[2] not in [s["id"] for s in query.galaxy_generated_stars_in_box(conn, lo, hi, 0.0, 5)]
     finally:
         conn.close()
 
@@ -1017,11 +1018,11 @@ def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql
 def test_generated_star_floor_drops_fourfold_per_finer_tile_level():
     from planetgen.galaxy.viewport import TILE_MAX_LEVEL
 
-    assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL) == 0.0
-    assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL - 1) == pytest.approx(queryDb.GENERATED_STAR_FLOOR_SOL_AT_32_PC)
+    assert query.generated_star_floor_sol(TILE_MAX_LEVEL) == 0.0
+    assert query.generated_star_floor_sol(TILE_MAX_LEVEL - 1) == pytest.approx(query.GENERATED_STAR_FLOOR_SOL_AT_32_PC)
     for level in range(3, TILE_MAX_LEVEL - 1):
-        assert queryDb.generated_star_floor_sol(level) == pytest.approx(4 * queryDb.generated_star_floor_sol(level + 1))
-    assert queryDb.generated_star_floor_sol(0) is None
+        assert query.generated_star_floor_sol(level) == pytest.approx(4 * query.generated_star_floor_sol(level + 1))
+    assert query.generated_star_floor_sol(0) is None
 
 
 def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
@@ -1066,9 +1067,9 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
         conn.close()
 
     finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
-    sector_level = tiles_intersecting_sphere(queryDb.POINT_PHENOMENON_MIN_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    coarse = tiles_intersecting_sphere(queryDb.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
-    monkeypatch.setattr(queryDb, "GALAXY_TILE_MAX_GENERATED_STARS", 1)
+    sector_level = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
+    coarse = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
+    monkeypatch.setattr(query, "GALAXY_TILE_MAX_GENERATED_STARS", 1)
     tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{sector_level},{coarse}").get_json()["tiles"]
     assert [s["id"] for s in tiles[finest]["generated"]] == [star_ids[1], star_ids[2], star_ids[0]]
     assert len(tiles[sector_level]["generated"]) == 1
@@ -1140,7 +1141,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     others = [s for s in drill_block_sectors(level3, -20) if (s.ring, s.slab, s.wedge) != home][:1]
     others += drill_block_sectors(level3, -21)[:1]
     addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others] + [(0, 0, 0)]
-    before = queryDb.galaxy_changes(_db.get_connection(mysql_config))["state"]
+    before = query.galaxy_changes(_db.get_connection(mysql_config))["state"]
     ids = [_place_sector(mysql_config, f"Stage {n}", sector_position_pc(*a, 4.0), address=a) for n, a in enumerate(addresses)]
 
     galaxy = client.get("/api/galaxy/stage").get_json()
@@ -1175,7 +1176,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     for bad in ("81.0.0.0", "243.0.99.0", "nonsense", "1.0.0.0"):
         assert client.get(f"/api/galaxy/stage?at={bad}").status_code == 400
 
-    changes = queryDb.galaxy_changes(_db.get_connection(mysql_config), before)
+    changes = query.galaxy_changes(_db.get_connection(mysql_config), before)
     assert not changes["full"]
     assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:3]} | {
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
@@ -1268,8 +1269,8 @@ def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     ids = [_place_sector(mysql_config, f"Row {n}", (float(n), 0.0, 0.0)) for n in range(10)]
     conn = _db.get_connection(mysql_config)
     try:
-        sampled = queryDb.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=4)
-        everything = queryDb.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=10)
+        sampled = query.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=4)
+        everything = query.galaxy_sectors_in_box(conn, (-1.0, -1.0, -1.0), (20.0, 1.0, 1.0), limit=10)
     finally:
         conn.close()
     # ceil(10 / 4) = 3: rows 0, 3, 6, 9 -- spanning the whole run.

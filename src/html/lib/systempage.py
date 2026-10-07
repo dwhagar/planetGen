@@ -349,7 +349,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     list of its stars, planets (with their moons nested under them),
     asteroid belts and comets. Each row shows compact stats and opens onto
     that body's own generated description -- see
-    `stellarObjects.systemRender.render_system_sections`.
+    `planetgen.db.render.render_system_sections`.
 
     A `'wide'` (S-type) pair's bodies each orbit one of its two stars, so
     they're nested under that star's own row; a single star's or a

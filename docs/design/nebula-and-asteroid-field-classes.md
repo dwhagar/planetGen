@@ -130,7 +130,7 @@ compact objects keep their own tables and need no letters.
   same-sector check. Computed at generation, when a nebula or remnant is
   placed (so a later sector inside an existing cloud sees it), by the v39
   migration for existing rows, and on each correlative update
-  (`updateOrbits.py`, since 7.37.0).
+  (`planetgen.cli.orbits`, since 7.37.0).
 - What being inside means, from the reference document: the stellar
   wind's heliopause shrinks as `R_HP ∝ (ρ_ISM v² + P_ISM)^-1/2`; in a
   dense cold cloud (nH ~3,000 cm^-3) the Sun's would sit at ~0.22 AU,

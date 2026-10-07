@@ -129,7 +129,7 @@ class Planet:
                                             orbital plane in 3D.
         orbital_phase_deg (float): This body's current position angle
                                    around its (circular) orbit, in degrees.
-                                   Mutated in place by `updateOrbits.py` as
+                                   Mutated in place by `planetgen.cli.orbits` as
                                    time passes -- everything else here is
                                    fixed at generation time.
         position_x, position_y, position_z (float): This body's current
@@ -409,7 +409,7 @@ class Planet:
         key/value pairs `to_paragraph_list` renders into the body's data
         table -- as its own method so the database persistence layer can
         read the same as-published values without duplicating this
-        formatting logic (see `stellarObjects/_db.py`). Same dict shape for
+        formatting logic (see `planetgen/db/store.py`). Same dict shape for
         planets and moons; only the wiki template name differs (handled in
         `to_paragraph_list`, not here).
 

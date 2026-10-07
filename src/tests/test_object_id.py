@@ -3,7 +3,7 @@
 """
 GEN.64: the 76-bit position ID (`planetgen/names/object_id.py`) every
 interstellar object and bright-sweep system is named by, and how a sector
-save claims those IDs (`_db._claim_object_ids`, `insert_sector`).
+save claims those IDs (`store._claim_object_ids`, `insert_sector`).
 
 The database tests take the `mysql_config` fixture (see `conftest.py`) --
 skipped, not failed, when no MySQL test server is configured/reachable.
@@ -11,7 +11,7 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.names import object_id as objectId
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.navigation import course_between
@@ -77,10 +77,10 @@ def test_bump_counts_sixteen_collisions_then_moves_one_mark_step():
 
 def test_same_point_ids_are_bumped_in_generation_order(mysql_config):
     first, second = RoguePlanet(SystemConfig()), RoguePlanet(SystemConfig())
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db._claim_object_ids(conn, [(first, "rogue-planet", (10.0, 0.0, 0.0)),
+            store._claim_object_ids(conn, [(first, "rogue-planet", (10.0, 0.0, 0.0)),
                                          (second, "rogue-planet", (10.0, 0.0, 0.0))])
     finally:
         conn.close()
@@ -90,14 +90,14 @@ def test_same_point_ids_are_bumped_in_generation_order(mysql_config):
 
 
 def test_a_stored_id_is_skipped(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             stored = RoguePlanet(SystemConfig())
-            _db.insert_rogue_planet(conn, stored, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
+            store.insert_rogue_planet(conn, stored, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
                                                              "center_z_pc": 0.0, "galactic_radius_pc": 10.0})
             later = RoguePlanet(SystemConfig())
-            _db.insert_rogue_planet(conn, later, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
+            store.insert_rogue_planet(conn, later, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
                                                             "center_z_pc": 0.0, "galactic_radius_pc": 10.0})
             registry = conn.execute("SELECT COUNT(*) AS n FROM system_name_registry").fetchone()["n"]
     finally:
@@ -110,11 +110,11 @@ def test_a_stored_id_is_skipped(mysql_config):
 def test_unplaced_objects_and_given_names_keep_their_names(mysql_config):
     unplaced, given = RoguePlanet(SystemConfig()), RoguePlanet(SystemConfig(), name="Drifter")
     generated = unplaced.name
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_rogue_planet(conn, unplaced)
-            _db.insert_rogue_planet(conn, given, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
+            store.insert_rogue_planet(conn, unplaced)
+            store.insert_rogue_planet(conn, given, placement={"center_x_pc": 10.0, "center_y_pc": 0.0,
                                                             "center_z_pc": 0.0, "galactic_radius_pc": 10.0})
     finally:
         conn.close()
@@ -126,13 +126,13 @@ def test_a_placed_sector_names_its_phenomena_by_id(mysql_config):
     for index in range(3):
         sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet",
                               position=(1.0, float(index) + 2.5, 1.0))
-    _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+    store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
     names = [entry.phenomenon.name for entry in sector.phenomena]
     expected = [objectId.format_id(objectId.pack(
-        "rogue-planet", _db._placement_center(_db._galaxy_placement_from_sector_offset(_POSITION, entry.position))))
+        "rogue-planet", store._placement_center(store._galaxy_placement_from_sector_offset(_POSITION, entry.position))))
         for entry in sector.phenomena]
     assert names == expected
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         stored = sorted(row["name"] for row in conn.execute("SELECT name FROM rogue_planets").fetchall())
         registry = conn.execute("SELECT COUNT(*) AS n FROM system_name_registry").fetchone()["n"]
@@ -152,7 +152,7 @@ def test_a_remnant_core_gets_its_own_core_id(mysql_config):
     assert remnant.compact_remnant.name == f"{remnant.name} Core"
     sector = SpaceSector("Halfway Sector", edge_ly=11.5)
     sector.add_phenomenon(remnant, "supernova-remnant", position=(1.0, 2.5, 1.0))
-    _db.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
+    store.save_sector(sector, config=mysql_config, galaxy_position=_POSITION)
     assert objectId.parse_id(remnant.name)["kind"] == "supernova-remnant"
     core = objectId.parse_id(remnant.compact_remnant.name)
     assert core["kind"] in ("black-hole-core", "neutron-star-core")

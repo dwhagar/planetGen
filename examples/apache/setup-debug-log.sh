@@ -3,7 +3,7 @@
 # examples/apache/setup-debug-log.sh
 #
 # Prepares planetGen's debug log (see src/planetgen/util/log.py), its
-# always-on activity log (src/stellarObjects/activitylog.py), and the
+# always-on activity log (src/planetgen/admin/activity_log.py), and the
 # rotation for both. Safe to run again. Called by install.sh, and by
 # update.sh when there's nothing new to install.
 #

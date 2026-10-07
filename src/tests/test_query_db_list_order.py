@@ -1,8 +1,8 @@
 # tests/test_query_db_list_order.py
 
 """
-Coverage for the order `queryDb.list_sectors` (the browse page's sector
-table, `GET /api/sectors`) and `queryDb.sector_detail` (the sector page's
+Coverage for the order `query.list_sectors` (the browse page's sector
+table, `GET /api/sectors`) and `query.sector_detail` (the sector page's
 systems table, `GET /api/sectors/<id>`) hand rows back in: sectors
 nearest the galactic core first, with never-placed sectors after them by
 name, and a sector's systems nearest its own center first.
@@ -16,8 +16,8 @@ import math
 
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -42,7 +42,7 @@ def _save_sector(mysql_config, name, center_pc=None, positions=((0.0, 0.0, 0.0),
             "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
             "galactic_radius_pc": math.dist(center_pc, (0.0, 0.0, 0.0)),
         }
-    return _db.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
+    return store.save_sector(sector, config=mysql_config, galaxy_position=galaxy_position)
 
 
 def test_list_sectors_orders_by_distance_from_core_then_unplaced_by_name(mysql_config):
@@ -53,10 +53,10 @@ def test_list_sectors_orders_by_distance_from_core_then_unplaced_by_name(mysql_c
     unplaced_b_id = _save_sector(mysql_config, "Bravo Unplaced")
     unplaced_a_id = _save_sector(mysql_config, "Alpha Unplaced")
 
-    conn = queryDb.open_readonly(mysql_config)
+    conn = query.open_readonly(mysql_config)
     try:
-        everything = queryDb.list_sectors(conn)
-        second_page = queryDb.list_sectors(conn, limit=2, offset=2)
+        everything = query.list_sectors(conn)
+        second_page = query.list_sectors(conn, limit=2, offset=2)
     finally:
         conn.close()
 
@@ -71,9 +71,9 @@ def test_sector_detail_orders_systems_by_distance_from_sector_center(mysql_confi
     positions = [(4.0, 0.0, 0.0), (0.0, -1.0, 0.0), (1.5, 1.5, 1.5), (0.0, 0.0, 3.0)]
     sector_id = _save_sector(mysql_config, "Ordered Sector", center_pc=(50.0, 0.0, 0.0), positions=positions)
 
-    conn = queryDb.open_readonly(mysql_config)
+    conn = query.open_readonly(mysql_config)
     try:
-        detail = queryDb.sector_detail(conn, sector_id)
+        detail = query.sector_detail(conn, sector_id)
     finally:
         conn.close()
 

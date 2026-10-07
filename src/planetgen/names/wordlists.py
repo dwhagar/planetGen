@@ -441,6 +441,6 @@ again, German again, and Georgian) -- same transliteration convention as
 
 Before v34, planets and moons whose names collided got one of these as a
 suffix ("<name> Kin"). They're named from their system now
-(`bodyNames.py`), so nothing adds these any more; `checkRenderParity.py`
+(`bodyNames.py`), so nothing adds these any more; `planetgen.cli.render_parity`
 still reads them to recognize the old form in a pre-v29 database.
 """

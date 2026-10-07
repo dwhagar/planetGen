@@ -1,23 +1,23 @@
 #!/usr/bin/env python3
-# src/checkRenderParity.py
+# planetgen.cli.render_parity
 
 """
 Pre-upgrade check for schema v29, which drops the stored page text
 (`star_systems.wikitext_content`/`markdown_content`) and renders both
-formats from the database rows instead (see `stellarObjects/schema.sql`'s
+formats from the database rows instead (see `planetgen/db/schema.sql`'s
 "v29" header note).
 
 Run this against a database that is still at v28 -- before `update.sh`/
-`migrateDb.py` applies v29, since that step deletes the stored copies it
+`planetgen.cli.migrate` applies v29, since that step deletes the stored copies it
 compares against. For every system it renders the page fresh
-(`stellarObjects/systemRender.py`) and compares it with the stored copy,
+(`planetgen/db/render.py`) and compares it with the stored copy,
 line by line, sorting each difference into one of three buckets:
 
 - names: the only differences are names -- a rename, or a planet/moon
   name made unique after the stored text was written. The fresh page is
   the correct one (it matches the rest of the site).
 - live values: lines that describe where things are right now (planetary
-  and moon wobble, comet positions and activity), which `updateOrbits.py`
+  and moon wobble, comet positions and activity), which `planetgen.cli.orbits`
   keeps moving and the stored text froze at generation time.
 - other: anything else. These are the ones worth a look before upgrading;
   the first few diffs are printed.
@@ -27,7 +27,7 @@ line by line, sorting each difference into one of three buckets:
 readable backup alongside (not instead of) a `mysqldump`.
 
 Usage:
-    python3 src/checkRenderParity.py [--export-dir DIR] [--show N]
+    python3 -m planetgen.cli.render_parity [--export-dir DIR] [--show N]
                                      [--mysql-host HOST] [--mysql-port PORT]
                                      [--mysql-user USER] [--mysql-password PASSWORD]
                                      [--mysql-database DATABASE]
@@ -43,14 +43,14 @@ import sys
 
 import pymysql
 
-from stellarObjects._db import (
+from planetgen.db.store import (
     add_mysql_connection_args, get_connection, load_star_system, mysql_config_from_args,
 )
 from planetgen.names.wordlists import COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES
-from stellarObjects.systemRender import render_star_system
+from planetgen.db.render import render_star_system
 
 _LIVE_LINE = re.compile(r"wobble|comet|parabolic|perihelion|apoapsis|aphelion", re.IGNORECASE)
-"""Lines describing current positions (`updateOrbits.py` moves them)."""
+"""Lines describing current positions (`planetgen.cli.orbits` moves them)."""
 
 
 def _name_variants(name):

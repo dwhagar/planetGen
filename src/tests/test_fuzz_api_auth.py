@@ -24,7 +24,8 @@ from hypothesis import strategies as st
 from itsdangerous import URLSafeTimedSerializer
 
 from api.authz import SESSION_COOKIE_NAME
-from stellarObjects import _db, adminAuth
+from planetgen.db import store
+from planetgen.admin import auth as adminAuth
 
 from web import csrf  # noqa: E402
 from web.admin_pages import FLASH_COOKIE  # noqa: E402
@@ -432,7 +433,7 @@ def test_logged_out_and_expired_sessions_are_refused(app, fuzz_db):
     _assert_refused_everywhere(app, cookie=f"{SESSION_COOKIE_NAME}={token}")
 
     token = _session_token(login_api(app.test_client()))
-    conn = _db.get_control_connection(fuzz_db["config"], ensure_schema=False)
+    conn = store.get_control_connection(fuzz_db["config"], ensure_schema=False)
     try:
         conn.execute("UPDATE admin_sessions SET expires_at = CURRENT_TIMESTAMP - INTERVAL 1 SECOND "
                      "WHERE token_hash = ?", (adminAuth._hash_token(token),))

@@ -77,7 +77,7 @@ Interstellar comets are `I/<sector>-<n>`.
   second star), separate from `planets`, because a comet's distance changes
   continuously instead of sitting in an orbital slot.
 - `SystemConfig.COMETS` is a tri-state flag; `generate.py system` exposes it.
-- `updateOrbits.py` calls `_db.advance_comet_orbits` after the planet and
+- `planetgen.cli.orbits` calls `_db.advance_comet_orbits` after the planet and
   moon pass. It reads every comet row, advances the anomaly, solves Kepler or
   Barker in Python and writes all rows back with one `executemany`.
 - Since 7.37.0 the whole system, comets included, also moves along its
@@ -137,5 +137,5 @@ proposed comet cases in `test_orbital_motion.py` were placed in
 The earlier version of this file was the pre-build plan. It named
 `phenomenonGen.py` and `systemGen.py`, which were merged into `generate.py`
 in 5.35.0; it cited line numbers in `roguePlanetData.py`, `schema.sql` and
-`_db.py` that no longer match; and it described a "time of perihelion
+`store.py` that no longer match; and it described a "time of perihelion
 passage" field, where the code stores a mean anomaly instead.

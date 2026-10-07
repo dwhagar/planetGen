@@ -14,8 +14,8 @@ import math
 
 import pytest
 
-from queryDb import NavUnavailable, nav_between
-from stellarObjects import _db
+from planetgen.db.query import NavUnavailable, nav_between
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.nav_graph import build_knn_adjacency, shortest_path
@@ -296,17 +296,17 @@ def two_sector_galaxy(mysql_config):
     sector_c.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
 
     empty_vertices = {"inner": [], "outer": []}
-    sector_a_id = _db.save_sector(sector_a, config=mysql_config, galaxy_position={
+    sector_a_id = store.save_sector(sector_a, config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 0.0, "center_z_pc": 0.0,
         "galactic_radius_pc": 0.0, "vertices_pc": empty_vertices,
     })
-    sector_b_id = _db.save_sector(sector_b, config=mysql_config, galaxy_position={
+    sector_b_id = store.save_sector(sector_b, config=mysql_config, galaxy_position={
         "center_x_pc": 6.132027875711011, "center_y_pc": 0.0, "center_z_pc": 0.0,  # ~20 ly
         "galactic_radius_pc": 6.132027875711011, "vertices_pc": empty_vertices,
     })
-    sector_c_id = _db.save_sector(sector_c, config=mysql_config)  # no galaxy_position at all
+    sector_c_id = store.save_sector(sector_c, config=mysql_config)  # no galaxy_position at all
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         ids = {
             "sector_a": sector_a_id,
@@ -332,7 +332,7 @@ def two_sector_galaxy(mysql_config):
 
 def test_nav_between_same_sector(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(conn, ids["a"][0], ids["a"][2])
     finally:
@@ -356,7 +356,7 @@ def test_nav_between_same_sector(two_sector_galaxy):
 
 def test_nav_between_cross_sector_galaxy_scope(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(conn, ids["a"][0], ids["b"][0])
     finally:
@@ -377,7 +377,7 @@ def test_nav_between_cross_sector_galaxy_scope(two_sector_galaxy):
 
 def test_nav_between_same_system_has_no_route(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(conn, ids["a"][0], ids["a"][0])
     finally:
@@ -389,7 +389,7 @@ def test_nav_between_same_system_has_no_route(two_sector_galaxy):
 
 def test_nav_between_unavailable_when_either_system_unplaced(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(NavUnavailable):
             nav_between(conn, ids["a"][0], ids["unplaced"])
@@ -399,7 +399,7 @@ def test_nav_between_unavailable_when_either_system_unplaced(two_sector_galaxy):
 
 def test_nav_between_unavailable_across_non_galaxy_sector(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(NavUnavailable):
             nav_between(conn, ids["a"][0], ids["c"][0])
@@ -409,7 +409,7 @@ def test_nav_between_unavailable_across_non_galaxy_sector(two_sector_galaxy):
 
 def test_nav_between_raises_value_error_for_missing_system(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(ValueError):
             nav_between(conn, ids["a"][0], 999999999)
@@ -436,9 +436,9 @@ def _insert_nebula(config, center_x_pc=None, sector_id=None):
             "center_x_pc": center_x_pc, "center_y_pc": 0.0, "center_z_pc": 0.0,
             "galactic_radius_pc": abs(center_x_pc),
         }
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        nebula_id = _db.insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
+        nebula_id = store.insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
         conn.commit()
     finally:
         conn.close()
@@ -451,7 +451,7 @@ def test_nav_between_system_to_placed_phenomenon_is_galaxy_scope(two_sector_gala
     # 0 already sits at (galaxy x=0).
     nebula_id = _insert_nebula(config, center_x_pc=10.0)
 
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
     finally:
@@ -473,7 +473,7 @@ def test_nav_between_phenomenon_to_phenomenon_is_galaxy_scope(two_sector_galaxy)
     nebula_a = _insert_nebula(config, center_x_pc=5.0)
     nebula_b = _insert_nebula(config, center_x_pc=-5.0)
 
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(
             conn, nebula_a, nebula_b,
@@ -494,7 +494,7 @@ def test_nav_between_unplaced_phenomenon_is_unavailable(two_sector_galaxy):
     config, ids = two_sector_galaxy
     nebula_id = _insert_nebula(config, center_x_pc=None)
 
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(NavUnavailable):
             nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
@@ -510,7 +510,7 @@ def test_nav_between_phenomenon_never_qualifies_for_sector_scope(two_sector_gala
     config, ids = two_sector_galaxy
     nebula_id = _insert_nebula(config, center_x_pc=1.0, sector_id=ids["sector_a"])
 
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         result = nav_between(conn, ids["a"][0], nebula_id, to_kind="phenomenon", to_type="nebula")
     finally:
@@ -521,7 +521,7 @@ def test_nav_between_phenomenon_never_qualifies_for_sector_scope(two_sector_gala
 
 def test_nav_between_raises_value_error_for_unrecognized_phenomenon_type(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(ValueError):
             nav_between(conn, ids["a"][0], 1, to_kind="phenomenon", to_type="not_a_real_type")
@@ -537,10 +537,10 @@ def test_nav_between_reaches_a_placed_supernova_remnant(two_sector_galaxy):
     config, ids = two_sector_galaxy
     remnant = SupernovaRemnant(SystemConfig())
     placement = {"center_x_pc": 10.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 10.0}
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        placed_id = _db.insert_supernova_remnant(conn, remnant, placement=placement)
-        unplaced_id = _db.insert_supernova_remnant(conn, SupernovaRemnant(SystemConfig()))
+        placed_id = store.insert_supernova_remnant(conn, remnant, placement=placement)
+        unplaced_id = store.insert_supernova_remnant(conn, SupernovaRemnant(SystemConfig()))
         conn.commit()
         result = nav_between(conn, ids["a"][0], placed_id, to_kind="phenomenon", to_type="supernova_remnant")
         with pytest.raises(NavUnavailable):
@@ -554,7 +554,7 @@ def test_nav_between_reaches_a_placed_supernova_remnant(two_sector_galaxy):
 
 def test_nav_between_raises_value_error_for_missing_phenomenon(two_sector_galaxy):
     config, ids = two_sector_galaxy
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with pytest.raises(ValueError):
             nav_between(conn, ids["a"][0], 999999999, to_kind="phenomenon", to_type="nebula")

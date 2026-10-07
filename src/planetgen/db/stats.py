@@ -1,11 +1,11 @@
-# src/adminStats.py
+# planetgen.db.stats
 
 """
 Read-only statistics about one content database, for the admin stats page
 (`html/adminstats.py`, via `GET /api/admin/stats` and `GET
 /api/admin/duplicate-names` in `html/api/admin.py`).
 
-Kept out of `queryDb.py` because none of it is a query a visitor's page
+Kept out of `planetgen.db.query` because none of it is a query a visitor's page
 runs: it's bookkeeping about the database itself (table sizes, schema
 version, row timestamps, how many names the uniqueness rules had to
 decorate).
@@ -24,7 +24,7 @@ admin request would stall the whole site (see `docs/deployment/apache.md`):
   table's `idx_*_name` index instead of pattern-matching the whole table.
 """
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS, ROMAN_NUMERALS_BY_VALUE
 from planetgen.names.uniqueness import strip_decoration
 
@@ -88,7 +88,7 @@ def server_info(conn):
 
 
 def schema_version(conn):
-    """The database's applied schema version, or `None` before `migrateDb.py`
+    """The database's applied schema version, or `None` before `planetgen.cli.migrate`
     has ever run against it (no `schema_migrations` table yet)."""
     try:
         row = conn.execute("SELECT MAX(version) AS version FROM schema_migrations").fetchone()
@@ -179,7 +179,7 @@ def density_stats(conn):
         row = conn.execute(
             "SELECT COALESCE(SUM(actual_systems IS NOT NULL), 0) AS measured,"
             " COALESCE(SUM(bright_level_sol > 0), 0) AS backfilled FROM sector_stats").fetchone()
-        ratio, fills = _db.galaxy_density_ratio(conn)
+        ratio, fills = store.galaxy_density_ratio(conn)
     except Exception:
         return None
     return {"measured": int(row["measured"]), "backfilled": int(row["backfilled"]),
@@ -188,7 +188,7 @@ def density_stats(conn):
 
 def timestamp_stats(conn):
     """
-    For every table with v27 row timestamps (`_db.TIMESTAMPED_TABLES`):
+    For every table with v27 row timestamps (`store.TIMESTAMPED_TABLES`):
     when its newest row was created and when any row last changed. A
     database still on a schema older than v27 reports `None` for both.
 
@@ -197,7 +197,7 @@ def timestamp_stats(conn):
             (`"YYYY-MM-DD HH:MM:SS"` strings, or `None`).
     """
     result = []
-    for table in _db.TIMESTAMPED_TABLES:
+    for table in store.TIMESTAMPED_TABLES:
         newest = last_modified = None
         try:
             row = conn.execute(f"SELECT created_at FROM {table} ORDER BY id DESC LIMIT 1").fetchone()

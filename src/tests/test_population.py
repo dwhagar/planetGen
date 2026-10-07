@@ -11,7 +11,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, population
+from planetgen.db import store
+from planetgen.population import model as population
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -158,7 +159,7 @@ def _civilized_system(mysql_config):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         if any(population.parse_timeline(getattr(p, "evolutionary_data", None) or []) for p in system.planets):
-            return _db.save_system(system, cfg, config=mysql_config)
+            return store.save_system(system, cfg, config=mysql_config)
     pytest.fail("could not generate a system with a civilization")
 
 
@@ -167,7 +168,7 @@ def _plain_system(mysql_config):
     cfg.STAR_TYPE = "M5V"
     cfg.INTELLIGENT_LIFE = False
     cfg.BINARY_SYSTEM = False
-    return _db.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
+    return store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
 
 
 def _place(conn, sector_id, system_id, offset_pc):
@@ -192,7 +193,7 @@ def galaxy(mysql_config):
     capital_a = _civilized_system(mysql_config)
     capital_b = _civilized_system(mysql_config)
     plain = [_plain_system(mysql_config) for _ in range(3)]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             sector_id = conn.execute(
@@ -210,7 +211,7 @@ def galaxy(mysql_config):
 
 
 def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, galaxy):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         counts = population.run_pass(conn)
         assert counts["new_species"] >= 2
@@ -268,7 +269,7 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
 
 def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, galaxy):
     # Earlier passes named a species on every life world (GEN.80).
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
         planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1",
@@ -294,7 +295,7 @@ def test_population_cli(mysql_config, galaxy, monkeypatch):
             "--mysql-database", mysql_config.database]
     monkeypatch.setattr(sys, "argv", argv)
     generate.main()
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] >= 2
     finally:
@@ -306,7 +307,7 @@ def test_population_cli(mysql_config, galaxy, monkeypatch):
 
 
 def test_migration_from_v43_adds_the_tables(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             for table in ("system_owners", "polities", "species", "population_state"):
@@ -314,10 +315,10 @@ def test_migration_from_v43_adds_the_tables(mysql_config):
             conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47, 48, 49, 50, 51, 52, 53)")
     finally:
         conn.close()
-    _db.migrate_database(mysql_config)
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    store.migrate_database(mysql_config)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == _db.SCHEMA_VERSION
+        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == store.SCHEMA_VERSION
         assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] == 0
     finally:
         conn.close()
@@ -340,7 +341,7 @@ def client(mysql_config):
 
 
 def test_api(mysql_config, galaxy, client):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
         with conn:
@@ -383,7 +384,7 @@ def test_fills_skip_population_unless_asked(monkeypatch):
     pass with --population."""
     import argparse
     calls = []
-    monkeypatch.setattr(generate._db, "get_connection", lambda *a, **k: calls.append(1))
+    monkeypatch.setattr(generate.store, "get_connection", lambda *a, **k: calls.append(1))
     generate.run_population_after(argparse.Namespace(population=False))
     assert calls == []
     parser, _commands = generate.build_parser()
@@ -394,7 +395,7 @@ def test_fills_skip_population_unless_asked(monkeypatch):
 def test_population_status(mysql_config, client):
     empty = client.get("/api/population").get_json()
     assert empty == {"generated": False, "species": False, "polities": False, "territories": False}
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert population.population_status(conn) == empty
         with conn:
@@ -405,7 +406,7 @@ def test_population_status(mysql_config, client):
 
 
 def test_population_status_after_a_pass(mysql_config, galaxy, client):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
         with conn:

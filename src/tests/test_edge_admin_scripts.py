@@ -9,10 +9,10 @@ measured) rather than only their happy path through a subprocess:
   success, first-failure stop, a missing program, a malformed step, an
   empty job, cancellation mid-step, and the `active` lock only ever being
   released by the job holding it.
-- `src/resetDb.py`: dry run, every way the typed confirmation can be
+- `planetgen.cli.reset`: dry run, every way the typed confirmation can be
   declined, a real wipe (content gone, `schema_migrations` kept, ids
   restarting at 1) and resetting an already-empty database.
-- `src/migrateDb.py` and `src/updateOrbits.py`: first run, repeat run,
+- `planetgen.cli.migrate` and `planetgen.cli.orbits`: first run, repeat run,
   and an unreachable server, each ending in the documented exit status.
 """
 
@@ -29,10 +29,11 @@ import pymysql
 import pytest
 
 import jobRunner
-import migrateDb
-import resetDb
-import updateOrbits
-from stellarObjects import _db, adminAuth
+from planetgen.cli import migrate
+from planetgen.cli import reset
+from planetgen.cli import orbits
+from planetgen.db import store
+from planetgen.admin import auth
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -194,7 +195,7 @@ def seeded(mysql_config):
 
 
 def _count(config, table):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
     finally:
@@ -206,7 +207,7 @@ def _count(config, table):
 def test_reset_dry_run_changes_nothing(seeded, monkeypatch, capsys):
     before = _count(seeded, "star_systems")
     assert before > 0
-    assert _run_main(resetDb, mysql_argv(seeded) + ["--dry-run"], monkeypatch) == 0
+    assert _run_main(reset, mysql_argv(seeded) + ["--dry-run"], monkeypatch) == 0
     assert "Would truncate" in capsys.readouterr().out
     assert _count(seeded, "star_systems") == before
 
@@ -214,7 +215,7 @@ def test_reset_dry_run_changes_nothing(seeded, monkeypatch, capsys):
 @pytest.mark.parametrize("answer", ["", "no", "yes", "y", "DROP", "planetgen"])
 def test_reset_is_declined_unless_the_exact_name_is_typed(seeded, monkeypatch, answer):
     monkeypatch.setattr("builtins.input", lambda prompt="": answer)
-    assert _run_main(resetDb, mysql_argv(seeded), monkeypatch) == 1
+    assert _run_main(reset, mysql_argv(seeded), monkeypatch) == 1
     assert _count(seeded, "star_systems") > 0
 
 
@@ -222,27 +223,27 @@ def test_reset_is_declined_on_end_of_input(seeded, monkeypatch):
     def eof(prompt=""):
         raise EOFError
     monkeypatch.setattr("builtins.input", eof)
-    assert _run_main(resetDb, mysql_argv(seeded), monkeypatch) == 1
+    assert _run_main(reset, mysql_argv(seeded), monkeypatch) == 1
     assert _count(seeded, "star_systems") > 0
 
 
 def test_reset_accepts_the_typed_name_with_surrounding_whitespace(seeded, monkeypatch):
     monkeypatch.setattr("builtins.input", lambda prompt="": f"  {seeded.database}\n")
-    assert _run_main(resetDb, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(reset, mysql_argv(seeded), monkeypatch) == 0
     assert _count(seeded, "star_systems") == 0
 
 
 def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatch):
     versions = _count(seeded, "schema_migrations")
-    conn = _db.get_connection(seeded)
+    conn = store.get_connection(seeded)
     try:
         old_max = conn.execute("SELECT MAX(id) AS m FROM star_systems").fetchone()["m"]
     finally:
         conn.close()
-    assert _run_main(resetDb, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
-    conn = _db.get_connection(seeded)
+    assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
+    conn = store.get_connection(seeded)
     try:
-        for table in resetDb._content_tables(conn, seeded.database):
+        for table in reset._content_tables(conn, seeded.database):
             assert conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"] == 0, table
     finally:
         conn.close()
@@ -250,7 +251,7 @@ def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatc
     # DB.3: the id counters are kept, so ids carry on past the old ones
     # (a process still holding an old block can't collide with new ones).
     run_cli("system", mysql_argv(seeded))
-    conn = _db.get_connection(seeded)
+    conn = store.get_connection(seeded)
     try:
         assert conn.execute("SELECT MIN(id) AS m FROM star_systems").fetchone()["m"] > old_max
     finally:
@@ -258,14 +259,14 @@ def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatc
 
 
 def test_resetting_an_already_empty_database_is_harmless(seeded, monkeypatch):
-    assert _run_main(resetDb, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
-    assert _run_main(resetDb, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
+    assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
+    assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
 
 
 def test_reset_leaves_views_and_other_databases_alone(seeded, mysql_config, monkeypatch):
-    conn = _db.get_connection(seeded)
+    conn = store.get_connection(seeded)
     try:
-        tables = resetDb._content_tables(conn, seeded.database)
+        tables = reset._content_tables(conn, seeded.database)
     finally:
         conn.close()
     assert "schema_migrations" not in tables
@@ -277,7 +278,7 @@ def test_reset_leaves_views_and_other_databases_alone(seeded, mysql_config, monk
 @pytest.fixture
 def control_schema(monkeypatch):
     name = f"planetgen_test_ctl_{uuid.uuid4().hex[:12]}"
-    monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, name)
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, name)
     yield name
     conn = pymysql.connect(**_test_server_kwargs())
     try:
@@ -289,12 +290,12 @@ def control_schema(monkeypatch):
 
 
 def test_migrate_brings_a_fresh_database_current_and_is_idempotent(mysql_config, control_schema, monkeypatch, capsys):
-    assert _run_main(migrateDb, mysql_argv(mysql_config), monkeypatch) == 0
+    assert _run_main(migrate, mysql_argv(mysql_config), monkeypatch) == 0
     first = capsys.readouterr().out
-    assert _run_main(migrateDb, mysql_argv(mysql_config), monkeypatch) == 0
+    assert _run_main(migrate, mysql_argv(mysql_config), monkeypatch) == 0
     second = capsys.readouterr().out
     for out in (first, second):
-        assert f"schema v{_db.SCHEMA_VERSION} (current)" in out
+        assert f"schema v{store.SCHEMA_VERSION} (current)" in out
         assert "Control schema (admin logins) is up to date." in out
 
     # Security #39: the first run seeds a random password and prints it
@@ -303,10 +304,10 @@ def test_migrate_brings_a_fresh_database_current_and_is_idempotent(mysql_config,
     assert re.search(r"^\s*username: admin$", first, re.M)
     assert "Log in at /login" in first
     assert "password:" not in second and password not in second
-    assert password != "password" and len(password) >= adminAuth.MIN_PASSWORD_LENGTH
-    conn = _db.get_control_connection(_db.control_mysql_config(mysql_config), ensure_schema=False)
+    assert password != "password" and len(password) >= auth.MIN_PASSWORD_LENGTH
+    conn = store.get_control_connection(store.control_mysql_config(mysql_config), ensure_schema=False)
     try:
-        admin = adminAuth.authenticate(conn, "admin", password)
+        admin = auth.authenticate(conn, "admin", password)
         assert admin["must_change_credentials"] == 1
     finally:
         conn.close()
@@ -318,17 +319,17 @@ def _unreachable_argv():
 
 
 def test_migrate_reports_an_unreachable_server_with_exit_1(monkeypatch, capsys):
-    assert _run_main(migrateDb, _unreachable_argv(), monkeypatch) == 1
+    assert _run_main(migrate, _unreachable_argv(), monkeypatch) == 1
     assert capsys.readouterr().err.startswith("error:")
 
 
 # --- updateOrbits --------------------------------------------------------------
 
 def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, monkeypatch, capsys):
-    assert _run_main(updateOrbits, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     first = capsys.readouterr().out
     assert "establishing a starting point" in first
-    assert _run_main(updateOrbits, mysql_argv(seeded), monkeypatch) == 0
+    assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     second = capsys.readouterr().out
     assert "years elapsed since the last update" in second
     lines = second.strip().splitlines()
@@ -337,10 +338,10 @@ def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, mon
 
 
 def test_update_orbits_on_an_empty_database(mysql_config, monkeypatch, capsys):
-    assert _run_main(updateOrbits, mysql_argv(mysql_config), monkeypatch) == 0
+    assert _run_main(orbits, mysql_argv(mysql_config), monkeypatch) == 0
     assert "Updated: 0 planet(s)" in capsys.readouterr().out
 
 
 def test_update_orbits_reports_an_unreachable_server_with_exit_1(monkeypatch, capsys):
-    assert _run_main(updateOrbits, _unreachable_argv(), monkeypatch) == 1
+    assert _run_main(orbits, _unreachable_argv(), monkeypatch) == 1
     assert capsys.readouterr().err.startswith("error:")

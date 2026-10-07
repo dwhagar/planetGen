@@ -571,7 +571,7 @@ def test_binary_system_markdown_renders_each_stars_table():
 
     for wide_binary in (False, True):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))
-        # _db.py's persist_star_system renders the web-facing copy with
+        # store.py's persist_star_system renders the web-facing copy with
         # MARKDOWN=True (ATX headers) -- match that exactly, since MARKDOWN
         # defaults to False (wikitext '===' headers) which mdconvert.py
         # doesn't parse as headings at all.

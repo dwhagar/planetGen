@@ -23,7 +23,8 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen.db import store  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
@@ -685,8 +686,8 @@ def _two_system_sector(mysql_config, name="Test Sector"):
     for star_type, position in (("G2V", (1.0, 1.0, 1.0)), ("M5V", (-2.0, 0.5, 3.0))):
         cfg = _system_config(star_type)
         sector.add_system(StarSystem(system_config=cfg), position=position, system_config=cfg)
-    sector_id = _db.save_sector(sector, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT id, name FROM star_systems WHERE sector_id = ? ORDER BY id",
                             (sector_id,)).fetchall()
@@ -734,10 +735,10 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
     edge_pc = 3.526
     address = (5, 1, 20)
     position = sector_position_pc(*address, edge_pc)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            sector_id = _db.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
+            sector_id = store.insert_sector(conn, SpaceSector(name="Placed Sector"), galaxy_position={
                 "center_x_pc": position[0], "center_y_pc": position[1], "center_z_pc": position[2],
                 "galactic_radius_pc": galactic_radius_pc(position),
                 "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
@@ -771,14 +772,14 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
         sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet"),
         sector.add_phenomenon(InterstellarComet(SystemConfig()), "comet"),
     ]
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
         "galactic_radius_pc": (500.0 ** 2 + 200.0 ** 2 + 10.0 ** 2) ** 0.5,
     })
 
     html = db_client.get(f"/sector/{sector_id}").get_data(as_text=True)
     contents = html.split('id="contents-heading">Contents</h2>', 1)[1].split("</section>", 1)[0]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         system_name = conn.execute("SELECT name FROM star_systems WHERE sector_id = ?",
                                    (sector_id,)).fetchone()["name"]
@@ -796,7 +797,7 @@ def test_real_sector_page_escapes_its_name(db_client, mysql_config):
     sector = SpaceSector('"><img src=x onerror=alert(1)>', edge_ly=10.0)
     cfg = _system_config("G2V")
     sector.add_system(StarSystem(system_config=cfg), position=(0.0, 0.0, 0.0), system_config=cfg)
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
     resp = db_client.get(f"/sector/{sector_id}")
     assert resp.status_code == 200
     assert "<img src=x onerror=alert(1)>" not in resp.get_data(as_text=True)

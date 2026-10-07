@@ -57,7 +57,7 @@ sections build on earlier ones):
    its own sparse, science-based population of the same seven types.
 6. Population and politics (`population`) -- species, civilizations
    and territories from what is already stored
-   (`stellarObjects/population.py`); also run after a `sector` or
+   (`planetgen/population/model.py`); also run after a `sector` or
    `galaxy` run given `--population`.
 7. The unified CLI itself (argument parsing/validation, dispatch,
    `main`).
@@ -90,7 +90,10 @@ from rich.text import Text
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, activitylog, population, progressFile, progressRate, workQueue
+from stellarObjects import progressFile, progressRate, workQueue
+from planetgen.db import store
+from planetgen.admin import activity_log
+from planetgen.population import model
 from planetgen.generation import bright_stars as brightStars, limits, stats as generationStats
 from planetgen.galaxy import nebula_field, seed as galaxySeed, version_key
 from planetgen.physics import constants, mathcheck
@@ -120,7 +123,7 @@ from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from stellarObjects.systemRender import render_star_system
+from planetgen.db.render import render_star_system
 from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
 
 # Suppress transformers warnings
@@ -386,9 +389,9 @@ def _validate_name(args, parser):
     """--name must fit the database (with room for the planets and moons
     named after it), checked here rather than failing at the save."""
     name = getattr(args, "name", None)
-    if name is not None and len(name) > _db.SYSTEM_NAME_MAX_LENGTH:
+    if name is not None and len(name) > store.SYSTEM_NAME_MAX_LENGTH:
         parser.error(f"--name is {len(name)} characters; a system name can be at most "
-                     f"{_db.SYSTEM_NAME_MAX_LENGTH}.")
+                     f"{store.SYSTEM_NAME_MAX_LENGTH}.")
 
 
 def add_logging_arguments(parser):
@@ -458,7 +461,7 @@ def add_system_arguments(parser):
                              "override the values it sets.")
 
     # Database persistence
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
@@ -786,8 +789,8 @@ def run_system(args):
             log.normal(f"Wrote system '{system.name}' to {args.output} (not saved to the database).")
         return
 
-    mysql_config = _db.mysql_config_from_args(args)
-    star_system_id = _db.save_system(system, system_config, config=mysql_config)
+    mysql_config = store.mysql_config_from_args(args)
+    star_system_id = store.save_system(system, system_config, config=mysql_config)
     RUN_COUNTS["systems"] += 1
     log.normal(f"Saved system '{system.name}' to the database (star_system_id={star_system_id}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
@@ -981,7 +984,7 @@ def add_sector_arguments(parser):
     parser.add_argument('--estimate-only', action='store_true',
                         help="Only show the size and time estimate, then stop without writing anything; "
                              "ends with one 'ESTIMATE {json}' line.")
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
 
 
 def validate_sector_args(args, parser):
@@ -1293,7 +1296,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     to the sector's own center, and a layer-0 center sits on the plane
     (`galaxyGeometry.sector_orientation`), so the center sits at
     `(-galactic_center_dist_ly, 0, 0)` in the sector's own frame;
-    `_db.insert_sector` converts that back to the galaxy origin.
+    `store.insert_sector` converts that back to the galaxy origin.
 
     Args:
         sector (SpaceSector): The core sector, already populated.
@@ -1586,7 +1589,7 @@ def run_sector(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "sector"`).
     """
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     try:
         _check_estimate(args, [args] * args.num_sectors, f"{args.num_sectors} unplaced sector(s)")
     except _EstimateOnly as exc:
@@ -1624,7 +1627,7 @@ def _unplaced_sector_task(args):
     """One `sector` subcommand sector, generated and saved -- a work queue
     task (see `_fill_sector_task`)."""
     _sector_name, sector = generate_sector(args)
-    sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args))
+    sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args))
     _count_sector(sector)
     return {
         "sector_id": sector_id, "name": sector.name, "systems": len(sector.entries),
@@ -1748,7 +1751,7 @@ def add_galaxy_arguments(parser):
                                 default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
                                 help="With --then-scatter: the scatter's threshold, solar luminosities. "
                                      f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
 
 
 def validate_galaxy_args(args, parser):
@@ -1912,10 +1915,10 @@ class _BatchDensity:
 
     def _load(self):
         if self._skeleton is None:
-            conn = _db.get_connection(self._config)
+            conn = store.get_connection(self._config)
             try:
-                self._skeleton = _db.get_galaxy_shape(conn)
-                self._bounds = _db.get_galaxy_bounds(conn)
+                self._skeleton = store.get_galaxy_shape(conn)
+                self._bounds = store.get_galaxy_bounds(conn)
             finally:
                 conn.close()
             if self._skeleton is None:
@@ -1927,7 +1930,7 @@ class _BatchDensity:
 
     @property
     def skeleton(self):
-        """The stored `_db.GalaxySkeletonInfo`."""
+        """The stored `store.GalaxySkeletonInfo`."""
         self._load()
         return self._skeleton
 
@@ -1978,18 +1981,18 @@ def _edge_pc():
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
     mix, and its unfilled pre-placed bright stars down to its own level
-    (`_db.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
+    (`store.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
     scatter's). `None` without a stored skeleton (nothing to take the mix
     from)."""
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return None
-        level = _db.bright_star_fill_level(conn, *address)
+        level = store.bright_star_fill_level(conn, *address)
         if level is None:
             return brightStars.FillContext(position_pc, skeleton.shape)
-        rows = _db.bright_stars_for_sector(conn, *address)
+        rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
     return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level)
@@ -2074,15 +2077,15 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
     tiers = backfill_tiers(radius_ly, min_luminosity_sol, tiers)
     radius_pc = ly_to_pc(tiers[-1][0])
     summary = {"sectors": 0, "stars": 0}
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return summary
         galaxy_level, seed = _scatter_level_and_seed(conn, skeleton)
         if galaxy_level is not None and galaxy_level <= min(floor for _out_to, floor in tiers):
             return summary
-        bounds = _db.get_galaxy_bounds(conn)
+        bounds = store.get_galaxy_bounds(conn)
         floors = {}
         for center_pc in centers_pc:
             for ring, layer, slot, *_xyz, distance_pc in enumerate_sectors_within_radius(
@@ -2094,8 +2097,8 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
                     floors[(ring, layer, slot)] = min(floor, floors.get((ring, layer, slot), math.inf))
         if galaxy_level is not None:
             floors = {address: floor for address, floor in floors.items() if floor < galaxy_level}
-        levels = _db.sector_bright_levels(conn, floors)
-        filled = _db.get_occupied_addresses(conn, {address[0] for address in floors})
+        levels = store.sector_bright_levels(conn, floors)
+        filled = store.get_occupied_addresses(conn, {address[0] for address in floors})
         todo = sorted(address for address, floor in floors.items()
                       if address not in filled and _needs_band(levels.get(address), galaxy_level, floor))
         drawn = _draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed)
@@ -2120,7 +2123,7 @@ def _scatter_level_and_seed(conn, skeleton):
     """The galaxy scatter's level (`None` before any scatter) and the seed
     every sector's own draws use: the scatter's, else the galaxy seed's
     (GEN.39), else 0 for a galaxy planned before v51."""
-    settings = _db.bright_star_scatter_settings(conn)
+    settings = store.bright_star_scatter_settings(conn)
     if settings is not None:
         return settings
     if skeleton.galaxy_seed is None:
@@ -2165,8 +2168,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
         for address in chunk:
             density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
             entries.append((address, density, density * e_value))
-        locked = _db.lock_sector_stats(conn, entries)
-        filled = _db.get_occupied_addresses(conn, {address[0] for address in chunk})
+        locked = store.lock_sector_stats(conn, entries)
+        filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, new_levels = [], {}
         for address in chunk:
             floor = floors if isinstance(floors, (int, float)) else floors[address]
@@ -2186,8 +2189,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
                                                    ceiling, seed))
             new_levels[address] = floor
-        _db.insert_bright_stars(conn, rows)
-        _db.set_sector_bright_levels(conn, new_levels)
+        store.insert_bright_stars(conn, rows)
+        store.set_sector_bright_levels(conn, new_levels)
         conn.commit()
         if counts is not None:
             for row in rows:
@@ -2209,7 +2212,7 @@ def _requested_center(args, generated, edge_pc, conn):
     if not many and getattr(args, "slot", None) is not None:
         return sector_position_pc(args.ring, args.layer, args.slot, edge_pc)
     if not many and getattr(args, "ring", None) is None and getattr(args, "center_sector", None) is not None:
-        row = _db.get_sector_galaxy_position(conn, args.center_sector)
+        row = store.get_sector_galaxy_position(conn, args.center_sector)
         if row is not None:
             return (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
     if not generated:
@@ -2230,7 +2233,7 @@ def backfill_after_run(args, edge_pc, started_at):
         args (argparse.Namespace): The run's arguments.
         edge_pc (float): The sector edge, parsecs.
         started_at (datetime): The database's clock when the run started
-            (`_db.database_now`); sectors created since are the run's.
+            (`store.database_now`); sectors created since are the run's.
 
     Returns:
         dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
@@ -2239,10 +2242,10 @@ def backfill_after_run(args, edge_pc, started_at):
     summary = {"sectors": 0, "stars": 0}
     if mode == "none":
         return summary
-    config = _db.mysql_config_from_args(args)
-    conn = _db.get_connection(config)
+    config = store.mysql_config_from_args(args)
+    conn = store.get_connection(config)
     try:
-        generated = _db.sector_centers_since(conn, started_at)
+        generated = store.sector_centers_since(conn, started_at)
         if not generated:
             return summary
         centers = generated if mode == "all" else [_requested_center(args, generated, edge_pc, conn)]
@@ -2298,7 +2301,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
                                                fill=fill, cloud_field=cloud_field)
         if address == NUCLEUS_ADDRESS:
             add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
-        sector_id = _db.save_sector(sector, config=_db.mysql_config_from_args(args),
+        sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
                                     galaxy_position=galaxy_position)
     _count_sector(sector)
     return sector_id, sector.name, sector
@@ -2307,9 +2310,9 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
 def _galaxy_seed(args):
     """The galaxy's stored 16-byte seed (GEN.39), or `None` when it has
     none (never planned, or planned before schema v51)."""
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        return _db.get_galaxy_seed(conn)
+        return store.get_galaxy_seed(conn)
     finally:
         conn.close()
 
@@ -2348,7 +2351,7 @@ def _default_generation_args(config=None):
     args.num_orbits = None
     args.name = None
 
-    config = config or _db.MySQLConfig()
+    config = config or store.MySQLConfig()
     args.mysql_host = config.host
     args.mysql_port = config.port
     args.mysql_user = config.user
@@ -2384,20 +2387,20 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
                      run `generate.py plan` first.
     """
     address = (ring_index, layer_index, ring_slot_index)
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        existing_id = _db.get_sector_id_at(conn, *address)
+        existing_id = store.get_sector_id_at(conn, *address)
         if existing_id is not None:
             return {"created": False, "qualifies": True, "sector_id": existing_id, "sector_name": None}
 
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError(
                 "The galaxy's skeleton has never been built (no galaxy_shape row) -- run "
                 "'generate.py plan' first."
             )
 
-        bounds = _db.get_galaxy_bounds(conn)
+        bounds = store.get_galaxy_bounds(conn)
     finally:
         conn.close()
 
@@ -2419,9 +2422,9 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
             args, address, position_pc, skeleton.edge_pc,
         )
     except pymysql.err.IntegrityError:
-        conn = _db.get_connection(config)
+        conn = store.get_connection(config)
         try:
-            existing_id = _db.get_sector_id_at(conn, *address)
+            existing_id = store.get_sector_id_at(conn, *address)
         finally:
             conn.close()
         if existing_id is None:
@@ -2460,19 +2463,19 @@ def _work_queue(args, title):
     at a time. One worker generates every sector right here, in order
     (still recorded in the job tree, ADM.12, without the lease).
     """
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     workers = _worker_count(args)
     log.debug(f"{title}: {workers} worker process(es) ({workQueue.cpu_count()} cores).")
     return workQueue.WorkQueue(
         title, workers=workers,
-        control_config=_db.control_mysql_config(mysql_config),
+        control_config=store.control_mysql_config(mysql_config),
         log_level=_log_level(args), debug_file=getattr(args, "debug", None) or None,
     )
 
 
 def _worker_count(args):
     """The worker processes a run uses (`workQueue.worker_count`)."""
-    return workQueue.worker_count(getattr(args, "workers", None), _db.mysql_config_from_args(args).host)
+    return workQueue.worker_count(getattr(args, "workers", None), store.mysql_config_from_args(args).host)
 
 
 # ---------------------------------------------------------------------------
@@ -2505,7 +2508,7 @@ def _generation_stats(args):
     `PLANETGEN_GENERATION_STATS` is `0` (the test suite's setting)."""
     if os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false"):
         return _RUN_STATS.setdefault(None, generationStats.GenerationStats())
-    control = _db.control_mysql_config(_db.mysql_config_from_args(args))
+    control = store.control_mysql_config(store.mysql_config_from_args(args))
     key = (control.host, control.port, control.database)
     if key not in _RUN_STATS:
         _RUN_STATS[key] = generationStats.GenerationStats(control)
@@ -2543,9 +2546,9 @@ def _finish_stats(args):
     for stats in _RUN_STATS.values():
         if not stats.available:
             continue
-        config = _db.mysql_config_from_args(args)
+        config = store.mysql_config_from_args(args)
         try:
-            conn = _db.get_connection(config)
+            conn = store.get_connection(config)
         except Exception as exc:  # noqa: BLE001 -- stats never fail a run
             log.debug(f"Generation stats: can't measure the database ({exc}).")
         else:
@@ -2578,14 +2581,14 @@ def _ask(progress, question):
 def _estimate_sectors(args, sector_args_list):
     """The `generationStats.Estimate` for filling these sectors, with the
     database disk checked."""
-    config = _db.mysql_config_from_args(args)
+    config = store.mysql_config_from_args(args)
     stats = _generation_stats(args)
     result = generationStats.estimate(
         [(_sector_density(sector_args), _expected_systems(sector_args)) for sector_args in sector_args_list],
         stats, config.database, workers=_worker_count(args),
     )
     try:
-        conn = _db.get_connection(config)
+        conn = store.get_connection(config)
         try:
             disk = generationStats.database_disk(conn, config.host)
         finally:
@@ -2727,13 +2730,13 @@ def run_ring_batch(args, edge_pc, progress):
         )
         raise SystemExit(1)
 
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     _require_inside(batch_density.bounds, ring_index, layer_index, f"ring {ring_index} layer {layer_index}")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        occupied = {a for a in _db.get_occupied_addresses(conn, [ring_index]) if a[1] == layer_index}
+        occupied = {a for a in store.get_occupied_addresses(conn, [ring_index]) if a[1] == layer_index}
     finally:
         conn.close()
 
@@ -2789,9 +2792,9 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
             candidates.append(candidate)
         else:
             outside += 1
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        occupied = _db.get_occupied_addresses(conn, {c[0] for c in candidates})
+        occupied = store.get_occupied_addresses(conn, {c[0] for c in candidates})
     finally:
         conn.close()
     return candidates, occupied, outside
@@ -2842,10 +2845,10 @@ def run_local_neighborhood(args, edge_pc, progress):
         SystemExit: If `args.center_sector` doesn't exist, or has never
                    been placed in a galaxy.
     """
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         try:
-            center_position = _db.get_sector_galaxy_position(conn, args.center_sector)
+            center_position = store.get_sector_galaxy_position(conn, args.center_sector)
         except ValueError as exc:
             log.error(str(exc))
             raise SystemExit(1) from exc
@@ -2864,7 +2867,7 @@ def run_local_neighborhood(args, edge_pc, progress):
     center = (
         center_position["center_x_pc"], center_position["center_y_pc"], center_position["center_z_pc"],
     )
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     center_ring, center_layer, _slot = sector_address_at(center, edge_pc)
     _require_inside(batch_density.bounds, center_ring, center_layer,
@@ -2963,13 +2966,13 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         ly_to_pc(radius_ly) if radius_ly is not None
         else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
-    config = config or _db.DEFAULT_MYSQL_CONFIG
+    config = config or store.DEFAULT_MYSQL_CONFIG
     if not estimate_only:
         require_math_check()
 
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        center_position = _db.get_sector_galaxy_position(conn, center_sector_id)
+        center_position = store.get_sector_galaxy_position(conn, center_sector_id)
     finally:
         conn.close()
 
@@ -3052,14 +3055,14 @@ def run_random_start(args, edge_pc, progress):
         else program_constants.DEFAULT_GENERATE_RADIUS_PC
     )
 
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         sector_args = None
         for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
             address = batch_density.bounds.random_address(random, max_ring=args.max_ring)
-            if _db.get_sector_id_at(conn, *address) is not None:
+            if store.get_sector_id_at(conn, *address) is not None:
                 continue
             position_pc = sector_position_pc(*address, edge_pc)
             sector_args = batch_density.resolve(args, address, position_pc)
@@ -3132,13 +3135,13 @@ def run_single_slot(args, edge_pc, progress):
         )
         raise SystemExit(1)
 
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     _require_inside(batch_density.bounds, args.ring, args.layer, _format_address(address))
     position_pc = sector_position_pc(*address, edge_pc)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        exists = _db.get_sector_id_at(conn, *address) is not None
+        exists = store.get_sector_id_at(conn, *address) is not None
     finally:
         conn.close()
     sector_args = None
@@ -3199,9 +3202,9 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
     in order (up to `args.limit`, when set) -- the loop behind column and
     shell modes; see `run_ring_batch` for how each sector's density is set.
     """
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        occupied = set(_db.get_occupied_addresses(conn, {a[0] for a in addresses}))
+        occupied = set(store.get_occupied_addresses(conn, {a[0] for a in addresses}))
     finally:
         conn.close()
 
@@ -3277,7 +3280,7 @@ def run_block(args, edge_pc, progress):
         SystemExit: If the outline allows nothing in the block, or it is
                    too large and neither `--limit` nor `--yes` was given.
     """
-    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
     bounds = batch_density.bounds
     key = format_drill_key(args.block)
     where = f"block {key}" + (f" layer {args.block_layer}" if args.block_layer is not None else "")
@@ -3316,7 +3319,7 @@ def run_column(args, edge_pc, progress):
             f"0..{total_slots - 1})."
         )
         raise SystemExit(1)
-    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
     layers = _layers_reaching(batch_density.bounds, args.ring)
     if not layers:
         _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
@@ -3335,7 +3338,7 @@ def run_shell(args, edge_pc, progress):
         SystemExit: If the outline doesn't reach the ring, or the shell is
                    too large and neither `--limit` nor `--yes` was given.
     """
-    batch_density = _BatchDensity(_db.mysql_config_from_args(args))
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
     layers = _layers_reaching(batch_density.bounds, args.ring)
     if not layers:
         _require_inside(batch_density.bounds, args.ring, 0, f"ring {args.ring}")
@@ -3365,9 +3368,9 @@ def run_galaxy(args):
             "galaxy"`).
     """
     edge_pc = _edge_pc()
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        bounds = _db.get_galaxy_bounds(conn)
+        bounds = store.get_galaxy_bounds(conn)
     finally:
         conn.close()
     if bounds is None:
@@ -3384,9 +3387,9 @@ def run_galaxy(args):
         raise SystemExit(1)
 
     estimate_only = getattr(args, "estimate_only", False)
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        started_at = _db.database_now(conn)
+        started_at = store.database_now(conn)
     finally:
         conn.close()
     try:
@@ -3496,7 +3499,7 @@ def add_plan_arguments(parser):
                                    "placed and add only those from L_SUN up to the level already scattered. "
                                    "Sectors already filled are left out (their own systems already reach "
                                    "that bright). Does nothing when L_SUN is not below the current level.")
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
@@ -3609,22 +3612,22 @@ def build_skeleton(args):
     )
     elapsed = time.perf_counter() - t0
 
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     requested_seed = getattr(args, "seed", None)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        stored_seed = _db.get_galaxy_seed(conn)
+        stored_seed = store.get_galaxy_seed(conn)
         if (requested_seed is not None and stored_seed is not None and requested_seed != stored_seed
-                and _db.has_galaxy_sectors(conn)):
+                and store.has_galaxy_sectors(conn)):
             log.error(f"The galaxy already has sectors made from seed {galaxySeed.format_seed(stored_seed)}; "
                       f"a different --seed needs a wiped galaxy.")
             raise SystemExit(1)
         # A new outline invalidates every pre-placed bright star (schema v43).
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
     finally:
         conn.close()
-    _db.replace_galaxy_layers(extents, config=mysql_config)
-    galaxy_seed = _db.save_galaxy_shape(
+    store.replace_galaxy_layers(extents, config=mysql_config)
+    galaxy_seed = store.save_galaxy_shape(
         shape, edge_pc=edge_pc, outer_ring_index=outer_ring_index,
         expected_system_count_at_density_1=e_value, config=mysql_config, galaxy_seed=requested_seed,
     )
@@ -3659,24 +3662,24 @@ def scatter_bright_stars(args):
     Returns:
         dict: `counts` (per population), `total` and `elapsed_s`.
     """
-    mysql_config = _db.mysql_config_from_args(args)
-    conn = _db.get_connection(mysql_config)
+    mysql_config = store.mysql_config_from_args(args)
+    conn = store.get_connection(mysql_config)
     try:
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
-        extents = _db.get_galaxy_layers(conn)
-        filled = _db.filled_sector_addresses(conn)
+        extents = store.get_galaxy_layers(conn)
+        filled = store.filled_sector_addresses(conn)
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
         seed = _bright_star_seed(skeleton, "scatter")
-        _db.clear_bright_stars(conn)
+        store.clear_bright_stars(conn)
 
         t0 = time.perf_counter()
         counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed,
                                  "Bright stars")
-        _db.record_bright_star_scatter(conn, min_luminosity_sol, seed)
+        store.record_bright_star_scatter(conn, min_luminosity_sol, seed)
         conn.commit()
     finally:
         conn.close()
@@ -3930,14 +3933,14 @@ def add_bright_star_band(args):
             was nothing to do (no scatter yet, or the level asked for is not
             below the current one).
     """
-    mysql_config = _db.mysql_config_from_args(args)
+    mysql_config = store.mysql_config_from_args(args)
     target = float(args.bright_stars_down_to)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        skeleton = _db.get_galaxy_shape(conn)
+        skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'generate.py plan' first.")
-        settings = _db.bright_star_scatter_settings(conn)
+        settings = store.bright_star_scatter_settings(conn)
         if settings is None:
             log.normal("No bright stars are scattered yet, so there is no layer to go below. Run "
                        f"'generate.py plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
@@ -3947,17 +3950,17 @@ def add_bright_star_band(args):
             log.normal(f"Nothing to add: every star of {current:g} L_sun or more is already placed, "
                        f"and {target:g} is not below that.")
             return None
-        extents = _db.get_galaxy_layers(conn)
-        filled = _db.filled_sector_addresses(conn)
+        extents = store.get_galaxy_layers(conn)
+        filled = store.filled_sector_addresses(conn)
         # Sectors a backfill took to their own level (GEN.44) already hold
         # part of the band: the layer scatter leaves them out and each gets
         # only what it lacks below its level, sector by sector.
-        own = _db.sector_bright_level_keys(conn)
+        own = store.sector_bright_level_keys(conn)
         skip = set(filled) | set(own)
         # GEN.32: a band run that stopped part way left the band in the
         # layers it finished; this run draws the whole band again, so it
         # starts from none of it.
-        stale = _db.delete_unfinished_band(conn, current * constants.SOLAR_LUMINOSITY, skip)
+        stale = store.delete_unfinished_band(conn, current * constants.SOLAR_LUMINOSITY, skip)
         conn.commit()
         if stale:
             log.normal(f"Removed {stale:,} bright stars an unfinished earlier run left below {current:g} L_sun.")
@@ -3974,7 +3977,7 @@ def add_bright_star_band(args):
                                                  ceiling_cap=current, counts=counts)
             log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
-        _db.record_bright_star_scatter(conn, target, first_seed)
+        store.record_bright_star_scatter(conn, target, first_seed)
         conn.commit()
     finally:
         conn.close()
@@ -4014,7 +4017,7 @@ def _scatter_layer_task(payload):
             except (EOFError, OSError):
                 pass
 
-    conn = _db.get_connection(payload["mysql_config"])
+    conn = store.get_connection(payload["mysql_config"])
     try:
         batch = []
         for row in brightStars.scatter_layer(
@@ -4025,11 +4028,11 @@ def _scatter_layer_task(payload):
             counts[row[6]] += 1
             batch.append(row)
             if len(batch) >= 10000:
-                _db.insert_bright_stars(conn, batch)
+                store.insert_bright_stars(conn, batch)
                 conn.commit()
                 batch = []
         if batch:
-            _db.insert_bright_stars(conn, batch)
+            store.insert_bright_stars(conn, batch)
         conn.commit()
     finally:
         conn.close()
@@ -4122,14 +4125,14 @@ def add_phenomenon_arguments(parser):
                          help="Valid with --type nebula, asteroid-field, black-hole, or neutron-star (not "
                               "combined with --anchor-system): place the generated phenomenon in the galaxy "
                               "near this already-generated, already galaxy-placed sector (see "
-                              "stellarObjects._db.compute_phenomenon_placement). Also links a "
+                              "planetgen.db.store.compute_phenomenon_placement). Also links a "
                               "supernova-remnant/rogue-planet/comet to that sector, without a computed "
                               "galaxy position (those types have no placement columns of their own). A "
                               "quasar needs a ring-0, layer-0 (galactic core) sector and is placed at the galactic "
                               "center; only one per galaxy. Omit to generate it unplaced/unlinked, as before.")
 
     # Database persistence
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
 
     # Output in Markdown format
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
@@ -4222,9 +4225,9 @@ def run_phenomenon(args):
 
     if args.sector_id is not None:
         # Checked before generating anything, as a clean one-line error.
-        conn = _db.get_connection(_db.mysql_config_from_args(args))
+        conn = store.get_connection(store.mysql_config_from_args(args))
         try:
-            _db.get_sector_galaxy_position(conn, args.sector_id)
+            store.get_sector_galaxy_position(conn, args.sector_id)
         except ValueError as exc:
             log.error(f"Error: --sector-id {args.sector_id}: {exc}")
             raise SystemExit(1) from exc
@@ -4238,8 +4241,8 @@ def run_phenomenon(args):
 
     phenomenon = generate_phenomenon(phenomenon_type, system_config, args.anchor_system, name=args.name)
 
-    mysql_config = _db.mysql_config_from_args(args)
-    phenomenon_id = _db.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,
+    mysql_config = store.mysql_config_from_args(args)
+    phenomenon_id = store.save_phenomenon(phenomenon, system_config, phenomenon_type, config=mysql_config,
                                          sector_id=args.sector_id)
     RUN_COUNTS["phenomena"] += 1
     log.normal(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
@@ -4263,7 +4266,7 @@ def add_population_arguments(parser):
                              "(new names, ages and borders).")
     parser.add_argument('--territories-only', action='store_true',
                         help="Only recompute which polity owns which system.")
-    _db.add_mysql_connection_args(parser)
+    store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
@@ -4281,7 +4284,7 @@ def _population_summary(counts):
 
 def run_population(args):
     """
-    Runs the population pass (`population.run_pass`): names the dominant
+    Runs the population pass (`model.run_pass`): names the dominant
     species of every new life world, dates civilizations, founds polities
     and recomputes territories. See docs/design/population-and-politics.md.
 
@@ -4289,9 +4292,9 @@ def run_population(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "population"`).
     """
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        counts = population.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
+        counts = model.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -4302,10 +4305,10 @@ def run_population_after(args):
     `--population` (off by default, Boss 2026-10-01)."""
     if not getattr(args, "population", False):
         return
-    conn = _db.get_connection(_db.mysql_config_from_args(args))
+    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         with workQueue.job_node("population", "Population pass"):
-            counts = population.run_pass(conn)
+            counts = model.run_pass(conn)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -4533,12 +4536,12 @@ def main():
     # a `system --output` run writes no database, so it isn't logged, nor
     # is `check-math`, which writes nothing (`logged`, above).
     try:
-        database = _db.mysql_config_from_args(args).database
+        database = store.mysql_config_from_args(args).database
     except AttributeError:  # a subcommand without the --mysql-* options
-        database = _db.DEFAULT_MYSQL_CONFIG.database
+        database = store.DEFAULT_MYSQL_CONFIG.database
     started = time.monotonic()
     if logged:
-        activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
+        activity_log.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
     root = _open_run_node(args, database) if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
@@ -4567,7 +4570,7 @@ def main():
         if history is not None:
             _finish_history(args, history, status)
         if logged:
-            activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
+            activity_log.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
 
@@ -4606,9 +4609,9 @@ def _open_run_node(args, database):
     argv = _run_argv(sys.argv[1:])
     title = " ".join(["generate.py", *argv])[:255]
     try:
-        control = _db.control_mysql_config(_db.mysql_config_from_args(args))
+        control = store.control_mysql_config(store.mysql_config_from_args(args))
     except AttributeError:  # a subcommand without the --mysql-* options
-        control = _db.control_mysql_config()
+        control = store.control_mysql_config()
     return workQueue.open_node(args.command, title, control, argv=argv, database=database)
 
 
@@ -4622,12 +4625,12 @@ def _run_line_seed(args):
     if getattr(args, "seed", None) is not None and args.command == "plan":
         return args.seed
     try:
-        conn = _db.get_connection(_db.mysql_config_from_args(args), ensure_schema=False)
+        conn = store.get_connection(store.mysql_config_from_args(args), ensure_schema=False)
     except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors
         log.debug(f"Run line: can't open the database ({exc}).")
         return None
     try:
-        return _db.get_galaxy_seed(conn)
+        return store.get_galaxy_seed(conn)
     except Exception as exc:  # noqa: BLE001 -- no galaxy_shape table yet
         log.debug(f"Run line: no galaxy seed to show ({exc}).")
         return None
@@ -4646,12 +4649,12 @@ def _start_history(args, run_seed):
         int or None: The row's id, or `None` when it couldn't be written.
     """
     try:
-        conn = _db.get_connection(_db.mysql_config_from_args(args))
+        conn = store.get_connection(store.mysql_config_from_args(args))
     except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors
         log.debug(f"Run history: can't open the database ({exc}).")
         return None
     try:
-        return _db.start_generation_run(conn, args.command, _run_argv(sys.argv[1:]), run_seed)
+        return store.start_generation_run(conn, args.command, _run_argv(sys.argv[1:]), run_seed)
     except Exception as exc:  # noqa: BLE001 -- the history never fails a run
         log.debug(f"Run history: can't record this run ({exc}).")
         return None
@@ -4662,9 +4665,9 @@ def _start_history(args, run_seed):
 def _finish_history(args, run_id, status):
     """Records how the run ended (`_start_history`); never raises."""
     try:
-        conn = _db.get_connection(_db.mysql_config_from_args(args))
+        conn = store.get_connection(store.mysql_config_from_args(args))
         try:
-            _db.finish_generation_run(conn, run_id, status)
+            store.finish_generation_run(conn, run_id, status)
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the history never fails a run

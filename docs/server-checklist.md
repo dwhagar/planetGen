@@ -32,22 +32,22 @@ of `README.md` on `main`).
 ## 2. Has the database been migrated?
 
 Reloading or restarting the app does not apply schema migrations. Only
-`migrateDb.py` (or `update.sh`/`install.sh`, and `update.ps1`/`install.ps1`
+`planetgen.cli.migrate` (or `update.sh`/`install.sh`, and `update.ps1`/`install.ps1`
 on Windows, which call it) does.
 
     curl -s https://HOST/api/health
 
-Pass: `"schema_current": true`. If not: run `python3 src/migrateDb.py`
+Pass: `"schema_current": true`. If not: run `python3 -m planetgen.cli.migrate`
 with the same database settings the site uses (`config.json`, or the
 same `PLANETGEN_MYSQL_*` variables), then check again.
-`python3 src/migrateDb.py --status` prints the current and target
+`python3 -m planetgen.cli.migrate --status` prints the current and target
 versions without changing anything.
 
-If you use more than one database, check each one. `migrateDb.py` only
+If you use more than one database, check each one. `planetgen.cli.migrate` only
 migrates the one it is pointed at:
 
     curl -s "https://HOST/api/health?db=OTHER_DB_NAME"
-    python3 src/migrateDb.py --mysql-database OTHER_DB_NAME
+    python3 -m planetgen.cli.migrate --mysql-database OTHER_DB_NAME
 
 ## 3. Are the spatial indexes there?
 
@@ -106,7 +106,7 @@ from a shell without `sudo` must be in the web user's group to read
 ## 5b. Has the first admin login been changed?
 
 Log in at `https://HOST/login`. On a fresh install the username is
-`admin` and the password is the random one `migrateDb.py` printed once
+`admin` and the password is the random one `planetgen.cli.migrate` printed once
 (there is no default password).
 
 Pass: after logging in you land on `/admin`, not the forced "Change

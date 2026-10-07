@@ -195,7 +195,7 @@ def linkify_location(location, name_to_id, system_url):
     neighbor name it lists into a link to that system's page.
 
     `location` is plain text baked in at generation time by
-    `stellarObjects._db._format_location_string`, e.g.
+    `planetgen.db.store._format_location_string`, e.g.
     `"Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"` --
     the sector name, then up to 3 "Name (distance ly)" entries
     comma-joined after a fixed `" -- nearest: "` marker (empty when the

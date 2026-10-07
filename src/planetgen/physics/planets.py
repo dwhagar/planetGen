@@ -773,7 +773,7 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     3D; `orbital_phase_deg` is where the body currently sits around it.
     Only `orbital_phase_deg` (and the `position_x/y/z`/`orbital_speed_kms`
     derived from it, see `update_orbital_position`) ever change after
-    generation -- `updateOrbits.py` advances phase (and position in
+    generation -- `planetgen.cli.orbits` advances phase (and position in
     lockstep) over time based on `planet.period` -- the plane itself is
     fixed for the body's lifetime, the same way its `distance` is.
 
@@ -861,8 +861,8 @@ def update_orbital_position(planet):
     to the corrected `distance`/`period` the same way `period` itself
     used to before that fix.
 
-    `updateOrbits.py`'s periodic time-based advancement is a separate,
-    SQL-only path (`stellarObjects._db.advance_orbital_phases`) that
+    `planetgen.cli.orbits`'s periodic time-based advancement is a separate,
+    SQL-only path (`planetgen.db.store.advance_orbital_phases`) that
     recomputes position directly in the database rather than through this
     function -- this generator has no live "simulation loop" over
     in-memory objects, only one-shot generation (this function) followed

@@ -23,7 +23,7 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
@@ -184,16 +184,16 @@ def test_empty_extents_scatter_nothing():
 
 
 def test_a_plan_with_no_layers_records_an_empty_scatter(mysql_config):
-    _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=0,
+    store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=0,
                           expected_system_count_at_density_1=E_VALUE, config=mysql_config)
-    _db.replace_galaxy_layers([], config=mysql_config)
+    store.replace_galaxy_layers([], config=mysql_config)
     summary = generate.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     assert summary["total"] == 0
     assert set(summary["counts"]) == set(brightStars.POPULATIONS)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
-        assert _db.bright_star_scatter_settings(conn)[0] == THRESHOLD
+        assert store.bright_star_scatter_settings(conn)[0] == THRESHOLD
     finally:
         conn.close()
 
@@ -219,7 +219,7 @@ def test_a_backfill_below_every_white_dwarf_writes_nothing(mysql_config):
     with pytest.raises(ValueError, match="white dwarf"):
         generate.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC), radius_ly=20.0,
                                        min_luminosity_sol=BELOW_WHITE_DWARFS[0])
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM bright_stars").fetchone()["n"] == 0
         # No sector is left with a level (GEN.44).
@@ -233,15 +233,15 @@ def test_a_backfill_below_every_white_dwarf_writes_nothing(mysql_config):
 def _scatter_seed(mysql_config, address="scatter"):
     """The seed a scatter (or band, `band/<floor>-<ceiling>`) of this
     galaxy draws from: derived from the galaxy's seed (GEN.39)."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return galaxySeed.short_seed(_db.get_galaxy_seed(conn), "bright-stars", address)
+        return galaxySeed.short_seed(store.get_galaxy_seed(conn), "bright-stars", address)
     finally:
         conn.close()
 
 
 def _count(mysql_config, sql="SELECT COUNT(*) AS n FROM bright_stars", params=()):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return conn.execute(sql, params).fetchone()["n"]
     finally:
@@ -249,20 +249,20 @@ def _count(mysql_config, sql="SELECT COUNT(*) AS n FROM bright_stars", params=()
 
 
 def _settings(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return _db.bright_star_scatter_settings(conn)
+        return store.bright_star_scatter_settings(conn)
     finally:
         conn.close()
 
 
 def _stored_rows(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        rows = conn.execute(f"SELECT {', '.join(_db.BRIGHT_STAR_COLUMNS)} FROM bright_stars").fetchall()
+        rows = conn.execute(f"SELECT {', '.join(store.BRIGHT_STAR_COLUMNS)} FROM bright_stars").fetchall()
     finally:
         conn.close()
-    return [tuple(row[column] for column in _db.BRIGHT_STAR_COLUMNS) for row in rows]
+    return [tuple(row[column] for column in store.BRIGHT_STAR_COLUMNS) for row in rows]
 
 
 def _comparable(rows):
@@ -355,7 +355,7 @@ def test_a_re_plan_after_an_interrupted_scatter_holds_exactly_one_scatter(mysql_
 
 
 def _leftover_cells(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n, MAX(id) AS top"
                             " FROM bright_stars GROUP BY ring_index, layer_index, ring_slot_index").fetchall()
@@ -366,9 +366,9 @@ def _leftover_cells(mysql_config):
 
 def _reached(mysql_config):
     """The sectors a backfill took to their own level (GEN.44)."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        return set(_db.sector_bright_level_keys(conn))
+        return set(store.sector_bright_level_keys(conn))
     finally:
         conn.close()
 
@@ -393,7 +393,7 @@ def _backfill_around(mysql_config, address):
 
 
 def _unbuilt_leftover_cells(mysql_config, last_leftover):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         return {
             (row["ring_index"], row["layer_index"], row["ring_slot_index"])
@@ -406,7 +406,7 @@ def _unbuilt_leftover_cells(mysql_config, last_leftover):
 
 def _built_in(mysql_config, address):
     """`(ids of the stars built in this cell, its unbuilt star count)`."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         built = [row["id"] for row in conn.execute(
             "SELECT b.id FROM bright_stars b JOIN star_systems s ON s.id = b.star_system_id"

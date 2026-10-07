@@ -24,7 +24,7 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 
@@ -48,11 +48,11 @@ def second_mysql_config(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    config = _db.MySQLConfig(database=name, **kwargs)
+    config = store.MySQLConfig(database=name, **kwargs)
     try:
         yield config
     finally:
-        _db.close_pool(config)
+        store.close_pool(config)
         conn = pymysql.connect(**kwargs)
         try:
             with conn.cursor() as cur:
@@ -97,7 +97,7 @@ def _snapshot(config):
     stars into), while one whole run backfills only once everything is
     filled, so its cells get none. Every star in a filled cell is built
     either way (`unbuilt`)."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         sectors = conn.execute(
             "SELECT s.ring_index, s.layer_index, s.ring_slot_index, COUNT(DISTINCT s.id) AS sectors,"
@@ -176,7 +176,7 @@ def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
     # `refresh_containment` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
     _seed_skeleton(mysql_config, layers=LAYERS)
-    _fail_on_call(monkeypatch, tmp_path, _db, "refresh_containment", 3)
+    _fail_on_call(monkeypatch, tmp_path, store, "refresh_containment", 3)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
     partial, orphans, unbuilt, dangling = _snapshot(mysql_config)
@@ -215,7 +215,7 @@ LIMIT = 5
 
 
 def _cell_counts(config, addresses):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return {
             address: (
@@ -231,7 +231,7 @@ def _cell_counts(config, addresses):
 
 
 def _sector_rows(config):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         rows = conn.execute(
             "SELECT s.id, s.ring_index, s.layer_index, s.ring_slot_index, COUNT(ss.id) AS systems"
@@ -272,9 +272,9 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
                                                                      for address in PRE_FILLED}
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert _db.bright_star_scatter_settings(conn)[0] == float(_plan_args(mysql_config).bright_star_min_luminosity)
+        assert store.bright_star_scatter_settings(conn)[0] == float(_plan_args(mysql_config).bright_star_min_luminosity)
         for address in new:
             sector_id = after[address][0]
             linked = conn.execute(

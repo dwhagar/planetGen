@@ -38,7 +38,8 @@ from api import auth as auth_routes
 from api.app import create_app
 from api.config import Config
 from api.limiter import limiter
-from stellarObjects import _db, adminAuth
+from planetgen.db import store
+from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -76,7 +77,7 @@ def admins(mysql_config):
         RATELIMIT_ENABLED = False
 
     _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
-    _db.get_connection(mysql_config).close()  # the content schema
+    store.get_connection(mysql_config).close()  # the content schema
     app = create_app(TestConfig)
     app.testing = True
 
@@ -89,7 +90,7 @@ def admins(mysql_config):
         "current_password": first_password, "new_username": "alice", "new_password": PASSWORD_A,
     }).status_code == 200
 
-    conn = _db.get_control_connection(mysql_config)
+    conn = store.get_control_connection(mysql_config)
     try:
         conn.execute("INSERT INTO admin_users (username, password_hash, must_change_credentials) VALUES (?, ?, 0)",
                      ("bob", adminAuth.hash_password(PASSWORD_B)))
@@ -133,7 +134,7 @@ def _new_key(client, label="script"):
 
 
 def _control(state):
-    return _db.get_control_connection(state.config)
+    return store.get_control_connection(state.config)
 
 
 # --- Building the sweep from the URL map --------------------------------------
@@ -367,8 +368,8 @@ def _seed_system(config):
     system_config.BINARY_SYSTEM = False
     sector.add_system(StarSystem(system_config=system_config), position=(1.0, 1.0, 1.0),
                       system_config=system_config)
-    sector_id = _db.save_sector(sector, config=config)
-    conn = _db.get_connection(config)
+    sector_id = store.save_sector(sector, config=config)
+    conn = store.get_connection(config)
     try:
         return conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
     finally:

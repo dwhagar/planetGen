@@ -180,7 +180,7 @@ class AsteroidBelt:
         nickel, and trace amounts of platinum") as its own method so the
         database persistence layer can store the same as-published text
         (`asteroid_belts.composition_summary`) without duplicating this
-        formatting logic (see `stellarObjects/_db.py`). Belts have no
+        formatting logic (see `planetgen/db/store.py`). Belts have no
         properties-dict data table the way stars/planets do, so this is
         their equivalent "searchable, as-published" text.
 

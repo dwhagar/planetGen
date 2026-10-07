@@ -179,9 +179,9 @@ class GenerationStats:
             self._load()
 
     def _connect(self):
-        from stellarObjects import _db
+        from planetgen.db import store
 
-        return _db.get_control_connection(self.control_config)
+        return store.get_control_connection(self.control_config)
 
     def _load(self):
         try:

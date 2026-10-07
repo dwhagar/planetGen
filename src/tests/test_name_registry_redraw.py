@@ -9,21 +9,21 @@ Takes the `mysql_config` fixture (see `conftest.py`): skipped, not
 failed, when no MySQL test server is configured.
 """
 
-from stellarObjects import _db
+from planetgen.db import store
 
 
 def test_a_redrawn_name_is_not_counted_against_a_later_row_in_the_same_pass(mysql_config, monkeypatch):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             # A two-word base already held: a second "Aaa Bbb" has no
             # decoration within two words (GEN.46), so it is redrawn.
-            assert _db.reserve_system_names(conn, ["Aaa Bbb"]) == [("Aaa Bbb", "Aaa Bbb", None)]
+            assert store.reserve_system_names(conn, ["Aaa Bbb"]) == [("Aaa Bbb", "Aaa Bbb", None)]
         # The redraw lands on a name later in the same batch (keys are
         # handled in sorted order: "aaa bbb" before "zed").
-        monkeypatch.setattr(_db, "_regenerate_star_name", lambda: "Zed")
+        monkeypatch.setattr(store, "_regenerate_star_name", lambda: "Zed")
         with conn:
-            reserved = _db.reserve_system_names(conn, ["Aaa Bbb", "Zed"])
+            reserved = store.reserve_system_names(conn, ["Aaa Bbb", "Zed"])
         # "Zed" is first held by the batch's second name; the redrawn one
         # arrives after it as the second holder, so the two stay apart.
         names = [r[0] for r in reserved]

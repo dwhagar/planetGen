@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-# src/migrateDb.py
+# planetgen.cli.migrate
 
 """
 Brings the configured planetGen MySQL database's `schema_migrations`
-bookkeeping up to the current schema (`stellarObjects/schema.sql`),
+bookkeeping up to the current schema (`planetgen/db/schema.sql`),
 applying any migration step in between -- a no-op for a database that's
-already current. See `stellarObjects/_db.py`'s `migrate_database` for how
+already current. See `planetgen/db/store.py`'s `migrate_database` for how
 a single database's version is checked/advanced.
 
 Run automatically by `install.sh` and `update.sh`
@@ -13,9 +13,8 @@ on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off check/migration outside of a deployment.
 
-This file lives alongside `stellarObjects/` under `src/`, so Python's own
-sys.path[0] (the running script's directory) already makes
-`stellarObjects` importable -- no sys.path shim needed.
+Run it from the checkout's `src/` (`python3 -m` puts the current
+directory on sys.path, so `planetgen` imports).
 
 Shows a progress bar while it migrates: one tick per migration step,
 with the elapsed time and an estimate of the time left (from how long the
@@ -23,7 +22,7 @@ steps so far took -- steps differ a lot in cost, so it firms up as they
 run).
 
 Usage:
-    python3 src/migrateDb.py [--mysql-host HOST] [--mysql-port PORT]
+    python3 -m planetgen.cli.migrate [--mysql-host HOST] [--mysql-port PORT]
                              [--mysql-user USER] [--mysql-password PASSWORD]
                              [--mysql-database DATABASE] [--status]
 
@@ -33,7 +32,7 @@ Usage:
 
     Every flag defaults to the same $PLANETGEN_MYSQL_* environment
     variable every other entry point in this project reads (see
-    `stellarObjects._db.MySQLConfig`) -- unlike the pre-MySQL-port version
+    `planetgen.db.store.MySQLConfig`) -- unlike the pre-MySQL-port version
     of this script, there is exactly one database to migrate (a MySQL
     server, not a directory of `*.db` files), so this needs a connection
     to point at rather than a directory to scan.
@@ -51,8 +50,8 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from stellarObjects import adminAuth
-from stellarObjects._db import (
+from planetgen.admin import auth
+from planetgen.db.store import (
     SCHEMA_VERSION,
     add_mysql_connection_args,
     control_mysql_config,
@@ -98,7 +97,7 @@ def _migrate_with_progress(config):
 
 def print_initial_admin_login(username, password):
     """
-    Shows the first admin login `adminAuth.bootstrap_control_schema` just
+    Shows the first admin login `auth.bootstrap_control_schema` just
     seeded. This is the only time the password exists in plain text (only
     its hash is stored), so it goes to the console once, on the run that
     created it, and never again.
@@ -159,7 +158,7 @@ def main():
     # install.sh's existing step 2) against the control schema's own name
     # instead of the content database's.
     try:
-        seeded = adminAuth.bootstrap_control_schema(control_mysql_config(config))
+        seeded = auth.bootstrap_control_schema(control_mysql_config(config))
     except Exception as exc:
         print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
         sys.exit(1)

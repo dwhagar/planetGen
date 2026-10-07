@@ -11,7 +11,7 @@ import random
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
@@ -144,15 +144,15 @@ def test_phenomenon_page_rows():
 
 
 def test_columns_follow_the_fields():
-    assert tuple(column for column, _kind in _db.ROGUE_SURFACE_COLUMNS) == rs.ROGUE_SURFACE_FIELDS
+    assert tuple(column for column, _kind in store.ROGUE_SURFACE_COLUMNS) == rs.ROGUE_SURFACE_FIELDS
 
 
 def test_stored_and_backfilled_by_the_v48_migration(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             planet = RoguePlanet(SystemConfig(), mass_bin="sub-neptune")
-            planet_id = _db.insert_rogue_planet(conn, planet)
+            planet_id = store.insert_rogue_planet(conn, planet)
         row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
         assert row["surface_regime"] == planet.surface_regime
         assert row["surface_temperature_k"] == pytest.approx(planet.surface_temperature_k)
@@ -165,9 +165,9 @@ def test_stored_and_backfilled_by_the_v48_migration(mysql_config):
     finally:
         conn.close()
 
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
     finally:

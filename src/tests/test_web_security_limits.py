@@ -27,7 +27,7 @@ from api.common import is_http_url
 from api.config import Config, _proxy_fix
 from api.limiter import DEFAULT_PAGE_LIMITS
 from api.routes import DATABASE_UNAVAILABLE, SECTOR_UPDATE_FIELDS
-from stellarObjects._db import MySQLConfig
+from planetgen.db.store import MySQLConfig
 from planetgen.util.appconfig import DEFAULT_CONFIG
 
 _UNREACHABLE = MySQLConfig(host="127.0.0.1", port=1, user="secretuser", password="x", database="planetgen_x")

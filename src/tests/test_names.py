@@ -15,7 +15,7 @@ import pytest
 from planetgen.names import wordlists
 
 # Every public module-level list-of-strings constant in wordlists.py that feeds
-# generated wordlists. Enumerated explicitly (rather than introspecting the
+# generated names. Enumerated explicitly (rather than introspecting the
 # module) so an unrelated new list constant doesn't silently get skipped or
 # unexpectedly included.
 NAME_LIST_CONSTANTS = [

@@ -11,7 +11,7 @@ every column it has.
 import contextlib
 import re
 
-from stellarObjects import _db
+from planetgen.db import store
 
 
 class _TrackedRow(dict):
@@ -83,12 +83,12 @@ class _TrackedCursor:
 def tracking_reads(monkeypatch):
     """Yields `reads`: `{sql: set of keys read from its rows}`."""
     reads = {}
-    real_run = _db.Connection._run
+    real_run = store.Connection._run
 
     def run(self, sql, params):
         return _TrackedCursor(real_run(self, sql, params), reads.setdefault(sql, set()))
 
-    monkeypatch.setattr(_db.Connection, "_run", run)
+    monkeypatch.setattr(store.Connection, "_run", run)
     yield reads
 
 

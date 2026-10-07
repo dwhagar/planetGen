@@ -18,7 +18,7 @@ import sys
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests.fuzz_support import deterministic_entropy
@@ -41,15 +41,15 @@ def _system(name=None, **flags):
 
 
 def _load(config, system_id):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        return _db.load_star_system(conn, system_id)
+        return store.load_star_system(conn, system_id)
     finally:
         conn.close()
 
 
 def _count(config, table):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
     finally:
@@ -61,7 +61,7 @@ def _count(config, table):
 def test_double_extremes_round_trip(mysql_config, value):
     system, cfg = _system(PLANETS=False)
     system.star.mass = value
-    system_id = _db.save_system(system, cfg, config=mysql_config)
+    system_id = store.save_system(system, cfg, config=mysql_config)
     loaded = _load(mysql_config, system_id).star.mass
     assert loaded == value
     if value != 0:
@@ -77,38 +77,38 @@ def test_nan_and_infinity_are_refused_with_nothing_written(mysql_config, value):
     name = system.name
     system.star.mass = value
     with pytest.raises(pymysql.err.ProgrammingError):
-        _db.save_system(system, cfg, config=mysql_config)
+        store.save_system(system, cfg, config=mysql_config)
     assert system.name == name
     assert (_count(mysql_config, "star_systems"), _count(mysql_config, "stars")) == (0, 0)
     assert _count(mysql_config, "system_name_registry") == 0
 
 
 def test_longest_system_name_saves_with_every_body_named_after_it(mysql_config):
-    name = "N" * _db.SYSTEM_NAME_MAX_LENGTH
+    name = "N" * store.SYSTEM_NAME_MAX_LENGTH
     ids = []
     for _ in range(2):  # the second collides, so both gain a Greek-letter prefix
         system, cfg = _system(name, PLANETS=True, MAX_PLANETS=True, MOONS=True)
         assert system.planets, "the test needs planets named after the system"
-        ids.append(_db.save_system(system, cfg, config=mysql_config))
+        ids.append(store.save_system(system, cfg, config=mysql_config))
     loaded = [_load(mysql_config, system_id) for system_id in ids]
     assert sorted(system.name for system in loaded) == [f"Alpha {name}", f"Beta {name}"]
     assert all(planet.name.startswith(loaded[0].name) for planet in loaded[0].planets if hasattr(planet, "name"))
 
 
 def test_too_long_system_name_is_refused_before_saving(mysql_config):
-    system, cfg = _system("N" * (_db.SYSTEM_NAME_MAX_LENGTH + 1), PLANETS=False)
+    system, cfg = _system("N" * (store.SYSTEM_NAME_MAX_LENGTH + 1), PLANETS=False)
     with pytest.raises(ValueError, match="at most"):
-        _db.save_system(system, cfg, config=mysql_config)
+        store.save_system(system, cfg, config=mysql_config)
     assert _count(mysql_config, "star_systems") == 0
 
 
 def test_api_refuses_a_too_long_system_name(admin_client):
-    too_long = "N" * (_db.SYSTEM_NAME_MAX_LENGTH + 1)
+    too_long = "N" * (store.SYSTEM_NAME_MAX_LENGTH + 1)
     assert admin_client.post("/api/systems", json={"planets": False, "name": too_long}).status_code == 400
     response = admin_client.post("/api/systems", json={"planets": True, "moons": True})
     system_id = response.get_json()["id"]
     assert admin_client.patch(f"/api/systems/{system_id}", json={"name": too_long}).status_code == 400
-    longest = "N" * _db.SYSTEM_NAME_MAX_LENGTH
+    longest = "N" * store.SYSTEM_NAME_MAX_LENGTH
     response = admin_client.patch(f"/api/systems/{system_id}", json={"name": longest})
     assert response.status_code == 200, response.get_json()
     assert admin_client.get(f"/api/systems/{system_id}").get_json()["name"] == longest
@@ -118,7 +118,7 @@ def test_api_refuses_a_too_long_system_name(admin_client):
 
 def test_cli_refuses_a_too_long_name(tmp_path):
     result = subprocess.run(
-        [sys.executable, "generate.py", "system", "--name", "N" * (_db.SYSTEM_NAME_MAX_LENGTH + 1)],
+        [sys.executable, "generate.py", "system", "--name", "N" * (store.SYSTEM_NAME_MAX_LENGTH + 1)],
         cwd=_repo_root(), capture_output=True, text=True, timeout=120)
     assert result.returncode == 2
     assert "--name" in result.stderr and "Traceback" not in result.stderr
@@ -132,7 +132,7 @@ def _repo_root():
 @pytest.mark.parametrize("name", ["Vega 🌌", "𝔙𝔢𝔤𝔞", "Ṽéga 星"])
 def test_four_byte_names_round_trip(mysql_config, admin_client, name):
     system, cfg = _system(name, PLANETS=True)
-    system_id = _db.save_system(system, cfg, config=mysql_config)
+    system_id = store.save_system(system, cfg, config=mysql_config)
     loaded = _load(mysql_config, system_id)
     assert loaded.name == name
     assert all(planet.name.startswith(name) for planet in loaded.planets if hasattr(planet, "name"))
@@ -149,11 +149,11 @@ def test_system_config_tristates_round_trip(mysql_config, value):
     cfg = SystemConfig()
     for flag in ("HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS", "MAX_PLANETS", "PLANETS", "COMETS"):
         setattr(cfg, flag, value)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        config_id = _db.insert_system_config(conn, cfg)
+        config_id = store.insert_system_config(conn, cfg)
         conn.commit()
-        loaded = _db.load_system_config(conn, config_id)
+        loaded = store.load_system_config(conn, config_id)
     finally:
         conn.close()
     for flag in ("HABITABLE_WORLD", "ASTEROID_BELT", "LARGE_STAR", "MOONS", "MAX_PLANETS", "PLANETS", "COMETS"):

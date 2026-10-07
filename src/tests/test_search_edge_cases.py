@@ -2,8 +2,8 @@
 
 """
 Full-text search edge cases (TEST.18): the name search behind `/search`
-(`web/views.py`), `/api/search` (`api/routes.py`) and `queryDb.search`,
-whose whole-word matching (`queryDb._name_match`) splits the typed text
+(`web/views.py`), `/api/search` (`api/routes.py`) and `query.search`,
+whose whole-word matching (`query._name_match`) splits the typed text
 into words for `MATCH ... AGAINST` in boolean mode, with a REGEXP for
 the words the FULLTEXT index leaves out. Covered: boolean-mode operator
 characters in names and terms, words shorter than the server's
@@ -20,8 +20,8 @@ from urllib.parse import urlencode
 import markupsafe
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_position_pc
 from planetgen.galaxy.sector import SpaceSector
@@ -32,7 +32,7 @@ from tests.test_web_search import _panel
 
 
 def _insert_sectors(config, names, addressed=False):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         with conn:
             for slot, name in enumerate(names):
@@ -51,7 +51,7 @@ def _insert_sectors(config, names, addressed=False):
 
 
 def _server_value(config, sql):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return conn.execute(sql).fetchone()["v"]
     finally:
@@ -59,10 +59,10 @@ def _server_value(config, sql):
 
 
 def _sector_names(config, term):
-    conn = queryDb.open_readonly(config)
+    conn = query.open_readonly(config)
     try:
         texts = {"sector_q": term}
-        result = queryDb.search(conn, texts, {facet: set() for facet in queryDb.SEARCH_TAG_FACETS})
+        result = query.search(conn, texts, {facet: set() for facet in query.SEARCH_TAG_FACETS})
         return sorted(row["name"] for row in result["results"]["sectors"]["rows"])
     finally:
         conn.close()
@@ -71,7 +71,7 @@ def _sector_names(config, term):
 def _server_stopwords(config):
     """The stopwords the server's InnoDB FULLTEXT indexes leave out: its
     configured stopword table, else the built-in list."""
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         if not conn.execute("SELECT @@innodb_ft_enable_stopword AS v").fetchone()["v"]:
             return set()
@@ -144,12 +144,12 @@ def test_operator_characters_on_every_object_panel(db_client, mysql_config):
         if any(getattr(planet, "moons", None) for planet in system.planets):  # belts have no moons
             break
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
-    _db.save_sector(sector, config=mysql_config)
+    store.save_sector(sector, config=mysql_config)
     names = {
         "star_systems": "Tarn's (Hope)", "stars": "Tarn's Hope A+", "planets": "Tarn's Hope-7 <b>",
         "moons": '"Ash" ~Minor',
     }
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             for table, name in names.items():

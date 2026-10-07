@@ -9,7 +9,7 @@ pagination rules.
 
 from flask import Blueprint, jsonify, request
 
-from stellarObjects import population
+from planetgen.population import model
 
 from .common import ApiError
 from .routes import _paginate, get_db
@@ -37,7 +37,7 @@ def population_status():
     """`GET /api/population` -- `{generated, species, polities,
     territories}` booleans: which population data exists, so pages can
     hide themselves when there is none."""
-    return jsonify(population.population_status(get_db()))
+    return jsonify(model.population_status(get_db()))
 
 
 @bp.route("/species")
@@ -48,8 +48,8 @@ def species_list():
     limit, offset = _paginate(request.args)
     db = get_db()
     return jsonify({
-        "items": population.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset),
-        "total": population.count_species(db, spacefaring=spacefaring),
+        "items": model.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset),
+        "total": model.count_species(db, spacefaring=spacefaring),
         "limit": limit,
         "offset": offset,
     })
@@ -58,7 +58,7 @@ def species_list():
 @bp.route("/species/<int:species_id>")
 def species_detail(species_id):
     """`GET /api/species/<id>` -- one species."""
-    found = population.species_detail(get_db(), species_id)
+    found = model.species_detail(get_db(), species_id)
     if found is None:
         raise ApiError(f"no such species: {species_id}", status_code=404)
     return jsonify(found)
@@ -68,7 +68,7 @@ def species_detail(species_id):
 def planet_species(planet_id):
     """`GET /api/planets/<id>/species` -- the dominant species of a life
     world; 404 when the planet has none."""
-    found = population.species_on_planet(get_db(), planet_id)
+    found = model.species_on_planet(get_db(), planet_id)
     if found is None:
         raise ApiError(f"no species on planet {planet_id}", status_code=404)
     return jsonify(found)
@@ -80,8 +80,8 @@ def polity_list():
     limit, offset = _paginate(request.args)
     db = get_db()
     return jsonify({
-        "items": population.list_polities(db, limit=limit, offset=offset),
-        "total": population.count_polities(db),
+        "items": model.list_polities(db, limit=limit, offset=offset),
+        "total": model.count_polities(db),
         "limit": limit,
         "offset": offset,
     })
@@ -92,7 +92,7 @@ def polity_detail(polity_id):
     """`GET /api/polities/<id>` -- one polity and a page of its systems,
     nearest the capital first (`limit`/`offset` page the systems)."""
     limit, offset = _paginate(request.args)
-    found = population.polity_detail(get_db(), polity_id, limit=limit, offset=offset)
+    found = model.polity_detail(get_db(), polity_id, limit=limit, offset=offset)
     if found is None:
         raise ApiError(f"no such polity: {polity_id}", status_code=404)
     return jsonify(found)
@@ -105,7 +105,7 @@ def system_owner(system_id):
     db = get_db()
     if db.execute("SELECT 1 FROM star_systems WHERE id = ?", (system_id,)).fetchone() is None:
         raise ApiError(f"no such system: {system_id}", status_code=404)
-    return jsonify({"owner": population.system_owner(db, system_id)})
+    return jsonify({"owner": model.system_owner(db, system_id)})
 
 
 @bp.route("/territories")
@@ -115,9 +115,9 @@ def territories():
     polity's capital and reach."""
     db = get_db()
     return jsonify({
-        "points": population.territory_points(db, limit=TERRITORY_POINT_LIMIT),
+        "points": model.territory_points(db, limit=TERRITORY_POINT_LIMIT),
         "polities": [
             {"id": polity_id, "capital_pc": list(capital) if capital else None, "reach_ly": reach}
-            for polity_id, capital, reach in population.capital_positions(db)
+            for polity_id, capital, reach in model.capital_positions(db)
         ],
     })

@@ -18,7 +18,7 @@ skipped, not failed, when no MySQL test server is configured/reachable.
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
@@ -52,8 +52,8 @@ def _seeded(config):
     else:
         pytest.fail("no supernova remnant with a black hole core")
     sector.add_phenomenon(remnant, "supernova-remnant", position=(2.0, 2.0, 2.0))
-    _db.save_sector(sector, config=config)
-    conn = _db.get_connection(config)
+    store.save_sector(sector, config=config)
+    conn = store.get_connection(config)
     try:
         return {table: conn.execute(f"SELECT * FROM {table} ORDER BY id LIMIT 1").fetchone()
                 for table in ("star_systems", "stars", "planets", "nebulae", "black_holes", "supernova_remnants")}
@@ -79,15 +79,15 @@ def _max_allowed_packet(conn):
 
 def test_a_batch_bigger_than_max_allowed_packet_is_split(mysql_config):
     template = _seeded(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         packet = _max_allowed_packet(conn)
         text = "x" * TEXT_MAX
         # Four full TEXT columns a row: comfortably past the packet within
         # one `_BATCH_ROWS` statement on a 16 MB (MariaDB) or 64 MB (MySQL 8) server.
         count = packet // (4 * TEXT_MAX) + 2
-        if count > _db._BATCH_ROWS:
-            pytest.skip(f"max_allowed_packet {packet} is too large to pass in one {_db._BATCH_ROWS}-row statement")
+        if count > store._BATCH_ROWS:
+            pytest.skip(f"max_allowed_packet {packet} is too large to pass in one {store._BATCH_ROWS}-row statement")
         system_id = template["star_systems"]["id"]
         with conn:
             with conn.batched():
@@ -110,11 +110,11 @@ def test_a_batch_bigger_than_max_allowed_packet_is_split(mysql_config):
 
 def test_a_single_row_too_big_to_send_is_a_clear_error(mysql_config, monkeypatch):
     template = _seeded(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         # Pretend the server's limit is tiny; a real row that big can't
         # fit in a TEXT column.
-        monkeypatch.setattr(_db, "_max_packet", lambda connection: 64 * 1024)
+        monkeypatch.setattr(store, "_max_packet", lambda connection: 64 * 1024)
         with pytest.raises(pymysql.err.OperationalError) as caught:
             with conn:
                 with conn.batched():
@@ -130,8 +130,8 @@ def test_a_single_row_too_big_to_send_is_a_clear_error(mysql_config, monkeypatch
 
 def test_child_rows_held_first_are_written_after_their_parents(mysql_config, monkeypatch):
     template = _seeded(mysql_config)
-    monkeypatch.setattr(_db, "_BATCH_ROWS", 2)
-    conn = _db.get_connection(mysql_config)
+    monkeypatch.setattr(store, "_BATCH_ROWS", 2)
+    conn = store.get_connection(mysql_config)
     try:
         old_system = template["star_systems"]["id"]
         with conn:
@@ -156,13 +156,13 @@ def test_child_rows_held_first_are_written_after_their_parents(mysql_config, mon
 
 def test_self_referencing_rows_keep_their_order_across_statements(mysql_config, monkeypatch):
     template = _seeded(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         self_referencing = {r["t"].lower() for r in conn.execute(
             "SELECT TABLE_NAME AS t FROM information_schema.KEY_COLUMN_USAGE"
             " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = REFERENCED_TABLE_NAME").fetchall()}
         assert self_referencing == {"nebulae"}
-        monkeypatch.setattr(_db, "_BATCH_ROWS", 2)
+        monkeypatch.setattr(store, "_BATCH_ROWS", 2)
         with conn:
             with conn.batched():
                 chain = [_insert(conn, template, "nebulae", name="Nest 0", inside_nebula_id=None)]
@@ -176,7 +176,7 @@ def test_self_referencing_rows_keep_their_order_across_statements(mysql_config, 
 
 
 def test_the_containment_cycle_tables_share_a_rank():
-    ranks = _db._condensed_ranks({
+    ranks = store._condensed_ranks({
         "star_systems": {"supernova_remnants"}, "stars": {"star_systems"}, "black_holes": {"stars"},
         "supernova_remnants": {"black_holes"}, "planets": {"star_systems", "stars"},
     })
@@ -186,9 +186,9 @@ def test_the_containment_cycle_tables_share_a_rank():
 
 def test_cycle_rows_are_written_in_insertion_order(mysql_config):
     template = _seeded(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        ranks = _db._table_ranks(conn._conn, mysql_config._key())
+        ranks = store._table_ranks(conn._conn, mysql_config._key())
         cycle = ("star_systems", "stars", "black_holes", "supernova_remnants")
         assert len({ranks[t] for t in cycle}) == 1
         old_system = template["star_systems"]["id"]

@@ -32,7 +32,7 @@ evaluate `galaxyDensity.relative_density` in the browser
 (`static/galaxyprisms.js`).
 
 Pure and side-effect-free, like `galaxyGeometry.py`/`galaxyDensity.py` --
-no database or I/O; `queryDb.py` owns combining this with the database's
+no database or I/O; `planetgen.db.query` owns combining this with the database's
 own placed-sector rows.
 """
 

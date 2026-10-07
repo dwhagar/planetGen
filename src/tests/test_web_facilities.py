@@ -24,10 +24,11 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-import queryDb  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen.db import query  # noqa: E402
+from planetgen.db import store  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from planetgen.physics import constants
-from stellarObjects import facilities as facility_rules  # noqa: E402
+from planetgen.population import facilities as facility_rules  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
@@ -455,11 +456,11 @@ def _system_with_terrestrial(mysql_config):
         cfg.BINARY_SYSTEM = False
         system = StarSystem(system_config=cfg)
         if any(p.body_type == "t" for p in system.planets):
-            system_id = _db.save_system(system, cfg, config=mysql_config)
+            system_id = store.save_system(system, cfg, config=mysql_config)
             break
     else:
         pytest.fail("could not generate a system with a terrestrial planet")
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         ids = {
             "star": conn.execute("SELECT id FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()["id"],
@@ -473,13 +474,13 @@ def _system_with_terrestrial(mysql_config):
 
 def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     system_id, ids = _system_with_terrestrial(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        detail = queryDb.system_detail(conn, system_id)
+        detail = query.system_detail(conn, system_id)
         before = next(p for p in detail["planets"] if p["id"] == ids["terrestrial"])
         with conn:
-            _db.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", ids["terrestrial"])
-        detail = queryDb.system_detail(conn, system_id)
+            store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", ids["terrestrial"])
+        detail = query.system_detail(conn, system_id)
     finally:
         conn.close()
     planet = next(p for p in detail["planets"] if p["id"] == ids["terrestrial"])
@@ -511,7 +512,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     system_id, ids = _system_with_terrestrial(mysql_config)
     client = db_app.test_client()
     _login_fresh_admin(client, mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         star = conn.execute("SELECT radius_km, heliosphere_radius_km FROM stars WHERE id = ?",
                             (ids["star"],)).fetchone()
@@ -529,18 +530,18 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     # Half an AU around a Sun-like star: about 0.35 years, about 42 km/s.
     speed = float(re.search(r"at ([\d.,]+) km/s", _panel(html)).group(1).replace(",", ""))
     assert 35 < speed < 50
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert queryDb.facilities_for_system(conn, system_id) == []
+        assert query.facilities_for_system(conn, system_id) == []
     finally:
         conn.close()
 
     resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: _csrf(db_app, client),
                                                      "facility_action": "save", **form})
     assert resp.status_code == 303
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        (saved,) = queryDb.facilities_for_system(conn, system_id)
+        (saved,) = query.facilities_for_system(conn, system_id)
     finally:
         conn.close()
     assert saved["orbit_distance_km"] == pytest.approx(0.5 * AU_KM, rel=0.01)
@@ -553,22 +554,22 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
                                                      "facility_action": "remove", "facility_id": str(saved["id"])})
     assert resp.status_code == 303
     assert "Facility removed." in client.get(resp.headers["Location"]).get_data(as_text=True)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        assert queryDb.facilities_for_system(conn, system_id) == []
+        assert query.facilities_for_system(conn, system_id) == []
     finally:
         conn.close()
 
 
 def test_real_sector_page_lists_stand_alone_facilities(db_app, mysql_config):
     sector = SpaceSector("Harbor", edge_ly=13.0)
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 50.0, "center_z_pc": 0.0, "galactic_radius_pc": 50.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.add_facility(conn, "Waypoint", "station", "standalone", "space", sector_id, offset_ly=(1.0, 2.0, 2.0))
+            store.add_facility(conn, "Waypoint", "station", "standalone", "space", sector_id, offset_ly=(1.0, 2.0, 2.0))
     finally:
         conn.close()
     html = db_app.test_client().get(f"/sector/{sector_id}").get_data(as_text=True)

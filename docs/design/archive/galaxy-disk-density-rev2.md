@@ -311,7 +311,7 @@ it at, per `docs/database-schema.md`'s existing history-entry convention.
 `sectors` since Track C) are left as-is, populated the same way they are
 today once a plan row is actually generated** — genuinely redundant with
 the plan row's own copy of the same numbers, but changing `sectors`' shape
-or how existing code (the web UI, `queryDb.py`) reads it is out of scope
+or how existing code (the web UI, `planetgen.db.query`) reads it is out of scope
 here; duplication is the accepted cost of not touching that surface.
 
 ## 7. `galaxyPlan.py` — the batch build tool

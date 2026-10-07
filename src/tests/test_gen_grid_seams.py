@@ -26,7 +26,7 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.drill import parse_drill_key
@@ -289,7 +289,7 @@ def test_random_addresses_reach_but_never_pass_the_outermost_ring(plan):
 
 def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     """`generate.py plan` stores exactly the outline `build_layer_extents`
-    computes, and `_db.get_galaxy_bounds` hands it back on the same
+    computes, and `store.get_galaxy_bounds` hands it back on the same
     4 pc grid, outermost ring and layer included."""
     _shape_, extents, outer = _plan("toy")
     argv = []
@@ -297,10 +297,10 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
         argv += [f"--{key.replace('_', '-')}", str(value)]
     run_cli("plan", argv + ["--no-bright-stars"] + mysql_argv(mysql_config))
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        bounds = _db.get_galaxy_bounds(conn)
-        columns = {ring: _db.get_galaxy_column(conn, ring) for ring in (0, outer, outer + 1)}
+        bounds = store.get_galaxy_bounds(conn)
+        columns = {ring: store.get_galaxy_column(conn, ring) for ring in (0, outer, outer + 1)}
     finally:
         conn.close()
     assert bounds.edge_pc == EDGE

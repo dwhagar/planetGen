@@ -126,7 +126,7 @@ address, not `127.0.0.1`.
 ## MySQL accounts
 
 planetGen needs MySQL 8.0.16 or later, or MariaDB 10.4 or later. One
-account is used everywhere: the generation CLIs, `migrateDb.py` (run by
+account is used everywhere: the generation CLIs, `planetgen.cli.migrate` (run by
 `install.sh` and `update.sh`), and the web app's reads and writes. There
 is no separate read-only or write account to configure:
 `WRITE_MYSQL_CONFIG` and `CONTROL_MYSQL_CONFIG` reuse `MYSQL_CONFIG`
@@ -136,7 +136,7 @@ section (or `PLANETGEN_MYSQL_*`; see [`config.md`](../config.md)).
 That account creates and changes the schema, so it needs full rights on
 the game database (`mysql.database`, default `planetgen`), on the
 **control schema** (`control_database`, default `planetgen_control`,
-which `migrateDb.py` creates: admin logins, sessions, API keys, audit
+which `planetgen.cli.migrate` creates: admin logins, sessions, API keys, audit
 log; see [`database-schema.md`](../database-schema.md#the-control-schema)),
 and on any other game databases that share the prefix. For example:
 
@@ -155,7 +155,7 @@ the admin pages and the API's write endpoints write through it.
 
 ## The first admin login
 
-The first `migrateDb.py` run against an empty control schema creates the
+The first `planetgen.cli.migrate` run against an empty control schema creates the
 admin `admin` with a random password and prints it once, in a boxed
 block (on Linux, in `install.sh`'s step 2/8). Only its hash is stored.
 Log in at `https://<your site>/login`; you are sent to `/account` to

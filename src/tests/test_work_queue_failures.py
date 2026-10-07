@@ -25,7 +25,8 @@ from concurrent.futures.process import BrokenProcessPool
 
 import pytest
 
-from stellarObjects import _db, workQueue
+from stellarObjects import workQueue
+from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 from tests.test_work_queue import _rows, control_config  # noqa: F401 -- fixture

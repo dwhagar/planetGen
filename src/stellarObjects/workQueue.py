@@ -339,7 +339,7 @@ class _ControlStore:
     """`work_jobs`/`work_tasks`/`work_lease` in the control database."""
 
     def __init__(self, config):
-        from stellarObjects import _db
+        from planetgen.db import store as _db
 
         self._db = _db
         self.config = config

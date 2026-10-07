@@ -8,7 +8,7 @@ The page tests fake the logged-in admin and the galaxy summary through
 `apiclient`, and point the jobs directory at `tmp_path`. The job tests
 run the real runner on tiny Python one-liners instead of `generate.py`,
 so they need no database. The last test resets a real throwaway database
-through the runner and `resetDb.py` (skipped without a MySQL test
+through the runner and `planetgen.cli.reset` (skipped without a MySQL test
 server, like the rest of the suite).
 """
 
@@ -483,7 +483,7 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     assert resp.status_code == 303
     (job,) = no_spawn
     reset, plan, galaxy = _work_steps(job)
-    assert reset["argv"][1] == jobs.RESET_SCRIPT and _argv(reset) == ["--yes"]
+    assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
     # GEN.30: the scatter comes after the sectors, inside the galaxy step.
     assert galaxy["label"] == generate_page.NEW_GALAXY_SCATTER_LABEL
@@ -838,7 +838,7 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 # --- Real database ----------------------------------------------------------------
 
 def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
-    from stellarObjects import _db
+    from planetgen.db import store as _db
     from planetgen.galaxy.sector import SpaceSector
 
     sector = SpaceSector("Doomed", edge_ly=10.0)
@@ -850,7 +850,7 @@ def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
         conn.close()
 
     job_id = jobs.start_job("reset", "Reset", [{
-        "label": "Reset the galaxy", "argv": [PY, jobs.RESET_SCRIPT, "--yes"],
+        "label": "Reset the galaxy", "argv": [PY, *jobs.RESET_COMMAND, "--yes"],
     }], env=jobs.mysql_env(mysql_config, mysql_config.database))
     job = _wait_finished(job_id, jobs_root, timeout=60)
     assert job["status"] == "succeeded", jobs.log_tail(job_id)

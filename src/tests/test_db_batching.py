@@ -16,7 +16,7 @@ import pickle
 import pymysql
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.galaxy.sector import SpaceSector
@@ -43,7 +43,7 @@ class _Counter:
 
     def __init__(self, monkeypatch):
         self.statements = []
-        real_run, real_flush = _db.Connection._run, _db.Connection.flush
+        real_run, real_flush = store.Connection._run, store.Connection.flush
         counter = self
 
         def run(conn, sql, params):
@@ -53,29 +53,29 @@ class _Counter:
         def flush(conn):
             if conn._batch:
                 counter.statements.extend(
-                    ["INSERT"] * sum(-(-len(rows) // _db._BATCH_ROWS) for rows in conn._batch.values()))
+                    ["INSERT"] * sum(-(-len(rows) // store._BATCH_ROWS) for rows in conn._batch.values()))
             return real_flush(conn)
 
-        monkeypatch.setattr(_db.Connection, "_run", run)
-        monkeypatch.setattr(_db.Connection, "flush", flush)
+        monkeypatch.setattr(store.Connection, "_run", run)
+        monkeypatch.setattr(store.Connection, "flush", flush)
 
 
 def test_schema_is_applied_once_per_process(mysql_config, monkeypatch):
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     calls = []
-    monkeypatch.setattr(_db, "_ensure_schema", lambda conn: calls.append(conn))
+    monkeypatch.setattr(store, "_ensure_schema", lambda conn: calls.append(conn))
     for _ in range(3):
-        _db.get_connection(mysql_config).close()
+        store.get_connection(mysql_config).close()
     assert calls == []
 
 
 def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkeypatch):
     sector = _sector("Batch Sector", [f"Batchstar {n}" for n in range(8)], ["Lonely Wanderer"])
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     counter = _Counter(monkeypatch)
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         planets = conn.execute("SELECT COUNT(*) AS n FROM planets").fetchone()["n"]
         moons = conn.execute("SELECT COUNT(*) AS n FROM moons").fetchone()["n"]
@@ -89,7 +89,7 @@ def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkey
             "SELECT COUNT(*) AS n FROM moons m LEFT JOIN planets p ON p.id = m.planet_id WHERE p.id IS NULL"
         ).fetchone()["n"]
         assert orphans == 0
-        loaded = _db.load_sector(conn, sector_id)
+        loaded = store.load_sector(conn, sector_id)
         assert sorted(entry.star_system.name for entry in loaded.entries) == sorted(
             entry.star_system.name for entry in sector.entries)
     finally:
@@ -97,14 +97,14 @@ def test_sector_rows_are_written_in_a_few_multi_row_inserts(mysql_config, monkey
 
 
 def test_ids_come_from_id_blocks_above_existing_rows(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("INSERT INTO system_configs (id, markdown) VALUES (5000, 0)")
-        _db.forget_id_blocks(mysql_config._key())
+        store.forget_id_blocks(mysql_config._key())
         with conn:
-            first = _db.insert_system_config(conn, SystemConfig())
-            second = _db.insert_system_config(conn, SystemConfig())
+            first = store.insert_system_config(conn, SystemConfig())
+            second = store.insert_system_config(conn, SystemConfig())
         assert first == 5001 and second == 5002
         next_id = conn.execute("SELECT next_id FROM id_blocks WHERE table_name = 'system_configs'").fetchone()
         assert next_id["next_id"] > second
@@ -113,20 +113,20 @@ def test_ids_come_from_id_blocks_above_existing_rows(mysql_config):
 
 
 def test_inserts_fall_back_to_auto_increment_without_id_blocks(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("DROP TABLE id_blocks")
-        _db.forget_id_blocks(mysql_config._key())
+        store.forget_id_blocks(mysql_config._key())
         with conn:
-            config_id = _db.insert_system_config(conn, SystemConfig())
+            config_id = store.insert_system_config(conn, SystemConfig())
         assert conn.execute("SELECT id FROM system_configs").fetchone()["id"] == config_id
     finally:
         conn.close()
 
 
 def test_migration_to_v45_adds_id_blocks(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("DROP TABLE id_blocks")
@@ -134,8 +134,8 @@ def test_migration_to_v45_adds_id_blocks(mysql_config):
             conn.execute("INSERT INTO schema_migrations (version) VALUES (44)")
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM id_blocks").fetchone()["n"] == 0
     finally:
@@ -144,8 +144,8 @@ def test_migration_to_v45_adds_id_blocks(mysql_config):
 
 def test_equal_names_in_one_sector_get_greek_letters(mysql_config):
     sector = _sector("Twin Sector", ["Kemaral", "Kemaral", "Kemaral"], ["Kemaral"])
-    _db.save_sector(sector, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         systems = sorted(r["name"] for r in conn.execute("SELECT name FROM star_systems").fetchall())
         rogue = conn.execute("SELECT name FROM rogue_planets").fetchone()["name"]
@@ -164,9 +164,9 @@ def test_equal_names_in_one_sector_get_greek_letters(mysql_config):
 
 
 def test_a_stored_holder_is_renamed_by_a_later_sector(mysql_config):
-    _db.save_sector(_sector("First Sector", ["Ossiran"]), config=mysql_config)
-    _db.save_sector(_sector("Second Sector", ["Ossiran"]), config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    store.save_sector(_sector("First Sector", ["Ossiran"]), config=mysql_config)
+    store.save_sector(_sector("Second Sector", ["Ossiran"]), config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         names = sorted(r["name"] for r in conn.execute("SELECT name FROM star_systems").fetchall())
         assert names == ["Alpha Ossiran", "Beta Ossiran"]
@@ -176,7 +176,7 @@ def test_a_stored_holder_is_renamed_by_a_later_sector(mysql_config):
 
 def test_a_deadlocked_save_is_retried_with_the_generated_names(mysql_config, monkeypatch):
     sector = _sector("Retry Sector", ["Retrystar"])
-    real_insert = _db.insert_sector
+    real_insert = store.insert_sector
     attempts = []
 
     def flaky(conn, sector_arg, galaxy_position=None):
@@ -187,11 +187,11 @@ def test_a_deadlocked_save_is_retried_with_the_generated_names(mysql_config, mon
             raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
         return sector_id
 
-    monkeypatch.setattr(_db, "insert_sector", flaky)
-    monkeypatch.setattr(_db.time, "sleep", lambda seconds: None)
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    monkeypatch.setattr(store, "insert_sector", flaky)
+    monkeypatch.setattr(store.time, "sleep", lambda seconds: None)
+    sector_id = store.save_sector(sector, config=mysql_config)
     assert attempts == ["Retrystar", "Retrystar"]
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = conn.execute("SELECT sector_id, name FROM star_systems").fetchall()
         assert [(r["sector_id"], r["name"]) for r in rows] == [(sector_id, "Retrystar")]
@@ -207,16 +207,16 @@ def test_other_errors_are_not_retried(mysql_config, monkeypatch):
         calls.append(1)
         raise pymysql.err.OperationalError(1146, "Table doesn't exist")
 
-    monkeypatch.setattr(_db, "insert_sector", broken)
+    monkeypatch.setattr(store, "insert_sector", broken)
     with pytest.raises(pymysql.err.OperationalError):
-        _db.save_sector(_sector("Broken Sector", []), config=mysql_config)
+        store.save_sector(_sector("Broken Sector", []), config=mysql_config)
     assert calls == [1]
 
 
 def _save_in_worker(args):
     config, payload = args
     sector = pickle.loads(payload)
-    return _db.save_sector(sector, config=config)
+    return store.save_sector(sector, config=config)
 
 
 def test_parallel_writers_with_the_same_names_finish_cleanly(mysql_config):
@@ -224,7 +224,7 @@ def test_parallel_writers_with_the_same_names_finish_cleanly(mysql_config):
     share names, the worst case for the name registry's locks: every
     save succeeds (deadlocks, if any, are retried) and no two rows end
     up with the same name."""
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     payloads = [
         pickle.dumps(_sector("Crowded Sector", [f"Common {n}" for n in range(4)], ["Drifter", "Drifter"]))
         for _ in range(4)
@@ -232,7 +232,7 @@ def test_parallel_writers_with_the_same_names_finish_cleanly(mysql_config):
     with multiprocessing.get_context("spawn").Pool(4) as pool:
         sector_ids = pool.map(_save_in_worker, [(mysql_config, payload) for payload in payloads])
     assert len(set(sector_ids)) == 4
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for table in ("sectors", "star_systems", "rogue_planets"):
             duplicates = conn.execute(

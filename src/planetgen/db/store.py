@@ -1,11 +1,11 @@
-# stellarObjects/_db.py
+# planetgen/db/store.py
 
 """
 Database Persistence (private)
 ===============================
 
 Writes already-generated `StarSystem`/`SpaceSector` objects into the
-MySQL database described by `stellarObjects/schema.sql` and
+MySQL database described by `planetgen/db/schema.sql` and
 `docs/database-schema.md`. Leading underscore -- this module is an internal
 implementation detail of the persistence boundary, not part of the
 package's public generation API (`StarSystem`, `SpaceSector`, `Planet`,
@@ -37,7 +37,7 @@ MySQL port (TODO.md Phase 5): this module used to talk directly to
 libraries to build against on the deployment host) via a small
 `Connection` wrapper (below) that keeps every existing call site's
 `conn.execute(sql, params)` shape working unchanged -- including this
-module's and `queryDb.py`'s `?` positional placeholders, which the
+module's and `planetgen.db.query`'s `?` positional placeholders, which the
 wrapper rewrites to `pymysql`'s `%s` at the point of execution, and
 `sqlite3.Row`-style `row["column"]` access, which `pymysql`'s
 `DictCursor` already provides natively. Real concurrent access uses a
@@ -62,7 +62,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog
+from planetgen.admin import activity_log
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
@@ -72,7 +72,7 @@ from planetgen.util.appconfig import load_config
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from . import facilities as facility_rules
+from planetgen.population import facilities as facility_rules
 from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -96,7 +96,7 @@ from planetgen.generation.star import Star
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from .utils import (
+from stellarObjects.utils import (
     calculate_galactic_orbit, generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
     milliparsecs_to_ly, mpc_to_pc, pc_to_ly,
 )
@@ -104,7 +104,7 @@ from planetgen.generation.wide_binary import WideBinaryPair
 
 SCHEMA_VERSION = 53
 """int: Matches `star_systems.schema_version` and the highest row in the
-`schema_migrations` table (see `stellarObjects/schema.sql`'s header
+`schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
 `schema_migrations` bookkeeping up to."""
 
@@ -224,7 +224,7 @@ class MySQLConfig:
     """
     MySQL connection parameters, read from environment variables --
     mirrors every other entry point in this project (`sectorGen.py`,
-    `systemGen.py`, `queryDb.py`, `html/api/config.py`) reading its own
+    `systemGen.py`, `planetgen.db.query`, `html/api/config.py`) reading its own
     `PLANETGEN_*` variable rather than hardcoding a value, so a deployment
     points every tool at the same server via its process environment
     (e.g. the Apache vhost's `SetEnv`, or a `systemd`/`gunicorn` unit's
@@ -274,7 +274,7 @@ def add_mysql_connection_args(parser):
     Adds the `--mysql-host`/`--mysql-port`/`--mysql-user`/
     `--mysql-password`/`--mysql-database` optional overrides to `parser`,
     shared by every CLI entry point in this project (`sectorGen.py`,
-    `systemGen.py`, `galaxyGen.py`, `queryDb.py`, `migrateDb.py`) instead
+    `systemGen.py`, `galaxyGen.py`, `planetgen.db.query`, `planetgen.cli.migrate`) instead
     of each one re-declaring the same five arguments -- pair with
     `mysql_config_from_args` to turn the parsed result into a
     `MySQLConfig`.
@@ -549,7 +549,7 @@ def _insert_shape(sql):
 def forget_id_blocks(key):
     """Drops this process's cached id blocks for one database
     (`MySQLConfig._key()`), so the next id is reserved afresh -- after
-    `resetDb.py` empties the tables (it keeps `id_blocks`, DB.3), or a
+    `planetgen.cli.reset` empties the tables (it keeps `id_blocks`, DB.3), or a
     migration adds `id_blocks`."""
     with _id_lock:
         for block_key in [k for k in _id_blocks if k[0] == key]:
@@ -723,7 +723,7 @@ def _condensed_ranks(parents):
 class Connection:
     """
     Thin wrapper around a pooled `pymysql` connection that keeps this
-    module's (and `queryDb.py`'s) existing `conn.execute(sql, params)` /
+    module's (and `planetgen.db.query`'s) existing `conn.execute(sql, params)` /
     `cur.lastrowid` / `row["column"]` call sites working unchanged after
     the SQLite -> MySQL port, instead of touching every one of their SQL
     strings and call sites individually:
@@ -1064,11 +1064,11 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
             caller (`save_sector`/`save_system`/the generation CLIs) --
             the whole point of `CREATE ... IF NOT EXISTS` is that a fresh
             database gets its schema the first time anything connects.
-            Every read-only caller (`queryDb.py`'s `open_readonly`, the
+            Every read-only caller (`planetgen.db.query`'s `open_readonly`, the
             Flask API's `get_db`, `html/lib/dbutil.py`) should instead
             pass `False`: this project's own docs recommend pointing
             those tools at a database account with `SELECT`-only grants
-            (see `queryDb.py`'s module docstring), and DDL requires
+            (see `planetgen.db.query`'s module docstring), and DDL requires
             `CREATE`, which such an account deliberately doesn't have --
             attempting `_ensure_schema` there would fail every single
             connection with a permissions error instead of just skipping
@@ -1314,8 +1314,8 @@ def _apply_schema(conn):
         conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (baseline,))
         if baseline < SCHEMA_VERSION:
             log.normal(f"Database has no schema version recorded; its tables match v{baseline}, "
-                       f"so that is recorded and migrateDb.py will bring it up to v{SCHEMA_VERSION}.")
-            activitylog.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
+                       f"so that is recorded and planetgen.cli.migrate will bring it up to v{SCHEMA_VERSION}.")
+            activity_log.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
                               version=baseline)
     conn.commit()
 
@@ -1433,7 +1433,7 @@ def open_write(config=None):
     `docs/deployment/README.md`'s "MySQL accounts") lacks `CREATE`/`ALTER`
     grants, attempting `_ensure_schema`'s DDL here would fail every
     connection instead of just skipping a step a full-access account has
-    already done once, via `migrateDb.py`).
+    already done once, via `planetgen.cli.migrate`).
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -1483,7 +1483,7 @@ def get_control_connection(config=None, ensure_schema=False):
             runtime case: the Flask API's account may have no `CREATE`
             grant, same reasoning as `open_write` above).
             `adminAuth.bootstrap_control_schema` passes `True`, using a
-            full-access account (the same one `migrateDb.py` already
+            full-access account (the same one `planetgen.cli.migrate` already
             uses), to create/update the control schema once per deploy.
 
     Returns:
@@ -1528,7 +1528,7 @@ def _apply_control_schema(conn):
         conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
         if row["v"] is not None:
-            activitylog.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
+            activity_log.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
 
 
@@ -1900,7 +1900,7 @@ def reserve_sector_name(conn, candidate_name, sector_id):
         conn (Connection): Part of the same transaction as the caller's
             own sector INSERT.
         candidate_name (str): The freshly generated name to reserve.
-        sector_id (int): The new (or, for `dedupeNames.py`, existing)
+        sector_id (int): The new (or, for `planetgen.cli.dedupe`, existing)
             `sectors.id` -- recorded as the base name's first holder when
             it is one.
 
@@ -3515,7 +3515,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     and every planet/moon/asteroid belt/comet it contains -- into the database.
 
     No page text is stored (v29): wikitext/Markdown are rendered on demand
-    from these rows by `stellarObjects/systemRender.py` -- see
+    from these rows by `planetgen/db/render.py` -- see
     `schema.sql`'s "v29" header note.
 
     `star_system.name` is reserved via `reserve_system_name` (v24,
@@ -4193,7 +4193,7 @@ def _add_sector_to_nearest(conn, sector_id):
 
 
 # ---------------------------------------------------------------------------
-# Facilities (schema v42) -- see stellarObjects/facilities.py
+# Facilities (schema v42) -- see planetgen/population/facilities.py
 # for the rules and the orbit math.
 # ---------------------------------------------------------------------------
 
@@ -6729,7 +6729,7 @@ def _migrate_v8_to_v9(conn):
     meaningful for those pre-existing bodies (this generator never ran its
     actual random orbital-motion generation for them), but a simple,
     always-valid default that keeps the columns `NOT NULL` and lets
-    `updateOrbits.py` run against them without special-casing "does this
+    `planetgen.cli.orbits` run against them without special-casing "does this
     row predate v9". Every body generated from this point on gets real,
     randomly-generated values instead (see
     `planetPhysics.generate_orbital_motion_properties`).
@@ -7274,7 +7274,7 @@ def _migrate_v19_to_v20(conn):
     so this backfills every pre-existing row with real, correct values
     using the exact same formulas `utils.calculate_reflex_offset`/this
     file's own `advance_orbital_phases` use going forward, rather than
-    leaving them `NULL` until the next `updateOrbits.py` run.
+    leaving them `NULL` until the next `planetgen.cli.orbits` run.
 
     Args:
         conn (Connection): An open connection, mid-migration (not yet
@@ -7693,7 +7693,7 @@ def _migrate_v23_to_v24(conn):
 
     No backfill: an existing database may already hold duplicate names
     from before this feature existed, and this migration doesn't scan for
-    or fix them -- run `src/dedupeNames.py` once, separately, for that
+    or fix them -- run `planetgen.cli.dedupe` once, separately, for that
     (safe to run on a database this migration has already brought
     current, and idempotent on repeat runs).
 
@@ -8105,7 +8105,7 @@ def _migrate_v28_to_v29(conn):
     """
     Drops `star_systems.wikitext_content`/`markdown_content` -- v29 renders
     both on demand from the rest of the system's rows instead
-    (`stellarObjects/systemRender.py`; see `schema.sql`'s "v29" header
+    (`planetgen/db/render.py`; see `schema.sql`'s "v29" header
     note). This deletes data, so take a backup first if you want the old
     stored copies (the PR that added this step describes how).
 
@@ -9162,7 +9162,7 @@ def _schema_version(conn):
 def schema_status(config=None):
     """
     `(current version, number of migration steps pending)` for a
-    database, without migrating it -- `migrateDb.py --status`, which
+    database, without migrating it -- `planetgen.cli.migrate --status`, which
     update.sh reads to decide whether to ask about the database at all.
     Raises `SchemaTooNewError` for a database past `SCHEMA_VERSION`.
     """
@@ -9231,7 +9231,7 @@ def migrate_database(config=None, on_step=None):
     galaxy-placed sectors once more), and `_migrate_v35_to_v36` (black
     hole mass classes) are the migration steps so far; see
     `schema.sql`'s header comment for the versioning convention, and
-    `migrateDb.py` for the CLI wrapper around this.
+    `planetgen.cli.migrate` for the CLI wrapper around this.
 
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
@@ -9239,7 +9239,7 @@ def migrate_database(config=None, on_step=None):
         on_step (callable, optional): Called as `on_step(number, total,
             from_version, to_version)` just before each pending step
             runs (`number` counts from 1 to `total`), so a caller can
-            show progress (`migrateDb.py`'s progress bar).
+            show progress (`planetgen.cli.migrate`'s progress bar).
 
     Returns:
         int: The database's `schema_migrations` version (always
@@ -9266,7 +9266,7 @@ def migrate_database(config=None, on_step=None):
                 if on_step is not None:
                     on_step(number, len(pending), version, target)
                 step(_MigrationConnection(conn))
-                activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
+                activity_log.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
                                   from_version=version, to_version=target)
                 version = target
             conn.commit()
@@ -9277,7 +9277,7 @@ def migrate_database(config=None, on_step=None):
 
 def get_orbit_update_elapsed_years(conn):
     """
-    Returns how many years have elapsed since `updateOrbits.py` last
+    Returns how many years have elapsed since `planetgen.cli.orbits` last
     advanced this database's orbital phases, or `None` if it has never run
     against this database before (nothing to measure elapsed time from
     yet).
@@ -9312,7 +9312,7 @@ def advance_orbital_phases(conn, elapsed_years):
     fraction of a full revolution `elapsed_years` represents, given each
     body's own already-stored `period_years` -- one set-based `UPDATE` per
     table rather than a per-row Python loop, so this stays fast regardless
-    of how many bodies the database holds (see `updateOrbits.py`).
+    of how many bodies the database holds (see `planetgen.cli.orbits`).
     `position_x/y/z_km` are recomputed in lockstep from the *new* phase --
     position is a pure function of distance/inclination/ascending-node/
     phase, so it has no independent update of its own; it just has to move
@@ -9333,7 +9333,7 @@ def advance_orbital_phases(conn, elapsed_years):
     is guaranteed to round back to the exact value already stored (see
     `utils.minimum_update_interval_years`'s docstring). In practice this
     floor sits many orders of magnitude below any realistic `elapsed_years`
-    (`updateOrbits.py` runs "once a month or so"), so the guard exists for
+    (`planetgen.cli.orbits` runs "once a month or so"), so the guard exists for
     correctness against a caller advancing time in much smaller steps
     (e.g. a fast-forward simulation), not because today's actual usage
     pattern comes close to tripping it.
@@ -9688,7 +9688,7 @@ def advance_comet_orbits(conn, elapsed_years):
     `orbital_speed_kms` from the new anomaly via
     `kepler.comet_orbital_state` -- the Kepler/Barker-equation
     analog of `advance_orbital_phases`'s planet/moon handling, called
-    separately by `updateOrbits.py` alongside it.
+    separately by `planetgen.cli.orbits` alongside it.
 
     Unlike `advance_orbital_phases` (a pure, set-based SQL `UPDATE` for
     every table it touches -- `orbital_phase_deg` is a LINEAR function of

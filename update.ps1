@@ -17,7 +17,7 @@
       3. The NLTK 'words' corpus: fetched only if it's missing.
       4. generate.py check-math, the math check (TEST.68). A failure
          only warns (repeated at the end) and skips the population pass.
-      5. src\migrateDb.py, a no-op when the database is current. When a
+      5. planetgen.cli.migrate, a no-op when the database is current. When a
          migration is pending it first asks (y/N, 30 seconds, default N)
          whether to delete the galaxy data instead; a scheduled run with
          no console keeps the data and migrates it. Then it offers (y/N,

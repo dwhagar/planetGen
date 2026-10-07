@@ -592,7 +592,7 @@ def ly_to_milliparsecs(ly):
 
     For the database persistence layer only -- sector-scale position/
     geometry columns (star_systems.position_x/y/z_mpc, sectors.edge_mpc;
-    see stellarObjects/schema.sql) are stored in milliparsecs specifically,
+    see planetgen/db/schema.sql) are stored in milliparsecs specifically,
     distinct from every other distance-shaped column in the schema (which
     is kilometers). Generation/physics code keeps its own native light-year
     units for sector geometry throughout and never calls this.
@@ -1479,7 +1479,7 @@ def minimum_update_interval_years(period_years):
     `elapsed_years >= period_years * ulp_deg / 360`
 
     Worked example: a 1-year period gives a floor around 5e-9 seconds --
-    roughly 16 orders of magnitude below `updateOrbits.py`'s own "once a
+    roughly 16 orders of magnitude below `planetgen.cli.orbits`'s own "once a
     month or so" real-world cadence (see that module's docstring), so
     this guard exists for correctness/defensiveness (a future caller
     advancing time in much smaller steps, e.g. a fast-forward simulation)
@@ -1820,13 +1820,13 @@ def generate_sector_name():
     science-fiction sector names rather than reusing star names verbatim.
     No literal "Sector" suffix. `generate.py`'s `sector`/`galaxy` subcommands
     override this entirely via `--name`/`-n`, which hard-sets the whole
-    name instead; `stellarObjects._db.py`'s name-uniqueness machinery
+    name instead; `planetgen.db.store`'s name-uniqueness machinery
     (`nameUniqueness.py`) also calls this directly, to draw an entirely
     fresh sector name on the rare occasion a collision exhausts every
     decoration this project has for one -- both reasons this lives here,
     in `stellarObjects`, rather than in `generate.py` itself, which
-    `_db.py` can't import (it would be a backwards/circular dependency --
-    `generate.py` already imports `stellarObjects._db`).
+    `store.py` can't import (it would be a backwards/circular dependency --
+    `generate.py` already imports `planetgen.db.store`).
 
     Returns:
         str: A newly generated sector name, e.g. "Voranthis Kelmoor" --

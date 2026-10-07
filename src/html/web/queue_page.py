@@ -20,7 +20,8 @@ from flask import abort, current_app, request, url_for
 
 import apiclient
 from pagination import fetch_page, parse_page
-from stellarObjects import activitylog, workQueue
+from stellarObjects import workQueue
+from planetgen.admin import activity_log
 from planetgen.util import log
 
 from . import bp, jobs
@@ -344,7 +345,7 @@ def _start_retry(admin, plan, retry_of):
     except OSError as exc:
         log.exception(f"Could not start a retry of {retry_of}: {exc}")
         return None, f"The job could not be started: {exc}"
-    activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=plan["kind"], db=database,
+    activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=plan["kind"], db=database,
                       title=plan["title"], retry_of=retry_of)
     return f"Started {plan['title']}.", None
 

@@ -4,7 +4,7 @@
 Property-based / brute-force tests for the text/HTML rendering layer:
 `html/lib/mdconvert.py`, `html/lib/fmt.py`, `html/lib/pagination.py`,
 `html/lib/tabledisplay.py`, and
-`stellarObjects/systemRender.py`.
+`planetgen/db/render.py`.
 
 Main invariants, checked structurally with `html.parser` rather than by
 string search alone:
@@ -39,7 +39,7 @@ import fmt  # noqa: E402
 import mdconvert  # noqa: E402
 import pagination  # noqa: E402
 import tabledisplay  # noqa: E402
-from stellarObjects import systemRender  # noqa: E402
+from planetgen.db import render as systemRender  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled  # noqa: E402
@@ -502,7 +502,7 @@ def test_generated_system_with_hostile_name_renders_to_inert_html(name):
 
 
 def test_render_system_sections_with_hostile_names_is_inert(mysql_config):
-    from stellarObjects import _db
+    from planetgen.db import store
     for name in _HOSTILE_NAMES[:4]:
         config = SystemConfig()
         config.NAME = name
@@ -510,8 +510,8 @@ def test_render_system_sections_with_hostile_names_is_inert(mysql_config):
         config.COMETS = True
         config.ASTEROID_BELT = True
         config.BINARY_SYSTEM = False
-        system_id = _db.save_system(StarSystem(system_config=config), config, config=mysql_config)
-        conn = _db.get_connection(mysql_config)
+        system_id = store.save_system(StarSystem(system_config=config), config, config=mysql_config)
+        conn = store.get_connection(mysql_config)
         try:
             sections = systemRender.render_system_sections(conn, system_id)
         finally:

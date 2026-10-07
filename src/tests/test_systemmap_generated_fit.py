@@ -5,7 +5,7 @@ MAP.88 over real generated systems: every element the System Map draws
 (stars and their names, planets with their rings, moons, belts, orbits,
 facilities and labels) sits inside its scene's viewBox, for single stars,
 close pairs and wide pairs straight from generation, saved and read back
-the way the system page reads them (`queryDb.system_detail`).
+the way the system page reads them (`query.system_detail`).
 
 Takes the `mysql_config` fixture (see `conftest.py`): skipped, not failed,
 without a MySQL test server, like every other database-backed test.
@@ -17,8 +17,8 @@ import sys
 
 import pytest
 
-import queryDb
-from stellarObjects import _db
+from planetgen.db import query
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 
@@ -44,12 +44,12 @@ def test_generated_systems_fit_the_system_map(mysql_config, kind):
         systems = [StarSystem(system_config=_config(kind)) for _ in range(8)]
     finally:
         random.setstate(rng_state)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         for system in systems:
             with conn:
-                system_id = _db.insert_star_system(conn, system, _config(kind))
-            detail = queryDb.system_detail(conn, system_id)
+                system_id = store.insert_star_system(conn, system, _config(kind))
+            detail = query.system_detail(conn, system_id)
             html = sm.render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"])
             assert drawn_outside_view(html) == [], (kind, system_id)
     finally:

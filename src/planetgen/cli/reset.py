@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# src/resetDb.py
+# planetgen.cli.reset
 
 """
 Wipes every generated sector/system/galaxy row out of the configured
@@ -10,7 +10,7 @@ table `schema.sql` defines except `schema_migrations`, so:
   - The schema itself (tables, indexes, foreign keys, the `sector_objects`
     view) is left completely intact -- nothing needs re-creating
     afterward, and `schema_migrations`'s own bookkeeping (this database's
-    current DDL version) is untouched, so a later `migrateDb.py` run still
+    current DDL version) is untouched, so a later `planetgen.cli.migrate` run still
     correctly sees "already current" instead of re-running migrations
     against a wiped-but-still-v22 database.
   - `id_blocks` (the id counters writers reserve blocks of ids from,
@@ -40,7 +40,7 @@ the prompt, for scripted/automated use only); `--dry-run` lists what would
 be wiped without touching anything.
 
 Usage:
-    python3 src/resetDb.py [--mysql-host HOST] [--mysql-port PORT]
+    python3 -m planetgen.cli.reset [--mysql-host HOST] [--mysql-port PORT]
                            [--mysql-user USER] [--mysql-password PASSWORD]
                            [--mysql-database DATABASE]
                            [--yes] [--dry-run]
@@ -48,7 +48,7 @@ Usage:
     Every `--mysql-*` flag defaults to the same `$PLANETGEN_MYSQL_*`
     environment variable (or `config.json`'s `mysql` section) every other
     entry point in this project reads -- see
-    `stellarObjects._db.MySQLConfig`.
+    `planetgen.db.store.MySQLConfig`.
 """
 
 import argparse
@@ -56,7 +56,7 @@ import sys
 
 import pymysql
 
-from stellarObjects._db import (
+from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
 )
 
@@ -79,7 +79,7 @@ def _content_tables(conn, database):
     `Tables_in_<db>`, awkward to read generically).
 
     Args:
-        conn (stellarObjects._db.Connection): An open connection.
+        conn (planetgen.db.store.Connection): An open connection.
         database (str): The database name to list tables from --
             `information_schema` spans every database on the server, so
             this must be explicit rather than implied by the connection.

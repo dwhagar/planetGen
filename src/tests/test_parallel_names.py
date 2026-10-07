@@ -17,7 +17,8 @@ import threading
 
 import pytest
 
-from stellarObjects import _db, population
+from planetgen.db import store
+from planetgen.population import model
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 from planetgen.galaxy.sector import SpaceSector
@@ -33,7 +34,7 @@ def mysql_config(mysql_config):
     """The fresh database with its schema already applied, as a real run's
     database has before its workers start: several first connections to
     an empty database at once would all apply the schema together."""
-    _db.get_connection(mysql_config).close()
+    store.get_connection(mysql_config).close()
     return mysql_config
 
 
@@ -77,11 +78,11 @@ def _save_in_sector(config, index, *system_names):
     for offset, name in enumerate(system_names):
         system = _system(name)
         built.add_system(system, position=(offset * 2.0, 0.0, 0.0), system_config=system.system_config)
-    return _db.save_sector(built, config=config)
+    return store.save_sector(built, config=config)
 
 
 def _names(config, table):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
         return [row["name"] for row in conn.execute(f"SELECT name FROM {table}").fetchall()]
     finally:
@@ -98,11 +99,11 @@ def _all_unique_names(config):
 # ---------------------------------------------------------------------------
 
 def test_sectors_saved_at_once_with_one_name_get_greek_letters(mysql_config):
-    ids = _at_once(WRITERS, lambda _i: _db.save_sector(SpaceSector(name="Corvane"), config=mysql_config))
+    ids = _at_once(WRITERS, lambda _i: store.save_sector(SpaceSector(name="Corvane"), config=mysql_config))
     assert len(set(ids)) == WRITERS
     names = _names(mysql_config, "sectors")
     assert sorted(names) == sorted(f"{letter} Corvane" for letter in GREEK_LETTERS[:WRITERS])
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         registry = conn.execute(
             "SELECT occurrence_count, first_sector_id FROM sector_name_registry WHERE base_name = 'Corvane'"
@@ -131,7 +132,7 @@ def test_sectors_whose_systems_share_names_save_at_once(mysql_config):
             system = _system(base)
             built.add_system(system, position=(offset * 2.0, 0.0, 0.0), system_config=system.system_config)
         sectors.append(built)
-    _at_once(WRITERS, lambda i: _db.save_sector(sectors[i], config=mysql_config))
+    _at_once(WRITERS, lambda i: store.save_sector(sectors[i], config=mysql_config))
     names = _names(mysql_config, "star_systems")
     assert len(names) == 3 * WRITERS
     assert sum(name.endswith("Ostra") for name in names) == 2 * WRITERS
@@ -147,10 +148,10 @@ def test_systems_saved_at_once_after_a_sector_stay_within_two_words(mysql_config
     ("Little Mervane"); a later one would need a Greek letter as well,
     three words, so it draws a fresh name instead and the holder keeps
     its own."""
-    _db.save_sector(SpaceSector(name="Mervane"), config=mysql_config)
+    store.save_sector(SpaceSector(name="Mervane"), config=mysql_config)
     count = 6
     fresh = iter(f"Fresh{n}" for n in range(1000))
-    monkeypatch.setattr(_db, "_regenerate_star_name", lambda: next(fresh))
+    monkeypatch.setattr(store, "_regenerate_star_name", lambda: next(fresh))
     _at_once(count, lambda i: _save_in_sector(mysql_config, i, "Mervane"))
     names = _names(mysql_config, "star_systems")
     assert len(names) == count
@@ -164,7 +165,7 @@ def test_systems_saved_at_once_after_a_sector_stay_within_two_words(mysql_config
 
 def test_sectors_saved_at_once_after_a_system_rename_only_the_system(mysql_config):
     _save_in_sector(mysql_config, 0, "Quessa")
-    _at_once(WRITERS, lambda _i: _db.save_sector(SpaceSector(name="Quessa"), config=mysql_config))
+    _at_once(WRITERS, lambda _i: store.save_sector(SpaceSector(name="Quessa"), config=mysql_config))
     sectors = [name for name in _names(mysql_config, "sectors") if name.endswith("Quessa")]
     assert sorted(sectors) == sorted(f"{letter} Quessa" for letter in GREEK_LETTERS[:WRITERS])
     [system_name] = _names(mysql_config, "star_systems")
@@ -175,10 +176,10 @@ def test_sectors_saved_at_once_after_a_system_rename_only_the_system(mysql_confi
 
 
 def test_a_full_diminutive_tier_draws_a_fresh_name(mysql_config, monkeypatch):
-    _db.save_sector(SpaceSector(name="Tellow"), config=mysql_config)
+    store.save_sector(SpaceSector(name="Tellow"), config=mysql_config)
     count = len(DIMINUTIVE_PREFIXES) + 2
     fresh = iter(f"Fresh{n}" for n in range(1000))
-    monkeypatch.setattr(_db, "_regenerate_star_name", lambda: next(fresh))
+    monkeypatch.setattr(store, "_regenerate_star_name", lambda: next(fresh))
     for start in range(0, count, WRITERS):
         size = min(WRITERS, count - start)
         _at_once(size, lambda i, start=start: _save_in_sector(mysql_config, start + i, "Tellow"))
@@ -199,17 +200,17 @@ def test_two_population_passes_at_once_name_each_world_once(mysql_config):
         _civilized_system(mysql_config)
 
     def run(_index):
-        conn = _db.get_connection(mysql_config)
+        conn = store.get_connection(mysql_config)
         try:
-            return population.run_pass(conn)
+            return model.run_pass(conn)
         finally:
             conn.close()
 
     first, second = _at_once(2, run)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         species = conn.execute("SELECT name, homeworld_planet_id FROM species").fetchall()
-        watermark = population._watermark(conn)
+        watermark = model._watermark(conn)
         top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"]
     finally:
         conn.close()
@@ -232,8 +233,8 @@ def test_two_passes_drawing_the_same_names_still_save_unique_ones(mysql_config, 
         local.n = getattr(local, "n", 0) + 1
         return f"Kevra{local.n}"
 
-    monkeypatch.setattr(population, "new_species_name", same_sequence)
-    conn = _db.get_connection(mysql_config)
+    monkeypatch.setattr(model, "new_species_name", same_sequence)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
             conn.execute("DELETE FROM species")
@@ -245,9 +246,9 @@ def test_two_passes_drawing_the_same_names_still_save_unique_ones(mysql_config, 
 
 
 def _pass_on_own_connection(config, **kwargs):
-    conn = _db.get_connection(config)
+    conn = store.get_connection(config)
     try:
-        return population.run_pass(conn, **kwargs)
+        return model.run_pass(conn, **kwargs)
     finally:
         conn.close()
 
@@ -273,16 +274,16 @@ class _Row:
 
 
 def test_a_species_name_taken_every_draw_falls_back_to_a_number(monkeypatch):
-    monkeypatch.setattr(population, "new_species_name", lambda: "Vorn")
+    monkeypatch.setattr(model, "new_species_name", lambda: "Vorn")
     conn = _AllTaken(free="Vorn 4")
-    assert population._unique_species_name(conn, taken=set()) == "Vorn 4"
+    assert model._unique_species_name(conn, taken=set()) == "Vorn 4"
     # Drawn names already in `taken` never reach the database.
     conn = _AllTaken(free="Vorn 2")
-    assert population._unique_species_name(conn, taken={"Vorn"}) == "Vorn 2"
+    assert model._unique_species_name(conn, taken={"Vorn"}) == "Vorn 2"
     assert conn.asked == ["Vorn 2"]
 
 
 def test_no_free_species_name_at_all_is_an_error(monkeypatch):
-    monkeypatch.setattr(population, "new_species_name", lambda: "Vorn")
+    monkeypatch.setattr(model, "new_species_name", lambda: "Vorn")
     with pytest.raises(RuntimeError, match="could not find a free species name"):
-        population._unique_species_name(_AllTaken(), taken=set())
+        model._unique_species_name(_AllTaken(), taken=set())

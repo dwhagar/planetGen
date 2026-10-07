@@ -35,7 +35,7 @@ a reachable MySQL test server.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
@@ -57,27 +57,27 @@ def test_sector_grid_address_round_trips(mysql_config):
     """insert_sector writes the cylindrical grid address (ring, layer,
     slot) and position a galaxy-placed sector carries; the cell's corners
     are recomputed from the address, so no vertex rows are stored."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         galaxy_position = {
             "center_x_pc": 5.0, "center_y_pc": 6.0, "center_z_pc": -7.0,
             "galactic_radius_pc": 10.49, "ring_index": 2, "layer_index": -3, "ring_slot_index": 9,
         }
-        sector_id = _db.insert_sector(conn, SpaceSector(name="AddressTest"), galaxy_position=galaxy_position)
+        sector_id = store.insert_sector(conn, SpaceSector(name="AddressTest"), galaxy_position=galaxy_position)
         conn.commit()
         row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
         assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) == (2, -3, 9)
         assert row["center_z_pc"] == pytest.approx(-7.0)
-        assert _db.get_sector_id_at(conn, 2, -3, 9) == sector_id
-        assert _db.get_sector_id_at(conn, 2, 3, 9) is None
+        assert store.get_sector_id_at(conn, 2, -3, 9) == sector_id
+        assert store.get_sector_id_at(conn, 2, 3, 9) is None
     finally:
         conn.close()
 
 
 def test_standalone_sector_has_no_grid_address(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        sector_id = _db.insert_sector(conn, SpaceSector(name="NoGalaxyPos"), galaxy_position=None)
+        sector_id = store.insert_sector(conn, SpaceSector(name="NoGalaxyPos"), galaxy_position=None)
         conn.commit()
         row = conn.execute("SELECT * FROM sectors WHERE id = ?", (sector_id,)).fetchone()
         assert row["ring_index"] is None and row["layer_index"] is None and row["ring_slot_index"] is None
@@ -91,7 +91,7 @@ def test_system_config_slots_round_trip_exact_recipe(mysql_config):
     """A --system-file-style SLOTS recipe (a mix of explicit planet/belt
     slots and null gaps) must land in system_config_slots with the exact
     orbit_index/type/planet_class/moons given."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         cfg = _make_config()
         cfg.SLOTS = [
@@ -100,7 +100,7 @@ def test_system_config_slots_round_trip_exact_recipe(mysql_config):
             None,
             {"type": "planet", "planet_class": "J", "moons": 4},
         ]
-        config_id = _db.insert_system_config(conn, cfg)
+        config_id = store.insert_system_config(conn, cfg)
         conn.commit()
 
         rows = conn.execute(
@@ -119,9 +119,9 @@ def test_system_config_slots_round_trip_exact_recipe(mysql_config):
 
 
 def test_system_config_slots_empty_when_no_slots_given(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
-        config_id = _db.insert_system_config(conn, _make_config())
+        config_id = store.insert_system_config(conn, _make_config())
         conn.commit()
         rows = conn.execute("SELECT * FROM system_config_slots WHERE config_id = ?", (config_id,)).fetchall()
         assert rows == []
@@ -154,7 +154,7 @@ def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql
     of paragraph strings) and reflection_spectrum_visible/non_visible
     (each a list of values) must land verbatim, in order, in their own
     child tables."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         found = False
         for _ in range(10):  # a handful of retries: generation is randomized
@@ -165,7 +165,7 @@ def test_planet_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql
                 break
         assert found, "could not generate a habitable planet with life data in 10 attempts"
 
-        system_id = _db.insert_star_system(conn, system, system.system_config)
+        system_id = store.insert_star_system(conn, system, system.system_config)
         conn.commit()
 
         planet_row = conn.execute(
@@ -205,7 +205,7 @@ def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_c
     in hundreds of systems; this test used to skip almost every run), so
     a generated moon is given a life-bearing planet's paragraphs: the
     child-table write is what's under test, not how often moons get life."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         found_moon = None
         for seed in range(40):
@@ -220,7 +220,7 @@ def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_c
         found_moon.life_chemical = planet.life_chemical
         found_moon.evolutionary_data = list(planet.evolutionary_data)
 
-        system_id = _db.insert_star_system(conn, system, system.system_config)
+        system_id = store.insert_star_system(conn, system, system.system_config)
         conn.commit()
 
         moon_row = conn.execute(
@@ -243,7 +243,7 @@ def test_moon_evolutionary_paragraphs_and_reflection_spectrum_round_trip(mysql_c
 def test_asteroid_belt_composition_round_trips_every_component(mysql_config):
     """Each (component, concentration) pair in a belt's composition list
     must land as its own row, in order, in asteroid_belt_composition."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         found = False
         for _ in range(10):
@@ -259,7 +259,7 @@ def test_asteroid_belt_composition_round_trips_every_component(mysql_config):
                 break
         assert found, "could not generate a system with an asteroid belt in 10 attempts"
 
-        system_id = _db.insert_star_system(conn, system, system.system_config)
+        system_id = store.insert_star_system(conn, system, system.system_config)
         conn.commit()
 
         belt_row = conn.execute(
@@ -291,7 +291,7 @@ def test_deleting_a_system_cascades_to_every_child_table(mysql_config):
     table (planets, moons, asteroid_belts, comets, plus their own
     grandchild tables) is left with zero rows for it -- not just that the
     star_systems row itself is gone."""
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         cfg = _make_config()
         cfg.BINARY_SYSTEM = False
@@ -304,7 +304,7 @@ def test_deleting_a_system_cascades_to_every_child_table(mysql_config):
         cfg.STAR_TYPE = "G2V"
         system = StarSystem(system_config=cfg)
 
-        system_id = _db.insert_star_system(conn, system, system.system_config)
+        system_id = store.insert_star_system(conn, system, system.system_config)
         conn.commit()
 
         planet_ids = [r["id"] for r in conn.execute(

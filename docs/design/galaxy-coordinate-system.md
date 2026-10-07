@@ -155,7 +155,7 @@ nearest systems filled in like a generated one.
   takes `galactic_center_dist_ly`, threaded from the owning sector's
   `galactic_radius_pc` (5.3.6). The fixed `GALACTIC_CENTER_DISTANCE_LY`
   (Sol's distance) is used only for a system generated outside the galaxy.
-- **Galactic orbits.** Since 7.37.0 `updateOrbits.py` turns every system,
+- **Galactic orbits.** Since 7.37.0 `planetgen.cli.orbits` turns every system,
   phenomenon and stand-alone facility along its galactic orbit, moves
   anything that drifts into another generated sector over to it, then
   recomputes containment and the stored nearest systems (`nearest_systems`,

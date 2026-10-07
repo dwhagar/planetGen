@@ -1,7 +1,7 @@
 # tests/test_login_backoff.py
 
 """
-Login lockouts (`stellarObjects/loginThrottle.py`, `api/loginguard.py`):
+Login lockouts (`planetgen/admin/throttle.py`, `api/loginguard.py`):
 per address (SEC.1: 3 failures, 5 minutes doubling to a day) and per
 username (SEC.21, formerly SEC.17's in-memory backoff: 10 free failures,
 1 s doubling to 15 minutes). First the rules with a fake clock, then the
@@ -14,19 +14,19 @@ import time
 import pytest
 
 from api import auth, loginguard
-from stellarObjects import adminAuth, loginThrottle
-from stellarObjects.loginThrottle import IP_POLICY, SCOPE_IP, SCOPE_USER, USER_POLICY
+from planetgen.admin import auth as adminAuth, throttle
+from planetgen.admin.throttle import IP_POLICY, SCOPE_IP, SCOPE_USER, USER_POLICY
 
 FREE_FAILURES = USER_POLICY.free_failures
 
 
 @pytest.fixture
 def store():
-    return loginThrottle.MemoryStore()
+    return throttle.MemoryStore()
 
 
 def _fail(store, scope, subject, now):
-    return loginThrottle.record_failure(store, scope, subject, now=now)
+    return throttle.record_failure(store, scope, subject, now=now)
 
 
 # --- Per username -------------------------------------------------------------
@@ -35,11 +35,11 @@ def test_free_failures_then_doubling_locks(store):
     now = 1000.0
     for _ in range(FREE_FAILURES):
         assert _fail(store, SCOPE_USER, "admin", now) == 0
-        assert loginThrottle.check(store, SCOPE_USER, "admin", now) == 0
+        assert throttle.check(store, SCOPE_USER, "admin", now) == 0
     assert _fail(store, SCOPE_USER, "admin", now) == 1
-    assert loginThrottle.check(store, SCOPE_USER, "admin", now) == 1
+    assert throttle.check(store, SCOPE_USER, "admin", now) == 1
     now += 1
-    assert loginThrottle.check(store, SCOPE_USER, "admin", now) == 0
+    assert throttle.check(store, SCOPE_USER, "admin", now) == 0
     assert _fail(store, SCOPE_USER, "admin", now) == 2
     now += 2
     assert _fail(store, SCOPE_USER, "admin", now) == 4
@@ -49,17 +49,17 @@ def test_username_lock_is_capped(store):
     for _ in range(FREE_FAILURES + 60):
         seconds = _fail(store, SCOPE_USER, "admin", 1000.0)
     assert seconds == USER_POLICY.max_lock_seconds
-    assert loginThrottle.check(store, SCOPE_USER, "admin", 1000.0) == int(USER_POLICY.max_lock_seconds)
+    assert throttle.check(store, SCOPE_USER, "admin", 1000.0) == int(USER_POLICY.max_lock_seconds)
 
 
 def test_usernames_are_counted_case_and_space_insensitively():
-    assert loginThrottle.normalize_username(" Admin ") == loginThrottle.normalize_username("ADMIN") == "admin"
+    assert throttle.normalize_username(" Admin ") == throttle.normalize_username("ADMIN") == "admin"
 
 
 def test_success_clears_a_usernames_count(store):
     for _ in range(FREE_FAILURES):
         _fail(store, SCOPE_USER, "admin", 1000.0)
-    loginThrottle.record_success(store, SCOPE_USER, "admin", now=1000.0)
+    throttle.record_success(store, SCOPE_USER, "admin", now=1000.0)
     assert store.get(SCOPE_USER, "admin") is None
     assert _fail(store, SCOPE_USER, "admin", 1000.0) == 0
 
@@ -71,14 +71,14 @@ def test_an_old_failure_is_forgotten(store):
 
 
 def test_memory_store_is_bounded_and_keeps_locked_ones(store, monkeypatch):
-    monkeypatch.setattr(loginThrottle, "MAX_MEMORY_ENTRIES", 20)
+    monkeypatch.setattr(throttle, "MAX_MEMORY_ENTRIES", 20)
     now = time.time()
     for _ in range(FREE_FAILURES + 1):
         _fail(store, SCOPE_USER, "target", now)
     for i in range(100):
         _fail(store, SCOPE_USER, f"junk-{i}", now)
     assert len(store) <= 20
-    assert loginThrottle.check(store, SCOPE_USER, "target", now) >= 1
+    assert throttle.check(store, SCOPE_USER, "target", now) >= 1
 
 
 # --- Per address --------------------------------------------------------------
@@ -92,7 +92,7 @@ def test_three_failures_lock_an_address_for_five_minutes_doubling_to_a_day(store
             if attempt < IP_POLICY.free_failures - 1:
                 assert seconds == 0
         locks.append(seconds)
-        assert loginThrottle.check(store, SCOPE_IP, "203.0.113.5", now) == int(seconds)
+        assert throttle.check(store, SCOPE_IP, "203.0.113.5", now) == int(seconds)
         now += seconds  # the lock runs out; the count starts over
     assert locks == [300, 600, 1200, 2400, 4800, 9600, 19200, 38400, 76800, 86400]
     # A day-long lock is itself a day without a lockout, so the level has
@@ -108,7 +108,7 @@ def test_success_keeps_an_addresss_doubling_level(store):
         _fail(store, SCOPE_IP, "203.0.113.5", now)
     now += 300
     _fail(store, SCOPE_IP, "203.0.113.5", now)
-    loginThrottle.record_success(store, SCOPE_IP, "203.0.113.5", now=now)
+    throttle.record_success(store, SCOPE_IP, "203.0.113.5", now=now)
     assert store.get(SCOPE_IP, "203.0.113.5")["failures"] == 0
     _fail(store, SCOPE_IP, "203.0.113.5", now)
     _fail(store, SCOPE_IP, "203.0.113.5", now)
@@ -128,26 +128,26 @@ def test_doubling_level_halves_each_day_without_a_lockout(store):
 
 
 def test_address_subjects():
-    assert loginThrottle.ip_subject("203.0.113.5") == "203.0.113.5"
-    assert loginThrottle.ip_subject("2001:db8:1:2:3:4:5:6") == "2001:db8:1:2::/64"
-    assert loginThrottle.ip_subject("2001:db8:1:2::ffff") == "2001:db8:1:2::/64"
-    assert loginThrottle.ip_subject("::ffff:203.0.113.5") == "203.0.113.5"
+    assert throttle.ip_subject("203.0.113.5") == "203.0.113.5"
+    assert throttle.ip_subject("2001:db8:1:2:3:4:5:6") == "2001:db8:1:2::/64"
+    assert throttle.ip_subject("2001:db8:1:2::ffff") == "2001:db8:1:2::/64"
+    assert throttle.ip_subject("::ffff:203.0.113.5") == "203.0.113.5"
     for exempt in ("127.0.0.1", "127.8.9.10", "::1", "nonsense", "", None):
-        assert loginThrottle.ip_subject(exempt) is None
-    networks, bad = loginThrottle.parse_allowlist(["198.51.100.0/24", "2001:db8::1", "junk"])
+        assert throttle.ip_subject(exempt) is None
+    networks, bad = throttle.parse_allowlist(["198.51.100.0/24", "2001:db8::1", "junk"])
     assert bad == ["junk"]
-    assert loginThrottle.ip_subject("198.51.100.77", networks) is None
-    assert loginThrottle.ip_subject("2001:db8::1", networks) is None
-    assert loginThrottle.ip_subject("198.51.101.1", networks) == "198.51.101.1"
-    assert len(loginThrottle.parse_allowlist("10.0.0.1, 10.0.0.2")[0]) == 2
+    assert throttle.ip_subject("198.51.100.77", networks) is None
+    assert throttle.ip_subject("2001:db8::1", networks) is None
+    assert throttle.ip_subject("198.51.101.1", networks) == "198.51.101.1"
+    assert len(throttle.parse_allowlist("10.0.0.1, 10.0.0.2")[0]) == 2
 
 
 def test_private_addresses():
-    assert loginThrottle.is_private_address("10.1.2.3")
-    assert loginThrottle.is_private_address("192.168.0.4")
-    assert not loginThrottle.is_private_address("127.0.0.1")
-    assert not loginThrottle.is_private_address("8.8.8.8")
-    assert not loginThrottle.is_private_address("bogus")
+    assert throttle.is_private_address("10.1.2.3")
+    assert throttle.is_private_address("192.168.0.4")
+    assert not throttle.is_private_address("127.0.0.1")
+    assert not throttle.is_private_address("8.8.8.8")
+    assert not throttle.is_private_address("bogus")
 
 
 def test_wait_text():
@@ -279,36 +279,36 @@ def test_login_page_names_the_wait(app):
 @pytest.fixture
 def control(mysql_config):
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     yield conn
     conn.close()
 
 
 def test_db_store_applies_the_same_rules(control):
-    store = loginThrottle.DbStore(control)
+    store = throttle.DbStore(control)
     now = time.time()
     assert _fail(store, SCOPE_IP, "203.0.113.5", now) == 0
     assert _fail(store, SCOPE_IP, "203.0.113.5", now) == 0
     assert _fail(store, SCOPE_IP, "203.0.113.5", now) == 300
-    assert loginThrottle.check(store, SCOPE_IP, "203.0.113.5", now + 10) == 290
+    assert throttle.check(store, SCOPE_IP, "203.0.113.5", now + 10) == 290
     for _ in range(FREE_FAILURES + 1):
         _fail(store, SCOPE_USER, "admin", now)
-    assert sorted((r["scope"], r["subject"]) for r in loginThrottle.locked_subjects(store, now=now)) == [
+    assert sorted((r["scope"], r["subject"]) for r in throttle.locked_subjects(store, now=now)) == [
         (SCOPE_IP, "203.0.113.5"), (SCOPE_USER, "admin")]
-    loginThrottle.record_success(store, SCOPE_USER, "admin", now=now)
+    throttle.record_success(store, SCOPE_USER, "admin", now=now)
     assert store.get(SCOPE_USER, "admin") is None
     assert store.lift(SCOPE_IP, "203.0.113.5") == 1
-    assert loginThrottle.check(store, SCOPE_IP, "203.0.113.5", now) == 0
+    assert throttle.check(store, SCOPE_IP, "203.0.113.5", now) == 0
 
 
 def test_control_schema_has_login_throttle(control):
     row = control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
-    assert row["v"] == adminAuth._db.CONTROL_SCHEMA_VERSION >= 2
+    assert row["v"] == adminAuth.store.CONTROL_SCHEMA_VERSION >= 2
 
 
 def test_older_control_schema_gets_the_table(mysql_config):
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
         conn.execute("DROP TABLE login_throttle")
         conn.execute("DELETE FROM control_schema_migrations")
@@ -317,11 +317,11 @@ def test_older_control_schema_gets_the_table(mysql_config):
     finally:
         conn.close()
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
-        assert loginThrottle.DbStore(conn).get(SCOPE_IP, "203.0.113.5") is None
+        assert throttle.DbStore(conn).get(SCOPE_IP, "203.0.113.5") is None
         versions = [r["version"] for r in conn.execute("SELECT version FROM control_schema_migrations").fetchall()]
-        assert sorted(versions) == [1, adminAuth._db.CONTROL_SCHEMA_VERSION]
+        assert sorted(versions) == [1, adminAuth.store.CONTROL_SCHEMA_VERSION]
     finally:
         conn.close()
 
@@ -339,7 +339,7 @@ def real_app(mysql_config):
         SECRET_KEY = "test-secret"
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
-    adminAuth._db.get_connection(mysql_config).close()
+    adminAuth.store.get_connection(mysql_config).close()
     application = create_app(RealConfig)
     application.testing = True
     application.first_password = password
@@ -387,19 +387,19 @@ def test_private_lockout_warns_about_a_proxy(real_app):
 
 
 def test_command_line_lists_and_lifts(mysql_config, capsys, monkeypatch):
-    import loginLockouts
+    from planetgen.cli import lockouts as loginLockouts
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
-        store = loginThrottle.DbStore(conn)
+        store = throttle.DbStore(conn)
         for _ in range(3):
-            loginThrottle.record_failure(store, SCOPE_IP, "2001:db8:1:2::/64")
+            throttle.record_failure(store, SCOPE_IP, "2001:db8:1:2::/64")
     finally:
         conn.close()
     args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(adminAuth._db, "configured_control_database", lambda: mysql_config.database)
+    monkeypatch.setattr(adminAuth.store, "configured_control_database", lambda: mysql_config.database)
     assert loginLockouts.main(args) == 0
     assert "2001:db8:1:2::/64" in capsys.readouterr().out
     assert loginLockouts.main(["--ip", "2001:db8:1:2::99"] + args) == 0

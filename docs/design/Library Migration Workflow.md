@@ -19,8 +19,8 @@ Architectural refactoring is structured around four primary criteria:
 
 #### Current Codebase State
 
-* `src/stellarObjects/totp.py` (102 lines): Custom implementation of HMAC-SHA1 Time-Based One-Time Passwords (RFC 6238).
-* `src/stellarObjects/qrcodegen.py` (907 lines): Single-file copy of Project Nayuki's QR Code generator, handling low-level bit buffers, Reed-Solomon error correction, and SVG matrix generation.
+* `src/planetgen/admin/totp.py` (102 lines): Custom implementation of HMAC-SHA1 Time-Based One-Time Passwords (RFC 6238).
+* `src/planetgen/admin/qrcode.py` (907 lines): Single-file copy of Project Nayuki's QR Code generator, handling low-level bit buffers, Reed-Solomon error correction, and SVG matrix generation.
 
 #### Recommended Stack
 
@@ -88,8 +88,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/stellarObjects/_db.py` (9,793 lines): Hand-rolled database abstraction layer utilizing raw PyMySQL, custom connection pooling (`dbutils`), manual SQL string construction, and custom transactional batching scopes.
-* `src/migrateDb.py` (172 lines): Custom script tracking migrations via raw SQL script files stored as compressed `.sql.gz` fixtures (`schema_v14.sql.gz` to `schema_v52.sql.gz`).
+* `src/planetgen/db/store.py` (9,793 lines): Hand-rolled database abstraction layer utilizing raw PyMySQL, custom connection pooling (`dbutils`), manual SQL string construction, and custom transactional batching scopes.
+* `planetgen.cli.migrate` (172 lines): Custom script tracking migrations via raw SQL script files stored as compressed `.sql.gz` fixtures (`schema_v14.sql.gz` to `schema_v52.sql.gz`).
 
 #### Recommended Stack
 
@@ -109,7 +109,7 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 * `Alembic` Pros: Programmatic Python-based schema migrations, auto-generation of migration scripts via model diffs, complete replacement of compressed raw SQL files.
 * `Peewee` Pros: Easy transition for smaller projects, lighter cognitive overhead.
 * `Peewee` Cons: Less robust migration engine compared to Alembic when managing complex foreign keys and constraints.
-* Code Impact: Deletes up to 8,000 lines of manual query formatting, parameter binding, cursor lifecycle management, and schema detection logic in `_db.py`.
+* Code Impact: Deletes up to 8,000 lines of manual query formatting, parameter binding, cursor lifecycle management, and schema detection logic in `store.py`.
 
 ### 4. Background Processing and Work Queue Management
 
@@ -141,7 +141,7 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/stellarObjects/loginThrottle.py` (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.
+* `src/planetgen/admin/throttle.py` (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.
 * `src/html/api/limiter.py` (108 lines): Flask rate-limiter setup wrapper.
 * `src/html/api/loginguard.py` (156 lines): Middleware guarding password checks against brute-force attacks.
 
@@ -212,8 +212,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 ```
 Phase 1: Low Risk / High Reduction (Security & Utility Modules)
-├── Replace src/stellarObjects/totp.py       --> pyotp
-├── Replace src/stellarObjects/qrcodegen.py  --> qrcode / segno
+├── Replace src/planetgen/admin/totp.py       --> pyotp
+├── Replace src/planetgen/admin/qrcode.py  --> qrcode / segno
 └── Replace src/html/lib/mdconvert.py        --> markdown
 
 Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)
@@ -223,8 +223,8 @@ Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)
 └── Replace src/html/lib/tilecache.py           --> diskcache
 
 Phase 3: Core Architecture Refactoring (Persistence & Task Execution)
-├── Refactor src/stellarObjects/_db.py          --> SQLAlchemy Core / ORM
-├── Replace src/migrateDb.py                    --> Alembic
+├── Refactor src/planetgen/db/store.py          --> SQLAlchemy Core / ORM
+├── Replace planetgen.cli.migrate                    --> Alembic
 ├── Replace src/stellarObjects/workQueue.py     --> RQ or Huey
 └── Refactor src/planetgen/generation/validation.py  --> Pydantic
 ```

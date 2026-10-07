@@ -355,7 +355,7 @@ def account_two_factor():
                 # unchanged); the form carried it back.
                 secret = request.form.get("secret", "")
                 if secret:
-                    from stellarObjects import totp as totp_codes
+                    from planetgen.admin import totp as totp_codes
                     uri = totp_codes.provisioning_uri(secret, admin["username"])
                     totp["setup"] = {"secret": secret, "uri": uri, "qr_svg": totp_codes.qr_svg(uri)}
             return _account_page(admin, next_url, totp=totp, status=400)
@@ -638,8 +638,8 @@ def _schema_text(database):
     if database["schema_current"]:
         return f"v{version} (current)"
     if version is None:
-        return f"not initialized (code expects v{database['schema_expected']}); run migrateDb.py"
-    return f"v{version}, code expects v{database['schema_expected']}; run migrateDb.py"
+        return f"not initialized (code expects v{database['schema_expected']}); run planetgen.cli.migrate"
+    return f"v{version}, code expects v{database['schema_expected']}; run planetgen.cli.migrate"
 
 
 _LEVEL_LABELS = {

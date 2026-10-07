@@ -1,4 +1,4 @@
-# stellarObjects/adminAuth.py
+# planetgen/admin/auth.py
 
 """
 Admin authentication/authorization: password hashing, web-session and
@@ -19,8 +19,8 @@ package's existing boundary where `flask`/`werkzeug` are optional, needed
 only by `html/api/`.
 
 Every function here takes an already-open `Connection` (to the control
-schema -- see `stellarObjects._db.get_control_connection`) rather than
-opening its own, the same division of responsibility `_db.py`'s own
+schema -- see `planetgen.db.store.get_control_connection`) rather than
+opening its own, the same division of responsibility `store.py`'s own
 `insert_*` functions already use -- callers (Flask routes) own connection
 lifetime/pooling.
 """
@@ -31,13 +31,13 @@ import os
 import re
 import secrets
 
-from . import _db
+from planetgen.db import store
 
 SESSION_TTL_HOURS = 12
 """int: Fixed lifetime for a web-UI session, computed server-side
 (`DATE_ADD(CURRENT_TIMESTAMP, ...)` in `create_session`, not a Python
 clock read -- same "don't trust the calling process' clock" principle
-`_db.get_orbit_update_elapsed_years` already uses `TIMESTAMPDIFF` for).
+`store.get_orbit_update_elapsed_years` already uses `TIMESTAMPDIFF` for).
 No sliding renewal (see `control_schema.sql`'s `admin_sessions` comment)
 -- short enough that a stolen cookie has bounded value, long enough not
 to constantly re-prompt the handful of admins this is built for."""
@@ -58,7 +58,7 @@ INITIAL_PASSWORD_BYTES = 16
 """int: Entropy of the random first password `bootstrap_control_schema`
 seeds (`secrets.token_urlsafe(16)`: 22 characters, comfortably over
 `MIN_PASSWORD_LENGTH`). There is no published default password: the
-seeded one is printed once by `migrateDb.py` (install/update) and never
+seeded one is printed once by `planetgen.cli.migrate` (install/update) and never
 stored anywhere but as its hash. `admin_users.must_change_credentials`
 still starts `TRUE` for this row, and every write/admin endpoint refuses
 to work until it's changed (see `html/api/authz.py`'s `require_admin`)."""
@@ -185,11 +185,11 @@ def bootstrap_control_schema(config=None):
     """
     Ensures the control schema's *database* (MySQL schema) itself exists,
     then ensures its tables (DDL -- needs a `CREATE`-capable account; see
-    `_db.get_control_connection`'s `ensure_schema` note) and, if
+    `store.get_control_connection`'s `ensure_schema` note) and, if
     `admin_users` is empty, seeds an `admin` row with a random first
     password (`INITIAL_PASSWORD_BYTES`) and `must_change_credentials`
     set. Idempotent
-    -- safe to call on every deploy (`migrateDb.py` calls this right
+    -- safe to call on every deploy (`planetgen.cli.migrate` calls this right
     after its own content-schema migration, using the same full-access
     account pointed at the control schema instead).
 
@@ -200,26 +200,26 @@ def bootstrap_control_schema(config=None):
     name is a fixed, predictable, deployment-wide constant rather than an
     arbitrary per-galaxy choice, so creating it automatically here (via a
     connection that selects no specific database first, the same pattern
-    `_db.list_databases` uses) is a reasonable convenience rather than
+    `store.list_databases` uses) is a reasonable convenience rather than
     something that needs its own manual step.
 
     Args:
         config (MySQLConfig, optional): Connection parameters for the
-            control schema (typically `_db.control_mysql_config(...)`).
-            Defaults to `_db.control_mysql_config()`.
+            control schema (typically `store.control_mysql_config(...)`).
+            Defaults to `store.control_mysql_config()`.
 
     Returns:
         tuple[str, str] or None: `(username, password)` of the admin
             this call just seeded -- the only time the plaintext exists
             anywhere, so the caller must show it to the operator (see
-            `migrateDb.py`) -- or `None` when `admin_users` already had a
+            `planetgen.cli.migrate`) -- or `None` when `admin_users` already had a
             row and nothing was seeded. An older install's admin still on
             the published `admin`/`password` login gets a random password
             the same way (`_rotate_published_default_password`).
     """
-    config = config or _db.control_mysql_config()
-    unselected = _db.get_connection(
-        _db.MySQLConfig(host=config.host, port=config.port, user=config.user, password=config.password, database=""),
+    config = config or store.control_mysql_config()
+    unselected = store.get_connection(
+        store.MySQLConfig(host=config.host, port=config.port, user=config.user, password=config.password, database=""),
         ensure_schema=False,
     )
     try:
@@ -228,7 +228,7 @@ def bootstrap_control_schema(config=None):
     finally:
         unselected.close()
 
-    conn = _db.get_control_connection(config, ensure_schema=True)
+    conn = store.get_control_connection(config, ensure_schema=True)
     try:
         row = conn.execute("SELECT COUNT(*) AS n FROM admin_users").fetchone()
         if row["n"] != 0:
@@ -623,7 +623,7 @@ def begin_totp_setup(conn, admin_user_id):
     secret, not yet enabled, and returns it. Refused while two-factor
     sign-in is already on (turn it off first).
     """
-    from . import totp
+    from planetgen.admin import totp
     if totp_enabled(conn, admin_user_id):
         raise AuthError("two-factor sign-in is already on")
     secret = totp.new_secret()
@@ -650,7 +650,7 @@ def confirm_totp_setup(conn, admin_user_id, code):
     Raises:
         AuthError: No setup started, or the code doesn't match.
     """
-    from . import totp
+    from planetgen.admin import totp
     secret = pending_totp_secret(conn, admin_user_id)
     if secret is None:
         raise AuthError("start setting up two-factor sign-in first")
@@ -681,7 +681,7 @@ def check_second_factor(conn, admin_user_id, code):
     Returns:
         str or None: `"totp"` or `"recovery"`, or `None` for a wrong code.
     """
-    from . import totp
+    from planetgen.admin import totp
     row = conn.execute("SELECT secret, last_step FROM admin_totp WHERE admin_user_id = ? AND enabled_at IS NOT NULL "
                        "FOR UPDATE", (admin_user_id,)).fetchone()
     if row is None:

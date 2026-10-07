@@ -323,7 +323,7 @@ scripts' executable bits.
 
 ### Scheduled maintenance
 
-The monthly orbit update (`src/updateOrbits.py`, at 03:30 on the 1st)
+The monthly orbit update (`planetgen.cli.orbits`, at 03:30 on the 1st)
 and, optionally, an unattended monthly update (at 03:00):
 
 ```bash

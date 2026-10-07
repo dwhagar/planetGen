@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 import pymysql
 from flask import current_app, g, request
 
-from stellarObjects._db import get_control_connection
+from planetgen.db.store import get_control_connection
 
 CONTROL_DATABASE_UNAVAILABLE = "database unavailable"
 """str: What a route needing the control database says when it can't be

@@ -3,7 +3,7 @@
 """
 Coverage for `queryDb.list_planets`/`list_moons` -- the `planets`/`moons`
 CLI subcommands that close the gap `docs/TODO.md`'s "Open items" > "Search"
-flagged: `queryDb.py`'s `systems` subcommand only ever filtered by star
+flagged: `planetgen.db.query`'s `systems` subcommand only ever filtered by star
 type/sector, with no equivalent at all for a planet's/moon's own class or
 size the way the web/API faceted search (`queryDb.search`) already
 supports.
@@ -15,8 +15,8 @@ same as every other database-backed test in this suite.
 
 import pytest
 
-from queryDb import list_moons, list_planets
-from stellarObjects import _db
+from planetgen.db.query import list_moons, list_planets
+from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -46,10 +46,10 @@ def _make_system_with_moons():
 
 
 def _insert(mysql_config, system, cfg):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            system_id = _db.insert_star_system(conn, system, cfg)
+            system_id = store.insert_star_system(conn, system, cfg)
     finally:
         conn.close()
     return system_id
@@ -60,7 +60,7 @@ def test_list_planets_returns_every_planet_with_no_filter(mysql_config):
     system_id = _insert(mysql_config, system, cfg)
     expected_names = sorted(p.name for p in system.planets if p.body_type != "a")
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = list_planets(conn, system_id=system_id)
     finally:
@@ -77,7 +77,7 @@ def test_list_planets_filters_by_class(mysql_config):
     target_class = planets[0].planet_class
     expected_names = sorted(p.name for p in planets if p.planet_class == target_class)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = list_planets(conn, planet_class=target_class, system_id=system_id)
     finally:
@@ -101,7 +101,7 @@ def test_list_planets_filters_by_radius_range(mysql_config):
     assert expected_names, "test fixture needs at least one planet above the midpoint"
     assert len(expected_names) < len(planets), "test fixture needs at least one planet below the midpoint"
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = list_planets(conn, min_radius_km=min_radius, system_id=system_id)
     finally:
@@ -120,10 +120,10 @@ def test_list_planets_filters_by_sector_id(mysql_config):
     cfg_out.STAR_TYPE = "M5V"
     system_out = StarSystem(system_config=cfg_out)
 
-    sector_id = _db.save_sector(sector, config=mysql_config)
+    sector_id = store.save_sector(sector, config=mysql_config)
     _insert(mysql_config, system_out, cfg_out)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = list_planets(conn, sector_id=sector_id)
     finally:
@@ -144,7 +144,7 @@ def test_list_moons_filters_by_class_and_radius(mysql_config):
     target_class = all_moons[0].planet_class
     expected_names = sorted(m.name for m in all_moons if m.planet_class == target_class)
 
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         rows = list_moons(conn, planet_class=target_class, system_id=system_id)
     finally:

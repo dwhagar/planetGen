@@ -5,14 +5,15 @@ math, storage and the API."""
 
 import pytest
 
-from stellarObjects import _db, facilities
+from planetgen.db import store
+from planetgen.population import facilities
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms
-import queryDb
+from planetgen.db import query
 
 
 @pytest.mark.parametrize("kind, placement, host_type, body_type, allowed", [
@@ -99,7 +100,7 @@ def _system_with_worlds(mysql_config):
         system = StarSystem(system_config=cfg)
         types = {p.body_type for p in system.planets}
         if {"t", "g", "a"} <= types:
-            return _db.save_system(system, cfg, config=mysql_config)
+            return store.save_system(system, cfg, config=mysql_config)
     pytest.fail("could not generate a system with a terrestrial planet, a gas giant and a belt")
 
 
@@ -115,29 +116,29 @@ def _ids(conn, system_id):
 
 def test_facilities_are_stored_on_their_hosts(mysql_config):
     system_id = _system_with_worlds(mysql_config)
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         ids = _ids(conn, system_id)
         with conn:
-            colony = _db.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", ids["terrestrial"])
-            yard = _db.add_facility(conn, "High Yard", "starbase", "orbital", "planet", ids["giant"],
+            colony = store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", ids["terrestrial"])
+            yard = store.add_facility(conn, "High Yard", "starbase", "orbital", "planet", ids["giant"],
                                     distance_km=5.0e5, phase_deg=370.0)
-            _db.add_facility(conn, "Sunwatch", "outpost", "orbital", "star", ids["star"],
+            store.add_facility(conn, "Sunwatch", "outpost", "orbital", "star", ids["star"],
                              distance_km=constants.AU_TO_KM * 0.5)
-            _db.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", ids["belt"])
-        with pytest.raises(_db.FacilityError):
-            _db.add_facility(conn, "Floaters", "colony", "terrestrial", "planet", ids["giant"])
-        with pytest.raises(_db.FacilityError, match="sphere of influence"):
-            _db.add_facility(conn, "Runaway", "station", "orbital", "planet", ids["terrestrial"],
+            store.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", ids["belt"])
+        with pytest.raises(store.FacilityError):
+            store.add_facility(conn, "Floaters", "colony", "terrestrial", "planet", ids["giant"])
+        with pytest.raises(store.FacilityError, match="sphere of influence"):
+            store.add_facility(conn, "Runaway", "station", "orbital", "planet", ids["terrestrial"],
                              distance_km=constants.AU_TO_KM)
-        with pytest.raises(_db.FacilityError):
-            _db.add_facility(conn, "Pinned", "outpost", "asteroid", "asteroid_belt", ids["belt"], distance_km=1.0e8)
-        with pytest.raises(_db.FacilityError) as missing:
-            _db.add_facility(conn, "Nowhere", "colony", "terrestrial", "planet", 10 ** 12)
+        with pytest.raises(store.FacilityError):
+            store.add_facility(conn, "Pinned", "outpost", "asteroid", "asteroid_belt", ids["belt"], distance_km=1.0e8)
+        with pytest.raises(store.FacilityError) as missing:
+            store.add_facility(conn, "Nowhere", "colony", "terrestrial", "planet", 10 ** 12)
         assert missing.value.not_found
         conn.rollback()
 
-        listed = {f["name"]: f for f in queryDb.facilities_for_system(conn, system_id)}
+        listed = {f["name"]: f for f in query.facilities_for_system(conn, system_id)}
         assert set(listed) == {"New Hope", "High Yard", "Sunwatch", "Rockpile"}
         assert listed["High Yard"]["orbit_phase_deg"] == pytest.approx(10.0)
         assert listed["High Yard"]["orbit_period_years"] > 0
@@ -151,24 +152,24 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
         assert rockpile["orbit_period_years"] > 0 and rockpile["orbital_speed_kms"] > 0
         assert 0 <= rockpile["orbit_phase_deg"] < 360
         assert listed["New Hope"]["host_id"] == ids["terrestrial"]
-        assert queryDb.colonized_body_ids(conn, system_id)["planets"] == {ids["terrestrial"]}
-        assert queryDb.facility_detail(conn, yard)["kind"] == "starbase"
+        assert query.colonized_body_ids(conn, system_id)["planets"] == {ids["terrestrial"]}
+        assert query.facility_detail(conn, yard)["kind"] == "starbase"
 
         # Position updates move orbital and belt facilities alike.
         quarter = rockpile["orbit_period_years"] / 4
         with conn:
-            assert _db.advance_facility_orbits(conn, quarter) == 3
+            assert store.advance_facility_orbits(conn, quarter) == 3
         moved = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE name = 'Rockpile'").fetchone()
         assert (moved["orbit_phase_deg"] - rockpile["orbit_phase_deg"]) % 360.0 == pytest.approx(90.0)
 
-        orbit = _db.facility_orbit(conn, "planet", ids["terrestrial"])
+        orbit = store.facility_orbit(conn, "planet", ids["terrestrial"])
         hill = conn.execute("SELECT radius_km, hill_radius_km FROM planets WHERE id = ?",
                             (ids["terrestrial"],)).fetchone()
         assert orbit["min_distance_km"] == pytest.approx(hill["radius_km"] * 1.01)
         assert orbit["max_distance_km"] == pytest.approx(hill["hill_radius_km"])
 
         with conn:
-            assert _db.delete_facility(conn, colony)
+            assert store.delete_facility(conn, colony)
             conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
         assert conn.execute("SELECT COUNT(*) AS n FROM facilities").fetchone()["n"] == 0
     finally:
@@ -177,17 +178,17 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
 
 def test_standalone_facilities_park_in_their_sector(mysql_config):
     sector = SpaceSector("Harbor", edge_ly=13.0)
-    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position={
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": 0.0, "center_y_pc": 50.0, "center_z_pc": 0.0, "galactic_radius_pc": 50.0,
     })
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         with conn:
-            _db.add_facility(conn, "Waypoint", "station", "standalone", "space", sector_id, offset_ly=(1.0, 0.0, 0.0))
-        with pytest.raises(_db.FacilityError):
-            _db.add_facility(conn, "Too Far", "station", "standalone", "space", sector_id, offset_ly=(9.0, 0.0, 0.0))
+            store.add_facility(conn, "Waypoint", "station", "standalone", "space", sector_id, offset_ly=(1.0, 0.0, 0.0))
+        with pytest.raises(store.FacilityError):
+            store.add_facility(conn, "Too Far", "station", "standalone", "space", sector_id, offset_ly=(9.0, 0.0, 0.0))
         conn.rollback()
-        (waypoint,) = queryDb.facilities_in_sector(conn, sector_id)
+        (waypoint,) = query.facilities_in_sector(conn, sector_id)
         # Local +X points away from the galactic axis (+y here).
         assert waypoint["center_y_pc"] == pytest.approx(50.0 + 1.0 / 3.2616, rel=1e-3)
     finally:
@@ -195,7 +196,7 @@ def test_standalone_facilities_park_in_their_sector(mysql_config):
 
 
 def test_migrate_v41_to_v42_creates_facilities(mysql_config):
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute("DROP TABLE facilities")
         conn.execute("DELETE FROM schema_migrations WHERE version IN (42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53)")
@@ -203,8 +204,8 @@ def test_migrate_v41_to_v42_creates_facilities(mysql_config):
         conn.commit()
     finally:
         conn.close()
-    assert _db.migrate_database(mysql_config) == _db.SCHEMA_VERSION
-    conn = _db.get_connection(mysql_config, ensure_schema=False)
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM facilities").fetchone()["n"] == 0
     finally:

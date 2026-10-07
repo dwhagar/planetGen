@@ -11,7 +11,7 @@ reading the rows.
 
 import pytest
 
-from stellarObjects import _db
+from planetgen.db import store
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import InterstellarComet
@@ -30,8 +30,8 @@ def _save(mysql_config, kind):
     else:
         obj, table = InterstellarComet(cfg), "interstellar_comets"
         obj.composition = list(_COMET_COMPOSITION)
-    phenomenon_id = _db.save_phenomenon(obj, cfg, kind, config=mysql_config)
-    conn = _db.get_connection(mysql_config)
+    phenomenon_id = store.save_phenomenon(obj, cfg, kind, config=mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         conn.execute(f"UPDATE {table} SET composition_summary = 'stale summary' WHERE id = ?", (phenomenon_id,))
         conn.commit()
