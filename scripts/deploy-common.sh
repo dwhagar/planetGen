@@ -239,7 +239,7 @@ import sys
 root = sys.argv[1]
 sys.path[:0] = [os.path.join(root, "src", "html"), os.path.join(root, "src")]
 import stellarObjects  # noqa: E402,F401
-from api.app import create_app  # noqa: E402,F401
+from planetgen.api.app import create_app  # noqa: E402,F401
 import web  # noqa: E402,F401
 EOF
     ); then
