@@ -1005,7 +1005,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   neutron stars only where the budget reaches them; and comets, rogue
   planets and asteroid fields never on the Galaxy Map, only on the
   Sector Map. The rules are one table in the code, and a test checks
-  each level's counts on a dense and a sparse sector.
+  each level's counts on a dense and a sparse sector. It must also fix
+  GEN.117: brightest-first picking per tile keeps only the young blue
+  stars on the plane, so the budget must keep stars spread across
+  height (a share reserved by layer, or picks by luminosity band).
   Prerequisite: MAP.102.
 
 - [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
@@ -2216,19 +2219,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     ADM.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **GEN.117 Bright stars still sit in a thin band on the galactic plane after the GEN.79 fix (bug)**
+- [ ] **GEN.117 The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug)**
   Boss (2026-10-07 18:43Z), after PR #461 (GEN.79) merged: "Here is the
   latest run of the bright star sweep, screenshots taken.  As you can
   see from these, when we look at a cross-section aligning with the
   galactic plane, all the bright stars are strictly kept in this narrow
-  band." Screenshots: /mnt/project-files/bugs/gen-117/. It may be old
-  data or a missing backfill (a galaxy whose bright stars were placed
-  before #461, or a run that didn't use the updated code) rather than a
-  code fault, so that is checked first. Done: the cause is found; if it
-  is code, bright stars from a fresh sweep reach the old disk and bulge
-  layers above and below the plane, and a test checks their spread in
-  layers against the population model; if it is data, update or the
-  sweep says what to rerun and Boss's galaxy shows the spread after it.
+  band." Screenshots: /mnt/project-files/bugs/gen-117/. Cause (Bugfixes
+  lane 1, 2026-10-07 18:47Z, read from the code and scatter numbers;
+  Boss's fresh run confirms): the generator does place bright stars
+  above and below the plane, but the Galaxy Map draws only the 400 most
+  luminous bright stars per tile (`GALAXY_TILE_MAX_BRIGHT_STARS`,
+  `planetgen/db/query.py` around line 2424). Young blue stars on the
+  plane outshine the old giants above it (about 1,000 to 2,500 Lsun),
+  so the giants never make the cut. The fix belongs with MAP.116's
+  per-zoom density and brightness rules: for example, reserve part of
+  each tile's budget for stars spread across height, or pick by
+  luminosity band instead of brightest first. Done: a tile's drawn
+  bright stars span the layers its stars occupy, a test checks that
+  spread on a tile with a crowded plane, and Boss's sweep shows stars
+  above and below the plane. A generator test of the z spread lands
+  separately with Bugfixes lane 1's flake PR.
+  Prerequisite: MAP.116.
 
 - [ ] **GEN.116 Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug)**
   Back burner. Boss (2026-10-07 17:11Z), on GEN.65: "I do not have the

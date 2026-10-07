@@ -28,7 +28,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.117 | Bright stars still sit in a thin band on the galactic plane after the GEN.79 fix (bug) |  | Boss's sweep screenshots (18:43Z); check old data or backfill first. Ahead of the flakes. |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) |  | Back burner (Boss 17:11Z): GEN.65's 18 edge tests pass (PR #476); waits for his error text. |
 
 ### Bugfixes: console and progress
@@ -154,7 +153,8 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) |  |  |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | MAP.65, MAP.111 |  |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | MAP.79 | The toggle is one of MAP.79's per-kind buttons. |
-| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | MAP.102 | Also the per-zoom rule for which objects show; folds MAP.115 (Boss 2026-10-07 16:26Z). |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | MAP.102 | Also the per-zoom rule for which objects show; folds MAP.115 (Boss 2026-10-07 16:26Z). Must also fix GEN.117 (bright stars kept to the plane by brightest-first picking). |
+| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | MAP.116 | Map picking, not generation (lane 1, 18:47Z): 400 brightest per tile are all young plane stars. Fixed with MAP.116. |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | NAV.15 | Fixed by pick mode on the shared layer (NAV.15). |
 
 ### Groundwork: nebula shapes
