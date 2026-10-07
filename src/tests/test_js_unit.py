@@ -39,13 +39,13 @@ GALAXY_RADIUS_PC = 15000.0
 def fixtures():
     """The values the JavaScript tests compare against, as a dict."""
     from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
-    from planetgen.galaxy.density import build_galaxy_shape
+    from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms
     from planetgen.galaxy.geometry import provisional_sector_designation, ring_sector_count
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from planetgen.physics.units import pc_to_ly
 
     shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
-    shape = {**shape._asdict(),
+    shape = {**shape_with_terms(shape),
              "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 
     designations = []

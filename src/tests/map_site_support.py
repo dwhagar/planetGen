@@ -26,7 +26,7 @@ from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
-from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
+from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms  # noqa: E402
 from planetgen.galaxy.drill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402
 from planetgen.physics.units import pc_to_ly  # noqa: E402
@@ -130,7 +130,7 @@ among the fixture stars."""
 
 def galaxy_shape():
     """The stored shape `GET /api/galaxy/shape` would return."""
-    shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)._asdict()
+    shape = shape_with_terms(build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4))
     shape.update({
         "edge_pc": EDGE_PC, "outer_ring_index": OUTER_RING,
         "expected_system_count_at_density_1": expected_system_count_at_density_1(pc_to_ly(EDGE_PC)),

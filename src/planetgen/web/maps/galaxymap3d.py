@@ -290,17 +290,24 @@ DENSITY_SHAPE_FIELDS = (
 """The `GalaxyShape` fields `static/galaxyprisms.js`'s `relativeDensity`
 reads."""
 
+MODEL_TERM_FIELDS = (
+    "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
+    "bulge_scale_y_pc", "bulge_scale_z_pc", "bar_cos", "bar_sin",
+)
+"""The `galaxyDensity.model_terms` it reads too (the thick disk and the
+bar), which `queryDb.galaxy_density_shape` serves alongside the shape."""
+
 
 def _density_shape(galaxy_shape):
-    """Just the density model's own fields from `apiclient.get_galaxy_shape`'s
-    dict, or `None` without a shape (or with one missing a field), plus
+    """Just the density model's own fields and terms from
+    `apiclient.get_galaxy_shape`'s dict, or `None` without a shape (or with one missing a field), plus
     `sector_min_density`: the relative density a sector needs to expect
     one star (`1 / expected_system_count_at_density_1`), the same
     threshold the generator's skeleton uses, so the prisms outline exactly
     the galaxy's layers. Left out if the shape doesn't carry it."""
-    if not galaxy_shape or any(galaxy_shape.get(field) is None for field in DENSITY_SHAPE_FIELDS):
+    if not galaxy_shape or any(galaxy_shape.get(field) is None for field in DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS):
         return None
-    shape = {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS}
+    shape = {field: galaxy_shape[field] for field in DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS}
     expected = galaxy_shape.get("expected_system_count_at_density_1")
     if expected:
         shape["sector_min_density"] = 1.0 / expected

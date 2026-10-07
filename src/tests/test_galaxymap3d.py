@@ -20,6 +20,7 @@ from planetgen.web.maps.galaxymap3d import (  # noqa: E402
     CLICK_ZOOM_FACTOR_MAX,
     CLICK_ZOOM_FACTOR_MIN,
     DENSITY_SHAPE_FIELDS,
+    MODEL_TERM_FIELDS,
     FETCH_RADIUS_FACTOR,
     MIN_VIEW_RADIUS_FLOOR_PC,
     galaxy_extent_pc,
@@ -199,11 +200,19 @@ def test_panel_omits_the_hint_when_a_shape_exists():
 
 
 def test_panel_embeds_the_density_shape_for_the_prisms():
+    fields = DENSITY_SHAPE_FIELDS + MODEL_TERM_FIELDS
+    shape = {field: float(i + 1) for i, field in enumerate(fields)}
+    shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
+    data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
+    assert data["densityShape"] == dict({field: shape[field] for field in fields},
+                                        sector_min_density=pytest.approx(1 / 9.0))
+
+
+def test_panel_has_no_density_shape_without_the_model_terms():
     shape = {field: float(i + 1) for i, field in enumerate(DENSITY_SHAPE_FIELDS)}
     shape.update({"outer_ring_index": 50, "edge_pc": EDGE_PC, "expected_system_count_at_density_1": 9.0})
     data = _json_payload(render_galaxy_map3d_panel("mydb", shape, EDGE_PC, _empty_view(has_shape=True)))
-    assert data["densityShape"] == dict({field: shape[field] for field in DENSITY_SHAPE_FIELDS},
-                                        sector_min_density=pytest.approx(1 / 9.0))
+    assert data["densityShape"] is None
 
 
 def test_panel_has_no_density_shape_without_a_skeleton():

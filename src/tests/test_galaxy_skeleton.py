@@ -97,7 +97,7 @@ def test_layer_extents_match_a_brute_force_scan(threshold_rho):
     extents, outer, confirmed = build_layer_extents(SHAPE, EDGE_PC, threshold_rho)
     assert confirmed
     brute = {}
-    for layer in range(-60, 61):
+    for layer in range(-90, 91):
         rings = [ring for ring in range(0, 200) if _qualifies(ring, layer, threshold_rho)]
         if rings:
             assert rings == list(range(len(rings))), "a layer's rings must run unbroken from ring 0"

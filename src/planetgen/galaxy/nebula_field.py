@@ -54,7 +54,7 @@ MAX_CLOUD_RADIUS_PC = max(ly_to_pc(tuning.NEBULA_CLASSES[letter]["radius_range_l
 a sector its cells are read."""
 
 
-REFERENCE_RADIUS_SCALE_LENGTHS = 2.82
+REFERENCE_RADIUS_SCALE_LENGTHS = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH
 """float: The ring the `"molecular-cloud"` density is quoted on, in disk
 scale lengths: the solar circle's ratio, `build_galaxy_shape`'s default
 calibration radius."""

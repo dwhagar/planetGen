@@ -22,7 +22,7 @@ from tests.bughunt_support import forced_system_config
 
 # Milky Way scale: disk scale length 2.8 kpc, the solar circle at 2.82 of them.
 SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
-SOLAR_RADIUS_PC = 2.82 * SHAPE.disk_scale_length_pc
+SOLAR_RADIUS_PC = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
 ARM_ANGLE = math.log(SOLAR_RADIUS_PC / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
 SEED = bytes(range(16))
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)

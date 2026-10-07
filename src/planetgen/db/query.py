@@ -43,6 +43,7 @@ from planetgen import tuning
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC
 from planetgen._version import __version__
+from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
@@ -2026,7 +2027,8 @@ def galaxy_density_shape(conn):
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
-        dict or None: Every `GalaxyShape` field plus `edge_pc`,
+        dict or None: Every `GalaxyShape` field and
+            `galaxyDensity.model_terms` entry, plus `edge_pc`,
             `outer_ring_index`, `expected_system_count_at_density_1`.
             `None` if `planetgen plan` has never been run against this
             database (no `galaxy_shape` row yet).
@@ -2034,7 +2036,7 @@ def galaxy_density_shape(conn):
     skeleton = get_galaxy_shape(conn)
     if skeleton is None:
         return None
-    shape = dict(skeleton.shape._asdict())
+    shape = shape_with_terms(skeleton.shape)
     shape["edge_pc"] = skeleton.edge_pc
     shape["outer_ring_index"] = skeleton.outer_ring_index
     shape["expected_system_count_at_density_1"] = skeleton.expected_system_count_at_density_1

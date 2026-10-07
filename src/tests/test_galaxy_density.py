@@ -9,6 +9,7 @@ bulge-plus-spiral-arm density model from
 import math
 
 import pytest
+from planetgen import tuning
 
 from planetgen.galaxy.density import (
     build_galaxy_shape,
@@ -28,7 +29,7 @@ SHAPE = build_galaxy_shape(
 
 
 def test_relative_density_is_exactly_one_at_calibration_point():
-    calibration_radius_pc = 2.82 * SHAPE.disk_scale_length_pc
+    calibration_radius_pc = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * SHAPE.disk_scale_length_pc
     theta_arm = math.log(calibration_radius_pc / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
     theta_interarm = theta_arm + math.pi / SHAPE.arm_count
     position = (
@@ -101,6 +102,6 @@ def test_build_galaxy_shape_default_calibration_radius():
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0,
         bulge_scale_radius_pc=10.0, bulge_amplitude=2.0,
         arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
-        calibration_radius_pc=2.82 * 40.0,
+        calibration_radius_pc=tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * 40.0,
     )
     assert shape_default.k_norm == pytest.approx(shape_explicit.k_norm)

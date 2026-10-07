@@ -20,18 +20,19 @@ ring cut into the same wedges on every layer -- and it ends at the first
 ring where that threshold can no longer be met. Nothing "zero density"
 exists in the model (it is exponential), so the threshold is the edge.
 
-**Why one outer ring per layer is exact.** A sector center's
-`relative_density` is `bulge(r_3d) + disk(R) * f_z(z) * arm_factor(R,
-theta)` (`galaxyDensity._raw_density`). At a fixed height `z` and
-cylindrical radius `R` only `arm_factor` varies with angle, and its
-maximum is exactly `1 + arm_amplitude`, so `bound_relative_density_at` is
-an exact upper bound on any slot in that ring and layer. That bound falls
-strictly as `R` grows (both `bulge` and `disk` do) and as `|z|` grows
-(`bulge` and `f_z` do), and it is symmetric in `z`. So each layer's
-qualifying rings are one run from ring 0 outward, the layers form one
-band symmetric about the plane, and each layer reaches no farther out
-than the layer below it (toward the plane) -- `build_layer_extents`
-walks the whole outline in one pass.
+**Why one outer ring per layer is enough.** A sector center's
+`relative_density` is `bulge(x, y, z) + thin(R, z) * arm_factor(R, theta)
++ thick(R, z)` (`galaxyDensity._raw_density`). At a fixed height `z` and
+cylindrical radius `R`, the bar bulge is largest along its long axis and
+`arm_factor` is at most `1 + arm_amplitude`, so
+`bound_relative_density_at` (each term at its own maximum) is an upper
+bound on any slot in that ring and layer -- exact wherever the bulge or
+the arms are negligible, a hair high in the bar's arm-crossing rings. That
+bound falls strictly as `R` grows and as `|z|` grows (every term does),
+and it is symmetric in `z`. So each layer's qualifying rings are one run
+from ring 0 outward, the layers form one band symmetric about the plane,
+and each layer reaches no farther out than the layer below it (toward the
+plane) -- `build_layer_extents` walks the whole outline in one pass.
 
 **Why this is a safe superset.** A slot inside a layer's extent may still
 fall short (an inter-arm trough, say); that exact per-slot check is one
@@ -46,13 +47,13 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
-from planetgen.galaxy.density import _sech_squared
+from planetgen.galaxy.density import _vertical, bulge_bound, model_terms
 from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
 from planetgen.galaxy.sector import SpaceSector
 
 MAX_LAYER_SCAN = 1 << 12
 """int: The farthest layer `build_layer_extents` will walk from the plane
--- matches the designation's layer range, and is 13x the ~320 layers a
+-- matches the designation's layer range, and is 4x the ~1,020 layers a
 Milky-Way-scale galaxy actually needs."""
 
 
@@ -72,13 +73,15 @@ def expected_system_count_at_density_1(edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY):
 
 
 def _bound_raw_density_at(shape, r_cyl, z):
-    """The exact maximum over `theta` of `galaxyDensity._raw_density` at
-    cylindrical radius `r_cyl` and height `z` (unnormalized)."""
-    r_3d = math.hypot(r_cyl, z)
-    bulge = shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
-    disk_radial = math.exp(-r_cyl / shape.disk_scale_length_pc)
-    f_z = _sech_squared(z / shape.disk_scale_height_pc)
-    return bulge + disk_radial * f_z * (1.0 + shape.arm_amplitude)
+    """The maximum over `theta` of `galaxyDensity._raw_density` at
+    cylindrical radius `r_cyl` and height `z` (unnormalized), or a hair
+    above it: each term at its own maximum (the bar along its long axis,
+    the thin disk on an arm crest)."""
+    terms = model_terms(shape)
+    thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
+    thick = (terms["thick_disk_amplitude"] * math.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
+             * _vertical(z, terms["thick_disk_scale_height_pc"]))
+    return bulge_bound(r_cyl, z, shape) + thin * (1.0 + shape.arm_amplitude) + thick
 
 
 def bound_relative_density_at(shape, r_cyl, z):
@@ -110,7 +113,7 @@ def build_layer_extents(shape, edge_pc, threshold_rho, max_ring=DEFAULT_MAX_RING
 
     Walks the plane's layer outward from ring 0, then climbs one layer at
     a time, pulling the outer ring inward from the layer below (see the
-    module docstring for why that is exact), so the cost is about one
+    module docstring for why that is safe), so the cost is about one
     check per ring plus one per layer.
 
     Args:

@@ -17,7 +17,7 @@ import subprocess
 
 import pytest
 
-from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.density import build_galaxy_shape, relative_density, shape_with_terms
 from planetgen.galaxy.geometry import ring_sector_count
 
 NODE = shutil.which("node")
@@ -39,7 +39,7 @@ def _run(script):
     source = (
         f"import * as P from {json.dumps('file://' + os.path.abspath(MODULE))};\n"
         f"import * as B from {json.dumps('file://' + os.path.abspath(BLOCKS_MODULE))};\n"
-        f"const shape = {json.dumps(SHAPE._asdict())};\n"
+        f"const shape = {json.dumps(shape_with_terms(SHAPE))};\n"
         f"{script}\n"
     )
     result = subprocess.run([NODE, "--input-type=module", "-e", source], capture_output=True, text=True, check=True)
@@ -66,7 +66,7 @@ def _threshold_shape():
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from planetgen.physics.units import pc_to_ly
 
-    return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
+    return {**shape_with_terms(SHAPE), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 
 
 @pytest.mark.parametrize("pc_per_px", [0.0, 0.5, 1.0, 2.9, 3.1, 50.0, 1000.0, 1e9])
@@ -200,12 +200,12 @@ def test_most_block_wedges_follow_master_lines(m):
 
 @pytest.mark.parametrize("center, view_radius, m, slice_slab, viewer_z", [
     ((8000.0, 0.0, 0.0), 300.0, 3, 0, None),
-    ((8000.0, 0.0, 600.0), 300.0, 3, None, None),
+    ((8000.0, 0.0, 1640.0), 300.0, 3, None, None),
     ((200.0, 100.0, 40.0), 150.0, 1, 10, None),
     ((0.0, 0.0, 0.0), 6000.0, 81, 0, None),
     ((0.0, 0.0, 0.0), 6000.0, 81, 0, 5000.0),
-    ((8000.0, 0.0, 600.0), 300.0, 3, None, -900.0),
-    ((8000.0, 0.0, 600.0), 300.0, 3, None, 650.0),
+    ((8000.0, 0.0, 1640.0), 300.0, 3, None, -900.0),
+    ((8000.0, 0.0, 1640.0), 300.0, 3, None, 1690.0),
 ])
 def test_surface_listing_matches_a_brute_force_check(center, view_radius, m, slice_slab, viewer_z):
     """The surface listing is exactly the blocks in view with a missing
@@ -343,7 +343,7 @@ console.log(JSON.stringify(pts.map(p => {{
 
 def test_blocks_skip_empty_space():
     out = _run(f"""
-const blocks = P.blocksInView([8000, 0, 3000], 1000, 27, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map(), {{surfaceOnly: false}});
+const blocks = P.blocksInView([8000, 0, 4500], 1000, 27, {EDGE_PC}, shape, {GALAXY_RADIUS_PC}, new Map(), {{surfaceOnly: false}});
 console.log(JSON.stringify(blocks.length));
 """)
     assert out == 0
@@ -452,7 +452,7 @@ console.log(JSON.stringify(out));
     assert got == [[ring_sector_count(i), ring_master_count(i)] for i in range(4001)]
 
 
-@pytest.mark.parametrize("center, view_radius", [((0.0, 0.0, 1268.0), 30.0), ((15420.0, 0.0, 0.0), 30.0)])
+@pytest.mark.parametrize("center, view_radius", [((0.0, 0.0, 4760.0), 30.0), ((16212.0, 0.0, 0.0), 30.0)])
 def test_one_sector_blocks_outline_exactly_the_skeletons_layers(center, view_radius):
     # With the galaxy's sector threshold, a single-sector block exists
     # exactly when build_layer_extents' bound lets that sector exist.

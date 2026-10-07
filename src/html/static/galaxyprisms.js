@@ -52,19 +52,47 @@ function sechSquared(x) {
 }
 
 // Port of galaxyDensity.relative_density, same field names as the
-// GalaxyShape namedtuple.
+// GalaxyShape namedtuple plus galaxyDensity.model_terms (the thick disk
+// and the bar), which the page embeds alongside them.
 export function relativeDensity(x, y, z, shape) {
   return densityParts(x, y, z, shape)[0];
 }
 
+// A disk's vertical profile: sech^2(z / 2h), exponential scale height h
+// (galaxyDensity._vertical).
+function vertical(z, h) {
+  return sechSquared(z / (2 * h));
+}
+
+// The boxy bar bulge (galaxyDensity._bulge).
+function bulge(x, y, z, shape) {
+  var along = (x * shape.bar_cos + y * shape.bar_sin) / shape.bulge_scale_radius_pc;
+  var across = (y * shape.bar_cos - x * shape.bar_sin) / shape.bulge_scale_y_pc;
+  var up = z / shape.bulge_scale_z_pc;
+  var inPlane = along * along + across * across;
+  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(inPlane * inPlane + up * up * up * up));
+}
+
+// The bulge's maximum over azimuth: along the bar (galaxyDensity.bulge_bound).
+function bulgeBound(r, z, shape) {
+  var along = r / shape.bulge_scale_radius_pc;
+  var up = z / shape.bulge_scale_z_pc;
+  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(along * along * along * along + up * up * up * up));
+}
+
+function thickDisk(rCyl, z, shape) {
+  return shape.thick_disk_amplitude * Math.exp(-rCyl / shape.thick_disk_scale_length_pc)
+    * vertical(z, shape.thick_disk_scale_height_pc);
+}
+
 // [density, the same with the arm factor held at 1]: the second is the
-// density's azimuthal mean around the ring (bulge + disk, no arms), since
-// the arm factor averages to 1 around any circle.
+// density's azimuthal mean around the ring as far as the arms go (the
+// arm factor averages to 1 around any circle), so density / mean is the
+// arm factor's pull.
 function densityParts(x, y, z, shape) {
   var rCyl = Math.hypot(x, y);
-  var r3d = Math.sqrt(x * x + y * y + z * z);
-  var bulge = shape.bulge_amplitude * Math.exp(-r3d / shape.bulge_scale_radius_pc);
-  var disk = Math.exp(-rCyl / shape.disk_scale_length_pc) * sechSquared(z / shape.disk_scale_height_pc);
+  var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape);
+  var disk = Math.exp(-rCyl / shape.disk_scale_length_pc) * vertical(z, shape.disk_scale_height_pc);
   var armFactor = 1;
   if (rCyl > 1e-9) {
     var theta = Math.atan2(y, x);
@@ -72,18 +100,17 @@ function densityParts(x, y, z, shape) {
       + Math.log(rCyl / shape.spiral_reference_radius_pc) / Math.tan(shape.pitch_angle_rad);
     armFactor = 1 + shape.arm_amplitude * Math.cos(shape.arm_count * (theta - thetaArm));
   }
-  return [shape.k_norm * (bulge + disk * armFactor), shape.k_norm * (bulge + disk)];
+  return [shape.k_norm * (rest + disk * armFactor), shape.k_norm * (rest + disk)];
 }
 
 // The most any point in the prism could have -- cheap enough to run on
-// every candidate, so empty space is skipped before it's sampled.
+// every candidate, so empty space is skipped before it's sampled. Same
+// bound as galaxySkeleton.bound_relative_density_at.
 function densityUpperBound(r0, zMinAbs, shape) {
-  var r3dMin = Math.hypot(r0, zMinAbs);
-  var bulge = shape.bulge_amplitude * Math.exp(-r3dMin / shape.bulge_scale_radius_pc);
   var disk = Math.exp(-r0 / shape.disk_scale_length_pc)
-    * sechSquared(zMinAbs / shape.disk_scale_height_pc)
+    * vertical(zMinAbs, shape.disk_scale_height_pc)
     * (1 + Math.abs(shape.arm_amplitude));
-  return shape.k_norm * (bulge + disk);
+  return shape.k_norm * (bulgeBound(r0, zMinAbs, shape) + disk + thickDisk(r0, zMinAbs, shape));
 }
 
 // --- The sector grid (mirrors planetgen/galaxy/geometry.py) -----------
