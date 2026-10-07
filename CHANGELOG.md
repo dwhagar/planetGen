@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.201.610] - 2026-10-07
+
+### Changed
+- **The HTML pages and the app factory move into `planetgen.web` (OPS.24, step 12 of 14).** `src/html/web/`, with its templates, is now `src/planetgen/web/`, and `create_app` moved from `planetgen.api.app` to `planetgen.web.app`. `src/html/` now holds only `wsgi.py` and `static/`, so the Apache, gunicorn and waitress setup doesn't change. `wsgi.py` adds only `src/` to `sys.path`, and the tests no longer need `src/html` on it.
+
 ## [7.200.610] - 2026-10-07
 
 ### Added
