@@ -74,7 +74,7 @@ fi
 
 # Prints "<debug on: 1|0> <log file path>", read the same way the program
 # itself reads them (planetgen/util/appconfig.py). appconfig is loaded
-# straight from its file, not through the stellarObjects package, so this
+# straight from its file, not through the planetgen package, so this
 # works before the package's own dependencies are installed. This runs as
 # root, so -I keeps the current directory, user site-packages and PYTHON*
 # variables off sys.path (appconfig.py itself lives outside src/html, in

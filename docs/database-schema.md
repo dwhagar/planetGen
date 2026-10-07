@@ -7,7 +7,7 @@ table, every column's meaning and unit, and the conventions that hold the
 schema together.
 
 **Status**: the schema is implemented, with both a write and a read path.
-[`src/planetgen/db/store.py`](../src/stellarObjects/store.py) (private — leading
+[`src/planetgen/db/store.py`](../src/planetgen/db/store.py) (private — leading
 underscore, not part of the package's public generation API) writes
 already-generated `StarSystem`/`SpaceSector` objects straight into these
 tables (`generate.py sector` calls it automatically on every run), and
@@ -105,7 +105,7 @@ Neither convention touches the generator itself — every attribute in
 `src/planetgen/generation/star.py`, `doubleStar.py`, `planetData.py`,
 `asteroidData.py`, and `spaceSector.py` keeps its own native unit (km, AU,
 or ly) exactly as today. Conversion only happens at the persistence
-boundary, once it's built: `src/stellarObjects/utils.py` provides
+boundary, once it's built: `src/planetgen/physics/units.py` provides
 `ly_to_milliparsecs`/`milliparsecs_to_ly` for the sector-scale columns;
 AU-to-km needs no helper, since it's a single multiply by the existing
 `physical_constants.AU_TO_KM`.
@@ -180,13 +180,13 @@ simple rotation-curve model (see `planetgen/physics/constants.py`'s
 each body's Cartesian position relative to its orbital anchor (the star,
 or a binary's combined center, for a planet; the parent planet for a
 moon), derived from `distance_km` and the v9 orbital-motion columns (see
-`stellarObjects/utils.py`'s `orbital_position_au`); v12 added
+`planetgen/physics/orbits.py`'s `orbital_position_au`); v12 added
 `planets`/`moons.min_update_interval_years` — a floating-point update
 guard, not a narrative stat: the shortest `elapsed_years` worth calling
 `_db.advance_orbital_phases` for, below which the phase delta added is
 smaller than `orbital_phase_deg`'s own IEEE 754 double-precision
 resolution and so is guaranteed to round back to the exact value already
-stored (see `stellarObjects/utils.py`'s `minimum_update_interval_years`).
+stored (see `planetgen/physics/orbits.py`'s `minimum_update_interval_years`).
 Scoped to `planets`/`moons` only at v12 — `stars`' galactic-orbit values
 were, at that point, fixed forever at generation time, with no periodic
 update mechanism to guard; v13 changed that (see below). v13 added star
@@ -202,10 +202,10 @@ moves around the galaxy together, not independently — see
 each other (entirely separate from, and vastly faster than, the galactic
 orbit above): `binary_mutual_orbital_period_years`/`_speed_kms`
 (`planetPhysics.calculate_orbital_period_years`/
-`utils.circular_orbital_speed_kms`, the same Kepler/circular-orbit formulas
+`orbits.circular_orbital_speed_kms`, the same Kepler/circular-orbit formulas
 a planet's orbit around its star already uses, applied to the pair's
 `binary_separation_km`/`binary_effective_mass_kg`), `_inclination_deg`/
-`_ascending_node_deg`/`_phase_deg` (the same `utils.orbital_position_au`
+`_ascending_node_deg`/`_phase_deg` (the same `orbits.orbital_position_au`
 orbital-element convention planets/moons use, drawn from the full
 `[0, 180)`/`[0, 360)` range with no small-tilt bias — a binary's mutual
 orbital plane has no protoplanetary-disk reason to prefer any alignment,
@@ -213,7 +213,7 @@ unlike a planet's), and `binary_mutual_min_update_interval_years`. v14
 added `binary_mutual_position_x_km`/`_y_km`/`_z_km` — the secondary's
 Cartesian position relative to the primary, derived from
 `binary_separation_km` and the v13 `binary_mutual_orbital_*` columns via
-`utils.orbital_position_au`, the same "position relative to whatever this
+`orbits.orbital_position_au`, the same "position relative to whatever this
 orbit is around" convention `planets`/`moons.position_x/y/z_km` already
 use (see v11 above) — recomputed by `_db.advance_orbital_phases` in
 lockstep every time `binary_mutual_orbital_phase_deg` advances.
@@ -227,7 +227,7 @@ discriminator going forward; `is_binary` is kept and now means "this
 system has two stars", true for either configuration) plus
 `binary_eccentricity`/`binary_periapsis_km`/`binary_apoapsis_km` (0/
 `binary_separation_km` for a `'close'` pair, real values for a `'wide'`
-one — see `utils.holman_wiegert_critical_semimajor_axis`). The existing
+one — see `orbits.holman_wiegert_critical_semimajor_axis`). The existing
 `binary_separation_km`/`binary_mutual_orbital_*`/
 `binary_mutual_position_*_km` columns are reused UNCHANGED for a `'wide'`
 pair's own mutual orbit. NULL for a `'wide'` pair, unlike a `'close'` one
@@ -277,7 +277,7 @@ remnant, a rogue planet, an interstellar comet, or a standalone asteroid
 field is still gravitationally part of the galaxy despite being bound to
 no star, so each now carries the same `galactic_orbital_speed_kms`/
 `_period_gy`/`_phase_deg`/`_min_update_interval_years` quartet a lone star
-has (new shared `utils.generate_galactic_orbit_fields`/
+has (new shared `galactic_orbit.generate_galactic_orbit_fields`/
 `format_galactic_orbit` helpers). `black_holes`/`neutron_stars` gain these
 four columns nullable (populated only when `star_id IS NULL` — an
 anchored remnant's motion already lives on its own `stars` row);
@@ -327,7 +327,7 @@ parent planet's mass). Every existing "relative position" column
 true separation a large amount of existing physics (insolation, Hill
 sphere, tidal locking) depends on. New columns instead add the ORBITED
 body's own small "reflex offset"/"wobble" away from its nominal fixed
-point (see `utils.calculate_reflex_offset`): `stars`/`planets` each gain
+point (see `orbits.calculate_reflex_offset`): `stars`/`planets` each gain
 `reflex_offset_x/y/z_km` (a star's from the planets orbiting it directly,
 a planet's from its own moons — NULL/0 with none); `star_systems` gains
 `binary_primary_position_x/y/z_km`/`binary_secondary_position_x/y/z_km`
@@ -1163,10 +1163,10 @@ One row per generated system (single-star or binary).
 | `binary_heliosphere_radius_km` | DOUBLE | nullable | |
 | `binary_galactic_orbital_speed_kms`, `binary_galactic_orbital_period_gy` | DOUBLE | nullable | Added in v10. Circular orbital speed/period around the galactic center (see `stars.galactic_orbital_speed_kms` below) — independent of mass, so identical to the primary/secondary stars' own values, just mirrored here for the combined-pair row. |
 | `binary_galactic_orbital_phase_deg`, `binary_galactic_min_update_interval_years` | DOUBLE | nullable | Added in v13. Same pair as `stars.galactic_orbital_phase_deg`/`galactic_min_update_interval_years` below, mirrored here — always identical to both constituent stars' own values (see "Schema history" above for why). |
-| `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`utils.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
-| `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `utils.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
+| `binary_mutual_orbital_period_years`, `_speed_kms` | DOUBLE | nullable | Added in v13. The pair's own mutual orbit around each other — entirely separate from, and vastly faster than, the galactic orbit above. Kepler's third law / circular-orbit speed (`planetPhysics.calculate_orbital_period_years`/`orbits.circular_orbital_speed_kms`) applied to `binary_separation_km`/`binary_effective_mass_kg`. |
+| `binary_mutual_orbital_inclination_deg`, `_ascending_node_deg`, `_phase_deg` | DOUBLE | nullable | Added in v13. Orients the mutual orbit in 3D and tracks the pair's current position within it — same `orbits.orbital_position_au` convention as `planets.orbital_inclination_deg`/etc, but drawn from the full `[0, 180)`/`[0, 360)` range (no small-tilt bias — a binary's mutual orbital plane has no preferred alignment the way a planet's protoplanetary-disk-derived orbit does). `_phase_deg` is advanced by `_db.advance_orbital_phases`, guarded by the interval below. |
 | `binary_mutual_min_update_interval_years` | DOUBLE | nullable | Added in v13. Floating-point update guard for `binary_mutual_orbital_phase_deg`, same formula as `planets.min_update_interval_years`. |
-| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`utils.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v20** — still the true separation, not a barycenter-reduced value. |
+| `binary_mutual_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v14. The secondary's Cartesian position relative to the primary — same "position relative to whatever this orbit is around" convention as `planets.position_x/y/z_km` (`orbits.orbital_position_au`, applied to `binary_separation_km` and the mutual-orbit orientation columns above). Recomputed by `_db.advance_orbital_phases` in lockstep every time `binary_mutual_orbital_phase_deg` advances. **Unchanged in meaning by v20** — still the true separation, not a barycenter-reduced value. |
 | `binary_primary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. The primary star's own offset from the pair's barycenter — `-binary_secondary_mass_fraction * binary_mutual_position_*_km`. Reused unchanged for both binary configurations, like `binary_mutual_position_*_km` above. |
 | `binary_secondary_position_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. The secondary star's own offset from the barycenter — always equal to `binary_primary_position_* + binary_mutual_position_*`, but stored explicitly rather than derived on read (same convention `binary_mutual_position_*_km` itself already set). |
 | `binary_secondary_mass_fraction` | DOUBLE | nullable | Added in v20. `secondary_mass / (primary_mass + secondary_mass)`, constant since masses don't change — stored so `_db.advance_orbital_phases` never needs to join back to `stars` for either mass. |
@@ -1237,12 +1237,12 @@ anything.
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | |
 | `system_perimeter_km` | DOUBLE | NOT NULL | Hill sphere relative to the galaxy. |
 | `heliosphere_radius_km` | DOUBLE | NOT NULL | |
-| `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`utils.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
+| `galactic_orbital_speed_kms` | DOUBLE | NOT NULL | Added in v10. Circular orbital speed around the galactic center (`galactic_orbit.calculate_galactic_orbit`), from this system's actual distance from the galactic center where known (a sector-placed system), or the fixed `physical_constants.GALACTIC_CENTER_DISTANCE_LY` fallback otherwise — same fallback convention as `system_perimeter_km`. |
 | `galactic_orbital_period_gy` | DOUBLE | NOT NULL | Added in v10. Orbital period for the circular orbit above, in billions of years (Gy) — the same unit `age_gy`/`lifespan_gy` use. |
 | `galactic_orbital_phase_deg` | DOUBLE | NOT NULL | Added in v13. This star's current angular position around its galactic orbit — the same role `planets.orbital_phase_deg` plays, advanced by `_db.advance_orbital_phases`. Both stars of a binary pair always carry the identical value (see "Schema history" above for why — `StarSystem.__init__` rolls it once and threads it to primary/secondary/proxy alike). |
-| `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`utils.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
-| `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`utils.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
-| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
+| `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`orbits.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
+| `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`orbits.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
 
 ### `planets`
 
@@ -1278,11 +1278,11 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `planetgen.cli.orbits` (see `orbit_simulation_state` below). |
-| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`utils.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
-| `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`utils.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
-| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`utils.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
+| `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
+| `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`orbits.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
+| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
-| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `utils.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
+| `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
 
 ### `planet_evolutionary_paragraphs`
 

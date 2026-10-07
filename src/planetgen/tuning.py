@@ -68,7 +68,7 @@ ABSOLUTE_MAX_SYSTEM_OBJECTS = 500
 MIN_ASTEROID_BELT_SEPARATION = 0.05
 
 # Minimum stable orbital separation between two adjacent planets, in units
-# of their *mutual* Hill radius (utils.mutual_hill_radius_m -- the pair's
+# of their *mutual* Hill radius (orbits.mutual_hill_radius_m -- the pair's
 # combined mass and average distance, not either body's own individual
 # Hill radius alone). The analytically rigorous minimum for guaranteed
 # two-planet Hill stability in the circular, coplanar case is 2*sqrt(3)
@@ -91,7 +91,7 @@ MUTUAL_HILL_RADII_SEPARATION = 10
 # multi-region) find M_dust ~ M_star^1.8 in young (~1-3 Myr) star-forming
 # regions, steepening further (~M_star^2.7) in older ones. This scales
 # `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2` for any given
-# star relative to the Sun -- see `utils.disk_surface_density_scale`,
+# star relative to the Sun -- see `formation.disk_surface_density_scale`,
 # used by `StarSystem._estimate_max_objects_from_disk_physics`. The
 # younger-region exponent is used since this generator has no notion of a
 # system's disk-formation age (only its current, post-formation age).
@@ -103,7 +103,7 @@ DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 # hundred AU (ALMA disk-size surveys). Rather than a flat AU figure, this
 # scales with the same star-dependent quantity that sets where solids can
 # even condense in the first place: the snow line
-# (`physical_constants.SNOW_LINE_AU_AT_1_LSUN`/`utils.snow_line_au`) --
+# (`physical_constants.SNOW_LINE_AU_AT_1_LSUN`/`formation.snow_line_au`) --
 # our own Solar System's own giant-planet/Kuiper-belt region extends to
 # roughly this same multiple (~18x) of its own 2.7 AU snow line. See
 # `StarSystem._estimate_max_objects_from_disk_physics`.
@@ -147,7 +147,7 @@ SINGLE_SYSTEM_GENERATION_ATTEMPTS = 5
 
 # Holman & Wiegert (1999), AJ 117:621 -- their P-type (circumbinary) fit,
 # for a planet orbiting both stars of a close pair
-# (utils.holman_wiegert_circumbinary_a_crit_au), was tested over mu (the
+# (orbits.holman_wiegert_circumbinary_a_crit_au), was tested over mu (the
 # lighter star's mass fraction) in [0.1, 0.5] and e in [0.0, 0.7]; inputs
 # are clamped to this range rather than extrapolated.
 HOLMAN_WIEGERT_P_TYPE_MU_RANGE = (0.1, 0.5)
@@ -898,7 +898,7 @@ PLANET_CLASSES = {
         "size_mode": 0.18,
         "h": False, "e": True, "c": False, "r": False,
         # How far through the ecosphere zone's own [inner, outer] AU range
-        # this class is generated, via a `utils.sample_bounded_bell` draw
+        # this class is generated, via a `random.sample_bounded_bell` draw
         # centered here instead of the zone's full width being equally
         # likely (see `planetPhysics.generate_planet_properties`'s
         # "zone_position_mode" handling) -- Mars sits much farther from the

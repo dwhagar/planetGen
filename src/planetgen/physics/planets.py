@@ -23,17 +23,18 @@ import re
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util import log
-from stellarObjects.utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
-                    circular_orbital_speed_kms, minimum_update_interval_years,
-                    finite_domain, orbital_position_au, sample_bounded_bell,
-                    sample_power_law)
+from planetgen.physics.orbits import (
+    calculate_hill_sphere, calculate_reflex_offset, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
+)
+from planetgen.util.checks import finite_domain
+from planetgen.util.random import sample_bounded_bell, sample_power_law
 
 
 def _sample_class_radius(cls, min_radius, max_radius):
     """
     Draws a radius in [min_radius, max_radius] using `cls`'s declared
     `size_mode` (see `tuning.PLANET_CLASSES`), via
-    `utils.sample_bounded_bell` -- a bell-curve draw peaking at the
+    `random.sample_bounded_bell` -- a bell-curve draw peaking at the
     class's statistically-most-common size, rather than a flat uniform
     draw across its whole declared range. `min_radius`/`max_radius` are
     passed separately from `cls`'s own declared `radius_range` (rather
@@ -848,7 +849,7 @@ def update_orbital_position(planet):
     `planet.min_update_interval_years` from its current `distance`,
     `period`, and orbital elements (`orbital_inclination_deg`/
     `orbital_ascending_node_deg`/`orbital_phase_deg`), via
-    `utils.orbital_position_au`/`circular_orbital_speed_kms`/
+    `orbits.orbital_position_au`/`circular_orbital_speed_kms`/
     `minimum_update_interval_years`.
 
     Called both at initial generation (`generate_orbital_motion_properties`,
@@ -1149,8 +1150,38 @@ def generate_moons(planet, moon_count=None):
         # combined pull of its own moons -- a proper two-body treatment
         # alongside each moon's own unchanged position_x/y/z (relative to
         # this planet); see Planet.reflex_offset_x's own docstring and
-        # utils.calculate_reflex_offset. Left at its 0.0 default when this
+        # orbits.calculate_reflex_offset. Left at its 0.0 default when this
         # planet ends up with no moons (every early-return path above).
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
         )
+
+
+def calculate_object_mass(object_class, object_radius, planet_classes, planet_density, object_density=None):
+    """
+    Calculates the mass of a celestial object in kilograms.
+
+    This function computes the mass based on the object's radius and density.
+    If the density is not provided, it is randomly determined based on the
+    object's class and type.
+
+    Args:
+        object_class (str): The class of the object (e.g., 'M', 'N').
+        object_radius (float): The radius of the object in kilometers.
+        planet_classes (dict): A dictionary defining the properties of planet classes.
+        planet_density (dict): A dictionary of density ranges for planet types.
+        object_density (float, optional): The density of the object in g/cm³.
+
+    Returns:
+        tuple: A tuple containing the volume in km³ and the mass in kg.
+    """
+    if object_density is None:
+        min_density, max_density = planet_density[planet_classes[object_class]['type']]
+        p_density = random.uniform(min_density, max_density)
+    else:
+        p_density = object_density
+
+    volume_km3 = (4 / 3) * math.pi * object_radius ** 3
+    volume_m3 = volume_km3 * constants.KM_TO_M_FACTOR ** 3
+    mass = volume_m3 * p_density * 1000
+    return volume_km3, mass

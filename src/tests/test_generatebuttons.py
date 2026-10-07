@@ -16,7 +16,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation.limits import MAX_GENERATE_RADIUS_LY
-from stellarObjects.utils import ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 NODE = shutil.which("node")
 MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "generatebuttons.js")

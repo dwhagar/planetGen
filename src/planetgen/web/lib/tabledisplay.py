@@ -7,7 +7,7 @@ the database's now-removed `table_*`/`binary_table_*` columns (see
 `schema.sql`'s "v5" header note) -- but on demand, from the raw numeric
 columns (`mass_kg`, `radius_km`, `luminosity_w`, `distance_km`, ...) that
 were always stored alongside them and still are. Reuses
-`stellarObjects.utils`' formatters directly rather than reimplementing the
+`planetgen.util.format`'s formatters directly rather than reimplementing the
 scientific-notation/Sol-relative math; only the small per-quantity branching
 (which unit to show, at what threshold) is mirrored here, operating on plain
 numbers instead of a live `Star`/`Planet` object's attributes.
@@ -62,9 +62,8 @@ def to_plain_text(formatted):
 try:
     from planetgen.physics import constants
     from planetgen.generation.config import SystemConfig
-    from stellarObjects.utils import (
-        format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol,
-        to_scientific_notation,
+    from planetgen.util.format import (
+        format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol, to_scientific_notation,
     )
 
     _HTML_CONFIG = SystemConfig()
@@ -112,7 +111,7 @@ def format_star_radius(radius_km):
 
 def format_period(period_years):
     """An orbital period, in years, on the shared period ladder
-    (`stellarObjects.utils.format_period_years`, UX.14)."""
+    (`planetgen.util.format.format_period_years`, UX.14)."""
     if format_period_years is None:
         return f"{period_years} years"
     return format_period_years(period_years)
@@ -121,7 +120,7 @@ def format_period(period_years):
 def format_body_distance(distance_km, is_moon=False):
     """
     A planet's distance from its star or a moon's from its planet, through
-    the distance ladder (`utils.format_distance_m`): km under 1 AU, then AU,
+    the distance ladder (`format.format_distance_m`): km under 1 AU, then AU,
     and so on up. `is_moon` is kept for callers; moons and planets now
     follow the same ladder.
 

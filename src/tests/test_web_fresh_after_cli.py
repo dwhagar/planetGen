@@ -49,7 +49,7 @@ from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
-from stellarObjects.utils import ly_to_pc  # noqa: E402
+from planetgen.physics.units import ly_to_pc  # noqa: E402
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 

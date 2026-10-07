@@ -29,7 +29,7 @@ from collections import namedtuple
 from planetgen.generation import life as planetLife
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
-from stellarObjects.utils import calculate_reflex_offset, mutual_hill_radius_au
+from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 
 RELATIVE_TOLERANCE = 1e-9
 """float: Slack the checks allow on a distance comparison, so a body the
@@ -135,7 +135,7 @@ def mutual_min_distance_au(planet, last_planet):
     The closest `planet` (the later/farther of the pair) can stably
     sit to `last_planet` (fixed -- it's already been placed and
     won't move again this pass), via their *mutual* Hill radius
-    (`utils.mutual_hill_radius_m`) rather than either one's own
+    (`orbits.mutual_hill_radius_m`) rather than either one's own
     individual Hill radius alone -- see
     `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
     the stability-literature basis.

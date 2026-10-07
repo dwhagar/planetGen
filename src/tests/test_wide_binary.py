@@ -1,9 +1,9 @@
 """
 S-type (wide) binary regression tests.
 
-Covers the physics formulas (`utils.holman_wiegert_critical_semimajor_axis`,
-`utils.mutual_hill_radius_au`), the sampling distributions
-(`utils.sample_wide_binary_separation_au`/`sample_wide_binary_eccentricity`),
+Covers the physics formulas (`orbits.holman_wiegert_critical_semimajor_axis`,
+`orbits.mutual_hill_radius_au`), the sampling distributions
+(`wide_binary.sample_wide_binary_separation_au`/`sample_wide_binary_eccentricity`),
 the per-star orbit-ceiling enforcement in `StarSystem._generate_planets`, the
 cross-star clearance pruning in `StarSystem._validate_cross_star_clearance`,
 and end-to-end generation/round-trip through `WIDE_BINARY_SYSTEM=True`.
@@ -19,10 +19,8 @@ from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import (holman_wiegert_critical_semimajor_axis,
-                                   mutual_hill_radius_au,
-                                   sample_wide_binary_eccentricity,
-                                   sample_wide_binary_separation_au)
+from planetgen.generation.wide_binary import sample_wide_binary_eccentricity, sample_wide_binary_separation_au
+from planetgen.physics.orbits import holman_wiegert_critical_semimajor_axis, mutual_hill_radius_au
 
 STAR_TYPES = ["G2V", "M5V", "K3V", "A0V"]
 TRIALS = 3

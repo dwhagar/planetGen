@@ -27,7 +27,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_orientation
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.utils import ly_to_pc, mpc_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
 
 def _place_sector(mysql_config, name, center_pc, edge_ly=11.5):

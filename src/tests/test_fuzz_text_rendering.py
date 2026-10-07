@@ -26,7 +26,7 @@ from unittest import mock
 
 import pytest
 
-from stellarObjects.utils import format_number
+from planetgen.util.format import format_number
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 

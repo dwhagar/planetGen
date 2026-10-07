@@ -33,7 +33,7 @@ attempted at all, not just a no-op write) when this run's elapsed time is
 below that body's own `min_update_interval_years` -- the point past which
 the phase delta added would be smaller than `orbital_phase_deg`'s own
 floating-point resolution and so is guaranteed to round back to the exact
-value already stored (see `stellarObjects.utils.minimum_update_interval_years`).
+value already stored (see `planetgen.physics.orbits.minimum_update_interval_years`).
 `orbital_inclination_deg`/`orbital_ascending_node_deg`/`orbital_speed_kms`/
 `min_update_interval_years` (fixed at generation time) and
 `rotation_period_hours` (a static descriptive stat -- this generator
@@ -83,7 +83,7 @@ columns above change meaning -- these are new, additive columns
 every run from whatever the already-advanced children currently look
 like, with no independent update-guard interval of their own. See
 `schema.sql`'s "v20" header note and
-`stellarObjects.utils.calculate_reflex_offset`'s docstring for the
+`planetgen.physics.orbits.calculate_reflex_offset`'s docstring for the
 formula.
 
 Galactic motion (GEN.6): after the phases above,

@@ -54,7 +54,7 @@ own test below."""
 
 _UTILS_HELPERS = {"format_body_radius_km", "format_relative_to_sol", "format_distance_km", "format_period_years",
                   "to_scientific_notation"}
-"""set: `stellarObjects.utils` functions `tabledisplay` imports for its own
+"""set: `planetgen.util.format` functions `tabledisplay` imports for its own
 use (they take a `SystemConfig`, or are wrapped by `tabledisplay`'s own
 formatters), not part of its interface."""
 

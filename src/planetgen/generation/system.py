@@ -32,16 +32,11 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
-from stellarObjects.utils import (
-    calculate_reflex_offset,
-    format_distance_au,
-    disk_surface_density_scale,
-    holman_wiegert_circumbinary_a_crit_au,
-    isolation_mass_kg,
-    mmsn_surface_density_gcm2,
-    snow_line_au,
-    to_paragraph,
+from planetgen.physics.formation import (
+    disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2, snow_line_au,
 )
+from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
+from planetgen.util.format import format_distance_au, to_paragraph
 from planetgen.generation.wide_binary import WideBinaryPair
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
@@ -425,7 +420,7 @@ class StarSystem:
 
         # Each hosting star's own reflex-offset "wobble" (schema v20) --
         # see `Star.reflex_offset_x`'s own docstring and
-        # `utils.calculate_reflex_offset`. Positions are now final (planet
+        # `orbits.calculate_reflex_offset`. Positions are now final (planet
         # placement/validation above is done), so this is computed once,
         # here, same as everything else in this pass.
         self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
@@ -681,7 +676,7 @@ class StarSystem:
         """
         The innermost stable orbit around `star`, in AU: for a P-type
         (close) binary's merged proxy, Holman & Wiegert's circumbinary
-        critical semi-major axis (`utils.holman_wiegert_circumbinary_a_crit_au`,
+        critical semi-major axis (`orbits.holman_wiegert_circumbinary_a_crit_au`,
         about 2-2.4 times the pair's separation), since anything closer is
         inside, or torn apart by, the two stars' own orbit. At least
         `_engulfment_radius_au` for any star, since a giant (or a white
@@ -1097,7 +1092,7 @@ class StarSystem:
         from in the first place.
 
         As the equal-mass, circular-orbit sanity check in
-        `utils.holman_wiegert_critical_semimajor_axis`'s own docstring
+        `orbits.holman_wiegert_critical_semimajor_axis`'s own docstring
         shows (`a_crit_au` sitting at roughly 0.27-0.30 * a_bin for that
         case, comfortably under half of `a_bin`), this should rarely
         trigger for ordinary wide, low-eccentricity pairs -- it exists as a
@@ -1681,7 +1676,7 @@ class StarSystem:
         material did this star's disk have" into "how many planets could
         that have made": embryos grow by clearing their own feeding zone
         until they reach their oligarchic-growth *isolation mass*
-        (`utils.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
+        (`formation.isolation_mass_kg` -- Lissauer 1993; Kokubo & Ida 2000,
         2002), then space apart from their neighbors by the same *mutual*
         Hill radius `_mutual_min_distance_au` already enforces during
         placement (`tuning.MUTUAL_HILL_RADII_SEPARATION`) --
@@ -1694,8 +1689,8 @@ class StarSystem:
         before GEN.37 scaled that with the habitable zone instead) and
         steps outward -- at each step, computing the local isolation
         mass from the disk's surface density there (scaled for this star
-        via `utils.disk_surface_density_scale`, boosted beyond the snow
-        line via `utils.snow_line_au`), then advancing by that embryo's
+        via `formation.disk_surface_density_scale`, boosted beyond the snow
+        line via `formation.snow_line_au`), then advancing by that embryo's
         own mutual-Hill-radius feeding zone -- until reaching the disk's
         outer edge, at
         `tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER` times
@@ -1826,7 +1821,7 @@ class StarSystem:
         The closest `planet` (the later/farther of the pair) can stably
         sit to `last_planet` (fixed -- it's already been placed and
         won't move again this pass), via their *mutual* Hill radius
-        (`utils.mutual_hill_radius_m`) rather than either one's own
+        (`orbits.mutual_hill_radius_m`) rather than either one's own
         individual Hill radius alone -- see
         `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         the stability-literature basis.

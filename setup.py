@@ -21,10 +21,9 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 def read_version():
     """
-    Reads `__version__` out of `planetgen/_version.py` as plain text
-    (regex, not import) rather than `import stellarObjects` -- that package's
-    `__init__.py` imports `Planet`, which imports `names.py`, which imports
-    `nltk` at module load time, and this script runs in an isolated build
+    Reads `__version__` out of `planetgen/_version.py` as plain text (a
+    regex, not an import): the generator modules import `nltk` at module
+    load time, and this script runs in an isolated build
     environment that doesn't have `nltk` (or any other runtime dependency)
     installed yet (see the note above on the corpus download).
     """
@@ -40,7 +39,7 @@ def read_version():
 setup(
     name='planetGen',
     version=read_version(),
-    # stellarObjects/api/tests live under src/ (src layout) while the
+    # planetgen and tests live under src/ (src layout) while the
     # top-level entry script (generate.py, py_modules below) stays at the
     # repo root -- a blanket `package_dir={'': 'src'}` would also redirect
     # that py_modules lookup into src/, where it doesn't exist, so each

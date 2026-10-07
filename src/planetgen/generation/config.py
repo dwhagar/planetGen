@@ -1,7 +1,7 @@
 # planetgen/generation/config.py
 
 """
-Configuration settings for the stellarObjects package.
+Configuration settings for the generator.
 
 This module defines the `SystemConfig` class, which encapsulates all
 configuration flags and variables that control the behavior of the star system
@@ -148,7 +148,7 @@ class SystemConfig:
         separated by tens to thousands of AU, each hosting its own
         independently-generated planets, with each star's maximum stable
         orbit limited by the companion's gravity (see
-        `utils.holman_wiegert_critical_semimajor_axis`). If False, forces a
+        `orbits.holman_wiegert_critical_semimajor_axis`). If False, forces a
         P-type (close/circumbinary) binary -- the original, and only,
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star

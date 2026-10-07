@@ -25,7 +25,6 @@ its Eddington ratio:
     constants for sources).
 """
 
-import math
 import random
 
 from planetgen.generation.config import SystemConfig
@@ -34,12 +33,10 @@ from planetgen.physics import constants as physical_constants
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.util.format import format_distance_km, format_distance_ly, format_number
+from planetgen.util.random import log_uniform
 
-
-def _log_uniform(low, high):
-    """A value drawn uniformly in log space between `low` and `high`."""
-    return math.exp(random.uniform(math.log(low), math.log(high)))
 
 
 class Quasar:
@@ -87,13 +84,13 @@ class Quasar:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.black_hole_mass_solar = _log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
+        self.black_hole_mass_solar = log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
         self.event_horizon_radius_km = (
             2 * physical_constants.G * mass_kg / physical_constants.SPEED_OF_LIGHT_M_S ** 2 / 1000
         )
 
-        self.eddington_ratio = _log_uniform(*tuning.QUASAR_EDDINGTON_RATIO_RANGE)
+        self.eddington_ratio = log_uniform(*tuning.QUASAR_EDDINGTON_RATIO_RANGE)
         self.luminosity_w = (
             self.eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS
             * self.black_hole_mass_solar
@@ -118,10 +115,10 @@ class Quasar:
         log.choice("Quasar radio loudness", "radio-loud" if self.is_radio_loud else "radio-quiet",
                    f"roll against QUASAR_RADIO_LOUD_CHANCE ({tuning.QUASAR_RADIO_LOUD_CHANCE})")
         self.jet_length_ly = (
-            _log_uniform(*tuning.QUASAR_JET_LENGTH_RANGE_LY) if self.is_radio_loud else None
+            log_uniform(*tuning.QUASAR_JET_LENGTH_RANGE_LY) if self.is_radio_loud else None
         )
 
-        self.active_age_years = _log_uniform(*tuning.QUASAR_ACTIVE_AGE_RANGE_YEARS)
+        self.active_age_years = log_uniform(*tuning.QUASAR_ACTIVE_AGE_RANGE_YEARS)
 
     def to_dict(self):
         """

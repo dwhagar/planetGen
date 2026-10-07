@@ -44,7 +44,7 @@ from planetgen.galaxy.geometry import (
     SectorCell, enumerate_sectors_within_radius, layer_bounds_pc, ring_bounds_pc, ring_sector_count,
     sector_orientation, sector_position_pc, slot_angle_bounds,
 )
-from stellarObjects.utils import ly_to_pc, mpc_to_pc
+from planetgen.physics.units import ly_to_pc, mpc_to_pc
 
 from tests import worker_patches
 from tests.bughunt_support import forced_system_config

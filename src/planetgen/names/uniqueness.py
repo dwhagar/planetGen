@@ -220,7 +220,7 @@ def strip_decoration(name):
     Sectors/systems only ever get a Greek prefix and, for systems only,
     also a diminutive prefix or a trailing roman numeral. Safe because the
     three word lists don't overlap and a generated base word is never one
-    of them (`utils.is_name_valid` rejects every decoration word).
+    of them (`wordsalad.is_name_valid` rejects every decoration word).
 
     Args:
         name (str): A stored `sectors`/`star_systems` name, decorated or

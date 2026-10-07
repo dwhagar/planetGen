@@ -220,7 +220,7 @@ def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
 def test_cell_outline_arcs_follow_the_ring_radius():
     from planetgen.web.maps import starmap
     from planetgen.galaxy.geometry import ring_bounds_pc, sector_position_pc
-    from stellarObjects.utils import mpc_to_pc
+    from planetgen.physics.units import mpc_to_pc
 
     address, edge_mpc, half_edge = (3, 0, 7), 4000.0, 2000.0
     edges = starmap._cell_arc_edges_px(address, edge_mpc, half_edge)

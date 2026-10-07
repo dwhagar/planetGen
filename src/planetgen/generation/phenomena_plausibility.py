@@ -48,7 +48,7 @@ from planetgen.generation.plausibility import iqr_bounds
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, rogue_planet_classes
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
-from stellarObjects.utils import power_law_share
+from planetgen.util.random import power_law_share
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
 """tuple: The eight phenomenon types this module can generate/check --

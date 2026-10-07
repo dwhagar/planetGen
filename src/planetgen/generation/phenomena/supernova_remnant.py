@@ -26,8 +26,9 @@ from planetgen.generation.phenomena.nebula import REMNANT_CLASS_LETTERS, choose_
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from stellarObjects.utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
-                    generate_phoneme_salad_name)
+from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
+from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.util.format import format_distance_ly, format_number
 
 
 def remnant_classes_for(progenitor_type, compact_remnant_kind):

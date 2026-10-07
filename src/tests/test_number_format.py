@@ -1,7 +1,7 @@
 # tests/test_number_format.py
 
 """
-The site's one number formatter (UX.20): `stellarObjects.utils.
+The site's one number formatter (UX.20): `planetgen.util.format.
 format_number` shows a whole number with 7 or more digits, or a number
 with decimals and 5 or more digits before the decimal point, in
 scientific notation (UX.36; 3 significant figures, Unicode superscripts), and `html/static/numberformat.js` mirrors it, checked
@@ -15,7 +15,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects.utils import format_distance_km, format_number, format_period_years, scientific_text
+from planetgen.util.format import format_distance_km, format_number, format_period_years, scientific_text
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
 

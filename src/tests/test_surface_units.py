@@ -2,14 +2,14 @@
 
 """
 Surface conditions in customary units alongside metric (Boss, 2026-10-01):
-`stellarObjects.utils.format_temperature_k` shows K with °C and °F, and
+`planetgen.util.format.format_temperature_k` shows K with °C and °F, and
 `format_pressure_pa` a Pa < kPa < MPa < GPa value with atm and psi.
 """
 
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects.utils import format_pressure_atm, format_pressure_pa, format_temperature_k
+from planetgen.util.format import format_pressure_atm, format_pressure_pa, format_temperature_k
 
 
 @pytest.mark.parametrize("kelvin,expected", [

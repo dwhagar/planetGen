@@ -1,6 +1,6 @@
 """
 GEN.46: no newly chosen star system name is longer than two words. A base
-name is one word or two (`utils.split_long_word`); the uniqueness
+name is one word or two (`wordsalad.split_long_word`); the uniqueness
 decorations (`nameUniqueness.py`, applied in `store.py`) may only be used
 while the name stays within two words, and otherwise the name is drawn
 again. Names already stored are left as they are (Boss, 2026-10-02).

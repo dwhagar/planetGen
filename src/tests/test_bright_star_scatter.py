@@ -19,7 +19,7 @@ from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
 from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -473,7 +473,7 @@ def _database_now(mysql_config):
 
 
 def _distance_ly(a, b):
-    from stellarObjects.utils import pc_to_ly
+    from planetgen.physics.units import pc_to_ly
     return pc_to_ly(math.dist(sector_position_pc(*a, EDGE_PC), sector_position_pc(*b, EDGE_PC)))
 
 

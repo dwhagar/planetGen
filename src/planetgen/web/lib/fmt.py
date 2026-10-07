@@ -1,12 +1,12 @@
 # planetgen/web/lib/fmt.py
 
 """
-Small, dependency-free formatting/escaping helpers shared by every page
-in `html/` -- what's left of the old `dbutil.py` once its database-access
-functions moved out: every page now fetches its data from the planetGen
-API (`planetgen/web/lib/apiclient.py`) instead of querying MySQL directly, so this
-module only ever operates on plain values already handed back as JSON,
-never a database row or connection.
+The HTML side of formatting, shared by every page: escaping, links,
+times, static URLs, and the shared number and unit formatters
+(`planetgen.util.format`) with a dash for a missing value. Every page
+fetches its data from the planetGen API (`planetgen/web/lib/apiclient.py`),
+so this module only ever operates on plain values already handed back as
+JSON, never a database row or connection.
 """
 
 import datetime as _dt
@@ -16,66 +16,8 @@ import os
 import re
 from urllib.parse import quote
 
-try:
-    from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # density is still shown, just without the "% of local average"
-    # comparison, rather than failing outright (matches every other
-    # web module's own fallback for an optional stellarObjects import).
-    LOCAL_STELLAR_DENSITY_LY3 = None
-
-try:
-    from stellarObjects.utils import (
-        format_distance_au as _ladder_au,
-        format_distance_km as _ladder_km,
-        format_distance_ly as _ladder_ly,
-        format_distance_pc as _ladder_pc,
-        format_duration_seconds,
-        format_number,
-        format_period_years,
-        format_pressure_pa,
-        format_speed_kms,
-        format_temperature_k,
-    )
-except ImportError:
-    # Without the planetGen package there is no ladder; plain units still
-    # read correctly.
-    def _ladder_km(km):
-        return f"{km:,.0f} km"
-
-    def _ladder_au(au):
-        return f"{au:,.3g} AU"
-
-    def _ladder_ly(ly):
-        return f"{ly:,.1f} ly"
-
-    def _ladder_pc(pc):
-        return f"{pc:,.2f} pc"
-
-    def format_number(value, spec=",.0f"):
-        """`stellarObjects.utils.format_number`'s rule, without its module."""
-        text = format(value, spec)
-        if math.isfinite(value) and ("e" in text or len(text.lstrip("-+").split(".")[0].replace(",", "")) >= 5):
-            mantissa, exponent = f"{value:.2e}".split("e")
-            superscript = str.maketrans("-0123456789", "\u207b\u2070\u00b9\u00b2\u00b3\u2074\u2075\u2076\u2077\u2078\u2079")
-            return f"{mantissa} \u00d7 10{str(int(exponent)).translate(superscript)}"
-        return text
-
-    def format_speed_kms(kms):
-        return "\u2013" if kms is None else f"{kms:,.3g} km/s"
-
-    def format_duration_seconds(seconds):
-        return "\u2013" if seconds is None else f"{seconds:,.3g} s"
-
-    def format_period_years(years):
-        return "\u2013" if years is None else f"{years:,.3g} years"
-
-    def format_temperature_k(kelvin):
-        return "\u2013" if kelvin is None else f"{kelvin:,.0f} K"
-
-    def format_pressure_pa(pascals):
-        return "\u2013" if pascals is None else f"{pascals:,.3g} Pa"
+from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
+from planetgen.util import format as _format
 
 
 _NON_FINITE_TEXT = re.compile(r"\b(?:nan|inf)\b", re.IGNORECASE)
@@ -109,24 +51,30 @@ def dash_unless_finite(formatter, dash="\u2013"):
     return guarded
 
 
-format_number = dash_unless_finite(format_number)
-format_speed_kms = dash_unless_finite(format_speed_kms)
-format_duration_seconds = dash_unless_finite(format_duration_seconds)
-format_period_years = dash_unless_finite(format_period_years)
-format_temperature_k = dash_unless_finite(format_temperature_k)
-format_pressure_pa = dash_unless_finite(format_pressure_pa)
-_ladder_km = dash_unless_finite(_ladder_km, "&ndash;")
-_ladder_au = dash_unless_finite(_ladder_au, "&ndash;")
-_ladder_ly = dash_unless_finite(_ladder_ly, "&ndash;")
-_ladder_pc = dash_unless_finite(_ladder_pc, "&ndash;")
+# The shared formatters (`planetgen.util.format`), each giving a dash for
+# a missing or non-finite value. A distance is shown on the ladder km < AU
+# < mpc < cpc < ly < pc < kpc < Mpc < Gpc, with a parsec value's ly/AU/km
+# parenthetical; every page passes its distances through these. Planet,
+# moon and star radii are the exception: they are always km in scientific
+# notation (`tabledisplay.format_star_radius`).
+format_number = dash_unless_finite(_format.format_number)
+format_speed_kms = dash_unless_finite(_format.format_speed_kms)
+format_duration_seconds = dash_unless_finite(_format.format_duration_seconds)
+format_period_years = dash_unless_finite(_format.format_period_years)
+format_temperature_k = dash_unless_finite(_format.format_temperature_k)
+format_pressure_pa = dash_unless_finite(_format.format_pressure_pa)
+format_distance_km = dash_unless_finite(_format.format_distance_km, "&ndash;")
+format_distance_au = dash_unless_finite(_format.format_distance_au, "&ndash;")
+format_distance_ly = dash_unless_finite(_format.format_distance_ly, "&ndash;")
+format_distance_pc = dash_unless_finite(_format.format_distance_pc, "&ndash;")
 
 
 def _read_package_version():
     """
     The planetGen package version (`src/planetgen/_version.py`'s
     `__version__`, which the post-merge stamp Action updates), read as
-    text with a regex the way `setup.py` does -- importing
-    `stellarObjects` would pull in `nltk` and friends just for a string.
+    text with a regex the way `setup.py` does -- importing the generator
+    modules would pull in `nltk` and friends just for a string.
     Falls back to `"dev"` if the file can't be found or parsed, so a page
     still renders (just without a meaningful cache-busting value).
     """
@@ -267,45 +215,6 @@ def nearest_systems_html(neighbors, system_url):
         return f" ({distance:.1f} ly)" if distance is not None else ""
     return ", ".join(f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a>{_distance(n)}'
                      for n in neighbors)
-
-
-def format_distance_km(distance_km):
-    """
-    A distance (or a nebula, belt or field radius) for display, in the most
-    meaningful unit on the ladder km < AU < mpc < cpc < ly < pc < kpc < Mpc
-    < Gpc, with a parsec value's ly/AU/km parenthetical: the web face of
-    `stellarObjects.utils.format_distance_m`. Every page passes its
-    distances through this or its `_au`/`_ly`/`_pc` siblings. `None` (an
-    unplaced sector or system) gives an en dash.
-
-    Planet, moon and star radii are the exception: they are always km in
-    scientific notation (`tabledisplay.format_star_radius`).
-    """
-    if distance_km is None:
-        return "&ndash;"
-    return _ladder_km(distance_km)
-
-
-def format_distance_au(distance_au):
-    """`format_distance_km` for a value in AU."""
-    if distance_au is None:
-        return "&ndash;"
-    return _ladder_au(distance_au)
-
-
-def format_distance_ly(distance_ly):
-    """`format_distance_km` for a value in light-years, e.g. a sector's or
-    system's distance from the galactic center ("8 kpc (26,093 ly)")."""
-    if distance_ly is None:
-        return "&ndash;"
-    return _ladder_ly(distance_ly)
-
-
-def format_distance_pc(distance_pc):
-    """`format_distance_km` for a value in parsecs (galaxy geometry)."""
-    if distance_pc is None:
-        return "&ndash;"
-    return _ladder_pc(distance_pc)
 
 
 def utc_time_html(value):

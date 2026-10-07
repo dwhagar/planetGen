@@ -13,7 +13,7 @@ alone can't be used to impersonate either. Passwords are hashed with
 `werkzeug.security.generate_password_hash` (salted, PBKDF2-SHA256 with
 600,000 rounds: `PASSWORD_HASH_METHOD`), imported lazily inside the
 two functions that need it rather than at module import time, so this
-module (and everything in `stellarObjects` that imports it transitively)
+module (and everything in `planetgen` that imports it transitively)
 stays importable without the `api` extra installed -- matching this
 package's existing boundary where `flask`/`werkzeug` are optional, needed
 only by `planetgen/api/`.

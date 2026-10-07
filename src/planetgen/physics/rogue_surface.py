@@ -28,6 +28,7 @@ import random
 
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util.random import log_uniform
 
 SURFACE_REGIMES = (
     "bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world",
@@ -68,9 +69,6 @@ BAR_TO_PA = 1e5
 HYDROGEN_MOLECULE_KG = 2 * constants.HYDROGEN_ATOM_MASS_KG
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 
-
-def _log_uniform(rng, low, high):
-    return math.exp(rng.uniform(math.log(low), math.log(high)))
 
 
 def _sigma():
@@ -247,22 +245,22 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         return result
 
     # Step 1: radioactive heat, leftover heat in Earth's proportion, tides.
-    abundance = _log_uniform(rng, *pc.ROGUE_RADIOGENIC_ABUNDANCE_RANGE)
+    abundance = log_uniform(*pc.ROGUE_RADIOGENIC_ABUNDANCE_RANGE, rng=rng)
     flux = radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance) / pc.ROGUE_UREY_RATIO
     if has_moons:
-        flux += _log_uniform(rng, *pc.ROGUE_TIDAL_FLUX_RANGE_W_M2)
+        flux += log_uniform(*pc.ROGUE_TIDAL_FLUX_RANGE_W_M2, rng=rng)
     # Step 2.
     t_eff = effective_temperature_k(flux)
 
     # Step 3: a hydrogen envelope, if it formed one and can hold it.
     envelope_pa = None
     if rng.random() < pc.ROGUE_HYDROGEN_ENVELOPE_CHANCE.get(mass_bin, 0.0):
-        envelope_pa = _log_uniform(rng, *pc.ROGUE_HYDROGEN_ENVELOPE_PRESSURE_BAR[mass_bin]) * BAR_TO_PA
+        envelope_pa = log_uniform(*pc.ROGUE_HYDROGEN_ENVELOPE_PRESSURE_BAR[mass_bin], rng=rng) * BAR_TO_PA
         if escape_parameter(mass_kg, radius_km, HYDROGEN_MOLECULE_KG, t_eff) < pc.ROGUE_MIN_ESCAPE_PARAMETER:
             envelope_pa = None
     water_fraction = None
     if rng.random() < pc.ROGUE_WATER_RICH_CHANCE.get(mass_bin, 0.0):
-        water_fraction = _log_uniform(rng, *pc.ROGUE_WATER_MASS_FRACTION_RANGE)
+        water_fraction = log_uniform(*pc.ROGUE_WATER_MASS_FRACTION_RANGE, rng=rng)
     had_air = mass_kg / constants.EARTH_MASS_TO_KG >= pc.ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH
 
     # Step 4: down the envelope's adiabat, or the bare surface at T_eff.

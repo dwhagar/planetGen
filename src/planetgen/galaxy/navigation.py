@@ -63,7 +63,7 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
-from stellarObjects.utils import format_period_years
+from planetgen.util.format import format_period_years
 
 FRAME_GALACTIC = "galactic"
 """str: The Galactic Standard Frame (North = the galactic core)."""
@@ -110,7 +110,7 @@ Attributes:
                                     multiple of light-speed.
     years (float): Travel time in years for the distance given to
                    `warp_travel_times`.
-    formatted (str): `years`, formatted via `utils.format_period_years`.
+    formatted (str): `years`, formatted via `format.format_period_years`.
 """
 
 

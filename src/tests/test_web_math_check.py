@@ -26,7 +26,7 @@ class _FakeConfig(Config):
 
 
 def _failed_result():
-    check = mathCheck.Check("snow_line_1_lsun", "reference", "utils.snow_line_au(L_sun)",
+    check = mathCheck.Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
                             lambda: 2.6, 2.7, 1e-6, "test")
     return mathCheck.run_check(check)
 

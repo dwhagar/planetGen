@@ -16,7 +16,7 @@ from planetgen.population import model as population
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import ly_to_pc
+from planetgen.physics.units import ly_to_pc
 
 import generate
 

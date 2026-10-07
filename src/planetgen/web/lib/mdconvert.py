@@ -3,7 +3,7 @@
 """
 A small, purpose-built Markdown-to-HTML converter for exactly the
 Markdown `StarSystem.__str__` generates (see
-`stellarObjects/utils.py:properties_to_string` and `systemData.py`) --
+`planetgen/util/format.py:properties_to_string` and `systemData.py`) --
 not a general-purpose Markdown implementation.
 
 That output uses a narrow, fixed subset: ATX headers (`#`/`##`/`###`,

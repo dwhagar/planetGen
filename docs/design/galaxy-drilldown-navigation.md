@@ -470,7 +470,7 @@ centered on the selected sector, generated or not.
   is `MAX_GENERATE_RADIUS_PC` converted to ly: 200 pc, about 652 ly.
 - Conversion: `radius_pc = radius_ly / 3.26156`, rounded to 0.1 pc and
   sent as `slot_radius_pc` (the same `ly_to_pc` as
-  `stellarObjects.utils`).
+  `planetgen.physics.units`).
 - A live estimate under the field: "about N sectors", with
   `N ≈ (4/3) * pi * (radius_pc / e)^3`, rounded to two significant
   figures. Sectors the outline doesn't allow are skipped by generation,

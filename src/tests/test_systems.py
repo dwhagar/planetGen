@@ -23,8 +23,9 @@ from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
-from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,
-                                   mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au)
+from planetgen.physics.orbits import (
+    circular_orbital_speed_kms, minimum_update_interval_years, mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au,
+)
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track

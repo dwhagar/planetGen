@@ -5,9 +5,9 @@ Covers the rework replacing the old `BASE_MAX_SYSTEM_OBJECTS *
 (1 + log10(solar_masses))` curve fit with a physically-derived ceiling: a
 protoplanetary-disk isolation-mass/mutual-Hill-radius walk (Lissauer 1993;
 Kokubo & Ida 2000, 2002) from real Minimum Mass Solar Nebula surface-density
-scaling (Hayashi 1981) -- see `utils.snow_line_au`,
-`utils.disk_surface_density_scale`, `utils.mmsn_surface_density_gcm2`,
-`utils.isolation_mass_kg`, and
+scaling (Hayashi 1981) -- see `formation.snow_line_au`,
+`formation.disk_surface_density_scale`, `formation.mmsn_surface_density_gcm2`,
+`formation.isolation_mass_kg`, and
 `StarSystem._estimate_max_objects_from_disk_physics`'s own docstring for the
 full derivation and literature citations.
 
@@ -24,11 +24,8 @@ from planetgen.physics import constants
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from stellarObjects.utils import (
-    disk_surface_density_scale,
-    isolation_mass_kg,
-    mmsn_surface_density_gcm2,
-    snow_line_au,
+from planetgen.physics.formation import (
+    disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2, snow_line_au,
 )
 
 

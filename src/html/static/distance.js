@@ -1,7 +1,7 @@
 // html/static/distance.js
 //
 // The distance ladder for the maps: the browser mirror of
-// stellarObjects/utils.py `format_distance_m`. A value is shown in the
+// planetgen/util/format.py `format_distance_m`. A value is shown in the
 // largest unit it is at least 1 of (km < AU < mpc < cpc < ly < pc < kpc <
 // Mpc < Gpc); a parsec-family value adds one parenthetical, in ly when it
 // is at least 0.01 ly, else AU when at least 0.01 AU, else km ("4.2 pc

@@ -51,7 +51,7 @@ from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.geometry import provisional_sector_designation
-from stellarObjects.utils import pc_to_ly
+from planetgen.physics.units import pc_to_ly
 
 from . import bp, edit_actions, generate_page, jobs
 from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html

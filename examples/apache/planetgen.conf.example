@@ -25,7 +25,7 @@
 #     src/html/  -- this vhost's DocumentRoot (the repo's src/html/
 #                   directory): wsgi.py, the app's api/, web/ and lib/
 #                   packages, and static/
-#     src/, ...  -- the rest of the repo checkout (src/stellarObjects/ in
+#     src/, ...  -- the rest of the repo checkout (src/planetgen/ in
 #                   particular), so the app can import the planetGen
 #                   package without a separate `pip install`
 #
