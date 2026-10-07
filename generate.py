@@ -1454,7 +1454,7 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
         flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly)
 
     if density_driven and not sector.entries and not sector.phenomena:
-        # Guaranteed non-empty: a qualifying sector's own Poisson draws
+        # Guaranteed non-empty: a sector's own Poisson draws
         # (system count here, each phenomenon type in generate_sector_phenomena)
         # are independent, so all of them landing on zero simultaneously is
         # a real, expected outcome at low means (e.g. ~13% at mean 2) --
@@ -1645,9 +1645,9 @@ def add_galaxy_arguments(parser):
                         help="Requires --ring I: single-address mode, generating exactly the one "
                              "not-yet-generated sector at (ring I, layer J, slot K) -- e.g. the address "
                              "behind a designation copied from the interactive Galaxy Map. Skips it "
-                             "(exit status 1) if it doesn't qualify (would hold no real content at this "
-                             "galaxy's own predicted density) or reports its existing sector_id if it "
-                             "was already generated.")
+                             "(exit status 1) if it is outside the galaxy's stored outline, or reports its "
+                             "existing sector_id if it was already generated. A sparse address still "
+                             "generates (it may hold no systems).")
     parser.add_argument('--column', action='store_true',
                         help="With --ring I --slot K: column mode, generating every not-yet-generated "
                              "sector at that ring and slot through every layer the galaxy's stored "
@@ -1690,8 +1690,8 @@ def add_galaxy_arguments(parser):
                              "randomly chosen starting sector's own real relative_density (the same "
                              "'expected' figure printed alongside each saved sector) to be at least this "
                              "value before accepting it -- e.g. 1.0 for at least as dense as the galaxy's "
-                             "own real local density. Retried the same way an already-occupied or "
-                             "non-qualifying address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
+                             "own real local density. Retried the same way an already-occupied "
+                             "address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
     backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
@@ -1862,9 +1862,9 @@ class _BatchDensity:
     applies: nothing is ever generated outside the galaxy, even with an
     explicit `--density`/`--num-systems`. Past it, an explicit flag is a
     deliberate, uniform override for the whole run (`resolve` returns
-    `args` unchanged); otherwise `resolve` also applies the exact
-    `predicted_star_count >= 1` check, so batch runs never save
-    all-but-certainly-empty sectors.
+    `args` unchanged); otherwise `resolve` sets each sector's density
+    from its position. A sparse sector inside the outline is generated
+    like any other (GEN.76).
 
     The skeleton and outline are fetched once, on first use -- neither
     changes mid-run.
@@ -1913,23 +1913,19 @@ class _BatchDensity:
         Returns:
             argparse.Namespace or None: `None` if this address is outside
                 the galaxy's stored outline. Otherwise `args` itself when a
-                density/count was given explicitly; else `None` if its own
-                exact `predicted_star_count < 1.0`, else a fresh copy with
+                density/count was given explicitly, else a fresh copy with
                 `.density` set to this position's own `relative_density`
-                and `.num_systems` cleared.
+                and `.num_systems` cleared. A sparse address is never
+                skipped (GEN.76): the predicted density only sets how many
+                systems the draw expects, and the draw always runs.
         """
         if not self.bounds.contains(address[0], address[1]):
             return None
         if args.density is not None or args.num_systems is not None:
             return args
-        skeleton = self.skeleton
-
-        # star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
-        # if star_count < 1.0:
-            # return None
 
         resolved = copy.copy(args)
-        resolved.density = relative_density(position_pc, skeleton.shape)
+        resolved.density = relative_density(position_pc, self.skeleton.shape)
         resolved.num_systems = None
         return resolved
 
@@ -2330,10 +2326,12 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
-    uses the stored skeleton (see section 4, `build_skeleton`) to decide,
-    cheaply and exactly, whether this address is worth generating, and
-    -- if so -- generates and saves it on the spot, using its own
-    position's `relative_density` as the `--density` multiplier.
+    uses the stored skeleton's outline (see section 4, `build_skeleton`)
+    to check the address is inside the galaxy, and if so generates and
+    saves it on the spot, using its own position's `relative_density` as
+    the `--density` multiplier. A sparse address generates too (GEN.76):
+    its draw may come out with no systems, and the sector is still saved
+    and marked generated.
 
     A concurrent visit to the same never-generated address is handled by
     `sectors`'s `UNIQUE (ring_index, layer_index, ring_slot_index)`: the
@@ -2341,8 +2339,9 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     turned into "return what the other call just created".
 
     Returns:
-        dict: `created` (bool), `qualifies` (bool), `sector_id` (int or
-              `None`), `sector_name` (str or `None`, only when `created`).
+        dict: `created` (bool), `qualifies` (bool: inside the galaxy's
+              stored outline), `sector_id` (int or `None`), `sector_name`
+              (str or `None`, only when `created`).
 
     Raises:
         ValueError: If `ring_slot_index` is out of range for the ring.
@@ -2373,15 +2372,11 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
         # exact, so this is a certain "no".
         return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
 
-    density = relative_density(position_pc, skeleton.shape)
-    star_count = predicted_star_count(position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1)
-    # if star_count < 1.0:
-        # Inside the layer (a safe superset) but this slot's own angle
-        # didn't clear the exact threshold.
-        # return {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
-
+    # Every address inside the outline generates, however sparse
+    # (GEN.76): the density sets the draw's expected count, never whether
+    # the draw happens.
     args = _default_generation_args(config=config)
-    args.density = density
+    args.density = relative_density(position_pc, skeleton.shape)
     args.num_systems = None
 
     try:
@@ -2667,11 +2662,11 @@ def _require_inside(bounds, ring_index, layer_index, what):
 
 def run_ring_batch(args, edge_pc, progress):
     """
-    Batch mode: generates every not-yet-generated, qualifying sector in
-    ring `args.ring` at layer `args.layer` (up to `args.limit`, if given)
-    -- when neither `--density` nor `--num-systems` was given, an address
-    below the 1-star-per-sector threshold is skipped (see
-    `_BatchDensity.resolve`).
+    Batch mode: generates every not-yet-generated sector in ring
+    `args.ring` at layer `args.layer` (up to `args.limit`, if given) --
+    when neither `--density` nor `--num-systems` was given, each takes its
+    own position's density (see `_BatchDensity.resolve`); sparse ones are
+    generated too (GEN.76).
 
     Args:
         args (argparse.Namespace): Parsed arguments; `args.ring` set.
@@ -2769,7 +2764,7 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
 
 def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
     """
-    The not-yet-generated, qualifying sectors among `candidates`
+    The not-yet-generated sectors among `candidates`
     (`_neighborhood_candidates`), as `_submit_batch` items, nearest
     first as enumerated; `suffix` may hold `{distance}` (pc).
 
@@ -2796,9 +2791,9 @@ def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", sk
 
 def run_local_neighborhood(args, edge_pc, progress):
     """
-    Local-neighborhood mode: generates every not-yet-generated, qualifying
+    Local-neighborhood mode: generates every not-yet-generated
     sector within `args.radius_pc` parsecs of `args.center_sector`'s own
-    stored center -- see `run_ring_batch` for what "qualifying" means.
+    stored center -- see `run_ring_batch` for how each sector's density is set.
 
     Args:
         args (argparse.Namespace): Parsed arguments;
@@ -3002,7 +2997,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
 def run_random_start(args, edge_pc, progress):
     """
     Random-start mode (no `--ring`/`--center-sector` given): picks a
-    random, not-yet-occupied, qualifying sector address -- drawn only from
+    random, not-yet-occupied sector address -- drawn only from
     inside the galaxy's stored outline (`GalaxyBounds.random_address`,
     every sector equally likely, optionally only out to `--max-ring`), so
     the start and the neighborhood around it are always in the galaxy --
@@ -3011,7 +3006,7 @@ def run_random_start(args, edge_pc, progress):
     within `args.radius_pc` of it (default
     `program_constants.DEFAULT_GENERATE_RADIUS_PC`, 12 pc) via
     `run_local_neighborhood`. `--min-start-density` tightens the retry:
-    a qualifying address below it is retried too.
+    an address below it is retried too.
 
     Raises:
         SystemExit: If no suitable address was found within the attempt
@@ -3046,7 +3041,7 @@ def run_random_start(args, edge_pc, progress):
             )
             within = f"within {args.max_ring} rings" if args.max_ring is not None else "in the galaxy"
             log.error(
-                f"Could not find an unoccupied, qualifying sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
+                f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
                 f"-- this galaxy may already be almost entirely generated within that range, or that range "
                 f"may hold too little real stellar density; try a larger --max-ring."
             )
@@ -3091,7 +3086,7 @@ def run_single_slot(args, edge_pc, progress):
 
     Raises:
         SystemExit: If `--slot` is out of range for the ring, or the
-                   address doesn't qualify.
+                   address is outside the galaxy's stored outline.
     """
     address = (args.ring, args.layer, args.slot)
     total_slots = ring_sector_count(args.ring)
@@ -3133,9 +3128,8 @@ def run_single_slot(args, edge_pc, progress):
 
     if not result["qualifies"]:
         log.error(
-            f"{_format_address(address)} doesn't qualify -- it would hold no real content at this "
-            f"galaxy's own predicted density (below the 1-star-per-sector threshold, or outside the "
-            f"layer's stored extent)."
+            f"{_format_address(address)} is outside the galaxy's stored outline (past its layer's "
+            f"outer ring), so there is no sector to generate there."
         )
         raise SystemExit(1)
 
@@ -3166,9 +3160,9 @@ def _layers_reaching(bounds, ring_index):
 
 def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density):
     """
-    Generates every not-yet-generated, qualifying address of `addresses`
+    Generates every not-yet-generated address of `addresses`
     in order (up to `args.limit`, when set) -- the loop behind column and
-    shell modes; see `run_ring_batch` for what "qualifying" means.
+    shell modes; see `run_ring_batch` for how each sector's density is set.
     """
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
@@ -4366,6 +4360,28 @@ def build_parser():
     }
 
 
+def reject_lost_option_values(args, parser):
+    """
+    Python 3.9's argparse drops a lone `--` given as an option's value
+    (`--workers=--`) and stores an empty list instead of an error
+    (PERF.27; later versions fix it). Any single-value option holding a
+    list it didn't default to gets the usage error newer versions give.
+
+    Args:
+        args (argparse.Namespace): The parsed arguments.
+        parser (argparse.ArgumentParser): The command's own parser.
+
+    Raises:
+        SystemExit: Through `parser.error`, exit status 2.
+    """
+    for action in parser._actions:
+        if type(action) is not argparse._StoreAction or action.nargs is not None or not action.option_strings:
+            continue
+        value = getattr(args, action.dest, None)
+        if isinstance(value, list) and not isinstance(action.default, list):
+            parser.error(f"argument {'/'.join(action.option_strings)}: expected one argument")
+
+
 def process_args():
     """
     Parses command-line arguments for `generate.py`, then validates
@@ -4380,6 +4396,7 @@ def process_args():
     args = parser.parse_args()
     command_parser = command_parsers[args.command]
 
+    reject_lost_option_values(args, command_parser)
     validate_logging_args(args, command_parser)
 
     port = getattr(args, "mysql_port", None)

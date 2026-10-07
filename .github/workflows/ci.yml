@@ -320,9 +320,12 @@ jobs:
           grep -q "Done. Nothing new was pulled." "$LOG"
 
       - name: update.sh on a database that needs migrating
+        # Back to v48 the way test_update_database_step's _back_to_v48
+        # does it: v49's bright_star_blocks is gone since v53, so undo
+        # v53's sector_stats and density columns instead (OPS.25).
         run: |
           mysql -h 127.0.0.1 -P "$DB_PORT" -u root planetgen -e \
-            "DROP TABLE bright_star_blocks; DELETE FROM schema_migrations; INSERT INTO schema_migrations (version) VALUES (48);"
+            "DROP TABLE sector_stats; ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples; DELETE FROM schema_migrations; INSERT INTO schema_migrations (version) VALUES (48);"
           cd "$CHECKOUT"
           sudo bash ./update.sh < /dev/null 2>&1 | tee "$LOG"
           grep -q "is at schema v48" "$LOG"
@@ -354,7 +357,7 @@ jobs:
       - name: update.sh stops on a failed migration and keeps the version
         run: |
           mysql -h 127.0.0.1 -P "$DB_PORT" -u root -e \
-            "DROP TABLE planetgen.bright_star_blocks; DELETE FROM planetgen.schema_migrations; INSERT INTO planetgen.schema_migrations (version) VALUES (48);
+            "DROP TABLE planetgen.sector_stats; ALTER TABLE planetgen.galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples; DELETE FROM planetgen.schema_migrations; INSERT INTO planetgen.schema_migrations (version) VALUES (48);
              CREATE USER 'readonly'@'%' IDENTIFIED BY 'readonly-pw'; GRANT SELECT ON planetgen.* TO 'readonly'@'%';"
           cd "$CHECKOUT"
           sudo sed -i 's/"user": "root", "password": ""/"user": "readonly", "password": "readonly-pw"/' config.json
