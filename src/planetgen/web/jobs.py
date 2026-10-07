@@ -49,7 +49,6 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import threading
 import time
 
 from planetgen.queue import redisqueue
@@ -636,21 +635,6 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     return job_id
 
 
-def _detached_options():
-    """
-    Popen options that detach the runner from the web server, most
-    detached first: its own session on POSIX; on Windows (where
-    start_new_session is ignored) its own process group with no console,
-    first also broken away from the server's job object (IIS and some
-    service wrappers kill a job object's processes on a recycle), then
-    without that when the job object doesn't allow it.
-    """
-    if not WINDOWS:
-        return [{"start_new_session": True}]
-    flags = subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.DETACHED_PROCESS | subprocess.CREATE_NO_WINDOW
-    return [{"creationflags": flags | subprocess.CREATE_BREAKAWAY_FROM_JOB}, {"creationflags": flags}]
-
-
 def _spawn(path):
     """Queues the job in `path` on Redis and starts its burst worker. On
     Windows without a Redis server (Redis there runs in WSL, which a
@@ -684,22 +668,9 @@ def _spawn(path):
 def _start_detached(path, argv):
     """Starts `argv` (whose command line names the job) detached from the
     web server and records its pid as the job's `runner.pid`."""
-    options = _detached_options()
-    for index, extra in enumerate(options):
-        try:
-            proc = subprocess.Popen(
-                argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                cwd=REPO_DIR, close_fds=True, **extra,
-            )
-            break
-        except PermissionError:  # breakaway refused by the job object
-            if index == len(options) - 1:
-                raise
+    proc = redisqueue.start_detached(argv, REPO_DIR)
     with open(os.path.join(path, "runner.pid"), "w", encoding="utf-8") as f:
         f.write(str(proc.pid))
-    # Reap it when it exits, so it doesn't linger as a zombie of the web
-    # server process. If this process goes first, init adopts it instead.
-    threading.Thread(target=proc.wait, name=f"planetgen-job-{proc.pid}", daemon=True).start()
 
 
 def cancel_job(job_id, root=None):
