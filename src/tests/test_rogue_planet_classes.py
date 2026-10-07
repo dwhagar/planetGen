@@ -101,7 +101,7 @@ def test_phenomenon_page_contents_and_sector_map_show_the_class():
 
         rogue = {"type": "rogue_planet", "id": 1, "name": "Wanderer", "descriptor": "terrestrial", "class": "C",
                  "radius_ly": 0, "distance_ly": 1.0}
-        group = sector_page._rogue_group_row([rogue, {**rogue, "id": 2, "class": None, "descriptor": "brown dwarf"}])
+        group = sector_page._rogue_group_row([rogue, {**rogue, "id": 2, "class": None, "descriptor": "brown dwarf"}], lambda system_id: f"/s/{system_id}")
         assert [m["details"] for m in group["members"]] == ["Class C, Terrestrial", "Brown dwarf"]
 
     data = starmap._cloud_data(lambda *a, **k: "/x", rogue, 0, 0, 0, 1)
