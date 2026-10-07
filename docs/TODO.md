@@ -3767,6 +3767,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
+- [ ] **OPS.22 Reorganize the code into importable Python packages with shared utility libraries**
+  Boss (2026-10-03 05:38Z): "Code reorganize to put things into distinct
+  python modules as different importable objects for modularity of code
+  and easier maintenance.  Maximize the use of utility libraries for
+  shared functions across all modules." Today almost all code sits flat
+  in `src/stellarObjects/` (about 75 modules, `_db.py` alone 9,800
+  lines), with `generate.py` (3,000+ lines) at the repo root and helpers
+  repeated across modules. Done when the layout plan is approved and the
+  code lives in it. The plan (OPS.23) is done: PR #435.
+  Prerequisite: OPS.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
   - [ ] **OPS.24 Move the code into the new package layout, one package per PR**
     Boss (2026-10-07 13:04Z): "In the end I don't want shims or wrappers
     or such, so far no one uses this but me, so I don't want to worry yet
