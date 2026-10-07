@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>planetGen TODO Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a filter bar over one card per TODO ID, grouped by category; each card shows the item's full text and its links. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#152030; --muted:#566275; --line:#D8DEE7;
+  --accent:#B05E0C; --accent-soft:#F6E7D6; --ground:#0E7682; --ground-soft:#D8EEF0;
+  --bug:#B3261E; --bug-soft:#F8DEDB; --done:#2E7D4F; --done-soft:#DCEFE3; --closed:#6B6F78; --closed-soft:#E6E7EA;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --done:#6FCF97; --done-soft:#15301F; --closed:#A0A6B2; --closed-soft:#242A33; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --done:#6FCF97; --done-soft:#15301F; --closed:#A0A6B2; --closed-soft:#242A33; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:28px 80px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,4.5vw,3rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.5rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:700}
+code{font-family:var(--f-mono);font-size:.86em}
+a{color:var(--accent)}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:70ch;color:var(--muted);margin:.6rem 0 0}
+header.top{display:flex;flex-direction:column;gap:.5rem}
+.meta{display:flex;flex-wrap:wrap;gap:.4rem 1.2rem;color:var(--muted);font-size:.92rem;margin-top:.4rem}
+.meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+.controls{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin:24px -20px 0;padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.controls input[type=search],.controls select{font:inherit;font-size:.95rem;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:7px 10px;min-width:0}
+.controls input[type=search]{flex:1 1 240px}
+.controls label.chk{display:flex;align-items:center;gap:6px;font-size:.92rem;color:var(--muted);cursor:pointer}
+.controls button{font:inherit;font-size:.88rem;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer}
+.controls button:hover{border-color:var(--accent)}
+.controls .count{margin-left:auto;font:600 .82rem var(--f-mono);color:var(--muted);font-variant-numeric:tabular-nums}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.cats{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.cats a{font:600 .75rem var(--f-mono);text-decoration:none;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:4px 8px}
+.cats a:hover{border-color:var(--accent)}
+.cats a span{color:var(--muted);font-weight:400}
+section.cat{margin-top:40px;scroll-margin-top:80px}
+.cat-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:.3rem .9rem;border-bottom:2px solid var(--ink);padding-bottom:8px}
+.cat-head .code{font:700 .8rem var(--f-mono);color:var(--surface);background:var(--ink);padding:3px 8px;border-radius:5px}
+.cat-head .stats{margin-left:auto;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums}
+.list{display:grid;gap:10px;margin-top:14px}
+article.item{overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 16px;scroll-margin-top:90px;min-width:0}
+article.item.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%{background:var(--accent-soft)}100%{background:var(--surface)}}
+@media (prefers-reduced-motion:reduce){article.item.flash{animation:none}}
+.ihead{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px}
+.ihead .id{font:600 .85rem var(--f-mono);color:var(--accent);text-decoration:none}
+.ihead h3{flex:1 1 300px;min-width:0}
+.badges{display:flex;gap:5px;flex-wrap:wrap}
+.badge{font:600 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-radius:4px;white-space:nowrap;background:var(--sunk);color:var(--muted)}
+.badge.bug{background:var(--bug-soft);color:var(--bug)}
+.badge.open{background:var(--ground-soft);color:var(--ground)}
+.badge.done{background:var(--done-soft);color:var(--done)}
+.badge.closed,.badge.other{background:var(--closed-soft);color:var(--closed)}
+.badge.phase{background:var(--accent-soft);color:var(--accent)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.84rem;color:var(--muted);margin-top:6px}
+.facts b{color:var(--ink);font-weight:600}
+.text{max-width:82ch;font-size:.95rem;margin-top:8px}
+.text p{margin:0 0 .6em}
+.text ul{margin:0 0 .6em;padding-left:1.2rem}
+.text .k{font-weight:600}
+.rel{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:.84rem;color:var(--muted);margin-top:6px}
+.rel b{font-weight:600;color:var(--ink);margin-right:2px}
+.chip{overflow-wrap:normal;font:500 .74rem/1 var(--f-mono);border:1px solid var(--line);border-radius:4px;padding:3px 5px;color:var(--ink);background:var(--surface);text-decoration:none;white-space:nowrap}
+a.chip:hover{border-color:var(--accent);color:var(--accent)}
+.chip.gone{color:var(--muted);border-style:dashed}
+.note{font-size:.88rem;color:var(--muted);border-left:3px solid var(--line);padding-left:10px;max-width:82ch;margin-top:8px}
+article.compact .text,article.compact .rel,article.compact .note{display:none}
+mark{background:var(--accent-soft);color:inherit;border-radius:2px}
+.empty{padding:30px;text-align:center;color:var(--muted)}
+footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:16px}
+@media (max-width:640px){.controls .count{margin-left:0;width:100%}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">planetGen · TODO tasks · built by scripts/build_todo_docs.py</span>
+    <h1>TODO reference</h1>
+    <p class="lede">Every TODO ID ever issued, explained in full: what it is, why it exists, what counts as done, which phase and thread it belongs to, what it needs and what it unblocks. Open items carry their whole text from <code>docs/TODO.md</code>; finished and dropped items keep their title and status from the number map. The <a href="tier-plan.html">tier plan</a> shows the open items in build order.</p>
+    <div class="meta" id="meta"></div>
+    <nav class="cats" id="cats" aria-label="Categories"></nav>
+  </header>
+
+  <div class="controls" role="search">
+    <input type="search" id="q" placeholder="Search IDs, titles and full text" aria-label="Search items">
+    <select id="status" aria-label="Status">
+      <option value="open">Open</option>
+      <option value="">Every status</option>
+      <option value="done">Done</option>
+      <option value="closed">Dropped or merged</option>
+      <option value="other">Other</option>
+    </select>
+    <select id="cat" aria-label="Category"><option value="">All categories</option></select>
+    <select id="phase" aria-label="Phase"><option value="">All phases</option></select>
+    <label class="chk"><input type="checkbox" id="bugs"> Bugs only</label>
+    <button type="button" id="compact" aria-pressed="false">Titles only</button>
+    <span class="count" id="count"></span>
+  </div>
+
+  <main id="list"></main>
+  <p class="empty" id="empty" hidden>No items match. Clear the search or the filters.</p>
+
+  <footer>
+    Built from <code>docs/TODO.md</code>, <code>docs/plan/</code> and <code>docs/design/todo-number-map.md</code> by <code>python scripts/build_todo_docs.py</code>: <span id="summary"></span>. IDs are CATEGORY.NUMBER and are never reused.
+  </footer>
+</div>
+
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function(){
+const D=JSON.parse(document.getElementById('data').textContent);
+const items=D.items, all=Object.values(items), CAT=D.categories;
+const PH={'0':'Phase 0','1':'Phase 1','2':'Phase 2','3':'Phase 3','3+':'Phase 3+'};
+const STATUS={open:'open',done:'done',closed:'dropped or merged',other:'other'};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const num=id=>+id.split('.')[1];
+function chip(id){
+  const it=items[id];
+  if(!it) return '<span class="chip gone">'+esc(id)+'</span>';
+  return '<a class="chip'+(it.status==='open'?'':' gone')+'" href="#'+id+'" data-jump="'+id+'" title="'+esc(it.title)+'">'+id+'</a>';
+}
+function inline(s){
+  s=esc(s);
+  s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s=s.replace(/\[([^\]]+)\]\(([^)]+)\)/g,(m,t,u)=>/^https?:/.test(u)?'<a href="'+u+'" target="_blank" rel="noopener">'+t+'</a>':'<code>'+t+'</code>');
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  s=s.replace(/\b([A-Z]{2,4}\.\d{1,3})\b/g,(m,id)=>items[id]?chip(id):m);
+  return s;
+}
+function md(text){
+  const out=[];
+  for(const para of text.split(/\n\s*\n/)){
+    const lines=para.split('\n'); let p=[], ul=[];
+    const fp=()=>{if(p.length){let t=p.join(' ');const m=t.match(/^(Prerequisites?|Design|Done|Plan \([^)]*\)|Note):/);out.push('<p>'+(m?'<span class="k">'+esc(m[0])+'</span>'+inline(t.slice(m[0].length)):inline(t))+'</p>');p=[]}};
+    const fu=()=>{if(ul.length){out.push('<ul>'+ul.map(x=>'<li>'+inline(x)+'</li>').join('')+'</ul>');ul=[]}};
+    for(const l of lines){
+      if(/^- /.test(l)){fp();ul.push(l.slice(2))}
+      else if(ul.length&&!/^(Prerequisites?|Design|Plan)/.test(l)){ul[ul.length-1]+=' '+l}
+      else if(/^(Prerequisites?|Design|Plan \()/.test(l)){fu();fp();p.push(l)}
+      else{fu();p.push(l)}
+    }
+    fu();fp();
+  }
+  return out.join('');
+}
+const open=all.filter(i=>i.status==='open');
+document.getElementById('meta').innerHTML='<span><b>'+open.length+'</b> open</span><span><b>'+open.filter(i=>i.bug).length+'</b> open bugs</span><span><b>'+all.filter(i=>i.status==='done').length+'</b> done</span><span><b>'+all.filter(i=>i.status==='closed').length+'</b> dropped or merged</span><span><b>'+all.length+'</b> IDs issued</span>';
+document.getElementById('summary').textContent=D.summary;
+const cats=Object.keys(CAT).filter(c=>all.some(i=>i.cat===c)).concat([...new Set(all.map(i=>i.cat))].filter(c=>!CAT[c]).sort());
+document.getElementById('cats').innerHTML=cats.map(c=>'<a href="#cat-'+c+'">'+c+' <span>'+all.filter(i=>i.cat===c&&i.status==='open').length+' open</span></a>').join('');
+const cs=document.getElementById('cat');
+cats.forEach(c=>{const o=document.createElement('option');o.value=c;o.textContent=(CAT[c]||c)+' ('+c+')';cs.appendChild(o)});
+const ps=document.getElementById('phase');
+D.phases.forEach(p=>{const o=document.createElement('option');o.value=p.key;o.textContent=PH[p.key]+': '+p.title.replace(/^Phase [0-9+]+:\s*/,'');ps.appendChild(o)});
+// render
+const host=document.getElementById('list');
+let html='';
+cats.forEach(c=>{
+  const list=all.filter(i=>i.cat===c).sort((a,b)=>num(a.id)-num(b.id));
+  html+='<section class="cat" id="cat-'+c+'" data-cat="'+c+'"><div class="cat-head"><span class="code">'+c+'</span><h2>'+esc(CAT[c]||c)+'</h2><span class="stats">'+list.filter(i=>i.status==='open').length+' open of '+list.length+'</span></div><div class="list">';
+  list.forEach(it=>{
+    let h='<article class="item" id="'+it.id+'" data-id="'+it.id+'"><div class="ihead"><a class="id" href="#'+it.id+'">'+it.id+'</a><h3>'+inline(it.title).replace(/<a class="chip[^>]*>([^<]*)<\/a>/g,'$1')+'</h3><span class="badges"><span class="badge '+it.status+'">'+STATUS[it.status]+'</span>'+(it.bug?'<span class="badge bug">bug</span>':'')+(it.phase?'<span class="badge phase">'+PH[it.phase]+'</span>':'')+'</span></div>';
+    const facts=[];
+    if(it.thread) facts.push('<span><b>Thread</b> '+esc(it.thread)+'</span>');
+    if(it.section) facts.push('<span><b>TODO.md</b> '+esc(it.section)+'</span>');
+    if(it.status!=='open'&&it.statusText) facts.push('<span><b>Status</b> '+inline(it.statusText)+'</span>');
+    if(it.old&&it.old!=='none') facts.push('<span><b>Old number</b> '+esc(it.old)+'</span>');
+    if(facts.length) h+='<div class="facts">'+facts.join('')+'</div>';
+    if(it.text) h+='<div class="text">'+md(it.text)+'</div>';
+    const rel=[];
+    if(it.parent) rel.push('<div class="rel"><b>Part of</b>'+chip(it.parent)+'</div>');
+    if(it.children.length) rel.push('<div class="rel"><b>Subitems</b>'+it.children.map(chip).join('')+'</div>');
+    if(it.status==='open'){
+      rel.push('<div class="rel"><b>Needs</b>'+(it.deps.length?it.deps.map(chip).join(''):'<span>nothing open</span>')+'</div>');
+      rel.push('<div class="rel"><b>Unblocks</b>'+(it.unblocks.length?it.unblocks.map(chip).join(''):'<span>nothing</span>')+'</div>');
+    }
+    h+=rel.join('');
+    if(it.note) h+='<div class="note">'+inline(it.note)+'</div>';
+    h+='</article>';
+    html+=h;
+  });
+  html+='</div></section>';
+});
+host.innerHTML=html;
+const hay={};
+all.forEach(it=>{hay[it.id]=(it.id+' '+it.title+' '+it.text+' '+it.note+' '+it.thread+' '+it.statusText+' '+(CAT[it.cat]||'')).toLowerCase()});
+// filters
+const q=document.getElementById('q'),st=document.getElementById('status'),bg=document.getElementById('bugs');
+function apply(){
+  const t=q.value.trim().toLowerCase().split(/\s+/).filter(Boolean), s=st.value, c=cs.value, p=ps.value, b=bg.checked;
+  let shown=0;
+  document.querySelectorAll('section.cat').forEach(sec=>{
+    let n=0;
+    sec.querySelectorAll('article.item').forEach(a=>{
+      const it=items[a.dataset.id];
+      const ok=(!s||it.status===s)&&(!c||it.cat===c)&&(!p||it.phase===p)&&(!b||it.bug)&&t.every(w=>hay[it.id].includes(w));
+      a.hidden=!ok; if(ok) n++;
+    });
+    sec.hidden=!n; shown+=n;
+  });
+  document.getElementById('count').textContent=shown+' of '+all.length+' IDs';
+  document.getElementById('empty').hidden=shown>0;
+  try{const u=new URLSearchParams();if(q.value)u.set('q',q.value);if(s!=='open')u.set('status',s||'all');if(c)u.set('cat',c);if(p)u.set('phase',p);if(b)u.set('bugs','1');const qs=u.toString();history.replaceState(null,'',(qs?'?'+qs:location.pathname)+location.hash)}catch(_){}
+}
+[q,st,cs,ps,bg].forEach(el=>el.addEventListener('input',apply));
+const cb=document.getElementById('compact');
+cb.addEventListener('click',()=>{const on=cb.getAttribute('aria-pressed')!=='true';cb.setAttribute('aria-pressed',on);cb.textContent=on?'Full text':'Titles only';document.querySelectorAll('article.item').forEach(a=>a.classList.toggle('compact',on))});
+function jump(id){
+  const a=document.getElementById(id); if(!a) return;
+  if(a.hidden){q.value='';st.value='';cs.value='';ps.value='';bg.checked=false;apply()}
+  a.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});
+  a.classList.remove('flash'); void a.offsetWidth; a.classList.add('flash');
+  try{history.replaceState(null,'',location.search+'#'+id)}catch(_){}
+}
+host.addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j){e.preventDefault();jump(j.dataset.jump)}});
+// restore state from the URL
+try{const u=new URLSearchParams(location.search);if(u.has('q'))q.value=u.get('q');if(u.has('status'))st.value=u.get('status')==='all'?'':u.get('status');if(u.has('cat'))cs.value=u.get('cat');if(u.has('phase'))ps.value=u.get('phase');if(u.get('bugs')==='1')bg.checked=true}catch(_){}
+apply();
+const h=decodeURIComponent(location.hash.slice(1)); if(items[h]) setTimeout(()=>jump(h),50);
+})();
+</script>
+</html>
