@@ -299,7 +299,10 @@ def _wait_settled(page, before=None, timeout_s=15.0):
 
 def _hover_choice(page, wanted=None):
     """Moves the pointer over the map until the tooltip names a choice
-    (matching `wanted`, a regex); returns (x, y, text) or None."""
+    (matching `wanted`, a regex); returns (x, y, text) or None. A tooltip
+    naming where the map already is gets passed over: under load it can
+    still show the choice that was just clicked."""
+    here = _crumbs(page)[-1]
     box = page.locator("#galaxymap3d-canvas").bounding_box()
     tooltip = page.locator("#galaxymap3d-tooltip")
     for fy in [i / 24 for i in range(2, 23)]:
@@ -308,7 +311,7 @@ def _hover_choice(page, wanted=None):
             page.mouse.move(x, y)
             if tooltip.is_visible():
                 text = tooltip.inner_text()
-                if text and (wanted is None or re.search(wanted, text)):
+                if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
                     return x, y, text
     return None
 
