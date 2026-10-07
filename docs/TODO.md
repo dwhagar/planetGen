@@ -2758,22 +2758,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     (near-parabolic orbits, e close to 1, time steps longer than an
     orbit, bodies inside a Roche limit or a Hill sphere, the galactic
     centre's singular potential, float precision at galactic distances)
-    with the guard the code applies, and tests hit each guard.
+    with the guard the code applies, and tests hit each guard. The
+    guards follow "Computational Astrodynamics.md": the universal
+    variable for near-parabolic orbits (with the corrected Kepler
+    equation in orbital-updates.md 10.6), modified equinoctial elements
+    for circular and equatorial orbits, phase wrapping for steps longer
+    than an orbit, and Plummer softening at the centre.
     Prerequisite: GEN.106.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.115 The galaxy's own gravity: a smooth disk, bulge and halo potential**
     Boss (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
     gradient but we need to make sure that it's consistent with actual
-    science." The orbital documents pull on a star only from its nearest
-    point masses and the central black hole; the smooth mass of the disk,
-    bulge and halo, which holds the Sun at about 230 km/s, is missing, so
-    stars would drift outward. Boss is researching the model and will add
-    a document to docs/design. Done: every galactic step adds the chosen
-    potential, scaled to the density model's disk and bulge
-    (galaxy-disk-density.md), with the point masses on top; tests check
-    the rotation curve, the vertical pull near the disk and the escape
-    speed against the document's values.
+    science." His research ("Computational Astrodynamics.md") gives the
+    model: a Hernquist bulge, a Miyamoto-Nagai disk and an NFW halo (a
+    flattened log halo as a setting), with the nearby point masses as
+    perturbations on top and Plummer softening of 1 pc. Done: every
+    galactic step adds the potential, its masses and scales are settings
+    with the document's values at the default galaxy shape (lengths scale
+    with the disk scale length otherwise), and tests check the rotation
+    curve (229.3 km/s at 8.128 kpc, 213 to 231 km/s from 4 to 20 kpc),
+    the vertical pull near the disk and a star staying at its radius over
+    many runs.
     Prerequisites: GEN.106, GEN.108.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
@@ -2787,7 +2793,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     another object." Following "Orbital Update Full Algorithm.md":
     Velocity Verlet over the top influencers from per-sector point-mass
     tables, swept-sphere collision checks, then Hill-sphere crossings
-    handled per system. Done: trajectories change only at updates,
+    handled per system. "Computational Astrodynamics.md" adds the
+    routines: flybys deflect analytically, and a pair inside a mutual
+    Hill sphere is sub-stepped by a 4th-order integrator with the Roche
+    limit and contact checked each sub-step. Done: trajectories change only at updates,
     warnings go to the debug and activity logs.
     Prerequisites: GEN.106, GEN.108, GEN.115.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)

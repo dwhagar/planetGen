@@ -16,6 +16,9 @@ being trusted. This condenses Boss's documents in this folder:
 - "Orbital Position and Vector Mathematical Foundations.md" (the numerical
   methods underneath: root finding, optimization, linear solvers, eigen
   and singular value decompositions, and where each breaks down)
+- "Computational Astrodynamics.md" (Boss's research of 2026-10-07: the
+  galaxy's own gravity, the three frames, the orbit solvers, nonsingular
+  elements, the time step and epoch, and collisions)
 - `spacial-position.py` at the repo root (Boss's prototype position class)
 
 ## 1. What Boss asked for
@@ -182,29 +185,154 @@ Not needed: the Lanczos and dense eigenvalue methods. planetGen has no
 large sparse matrix problem, and the 3 by 3 decompositions it does need
 come from numpy.
 
-## 10. Open questions for Boss
+## 10. Galactic gravity, frames, solvers and time
 
-None of the documents settle these. The defaults below hold until Boss
-decides otherwise:
+From "Computational Astrodynamics.md". Every number below was rerun
+here; section 10.6 lists the places the document is wrong and the fix
+the code uses.
 
-- **The galaxy's own gravity (GEN.115).** The documents pull on a star
-  only from its nearest point masses and the central black hole. The
-  smooth mass of the disk, bulge and halo, which keeps the Sun at about
-  230 km/s, is missing, and without it stars drift outward. Boss
-  (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
-  gradient but we need to make sure that it's consistent with actual
-  science." He is researching the model and will add a document here.
-  Until then the working assumption is a fixed analytic potential (a
-  disk, a bulge and a halo, scaled to the density model's disk and bulge
-  in galaxy-disk-density.md) added to every galactic step, with the point
-  masses as perturbations on top.
-- **Frame axes.** The galactic and sector frames stay as
-  galaxy-coordinate-system.md defines them: galactic +Z is galactic
-  north, and slots count counterclockwise from +X; a sector's local +X
-  points radially outward, +Y toward increasing angle and +Z north, from
-  the sector's centre. A system frame (missing today) has its origin at
-  the system's barycentre and its +Z along the primary star's spin axis;
-  planets' tilts and spins are measured from it.
-- **Time.** One update run advances one in-game year, from an epoch of
-  year 0 at the galaxy's generation. Both are settings.
+### 10.1 The galaxy's own gravity (GEN.115)
 
+A star feels a smooth background potential plus its nearby point masses
+as perturbations on top:
+
+`Phi_gal(R, z) = Phi_bulge(r) + Phi_disk(R, z) + Phi_halo(r)`
+
+| Part | Model | Potential | Default mass | Default scale |
+|---|---|---|---|---|
+| Bulge | Hernquist | `-G M_b / (r + c_b)` | 1.0e10 M_sun | c_b = 0.5 kpc |
+| Disk | Miyamoto-Nagai | `-G M_d / sqrt(R^2 + (a_d + sqrt(z^2 + b_d^2))^2)` | 6.8e10 M_sun | a_d = 3.5 kpc, b_d = 0.3 kpc |
+| Halo | NFW | `-(G M_h / r) ln(1 + r / r_h)` | 5.4e11 M_sun | r_h = 16 kpc |
+| Halo (alternative) | Flattened log | `0.5 v0^2 ln(R_c^2 + R^2 + z^2/q^2)` | v0 = 175 km/s | R_c = 2.5 kpc, q = 0.9 |
+
+The default is the NFW halo; the log halo is a setting. With
+G = 4.300917e-6 kpc (km/s)^2 / M_sun the circular speed in the midplane
+is `sqrt(v_b^2 + v_d^2 + v_h^2)`. Rerun here:
+
+| R (kpc) | 2 | 4 | 6 | 8 | 8.128 | 10 | 12 | 15 | 20 | 30 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| v_circ (km/s) | 190.5 | 223.2 | 230.6 | 229.4 | 229.3 | 226.3 | 223.1 | 218.9 | 213.5 | 205.4 |
+
+At 8.128 kpc the parts are v_b = 68.5, v_d = 163.6 and v_h = 145.3 km/s,
+matching the document and the observed 229 to 232 km/s. These are the
+values GEN.115's tests check at the default galaxy shape.
+
+Point masses use Plummer softening, `a = G M r / (r^2 + eps^2)^(3/2)` with
+eps = 1 pc, so the pull near the central black hole and in dense
+clusters stays finite and falls to zero at the centre.
+
+### 10.2 Frames
+
+| Frame | Origin | Axes | To its parent |
+|---|---|---|---|
+| Galactic | The central black hole | +Z galactic north (along the disk's spin), +X the zero meridian | Master frame |
+| Sector | See below | Physics uses the galactic axes, unrotated | Translation only |
+| System | The host star's barycentre | +z along the star's spin, +x along the line where the star's equator crosses the galactic midplane (`Z_gal x z_sys`, or `X_gal` when the spin points along `Z_gal`), +y = z x x | `p_gal = p_star + R^T r_sys` |
+
+The star's pole is given as a right ascension and declination measured
+in the galactic frame (not Earth's sky), so
+`z_sys = (cos dec cos ra, cos dec sin ra, sin dec)`,
+`x_sys = (-sin ra, cos ra, 0)`,
+`y_sys = (-sin dec cos ra, -sin dec sin ra, cos dec)`, and
+`R_gal_to_sys` has those three as its rows (checked: orthonormal, right
+handed). Planet inclinations and tilts are measured from the star's
+equator.
+
+### 10.3 Solvers
+
+| Routine | What it does | Notes |
+|---|---|---|
+| PropagateKeplerianOrbit | Moves a two-body orbit by any time step through the universal variable chi and the Stumpff functions c0 to c3, solved by Halley's method to 1e-12, then Lagrange f and g | One routine for circles, ellipses, parabolas and hyperbolas. Use the corrected equation in 10.6. |
+| ComputeTwoBodyHyperbolicDeflection | A flyby that stays unbound: e = sqrt(1 + (b v_inf^2 / mu)^2), turning angle 2 asin(1/e), the relative velocity rotated about h by Rodrigues' formula, the change split by mass | Momentum is conserved. v_inf must be the speed at infinity (10.6). |
+| ResolveCloseEncounterMicroPass | Inside a mutual Hill sphere the yearly step pauses for that pair and a 4th-order Hermite or Yoshida integrator sub-steps at `eta sqrt(r^3 / G(M1+M2))`, eta 0.01 to 0.05 | Fluid Roche limit `2.44 R1 (rho1/rho2)^(1/3)` disrupts the smaller body into ring debris; contact merges them. |
+
+Orbits inside a system are stored as modified equinoctial elements
+(p, f, g, h, k, L): no division by zero for circular or equatorial
+orbits, singular only for an exactly retrograde equatorial orbit. The
+conversions both ways were rerun here and round-trip to 1e-16 (unit
+mu).
+
+### 10.4 The update step and epoch
+
+One run advances one in-game year (3.15576e7 s):
+
+- Phase A: each star moves by Velocity Verlet in the galactic potential
+  plus its point masses, and everything it holds is shifted by the same
+  displacement.
+- Phase B: each bound child's mean anomaly advances by `n dt mod 2 pi`,
+  exact for any number of orbits per year. A child that is no longer
+  bound (e >= 1) uses PropagateKeplerianOrbit instead.
+
+The document puts the epoch at J2000.0 (JD 2451545.0), which also matches
+the spin formulas in "Observational Kinetics for Rotational Vectors.md".
+
+### 10.5 Collisions
+
+Continuous detection over the year: the squared separation of two
+straight paths, `A t^2 + B t + C`, against an effective radius widened by
+gravitational focusing,
+`R_eff = (R1 + R2) sqrt(1 + v_esc^2 / max(dv^2, floor))`. A hit inside the
+step merges the pair inelastically: mass and momentum conserved,
+`R_new = (R1^3 + R2^3)^(1/3)`, the smaller body deleted, and the sectors
+marked for their point-mass tables to be rebuilt. GEN.110's rogue-planet
+rules decide what the merged body becomes.
+
+### 10.6 Errors in the document, and the fix the code uses
+
+- **The universal Kepler equation counts one term twice.** The document
+  writes `... + r0 chi c1(alpha chi^2) - sqrt(mu) dt` alongside
+  `(1 - alpha r0) chi^3 c3`. Since `c1 = 1 - z c3` that subtracts
+  `alpha r0 chi^3 c3` twice. Rerun against a high-accuracy integration,
+  the document's form misses by 0.62 (ellipse), 0.10 (hyperbola) and
+  0.002 (near parabola) in unit distances and breaks `f gdot - fdot g = 1`
+  by up to 15%; the corrected form below lands within 1e-13. The code
+  uses
+  `F = s0 chi^2 c2 + (1 - alpha r0) chi^3 c3 + r0 chi - sqrt(mu) dt`,
+  `F' = s0 chi (1 - z c3) + (1 - alpha r0) chi^2 c2 + r0` (= r),
+  `F'' = s0 (1 - z c2) + (1 - alpha r0) chi (1 - z c3)`,
+  with `s0 = r0.v0 / sqrt(mu)` and `z = alpha chi^2`. The f and g
+  formulas in the document are right.
+- **The hyperbolic first guess drops a sign.** Inside the logarithm the
+  `sqrt(-mu/alpha)` term needs `sign(dt)` (Vallado), or backward steps
+  start on the wrong branch. Halley's method usually recovers, but the
+  code uses the signed form.
+- **The flyby needs the speed at infinity.** The deflection uses the
+  current relative speed as v_inf. When the pair is caught close in,
+  the code uses `v_inf = sqrt(v^2 - 2 mu / r)` instead.
+- **The merged body's position.** The document puts it at body 1's
+  position at impact; the code uses the centre of mass at impact,
+  `(M1 p1(t) + M2 p2(t)) / (M1 + M2)`, which momentum conservation needs.
+- **The focusing floor has no unit.** `max(dv^2, 1.0)` means 1 m/s in SI
+  and 1 km/s in galactic units. The code works in SI and uses 1 m/s.
+
+## 11. Open questions for Boss
+
+The defaults below hold until Boss decides otherwise:
+
+- **Sector shape.** The document proposes cubic 4 pc cells keyed by a
+  Morton code with a 27-cell stencil, to avoid wedge-shaped cells near
+  the core. planetGen's sectors are already 4 pc but sit in rings,
+  layers and slots (galaxy-coordinate-system.md), and
+  galaxy-drilldown-navigation.md already turned down Morton keys.
+  Default: keep the current sectors; the stencil is "this sector and
+  every sector touching it", found by the existing address math. The
+  physics does not change because forces are summed in galactic
+  coordinates.
+- **Sector frame axes.** The document's sectors are unrotated so that
+  forces add without rotation. Ours rotate (+X radially outward).
+  Default: physics works in galactic coordinates; the rotated sector
+  frame stays for display and navigation.
+- **Scaling the potential to the galaxy's shape.** The masses and scales
+  above are the Milky Way's. planetGen's shape is a setting (disk scale
+  length 2,800 pc, bulge scale radius 200 pc, radius 15 kpc by
+  default). Default: the document's values at the default shape; when a
+  galaxy's disk scale length differs, every length scales by
+  `disk_scale_length / 2800 pc` and the masses stay, so the rotation
+  curve keeps its shape. Galaxy-to-galaxy differences beyond that are
+  phase 3+ (several galaxies).
+- **Epoch.** The earlier default was year 0 at the galaxy's generation.
+  Default now: J2000.0, as the document and the spin document both use,
+  with one in-game year per run. Both stay settings.
+- **The galaxy's own gravity.** Boss (2026-10-07 12:25Z): "We'll have to
+  add a galactic gravitational gradient but we need to make sure that
+  it's consistent with actual science." Settled by section 10.1.
