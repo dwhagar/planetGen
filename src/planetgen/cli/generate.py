@@ -35,7 +35,7 @@ import pymysql
 from planetgen.queue import work as workQueue
 from planetgen.db import store
 from planetgen.admin import activity_log
-from planetgen.generation import limits
+from planetgen.generation import limits, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
@@ -78,6 +78,25 @@ class SingleSystemOnlyAction(argparse.Action):
     def __call__(self, parser, namespace, values, option_string=None):
         parser.error(f"{option_string} forces one system, so it only works with 'planetgen system' "
                      f"(and the one-off system page); sector and galaxy runs no longer take forcing options.")
+
+
+def prevalence_setting(text):
+    """
+    `argparse` type for `--prevalence`: `FEATURE=PERCENT` (GEN.52), a
+    feature from `prevalence.FEATURES` and a percentage of at least -100.
+
+    Returns:
+        tuple: `(feature, percent)`.
+    """
+    feature, sep, value = text.partition("=")
+    feature = feature.strip().lower().replace("-", "_")
+    if not sep or feature not in prevalence.FEATURES:
+        raise argparse.ArgumentTypeError(
+            f"expected FEATURE=PERCENT with FEATURE one of {', '.join(prevalence.FEATURES)}; got {text!r}")
+    percent = finite_float(value.strip().rstrip("%"))
+    if percent < prevalence.MIN_PERCENT:
+        raise argparse.ArgumentTypeError(f"{feature}={value}: a prevalence can't be below -100%")
+    return feature, percent
 
 
 def finite_float(text):
@@ -348,6 +367,11 @@ def add_shared_generation_options(parser):
                         help="Override the default FLAVOR_CHANCE_PLANET constant.")
     parser.add_argument('--max-planet-flavor', action='store_true',
                         help="Sets the maximum flavor text total for planets to 99.")
+    parser.add_argument('--prevalence', type=prevalence_setting, action='append', default=None,
+                        metavar='FEATURE=PERCENT',
+                        help="How much more or less often every system gets FEATURE than by chance, as a "
+                             "percentage: comets=+50 is 1.5 times as often, comets=-100 never. Repeat "
+                             "for more features: " + ", ".join(prevalence.FEATURES) + ".")
     parser.add_argument('--workers', type=int, default=None,
                         help="How many sectors to generate at once, each in its own low-priority worker "
                              "process. Default: 80%% of this machine's cores (one fewer when MySQL runs "

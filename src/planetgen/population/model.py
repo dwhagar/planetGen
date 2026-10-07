@@ -122,18 +122,22 @@ def species_traits(gravity_g, surface_temperature_k, rng):
     return {"build": build, "climate": climate, "size": size}
 
 
-def has_civilization(timeline, forced, rng):
+def has_civilization(timeline, forced, rng, prevalence_percent=0.0):
     """
     Whether a life world has a technological civilization now: its
     timeline must have reached the milestone, and then either intelligent
     life was forced on for its system (`forced`, `system_configs.
-    intelligent_life`) or a `CIVILIZATION_CHANCE` draw succeeds.
+    intelligent_life`) or a `CIVILIZATION_CHANCE` draw succeeds, that
+    chance moved by the generating run's intelligent-life prevalence
+    (`prevalence_percent`, `system_configs.prevalence_intelligent_life`,
+    GEN.52).
     """
     if timeline.life_stage != "technological_civilization":
         return False
     if forced:
         return True
-    return rng.random() < tuning.CIVILIZATION_CHANCE
+    chance = min(1.0, max(0.0, tuning.CIVILIZATION_CHANCE * (1.0 + (prevalence_percent or 0.0) / 100.0)))
+    return rng.random() < chance
 
 
 def civilization_age(window_years, rng):
@@ -375,7 +379,7 @@ def scan_life_worlds(conn):
         high = min(top, low + SCAN_BATCH)
         rows = conn.execute(
             "SELECT p.id, p.star_system_id, p.life_chemical, p.gravity_g, p.surface_temperature_k, "
-            "cfg.intelligent_life, e.paragraph FROM planets p "
+            "cfg.intelligent_life, cfg.prevalence_intelligent_life, e.paragraph FROM planets p "
             "JOIN planet_evolutionary_paragraphs e ON e.planet_id = p.id "
             "JOIN star_systems ss ON ss.id = p.star_system_id "
             "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
@@ -395,7 +399,7 @@ def scan_life_worlds(conn):
                 continue
             rng = random.Random(planet_id)
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
-            if not has_civilization(timeline, row["intelligent_life"], rng):
+            if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
                 # Only a technological civilization gets a species (GEN.80).
                 continue
             age = civilization_age(timeline.window_years, rng)

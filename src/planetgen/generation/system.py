@@ -26,7 +26,7 @@ from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_
 from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.generation import life as planetLife, validation
+from planetgen.generation import life as planetLife, prevalence, validation
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util import log
@@ -215,6 +215,9 @@ class StarSystem:
                 usual around it.
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
+        # A run's prevalences (GEN.52) decide the measured features' flags
+        # for this system before anything is drawn.
+        prevalence.resolve(self.system_config)
         # Rolled once here (not left for each Star/BinaryStarProxy to roll
         # its own) and passed identically to every constituent star below --
         # a binary pair's AU-scale separation is negligible next to its
@@ -304,8 +307,9 @@ class StarSystem:
             # the gate for even having a second star at all.
             is_wide = self.system_config.WIDE_BINARY
             if is_wide is None:
-                is_wide = random.random() < tuning.WIDE_BINARY_DEFAULT_CHANCE
-                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({tuning.WIDE_BINARY_DEFAULT_CHANCE})"
+                chance = prevalence.scaled_chance(self.system_config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
+                is_wide = random.random() < chance
+                reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({tuning.WIDE_BINARY_DEFAULT_CHANCE}, {chance:g} with prevalence)"
             else:
                 reason = "forced by +wide_binary/-wide_binary"
             self.binary_type = "wide" if is_wide else "close"
@@ -584,7 +588,8 @@ class StarSystem:
         if self.system_config.COMETS is False:
             return []
 
-        has_comets = self.system_config.COMETS is True or random.random() < tuning.SYSTEM_COMET_CHANCE
+        has_comets = self.system_config.COMETS is True or random.random() < prevalence.scaled_chance(
+            self.system_config, "comets", tuning.SYSTEM_COMET_CHANCE)
         if not has_comets:
             return []
 
@@ -640,7 +645,7 @@ class StarSystem:
 
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
         probability = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
-        return random.random() < probability
+        return random.random() < prevalence.scaled_chance(self.system_config, "binary_system", probability)
 
     @staticmethod
     def _first_slot_distance_au(habitable_zone):
@@ -1664,6 +1669,13 @@ class StarSystem:
             return max_objects
         if self.system_config.MAX_PLANETS is False:
             return min_objects
+        # Every count is equally likely; a max_planets prevalence (GEN.52)
+        # scales the chance of the most.
+        if max_objects > min_objects and prevalence.percent(self.system_config, "max_planets"):
+            if random.random() < prevalence.scaled_chance(self.system_config, "max_planets",
+                                                          1.0 / (max_objects - min_objects + 1)):
+                return max_objects
+            return random.randint(min_objects, max_objects - 1)
         return random.randint(min_objects, max_objects)
 
     def _estimate_max_objects_from_disk_physics(self, star):

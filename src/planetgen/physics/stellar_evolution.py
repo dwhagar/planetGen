@@ -312,14 +312,15 @@ def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
     return state
 
 
-def sample_living_star(age_bias=None, large_star=False, rng=random, habitable_host=False,
+def sample_living_star(age_bias=None, large_star=None, rng=random, habitable_host=False,
                        population=None, max_luminosity_sol=None):
     """
     Draws `(initial_mass_sol, age_gy, state)` for a random star that hasn't
     collapsed (see `evolve_star`), redrawing mass and age together until it
     hasn't. With `large_star`, the IMF is truncated at `LARGE_STAR_MIN_MASS_SOL`
     and the age drawn inside the star's own lifetime (and the default
-    star-formation window), so a large star is always still shining.
+    star-formation window), so a large star is always still shining;
+    `large_star=False` (`-large_star`) redraws any star born that massive.
     With `habitable_host` (a habitable world is required), the star must
     be at least `LIFE_MIN_STAR_AGE_GY` old and not a white dwarf, whose
     progenitor would have engulfed its habitable zone.
@@ -349,6 +350,8 @@ def sample_living_star(age_bias=None, large_star=False, rng=random, habitable_ho
             age = rng.uniform(*age_window_gy(low, high, age_bias))
         else:
             mass = sample_imf_mass_sol(rng=rng)
+            if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
+                continue
             age = sample_star_age_gy(age_bias, rng, population)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
             continue
