@@ -171,7 +171,7 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
-From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26.
+From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27.
 
 From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
 
@@ -250,19 +250,21 @@ DB.8, DB.7, NAV.10 (Alembic), ADM.15 (RQ workers), UX.3 (progress from RQ), UX.2
 
 ### Decisions for Boss
 
-Work goes ahead on each default until Boss says otherwise.
+Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 
-- **Lane order under the one-thread cap**: Default: the bugfix lane's CI red group first, then the groundwork lane's layout and libraries group (so code moves once), then the two lanes alternate group by group.
-- **Redis on Windows (OPS.21, done in PR #437)**: Redis has no supported native Windows build. Default: the Windows installer points at Memurai or Redis in WSL.
-- **Habitability score structure (GEN.84)**: the docs give two structures (PHI-4's four domains with colour tiers, or PHI_bio, PHI_cpx and Phi_tech). Default: PHI-4's domains and tiers for display, with the Xenobiology doc's three tiers as the scores behind them.
-- **Wide-binary names under the codec (GEN.71)**: Default: the pair shares one codec name with "A" and "B"; planets are "<name> A I" style.
-- **GEN.29 outside phase 0**: it is a bug, but the class refactor (GEN.90) is the sweep. Default: it stays in phase 2 with the refactor.
-- **Front-end build (UX.40, UX.41, MAP.102)**: Default: vendored ES module builds served by Flask, no bundler.
-- **Hilbert fill order (GEN.101)**: a pruned ball can't always be walked with unit steps and no backtracking. Default: keep the Hilbert order and allow a jump where the ball cuts the curve, logged.
-- **Orbital sectors and frames (GEN.109, GEN.115)**: the research document proposes cubic Morton-keyed cells and unrotated sector frames. Default: keep the ring, layer and slot sectors and their rotated frames for display; the physics sums forces in galactic coordinates over each sector and its neighbours.
-- **Scaling the galaxy's gravity (GEN.115)**: the research values are the Milky Way's. Default: those values at the default galaxy shape; lengths scale with the disk scale length otherwise.
-- **Orbital epoch (GEN.105)**: Default: J2000.0, as the research and spin documents use (was year 0 at generation); one in-game year per run.
-- GEN.65: still needs the error text before anyone starts it.
+- **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
+- **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 drops Memurai from the installer and docs.
+- **Habitability score structure (GEN.84)**: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).
+- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71.
+- **GEN.29 outside phase 0**: approved (stays in phase 2 with the class refactor).
+- **Front-end build (UX.40, UX.41, MAP.102)**: approved (vendored ES module builds served by Flask, no bundler).
+- **Hilbert fill order (GEN.101)**: approved (keep the Hilbert order, allow a logged jump where the ball cuts the curve).
+- **Orbital sectors and frames (GEN.109, GEN.115)**: "Approved, but verify the algorithm will work with our sector geometry." The check is in GEN.109.
+- **Scaling the galaxy's gravity (GEN.115)**: approved.
+- **Orbital epoch and step (GEN.105)**: "No 1 year per orbital update or turn, rather, once set up and configured we follow orbital paths in real time.  The update script should have an option to update for more time in 1 go if specified.  Default is 1 day = 1 day." In GEN.105 and GEN.106.
+- **GEN.65**: "I do not have the error message, keep an eye out for it, but put it on the back burner for something to watch out for, design a test that will test for it in a variety of situations, I think this error occurred when I was attempting to generate  a neighborhood when the center was close to the edge of the galaxy." In GEN.65.
+
+No decisions are open.
 
 ## Files that several items touch
 

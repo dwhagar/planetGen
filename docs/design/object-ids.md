@@ -81,8 +81,9 @@ haven't been filled. The plan:
    ID into pronounceable words and back, keyed by a domain and the naming
    key, so a name is unique because its ID is, and changing the key
    renames everything without rewriting rows. Planets keep the "<system>
-   I" pattern; a wide binary's pair share one name with "A" and "B"
-   (default until Boss decides).
+   I" pattern. A wide binary gets a two-word name: star A's planets are
+   "<word 1> I", "<word 1> II", star B's "<word 2> I", "<word 2> II",
+   never "A I" (Boss, 2026-10-07 17:11Z; GEN.71).
 5. **Removal** of the word lists, the nltk corpus, the name registries
    and the collision rules.
 

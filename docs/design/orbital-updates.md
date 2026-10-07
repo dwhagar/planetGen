@@ -244,7 +244,7 @@ equator.
 |---|---|---|
 | PropagateKeplerianOrbit | Moves a two-body orbit by any time step through the universal variable chi and the Stumpff functions c0 to c3, solved by Halley's method to 1e-12, then Lagrange f and g | One routine for circles, ellipses, parabolas and hyperbolas. Use the corrected equation in 10.6. |
 | ComputeTwoBodyHyperbolicDeflection | A flyby that stays unbound: e = sqrt(1 + (b v_inf^2 / mu)^2), turning angle 2 asin(1/e), the relative velocity rotated about h by Rodrigues' formula, the change split by mass | Momentum is conserved. v_inf must be the speed at infinity (10.6). |
-| ResolveCloseEncounterMicroPass | Inside a mutual Hill sphere the yearly step pauses for that pair and a 4th-order Hermite or Yoshida integrator sub-steps at `eta sqrt(r^3 / G(M1+M2))`, eta 0.01 to 0.05 | Fluid Roche limit `2.44 R1 (rho1/rho2)^(1/3)` disrupts the smaller body into ring debris; contact merges them. |
+| ResolveCloseEncounterMicroPass | Inside a mutual Hill sphere the step pauses for that pair and a 4th-order Hermite or Yoshida integrator sub-steps at `eta sqrt(r^3 / G(M1+M2))`, eta 0.01 to 0.05 | Fluid Roche limit `2.44 R1 (rho1/rho2)^(1/3)` disrupts the smaller body into ring debris; contact merges them. |
 
 Orbits inside a system are stored as modified equinoctial elements
 (p, f, g, h, k, L): no division by zero for circular or equatorial
@@ -254,13 +254,16 @@ mu).
 
 ### 10.4 The update step and epoch
 
-One run advances one in-game year (3.15576e7 s):
+A run advances the galaxy by the real time since its last update
+(Boss, 2026-10-07 17:11Z: "once set up and configured we follow orbital
+paths in real time ... Default is 1 day = 1 day"), and an option adds a
+stated extra span in one go. With `dt` that time:
 
 - Phase A: each star moves by Velocity Verlet in the galactic potential
   plus its point masses, and everything it holds is shifted by the same
   displacement.
 - Phase B: each bound child's mean anomaly advances by `n dt mod 2 pi`,
-  exact for any number of orbits per year. A child that is no longer
+  exact for any number of orbits per step. A child that is no longer
   bound (e >= 1) uses PropagateKeplerianOrbit instead.
 
 The document puts the epoch at J2000.0 (JD 2451545.0), which also matches
@@ -268,7 +271,7 @@ the spin formulas in "Observational Kinetics for Rotational Vectors.md".
 
 ### 10.5 Collisions
 
-Continuous detection over the year: the squared separation of two
+Continuous detection over the step: the squared separation of two
 straight paths, `A t^2 + B t + C`, against an effective radius widened by
 gravitational focusing,
 `R_eff = (R1 + R2) sqrt(1 + v_esc^2 / max(dv^2, floor))`. A hit inside the
@@ -330,9 +333,14 @@ The defaults below hold until Boss decides otherwise:
   `disk_scale_length / 2800 pc` and the masses stay, so the rotation
   curve keeps its shape. Galaxy-to-galaxy differences beyond that are
   phase 3+ (several galaxies).
-- **Epoch.** The earlier default was year 0 at the galaxy's generation.
-  Default now: J2000.0, as the document and the spin document both use,
-  with one in-game year per run. Both stay settings.
+- **Epoch and step.** The earlier default was year 0 at the galaxy's
+  generation. The epoch is J2000.0, as the document and the spin
+  document both use. The step is not a fixed year: Boss (2026-10-07
+  17:11Z): "No 1 year per orbital update or turn, rather, once set up
+  and configured we follow orbital paths in real time.  The update
+  script should have an option to update for more time in 1 go if
+  specified.  Default is 1 day = 1 day." Each run advances by the real
+  time since the last one, plus any extra span asked for.
 - **The galaxy's own gravity.** Boss (2026-10-07 12:25Z): "We'll have to
   add a galactic gravitational gradient but we need to make sure that
   it's consistent with actual science." Settled by section 10.1.
