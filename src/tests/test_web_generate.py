@@ -637,6 +637,46 @@ def test_page_offers_the_backfill_checkbox(site, client):
     assert "Backfill from every generated sector (farthest out)" in html
 
 
+# --- Prevalence (ADM.16) ------------------------------------------------------------
+
+@pytest.mark.parametrize("action", ["galaxy", "new_galaxy"])
+def test_prevalence_fields_reach_the_galaxy_run(site, client, no_spawn, action):
+    assert _post(client, action=action, confirm=DB, estimate_ok="1", prevalence_comets="50",
+                 prevalence_habitable_world="-100", prevalence_moons="0").status_code == 303
+    (job,) = no_spawn
+    argv = _argv(_work_steps(job)[-1])
+    given = [argv[i + 1] for i, arg in enumerate(argv) if arg == "--prevalence"]
+    assert given == ["habitable_world=-100", "comets=50"]  # 0 is the usual chance: left out
+
+
+def test_blank_prevalence_adds_nothing(site, client, no_spawn):
+    assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
+    (job,) = no_spawn
+    assert "--prevalence" not in _argv(_work_steps(job)[-1])
+
+
+@pytest.mark.parametrize("value", ["-101", "lots", "nan"])
+def test_prevalence_must_be_a_number_of_at_least_minus_100(site, client, no_spawn, value):
+    resp = _post(client, action="galaxy", estimate_ok="1", prevalence_comets=value)
+    assert resp.status_code == 400
+    assert no_spawn == []
+    assert "Comets prevalence (%)" in resp.get_data(as_text=True)
+
+
+def test_page_offers_every_prevalence_field_on_both_forms(site, client):
+    from planetgen.generation import prevalence
+    html = client.get("/admin/generate").get_data(as_text=True)
+    for feature in prevalence.FEATURES:
+        assert html.count(f'name="prevalence_{feature}"') == 2  # New galaxy and Generate sectors
+
+
+def test_the_generator_accepts_the_prevalence_argv():
+    from planetgen.cli import generate as generate_cli
+    argv = generate_page.prevalence_argv({f"prevalence_{f}": "25" for f in generate_page.prevalence.FEATURES})
+    args = generate_cli.build_parser()[0].parse_args(["galaxy", *argv])
+    assert dict(args.prevalence) == {feature: 25.0 for feature in generate_page.prevalence.FEATURES}
+
+
 @pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
 def test_scatter_threshold_must_be_at_least_one(site, client, no_spawn, value):
     resp = _post(client, action="plan", bright_min_luminosity=value)
