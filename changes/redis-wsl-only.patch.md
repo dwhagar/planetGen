@@ -1,0 +1,2 @@
+### Changed
+- **Redis on Windows means Redis in WSL2 (OPS.27).** The Windows guide, `config.md` and the warning `install.ps1`/`update.ps1` give when no Redis answers now point only at Redis in WSL2, with the setup steps (`sudo apt install redis-server`, `systemctl enable --now redis-server`, the default `redis.url` through WSL2's localhost forwarding, and keeping WSL running). Memurai is no longer suggested.
