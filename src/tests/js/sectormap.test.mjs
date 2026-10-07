@@ -20,8 +20,14 @@ const SM = await import(new URL("sectormap.js", STATIC_URL).href);
 
 const SIZE = 400;
 const FOV = 45;
-const MIN_ZOOM = 0.2;
 const MAX_ZOOM = 2.5;
+
+// The zoom floor: 0.2, or half the opening zoom when a crowded sector
+// opens near it, so - always has somewhere to go (MAP.114).
+function minZoom(m) {
+  const opening = m.data.defaultZoom > 0 && m.data.defaultZoom <= 1 ? m.data.defaultZoom : 1;
+  return Math.min(0.2, opening / 2);
+}
 
 function setUp(data) {
   const win = installDom("http://localhost/sector/1");
@@ -94,7 +100,7 @@ test("opens at the panel's default zoom", () => {
   near(m.polar(), THREE.MathUtils.degToRad(72), "polar");
 });
 
-test("+ and - step the zoom by 0.15 and stop at 0.2 and 2.5", () => {
+test("+ and - step the zoom by 0.15 and stop at the floor and 2.5", () => {
   const m = setUp();
   const start = m.zoom();
   m.button("zoom-in").click();
@@ -105,7 +111,17 @@ test("+ and - step the zoom by 0.15 and stop at 0.2 and 2.5", () => {
   for (let n = 0; n < 40; n++) m.button("zoom-in").click();
   near(m.zoom(), MAX_ZOOM);
   for (let n = 0; n < 40; n++) m.button("zoom-out").click();
-  near(m.zoom(), MIN_ZOOM);
+  near(m.zoom(), minZoom(m));
+});
+
+test("- zooms out past the opening view, even for a sector that opens at 0.2", () => {
+  const data = structuredClone(F.sectorMap.data);
+  data.defaultZoom = 0.2;
+  const m = setUp(data);
+  m.button("zoom-out").click();
+  assert.ok(m.zoom() < 0.2 - 1e-9, `zoom ${m.zoom()} is not below the opening 0.2`);
+  m.button("reset").click();
+  near(m.zoom(), 0.2);
 });
 
 test("the wheel zooms by 0.08 a notch and keeps the page still", () => {
@@ -116,7 +132,7 @@ test("the wheel zooms by 0.08 a notch and keeps the page still", () => {
   assert.ok(wheel.defaultPrevented);
   near(m.zoom(), start + 0.08);
   for (let n = 0; n < 60; n++) m.canvasEl.dispatchEvent(new FakeEvent("wheel", { deltaY: 120 }));
-  near(m.zoom(), MIN_ZOOM);
+  near(m.zoom(), minZoom(m));
 });
 
 test("Reset view puts back the zoom and the turn", () => {

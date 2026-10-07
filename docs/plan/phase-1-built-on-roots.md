@@ -45,7 +45,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.29 | Record which runs a partly filled sector still needs | GEN.76 | Builds on the generated flag that GEN.76 settles (sector_stats.bright_level_sol). |
+| PERF.29 | Record which runs a partly filled sector still needs |  | Builds on the generated flag that GEN.76 settles (sector_stats.bright_level_sol). |
 | PERF.30 | Finish an interrupted block or sector run on the next start | PERF.29 |  |
 
 ### Generate page

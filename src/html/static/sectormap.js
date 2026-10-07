@@ -659,7 +659,11 @@ export function initStarmap(canvasEl, data, options) {
   var sceneHalfPx = data.sceneHalfPx || 160;
   var referenceDistance = sceneHalfPx / Math.tan(THREE.MathUtils.degToRad(FOV_DEG / 2));
 
-  var MIN_ZOOM = 0.2;
+  var defaultZoom = data.defaultZoom > 0 && data.defaultZoom <= 1 ? data.defaultZoom : 1;
+  // Always room to zoom out past the opening view: a crowded sector opens
+  // at starmap.py's 0.2 floor, where a fixed 0.2 minimum left the - button
+  // and Reset view with nothing to do (MAP.114).
+  var MIN_ZOOM = Math.min(0.2, defaultZoom / 2);
   var MAX_ZOOM = 2.5;
   var ZOOM_STEP = 0.15;
   var WHEEL_ZOOM_STEP = 0.08;
@@ -676,7 +680,6 @@ export function initStarmap(canvasEl, data, options) {
     return Math.max(MIN_POLAR, Math.min(MAX_POLAR, phi));
   }
 
-  var defaultZoom = data.defaultZoom > 0 && data.defaultZoom <= 1 ? data.defaultZoom : 1;
   var defaultAzimuth = THREE.MathUtils.degToRad(-32);
   var defaultPolar = THREE.MathUtils.degToRad(90 - 18);
 

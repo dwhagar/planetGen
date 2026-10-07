@@ -191,6 +191,11 @@ def _fill_in_worker(config, barrier, results):
         while len(ids) < _ROWS_PER_WORKER:
             ids += _insert_configs(conn, min(_ROWS_PER_COMMIT, _ROWS_PER_WORKER - len(ids)))
         results.put(ids)
+    except Exception as exc:
+        # Report the failure itself: without this the test only saw an
+        # empty queue after its timeout (TEST.87).
+        results.put(f"{type(exc).__name__}: {exc}")
+        raise
     finally:
         conn.close()
 
@@ -207,6 +212,8 @@ def test_two_processes_using_up_blocks_of_one_table_never_collide(mysql_config):
     finally:
         for worker in workers:
             worker.join(timeout=60)
+    failures = [result for result in ids if isinstance(result, str)]
+    assert not failures, failures
     assert [worker.exitcode for worker in workers] == [0, 0]
 
     assert all(len(worker_ids) == _ROWS_PER_WORKER for worker_ids in ids)

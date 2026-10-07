@@ -281,6 +281,18 @@ _FLOAT_OPTIONS = sorted({(c, o) for c in COMMANDS for o, kind, _ in OPTION_TABLE
 _BASE_ARGV = {"galaxy": ["--ring", "0"]}
 
 
+@pytest.mark.parametrize("argv", [
+    ["galaxy", "--workers=--"],
+    ["galaxy", "--flavor-chance-planet=--"],
+    ["system", "--flavor-chance-system=--"],
+    ["plan", "--disk-scale-length-pc=--"],
+])
+def test_a_lone_double_dash_value_is_a_usage_error(argv):
+    # PERF.27: Python 3.9's argparse stored [] for these instead of an
+    # error, and the validators crashed comparing a list with a number.
+    assert _parse(argv) == 2
+
+
 @settings(max_examples=scaled(60))
 @given(target=st.sampled_from(_FLOAT_OPTIONS), token=st.sampled_from(NON_FINITE_TOKENS))
 @example(target=("sector", "--density"), token="nan")                   # hung in _sample_poisson_count

@@ -600,12 +600,17 @@ def _reserve_id_block(config, table, size, at_least):
         cur = raw.cursor()
         cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
         floor_id = max(cur.fetchone()["floor_id"], at_least)
-        cur.execute("INSERT IGNORE INTO id_blocks (table_name, next_id) VALUES (%s, 1)", (table,))
+        # One upsert, so the row lock is taken exclusive from the start:
+        # INSERT IGNORE then UPDATE had two processes each hold a shared
+        # lock on a new table's row and deadlock (1213) upgrading it
+        # (TEST.81).
         cur.execute(
-            "UPDATE id_blocks SET next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s) WHERE table_name = %s",
-            (floor_id, size, table),
+            "INSERT INTO id_blocks (table_name, next_id) VALUES (%s, LAST_INSERT_ID(%s + %s))"
+            " ON DUPLICATE KEY UPDATE next_id = LAST_INSERT_ID(GREATEST(next_id, %s) + %s)",
+            (table, floor_id, size, floor_id, size),
         )
-        end = cur.lastrowid
+        cur.execute("SELECT LAST_INSERT_ID() AS end_id")
+        end = cur.fetchone()["end_id"]
         raw.commit()
     except Exception:
         raw.rollback()

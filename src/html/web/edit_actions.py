@@ -113,7 +113,7 @@ def _flash_result(kind, action, result):
                        f"{result.get('phenomena', 0)} phenomena.")
         elif kind == "sector":
             summary = "Sector regenerated." if result.get("sector_id") else \
-                "Sector deleted; its slot no longer qualifies for a sector, so nothing was generated."
+                "Sector deleted; its slot is outside the galaxy's outline, so nothing was generated."
         else:
             summary = "Done."
     flash(summary, FLASH_OK)
