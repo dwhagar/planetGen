@@ -1,0 +1,2 @@
+### Added
+- **The work-queue audit (PERF.19).** `docs/design/work-queue-audit.md` lists every path where the API or website generates or writes something, where each runs today (a web job, the generation work queue, or inside the request), and where each goes once the queue moves to Redis and RQ (PERF.24). Long generation leaves the request, short generation is queued and waited on, and plain row writes and logins stay in the request.
