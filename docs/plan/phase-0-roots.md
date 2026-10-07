@@ -38,7 +38,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) |  | Held by Boss until he gives the error text; may be the same failure as GEN.76 (empty sectors). Boss 08:08Z: high priority, top of phase 0, not started yet. Details unknown; ask Boss for the error. |
 | PERF.26 | Size estimates don't match what generation stores (bug) |  |  |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) |  |  |
-| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) |  | Boss commented out the `star_count < 1.0` checks (commits c6a5f20, 64f02e7); this finishes the fix. |
+| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) |  | Boss commented out the `star_count < 1.0` checks (commits c6a5f20, 64f02e7); this finishes the fix. Main's CI is red until it lands: two `test_galaxy_gen.py` tests still expect a sparse sector not to qualify. |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | GEN.76 |  |
 | GEN.78 | Some regions have a star probability of zero (bug) | GEN.76 | Also covers Boss's 2026-10-07 "Star generation should always actually take place" (merged into GEN.76 and here). |
 | GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | GEN.78 | Major bug (Boss 2026-10-07); merges the 2026-10-03 bulge report. |
@@ -91,7 +91,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
-| TEST.88 | Intermittent failure in the exact-density sector test (bug) |  | test_galaxy_gen.py; sparse slot qualified once on MariaDB 11.4, 4 workers. |
 
 ### Groundwork: layout and libraries
 

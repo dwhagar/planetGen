@@ -13,10 +13,10 @@ being trusted. This condenses Boss's documents in this folder:
   mergers)
 - "Observational Kinetics for Rotational Vectors.md" (spin rates, axial
   tilt)
+- "Orbital Position and Vector Mathematical Foundations.md" (the numerical
+  methods underneath: root finding, optimization, linear solvers, eigen
+  and singular value decompositions, and where each breaks down)
 - `spacial-position.py` at the repo root (Boss's prototype position class)
-
-Boss also named "Orbital Position and Vector Mathematical Foundations.md";
-it is not in the repository yet, and this note will take it in when it is.
 
 ## 1. What Boss asked for
 
@@ -155,3 +155,52 @@ What an observer sees is where an object was, not where it is: its
 apparent position is its position at (now - distance / c), solved by
 iteration for moving bodies. This is the groundwork for the view from a
 planet.
+
+## 9. Numerical methods and their limits
+
+The foundations document covers the solvers the update leans on, how each
+one fails, and what to fall back to. In planetGen terms:
+
+| Problem | Method | Where it breaks | Fallback |
+|---|---|---|---|
+| Kepler's equation (anomaly from time), Hill and Roche radii, the light-travel time in section 8 | Newton's method, quadratic near the root | the derivative 1 - e cos E goes to zero as e nears 1 near periapsis; a poor first guess wanders | Brent's method on a bracket that always holds the root ([M - e, M + e] for ellipses), which halves the bracket every step and cannot diverge; past e of about 0.99, the universal-variable form (section 7) |
+| Stopping any iteration | tolerance 2 eps \|x\| + an absolute floor | a bracket narrower than one floating-point step never shrinks, so the loop never ends | stop at that width, cap the iteration count, and log the case |
+| Editable trajectories and course fitting (phase 2 and 3) | BFGS (scipy.optimize) with a Wolfe line search | curvature turns non-positive and the step stops going downhill | Powell's damped update, then reset to steepest descent |
+| Small linear systems (frame changes, encounter fits) | LU with partial pivoting (numpy and LAPACK) | element growth, or a matrix nearly singular | QR, then a regularized least-squares solve, and the result is flagged |
+| Rotation matrices for frames and spin axes | products of rotations | round-off drifts them away from orthonormal after many updates | re-orthonormalize with the SVD (or a quaternion renormalize) on every save |
+
+Precision: positions are 64-bit floats (epsilon about 2.2e-16). Across
+the 30 kpc galaxy that is about 0.2 km in absolute coordinates, far below
+the 0.01 mpc galactic threshold. Systems and moons still use their local
+frames (section 7), because a moon's 100,000 km threshold must survive
+being added to a star's galactic position. A problem whose condition
+number nears 1 / epsilon (nearly equal eigenvalues, near-singular
+matrices) is logged and solved at higher precision (mpmath), never
+silently trusted.
+
+Not needed: the Lanczos and dense eigenvalue methods. planetGen has no
+large sparse matrix problem, and the 3 by 3 decompositions it does need
+come from numpy.
+
+## 10. Open questions for Boss
+
+None of the documents settle these. The defaults below hold until Boss
+decides otherwise:
+
+- **The galaxy's own gravity.** The documents pull on a star only from
+  its nearest point masses and the central black hole. The smooth mass
+  of the disk, bulge and halo, which keeps the Sun at about 230 km/s, is
+  missing, and without it stars drift outward. Default: a fixed analytic
+  potential (a Miyamoto-Nagai disk, a Hernquist bulge and an NFW halo,
+  scaled to the density model's disk and bulge in galaxy-disk-density.md) added to every
+  galactic step, with the point masses as perturbations on top.
+- **Frame axes.** The galactic and sector frames stay as
+  galaxy-coordinate-system.md defines them: galactic +Z is galactic
+  north, and slots count counterclockwise from +X; a sector's local +X
+  points radially outward, +Y toward increasing angle and +Z north, from
+  the sector's centre. A system frame (missing today) has its origin at
+  the system's barycentre and its +Z along the primary star's spin axis;
+  planets' tilts and spins are measured from it.
+- **Time.** One update run advances one in-game year, from an epoch of
+  year 0 at the galaxy's generation. Both are settings.
+
