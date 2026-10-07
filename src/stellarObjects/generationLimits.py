@@ -12,7 +12,7 @@ absurd value (a typo, `9` * 25, a hostile request) into a clear error
 instead of a job that runs for days or exhausts memory.
 """
 
-from . import program_constants
+from planetgen import tuning
 from .galaxyGeometry import ring_sector_count
 from .galaxySkeleton import DEFAULT_MAX_RING
 from .utils import pc_to_ly
@@ -36,6 +36,6 @@ MAX_GENERATE_LIMIT = ring_sector_count(MAX_GENERATE_RING)
 """int: The largest `--limit` for a ring batch: no ring up to
 `MAX_GENERATE_RING` holds more slots than this."""
 
-MAX_NUM_ORBITS = program_constants.ABSOLUTE_MAX_SYSTEM_OBJECTS
+MAX_NUM_ORBITS = tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS
 """int: The largest forced orbital slot count (`--num-orbits`, the API's
 `num_orbits`) -- the generator's own ceiling on objects in a system."""

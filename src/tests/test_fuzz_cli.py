@@ -43,7 +43,8 @@ from hypothesis import strategies as st
 
 import generate
 from stellarObjects.starData import STAR_TYPE_PATTERN
-from stellarObjects import _db, generationLimits, program_constants
+from stellarObjects import _db, generationLimits
+from planetgen import tuning
 from planetgen.util import log
 from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
@@ -53,7 +54,7 @@ from tests import worker_patches
 from tests.bughunt_support import mysql_argv
 from tests.fuzz_support import hostile_text, scaled
 
-EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 DB_SETTINGS = settings(suppress_health_check=[HealthCheck.function_scoped_fixture, HealthCheck.too_slow])
 
 
@@ -95,11 +96,11 @@ def _restore_cli_globals():
     """`build_system_config` writes --flavor-chance-*/--max-planet-flavor
     straight into `program_constants`, and `main()` reconfigures the
     shared logger -- undo both after every test."""
-    saved = {name: getattr(program_constants, name)
+    saved = {name: getattr(tuning, name)
              for name in ("FLAVOR_CHANCE_SYSTEM", "FLAVOR_CHANCE_PLANET", "MAX_FLAVOR_TOTAL")}
     yield
     for name, value in saved.items():
-        setattr(program_constants, name, value)
+        setattr(tuning, name, value)
     log.reset_console()
     log.configure(log.NORMAL)
 
@@ -471,7 +472,7 @@ def test_huge_num_systems_does_not_build_every_config_up_front(mysql_config, mon
 
 @settings(DB_SETTINGS, max_examples=scaled(15))
 @given(
-    ptype=st.one_of(st.none(), st.sampled_from(list(program_constants.PHENOMENON_TYPE_CHOICES) + ["wormhole"])),
+    ptype=st.one_of(st.none(), st.sampled_from(list(tuning.PHENOMENON_TYPE_CHOICES) + ["wormhole"])),
     anchor=st.booleans(),
     orbits=st.one_of(st.none(), st.sampled_from(["0", "1", "-1", "40", "9" * 20])),
     name=st.one_of(st.none(), hostile_text.filter(lambda s: not s.startswith(("-", "+")))),

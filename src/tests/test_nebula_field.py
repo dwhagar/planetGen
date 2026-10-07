@@ -11,7 +11,8 @@ import math
 import pytest
 
 import generate as galaxyGen
-from stellarObjects import _db, nebulaField, program_constants
+from stellarObjects import _db, nebulaField
+from planetgen import tuning
 from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxyGeometry import sector_address_at, sector_position_pc
 from stellarObjects.utils import ly_to_pc
@@ -23,7 +24,7 @@ SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4
 SOLAR_RADIUS_PC = 2.82 * SHAPE.disk_scale_length_pc
 ARM_ANGLE = math.log(SOLAR_RADIUS_PC / SHAPE.disk_scale_length_pc) / math.tan(SHAPE.pitch_angle_rad)
 SEED = bytes(range(16))
-EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 REACH_PC = EDGE_PC * math.sqrt(3) / 2
 
 
@@ -42,7 +43,7 @@ def test_gas_is_densest_on_the_arms_and_near_the_plane():
     high = nebulaField.gas_factor(_on_ring(ARM_ANGLE, z=300.0), SHAPE)
     assert arm > 1.5 > 1.0 > between > 0.0
     assert high < 0.05 * arm
-    assert nebulaField.gas_factor((10.0, 10.0, 0.0), SHAPE) <= program_constants.NEBULA_FIELD_MAX_GAS_FACTOR
+    assert nebulaField.gas_factor((10.0, 10.0, 0.0), SHAPE) <= tuning.NEBULA_FIELD_MAX_GAS_FACTOR
 
 
 def test_only_dark_family_clouds_and_the_same_ones_every_time():
@@ -117,7 +118,7 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
     _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=3000,
                           expected_system_count_at_density_1=1.0, config=mysql_config, galaxy_seed=SEED)
     _db.replace_galaxy_layers([(layer, 3000) for layer in range(-2, 3)], config=mysql_config)
-    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
 
     # Three sectors in a row on the arm's crest at the solar circle.
     ring, layer, slot = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)

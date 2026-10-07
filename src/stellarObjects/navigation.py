@@ -62,7 +62,7 @@ in `program_constants`). At `v` times light-speed, 1 light-year takes
 import math
 from collections import namedtuple
 
-from . import program_constants
+from planetgen import tuning
 from .utils import format_period_years
 
 FRAME_GALACTIC = "galactic"
@@ -216,7 +216,7 @@ def warp_speed_c(warp_factor):
 
     Args:
         warp_factor (float): The warp factor, above 0 and below
-            `program_constants.WARP_FACTOR_LIMIT` (10).
+            `tuning.WARP_FACTOR_LIMIT` (10).
 
     Returns:
         float: The speed in multiples of c. Warp 1 is c to within 1e-30.
@@ -224,14 +224,14 @@ def warp_speed_c(warp_factor):
     Raises:
         ValueError: If `warp_factor` is outside (0, 10).
     """
-    if not 0 < warp_factor < program_constants.WARP_FACTOR_LIMIT:
-        raise ValueError(f"warp factor must be above 0 and below {program_constants.WARP_FACTOR_LIMIT}")
-    base = warp_factor ** program_constants.WARP_VELOCITY_EXPONENT
-    blend = 1 / (1 + math.exp(-program_constants.WARP_TRANSITION_STEEPNESS
-                              * (warp_factor - program_constants.WARP_TRANSITION_MIDPOINT)))
-    asymptote = (program_constants.WARP_ASYMPTOTE_COEFFICIENT
-                 / (program_constants.WARP_FACTOR_LIMIT - warp_factor) ** program_constants.WARP_ASYMPTOTE_EXPONENT)
-    return base + blend * (asymptote + program_constants.WARP_HIGH_WARP_OFFSET - base)
+    if not 0 < warp_factor < tuning.WARP_FACTOR_LIMIT:
+        raise ValueError(f"warp factor must be above 0 and below {tuning.WARP_FACTOR_LIMIT}")
+    base = warp_factor ** tuning.WARP_VELOCITY_EXPONENT
+    blend = 1 / (1 + math.exp(-tuning.WARP_TRANSITION_STEEPNESS
+                              * (warp_factor - tuning.WARP_TRANSITION_MIDPOINT)))
+    asymptote = (tuning.WARP_ASYMPTOTE_COEFFICIENT
+                 / (tuning.WARP_FACTOR_LIMIT - warp_factor) ** tuning.WARP_ASYMPTOTE_EXPONENT)
+    return base + blend * (asymptote + tuning.WARP_HIGH_WARP_OFFSET - base)
 
 
 def fold_speed_c(fold_factor):
@@ -241,7 +241,7 @@ def fold_speed_c(fold_factor):
 
     Args:
         fold_factor (float): The fold factor, above 0 and below
-            `program_constants.FOLD_FACTOR_LIMIT` (10).
+            `tuning.FOLD_FACTOR_LIMIT` (10).
 
     Returns:
         float: The speed in multiples of c.
@@ -249,10 +249,10 @@ def fold_speed_c(fold_factor):
     Raises:
         ValueError: If `fold_factor` is outside (0, 10).
     """
-    if not 0 < fold_factor < program_constants.FOLD_FACTOR_LIMIT:
-        raise ValueError(f"fold factor must be above 0 and below {program_constants.FOLD_FACTOR_LIMIT}")
-    return (program_constants.FOLD_SPEED_COEFFICIENT * fold_factor ** program_constants.FOLD_SPEED_EXPONENT
-            / (program_constants.FOLD_FACTOR_LIMIT - fold_factor))
+    if not 0 < fold_factor < tuning.FOLD_FACTOR_LIMIT:
+        raise ValueError(f"fold factor must be above 0 and below {tuning.FOLD_FACTOR_LIMIT}")
+    return (tuning.FOLD_SPEED_COEFFICIENT * fold_factor ** tuning.FOLD_SPEED_EXPONENT
+            / (tuning.FOLD_FACTOR_LIMIT - fold_factor))
 
 
 def _travel_times(distance_ly, factors, speed_c, make_leg):
@@ -265,7 +265,7 @@ def _travel_times(distance_ly, factors, speed_c, make_leg):
     return legs
 
 
-def warp_travel_times(distance_ly, warp_factors=program_constants.WARP_FACTORS_FOR_NAV):
+def warp_travel_times(distance_ly, warp_factors=tuning.WARP_FACTORS_FOR_NAV):
     """
     Computes travel time across `distance_ly` at each of `warp_factors`,
     on `warp_speed_c`'s curve.
@@ -274,7 +274,7 @@ def warp_travel_times(distance_ly, warp_factors=program_constants.WARP_FACTORS_F
         distance_ly (float): The distance to travel, in light-years.
         warp_factors (iterable): The warp factors to report travel time
                                  at. Defaults to
-                                 `program_constants.WARP_FACTORS_FOR_NAV`.
+                                 `tuning.WARP_FACTORS_FOR_NAV`.
 
     Returns:
         list: A `WarpLeg` for each of `warp_factors`, in the given order.
@@ -282,7 +282,7 @@ def warp_travel_times(distance_ly, warp_factors=program_constants.WARP_FACTORS_F
     return _travel_times(distance_ly, warp_factors, warp_speed_c, WarpLeg)
 
 
-def fold_travel_times(distance_ly, fold_factors=program_constants.FOLD_FACTORS_FOR_NAV):
+def fold_travel_times(distance_ly, fold_factors=tuning.FOLD_FACTORS_FOR_NAV):
     """
     Computes travel time across `distance_ly` at each of `fold_factors`,
     on `fold_speed_c`'s curve.
@@ -291,7 +291,7 @@ def fold_travel_times(distance_ly, fold_factors=program_constants.FOLD_FACTORS_F
         distance_ly (float): The distance to travel, in light-years.
         fold_factors (iterable): The fold factors to report travel time
                                  at. Defaults to
-                                 `program_constants.FOLD_FACTORS_FOR_NAV`.
+                                 `tuning.FOLD_FACTORS_FOR_NAV`.
 
     Returns:
         list: A `FoldLeg` for each of `fold_factors`, in the given order.

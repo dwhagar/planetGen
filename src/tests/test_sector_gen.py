@@ -24,7 +24,7 @@ def test_generate_sector_name_is_always_two_words():
 
 # ---------------------------------------------------------------------------
 # generate_sector_phenomena -- sector-level exotic phenomena generation
-# (research-based Poisson rates, see program_constants.PHENOMENON_DENSITY_PC3).
+# (research-based Poisson rates, see tuning.PHENOMENON_DENSITY_PC3).
 # ---------------------------------------------------------------------------
 
 from types import SimpleNamespace
@@ -32,7 +32,7 @@ from types import SimpleNamespace
 import pytest
 
 import generate as sectorGen
-from stellarObjects import program_constants
+from planetgen import tuning
 from stellarObjects.compactRemnant import BlackHole
 from stellarObjects.config import SystemConfig
 from stellarObjects.spaceSector import SpaceSector
@@ -61,7 +61,7 @@ def _seeded_sector(system_count, edge_ly=100.0):
 
 
 def _rate(kind):
-    return program_constants.phenomenon_rate_per_star(kind)
+    return tuning.phenomenon_rate_per_star(kind)
 
 
 def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_poisson_mean(monkeypatch):
@@ -97,7 +97,7 @@ def test_research_rates_per_star():
 
 
 def test_rate_scale_dials_a_kind(monkeypatch):
-    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
     assert _rate("rogue-planet") == pytest.approx(0.65)
 
 
@@ -126,7 +126,7 @@ def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     assert len(sector.entries) == 4 + 3
     for entry in entries:
         host = next(e for e in sector.entries if e.position == entry.position)
-        assert sectorGen._spectral_code(host.star_system.stars[0]) in program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+        assert sectorGen._spectral_code(host.star_system.stars[0]) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
 
 
 def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):
@@ -237,19 +237,19 @@ def test_a_local_density_sector_gets_about_six_and_a_half_rogues_per_star():
 
 def test_flag_fast_stars(monkeypatch):
     sector = _seeded_sector(20)
-    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "runaway-star", 1 / 0.015)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "runaway-star", 1 / 0.015)
     assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=26000.0) == 20
     for entry in sector.entries:
         system = entry.star_system
         assert system.runaway_class in ("runaway", "hypervelocity")
         if system.runaway_class == "runaway":
-            low, high = program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS
+            low, high = tuning.RUNAWAY_STAR_SPEED_RANGE_KMS
             assert low <= system.runaway_speed_kms <= high
 
     # Hypervelocity stars crowd the center (r^-2).
     sector = _seeded_sector(5)
-    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "runaway-star", 0.0)
-    monkeypatch.setitem(program_constants.PHENOMENON_RATE_SCALE, "hypervelocity-star", 1e12)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "runaway-star", 0.0)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "hypervelocity-star", 1e12)
     assert sectorGen.flag_fast_stars(sector, galactic_center_dist_ly=1.0) == 5
     assert all(e.star_system.runaway_class == "hypervelocity" for e in sector.entries)
     assert all(500 <= e.star_system.runaway_speed_kms <= 1000 for e in sector.entries)

@@ -17,7 +17,7 @@ import pytest
 import generate as systemGen
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
-from stellarObjects import program_constants
+from planetgen import tuning
 
 # This file lives at src/tests/, two levels under the repo root (src
 # layout), not one -- ".." twice to reach examples/systems/ at the repo
@@ -34,7 +34,7 @@ TRIALS = 3
 # see get_star_evolutionary_profile / Star.to_paragraph_list.
 _MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
     note["evolutionary_constraint_notes"]
-    for note in program_constants.STAR_EVOLUTION.values()
+    for note in tuning.STAR_EVOLUTION.values()
     if "evolutionary_constraint_notes" in note
 ]
 

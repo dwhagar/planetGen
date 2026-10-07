@@ -61,7 +61,7 @@ import math
 from fmt import esc, format_distance_ly, format_number
 
 try:
-    from stellarObjects.physical_constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
+    from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # duplicated literally rather than left unimportable, since these

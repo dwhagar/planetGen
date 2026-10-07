@@ -1,5 +1,5 @@
 """
-The star population model (`stellarObjects.stellarEvolution`, used by
+The star population model (`planetgen.physics.stellar_evolution`, used by
 `Star.generate_star` for every random star).
 
 The shares are checked against the real census the model is built to
@@ -15,9 +15,9 @@ import random
 
 import pytest
 
-from stellarObjects import physical_constants as phys_c
-from stellarObjects import program_constants as prog_c
-from stellarObjects import stellarEvolution as se
+from planetgen.physics import constants as phys_c
+from planetgen import tuning as prog_c
+from planetgen.physics import stellar_evolution as se
 from stellarObjects.config import SystemConfig
 from stellarObjects.starData import STAR_TYPE_PATTERN, Star
 from stellarObjects.systemData import StarSystem

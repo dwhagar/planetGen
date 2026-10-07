@@ -1,4 +1,4 @@
-# stellarObjects/mathCheck.py
+# planetgen/physics/mathcheck.py
 
 """
 Math Check: the Gate in Front of Everything Else
@@ -33,7 +33,7 @@ figure, a paper, or an exact identity). There are three groups:
 
 Pure: no database, network or files; every random draw is seeded, and the
 global `random` module's state is put back afterwards. The whole run takes
-well under 5 seconds. `python -m stellarObjects.mathCheck` prints the
+well under 5 seconds. `python -m planetgen.physics.mathcheck` prints the
 report and exits 1 if anything failed.
 """
 
@@ -46,12 +46,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from . import (
-    galaxyDensity, galaxyGeometry, keplerMotion, physical_constants as pc, program_constants,
-    spaceSector, stellarEvolution, utils,
-)
+from stellarObjects import galaxyDensity, galaxyGeometry, spaceSector, utils
+from planetgen.physics import constants as pc, kepler, stellar_evolution
+from planetgen import tuning
 from planetgen.util import log
-from . import planetPhysics
+from planetgen.physics import planets
 
 SEED = 20261001
 """int: The seed every distribution check starts from (each check adds its
@@ -249,7 +248,7 @@ def _bin_counts(values, edges):
 def _seeded_global_random(seed):
     """
     Seeds the global `random` module for samplers that draw from it
-    (`utils.sample_bounded_bell`, `planetPhysics._choose_weighted_planet_class`),
+    (`utils.sample_bounded_bell`, `planets._choose_weighted_planet_class`),
     then puts its state back. The debug log's per-draw tracing and DEBUG
     lines are switched off meanwhile, so a check run never floods the log
     with thousands of rolls.
@@ -287,30 +286,30 @@ def _schwarzschild_radius_km(mass_solar):
 
 def _reference_checks():
     sun_kg = pc.SOLAR_MASS_TO_KG
-    period = planetPhysics.calculate_orbital_period_years
+    period = planets.calculate_orbital_period_years
     gc_ly = pc.GALACTIC_CENTER_DISTANCE_LY
     return [
-        Check("sun_luminosity", "reference", "stellarEvolution.main_sequence_luminosity_sol(1)",
-              lambda: stellarEvolution.main_sequence_luminosity_sol(1.0), 1.0, 1e-9,
+        Check("sun_luminosity", "reference", "stellar_evolution.main_sequence_luminosity_sol(1)",
+              lambda: stellar_evolution.main_sequence_luminosity_sol(1.0), 1.0, 1e-9,
               "definition: 1 M_sun on the main sequence gives 1 L_sun", unit="L_sun"),
-        Check("sun_main_sequence_lifetime", "reference", "stellarEvolution.main_sequence_lifetime_gy(1)",
-              lambda: stellarEvolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
+        Check("sun_main_sequence_lifetime", "reference", "stellar_evolution.main_sequence_lifetime_gy(1)",
+              lambda: stellar_evolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
               "the Sun's main-sequence lifetime, about 10 Gy (Sackmann et al. 1993)", unit="Gy"),
-        Check("sun_effective_temperature", "reference", "stellarEvolution.effective_temperature_k(1, 1)",
-              lambda: stellarEvolution.effective_temperature_k(1.0, 1.0), 5772.0, 1e-3,
+        Check("sun_effective_temperature", "reference", "stellar_evolution.effective_temperature_k(1, 1)",
+              lambda: stellar_evolution.effective_temperature_k(1.0, 1.0), 5772.0, 1e-3,
               "IAU 2015 Resolution B3: nominal solar T_eff 5,772 K", unit="K"),
         Check("sun_effective_temperature_si", "reference",
               "Stefan-Boltzmann from SOLAR_LUMINOSITY, SOLAR_RADIUS_M, STEFAN_BOLTZMANN_CONSTANT",
               _sun_teff_from_si, 5772.0, 0.005,
               "IAU 2015 Resolution B3: nominal solar T_eff 5,772 K", unit="K"),
-        Check("earth_orbital_period", "reference", "planetPhysics.calculate_orbital_period_years(1 AU, 1 M_sun)",
+        Check("earth_orbital_period", "reference", "planets.calculate_orbital_period_years(1 AU, 1 M_sun)",
               lambda: period(1.0, sun_kg), 1.0, 1e-6,
               "Kepler's third law: 1 AU around 1 M_sun is 1 year", unit="yr"),
-        Check("jupiter_orbital_period", "reference", "planetPhysics.calculate_orbital_period_years(5.2026 AU, 1 M_sun)",
+        Check("jupiter_orbital_period", "reference", "planets.calculate_orbital_period_years(5.2026 AU, 1 M_sun)",
               lambda: period(5.2026, sun_kg), 11.862, 0.002,
               "Jupiter: a = 5.2026 AU, sidereal period 11.862 yr (NASA planetary fact sheet)", unit="yr"),
-        Check("earth_orbital_speed_vis_viva", "reference", "keplerMotion.vis_viva_speed_kms(1, 1, 1)",
-              lambda: keplerMotion.vis_viva_speed_kms(1.0, 1.0, 1.0), 29.78, 0.001,
+        Check("earth_orbital_speed_vis_viva", "reference", "kepler.vis_viva_speed_kms(1, 1, 1)",
+              lambda: kepler.vis_viva_speed_kms(1.0, 1.0, 1.0), 29.78, 0.001,
               "Earth's mean orbital speed, 29.78 km/s (NASA planetary fact sheet)", unit="km/s"),
         Check("earth_orbital_speed_circular", "reference", "utils.circular_orbital_speed_kms(1, 1)",
               lambda: utils.circular_orbital_speed_kms(1.0, 1.0), 29.78, 0.001,
@@ -328,11 +327,11 @@ def _reference_checks():
         Check("snow_line_1_lsun", "reference", "utils.snow_line_au(L_sun)",
               lambda: utils.snow_line_au(pc.SOLAR_LUMINOSITY), 2.7, 1e-6,
               "snow line at 2.7 AU for 1 L_sun (Hayashi 1981)", unit="AU"),
-        Check("white_dwarf_0_6_msun_radius", "reference", "stellarEvolution.white_dwarf_radius_km(0.6)",
-              lambda: stellarEvolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
+        Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
+              lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
               "a typical 0.6 M_sun white dwarf is about Earth-sized (Shapiro & Teukolsky 1983)", unit="km"),
-        Check("sirius_b_radius", "reference", "stellarEvolution.white_dwarf_radius_km(1.02)",
-              lambda: stellarEvolution.white_dwarf_radius_km(1.02), 5840.0, 0.05,
+        Check("sirius_b_radius", "reference", "stellar_evolution.white_dwarf_radius_km(1.02)",
+              lambda: stellar_evolution.white_dwarf_radius_km(1.02), 5840.0, 0.05,
               "Sirius B: 1.02 M_sun, 0.0084 R_sun = 5,840 km (Bond et al. 2017)", unit="km"),
         Check("sun_schwarzschild_radius", "reference", "2 G M_sun / c^2 (compactRemnant.BlackHole)",
               lambda: _schwarzschild_radius_km(1.0), 2.953, 0.002,
@@ -365,22 +364,22 @@ def _reference_checks():
               "utils.holman_wiegert_circumbinary_a_crit_au(1, 0.3, 0.3)",
               lambda: utils.holman_wiegert_circumbinary_a_crit_au(1.0, 0.3, 0.3), 3.361141, 1e-9,
               "Holman & Wiegert 1999, AJ 117:621, eq. 3 at mu = 0.3, e = 0.3", unit="a_bin"),
-        Check("kepler_equation_meeus_30a", "reference", "keplerMotion.solve_eccentric_anomaly(5 deg, 0.1)",
-              lambda: math.degrees(keplerMotion.solve_eccentric_anomaly(math.radians(5.0), 0.1)),
+        Check("kepler_equation_meeus_30a", "reference", "kepler.solve_eccentric_anomaly(5 deg, 0.1)",
+              lambda: math.degrees(kepler.solve_eccentric_anomaly(math.radians(5.0), 0.1)),
               5.554589, 1e-6, "Meeus, Astronomical Algorithms, example 30.a: E = 5.554589 deg",
               mode="abs", unit="deg"),
         Check("kepler_equation_high_eccentricity", "reference",
-              "keplerMotion.solve_eccentric_anomaly(M(E = 1 rad), 0.99)",
-              lambda: keplerMotion.solve_eccentric_anomaly(1.0 - 0.99 * math.sin(1.0), 0.99), 1.0, 1e-9,
+              "kepler.solve_eccentric_anomaly(M(E = 1 rad), 0.99)",
+              lambda: kepler.solve_eccentric_anomaly(1.0 - 0.99 * math.sin(1.0), 0.99), 1.0, 1e-9,
               "exact: E = 1 rad gives M = 1 - 0.99 sin 1 by Kepler's equation", mode="abs", unit="rad"),
-        Check("barker_equation_d_1", "reference", "keplerMotion.solve_barker_equation(4/3)",
-              lambda: keplerMotion.solve_barker_equation(4 / 3), 1.0, 1e-12,
+        Check("barker_equation_d_1", "reference", "kepler.solve_barker_equation(4/3)",
+              lambda: kepler.solve_barker_equation(4 / 3), 1.0, 1e-12,
               "exact: D = 1 solves D^3 + 3D = 3 * 4/3", mode="abs"),
-        Check("barker_equation_d_2", "reference", "keplerMotion.solve_barker_equation(14/3)",
-              lambda: keplerMotion.solve_barker_equation(14 / 3), 2.0, 1e-12,
+        Check("barker_equation_d_2", "reference", "kepler.solve_barker_equation(14/3)",
+              lambda: kepler.solve_barker_equation(14 / 3), 2.0, 1e-12,
               "exact: D = 2 solves D^3 + 3D = 3 * 14/3", mode="abs"),
-        Check("barker_equation_d_minus_3", "reference", "keplerMotion.solve_barker_equation(-12)",
-              lambda: keplerMotion.solve_barker_equation(-12.0), -3.0, 1e-12,
+        Check("barker_equation_d_minus_3", "reference", "kepler.solve_barker_equation(-12)",
+              lambda: kepler.solve_barker_equation(-12.0), -3.0, 1e-12,
               "exact: D = -3 solves D^3 + 3D = 3 * -12", mode="abs"),
     ]
 
@@ -424,7 +423,7 @@ def _speed_of_light_consistency():
 def _kepler_units_vs_si():
     """keplerMotion's mu = 4 pi^2 AU^3/yr^2 per M_sun against G * M_sun in SI."""
     gm_au3_yr2 = pc.G * pc.SOLAR_MASS_TO_KG * pc.SECONDS_PER_YEAR ** 2 / pc.AU_M ** 3
-    return _rel_err(gm_au3_yr2, keplerMotion.gravitational_parameter_au3_yr2(1.0))
+    return _rel_err(gm_au3_yr2, kepler.gravitational_parameter_au3_yr2(1.0))
 
 
 def _mass_monotonic_violations():
@@ -433,11 +432,11 @@ def _mass_monotonic_violations():
     masses = _log_sweep(0.08, 150.0, 400)
     bad = 0
     for low, high in zip(masses, masses[1:]):
-        if not stellarEvolution.main_sequence_luminosity_sol(high) > stellarEvolution.main_sequence_luminosity_sol(low):
+        if not stellar_evolution.main_sequence_luminosity_sol(high) > stellar_evolution.main_sequence_luminosity_sol(low):
             bad += 1
-        if not stellarEvolution.main_sequence_lifetime_gy(high) < stellarEvolution.main_sequence_lifetime_gy(low):
+        if not stellar_evolution.main_sequence_lifetime_gy(high) < stellar_evolution.main_sequence_lifetime_gy(low):
             bad += 1
-        if not stellarEvolution.main_sequence_radius_sol(high) > stellarEvolution.main_sequence_radius_sol(low):
+        if not stellar_evolution.main_sequence_radius_sol(high) > stellar_evolution.main_sequence_radius_sol(low):
             bad += 1
     return bad
 
@@ -449,16 +448,16 @@ def _kepler_orbit_conservation():
     energy must stay -mu/2a and the specific angular momentum
     sqrt(mu a (1 - e^2)). Returns the largest relative error.
     """
-    mu = keplerMotion.gravitational_parameter_au3_yr2(1.0)
+    mu = kepler.gravitational_parameter_au3_yr2(1.0)
     worst = 0.0
     for a, e in ((1.0, 0.0), (1.0, 0.3), (5.2, 0.7), (30.0, 0.95)):
-        n = keplerMotion.mean_motion_per_year(a, 1.0)
+        n = kepler.mean_motion_per_year(a, 1.0)
         energy = -mu / (2 * a)
         momentum = math.sqrt(mu * a * (1 - e * e))
         dt = 1e-6 / n
 
         def position(t):
-            nu, r = keplerMotion.true_anomaly_and_distance_elliptical(n * t, e, a)
+            nu, r = kepler.true_anomaly_and_distance_elliptical(n * t, e, a)
             return r * math.cos(nu), r * math.sin(nu)
 
         for step in range(24):
@@ -479,7 +478,7 @@ def _kepler_equation_residual():
     for e in (0.0, 0.1, 0.5, 0.8, 0.9, 0.99, 0.999):
         for i in range(73):
             m = i * 2 * math.pi / 72
-            ecc = keplerMotion.solve_eccentric_anomaly(m, e)
+            ecc = kepler.solve_eccentric_anomaly(m, e)
             residual = (ecc - e * math.sin(ecc) - m) % (2 * math.pi)
             worst = max(worst, min(residual, 2 * math.pi - residual))
     return worst
@@ -487,7 +486,7 @@ def _kepler_equation_residual():
 
 def _ring_volume_error():
     """Sum of a ring's cell volumes against the annulus they tile."""
-    edge = program_constants.DEFAULT_SECTOR_EDGE_PC
+    edge = tuning.DEFAULT_SECTOR_EDGE_PC
     worst = 0.0
     for ring in list(range(0, 200)) + list(range(200, 4000, 97)):
         cell = galaxyGeometry.SectorCell.for_ring(ring, edge)
@@ -500,7 +499,7 @@ def _ring_volume_error():
 def _sector_address_round_trip_failures():
     """Cells whose own center is not found again by `sector_address_at`,
     or whose slots don't cover `ring_sector_count` exactly."""
-    edge = program_constants.DEFAULT_SECTOR_EDGE_PC
+    edge = tuning.DEFAULT_SECTOR_EDGE_PC
     failures = 0
     for ring in list(range(0, 60)) + list(range(60, 4000, 211)):
         n = galaxyGeometry.ring_sector_count(ring)
@@ -567,24 +566,24 @@ def _non_finite_outputs():
     shape = _default_galaxy_shape()
     outputs = []
     for m in _log_sweep(0.08, 150.0, 60):
-        lum = stellarEvolution.main_sequence_luminosity_sol(m)
-        rad = stellarEvolution.main_sequence_radius_sol(m)
-        outputs += [lum, rad, stellarEvolution.main_sequence_lifetime_gy(m),
-                    stellarEvolution.effective_temperature_k(lum, rad),
+        lum = stellar_evolution.main_sequence_luminosity_sol(m)
+        rad = stellar_evolution.main_sequence_radius_sol(m)
+        outputs += [lum, rad, stellar_evolution.main_sequence_lifetime_gy(m),
+                    stellar_evolution.effective_temperature_k(lum, rad),
                     *utils.calculate_habitable_zone(lum * pc.SOLAR_LUMINOSITY),
                     utils.snow_line_au(lum * pc.SOLAR_LUMINOSITY),
-                    stellarEvolution.white_dwarf_radius_km(min(m, 1.4)),
+                    stellar_evolution.white_dwarf_radius_km(min(m, 1.4)),
                     _schwarzschild_radius_km(m)]
     for a in _log_sweep(0.01, 1e5, 40):
-        outputs += [planetPhysics.calculate_orbital_period_years(a, pc.SOLAR_MASS_TO_KG),
-                    keplerMotion.vis_viva_speed_kms(a, a, 1.0),
+        outputs += [planets.calculate_orbital_period_years(a, pc.SOLAR_MASS_TO_KG),
+                    kepler.vis_viva_speed_kms(a, a, 1.0),
                     utils.calculate_hill_sphere(a * pc.AU_M, pc.EARTH_MASS_TO_KG, pc.SOLAR_MASS_TO_KG)]
         for e in (0.0, 0.5, 0.99):
-            outputs += list(keplerMotion.true_anomaly_and_distance_elliptical(a, e, a))
+            outputs += list(kepler.true_anomaly_and_distance_elliptical(a, e, a))
     for ly in (1.0, 100.0, 25800.0, 60000.0, 1e6):
         outputs += list(utils.calculate_galactic_orbit(ly))
     for mp in (-1e9, -10.0, -1e-9, 0.0, 1e-9, 10.0, 1e9):
-        outputs += list(keplerMotion.true_anomaly_and_distance_parabolic(mp, 1.0))
+        outputs += list(kepler.true_anomaly_and_distance_parabolic(mp, 1.0))
     for r in (0.0, 1.0, 1e3, 1e4, 3e4):
         for z in (0.0, 100.0, 1e4):
             outputs.append(galaxyDensity.relative_density((r, 0.0, z), shape))
@@ -612,21 +611,21 @@ def _invariant_checks():
               _speed_of_light_consistency, 1e-12, 0.0,
               "exact: c = 299,792,458 m/s (SI) and 1 ly = c x 365.25 days",
               mode="max", unit="relative error"),
-        Check("kepler_units_match_si", "invariant", "keplerMotion.gravitational_parameter_au3_yr2(1) vs G * M_sun",
+        Check("kepler_units_match_si", "invariant", "kepler.gravitational_parameter_au3_yr2(1) vs G * M_sun",
               _kepler_units_vs_si, 1e-3, 0.0,
               "Kepler's third law in AU, yr and M_sun (mu = 4 pi^2) against G and M_sun in SI",
               mode="max", unit="relative error"),
         Check("mass_sequence_monotonic", "invariant",
-              "stellarEvolution.main_sequence_luminosity_sol/radius_sol/lifetime_gy",
+              "stellar_evolution.main_sequence_luminosity_sol/radius_sol/lifetime_gy",
               _mass_monotonic_violations, 0, 0.0,
               "on the main sequence, heavier stars are brighter, larger and shorter-lived",
               mode="max", unit="violations"),
         Check("kepler_orbit_conserves_energy_and_momentum", "invariant",
-              "keplerMotion.true_anomaly_and_distance_elliptical along an orbit",
+              "kepler.true_anomaly_and_distance_elliptical along an orbit",
               _kepler_orbit_conservation, 1e-6, 0.0,
               "two-body problem: specific energy -mu/2a and angular momentum sqrt(mu a (1-e^2)) are constant",
               mode="max", unit="relative error"),
-        Check("kepler_equation_residual", "invariant", "keplerMotion.solve_eccentric_anomaly",
+        Check("kepler_equation_residual", "invariant", "kepler.solve_eccentric_anomaly",
               _kepler_equation_residual, 1e-9, 0.0, f"{exact}: the solution satisfies M = E - e sin E",
               mode="max", unit="rad"),
         Check("ring_cells_fill_annulus", "invariant", "galaxyGeometry.SectorCell.volume x ring_sector_count",
@@ -679,7 +678,7 @@ def _kroupa_cdf(m):
 
 def _imf_p_value():
     rng = random.Random(SEED + 1)
-    draws = [stellarEvolution.sample_imf_mass_sol(rng=rng) for _ in range(4000)]
+    draws = [stellar_evolution.sample_imf_mass_sol(rng=rng) for _ in range(4000)]
     edges = [0.08, 0.15, 0.3, 0.5, 0.8, 1.5, 3.0, 8.0, 150.0]
     shares = [_kroupa_cdf(b) - _kroupa_cdf(a) for a, b in zip(edges, edges[1:])]
     return chi_square_p_value(_bin_counts(draws, edges), shares)
@@ -688,7 +687,7 @@ def _imf_p_value():
 def _star_age_p_value():
     """Disk ages are uniform over 0-10 Gy (constant star formation)."""
     rng = random.Random(SEED + 2)
-    draws = [stellarEvolution.sample_star_age_gy(rng=rng) for _ in range(3000)]
+    draws = [stellar_evolution.sample_star_age_gy(rng=rng) for _ in range(3000)]
     edges = [float(i) for i in range(11)]
     return chi_square_p_value(_bin_counts(draws, edges), [1.0] * 10)
 
@@ -696,7 +695,7 @@ def _star_age_p_value():
 def _bulge_age_p_value():
     """Bulge ages are uniform over 8-12 Gy."""
     rng = random.Random(SEED + 3)
-    draws = [stellarEvolution.sample_star_age_gy(rng=rng, population="bulge") for _ in range(2000)]
+    draws = [stellar_evolution.sample_star_age_gy(rng=rng, population="bulge") for _ in range(2000)]
     edges = [8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0]
     return chi_square_p_value(_bin_counts(draws, edges), [1.0] * 8)
 
@@ -743,10 +742,10 @@ def _bounded_bell_p_value():
 
 def _planet_class_p_value():
     """Unrestricted planet class draws follow `PLANET_CLASS_PROBABILITIES`."""
-    table = program_constants.PLANET_CLASS_PROBABILITIES
+    table = tuning.PLANET_CLASS_PROBABILITIES
     classes = sorted(table, key=lambda c: -table[c])
     with _seeded_global_random(SEED + 7):
-        draws = [planetPhysics._choose_weighted_planet_class(classes) for _ in range(5000)]
+        draws = [planets._choose_weighted_planet_class(classes) for _ in range(5000)]
     counts = [draws.count(c) for c in classes]
     return chi_square_p_value(counts, [table[c] for c in classes])
 
@@ -754,17 +753,17 @@ def _planet_class_p_value():
 def _distribution_checks():
     chi = f"chi-square goodness of fit, p >= {CHI_SQUARE_P_MIN:g}"
     return [
-        Check("imf_matches_kroupa", "distribution", "stellarEvolution.sample_imf_mass_sol",
+        Check("imf_matches_kroupa", "distribution", "stellar_evolution.sample_imf_mass_sol",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"Kroupa 2001, MNRAS 322:231 (alpha 1.3 below 0.5 M_sun, 2.3 above); {chi}", mode="min",
               unit="p"),
-        Check("star_ages_uniform", "distribution", "stellarEvolution.sample_star_age_gy",
+        Check("star_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy",
               _star_age_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"constant disk star formation over 0-10 Gy (program_constants.STAR_FORMATION_AGE_RANGE_GY); {chi}",
+              f"constant disk star formation over 0-10 Gy (tuning.STAR_FORMATION_AGE_RANGE_GY); {chi}",
               mode="min", unit="p"),
-        Check("bulge_ages_uniform", "distribution", "stellarEvolution.sample_star_age_gy(population='bulge')",
+        Check("bulge_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy(population='bulge')",
               _bulge_age_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"bulge stars 8-12 Gy old (program_constants.STELLAR_POPULATION_AGE_RANGES_GY); {chi}",
+              f"bulge stars 8-12 Gy old (tuning.STELLAR_POPULATION_AGE_RANGES_GY); {chi}",
               mode="min", unit="p"),
         Check("sector_counts_poisson", "distribution", "spaceSector._sample_poisson_count(6.5)",
               _poisson_p_value, CHI_SQUARE_P_MIN, 0.0,
@@ -776,9 +775,9 @@ def _distribution_checks():
         Check("bounded_bell_shape", "distribution", "utils.sample_bounded_bell(0, 1, 0.27)",
               _bounded_bell_p_value, CHI_SQUARE_P_MIN, 0.0,
               f"normal(0.27, 0.09) truncated to [0, 1]; {chi}", mode="min", unit="p"),
-        Check("planet_class_shares", "distribution", "planetPhysics._choose_weighted_planet_class",
+        Check("planet_class_shares", "distribution", "planets._choose_weighted_planet_class",
               _planet_class_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"program_constants.PLANET_CLASS_PROBABILITIES; {chi}", mode="min", unit="p"),
+              f"tuning.PLANET_CLASS_PROBABILITIES; {chi}", mode="min", unit="p"),
     ]
 
 
@@ -850,7 +849,7 @@ def startup_failures():
 
 
 def main(argv=None):
-    """`python -m stellarObjects.mathCheck [-v]`: prints the report, exits 1
+    """`python -m planetgen.physics.mathcheck [-v]`: prints the report, exits 1
     if any check failed."""
     argv = sys.argv[1:] if argv is None else argv
     results = run_all()

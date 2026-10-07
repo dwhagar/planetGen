@@ -14,7 +14,8 @@ import math
 
 import pytest
 
-from stellarObjects import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from stellarObjects.cometData import Comet
 from stellarObjects.config import SystemConfig
 
@@ -36,18 +37,18 @@ def test_elliptical_comet_within_configured_ranges():
     for _ in range(TRIALS):
         comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="elliptical")
         assert comet.orbit_type == "elliptical"
-        assert comet.period_class in program_constants.COMET_PERIOD_CLASSES
-        class_data = program_constants.COMET_PERIOD_CLASSES[comet.period_class]
+        assert comet.period_class in tuning.COMET_PERIOD_CLASSES
+        class_data = tuning.COMET_PERIOD_CLASSES[comet.period_class]
         assert class_data["eccentricity_range"][0] <= comet.eccentricity <= class_data["eccentricity_range"][1]
         assert 0 <= comet.inclination_deg <= class_data["inclination_max_deg"]
-        assert program_constants.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= program_constants.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
-        assert program_constants.COMET_PERIHELION_DISTANCE_RANGE_AU[0] <= comet.perihelion_distance_au <= program_constants.COMET_PERIHELION_DISTANCE_RANGE_AU[1]
+        assert tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
+        assert tuning.COMET_PERIHELION_DISTANCE_RANGE_AU[0] <= comet.perihelion_distance_au <= tuning.COMET_PERIHELION_DISTANCE_RANGE_AU[1]
         assert comet.orbital_period_years is not None and comet.orbital_period_years > 0
         assert comet.parabolic_mean_anomaly is None
         assert 0 <= comet.mean_anomaly_deg < 360
         assert comet.min_update_interval_years is not None and comet.min_update_interval_years > 0
         assert 0 < len(comet.composition) <= 3
-        assert all(component in program_constants.COMET_COMPOSITION for component in comet.composition)
+        assert all(component in tuning.COMET_COMPOSITION for component in comet.composition)
 
 
 def test_parabolic_comet_within_configured_ranges():
@@ -55,8 +56,8 @@ def test_parabolic_comet_within_configured_ranges():
         comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic")
         assert comet.orbit_type == "parabolic"
         assert comet.period_class is None
-        assert program_constants.PARABOLIC_COMET_ECCENTRICITY_RANGE[0] <= comet.eccentricity <= program_constants.PARABOLIC_COMET_ECCENTRICITY_RANGE[1]
-        assert 0 <= comet.inclination_deg <= program_constants.PARABOLIC_COMET_INCLINATION_MAX_DEG
+        assert tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE[0] <= comet.eccentricity <= tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE[1]
+        assert 0 <= comet.inclination_deg <= tuning.PARABOLIC_COMET_INCLINATION_MAX_DEG
         assert comet.orbital_period_years is None
         assert comet.mean_anomaly_deg is None
         assert comet.parabolic_mean_anomaly is not None

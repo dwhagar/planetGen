@@ -53,7 +53,8 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog, generationStats, program_constants
+from stellarObjects import activitylog, generationStats
+from planetgen import tuning
 from planetgen.util import log
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
 from stellarObjects.galaxyGeometry import sector_address_at
@@ -85,7 +86,7 @@ defaults (a test checks they still match `generate.py plan`'s parser)."""
 def _backfill_text():
     """The backfill tiers in words ("down to 100 solar luminosities within
     10 ly, 250 within 25 ly, ... and 750 out to 100 ly")."""
-    tiers = program_constants.BRIGHT_STAR_BACKFILL_TIERS
+    tiers = tuning.BRIGHT_STAR_BACKFILL_TIERS
     parts = [f"{floor:,.0f} within {out_to:g} ly" for out_to, floor in tiers[:-1]]
     last = f"{tiers[-1][1]:,.0f} out to {tiers[-1][0]:g} ly"
     if parts:
@@ -96,7 +97,7 @@ def _backfill_text():
 
 BACKFILL_TEXT = _backfill_text()
 """str: How far down the bright-star backfill around a generated sector
-goes, by distance (GEN.30, `program_constants.BRIGHT_STAR_BACKFILL_TIERS`)."""
+goes, by distance (GEN.30, `tuning.BRIGHT_STAR_BACKFILL_TIERS`)."""
 
 GALAXY_MODES = (
     ("random", "Around a random start",
@@ -162,7 +163,7 @@ MATH_CHECK_LABEL = "Check the math"
 """str: Every generating job's first step (TEST.68): `generate.py
 check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
-(`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
+(`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
 
 ESTIMATE_TIMEOUT_S = 120
@@ -309,7 +310,7 @@ def center_argv(form, edge_pc=None):
         point = (_number(form, "center_x_pc", "x (pc)", float, required=True),
                  _number(form, "center_y_pc", "y (pc)", float, required=True),
                  _number(form, "center_z_pc", "z (pc)", float) or 0.0)
-        edge = float(edge_pc or program_constants.DEFAULT_SECTOR_EDGE_PC)
+        edge = float(edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC)
         if max(abs(v) for v in point) > (MAX_GENERATE_RING + 1) * edge:
             raise FormError("That position is outside the galaxy grid.")
         ring, layer, slot = sector_address_at(point, edge)
@@ -402,7 +403,7 @@ def scatter_argv(form):
     """
     `generate.py plan --bright-stars-only` plus the form's galaxy-wide
     threshold (GEN.30: `--bright-star-min-luminosity`; blank means
-    `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
+    `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
 
     Raises:
         FormError: A threshold that isn't a number of at least 1.
@@ -651,7 +652,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         recent=[_job_view(job) for job in recent],
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
-        bright_min_luminosity=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
         backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,

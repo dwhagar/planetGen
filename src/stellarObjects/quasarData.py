@@ -13,7 +13,7 @@ Unlike every other exotic phenomenon, a quasar is not something found
 scattered through space: a galaxy has exactly one nucleus, at its
 dynamical center. The generator therefore only ever places one there
 (`generate.add_galactic_nucleus`, rolled against
-`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`), and a quasar has no
+`tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE`), and a quasar has no
 galactic orbit of its own -- it *is* the point everything else orbits.
 
 Every derived quantity follows from two draws, the black hole's mass and
@@ -30,7 +30,8 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import physical_constants, program_constants
+from planetgen.physics import constants as physical_constants
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name
@@ -86,20 +87,20 @@ class Quasar:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.black_hole_mass_solar = _log_uniform(*program_constants.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
+        self.black_hole_mass_solar = _log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
         self.event_horizon_radius_km = (
             2 * physical_constants.G * mass_kg / physical_constants.SPEED_OF_LIGHT_M_S ** 2 / 1000
         )
 
-        self.eddington_ratio = _log_uniform(*program_constants.QUASAR_EDDINGTON_RATIO_RANGE)
+        self.eddington_ratio = _log_uniform(*tuning.QUASAR_EDDINGTON_RATIO_RANGE)
         self.luminosity_w = (
-            self.eddington_ratio * program_constants.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS
+            self.eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS
             * self.black_hole_mass_solar
         )
 
         accretion_kg_s = self.luminosity_w / (
-            program_constants.QUASAR_RADIATIVE_EFFICIENCY * physical_constants.SPEED_OF_LIGHT_M_S ** 2
+            tuning.QUASAR_RADIATIVE_EFFICIENCY * physical_constants.SPEED_OF_LIGHT_M_S ** 2
         )
         self.accretion_rate_solar_per_year = (
             accretion_kg_s * physical_constants.SECONDS_PER_YEAR / physical_constants.SOLAR_MASS_TO_KG
@@ -107,20 +108,20 @@ class Quasar:
 
         # lambda L_5100 in erg/s (1 W = 1e7 erg/s) for the Bentz et al.
         # radius-luminosity relation.
-        l5100_erg_s = self.luminosity_w * 1e7 / program_constants.QUASAR_BOLOMETRIC_CORRECTION_5100
+        l5100_erg_s = self.luminosity_w * 1e7 / tuning.QUASAR_BOLOMETRIC_CORRECTION_5100
         self.broad_line_region_light_days = (
-            program_constants.QUASAR_BLR_RADIUS_LIGHT_DAYS_AT_1E44
-            * (l5100_erg_s / 1e44) ** program_constants.QUASAR_BLR_RADIUS_LUMINOSITY_SLOPE
+            tuning.QUASAR_BLR_RADIUS_LIGHT_DAYS_AT_1E44
+            * (l5100_erg_s / 1e44) ** tuning.QUASAR_BLR_RADIUS_LUMINOSITY_SLOPE
         )
 
-        self.is_radio_loud = random.random() < program_constants.QUASAR_RADIO_LOUD_CHANCE
+        self.is_radio_loud = random.random() < tuning.QUASAR_RADIO_LOUD_CHANCE
         log.choice("Quasar radio loudness", "radio-loud" if self.is_radio_loud else "radio-quiet",
-                   f"roll against QUASAR_RADIO_LOUD_CHANCE ({program_constants.QUASAR_RADIO_LOUD_CHANCE})")
+                   f"roll against QUASAR_RADIO_LOUD_CHANCE ({tuning.QUASAR_RADIO_LOUD_CHANCE})")
         self.jet_length_ly = (
-            _log_uniform(*program_constants.QUASAR_JET_LENGTH_RANGE_LY) if self.is_radio_loud else None
+            _log_uniform(*tuning.QUASAR_JET_LENGTH_RANGE_LY) if self.is_radio_loud else None
         )
 
-        self.active_age_years = _log_uniform(*program_constants.QUASAR_ACTIVE_AGE_RANGE_YEARS)
+        self.active_age_years = _log_uniform(*tuning.QUASAR_ACTIVE_AGE_RANGE_YEARS)
 
     def to_dict(self):
         """
@@ -155,7 +156,7 @@ class Quasar:
     def galaxy_luminosity_multiple(self):
         """float: How many times brighter than a Milky-Way-sized galaxy's
         combined starlight this quasar shines."""
-        return self.luminosity_w / program_constants.MILKY_WAY_STELLAR_LUMINOSITY_W
+        return self.luminosity_w / tuning.MILKY_WAY_STELLAR_LUMINOSITY_W
 
     def to_paragraph_list(self):
         """

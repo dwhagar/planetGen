@@ -32,7 +32,7 @@ and Procyon) exist mainly for **test coverage**: the original seven only
 ever exercise Yerkes classes `V` (main sequence), `III` (giant), and `IB`
 (supergiant) between them, missing exactly the white dwarf, hypergiant, and
 O/B dwarf paths where real bugs were found and fixed (see git history for
-`stellarObjects/physical_constants.py` and `starData.py`).
+`planetgen/physics/constants.py` and `starData.py`).
 `src/tests/test_examples.py` runs every file in `examples/systems/`
 automatically, so adding a new one there adds it to the regression suite
 for free.

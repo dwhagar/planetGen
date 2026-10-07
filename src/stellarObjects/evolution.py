@@ -16,7 +16,7 @@ purposes. They are not based on any established scientific models of astrobiolog
 
 import random
 
-from . import program_constants
+from planetgen import tuning
 from planetgen.util import log
 from .utils import format_age_string, get_star_evolutionary_profile, to_paragraph
 # Removed: from . import config # Import the config module
@@ -26,7 +26,7 @@ MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellul
 tuple[str]: `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone
 keys, in ascending order of life complexity -- shared by
 `get_evolutionary_timeline` for both display-name lookup and comparing a
-milestone against a `program_constants.PLANET_CLASS_MAX_LIFE_STAGE` cap.
+milestone against a `tuning.PLANET_CLASS_MAX_LIFE_STAGE` cap.
 """
 
 _MILESTONE_DISPLAY_NAMES = {
@@ -76,7 +76,7 @@ def get_evolutionary_timeline(star, planet_class=None):
     Args:
         star (Star): The star for which to generate an evolutionary timeline.
         planet_class (str, optional): The planet's own class code (e.g.
-            "G"). When it appears in `program_constants.
+            "G"). When it appears in `tuning.
             PLANET_CLASS_MAX_LIFE_STAGE`, the milestone this function can
             report -- whether from the natural age-based roll below or a
             forced `INTELLIGENT_LIFE=True` -- is capped at that class's own
@@ -112,7 +112,7 @@ def get_evolutionary_timeline(star, planet_class=None):
         scale_speed_order = [s for s in ["fast", "normal", "slow"] if s in supported_scales]
         reachable_scales = [
             s for s in scale_speed_order
-            if program_constants.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
+            if tuning.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
         ]
         if reachable_scales:
             evolutionary_scale = random.choice(reachable_scales)
@@ -130,21 +130,21 @@ def get_evolutionary_timeline(star, planet_class=None):
         log.choice("Evolutionary scale", evolutionary_scale,
                    f"uniform draw among supported scales {supported_scales}")
 
-    timeline = program_constants.EVOLUTIONARY_TIMELINES[evolutionary_scale]
+    timeline = tuning.EVOLUTIONARY_TIMELINES[evolutionary_scale]
 
     # The current system age is always the star's actual, already-finalized age
     # (see Star.adjust_age_for_planets) — never inflated past it, so this sentence
     # can never contradict the star's own stated age/lifespan elsewhere in the output.
     current_system_age = star.age
 
-    # A planet class's own ceiling (program_constants.PLANET_CLASS_MAX_LIFE_STAGE,
+    # A planet class's own ceiling (tuning.PLANET_CLASS_MAX_LIFE_STAGE,
     # e.g. Class G is capped at "photosynthesis" -- "simple life"), and
     # INTELLIGENT_LIFE=False's pre-existing "never report a civilization
     # when one was explicitly disallowed" rule, are both just caps on the
     # same milestone index -- combined here so the "most recent milestone"
     # search below only ever considers what BOTH allow, rather than
     # rolling unrestricted and correcting the result after the fact.
-    class_max_key = program_constants.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
+    class_max_key = tuning.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
     max_index = MILESTONE_KEYS.index(class_max_key) if class_max_key else len(MILESTONE_KEYS) - 1
     if star.system_config.INTELLIGENT_LIFE is False:
         max_index = min(max_index, MILESTONE_KEYS.index("multicellularity"))
@@ -202,7 +202,7 @@ def get_evolutionary_timeline(star, planet_class=None):
     if most_recent_milestone_age > -1.0:
         output_sentences.append(
             f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{most_recent_milestone_name} at {format_age_string(most_recent_milestone_age)}. {program_constants.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
+            f"{most_recent_milestone_name} at {format_age_string(most_recent_milestone_age)}. {tuning.EVOLUTIONARY_TEXT[most_recent_milestone_name.lower().replace(' ', '_')]}"
         )
     else:
         output_sentences.append(

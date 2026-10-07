@@ -1,4 +1,4 @@
-# stellarObjects/planetPhysics.py
+# planetgen/physics/planets.py
 
 """
 Planet Physical and Orbital Generation
@@ -20,9 +20,10 @@ import math
 import random
 import re
 
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from planetgen.util import log
-from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
+from stellarObjects.utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
                     finite_domain, orbital_position_au, sample_bounded_bell,
                     sample_power_law)
@@ -31,7 +32,7 @@ from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_refl
 def _sample_class_radius(cls, min_radius, max_radius):
     """
     Draws a radius in [min_radius, max_radius] using `cls`'s declared
-    `size_mode` (see `program_constants.PLANET_CLASSES`), via
+    `size_mode` (see `tuning.PLANET_CLASSES`), via
     `utils.sample_bounded_bell` -- a bell-curve draw peaking at the
     class's statistically-most-common size, rather than a flat uniform
     draw across its whole declared range. `min_radius`/`max_radius` are
@@ -41,7 +42,7 @@ def _sample_class_radius(cls, min_radius, max_radius):
     "how far through the available range" reading is evaluated against
     whatever range is actually being drawn from for this call.
     """
-    size_mode = program_constants.PLANET_CLASSES[cls].get("size_mode", 0.5)
+    size_mode = tuning.PLANET_CLASSES[cls].get("size_mode", 0.5)
     return sample_bounded_bell(min_radius, max_radius, size_mode)
 
 
@@ -49,22 +50,22 @@ def uses_giant_mass_radius(cls):
     """Whether class `cls` gets its mass and radius from the giant-planet
     mass-radius relation (GEN.34): every gas-giant class without its own
     `"density_range"`."""
-    data = program_constants.PLANET_CLASSES[cls]
+    data = tuning.PLANET_CLASSES[cls]
     return data["type"] == "g" and "density_range" not in data
 
 
 def giant_mass_range_kg(cls):
     """Class `cls`'s giant mass range (`GIANT_CLASS_MASS_RANGE_EARTH`), in kg."""
-    low, high = program_constants.GIANT_CLASS_MASS_RANGE_EARTH.get(
-        cls, program_constants.GIANT_DEFAULT_MASS_RANGE_EARTH)
-    return low * physical_constants.EARTH_MASS_TO_KG, high * physical_constants.EARTH_MASS_TO_KG
+    low, high = tuning.GIANT_CLASS_MASS_RANGE_EARTH.get(
+        cls, tuning.GIANT_DEFAULT_MASS_RANGE_EARTH)
+    return low * constants.EARTH_MASS_TO_KG, high * constants.EARTH_MASS_TO_KG
 
 
 def _giant_transition_earth():
     """`(mass, radius)` in Earth units where the Neptunian and Jovian
     branches of the giant mass-radius relation meet."""
-    m_n, r_n, s_n = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
-    m_j, r_j, s_j = physical_constants.GIANT_JOVIAN_MASS_RADIUS
+    m_n, r_n, s_n = constants.GIANT_NEPTUNIAN_MASS_RADIUS
+    m_j, r_j, s_j = constants.GIANT_JOVIAN_MASS_RADIUS
     # r_n * (M/m_n)^s_n == r_j * (M/m_j)^s_j, solved in log space.
     log_m = (math.log(r_j / r_n) + s_n * math.log(m_n) - s_j * math.log(m_j)) / (s_n - s_j)
     mass = math.exp(log_m)
@@ -76,25 +77,25 @@ GIANT_TRANSITION_MASS_EARTH, GIANT_TRANSITION_RADIUS_EARTH = _giant_transition_e
 
 def giant_regime(mass_kg):
     """`"neptunian"` below the relation's transition mass, else `"jovian"`."""
-    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
+    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
     return "neptunian" if mass_earth < GIANT_TRANSITION_MASS_EARTH else "jovian"
 
 
 def giant_radius_km(mass_kg):
     """The giant mass-radius relation's median radius (km) for `mass_kg`
-    (`physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS`), with no scatter."""
-    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
+    (`constants.GIANT_NEPTUNIAN_MASS_RADIUS`), with no scatter."""
+    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
     if giant_regime(mass_kg) == "neptunian":
-        m0, r0, slope = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
+        m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
     else:
-        m0, r0, slope = physical_constants.GIANT_JOVIAN_MASS_RADIUS
-    return r0 * (mass_earth / m0) ** slope * physical_constants.EARTH_RADIUS_KM
+        m0, r0, slope = constants.GIANT_JOVIAN_MASS_RADIUS
+    return r0 * (mass_earth / m0) ** slope * constants.EARTH_RADIUS_KM
 
 
 def _sample_giant_mass_kg(low_kg, high_kg):
     """A giant's mass in [low_kg, high_kg], from dN/dlogM ~
     M^-GIANT_MASS_FUNCTION_SLOPE."""
-    return sample_power_law(low_kg, high_kg, program_constants.GIANT_MASS_FUNCTION_SLOPE)
+    return sample_power_law(low_kg, high_kg, tuning.GIANT_MASS_FUNCTION_SLOPE)
 
 
 def sample_giant_radius_km(mass_kg):
@@ -102,7 +103,7 @@ def sample_giant_radius_km(mass_kg):
     (`GIANT_RADIUS_SCATTER`, cut at 3 sigma). Bound giants
     (`_sample_giant_radius_km`) and rogue gas giants (GEN.60) both draw
     their radius here."""
-    sigma = physical_constants.GIANT_RADIUS_SCATTER[giant_regime(mass_kg)]
+    sigma = constants.GIANT_RADIUS_SCATTER[giant_regime(mass_kg)]
     factor = 1 + max(-3.0, min(3.0, random.gauss(0.0, 1.0))) * sigma
     return giant_radius_km(mass_kg) * factor
 
@@ -110,7 +111,7 @@ def sample_giant_radius_km(mass_kg):
 def _sample_giant_radius_km(cls, mass_kg):
     """`sample_giant_radius_km(mass_kg)`, kept inside class `cls`'s radius
     range."""
-    low, high = program_constants.PLANET_CLASSES[cls]["radius_range"]
+    low, high = tuning.PLANET_CLASSES[cls]["radius_range"]
     return min(high, max(low, sample_giant_radius_km(mass_kg)))
 
 
@@ -123,11 +124,11 @@ def _giant_mass_for_radius_kg(cls, radius_km):
     Always inside the class's mass range.
     """
     low_kg, high_kg = giant_mass_range_kg(cls)
-    transition_kg = GIANT_TRANSITION_MASS_EARTH * physical_constants.EARTH_MASS_TO_KG
-    radius_earth = radius_km / physical_constants.EARTH_RADIUS_KM
+    transition_kg = GIANT_TRANSITION_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    radius_earth = radius_km / constants.EARTH_RADIUS_KM
     if radius_earth < GIANT_TRANSITION_RADIUS_EARTH or high_kg <= transition_kg:
-        m0, r0, slope = physical_constants.GIANT_NEPTUNIAN_MASS_RADIUS
-        mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * physical_constants.EARTH_MASS_TO_KG
+        m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
+        mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * constants.EARTH_MASS_TO_KG
     else:
         mass_kg = _sample_giant_mass_kg(max(low_kg, transition_kg), high_kg)
     return min(high_kg, max(low_kg, mass_kg))
@@ -147,21 +148,21 @@ def get_planet_mass_ranges():
               values are tuples of (min_mass, max_mass) in kilograms.
     """
     mass_ranges = {}
-    for planet_class, data in program_constants.PLANET_CLASSES.items():
+    for planet_class, data in tuning.PLANET_CLASSES.items():
         # radius_range is in kilometers (as used everywhere else -- e.g. class
         # M's 5000-10000 matches Earth's ~6371 km radius); convert to meters
         # to match the kg/m^3 densities used below.
         min_radius, max_radius = data["radius_range"]
-        min_radius *= physical_constants.KM_TO_M_FACTOR
-        max_radius *= physical_constants.KM_TO_M_FACTOR
+        min_radius *= constants.KM_TO_M_FACTOR
+        max_radius *= constants.KM_TO_M_FACTOR
         planet_type = data["type"]
 
         # Class-specific density range if declared (e.g. a brown-dwarf-like
         # sub-stellar class, far denser than an ordinary gas giant -- see
-        # program_constants.PLANET_CLASSES), else the default range shared
+        # tuning.PLANET_CLASSES), else the default range shared
         # by every other class of this body type. Same per-class-override
         # pattern as atm_molar_density_range.
-        min_density, max_density = data.get("density_range", physical_constants.PLANET_DENSITY[planet_type])  # g/cm^3
+        min_density, max_density = data.get("density_range", constants.PLANET_DENSITY[planet_type])  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
         min_density *= 1000
@@ -182,7 +183,7 @@ planet_mass_ranges = get_planet_mass_ranges()
 
 def _choose_weighted_planet_class(valid_classes):
     """
-    Draws a single planet class from `program_constants.PLANET_CLASS_PROBABILITIES`,
+    Draws a single planet class from `tuning.PLANET_CLASS_PROBABILITIES`,
     restricted to `valid_classes`.
 
     This re-weights the distribution to only the eligible classes and draws
@@ -196,12 +197,12 @@ def _choose_weighted_planet_class(valid_classes):
         str: The chosen planet class code.
     """
     valid_classes = set(valid_classes)
-    eligible = [c for c in program_constants.PLANET_CLASS_PROBABILITIES if c in valid_classes]
-    weights = [program_constants.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
+    eligible = [c for c in tuning.PLANET_CLASS_PROBABILITIES if c in valid_classes]
+    weights = [tuning.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
     chosen = random.choices(eligible, weights=weights, k=1)[0]
     log.choice("Planet class", chosen,
                f"weighted draw among {len(eligible)} eligible classes {eligible} "
-               f"(weights {weights}) out of {len(program_constants.PLANET_CLASS_PROBABILITIES)} total")
+               f"(weights {weights}) out of {len(tuning.PLANET_CLASS_PROBABILITIES)} total")
     return chosen
 
 
@@ -216,7 +217,7 @@ def _habitable_classes_barred(planet, zone):
     if planet.system_config.HABITABLE_WORLD is False and zone == 'e':
         return True
     star_age = getattr(getattr(planet, "star", None), "age", None)
-    return star_age is not None and star_age < program_constants.LIFE_MIN_STAR_AGE_GY
+    return star_age is not None and star_age < tuning.LIFE_MIN_STAR_AGE_GY
 
 
 def _validate_no_habitable_world(planet, zone):
@@ -233,7 +234,7 @@ def _validate_no_habitable_world(planet, zone):
                    `zone` is the ecosphere ('e'), and `planet.planet_class`
                    is a habitable class.
     """
-    if planet.system_config.HABITABLE_WORLD is False and zone == 'e' and planet.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
+    if planet.system_config.HABITABLE_WORLD is False and zone == 'e' and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
         raise ValueError(f"Cannot generate habitable planet class {planet.planet_class} in ecosphere when HABITABLE_WORLD is False.")
 
 
@@ -248,7 +249,7 @@ def _validate_planet_class(planet, zone):
     Raises:
         ValueError: If the planet class is not valid for the given zone.
     """
-    if planet.planet_class not in program_constants.PLANET_CLASSES or not program_constants.PLANET_CLASSES[planet.planet_class][zone]:
+    if planet.planet_class not in tuning.PLANET_CLASSES or not tuning.PLANET_CLASSES[planet.planet_class][zone]:
         raise ValueError("Invalid planet class for this zone")
 
 
@@ -262,7 +263,7 @@ def _validate_radius(planet):
     Raises:
         ValueError: If the radius is outside the valid range for the planet's class.
     """
-    min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+    min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
     if not (min_radius <= planet.radius <= max_radius):
         raise ValueError("Invalid radius for planet class")
 
@@ -317,7 +318,7 @@ def calculate_orbital_period_years(distance_au, primary_mass_kg):
             f"calculate_orbital_period_years: distance_au ({distance_au}) and primary_mass_kg "
             f"({primary_mass_kg}) must both be positive."
         )
-    primary_mass_sol = primary_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+    primary_mass_sol = primary_mass_kg / constants.SOLAR_MASS_TO_KG
     return math.sqrt(distance_au ** 3 / primary_mass_sol)
 
 
@@ -365,27 +366,27 @@ def generate_planet_properties(planet, zone_override=None):
 
     if planet.planet_class is None and planet.radius is None and planet.mass is None:
         # Fully random generation
-        valid_classes = [c for c, data in program_constants.PLANET_CLASSES.items() if data[zone]]
+        valid_classes = [c for c, data in tuning.PLANET_CLASSES.items() if data[zone]]
         if _habitable_classes_barred(planet, zone):
-            valid_classes = [c for c in valid_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
+            valid_classes = [c for c in valid_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
 
         planet.planet_class = _choose_weighted_planet_class(valid_classes)
-        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is None and planet.mass is None:
         # Class given, generate radius
         _validate_planet_class(planet, zone)
         _validate_no_habitable_world(planet, zone)
-        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is None:
         # Radius given, determine possible classes
-        possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
+        possible_classes = [c for c, data in tuning.PLANET_CLASSES.items()
                             if data[zone] and data["radius_range"][0] <= planet.radius <= data["radius_range"][1]]
         if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
         planet.planet_class = random.choice(possible_classes)
@@ -393,17 +394,17 @@ def generate_planet_properties(planet, zone_override=None):
 
     elif planet.planet_class is None and planet.radius is None and planet.mass is not None:
         # Mass given, determine possible classes
-        possible_classes = [c for c, data in program_constants.PLANET_CLASSES.items()
+        possible_classes = [c for c, data in tuning.PLANET_CLASSES.items()
                             if planet_mass_ranges[c][0] <= planet.mass <= planet_mass_ranges[c][1] and data[zone]]
         if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
         planet.planet_class = random.choice(possible_classes)
         _validate_mass(planet)
         # Everything downstream needs a radius, so draw one for the class,
         # the same as the class+mass branch below.
-        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is not None and planet.radius is not None and planet.mass is None:
@@ -417,19 +418,19 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_planet_class(planet, zone)
         _validate_no_habitable_world(planet, zone)
         _validate_mass(planet)
-        min_radius, max_radius = program_constants.PLANET_CLASSES[planet.planet_class]["radius_range"]
+        min_radius, max_radius = tuning.PLANET_CLASSES[planet.planet_class]["radius_range"]
         planet.radius = _sample_class_radius(planet.planet_class, min_radius, max_radius)
 
     elif planet.planet_class is None and planet.radius is not None and planet.mass is not None:
         # Radius and mass given, determine possible classes
         possible_classes = []
-        for c, data in program_constants.PLANET_CLASSES.items():
+        for c, data in tuning.PLANET_CLASSES.items():
             min_mass, max_mass = planet_mass_ranges[c]
             min_radius, max_radius = data["radius_range"]
             if min_mass <= planet.mass <= max_mass and min_radius <= planet.radius <= max_radius and data[zone]:
                 possible_classes.append(c)
         if _habitable_classes_barred(planet, zone):
-            possible_classes = [c for c in possible_classes if c not in program_constants.HABITABLE_PLANET_CLASSES]
+            possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
         planet.planet_class = random.choice(possible_classes)
@@ -443,10 +444,10 @@ def generate_planet_properties(planet, zone_override=None):
         _validate_radius(planet)
         _validate_mass(planet)
 
-    class_data = program_constants.PLANET_CLASSES[planet.planet_class]
+    class_data = tuning.PLANET_CLASSES[planet.planet_class]
 
     # Ecosphere-zone classes with a declared "zone_position_mode" (Venus/
-    # Earth/Mars-analog-style classes -- see program_constants.PLANET_CLASSES)
+    # Earth/Mars-analog-style classes -- see tuning.PLANET_CLASSES)
     # get placed at a class-appropriate distance within the zone instead of
     # wherever the caller's initial estimate happened to land -- the zone
     # itself doesn't change (still 'e'), only the position within it, so
@@ -474,9 +475,9 @@ def generate_planet_properties(planet, zone_override=None):
     else:
         # Class-specific density range if declared (e.g. a brown-dwarf-like
         # sub-stellar class -- see get_planet_mass_ranges above and
-        # program_constants.PLANET_CLASSES), else the default range shared by
+        # tuning.PLANET_CLASSES), else the default range shared by
         # every other class of this body type.
-        default_density = physical_constants.PLANET_DENSITY[planet.body_type]
+        default_density = constants.PLANET_DENSITY[planet.body_type]
         min_density, max_density = class_data.get("density_range", default_density)
         planet.density = random.uniform(min_density, max_density)
 
@@ -497,16 +498,16 @@ def generate_planet_properties(planet, zone_override=None):
         # replaces the old Class N hardcoded special case with the same
         # general per-class-override mechanism Class P's albedo_range uses,
         # so every class's atmosphere composition can be tuned independently
-        # (see program_constants.PLANET_CLASSES and
+        # (see tuning.PLANET_CLASSES and
         # docs/analysis/habitability-atmosphere-sanity-review.md).
-        default_a_density = physical_constants.ATMOSPHERE_DENSITY[planet.body_type]
+        default_a_density = constants.ATMOSPHERE_DENSITY[planet.body_type]
         min_a_density, max_a_density = class_data.get("atm_density_range", default_a_density)
         planet.atm_density = random.uniform(min_a_density, max_a_density)
-        default_am_density = physical_constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
+        default_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
         min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
         planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
 
-    planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, program_constants.PLANET_CLASSES, physical_constants.PLANET_DENSITY,
+    planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, tuning.PLANET_CLASSES, constants.PLANET_DENSITY,
                                               planet.density)
 
     update_hill_sphere(planet)
@@ -530,11 +531,11 @@ def _apply_giant_mass_and_radius(planet, radius_given, mass_given):
             low_kg, high_kg = giant_mass_range_kg(planet.planet_class)
             star_mass = getattr(getattr(planet, "star", None), "mass", None)
             if star_mass:
-                high_kg = max(low_kg, min(high_kg, program_constants.GIANT_MAX_STAR_MASS_RATIO * star_mass))
+                high_kg = max(low_kg, min(high_kg, tuning.GIANT_MAX_STAR_MASS_RATIO * star_mass))
             planet.mass = _sample_giant_mass_kg(low_kg, high_kg)
     if not radius_given:
         planet.radius = _sample_giant_radius_km(planet.planet_class, planet.mass)
-    volume_m3 = (4 / 3) * math.pi * (planet.radius * physical_constants.KM_TO_M_FACTOR) ** 3
+    volume_m3 = (4 / 3) * math.pi * (planet.radius * constants.KM_TO_M_FACTOR) ** 3
     planet.density = planet.mass / volume_m3 / 1000  # g/cm^3
 
 
@@ -545,9 +546,9 @@ def update_hill_sphere(planet):
     planet's current distance and mass. Call again whenever either changes,
     e.g. after `StarSystem.validate_system` moves the planet.
     """
-    distance_m = planet.distance * physical_constants.AU_TO_M
+    distance_m = planet.distance * constants.AU_TO_M
     planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star.mass) / 1000  # Convert to km
-    planet.min_orbit_distance = (5 * planet.hill_radius) / physical_constants.AU_TO_KM
+    planet.min_orbit_distance = (5 * planet.hill_radius) / constants.AU_TO_KM
 
 
 def calculate_surface_gravity(planet):
@@ -566,8 +567,8 @@ def calculate_surface_gravity(planet):
         ValueError: If the computed gravity is zero or negative.
     """
     radius_meters = planet.radius * 1000
-    surface_gravity = (physical_constants.G * planet.mass) / (radius_meters ** 2)
-    surface_gravity_g = surface_gravity / physical_constants.EARTH_GRAVITY
+    surface_gravity = (constants.G * planet.mass) / (radius_meters ** 2)
+    surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')
     planet.gravity = surface_gravity_g
@@ -625,10 +626,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
                                              like moons.
     """
     distance = float(distance_override) if distance_override is not None else float(planet.distance)
-    orbital_radius_km = distance * physical_constants.AU_TO_KM
+    orbital_radius_km = distance * constants.AU_TO_KM
     output_area = 4 * math.pi * orbital_radius_km ** 2
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
-    class_data = program_constants.PLANET_CLASSES.get(planet.planet_class, {})
+    class_data = tuning.PLANET_CLASSES.get(planet.planet_class, {})
     # Class-specific albedo range if declared (e.g. Class P's icy/glaciated
     # surface reflects more than the default rocky/Earth-like range), else
     # the default range used for every other class.
@@ -638,20 +639,20 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
     surface_temperature_no_atmosphere = max(
-        physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K,
-        ((1 - albedo) * solar_output_at_orbit / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4),
+        constants.COSMIC_BACKGROUND_TEMPERATURE_K,
+        ((1 - albedo) * solar_output_at_orbit / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4),
     )
 
     if planet.atmosphere == "None":
         planet.surface_temperature = surface_temperature_no_atmosphere
         planet.atmospheric_pressure = 0.0
     else:
-        scale_height_m = (physical_constants.R * surface_temperature_no_atmosphere) / (
-                    planet.atm_molar_density * planet.gravity * physical_constants.EARTH_GRAVITY)
+        scale_height_m = (constants.R * surface_temperature_no_atmosphere) / (
+                    planet.atm_molar_density * planet.gravity * constants.EARTH_GRAVITY)
         # planet.radius (and everything derived from it below) is in km, so
         # convert the scale height -- dimensionally meters, per the R*T/(M*g)
         # formula -- to km to match before it's combined with radius.
-        scale_height = scale_height_m / physical_constants.KM_TO_M_FACTOR
+        scale_height = scale_height_m / constants.KM_TO_M_FACTOR
         planet.scale_height = scale_height
         # Closed-form barometric formula for an isothermal, hydrostatic
         # atmosphere: integrating dP/dz = -rho*g from the surface to
@@ -668,7 +669,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # reintroducing the gravity dependence that otherwise cancels out of
         # this formula algebraically.
         effective_atm_density = planet.atm_density * _atmosphere_retention_factor(planet.gravity)
-        surface_gravity_ms2 = planet.gravity * physical_constants.EARTH_GRAVITY
+        surface_gravity_ms2 = planet.gravity * constants.EARTH_GRAVITY
         atmospheric_pressure = effective_atm_density * surface_gravity_ms2 * scale_height_m
 
         # atm_molar_density is the only atmosphere-composition signal in the
@@ -680,17 +681,17 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # one (real Venus, ~43.45 g/mol -- almost the same molar mass, ~100x
         # the greenhouse forcing): composition alone doesn't capture
         # quantity/potency. greenhouse_multiplier_range is the per-class
-        # knob for that second axis (see program_constants.PLANET_CLASSES),
+        # knob for that second axis (see tuning.PLANET_CLASSES),
         # independent of how heavy/light the class's own atmosphere is.
         # CO2_MAX_GREENHOUSE_FACTOR is now a generous safety ceiling rather
         # than the value most classes hit -- real Venus's own ratio is
         # ~101, so it only guards against a badly-configured future class.
-        base_ratio = planet.atm_molar_density / physical_constants.CO2_BASE_MOLAR_DENSITY
+        base_ratio = planet.atm_molar_density / constants.CO2_BASE_MOLAR_DENSITY
         greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
         greenhouse_multiplier = random.uniform(*greenhouse_multiplier_range)
-        greenhouse_factor = min(program_constants.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
-        surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
-        planet.surface_temperature = max(physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K, surface_temperature_atmosphere)
+        greenhouse_factor = min(tuning.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
+        surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
+        planet.surface_temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, surface_temperature_atmosphere)
         planet.atmospheric_pressure = atmospheric_pressure
 
         # Class M/P's forced pressure/temperature clamps are disabled.
@@ -731,7 +732,7 @@ def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_per
         t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
 
     `Q`/`k2` are fixed representative values for a rocky/icy body
-    (`physical_constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2` --
+    (`constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2` --
     see that constant's own comment for real-example verification), not
     modeled per body.
 
@@ -752,11 +753,11 @@ def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_per
         float: Estimated locking timescale, in seconds.
     """
     omega0 = 2 * math.pi / (initial_rotation_period_hours * 3600)
-    distance_m = moon.distance * physical_constants.AU_TO_M
+    distance_m = moon.distance * constants.AU_TO_M
     radius_m = moon.radius * 1000
-    q_over_k2 = physical_constants.MOON_TIDAL_DISSIPATION_Q / physical_constants.MOON_TIDAL_LOVE_NUMBER_K2
+    q_over_k2 = constants.MOON_TIDAL_DISSIPATION_Q / constants.MOON_TIDAL_LOVE_NUMBER_K2
     numerator = omega0 * (distance_m ** 6) * moon.mass
-    denominator = physical_constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
+    denominator = constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
     return (2 * q_over_k2 / 15) * (numerator / denominator)
 
 
@@ -814,14 +815,14 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
                                  straight through from).
     """
     inclination_max = (
-        physical_constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
-        else physical_constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
+        constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
+        else constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
     )
     planet.orbital_inclination_deg = random.uniform(0, inclination_max)
     planet.orbital_ascending_node_deg = random.uniform(0, 360)
     planet.orbital_phase_deg = random.uniform(0, 360)
 
-    min_hours, max_hours = physical_constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
+    min_hours, max_hours = constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
     candidate_rotation_period_hours = random.uniform(min_hours, max_hours)
 
     is_locked = False
@@ -829,11 +830,11 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         lock_timescale_s = _tidal_locking_timescale_seconds(
             planet, primary_mass_kg, candidate_rotation_period_hours
         )
-        system_age_s = planet.star.age * 1e9 * physical_constants.SECONDS_PER_YEAR
+        system_age_s = planet.star.age * 1e9 * constants.SECONDS_PER_YEAR
         is_locked = lock_timescale_s < system_age_s
 
     if is_locked:
-        planet.rotation_period_hours = planet.period * (physical_constants.SECONDS_PER_YEAR / 3600)
+        planet.rotation_period_hours = planet.period * (constants.SECONDS_PER_YEAR / 3600)
     else:
         planet.rotation_period_hours = candidate_rotation_period_hours
 
@@ -951,7 +952,7 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, pa
     zone_changed = new_zone != planet.zone
     planet.zone = new_zone
 
-    if not zone_changed or program_constants.PLANET_CLASSES[planet.planet_class][new_zone]:
+    if not zone_changed or tuning.PLANET_CLASSES[planet.planet_class][new_zone]:
         return False
 
     moon_class = moon_radius = None
@@ -1003,7 +1004,7 @@ def moon_orbit_bounds_km(planet):
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
     low_km = planet.radius + max_moon_radius + atmosphere_margin_km
-    high_km = planet.hill_radius * program_constants.MOON_PROGRADE_STABLE_HILL_FRACTION
+    high_km = planet.hill_radius * tuning.MOON_PROGRADE_STABLE_HILL_FRACTION
     return low_km, high_km
 
 
@@ -1022,7 +1023,7 @@ def drop_unstable_moons(planet):
     low_km, high_km = moon_orbit_bounds_km(planet)
     max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
-            if low_km <= moon.distance * physical_constants.AU_TO_KM <= high_km
+            if low_km <= moon.distance * constants.AU_TO_KM <= high_km
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept
@@ -1050,12 +1051,12 @@ def moon_class_options(parent, zone):
     max_radius_km, max_mass_kg = moon_size_limits(parent)
     barred = _habitable_classes_barred(parent, zone)
     options = {}
-    for cls, data in program_constants.PLANET_CLASSES.items():
-        if (not data[zone] or data["type"] != 't' or cls in program_constants.MOON_BLACKLIST
-                or (barred and cls in program_constants.HABITABLE_PLANET_CLASSES)):
+    for cls, data in tuning.PLANET_CLASSES.items():
+        if (not data[zone] or data["type"] != 't' or cls in tuning.MOON_BLACKLIST
+                or (barred and cls in tuning.HABITABLE_PLANET_CLASSES)):
             continue
-        max_density_kg_m3 = data.get("density_range", physical_constants.PLANET_DENSITY['t'])[1] * 1000
-        mass_radius_km = (max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3) / physical_constants.KM_TO_M_FACTOR
+        max_density_kg_m3 = data.get("density_range", constants.PLANET_DENSITY['t'])[1] * 1000
+        mass_radius_km = (max_mass_kg / ((4 / 3) * math.pi * max_density_kg_m3)) ** (1 / 3) / constants.KM_TO_M_FACTOR
         ceiling_km = min(data["radius_range"][1], max_radius_km, mass_radius_km)
         if data["radius_range"][0] <= ceiling_km:
             options[cls] = ceiling_km
@@ -1074,7 +1075,7 @@ def choose_moon_class_and_radius(parent, zone):
     if not options:
         return None, None
     moon_class = _choose_weighted_planet_class(options)
-    low = program_constants.PLANET_CLASSES[moon_class]["radius_range"][0]
+    low = tuning.PLANET_CLASSES[moon_class]["radius_range"][0]
     return moon_class, _sample_class_radius(moon_class, low, options[moon_class])
 
 
@@ -1110,9 +1111,9 @@ def generate_moons(planet, moon_count=None):
 
     # Deferred import: planetData imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
-    from .planetData import Planet
+    from stellarObjects.planetData import Planet
 
-    while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * physical_constants.AU_TO_KM):
+    while total_orbit_distance < high_orbit and total_orbit_distance < (planet.distance * constants.AU_TO_KM):
         if moon_count is not None and len(planet.moons) >= moon_count:
             break
 
@@ -1136,12 +1137,12 @@ def generate_moons(planet, moon_count=None):
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(random.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
-        moon_distance = moon_distance_km / physical_constants.AU_TO_KM
+        moon_distance = moon_distance_km / constants.AU_TO_KM
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass)
         planet.moons.append(new_moon)
-        total_orbit_distance = (new_moon.distance * physical_constants.AU_TO_KM) + (new_moon.min_orbit_distance * physical_constants.AU_TO_KM)
+        total_orbit_distance = (new_moon.distance * constants.AU_TO_KM) + (new_moon.min_orbit_distance * constants.AU_TO_KM)
 
     if planet.moons:
         # This planet's own reflex-offset "wobble" (schema v20) from the

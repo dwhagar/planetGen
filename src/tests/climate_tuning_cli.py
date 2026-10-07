@@ -34,7 +34,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from stellarObjects import plausibility, program_constants as prog_c
+from stellarObjects import plausibility
+from planetgen import tuning as prog_c
 
 logging.getLogger("transformers").setLevel(logging.ERROR)
 

@@ -23,8 +23,8 @@ import pytest
 
 from stellarObjects.config import SystemConfig
 from stellarObjects.starData import Star, _sample_evolved_star_mass_sol
-from stellarObjects import physical_constants as pc
-from stellarObjects import program_constants as prog_c
+from planetgen.physics import constants as pc
+from planetgen import tuning as prog_c
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
 SUBCLASSES = list(range(10))

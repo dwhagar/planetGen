@@ -89,7 +89,7 @@ def _test_server_kwargs():
 def pytest_sessionstart(session):
     """
     The math check gate (TEST.67): before any test runs, the whole
-    `stellarObjects.mathCheck` list runs once (well under a second), and a
+    `planetgen.physics.mathcheck` list runs once (well under a second), and a
     failure stops the run there -- with the math broken, every other
     failure would be noise. Under pytest-xdist only the controller runs it;
     the workers start after it passed. `test_math_check.py` repeats each
@@ -97,13 +97,13 @@ def pytest_sessionstart(session):
     """
     if hasattr(session.config, "workerinput"):
         return
-    from stellarObjects import mathCheck
+    from planetgen.physics import mathcheck as mathCheck
 
     results = mathCheck.run_all()
     if mathCheck.failures(results):
         pytest.exit(
             "The math check failed, so the rest of the suite would only be noise. Fix these first "
-            "(python -m stellarObjects.mathCheck -v):\n" + mathCheck.format_report(results),
+            "(python -m planetgen.physics.mathcheck -v):\n" + mathCheck.format_report(results),
             returncode=1,
         )
 

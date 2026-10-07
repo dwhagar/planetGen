@@ -2,7 +2,7 @@
 
 """
 The math check gate (TEST.63 to TEST.67): every check in
-`stellarObjects.mathCheck` as its own test, marked `mathcheck` so
+`planetgen.physics.mathcheck` as its own test, marked `mathcheck` so
 `conftest.py` runs them first and stops the suite if one fails, plus a few
 tests that the gate itself can tell a broken function from a working one.
 """
@@ -12,7 +12,7 @@ import random
 
 import pytest
 
-from stellarObjects import mathCheck
+from planetgen.physics import mathcheck as mathCheck
 
 pytestmark = pytest.mark.mathcheck
 
@@ -70,20 +70,20 @@ def test_chi_square_merges_rare_bins():
 def test_a_broken_sampler_fails(monkeypatch):
     """A sampler whose every value is in range but whose shares are wrong
     (ages piling up young) is caught by the distribution check."""
-    from stellarObjects import stellarEvolution
+    from planetgen.physics import stellar_evolution
 
     def skewed(age_bias=None, rng=random, population=None):
         return 10.0 * rng.random() ** 2
 
-    monkeypatch.setattr(stellarEvolution, "sample_star_age_gy", skewed)
+    monkeypatch.setattr(stellar_evolution, "sample_star_age_gy", skewed)
     check = next(c for c in CHECKS if c.name == "star_ages_uniform")
     assert not mathCheck.run_check(check).passed
 
 
 def test_a_wrong_constant_fails(monkeypatch):
-    from stellarObjects import physical_constants
+    from planetgen.physics import constants
 
-    monkeypatch.setattr(physical_constants, "SPEED_OF_LIGHT_M_S", 2.998e8)
+    monkeypatch.setattr(constants, "SPEED_OF_LIGHT_M_S", 2.998e8)
     check = next(c for c in CHECKS if c.name == "speed_of_light_consistent")
     assert not mathCheck.run_check(check).passed
 

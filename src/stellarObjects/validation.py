@@ -26,7 +26,9 @@ Three kinds of function live here:
 
 from collections import namedtuple
 
-from . import physical_constants, planetLife, planetPhysics, program_constants
+from . import planetLife
+from planetgen.physics import constants, planets as planetPhysics
+from planetgen import tuning
 from .utils import calculate_reflex_offset, mutual_hill_radius_au
 
 RELATIVE_TOLERANCE = 1e-9
@@ -123,9 +125,9 @@ def min_distance_past_belt_au(planet, belt):
     so a body heavy enough to make that unsolvable still gets a large
     but finite distance.
     """
-    c = (planet.hill_radius / physical_constants.AU_TO_KM) / planet.distance
+    c = (planet.hill_radius / constants.AU_TO_KM) / planet.distance
     k = min(5 * c, 0.9)
-    return (belt.upper_limit + program_constants.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
+    return (belt.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
 
 
 def mutual_min_distance_au(planet, last_planet):
@@ -135,7 +137,7 @@ def mutual_min_distance_au(planet, last_planet):
     won't move again this pass), via their *mutual* Hill radius
     (`utils.mutual_hill_radius_m`) rather than either one's own
     individual Hill radius alone -- see
-    `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
+    `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
     the stability-literature basis.
 
     Solved in closed form for `planet`'s own distance rather than
@@ -173,7 +175,7 @@ def mutual_min_distance_au(planet, last_planet):
         float: The minimum distance (AU) `planet` can sit at,
               measured from the star -- not a gap.
     """
-    kappa = program_constants.MUTUAL_HILL_RADII_SEPARATION * (
+    kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (
         (planet.mass + last_planet.mass) / (3 * planet.star.mass)
     ) ** (1 / 3)
     # A pair whose combined mass is a large enough fraction of the
@@ -193,7 +195,7 @@ def min_distance_after_au(body, last):
     """
     if body.body_type == 'a':
         if last.body_type == 'a':
-            return last.upper_limit + program_constants.MIN_ASTEROID_BELT_SEPARATION
+            return last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION
         return last.distance + last.min_orbit_distance
     if last.body_type == 'a':
         return min_distance_past_belt_au(body, last)
@@ -334,7 +336,7 @@ def space_orbits(planets, pinned=()):
     Two adjacent planets' minimum separation is enforced via their
     *mutual* Hill radius (`mutual_min_distance_au`), not either one's own
     individual Hill radius alone -- see
-    `program_constants.MUTUAL_HILL_RADII_SEPARATION`'s docstring for why.
+    `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for why.
     A belt has no mass/Hill-radius concept of its own, so any correction
     involving one uses the single real planet's own `min_orbit_distance`
     (5 Hill radii) on whichever side of the belt the planet is
@@ -388,8 +390,8 @@ def space_orbits(planets, pinned=()):
 
         if planet.body_type == 'a':
             if last_planet.body_type == 'a':
-                if _below(distance_to_last, program_constants.MIN_ASTEROID_BELT_SEPARATION):
-                    _shift_belt(planet, program_constants.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
+                if _below(distance_to_last, tuning.MIN_ASTEROID_BELT_SEPARATION):
+                    _shift_belt(planet, tuning.MIN_ASTEROID_BELT_SEPARATION + additional_correction)
             elif _below(distance_to_last, last_planet.min_orbit_distance):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
         else:
@@ -461,12 +463,12 @@ def _cross_star_threshold_au(system, outer_p, outer_s):
     keep: Gladman's mutual Hill criterion for two planets, else the
     fixed belt separation."""
     if outer_p.body_type == 'a' or outer_s.body_type == 'a':
-        return program_constants.MIN_ASTEROID_BELT_SEPARATION
+        return tuning.MIN_ASTEROID_BELT_SEPARATION
     central_mass_kg = system.primary_star.mass + system.secondary_star.mass
     r_h_mutual_au = mutual_hill_radius_au(
         outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg
     )
-    return physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
+    return constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
 
 
 def cross_star_clearance(system):
@@ -512,7 +514,7 @@ def cross_star_clearance(system):
 
 def class_allowed_in_zone(planet_class, zone):
     """Whether `planet_class` is a known class valid in `zone`."""
-    data = program_constants.PLANET_CLASSES.get(planet_class)
+    data = tuning.PLANET_CLASSES.get(planet_class)
     return data is not None and bool(data[zone])
 
 
@@ -531,7 +533,7 @@ def check_planet(body, parent=None):
     """
     problems = []
     name = _label(body)
-    data = program_constants.PLANET_CLASSES.get(body.planet_class)
+    data = tuning.PLANET_CLASSES.get(body.planet_class)
     if data is None:
         return [Problem(name, f"class {body.planet_class!r} is not a known planet class")]
     distance = parent.distance if parent is not None else body.distance
@@ -578,7 +580,7 @@ def check_lunar_system(planet):
         if moon.radius is not None and moon.radius > largest_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"it is too large for {_label(planet)} to hold "
                                           f"({moon.radius:.4g} km, at most {largest_km:.4g} km)"))
-        distance_km = moon.distance * physical_constants.AU_TO_KM
+        distance_km = moon.distance * constants.AU_TO_KM
         if _below(distance_km, low_km) or distance_km > high_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"its orbit ({distance_km:.4g} km) is outside {_label(planet)}'s stable "
                                           f"range for moons ({low_km:.4g}-{high_km:.4g} km)"))
@@ -684,7 +686,7 @@ def stabilize_lunar_system(planet):
         return []
     planet.moons.sort(key=lambda m: m.distance)
     low_km, _high_km = planetPhysics.moon_orbit_bounds_km(planet)
-    floor_au = low_km / physical_constants.AU_TO_KM
+    floor_au = low_km / constants.AU_TO_KM
     moved = []
     last = None
     for moon in planet.moons:

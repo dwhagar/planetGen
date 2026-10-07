@@ -559,7 +559,7 @@ are in for a `star_systems` row that was never placed in a sector at all.
 
 ## 5. Interaction with existing physics — flagged, not resolved
 
-`stellarObjects/physical_constants.py` already has:
+`planetgen/physics/constants.py` already has:
 
 ```python
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years

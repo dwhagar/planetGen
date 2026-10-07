@@ -1,4 +1,4 @@
-# stellarObjects/program_constants.py
+# planetgen/tuning.py
 
 """
 Program and Procedural-Generation Constants
@@ -14,7 +14,7 @@ constants. Nothing in this module has side effects; it is imported wherever
 these values or tables are needed.
 """
 
-from . import physical_constants as _physical_constants
+from planetgen.physics import constants as _physical_constants
 
 # --- Planet Generation Parameters ---
 # Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites

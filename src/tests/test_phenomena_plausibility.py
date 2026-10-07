@@ -28,8 +28,8 @@ import math
 import pytest
 
 from stellarObjects import phenomenaPlausibility as pp
-from stellarObjects import physical_constants as pc
-from stellarObjects import program_constants as prog_c
+from planetgen.physics import constants as pc
+from planetgen import tuning as prog_c
 
 # Small on purpose -- see module docstring. Large enough to exercise each
 # type's random draws (including its rarer branches, e.g. an accretion

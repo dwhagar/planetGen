@@ -8,9 +8,9 @@ import random
 
 import pytest
 
-from stellarObjects import physical_constants
+from planetgen.physics import constants
 from stellarObjects.config import SystemConfig
-from stellarObjects.stellarEvolution import main_sequence_luminosity_sol
+from planetgen.physics.stellar_evolution import main_sequence_luminosity_sol
 from stellarObjects.systemData import StarSystem
 
 STAR_TYPES = [None, "G2V", "M2V", "O5V", "B3V", "A0V", "K1III", "M2VII", "M2IA"]
@@ -52,8 +52,8 @@ def test_a_specified_type_secondary_follows_from_its_own_mass(star_type):
         assert secondary.initial_mass_sol is not None, "companion comes from the population model"
         assert secondary.mass <= system.primary_star.mass
         if secondary.yerkes_class == "V":
-            mass_sol = secondary.mass / physical_constants.SOLAR_MASS_TO_KG
-            lum_sol = secondary.luminosity / physical_constants.SOLAR_LUMINOSITY
+            mass_sol = secondary.mass / constants.SOLAR_MASS_TO_KG
+            lum_sol = secondary.luminosity / constants.SOLAR_LUMINOSITY
             # A main-sequence companion sits on (a little above, as it ages)
             # the mass-luminosity relation, not wherever its type's range
             # happened to put it.

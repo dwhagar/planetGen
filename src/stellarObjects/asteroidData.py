@@ -20,7 +20,7 @@ this module's logic.
 import random
 
 from .config import SystemConfig
-from . import program_constants
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import format_distance_au
@@ -29,7 +29,7 @@ from .utils import format_distance_au
 def generate_asteroid_composition():
     """
     Generates a list of common compounds for an asteroid belt/field by
-    sampling a random, unique subset of `program_constants.ASTEROID_COMPONENTS`
+    sampling a random, unique subset of `tuning.ASTEROID_COMPONENTS`
     (up to 4) and assigning each an ordered concentration level, from "high"
     down to "trace".
 
@@ -40,10 +40,10 @@ def generate_asteroid_composition():
     all_concentrations = ["high", "moderate", "small", "trace"]
 
     # Determine how many components to select (up to 4)
-    num_components_to_select = min(len(all_concentrations), len(program_constants.ASTEROID_COMPONENTS))
+    num_components_to_select = min(len(all_concentrations), len(tuning.ASTEROID_COMPONENTS))
 
     # Select unique components
-    selected_components = random.sample(program_constants.ASTEROID_COMPONENTS, k=num_components_to_select)
+    selected_components = random.sample(tuning.ASTEROID_COMPONENTS, k=num_components_to_select)
 
     # Shuffle selected components to randomize which concentration they get
     random.shuffle(selected_components)

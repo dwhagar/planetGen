@@ -70,9 +70,9 @@ import random
 import statistics
 from collections import defaultdict
 
-from . import physical_constants as pc
-from . import planetPhysics
-from . import program_constants as prog_c
+from planetgen.physics import constants as pc
+from planetgen.physics import planets as planetPhysics
+from planetgen import tuning as prog_c
 from .config import SystemConfig
 from .planetData import Planet
 from .starData import Star

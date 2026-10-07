@@ -43,7 +43,7 @@ from tabledisplay import format_period
 
 from stellarObjects import activitylog
 from stellarObjects import facilities as facility_rules
-from stellarObjects.program_constants import FACILITY_KINDS, FACILITY_ORBIT_STEPS
+from planetgen.tuning import FACILITY_KINDS, FACILITY_ORBIT_STEPS
 
 from .helpers import current_admin, db_name, page_url, trusted_html
 

@@ -38,8 +38,8 @@ import math
 import statistics
 from collections import Counter, defaultdict
 
-from . import physical_constants as pc
-from . import program_constants as prog_c
+from planetgen.physics import constants as pc
+from planetgen import tuning as prog_c
 from .asteroidFieldData import AsteroidField
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig

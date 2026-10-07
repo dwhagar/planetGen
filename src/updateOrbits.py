@@ -38,7 +38,7 @@ value already stored (see `stellarObjects.utils.minimum_update_interval_years`).
 `min_update_interval_years` (fixed at generation time) and
 `rotation_period_hours` (a static descriptive stat -- this generator
 doesn't track rotational phase) are untouched; see
-`stellarObjects.planetPhysics.generate_orbital_motion_properties`.
+`planetgen.physics.planets.generate_orbital_motion_properties`.
 
 Every star's `galactic_orbital_phase_deg` (its position around the galactic
 center) and, for a binary pair, `star_systems.binary_galactic_orbital_phase_deg`

@@ -17,7 +17,7 @@ import pytest
 from stellarObjects.config import SystemConfig
 from stellarObjects.evolution import MILESTONE_KEYS, get_evolutionary_timeline
 from stellarObjects.starData import Star
-from stellarObjects import program_constants as prog_c
+from planetgen import tuning as prog_c
 
 
 def _star(intelligent_life=None, age=None):

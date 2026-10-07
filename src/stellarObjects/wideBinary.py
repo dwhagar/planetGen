@@ -35,8 +35,8 @@ merged or wrapped.
 import math
 import random
 
-from . import physical_constants
-from .planetPhysics import calculate_orbital_period_years
+from planetgen.physics import constants
+from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
@@ -263,10 +263,10 @@ class WideBinaryPair:
         )
         primary_offset_km = math.sqrt(
             self.primary_position_x_au ** 2 + self.primary_position_y_au ** 2 + self.primary_position_z_au ** 2
-        ) * physical_constants.AU_TO_KM
+        ) * constants.AU_TO_KM
         secondary_offset_km = math.sqrt(
             self.secondary_position_x_au ** 2 + self.secondary_position_y_au ** 2 + self.secondary_position_z_au ** 2
-        ) * physical_constants.AU_TO_KM
+        ) * constants.AU_TO_KM
         wobble_string = (
             f"{self.primary.name}: {format_distance_km(primary_offset_km)}, "
             f"{self.secondary.name}: {format_distance_km(secondary_offset_km)} "

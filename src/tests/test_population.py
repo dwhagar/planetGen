@@ -11,7 +11,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, population, program_constants
+from stellarObjects import _db, population
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import ly_to_pc
@@ -72,12 +73,12 @@ def test_civilizations_are_rare_unless_forced():
     assert population.has_civilization(tech, True, rng)
     assert not population.has_civilization(multicellular, True, rng)
     draws = sum(population.has_civilization(tech, None, rng) for _ in range(20000))
-    assert draws == pytest.approx(20000 * program_constants.CIVILIZATION_CHANCE, abs=20)
+    assert draws == pytest.approx(20000 * tuning.CIVILIZATION_CHANCE, abs=20)
 
 
 def test_civilization_age_stays_inside_the_window():
     rng = random.Random(1)
-    low = program_constants.CIVILIZATION_MIN_AGE_YEARS
+    low = tuning.CIVILIZATION_MIN_AGE_YEARS
     for window in (1e3, 1e6, 1e9):
         ages = [population.civilization_age(window, rng) for _ in range(500)]
         assert min(ages) >= low and max(ages) <= window
@@ -100,9 +101,9 @@ def test_eras(age, era, spacefaring):
 
 def test_reach_grows_with_age_up_to_the_cap():
     assert population.reach_ly(1000) == 0.0
-    assert population.reach_ly(2000) == pytest.approx(program_constants.TERRITORY_BASE_REACH_LY)
-    assert population.reach_ly(8000) == pytest.approx(2 * program_constants.TERRITORY_BASE_REACH_LY)
-    assert population.reach_ly(1e9) == program_constants.TERRITORY_REACH_CAP_LY
+    assert population.reach_ly(2000) == pytest.approx(tuning.TERRITORY_BASE_REACH_LY)
+    assert population.reach_ly(8000) == pytest.approx(2 * tuning.TERRITORY_BASE_REACH_LY)
+    assert population.reach_ly(1e9) == tuning.TERRITORY_REACH_CAP_LY
     assert population.reach_ly(1e9, cap_ly=500) == 500
 
 
@@ -138,7 +139,7 @@ def test_resolve_claims_strongest_claim_wins():
 def test_polity_color_and_government_are_stable():
     assert population.polity_color(7) == population.polity_color(7)
     assert population.polity_color(7).startswith("#") and len(population.polity_color(7)) == 7
-    assert population.government_for(7) in program_constants.GOVERNMENT_FORMS
+    assert population.government_for(7) in tuning.GOVERNMENT_FORMS
     assert population.government_for(7) == population.government_for(7)
 
 

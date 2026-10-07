@@ -5,9 +5,10 @@ math, storage and the API."""
 
 import pytest
 
-from stellarObjects import _db, facilities, physical_constants
+from stellarObjects import _db, facilities
+from planetgen.physics import constants
 from stellarObjects.config import SystemConfig
-from stellarObjects.planetPhysics import calculate_orbital_period_years
+from planetgen.physics.planets import calculate_orbital_period_years
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms
@@ -36,7 +37,7 @@ def test_placement_rules(kind, placement, host_type, body_type, allowed):
 def test_orbit_matches_how_moons_orbit():
     earth_mass, earth_radius = 5.972e24, 6371.0
     orbit = facilities.orbit_for(earth_mass, earth_radius, 42164.0)
-    distance_au = 42164.0 / physical_constants.AU_TO_KM
+    distance_au = 42164.0 / constants.AU_TO_KM
     period = calculate_orbital_period_years(distance_au, earth_mass)
     assert orbit["period_years"] == pytest.approx(period)
     assert orbit["orbital_speed_kms"] == pytest.approx(circular_orbital_speed_kms(distance_au, period))
@@ -122,13 +123,13 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
             yard = _db.add_facility(conn, "High Yard", "starbase", "orbital", "planet", ids["giant"],
                                     distance_km=5.0e5, phase_deg=370.0)
             _db.add_facility(conn, "Sunwatch", "outpost", "orbital", "star", ids["star"],
-                             distance_km=physical_constants.AU_TO_KM * 0.5)
+                             distance_km=constants.AU_TO_KM * 0.5)
             _db.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", ids["belt"])
         with pytest.raises(_db.FacilityError):
             _db.add_facility(conn, "Floaters", "colony", "terrestrial", "planet", ids["giant"])
         with pytest.raises(_db.FacilityError, match="sphere of influence"):
             _db.add_facility(conn, "Runaway", "station", "orbital", "planet", ids["terrestrial"],
-                             distance_km=physical_constants.AU_TO_KM)
+                             distance_km=constants.AU_TO_KM)
         with pytest.raises(_db.FacilityError):
             _db.add_facility(conn, "Pinned", "outpost", "asteroid", "asteroid_belt", ids["belt"], distance_km=1.0e8)
         with pytest.raises(_db.FacilityError) as missing:

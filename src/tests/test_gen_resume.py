@@ -24,7 +24,8 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import _db, program_constants
+from stellarObjects import _db
+from planetgen import tuning
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
 
 from tests import worker_patches
@@ -245,7 +246,7 @@ def _sector_rows(config):
 def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config, monkeypatch):
     # Smaller backfill tiers (GEN.30) keep the run's backfill quick; they
     # still reach the skipped sectors next door.
-    monkeypatch.setattr(program_constants, "BRIGHT_STAR_BACKFILL_TIERS", ((10.0, 100.0), (20.0, 250.0)))
+    monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_TIERS", ((10.0, 100.0), (20.0, 250.0)))
     _seed_galaxy(mysql_config)
     args = generate._default_generation_args(config=mysql_config)
     args.num_systems = 1

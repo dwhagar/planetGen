@@ -37,7 +37,8 @@ import pytest
 import generate as galaxyGen
 import generate as sectorGen
 import queryDb
-from stellarObjects import _db, program_constants
+from stellarObjects import _db
+from planetgen import tuning
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
 from stellarObjects.galaxyGeometry import (
     SectorCell, enumerate_sectors_within_radius, layer_bounds_pc, ring_bounds_pc, ring_sector_count,
@@ -48,7 +49,7 @@ from stellarObjects.utils import ly_to_pc, mpc_to_pc
 from tests import worker_patches
 from tests.bughunt_support import forced_system_config
 
-EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
 # A small, fast-to-evaluate toy shape -- same parameters test_galaxy_skeleton.py
 # uses, deep enough in its own bulge at ring 0 that every slot there
@@ -1012,7 +1013,7 @@ def test_random_start_mode_gives_up_after_max_attempts_when_fully_occupied(mysql
     _plan_only_ring_0_of_the_plane(mysql_config)
     _occupy_ring_0_slots(mysql_config, range(ring_sector_count(0)))
 
-    monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
+    monkeypatch.setattr(tuning, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
 
     with pytest.raises(SystemExit):
         _run_cli(["--max-ring", "0", "--radius-pc", "1.0", "--num-systems", "1"] + _mysql_argv(mysql_config))
@@ -1056,7 +1057,7 @@ def test_random_start_mode_gives_up_when_min_start_density_unattainable(mysql_co
     captured stdout instead of `pytest.raises(..., match=...)`."""
     _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
-    monkeypatch.setattr(program_constants, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
+    monkeypatch.setattr(tuning, "RANDOM_START_MAX_PLACEMENT_ATTEMPTS", 5)
 
     with pytest.raises(SystemExit):
         _run_cli(
@@ -1152,7 +1153,7 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     The standard workflow this project's own docs describe -- 'plan' once,
     then 'galaxy' with no flags: pick a random location, generate every
     not-yet-generated sector out to `--radius-pc` (the real default is
-    `program_constants.DEFAULT_GENERATE_RADIUS_PC`, 12 pc;
+    `tuning.DEFAULT_GENERATE_RADIUS_PC`, 12 pc;
     trimmed to 25 ly here so this test runs in a reasonable time) -- run
     for real, against a real skeleton, with neither `--density` nor
     `--num-systems` given so every sector's own system count is driven
@@ -1553,7 +1554,7 @@ def test_sector_cell_used_for_generation_matches_the_grid():
     """`SectorCell.for_ring` in light-years (what generation samples in)
     is the same cell as the grid's parsec bounds, scaled."""
     for ring_index in (0, 3, 40):
-        cell = SectorCell.for_ring(ring_index, program_constants.DEFAULT_SECTOR_EDGE_LY)
+        cell = SectorCell.for_ring(ring_index, tuning.DEFAULT_SECTOR_EDGE_LY)
         r_lo, r_hi = ring_bounds_pc(ring_index, EDGE_PC)
         assert ly_to_pc(cell.r_inner) == pytest.approx(r_lo)
         assert ly_to_pc(cell.r_outer) == pytest.approx(r_hi)

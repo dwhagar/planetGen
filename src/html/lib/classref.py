@@ -6,7 +6,7 @@ The class reference catalog behind the `/classes` pages
 spectral and luminosity classes, planet classes, nebula and supernova
 remnant classes, asteroid field letters, black hole and rogue planet
 mass classes, comet period classes), built from the generator's own
-tables (`stellarObjects.program_constants`, `physical_constants`,
+tables (`planetgen.tuning`, `physical_constants`,
 `stellarEvolution`, `nebulaData`, `cometData`) so the pages always show
 the values the program uses. Nothing here repeats a number or a
 description by hand.
@@ -30,12 +30,12 @@ Sequence Star" -> ("G", "V")).
 import functools
 import math
 
-from stellarObjects import physical_constants as phys
-from stellarObjects import program_constants as pc
+from planetgen.physics import constants as phys
+from planetgen import tuning as pc
 from stellarObjects.cometData import PERIOD_CLASS_LABELS
 from stellarObjects.nebulaData import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from stellarObjects.starData import STAR_TYPE_PATTERN
-from stellarObjects.stellarEvolution import YERKES_CLASS_NAMES
+from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class

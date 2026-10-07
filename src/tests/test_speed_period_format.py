@@ -18,7 +18,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 from stellarObjects.utils import (
     PERIOD_LADDER, SPEED_LADDER,
     format_duration_seconds, format_galactic_orbit, format_period_years, format_speed_kms, format_speed_ms,

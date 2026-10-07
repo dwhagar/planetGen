@@ -35,7 +35,7 @@ from stellarObjects.galaxyGeometry import sector_position_pc
 from stellarObjects.navGraph import (
     build_knn_adjacency, build_route_graph, connected_components, join_islands, shortest_path,
 )
-from stellarObjects.program_constants import (
+from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_ISLAND_LINKS,
 )
 from stellarObjects.spaceSector import SpaceSector

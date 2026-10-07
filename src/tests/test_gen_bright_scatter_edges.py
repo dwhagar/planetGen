@@ -25,7 +25,7 @@ import pytest
 import generate
 from stellarObjects import _db, brightStars, galaxySeed
 from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
-from stellarObjects import program_constants
+from planetgen import tuning
 
 from tests import worker_patches
 from tests.test_bright_star_scatter import (
@@ -198,8 +198,8 @@ def test_a_plan_with_no_layers_records_an_empty_scatter(mysql_config):
 
 # --- TEST.24: a threshold below every white dwarf ----------------------------
 
-BELOW_WHITE_DWARFS = (program_constants.WD_LUMINOSITY_RANGE_SOL[1] * 0.5,
-                      program_constants.WD_LUMINOSITY_RANGE_SOL[0] * 0.5)
+BELOW_WHITE_DWARFS = (tuning.WD_LUMINOSITY_RANGE_SOL[1] * 0.5,
+                      tuning.WD_LUMINOSITY_RANGE_SOL[0] * 0.5)
 
 
 @pytest.mark.parametrize("threshold", BELOW_WHITE_DWARFS)

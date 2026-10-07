@@ -38,7 +38,7 @@ from stellarObjects.galaxyViewport import (  # noqa: E402
     tile_level_for_view_radius,
     tiles_intersecting_sphere,
 )
-from stellarObjects.program_constants import GALAXY_RADIUS_PC  # noqa: E402
+from planetgen.tuning import GALAXY_RADIUS_PC  # noqa: E402
 
 EDGE_PC = 4.0
 

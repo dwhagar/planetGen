@@ -6,7 +6,7 @@ math: `stellarObjects/utils.py` (unit conversions, formatters, orbital
 helpers, samplers), `appconfig.py` (hostile `config.json` contents),
 `config.py` (`SystemConfig` round trips), `serialization.py`,
 `progressFile.py`, `log.py`'s credential redaction, and sanity of every
-constant in `physical_constants.py`/`program_constants.py`.
+constant in `physical_constants.py`/`tuning.py`.
 
 Name-generation helpers from `utils.py` live in `test_fuzz_names.py`.
 See `fuzz_support.py` for the `ci`/`deep` profiles.
@@ -26,7 +26,9 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import _db, physical_constants, program_constants, progressFile, utils
+from stellarObjects import _db, progressFile, utils
+from planetgen.physics import constants as physical_constants
+from planetgen import tuning
 from planetgen.util import appconfig, log, serialization
 from stellarObjects.config import SERIALIZABLE_FIELDS, SystemConfig
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled
@@ -152,7 +154,7 @@ def test_format_relative_to_sol_picks_percent_or_multiplier(value, markdown, low
     sol = physical_constants.SOLAR_MASS_TO_KG
     out = utils.format_relative_to_sol(_config(markdown), value, sol, "kg", low)
     ratio = value / sol
-    if ratio < program_constants.PERCENT_SOL_THRESHOLD_HIGH:
+    if ratio < tuning.PERCENT_SOL_THRESHOLD_HIGH:
         assert out.endswith("% of Sol)")
     else:
         assert out.endswith("× Sol)")
@@ -264,10 +266,10 @@ def test_mutual_hill_radius_units_agree_and_are_symmetric(m1, m2, d1, d2, big):
 
 
 def test_wide_binary_samplers_stay_in_range():
-    lo, hi = program_constants.WIDE_BINARY_SEPARATION_MIN_AU, program_constants.WIDE_BINARY_SEPARATION_MAX_AU
+    lo, hi = tuning.WIDE_BINARY_SEPARATION_MIN_AU, tuning.WIDE_BINARY_SEPARATION_MAX_AU
     for _ in range(scaled(60) * 20):
         assert lo <= utils.sample_wide_binary_separation_au() <= hi
-        assert 0 <= utils.sample_wide_binary_eccentricity() <= program_constants.WIDE_BINARY_ECCENTRICITY_MAX
+        assert 0 <= utils.sample_wide_binary_eccentricity() <= tuning.WIDE_BINARY_ECCENTRICITY_MAX
 
 
 @given(d=positive, snow=positive, scale=st.floats(0, 1e3))
@@ -347,11 +349,11 @@ def test_calculate_object_mass_with_given_density(radius, density):
     assert mass >= 0
 
 
-@pytest.mark.parametrize("planet_class", sorted(program_constants.PLANET_CLASSES))
+@pytest.mark.parametrize("planet_class", sorted(tuning.PLANET_CLASSES))
 def test_calculate_object_mass_random_density_within_class_range(planet_class):
-    kind = program_constants.PLANET_CLASSES[planet_class]["type"]
+    kind = tuning.PLANET_CLASSES[planet_class]["type"]
     lo, hi = physical_constants.PLANET_DENSITY[kind]
-    volume, mass = utils.calculate_object_mass(planet_class, 1000.0, program_constants.PLANET_CLASSES,
+    volume, mass = utils.calculate_object_mass(planet_class, 1000.0, tuning.PLANET_CLASSES,
                                                physical_constants.PLANET_DENSITY)
     density = mass / (volume * physical_constants.KM_TO_M_FACTOR ** 3 * 1000)
     assert lo - 1e-9 <= density <= hi + 1e-9
@@ -365,7 +367,7 @@ def test_star_class_helpers_on_fake_stars(letter, yerkes, age, lifespan, proxy):
     target = types.SimpleNamespace(_primary=star) if proxy else star
     assert utils.get_star_spectral_class(target) == letter.upper()  # (may be 2 chars, e.g. "ß" -> "SS")
     profile = utils.get_star_evolutionary_profile(target)
-    base = program_constants.STAR_EVOLUTION.get(letter.upper(), {})
+    base = tuning.STAR_EVOLUTION.get(letter.upper(), {})
     if not base:
         assert profile == {}
     elif yerkes == "V":
@@ -758,7 +760,7 @@ def _walk(value, path):
 _EXPONENT_OR_SIGNED = re.compile(r"EXPONENT|ROUND_|DEFAULT_M$|_OFFSET|_DELTA|_SLOPE|_INTERCEPT")
 
 
-@pytest.mark.parametrize("module", [physical_constants, program_constants], ids=lambda m: m.__name__)
+@pytest.mark.parametrize("module", [physical_constants, tuning], ids=lambda m: m.__name__)
 def test_every_numeric_constant_is_finite_and_every_pair_ordered(module):
     for name, value in _public_constants(module).items():
         for path, leaf in _walk(value, name):
@@ -771,13 +773,13 @@ def test_every_numeric_constant_is_finite_and_every_pair_ordered(module):
 
 
 def test_top_level_scalar_constants_are_positive_unless_signed_by_nature():
-    for module in (physical_constants, program_constants):
+    for module in (physical_constants, tuning):
         for name, value in _public_constants(module).items():
             if isinstance(value, (int, float)) and not isinstance(value, bool) and not _EXPONENT_OR_SIGNED.search(name):
                 assert value > 0, (module.__name__, name, value)
 
 
-@pytest.mark.parametrize("module", [physical_constants, program_constants], ids=lambda m: m.__name__)
+@pytest.mark.parametrize("module", [physical_constants, tuning], ids=lambda m: m.__name__)
 def test_named_min_max_pairs_are_ordered(module):
     constants = _public_constants(module)
     pairs = 0
@@ -788,7 +790,7 @@ def test_named_min_max_pairs_are_ordered(module):
                 if isinstance(value, (int, float)) and isinstance(other, (int, float)):
                     assert value <= other, (name, value, other)
                     pairs += 1
-    if module is program_constants:
+    if module is tuning:
         assert pairs >= 5
 
 
@@ -806,7 +808,7 @@ def test_conversion_constants_are_mutually_consistent():
 
 
 def test_probability_tables_are_well_formed():
-    pg = program_constants
+    pg = tuning
     for name in ("SPECTRAL_PROBABILITIES_LARGE_STAR", "SPECTRAL_PROBABILITIES_NORMAL", "PLANET_CLASS_PROBABILITIES",
                  "PHENOMENON_DENSITY_PC3", "PHENOMENON_RATE_SCALE"):
         weights = getattr(pg, name)
@@ -819,7 +821,7 @@ def test_probability_tables_are_well_formed():
 
 
 def test_lookup_tables_reference_each_other_consistently():
-    pg = program_constants
+    pg = tuning
     pc = physical_constants
     assert set(pg.PLANET_CLASS_PROBABILITIES) <= set(pg.PLANET_CLASSES)
     for letter, spec in pg.PLANET_CLASSES.items():

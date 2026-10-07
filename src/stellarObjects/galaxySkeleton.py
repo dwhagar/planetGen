@@ -45,7 +45,7 @@ import bisect
 import math
 from collections import namedtuple
 
-from . import program_constants
+from planetgen import tuning
 from .galaxyDensity import _sech_squared
 from .galaxyGeometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
 from .spaceSector import SpaceSector
@@ -56,7 +56,7 @@ MAX_LAYER_SCAN = 1 << 12
 Milky-Way-scale galaxy actually needs."""
 
 
-def expected_system_count_at_density_1(edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY):
+def expected_system_count_at_density_1(edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY):
     """
     The `E` constant every qualification check compares against: how many
     systems a sector this size would hold at `relative_density = 1.0`

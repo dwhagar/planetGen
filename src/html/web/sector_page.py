@@ -47,7 +47,8 @@ from starmap import render_map_panel
 from systempage import facility_kind_label
 
 from api.common import is_http_url
-from stellarObjects import activitylog, program_constants
+from stellarObjects import activitylog
+from planetgen import tuning
 from planetgen.util import log
 from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
@@ -315,7 +316,7 @@ def _start_neighborhood_job(sector_id, admin):
     message, or `None` once it has started."""
     database = db_name()
     form = {"mode": "center", "center_sector": str(sector_id),
-            "center_radius_pc": str(program_constants.DEFAULT_GENERATE_RADIUS_PC)}
+            "center_radius_pc": str(tuning.DEFAULT_GENERATE_RADIUS_PC)}
     try:
         kind, title, steps = generate_page.build_job("galaxy", form, database)
         env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)

@@ -42,7 +42,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from stellarObjects import plausibility
-from stellarObjects import program_constants as prog_c
+from planetgen import tuning as prog_c
 
 # Suppress transformers warnings pulled in transitively via stellarObjects.
 logging.getLogger("transformers").setLevel(logging.ERROR)

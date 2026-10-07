@@ -25,7 +25,8 @@ import math
 import random
 
 from .config import SystemConfig
-from . import physical_constants, planetPhysics, program_constants
+from planetgen.physics import constants, planets as planetPhysics
+from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
@@ -392,7 +393,7 @@ class Planet:
         life_paragraphs.append(to_paragraph(sentences))
 
         # Add the evolutionary timeline data if available
-        if self.evolutionary_data and self.planet_class in program_constants.HABITABLE_PLANET_CLASSES:
+        if self.evolutionary_data and self.planet_class in tuning.HABITABLE_PLANET_CLASSES:
             life_paragraphs.extend(self.evolutionary_data)
 
         # Flavor text was already decided at generation time (planetLife.decide_flavor_text);
@@ -437,7 +438,7 @@ class Planet:
         if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * physical_constants.AU_TO_KM
+            ) * constants.AU_TO_KM
             properties["moon_wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own moons"
         return properties
 
@@ -451,7 +452,7 @@ class Planet:
         temperature at which rising pressure would turn the atmosphere from
         gas to liquid metallic hydrogen, from extending
         `self.surface_temperature` down a dry adiabat (see
-        `physical_constants.ADIABATIC_INDEX_H2_HE` and
+        `constants.ADIABATIC_INDEX_H2_HE` and
         `HYDROGEN_METALLIZATION_PRESSURE_PA`); and a core-pressure estimate
         from the analytic n=1 polytrope (Lane-Emden) solution to hydrostatic
         equilibrium. None of these are stitched into one continuous
@@ -472,13 +473,13 @@ class Planet:
         depth_km = self.scale_height * math.log(self.atmospheric_pressure / reference_pressure_pa)
         doubling_km = self.scale_height * math.log(2)
 
-        transition_pressure_pa = physical_constants.HYDROGEN_METALLIZATION_PRESSURE_PA
+        transition_pressure_pa = constants.HYDROGEN_METALLIZATION_PRESSURE_PA
         transition_depth_km = self.scale_height * math.log(transition_pressure_pa / self.atmospheric_pressure)
-        adiabatic_exponent = (physical_constants.ADIABATIC_INDEX_H2_HE - 1) / physical_constants.ADIABATIC_INDEX_H2_HE
+        adiabatic_exponent = (constants.ADIABATIC_INDEX_H2_HE - 1) / constants.ADIABATIC_INDEX_H2_HE
         transition_temperature_c = self.surface_temperature * (transition_pressure_pa / self.atmospheric_pressure) ** adiabatic_exponent - 273.15
 
         radius_m = self.radius * 1000
-        core_pressure_gpa = (math.pi * physical_constants.G * self.mass ** 2 / (8 * radius_m ** 4)) / 1e9
+        core_pressure_gpa = (math.pi * constants.G * self.mass ** 2 / (8 * radius_m ** 4)) / 1e9
 
         if depth_km > 0:
             depth_sentence = f"That's about {format_number(depth_km)} km below the 1 atmosphere level, where pressure roughly doubles every {format_number(doubling_km)} km."
@@ -487,7 +488,7 @@ class Planet:
 
         return [
             depth_sentence,
-            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_temperature_k(transition_temperature_c + physical_constants.CELSIUS_ZERO_K)}.",
+            f"Around {format_number(transition_depth_km)} km down, rising pressure would compress the atmosphere into a liquid metallic state near {format_temperature_k(transition_temperature_c + constants.CELSIUS_ZERO_K)}.",
             f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {format_pressure_pa(core_pressure_gpa * 1e9)}.",
         ]
 

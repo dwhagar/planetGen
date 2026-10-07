@@ -38,7 +38,7 @@ from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.starData import Star
 from stellarObjects.systemData import StarSystem
-from stellarObjects import program_constants as prog_c
+from planetgen import tuning as prog_c
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
 YERKES_CLASSES = ["0", "IA+", "IA", "IAB", "IB", "II", "III", "IV", "V", "VI", "VII"]

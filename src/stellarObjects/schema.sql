@@ -1652,7 +1652,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belt_composition (
 -- ---------------------------------------------------------------------
 -- comets -- v19, a comet gravitationally bound to a star
 -- (stellarObjects/cometData.py:Comet), propagated via real two-body
--- Kepler/Barker orbital mechanics (stellarObjects/keplerMotion.py) --
+-- Kepler/Barker orbital mechanics (planetgen/physics/kepler.py) --
 -- contrast interstellar_comets below, an unbound object on a fixed
 -- hyperbolic trajectory. Deliberately NOT part of the planets table (no
 -- orbital_index/shared orbital-slot ordering): a comet's distance_km is

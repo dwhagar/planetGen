@@ -12,7 +12,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 
-// Boss's exact values, in meters (stellarObjects/physical_constants.py).
+// Boss's exact values, in meters (planetgen/physics/constants.py).
 export const KM_M = 1e3;
 export const AU_M = 149597870700;
 export const LIGHTYEAR_M = 9460730472580800;
