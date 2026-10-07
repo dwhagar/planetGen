@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.209.610] - 2026-10-07
+
+### Fixed
+
+- When the database disk has no room for a run, the Generate page and a sector's "Generate more sectors around this one" now offer "Generate anyway" instead of only refusing (ADM.33). Choosing it starts the job and records the override in the activity log (`job.generate_anyway`).
+
 ## [7.208.610] - 2026-10-07
 
 ### Changed
