@@ -205,7 +205,11 @@ Each worker generates a whole sector and saves it in one transaction;
 the run prints each sector as it's saved, so sectors can finish out of
 order. `--workers N` sets the count (`PLANETGEN_WORKERS` does the same for
 every run), and `--workers 1` generates one sector at a time in the run's
-own process, as before. On a 4-core machine with MySQL local, 60 sectors
+own process, as before. The workers are RQ workers on the Redis server
+at `redis.url` ([config.md](config.md)), started by the run for its own
+tasks and gone when it finishes. Without a Redis server the run says so
+and generates one sector at a time. A task whose worker dies (killed, out
+of memory) runs once more on a fresh worker before the run fails. On a 4-core machine with MySQL local, 60 sectors
 of ring 2000 took 16.5 s on one worker and 9.8 s on the default two.
 
 `planetgen plan` draws its bright stars the same way, one layer of the
