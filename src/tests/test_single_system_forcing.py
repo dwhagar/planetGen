@@ -54,8 +54,9 @@ def test_a_system_that_never_meets_a_forced_option_is_not_saved_under_strict(tmp
 
 def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, monkeypatch):
     """O5V failed +habitable_world about 2 systems in 5 and still saved
-    them; now every saved system has one, and a run either writes one or
-    exits with an error."""
+    them; now every saved system has one, and a `--strict` run either
+    writes one or exits with an error (without `--strict` it warns and
+    keeps the last try, GEN.81)."""
     kept = []
     real = StarSystem
 
@@ -70,7 +71,7 @@ def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, mon
         kept.clear()
         out = tmp_path / f"system-{seed}.md"
         try:
-            run_cli("system", ["--star-type", "O5V", "+habitable_world", "--output", str(out)])
+            run_cli("system", ["--star-type", "O5V", "+habitable_world", "--strict", "--output", str(out)])
         except SystemExit as exc:
             assert exc.code == 1
             assert not out.exists()

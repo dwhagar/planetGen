@@ -54,7 +54,7 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.admin import activity_log
-from planetgen.generation import stats
+from planetgen.generation import prevalence, stats
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
@@ -432,6 +432,41 @@ def backfill_argv(form):
     return ["--backfill-from", "all"] if form.get("backfill_all") else []
 
 
+PREVALENCE_LABELS = {
+    "habitable_world": "Habitable worlds",
+    "asteroid_belt": "Asteroid belts",
+    "comets": "Comets",
+    "large_star": "Large stars",
+    "moons": "Moons",
+    "max_planets": "Most planets a star can hold",
+    "intelligent_life": "Intelligent life",
+    "binary_system": "Binary systems",
+    "wide_binary": "Wide binaries",
+    "planets": "Any planets",
+}
+"""dict: The Generate page's label for each prevalence feature (ADM.16)."""
+
+PREVALENCE_FIELDS = tuple((f"prevalence_{feature}", PREVALENCE_LABELS[feature]) for feature in prevalence.FEATURES)
+"""tuple: `(field name, label)` for each prevalence field, in
+`prevalence.FEATURES` order."""
+
+
+def prevalence_argv(form):
+    """
+    `--prevalence FEATURE=PERCENT` for each nonzero prevalence field
+    (ADM.16, GEN.52); blank or 0 leaves the feature at its usual chance.
+
+    Raises:
+        FormError: A value that isn't a number of at least -100.
+    """
+    argv = []
+    for (name, label), feature in zip(PREVALENCE_FIELDS, prevalence.FEATURES):
+        value = _number(form, name, f"{label} prevalence (%)", float, minimum=prevalence.MIN_PERCENT)
+        if value:
+            argv += ["--prevalence", f"{feature}={value:g}"]
+    return argv
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
@@ -478,7 +513,7 @@ def _build_job_steps(action, form, edge_pc=None):
         # GEN.30: the scatter runs after the sectors (`galaxy
         # --then-scatter`), so it leaves out every sector just filled.
         plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}
-        argv = generate + ["galaxy"] + random_start_argv(form) + backfill_argv(form)
+        argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form) + backfill_argv(form)
         label = "Generate sectors around a random start"
         if not form.get("skip_bright_stars"):
             argv += ["--then-scatter"] + scatter_argv(form)[2:]
@@ -496,7 +531,7 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "galaxy":
         argv, description = galaxy_argv(form, edge_pc)
         label = f"Generate sectors {description}"
-        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + backfill_argv(form)}]
+        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form) + backfill_argv(form)}]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     raise FormError("Unknown action.")
@@ -660,6 +695,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         recent=[_job_view(job) for job in recent],
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
+        prevalence_fields=PREVALENCE_FIELDS,
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
         backfill_text=BACKFILL_TEXT,
