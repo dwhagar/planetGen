@@ -83,3 +83,51 @@ today, so it could stay in the request. Queuing it follows Boss's
 "everything ... whenever possible" and keeps all generation behind one
 queue, at the cost of a Redis round trip on each edit. The
 recommendation is to queue it, waited on, as above.
+
+## How PERF.24 gets built
+
+RQ needs worker processes that wait on Redis. Today nothing runs in the
+background between runs: a `planetgen` run supervises its own pool and
+exits, and the web starts a job runner per job. That raises the second
+choice below. The rest of the build doesn't depend on it.
+
+**Workers (the second choice).** The recommendation is **burst
+workers, started by whoever queues work**. When a run, the web app or
+the API queues jobs and fewer than `worker_count()` workers are alive,
+it starts the missing ones as `python -m planetgen.cli.worker --burst`
+at lowered priority. RQ's burst mode exits once the queue is empty.
+That keeps today's model: no service to install, nothing running when
+there's no work, and the 80%-of-cores cap holds because the count is
+checked against RQ's live worker registry. The alternative is standing
+worker services that install and update set up (a systemd unit, a
+launchd daemon, a Windows service). That is simpler at run time, but it
+is one more service on every platform and holds memory while idle.
+
+**Windows.** RQ's normal worker forks, and Windows can't fork. Windows
+workers use RQ's `SpawnWorker` with a timer-based timeout instead of
+`SIGALRM`, talking to the Redis in WSL2 (OPS.27). CI's Windows job runs
+the queue tests that way.
+
+**Steps, one PR each:**
+
+1. `planetgen.queue.rq`: the Redis connection from `redis.url`, the
+   queue names, the burst-worker launcher and the worker command
+   (`planetgen.cli.worker`). Tests run against a real Redis
+   (`PLANETGEN_TEST_REDIS_URL`, which CI already provides) and skip
+   without one.
+2. `WorkQueue` runs its tasks as RQ jobs. Each task keeps its
+   `task_seed`, `on_done` and the progress bars, and the job tree rows
+   (ADM.12) stay in the control database as the history the queue page
+   reads. The `work_lease` table and the in-process pool go. Done when
+   the same seed gives the same galaxy at 1, 2 and 4 workers.
+3. Web jobs are RQ jobs. `jobs.start_job` queues the steps instead of
+   spawning `planetgen.cli.job`. Cancel and pause use RQ's stop
+   command, and the jobs folder keeps only the downloadable log.
+   `planetgen.cli.job` goes.
+4. The API moves from the table above: the neighborhood route, sector
+   regenerate, wiki uploads, the one-off system page, the estimates
+   and, if Boss agrees, single-object generation. Each returns `202` and
+   a job id when it doesn't finish quickly, with `GET /api/jobs/<id>`
+   for its state.
+
+Live progress and log lines over SSE are ADM.22, built on step 3.
