@@ -553,7 +553,7 @@ def test_binary_system_markdown_renders_each_stars_table():
     """
     Regression guard for a fixed bug: each binary star's own `###` header
     was joined to its property table by a single '\\n', not a blank line,
-    so html/lib/mdconvert.py's blank-line block splitter lumped the header
+    so planetgen/web/lib/mdconvert.py's blank-line block splitter lumped the header
     and table into one block -- which is neither a valid single-line
     heading nor a valid table -- and rendered as one escaped, literal
     paragraph of '#'/'|' text instead of a real <h3> + <table>. Checks both
@@ -563,11 +563,9 @@ def test_binary_system_markdown_renders_each_stars_table():
     """
     import html as html_module
     import os
-    import sys
 
     _src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    sys.path.insert(0, os.path.join(_src_dir, "html", "lib"))
-    from mdconvert import markdown_to_html  # same path setup as test_mdconvert.py
+    from planetgen.web.lib.mdconvert import markdown_to_html  # same path setup as test_mdconvert.py
 
     for wide_binary in (False, True):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))

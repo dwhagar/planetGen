@@ -1,4 +1,4 @@
-# html/lib/phenomenonmap.py
+# planetgen/web/maps/phenomenonmap.py
 
 """
 Stellar phenomenon diagram: a flat, zoomable SVG showing one standalone
@@ -7,10 +7,10 @@ phenomenon's own real physical extent, drawn directly to astronomical-unit
 for the one thing neither of those can show: what a nebula/asteroid field/
 supernova remnant's own real size actually looks like next to a familiar
 AU-scale yardstick, rather than as a same-size dot on a galaxy-wide plot
-(`html/lib/galaxymap.py`'s own docstring explains why that map deliberately
+(`planetgen/web/maps/galaxymap.py`'s own docstring explains why that map deliberately
 never scales a phenomenon's dot by its real `radius_ly`).
 
-Same `viewBox`-is-the-camera approach as `html/lib/galaxymap.py` (see
+Same `viewBox`-is-the-camera approach as `planetgen/web/maps/galaxymap.py` (see
 `static/mapzoom.js`'s own module docstring), but simpler: this diagram's
 own SVG user units ARE astronomical units directly, one-to-one -- no
 separate px-per-ly scale factor is needed the way the Galaxy Map's much
@@ -30,7 +30,7 @@ A supernova remnant has its own real `radius_ly`, which is all this
 diagram needs, so it renders here exactly like a nebula/asteroid field.
 """
 
-from fmt import esc
+from planetgen.web.lib.fmt import esc
 
 try:
     from stellarObjects.utils import ly_to_au

@@ -5,7 +5,7 @@ Tests for schema v18's galaxy-frame placement of nebulae/asteroid fields --
 `planetgen.db.store.compute_phenomenon_placement`/`insert_nebula`/
 `insert_asteroid_field`/`save_phenomenon`, and the read side
 (`query.phenomena_near_sector`/`galaxy_placed_phenomena`) `html/
-lib/starmap.py`'s Sector Map and `html/lib/galaxymap.py`'s Galaxy Map
+planetgen/web/maps/starmap.py`'s Sector Map and `planetgen/web/maps/galaxymap.py`'s Galaxy Map
 build on. See `schema.sql`'s "v18" header note for the full design: a
 nebula/asteroid field gets a real galaxy-frame sphere (`center_x/y/z_pc`,
 `radius_ly`) centered near a given sector, not a sector-relative offset,
@@ -294,7 +294,7 @@ def test_galaxy_placement_from_sector_offset_rotates_the_offset_by_the_sectors_o
     # fixture uses positions like this) has a genuinely non-identity
     # sector_orientation -- confirms the local offset is rotated into the
     # galaxy frame along THAT sector's own real local axes (the identical
-    # transform html/lib/starmap.py's `_rotate_to_galaxy_frame` applies to
+    # transform planetgen/web/maps/starmap.py's `_rotate_to_galaxy_frame` applies to
     # a star system's position at render time), not added straight onto
     # the galaxy's own global X/Y/Z the way an earlier, buggy version of
     # this function did -- that silently placed roughly 1 in 5 generated

@@ -1,7 +1,7 @@
 # tests/test_phenomenon_views.py
 
 """
-The per-type "View" on a phenomenon page (`lib/phenomenonrender.py`,
+The per-type "View" on a phenomenon page (`planetgen/web/maps/phenomenonrender.py`,
 UX.17): a render for neutron stars, black holes, quasars, rogue planets
 and comets, the AU diagram for nebulae and remnants, nothing for an
 asteroid field.
@@ -13,8 +13,7 @@ import re
 
 import pytest
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-from phenomenonrender import (  # noqa: E402
+from planetgen.web.maps.phenomenonrender import (  # noqa: E402
     render_phenomenon_view_panel, shown_spin_period_s, view_kind,
 )
 from tests.test_web_system_phen import app, client, fake  # noqa: F401

@@ -1,7 +1,7 @@
 # html/web/class_pages.py
 
 """
-The class reference pages, built from `lib/classref.py`'s catalog (made
+The class reference pages, built from `planetgen/web/lib/classref.py`'s catalog (made
 once when the site starts, from the generator's own tables):
 
 - `/classes`: every class type, with how many classes each has.
@@ -14,7 +14,7 @@ phenomenon and other pages use to link a class label here.
 
 from flask import abort
 
-from classref import catalog, class_entry, class_type, class_url_parts
+from planetgen.web.lib.classref import catalog, class_entry, class_type, class_url_parts
 
 from . import bp
 from .helpers import crumb, page_url, population_status, render_page

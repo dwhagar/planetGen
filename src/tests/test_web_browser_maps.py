@@ -241,7 +241,7 @@ def test_phenomenon_diagram_zoom_in_and_reset(page, base_url, site_app):
 
 @pytest.mark.xfail(strict=True, reason=(
     "UX.21: a nebula or remnant about half a light-year across or more opens at the 1 ly "
-    "zoom-out limit (lib/phenomenonmap.py), so - does nothing"))
+    "zoom-out limit (planetgen/web/maps/phenomenonmap.py), so - does nothing"))
 def test_phenomenon_diagram_minus_zooms_out_from_the_start(page, base_url, site_app):
     """A large nebula's "-" (a smaller object's, whose view opens inside
     the limit, works: tests/js/mapzoom.test.mjs and the "- after +" step

@@ -4,22 +4,20 @@ bearing label and the scale label are at least the page's body text size
 at phone and desktop widths, the map spans the page's width, and the
 labels shown on a crowded route don't overlap.
 
-The panel comes straight from `navmap.render_nav_map_panel` with the
+The panel comes straight from `planetgen.web.maps.navmap.render_nav_map_panel` with the
 site's own `style.css`, so no database is needed. Skipped without
 Playwright or Chromium.
 """
 
 import os
-import sys
 
 import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
+from planetgen.web.maps.navmap import render_nav_map_panel  # noqa: E402
 
-from navmap import render_nav_map_panel  # noqa: E402
+_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 _STYLE = os.path.join(_SRC_DIR, "html", "static", "style.css")
 

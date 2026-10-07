@@ -24,7 +24,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 3: Data Grids & Controls Modernization
 
-* **Target Files:** `src/html/lib/tabledisplay.py`, `src/html/static/sectormap.js`, Jinja templates in `src/html/web/templates/`.
+* **Target Files:** `src/planetgen/web/lib/tabledisplay.py`, `src/html/static/sectormap.js`, Jinja templates in `src/html/web/templates/`.
 * **Objective:** Eliminate server-rendered table DOM bloat and manual DOM construction in JavaScript.
 * **Steps:**
   1. Refactor `tabledisplay.py` and Jinja templates to serve lightweight container shell markup rather than large pre-rendered HTML tables.

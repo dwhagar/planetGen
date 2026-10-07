@@ -26,8 +26,7 @@ import pytest
 
 from planetgen.db import store
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
 from tests.test_web_galaxy import _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
@@ -261,7 +260,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
 
     # Still ambiguous after the exact match is gone: no 500, the rest
     # remain. Asked of the API itself: the page's answer comes through
-    # `lib/pagecache.py`, which a raw SQL delete doesn't invalidate.
+    # `planetgen/web/lib/pagecache.py`, which a raw SQL delete doesn't invalidate.
     _delete(mysql_config, "sectors", vega)
     names = [m["name"] for m in db_client.get("/api/galaxy/locate?q=vega").get_json()["matches"]]
     assert set(names) == {"Vega Prime", "Old Vega"}  # Vega Minor lost its sector

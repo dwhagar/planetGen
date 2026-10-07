@@ -74,7 +74,7 @@
     # SELECT if the write endpoints and admin pages are reachable. See
     # docs/deployment/README.md#mysql-accounts.
     #
-    # The 3D Galaxy Map's tile cache (html/lib/tilecache.py) defaults to
+    # The 3D Galaxy Map's tile cache (planetgen/web/lib/tilecache.py) defaults to
     # /var/cache/planetgen/tiles, which install.sh/update.sh create for
     # Apache's user; set tile_cache.dir in config.json to move it, and
     # create the new directory with:
@@ -100,12 +100,9 @@
         Require all granted
     </Directory>
 
-    # html/lib/ and html/api/ hold only importable Python source, never
-    # requested directly -- deny them outright (belt-and-suspenders: every
-    # URL outside /static/ goes to the app anyway).
-    <Directory /var/lib/planetGen/src/html/lib>
-        Require all denied
-    </Directory>
+    # html/api/ holds only importable Python source, never requested
+    # directly -- deny it outright (belt-and-suspenders: every URL outside
+    # /static/ goes to the app anyway).
     <Directory /var/lib/planetGen/src/html/api>
         Require all denied
     </Directory>
@@ -113,7 +110,7 @@
     # static/ is plain CSS/JS/SVG -- served directly.
     #
     # Every page links its static files with `?v=<release version>`
-    # (html/lib/fmt.py's `static_url`), and the map scripts pass the same
+    # (planetgen/web/lib/fmt.py's `static_url`), and the map scripts pass the same
     # `?v=` on to the modules they import, so a release changes every URL.
     # That lets browsers keep a versioned file for a year without asking
     # again. A request without `?v=` (an old cached page, a hand-typed

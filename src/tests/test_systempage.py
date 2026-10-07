@@ -1,19 +1,14 @@
 # tests/test_systempage.py
 
 """
-The system page's body list (`html/lib/systempage.py`, UX.7 and
+The system page's body list (`planetgen/web/lib/systempage.py`, UX.7 and
 UX.12): one type chip, the habitable-moon chip, moons in their own group,
 belt distances, and comets ordered in among the planets by semi-major
 axis. Plain dicts in the `queryDb.system_detail` shape; no database.
 """
 
-import os
-import sys
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
-
-from systempage import comet_orbit_key_km, system_list_html  # noqa: E402
+from planetgen.web.lib.systempage import comet_orbit_key_km, system_list_html  # noqa: E402
 
 AU_KM = 149_597_870.7
 _SECTIONS = {"overview": "", "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}

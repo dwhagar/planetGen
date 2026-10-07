@@ -12,8 +12,7 @@ from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.physics import mathcheck as mathCheck  # noqa: E402
 
 pytestmark = pytest.mark.mathcheck

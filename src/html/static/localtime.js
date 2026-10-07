@@ -2,7 +2,7 @@
 //
 // Shows every server-rendered time in the viewer's own time zone. The
 // server writes each one as <time datetime="...Z" data-local-time> with a
-// UTC fallback text (html/lib/fmt.py `utc_time_html`); this rewrites the
+// UTC fallback text (planetgen/web/lib/fmt.py `utc_time_html`); this rewrites the
 // text with Intl.DateTimeFormat in the browser's zone, adding the zone's
 // short name, and keeps the UTC time in the title. Without script the
 // page still reads correctly, labelled UTC. Other scripts that add times

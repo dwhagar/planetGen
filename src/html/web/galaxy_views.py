@@ -5,13 +5,13 @@ The Galaxy Map page (`/galaxy`, was `galaxy.py`) and the JSON tile
 endpoint its script fetches as the camera moves (`/galaxy/tiles`, was
 `galaxy_tiles.py`).
 
-The page renders the 3D map panel (`lib/galaxymap3d.py`, drawn by
+The page renders the 3D map panel (`planetgen/web/maps/galaxymap3d.py`, drawn by
 `static/galaxymap3d.js`) with the zoomed-all-the-way-out starting view's
 tiles embedded, plus a plain-text table under it: a per-Quadrant summary,
 or with `?quadrant=I|II|III|IV` that Quadrant's placed sectors nearest
 the core first (paged with `?page=N`).
 
-Tiles go through `lib/tilecache.py`'s disk cache in this (the WSGI)
+Tiles go through `planetgen/web/lib/tilecache.py`'s disk cache in this (the WSGI)
 process: only tiles not already cached reach the API (in-process), and
 whatever the API returns is written to the cache. The browser keeps its
 own copy in `localStorage`, keyed as before, so a visitor's cached tiles
@@ -21,15 +21,15 @@ survive the move.
 
 from flask import jsonify, request, url_for
 
-import apiclient
-from fmt import format_distance_ly
-from galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
-from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
-from pagination import page_slice, parse_page
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import format_distance_ly
+from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
+from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
+from planetgen.web.lib.pagination import page_slice, parse_page
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
-from tilecache import TileRequestError, fetch_stage, fetch_tiles
+from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles
 
 from api.limiter import page_limit
 

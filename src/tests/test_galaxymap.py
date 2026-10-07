@@ -1,7 +1,7 @@
 """
-html/lib/galaxymap.py regression tests -- this module used to also build
+planetgen/web/maps/galaxymap.py regression tests -- this module used to also build
 the Galaxy Map's own flat SVG rendering (`render_galaxy_map_panel`),
-replaced by a real 3D scene (`html/lib/galaxymap3d.py`, tested in
+replaced by a real 3D scene (`planetgen/web/maps/galaxymap3d.py`, tested in
 `test_galaxymap3d.py`) that `html/galaxy.py` renders directly now. What's
 left here is the plain Quadrant/Zone classification math
 (`sector_quadrant`/`sector_zone`/`zone_bounds_ly`) `galaxy.py`'s own data
@@ -12,15 +12,10 @@ exercised them indirectly, through the now-removed panel renderer).
 Run with: pytest src/tests/test_galaxymap.py
 """
 import math
-import os
-import sys
-
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-from galaxymap import (  # noqa: E402
+from planetgen.web.maps.galaxymap import (  # noqa: E402
     QUADRANT_LABELS,
     ZONE_RING_WIDTH,
     ZONE_TARGET_LY,

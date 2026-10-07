@@ -1,4 +1,4 @@
-# html/lib/pagination.py
+# planetgen/web/lib/pagination.py
 
 """
 The site's one pagination control: every paged table in `html/` renders
@@ -27,7 +27,7 @@ Two ways a page feeds this, depending on where its rows come from:
 
 from urllib.parse import urlencode
 
-from fmt import esc
+from planetgen.web.lib.fmt import esc
 
 PAGE_SIZE = 50
 MAX_PAGE = 10 ** 9

@@ -830,7 +830,7 @@ def galaxy_changes_route():
     """
     `?since=<state>` -- which cube tiles changed since that state (see
     `queryDb.galaxy_changes`): `{"stamp", "state", "full", "tiles"}`.
-    `html/lib/tilecache.py` calls this about once a minute and deletes
+    `planetgen/web/lib/tilecache.py` calls this about once a minute and deletes
     only the listed tiles, or all of them when `full`. A missing or
     unreadable `since` just answers `full`.
     """

@@ -19,20 +19,20 @@ every link is a plain GET link (`page_url`).
 """
 
 from flask import abort, redirect, request
-import apiclient
-from fmt import (
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import (
     format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
     nearest_systems_html,
 )
-from pagination import fetch_page, parse_page
-from phenomenonmap import render_phenomenon_map_panel
-from phenomenonrender import render_phenomenon_view_panel, view_kind
-from systemmap import render_system_map_panel
-from systempage import stars_html, system_list_html
-from tabledisplay import format_star_radius, to_plain_text
+from planetgen.web.lib.pagination import fetch_page, parse_page
+from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
+from planetgen.web.maps.phenomenonrender import render_phenomenon_view_panel, view_kind
+from planetgen.web.maps.systemmap import render_system_map_panel
+from planetgen.web.lib.systempage import stars_html, system_list_html
+from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
 
-from classref import ROGUE_MASS_CLASS_NAMES
+from planetgen.web.lib.classref import ROGUE_MASS_CLASS_NAMES
 from planetgen.admin import activity_log
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w, hawking_temperature_k
@@ -598,7 +598,7 @@ CLASS_COLUMNS = {
     "planet_class": "planet",
 }
 """dict: The columns whose value is a class, and the class type
-(`lib/classref.py`) whose page it links to. An asteroid field's "C3"
+(`planetgen/web/lib/classref.py`) whose page it links to. An asteroid field's "C3"
 links by its letter."""
 
 

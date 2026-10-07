@@ -1,4 +1,4 @@
-# html/lib/starmap.py
+# planetgen/web/maps/starmap.py
 
 """
 Interactive 3D sector starmap: every placed star system in a sector (two,
@@ -58,7 +58,7 @@ import colorsys
 import json
 import math
 
-from fmt import esc, format_distance_ly, format_number
+from planetgen.web.lib.fmt import esc, format_distance_ly, format_number
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M

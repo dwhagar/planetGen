@@ -1,4 +1,4 @@
-# html/lib/pagecache.py
+# planetgen/web/lib/pagecache.py
 
 """
 An in-memory cache of the API's public read responses, so the pages

@@ -4,7 +4,7 @@
 IAU-style designations added in 7.31.0 (schema v40). Since 7.46.0 each
 comet period class has a reference page (`/classes/comet/<class>`), and
 since 7.57.0 an interstellar comet's page shows a rendered nucleus, with a
-coma and tail when it is active (`html/lib/phenomenonrender.py`). This
+coma and tail when it is active (`planetgen/web/maps/phenomenonrender.py`). This
 document started as the plan for that work; it now describes what the
 code does and why.
 

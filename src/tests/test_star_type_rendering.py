@@ -12,8 +12,7 @@ import pytest
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.test_bughunt_end_to_end import _db_get_connection, _web_client
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import starmap  # noqa: E402
+from planetgen.web.maps import starmap  # noqa: E402
 
 
 @pytest.mark.parametrize("star_type", ["G2VII", "K2III", "M1III", "B1IA"])

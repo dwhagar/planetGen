@@ -300,7 +300,7 @@ connectivity to that specific schema rather than the default one.
   keys). `full` is `true` (and both lists empty) when that can't
   be pinned to tiles: a deleted sector, a new shape or release, more than
   1,000 changed sectors, or a missing or unreadable `since`.
-  `../src/html/lib/tilecache.py` (the web layer's disk cache) calls it
+  `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>` — every exotic phenomenon,
@@ -334,7 +334,7 @@ connectivity to that specific schema rather than the default one.
   a 404. The data the `/phenomenon/<type>/<id>` page shows — this
   project's first per-phenomenon info page (previously a phenomenon had no
   detail page of its own, only a hover tooltip on the Sector/Galaxy Map),
-  now including a to-scale AU diagram (`../src/html/lib/phenomenonmap.py`).
+  now including a to-scale AU diagram (`../src/planetgen/web/maps/phenomenonmap.py`).
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
@@ -783,7 +783,7 @@ page shows this as "000 mark 000", rounded to whole degrees.
 - `origin_position`/`destination_position`: the `[x, y, z]` light-year
   positions `direct` was computed from, in `scope`'s frame (sector-local for
   `"sector"`, absolute galaxy-frame for `"galaxy"`) — what the NAV page's (`/nav`)
-  NAV Map plot (`html/lib/navmap.py`) draws.
+  NAV Map plot (`planetgen/web/maps/navmap.py`) draws.
 - `route`: the shortest path via adjacent systems (nodes: every system in
   scope, plus a phenomenon endpoint's own one-off node when `from`/`to` is
   one; edges: each node's `k`-nearest neighbors, symmetrized, then each
@@ -1191,7 +1191,7 @@ setup loads that one file:
 - **Apache + `mod_wsgi`** (the reference setup, `examples/apache/`): a
   `WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py`, in its own
   `WSGIDaemonProcess`, plus the `<Directory>` blocks that deny direct
-  requests into `html/api/` and `html/lib/`. See
+  requests into `html/api/`. See
   [`deployment/apache.md`](deployment/apache.md).
 - **gunicorn** behind nginx or Caddy (Linux, macOS):
   `gunicorn --pythonpath <checkout>/src/html wsgi:application`.

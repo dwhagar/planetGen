@@ -19,7 +19,7 @@ import time
 
 from flask import current_app, request
 
-import apiclient
+from planetgen.web.lib import apiclient
 from planetgen.util import log
 from planetgen.util.appconfig import debug_enabled
 

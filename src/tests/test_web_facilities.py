@@ -22,8 +22,7 @@ from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import query  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth as adminAuth
@@ -32,7 +31,7 @@ from planetgen.population import facilities as facility_rules  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
-from systemmap import render_system_map_panel  # noqa: E402
+from planetgen.web.maps.systemmap import render_system_map_panel  # noqa: E402
 from web import csrf  # noqa: E402
 
 DB = "planetgen_web_test"

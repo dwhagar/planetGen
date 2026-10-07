@@ -1,4 +1,4 @@
-# html/lib/phenomenonrender.py
+# planetgen/web/maps/phenomenonrender.py
 
 """
 The "View" panel on a phenomenon page: a rendered picture of the object
@@ -29,7 +29,7 @@ draws one still frame under `prefers-reduced-motion`.
 import json
 import math
 
-from fmt import esc, format_duration_seconds, format_number
+from planetgen.web.lib.fmt import esc, format_duration_seconds, format_number
 
 _RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
 _NO_VIEW = {"asteroid_field"}

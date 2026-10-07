@@ -302,7 +302,7 @@ SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY = 1e-9
 # Roman-numeral Octant (see `spaceSector.classify_octant`) labels for the
 # 8 sign-combinations of an (x, y, z) position relative to a sector's
 # center -- displayed as "Octant" (not "Quadrant") specifically to stay
-# distinct from html/lib/galaxymap.py's own, unrelated galaxy-scale
+# distinct from planetgen/web/maps/galaxymap.py's own, unrelated galaxy-scale
 # Quadrant concept (4 azimuthal regions spanning many sectors); see
 # spaceSector.py's module docstring, "Named locations (octants)". NOT a
 # universal mathematical standard -- unlike the 2D I-IV quadrant

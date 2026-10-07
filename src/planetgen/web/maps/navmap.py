@@ -1,4 +1,4 @@
-# html/lib/navmap.py
+# planetgen/web/maps/navmap.py
 
 """
 NAV map: a flat, top-down SVG plot of the galactic X-Y plane showing a
@@ -40,7 +40,7 @@ route list below the map names every stop anyway.
 
 import math
 
-from fmt import esc, format_distance_ly
+from planetgen.web.lib.fmt import esc, format_distance_ly
 
 _SVG_WIDTH = 600.0
 _SVG_HEIGHT = 360.0

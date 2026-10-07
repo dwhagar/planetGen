@@ -1,7 +1,7 @@
 # tests/test_class_pages.py
 
 """
-The class reference pages (`web/class_pages.py`, `lib/classref.py`):
+The class reference pages (`web/class_pages.py`, `planetgen/web/lib/classref.py`):
 every type and class page renders, the catalog's values come from the
 generator's own tables, an unknown type or code is a 404, star types
 parse into their spectral and luminosity classes, and the system and
@@ -14,16 +14,15 @@ import pytest
 from api.app import create_app
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
-import classref  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
 from planetgen.physics import constants  # noqa: E402
 from planetgen import tuning
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
-from systempage import stars_html, system_list_html  # noqa: E402
+from planetgen.web.lib.systempage import stars_html, system_list_html  # noqa: E402
 
 DB = "planetgen_web_test"
 

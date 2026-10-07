@@ -12,8 +12,7 @@ a system or phenomenon sits inside (schema v39).
 from api.app import create_app
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import fmt  # noqa: E402
+from planetgen.web.lib import fmt  # noqa: E402
 from web import sector_page, system_pages  # noqa: E402
 
 
@@ -104,7 +103,7 @@ def test_phenomenon_class_and_contents_rows():
 
 
 def test_diffuse_nebulae_have_a_sector_map_color():
-    import starmap
+    from planetgen.web.maps import starmap
 
     assert "diffuse" in starmap._NEBULA_TYPE_COLORS and "diffuse" in starmap._NEBULA_TYPE_ALPHA
 

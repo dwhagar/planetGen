@@ -1,5 +1,5 @@
 """
-html/lib/mdconvert.py regression tests.
+planetgen/web/lib/mdconvert.py regression tests.
 
 Covers exactly the narrow Markdown subset `StarSystem.__str__` actually
 generates: ATX headers, GFM-style pipe tables, plain paragraphs, and the
@@ -7,21 +7,10 @@ one legitimate raw-HTML pattern (`<sup>...</sup>`) -- plus the escaping
 behavior that keeps anything else (e.g. a `--name`-injected `<script>`)
 from being rendered as live HTML.
 
-`html/lib` isn't part of the installed `stellarObjects` package (CGI-only
-plumbing), so it's added to `sys.path` here the same way the CGI scripts
-themselves do.
-
 Run with: pytest src/tests/test_mdconvert.py
 """
-import os
-import sys
 
-# This file lives at src/tests/ (src layout) -- one dirname() call reaches
-# src/, then down into html/lib (src/html/lib, not a top-level html/).
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
-
-from mdconvert import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
+from planetgen.web.lib.mdconvert import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
 
 
 def test_empty_input_returns_empty_string():

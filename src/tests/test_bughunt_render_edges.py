@@ -24,17 +24,12 @@ A `None` or negative radius renders clean.
 """
 
 import math
-import os
 import re
-import sys
 
 import pytest
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
-
-import mdconvert  # noqa: E402
-import systemmap as sm  # noqa: E402
+from planetgen.web.lib import mdconvert  # noqa: E402
+from planetgen.web.maps import systemmap as sm  # noqa: E402
 
 ADVERSARIAL_MARKDOWN = [
     "",

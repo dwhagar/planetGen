@@ -32,24 +32,18 @@ Pieces:
 """
 
 import os
-import sys
 
 from flask import Blueprint, current_app, has_app_context, request
 from markupsafe import Markup
 
 _HTML_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-_LIB_DIR = os.path.join(_HTML_DIR, "lib")
 _STATIC_DIR = os.path.join(_HTML_DIR, "static")
-# lib/ holds the modules the pages share (apiclient, fmt, pagination, the
-# map renderers).
-if _LIB_DIR not in sys.path:
-    sys.path.insert(0, _LIB_DIR)
 
-import apiclient  # noqa: E402
-import classref  # noqa: E402
-import pagecache  # noqa: E402
-from fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
-from fmt import static_url as fmt_static_url  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import classref  # noqa: E402
+from planetgen.web.lib import pagecache  # noqa: E402
+from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
+from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
 from planetgen.util.appconfig import load_config  # noqa: E402
 

@@ -1,4 +1,4 @@
-# html/lib/systemmap.py
+# planetgen/web/maps/systemmap.py
 
 """
 Interactive 2D "System Map" for `system.py`: a true top-down plot of every
@@ -77,9 +77,9 @@ import colorsys
 import math
 import statistics
 
-from fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
-from starmap import _star_color, _SUN_RADIUS_KM
-from tabledisplay import (
+from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
+from planetgen.web.maps.starmap import _star_color, _SUN_RADIUS_KM
+from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_mass, format_body_radius, format_period, format_star_luminosity, format_star_mass, format_star_radius,
     to_plain_text,
 )
