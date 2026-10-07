@@ -76,7 +76,7 @@ flowchart LR
     API --> Q["planetgen.db.query"]
     Q --> MySQL
     API --> DB
-    Web -. "admin Generate" .-> Jobs["web/jobs.py -> planetgen.cli.job"]
+    Web -. "admin Generate" .-> Jobs["web/jobs.py -> RQ -> web/job_runner.py"]
     Jobs --> CLI
 ```
 
@@ -238,7 +238,6 @@ from `config.json` or `PLANETGEN_MYSQL_*`, like every entry point.
 | `planetgen.cli.migrate` | Brings the content database to the current schema (`store.migrate_database`, with a progress bar), then bootstraps the control schema. `--status` reports without changing anything. Run by the installers. |
 | `planetgen.cli.reset` | Empties every generated table (`TRUNCATE`), keeping the schema and its version. |
 | `planetgen.cli.orbits` | Advances every orbit and galactic position by the real time elapsed since the last run. Meant for a monthly timer. |
-| `planetgen.cli.job` | Runs one admin Generate job's steps in order, writing `state.json` and `output.log`, honoring the `cancel` file. |
 | `planetgen.db.stats` | Read-only statistics about a database (table sizes, schema version, decorated names, `bright_star_counts`) for the admin stats page. |
 | `planetgen.cli.dedupe` | One-off backfill that resolves duplicate sector and system names in an older database. |
 | `planetgen.cli.render_parity` | One-off pre-v29 check that on-demand rendering matches the stored page text. |
@@ -297,7 +296,8 @@ the browser loads.
 | `admin_pages.py` | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
 | `generate_page.py` | `/admin/generate` (new galaxy, plan, generate sectors, reset), `/admin/generate/status`, `/admin/generate/jobs/<id>`. |
 | `system_page.py` | `/admin/generate/system`: a one-off system shown on the page, never saved (runs `planetgen system --output`). |
-| `jobs.py` | Background job directories, the one-job lock, spawning `planetgen.cli.job` detached, cancel, listing. |
+| `jobs.py` | Background job directories, the one-job lock, queuing the job on RQ with a burst worker started detached, cancel, listing. |
+| `job_runner.py` | Runs one admin Generate job's steps in order inside its RQ worker, writing `state.json` and `output.log`, honoring the `cancel` file. |
 | `transport.py` | The in-process transport that lets `apiclient` call the API routes without a socket. |
 | `helpers.py` | `render_page`, `db_name`, `page_url`, breadcrumbs, `current_admin`, `generate_target`. |
 | `csrf.py` | Signed double-submit CSRF protection for every page POST. |
@@ -670,7 +670,7 @@ flowchart TD
     Sess --> Cookie["Set-Cookie (HttpOnly, Secure, SameSite=Strict)<br/>relayed to the page response"]
 
     Gen["POST /admin/generate<br/>web/generate_page.py<br/>(CSRF + fresh admin)"] --> SJ["web/jobs.start_job<br/>job.json, take 'active' lock"]
-    SJ --> Spawn["spawn detached:<br/>python3 -m planetgen.cli.job JOBDIR"]
+    SJ --> Spawn["queue on RQ, start detached:<br/>python3 -m planetgen.cli.worker --burst"]
     Spawn --> Steps["each step in order:<br/>planetgen.cli.reset --yes, planetgen plan --no-bright-stars,<br/>planetgen plan --bright-stars-only, planetgen galaxy ..."]
     Steps --> Files["state.json, output.log,<br/>progress.json (progressFile.py)"]
     Poll["static/generatejobs.js<br/>GET /admin/generate/status"] --> Files
@@ -695,8 +695,9 @@ non-API POST.
 
 **Jobs.** `/admin/generate` turns a form into a list of command lines
 (`generate_page.py`) and calls `web/jobs.start_job`. That writes `job.json`
-into a new job directory, takes the one-job `active` lock, and spawns
-`planetgen.cli.job` detached from the web server, so a request timeout or a
+into a new job directory, takes the one-job `active` lock, queues
+`web/job_runner.run` as an RQ job and starts a burst worker for it,
+detached from the web server, so a request timeout or a
 server reload does not stop it. The runner runs each step with the site's
 database in `PLANETGEN_MYSQL_*` and `PLANETGEN_PROGRESS_FILE` set; it
 writes `state.json` and `output.log`, and `planetgen` writes

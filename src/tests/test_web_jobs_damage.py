@@ -308,7 +308,7 @@ def test_cancel_with_ids_that_are_not_jobs(jobs_root, job_id):
     assert os.listdir(jobs_root) == []
 
 
-def test_cancel_of_a_finished_job(jobs_root):
+def test_cancel_of_a_finished_job(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")], root=jobs_root)
     _wait_finished(job_id, jobs_root)
     assert jobs.cancel_job(job_id, jobs_root) is False
@@ -328,7 +328,7 @@ print(job_id, flush=True)
 
 
 @pytest.mark.skipif(jobs.WINDOWS, reason="kills a POSIX process group")
-def test_a_job_outlives_the_server_process_that_started_it(jobs_root):
+def test_a_job_outlives_the_server_process_that_started_it(jobs_root, redis_server):
     """The web server process (here a stand-in in its own process group)
     starts a job and is then killed with its whole group, as closing the
     browser can't but a server stop might: the runner, detached into its

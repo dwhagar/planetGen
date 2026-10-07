@@ -447,8 +447,10 @@ and Download buttons (Download posts the text back to
 `/admin/generate/system/download`, which returns it as a `.md`/`.wiki`
 file), plus a rendered preview for Markdown.
 
-A job is started as `python3 -m planetgen.cli.job <job dir>` in its own
-session (on Windows, a detached process in its own process group,
+A job is an RQ job on Redis (`redis.url`): the page queues
+`planetgen.web.job_runner.run(<job dir>)` on a queue of the job's own and
+starts one burst worker for it (`python3 -m planetgen.cli.worker`) in its
+own session (on Windows, a detached process in its own process group,
 broken away from the server's job object where the server allows it),
 so it outlives the request and a graceful reload (Apache's, or
 gunicorn's). A full stop or restart of the service under systemd (which
@@ -457,7 +459,8 @@ that doesn't allow breakaway, does stop it; the page then shows it as
 interrupted. Cancel writes a `cancel` file into the job's directory; the
 runner sees it within a quarter second and stops the running step's
 whole process tree (`os.killpg` on POSIX, `taskkill /T /F` on Windows).
-Liveness comes from `/proc` on Linux, `os.kill(pid, 0)` on other POSIX
+Without a Redis server no job starts and the page says so, except on Windows (Redis there runs in WSL, which a machine may not have): the job then runs in `python -m planetgen.web.job_runner <job dir>`, started the same way.
+The worker is named after the job, so liveness comes from `/proc` on Linux, `os.kill(pid, 0)` on other POSIX
 systems, and `OpenProcess`/`GetExitCodeProcess` on Windows.
 So closing the browser never stops a job (ADM.11): the Sector Map's
 "Generate the neighborhood" button also starts a Generate page job

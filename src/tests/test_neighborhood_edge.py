@@ -117,7 +117,7 @@ def _check(mysql_config, form):
 
 
 @pytest.mark.parametrize("where", sorted(CENTRES))
-def test_a_neighborhood_from_the_generate_page(galaxy, where):
+def test_a_neighborhood_from_the_generate_page(galaxy, where, redis_server):
     job, output = _web_job(galaxy, CENTRES[where], _radius(CENTRES[where]))
     assert job["status"] == "succeeded", output
     assert "Traceback" not in output
@@ -131,7 +131,7 @@ def test_the_same_neighborhood_from_the_cli(galaxy, where):
 
 
 @pytest.mark.parametrize("where", ["sparse", "rim", "top layer"])
-def test_around_a_filled_sector_from_both_paths(galaxy, where):
+def test_around_a_filled_sector_from_both_paths(galaxy, where, redis_server):
     argv, _description = generate_page.center_argv({"center_radius_pc": "0.1", **CENTRES[where]}, EDGE_PC)
     _run_cli(argv + _mysql_argv(galaxy))
     conn = store.get_connection(galaxy)

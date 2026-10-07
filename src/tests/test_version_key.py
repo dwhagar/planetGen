@@ -205,7 +205,7 @@ def test_the_line_is_first_in_a_debug_file_too(mysql_config, monkeypatch, tmp_pa
 
 
 def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path):
-    from planetgen.cli import job as jobRunner
+    from planetgen.web import job_runner as jobRunner
 
     _seed_skeleton(mysql_config, galaxy_seed=SEED)
     job_dir = tmp_path / "jobs" / "20261002-120000-abcd"
@@ -227,7 +227,7 @@ def test_a_web_job_log_starts_with_the_line(mysql_config, tmp_path):
 
 
 def test_a_web_job_without_a_database_still_gets_the_line(tmp_path):
-    from planetgen.cli import job as jobRunner
+    from planetgen.web import job_runner as jobRunner
 
     job = {"id": "x", "title": "Reset", "env": {"PLANETGEN_MYSQL_HOST": "127.0.0.1", "PLANETGEN_MYSQL_PORT": "1"}}
     assert jobRunner._run_line(job) == versionKey.run_line(None, "Reset")

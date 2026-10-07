@@ -56,6 +56,9 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 if os.environ.get("PLANETGEN_TEST_REDIS_URL"):
     os.environ.setdefault("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
 
+# The admin Generate page's jobs run on Redis too (PERF.24 step 3), so a
+# test that starts one for real takes `redis_server`: it skips without one.
+
 # Test runs never read or add to the control database's generation speed
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
@@ -357,3 +360,17 @@ def _reset_login_backoff():
     memory_store.clear()
     yield
     memory_store.clear()
+
+
+@pytest.fixture
+def redis_server():
+    """The Redis URL jobs and workers use; skips the test without one."""
+    url = os.environ.get("PLANETGEN_REDIS_URL")
+    if not url:
+        pytest.skip("no Redis server (PLANETGEN_TEST_REDIS_URL is not set)")
+    from planetgen.queue import redisqueue
+    try:
+        redisqueue.connect(url).ping()
+    except Exception as exc:  # noqa: BLE001
+        pytest.skip(f"no Redis server at {url}: {exc}")
+    return url

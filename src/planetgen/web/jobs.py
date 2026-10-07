@@ -12,17 +12,24 @@ A job is a directory under the jobs directory (`jobs_dir()`):
         active                  the running job's id (the one-job lock)
         20260930-124433-1a2b/
             job.json            what to run: id, title, steps (argv lists), env
-            runner.pid          the runner's pid, written when it is spawned
+            runner.pid          the job's worker's pid, written when it is started
             cancel              written by Cancel; the runner stops when it sees it
-            state.json          written by planetgen.cli.job as it goes
+            state.json          written by planetgen.web.job_runner as it goes
             progress.json       written by planetgen (planetgen.queue.progress_file)
             output.log          every step's stdout and stderr
 
-`start_job` writes `job.json`, takes the lock and spawns
-`python3 -m planetgen.cli.job <job dir>` in its own session (on Windows, a
-detached process in its own process group), detached from the web server (a mod_wsgi request timeout or a graceful Apache reload
-doesn't stop it). The page then only ever reads these files, so it works
-the same whichever server process answers the next request.
+`start_job` writes `job.json`, takes the lock and queues
+`planetgen.web.job_runner.run(<job dir>)` as an RQ job on Redis, on a
+queue of the job's own (PERF.24 step 3). It then starts one burst worker
+for that queue (`planetgen.cli.worker`), named after the job, in its own
+session (on Windows, a detached process in its own process group),
+detached from the web server, so a mod_wsgi request timeout or a
+graceful Apache reload doesn't stop it. The worker exits once the job is
+done. The page then only ever reads these files, so it works the same
+whichever server process answers the next request. Without a Redis
+server at `redis.url`, no job starts, except on Windows (where Redis
+runs in WSL, which a machine may not have): there the job runs in
+`python -m planetgen.web.job_runner <job dir>`, started the same way.
 
 Only one job runs at a time: generation, planning and reset all write the
 same database. A lock whose runner has died (the server was rebooted mid
@@ -45,6 +52,7 @@ import tempfile
 import threading
 import time
 
+from planetgen.queue import redisqueue
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
@@ -67,10 +75,13 @@ DEFAULT_KEEP = 20
 deleted when a new job starts."""
 
 LOCK_NAME = "active"
-"""str: Must match `planetgen.cli.job.LOCK_NAME`."""
+"""str: Must match `planetgen.web.job_runner.LOCK_NAME`."""
 
 CANCEL_NAME = "cancel"
-"""str: Must match `planetgen.cli.job.CANCEL_NAME`."""
+"""str: Must match `planetgen.web.job_runner.CANCEL_NAME`."""
+
+QUEUE_PREFIX = "planetgen-web-"
+"""str: A job's RQ queue and its worker are this plus the job's id."""
 
 WINDOWS = os.name == "nt"
 
@@ -582,7 +593,8 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
 
     Raises:
         JobBusy: Another job is still running.
-        OSError: No writable jobs directory, or the runner can't start.
+        OSError: No writable jobs directory, no Redis server, or the
+            worker can't start.
     """
     root = root or jobs_dir()
     # The directory first, under a fresh id if two jobs drew the same one
@@ -640,12 +652,43 @@ def _detached_options():
 
 
 def _spawn(path):
+    """Queues the job in `path` on Redis and starts its burst worker. On
+    Windows without a Redis server (Redis there runs in WSL, which a
+    machine may not have), runs `planetgen.web.job_runner` for it
+    directly instead; elsewhere no job starts without Redis.
+
+    Raises:
+        OSError: No Redis server (not on Windows), or the process can't
+            start.
+    """
+    job_id = os.path.basename(path)
+    url = redisqueue.redis_url()
+    connection = redisqueue.connect(url)
+    try:
+        connection.ping()
+    except Exception as exc:  # noqa: BLE001 -- any connection failure
+        if not WINDOWS:
+            raise OSError(f"no Redis server answers at {url} (config.json's redis.url); "
+                          f"start Redis to run jobs: {exc}") from exc
+        log.debug("jobs: no Redis at %s (%s); running job %s without the queue", url, exc, job_id)
+        _start_detached(path, [python_executable(), "-m", "planetgen.web.job_runner", path])
+        return
+    name = QUEUE_PREFIX + job_id
+    redisqueue.queue(name, connection).enqueue(
+        "planetgen.web.job_runner.run", path, job_id=name, job_timeout=-1,
+        result_ttl=0, failure_ttl=86400,
+    )
+    _start_detached(path, redisqueue.worker_argv([name], url, name=name, python=python_executable()))
+
+
+def _start_detached(path, argv):
+    """Starts `argv` (whose command line names the job) detached from the
+    web server and records its pid as the job's `runner.pid`."""
     options = _detached_options()
     for index, extra in enumerate(options):
         try:
             proc = subprocess.Popen(
-                [python_executable(), "-m", "planetgen.cli.job", path],
-                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                argv, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                 cwd=REPO_DIR, close_fds=True, **extra,
             )
             break
