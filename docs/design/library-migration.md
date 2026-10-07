@@ -69,7 +69,7 @@ Huey and Celery were looked at: Huey would avoid Redis but Boss chose
 Redis; Celery is heavier than a single-host deployment needs.
 
 **Windows**: Redis has no supported native Windows build. The installer
-points at Memurai or a Redis in WSL (default until Boss decides otherwise).
+points at Redis in WSL2 (Boss, 2026-10-07 17:11Z: "Let's say Redis in WSL"; OPS.27).
 
 ## 4. Logs and progress in the browser
 
