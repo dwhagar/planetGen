@@ -12,7 +12,8 @@ import re
 import pytest
 
 from api import loginguard
-from stellarObjects import _db, adminAuth, totp
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth, totp
 
 # --- Codes (RFC 6238) -----------------------------------------------------------
 

@@ -41,7 +41,7 @@ from fmt import format_distance_km, format_speed_kms
 from systempage import facility_kind_label, facility_row
 from tabledisplay import format_period
 
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen.population import facilities as facility_rules
 from planetgen.tuning import FACILITY_KINDS, FACILITY_ORBIT_STEPS
 
@@ -231,7 +231,7 @@ def handle_post(system_id, system, facilities):
     "preview"}`.
     """
     if current_admin() is None:
-        activitylog.event("AUTHZ", "admin.required", path=request.path)
+        activity_log.event("AUTHZ", "admin.required", path=request.path)
         abort(403)
     action = request.form.get("facility_action")
     cookie_header = request.headers.get("Cookie")

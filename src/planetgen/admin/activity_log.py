@@ -1,4 +1,4 @@
-# stellarObjects/activitylog.py
+# planetgen/admin/activity_log.py
 
 """
 The activity log: an always-on record of who did what (SEC.28)

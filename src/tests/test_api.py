@@ -21,7 +21,8 @@ import pytest
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
 from stellarObjects._db import MySQLConfig
 from planetgen.generation.config import SystemConfig

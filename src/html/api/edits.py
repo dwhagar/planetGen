@@ -8,7 +8,7 @@ Every write needs an admin whose credentials are current, writes an
 audit-log row, and answers with what the edit did.
 
 A body edit loads its system (`_db.load_star_system`), changes it with
-`stellarObjects.adminEdits`, re-validates it from the moons outward
+`planetgen.admin.edits`, re-validates it from the moons outward
 (`planetgen.generation.validation`) and writes it back in place
 (`stellarObjects.editStore`), so the other bodies keep their rows. The
 answer lists the bodies the re-validation moved and any warnings left.
@@ -22,7 +22,8 @@ import random
 from flask import Blueprint, jsonify, request
 
 import generate
-from stellarObjects import _db, adminEdits, editStore
+from stellarObjects import _db, editStore
+from planetgen.admin import edits as adminEdits
 from planetgen.generation import validation
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig

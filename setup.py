@@ -49,10 +49,11 @@ setup(
     packages=find_packages(where='src'),
     package_dir={pkg: 'src/' + pkg.replace('.', '/') for pkg in find_packages(where='src')},
     package_data={
-        # planetgen.names.wordlists reads this at import time; setuptools does not
-        # include non-.py files in a package by default, so without this the
-        # installed package is missing the file and crashes on first import.
-        'stellarObjects': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
+        # Data files the modules read at run time (setuptools leaves non-.py
+        # files out of a package by default, and the module would crash on
+        # first use): the common-password list (planetgen.admin.auth) and
+        # the offensive-word list (planetgen.names.wordlists).
+        'planetgen.admin': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
         'planetgen.names': ['offensive_words.txt'],
     },
     py_modules=['generate'],
@@ -73,7 +74,7 @@ setup(
         # than the 'api' extra below.
         'pymysql>=1.1.1',
         'dbutils>=3.1.0',
-        # Admin password hashing (stellarObjects/adminAuth.py's lazy
+        # Admin password hashing (planetgen/admin/auth.py's lazy
         # `werkzeug.security` import) -- migrateDb.py calls
         # bootstrap_control_schema() unconditionally (install.sh/update.sh
         # both always run it), so this needs to be installed regardless of

@@ -51,7 +51,7 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
-from stellarObjects import adminAuth
+from planetgen.admin import auth
 from stellarObjects._db import (
     SCHEMA_VERSION,
     add_mysql_connection_args,
@@ -98,7 +98,7 @@ def _migrate_with_progress(config):
 
 def print_initial_admin_login(username, password):
     """
-    Shows the first admin login `adminAuth.bootstrap_control_schema` just
+    Shows the first admin login `auth.bootstrap_control_schema` just
     seeded. This is the only time the password exists in plain text (only
     its hash is stored), so it goes to the console once, on the run that
     created it, and never again.
@@ -159,7 +159,7 @@ def main():
     # install.sh's existing step 2) against the control schema's own name
     # instead of the content database's.
     try:
-        seeded = adminAuth.bootstrap_control_schema(control_mysql_config(config))
+        seeded = auth.bootstrap_control_schema(control_mysql_config(config))
     except Exception as exc:
         print(f"error: could not set up the control schema ({exc}).", file=sys.stderr)
         sys.exit(1)

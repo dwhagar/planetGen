@@ -24,7 +24,8 @@ from hypothesis import strategies as st
 from itsdangerous import URLSafeTimedSerializer
 
 from api.authz import SESSION_COOKIE_NAME
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth
 
 from web import csrf  # noqa: E402
 from web.admin_pages import FLASH_COOKIE  # noqa: E402

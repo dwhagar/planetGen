@@ -32,7 +32,8 @@ import jobRunner
 import migrateDb
 import resetDb
 import updateOrbits
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 
@@ -303,10 +304,10 @@ def test_migrate_brings_a_fresh_database_current_and_is_idempotent(mysql_config,
     assert re.search(r"^\s*username: admin$", first, re.M)
     assert "Log in at /login" in first
     assert "password:" not in second and password not in second
-    assert password != "password" and len(password) >= adminAuth.MIN_PASSWORD_LENGTH
+    assert password != "password" and len(password) >= auth.MIN_PASSWORD_LENGTH
     conn = _db.get_control_connection(_db.control_mysql_config(mysql_config), ensure_schema=False)
     try:
-        admin = adminAuth.authenticate(conn, "admin", password)
+        admin = auth.authenticate(conn, "admin", password)
         assert admin["must_change_credentials"] == 1
     finally:
         conn.close()

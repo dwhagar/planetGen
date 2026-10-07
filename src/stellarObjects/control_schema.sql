@@ -25,7 +25,7 @@
 -- Secrets are never stored in plaintext or in a reversible form:
 --   - `admin_users.password_hash` -- `werkzeug.security.
 --     generate_password_hash` (PBKDF2/scrypt, salted), verified via
---     `check_password_hash`. See `stellarObjects/adminAuth.py`.
+--     `check_password_hash`. See `planetgen/admin/auth.py`.
 --   - `admin_sessions.token_hash` / `admin_api_keys.key_hash` -- SHA-256
 --     hex digest of a `secrets.token_urlsafe` value. The raw token/key is
 --     shown to the caller exactly once (at login / at creation) and never
@@ -101,7 +101,7 @@ CREATE TABLE IF NOT EXISTS admin_api_keys (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Every write/admin action, one row each -- written by the same request
--- that performs the action (`stellarObjects.adminAuth.record_audit`), not
+-- that performs the action (`planetgen.admin.auth.record_audit`), not
 -- derived after the fact from `schema.sql`'s own tables (which don't
 -- carry a "who changed this" column). `admin_username` is captured at
 -- write time (denormalized, alongside `admin_user_id`) so the trail stays
@@ -126,7 +126,7 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
 -- v2 (SEC.1, SEC.21): failed-login counters and lockouts, one row per
 -- client address (`scope` 'ip'; an IPv6 address by its /64) or username
 -- (`scope` 'user', case-folded), shared by every worker process and kept
--- across restarts. See `stellarObjects/loginThrottle.py` for the rules.
+-- across restarts. See `planetgen/admin/throttle.py` for the rules.
 -- Times are Unix seconds (DOUBLE), compared with the web server's own
 -- clock; 0 means never. Idle rows are deleted after a week.
 CREATE TABLE IF NOT EXISTS login_throttle (

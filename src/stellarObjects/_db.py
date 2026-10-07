@@ -62,7 +62,7 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog
+from planetgen.admin import activity_log
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
@@ -1315,7 +1315,7 @@ def _apply_schema(conn):
         if baseline < SCHEMA_VERSION:
             log.normal(f"Database has no schema version recorded; its tables match v{baseline}, "
                        f"so that is recorded and migrateDb.py will bring it up to v{SCHEMA_VERSION}.")
-            activitylog.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
+            activity_log.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
                               version=baseline)
     conn.commit()
 
@@ -1528,7 +1528,7 @@ def _apply_control_schema(conn):
         conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
         if row["v"] is not None:
-            activitylog.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
+            activity_log.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
 
 
@@ -9266,7 +9266,7 @@ def migrate_database(config=None, on_step=None):
                 if on_step is not None:
                     on_step(number, len(pending), version, target)
                 step(_MigrationConnection(conn))
-                activitylog.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
+                activity_log.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
                                   from_version=version, to_version=target)
                 version = target
             conn.commit()

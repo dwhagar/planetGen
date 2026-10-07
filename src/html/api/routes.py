@@ -24,7 +24,7 @@ The write endpoints (`POST`/`PATCH`/`DELETE` on `/sectors`/`/systems`,
 near the bottom of this file) do real inserts/updates/deletes now, gated
 behind admin authentication (`authz.require_admin`) and run against a
 separate, write-capable database account -- see `docs/api.md`'s
-"Write endpoints" section and `stellarObjects/adminAuth.py`.
+"Write endpoints" section and `planetgen/admin/auth.py`.
 """
 
 import math

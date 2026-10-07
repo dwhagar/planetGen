@@ -11,7 +11,8 @@ import pytest
 
 from api import loginguard
 from api.auth import DEVICE_COOKIE_NAME
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth
 
 # --- SEC.24: the policy -------------------------------------------------------
 

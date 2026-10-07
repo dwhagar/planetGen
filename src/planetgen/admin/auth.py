@@ -1,4 +1,4 @@
-# stellarObjects/adminAuth.py
+# planetgen/admin/auth.py
 
 """
 Admin authentication/authorization: password hashing, web-session and
@@ -31,7 +31,7 @@ import os
 import re
 import secrets
 
-from . import _db
+from stellarObjects import _db
 
 SESSION_TTL_HOURS = 12
 """int: Fixed lifetime for a web-UI session, computed server-side
@@ -623,7 +623,7 @@ def begin_totp_setup(conn, admin_user_id):
     secret, not yet enabled, and returns it. Refused while two-factor
     sign-in is already on (turn it off first).
     """
-    from . import totp
+    from planetgen.admin import totp
     if totp_enabled(conn, admin_user_id):
         raise AuthError("two-factor sign-in is already on")
     secret = totp.new_secret()
@@ -650,7 +650,7 @@ def confirm_totp_setup(conn, admin_user_id, code):
     Raises:
         AuthError: No setup started, or the code doesn't match.
     """
-    from . import totp
+    from planetgen.admin import totp
     secret = pending_totp_secret(conn, admin_user_id)
     if secret is None:
         raise AuthError("start setting up two-factor sign-in first")
@@ -681,7 +681,7 @@ def check_second_factor(conn, admin_user_id, code):
     Returns:
         str or None: `"totp"` or `"recovery"`, or `None` for a wrong code.
     """
-    from . import totp
+    from planetgen.admin import totp
     row = conn.execute("SELECT secret, last_step FROM admin_totp WHERE admin_user_id = ? AND enabled_at IS NOT NULL "
                        "FOR UPDATE", (admin_user_id,)).fetchone()
     if row is None:

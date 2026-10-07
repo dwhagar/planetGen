@@ -38,7 +38,8 @@ from api import auth as auth_routes
 from api.app import create_app
 from api.config import Config
 from api.limiter import limiter
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem

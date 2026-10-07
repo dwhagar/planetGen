@@ -19,8 +19,8 @@ Architectural refactoring is structured around four primary criteria:
 
 #### Current Codebase State
 
-* `src/stellarObjects/totp.py` (102 lines): Custom implementation of HMAC-SHA1 Time-Based One-Time Passwords (RFC 6238).
-* `src/stellarObjects/qrcodegen.py` (907 lines): Single-file copy of Project Nayuki's QR Code generator, handling low-level bit buffers, Reed-Solomon error correction, and SVG matrix generation.
+* `src/planetgen/admin/totp.py` (102 lines): Custom implementation of HMAC-SHA1 Time-Based One-Time Passwords (RFC 6238).
+* `src/planetgen/admin/qrcode.py` (907 lines): Single-file copy of Project Nayuki's QR Code generator, handling low-level bit buffers, Reed-Solomon error correction, and SVG matrix generation.
 
 #### Recommended Stack
 
@@ -141,7 +141,7 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/stellarObjects/loginThrottle.py` (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.
+* `src/planetgen/admin/throttle.py` (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.
 * `src/html/api/limiter.py` (108 lines): Flask rate-limiter setup wrapper.
 * `src/html/api/loginguard.py` (156 lines): Middleware guarding password checks against brute-force attacks.
 
@@ -212,8 +212,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 ```
 Phase 1: Low Risk / High Reduction (Security & Utility Modules)
-├── Replace src/stellarObjects/totp.py       --> pyotp
-├── Replace src/stellarObjects/qrcodegen.py  --> qrcode / segno
+├── Replace src/planetgen/admin/totp.py       --> pyotp
+├── Replace src/planetgen/admin/qrcode.py  --> qrcode / segno
 └── Replace src/html/lib/mdconvert.py        --> markdown
 
 Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)

@@ -29,7 +29,7 @@ import time
 
 import pymysql
 
-from stellarObjects import activitylog, adminAuth, loginThrottle
+from planetgen.admin import activity_log, auth, throttle
 from stellarObjects._db import add_mysql_connection_args, control_mysql_config, get_control_connection, \
     mysql_config_from_args
 
@@ -60,13 +60,13 @@ def main(argv=None):
         print(f"error: could not open the control database ({exc}).", file=sys.stderr)
         return 1
     try:
-        store = loginThrottle.DbStore(conn)
+        store = throttle.DbStore(conn)
         if args.reset_two_factor:
             row = conn.execute("SELECT id FROM admin_users WHERE username = ?", (args.reset_two_factor,)).fetchone()
             if row is None:
                 parser.error(f"no admin named {args.reset_two_factor!r}.")
-            was_on = adminAuth.disable_totp(conn, row["id"])
-            activitylog.event("DB", "totp.reset", user=_who(), target=f"user:{args.reset_two_factor}")
+            was_on = auth.disable_totp(conn, row["id"])
+            activity_log.event("DB", "totp.reset", user=_who(), target=f"user:{args.reset_two_factor}")
             print(f"Two-factor sign-in for {args.reset_two_factor} is off"
                   f"{'' if was_on else ' (it was not set up)'}.")
             return 0
@@ -74,8 +74,8 @@ def main(argv=None):
             row = conn.execute("SELECT id FROM admin_users WHERE username = ?", (args.forget_devices,)).fetchone()
             if row is None:
                 parser.error(f"no admin named {args.forget_devices!r}.")
-            revoked = adminAuth.revoke_devices(conn, row["id"])
-            activitylog.event("DB", "devices.revoke", user=_who(), target=f"user:{args.forget_devices}",
+            revoked = auth.revoke_devices(conn, row["id"])
+            activity_log.event("DB", "devices.revoke", user=_who(), target=f"user:{args.forget_devices}",
                               revoked=revoked)
             print(f"Revoked {revoked} trusted device{'' if revoked == 1 else 's'} of {args.forget_devices}.")
             return 0
@@ -83,17 +83,17 @@ def main(argv=None):
             lifted = store.lift()
             target = "all"
         elif args.ip is not None:
-            subject = loginThrottle.ip_subject(args.ip)
+            subject = throttle.ip_subject(args.ip)
             if subject is None:
                 parser.error(f"{args.ip!r} is not an address that can be locked (invalid or loopback).")
-            lifted = store.lift(loginThrottle.SCOPE_IP, subject)
+            lifted = store.lift(throttle.SCOPE_IP, subject)
             target = f"ip:{subject}"
         elif args.user:
-            subject = loginThrottle.normalize_username(args.user)
-            lifted = store.lift(loginThrottle.SCOPE_USER, subject)
+            subject = throttle.normalize_username(args.user)
+            lifted = store.lift(throttle.SCOPE_USER, subject)
             target = f"user:{subject}"
         else:
-            rows = loginThrottle.locked_subjects(store)
+            rows = throttle.locked_subjects(store)
             if not rows:
                 print("Nothing is locked.")
             for row in rows:
@@ -102,7 +102,7 @@ def main(argv=None):
             return 0
     finally:
         conn.close()
-    activitylog.event("DB", "lockout.lift", user=_who(), target=target, lifted=lifted)
+    activity_log.event("DB", "lockout.lift", user=_who(), target=target, lifted=lifted)
     print(f"Lifted {lifted} lockout{'' if lifted == 1 else 's'} ({target}).")
     return 0
 

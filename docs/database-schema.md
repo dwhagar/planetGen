@@ -786,7 +786,7 @@ v7 adds columns, see below):
   one by its /64, or the case-folded username) as the key, then
   `failures`, `level` (lockouts so far, which double the next), and
   `locked_until`/`last_failure_at`/`last_lockout_at` in Unix seconds.
-  Read and written by `stellarObjects/loginThrottle.py`; idle rows are
+  Read and written by `planetgen/admin/throttle.py`; idle rows are
   deleted after a week.
 - **`admin_devices`** (v3, SEC.22) — trusted browsers: `admin_user_id`,
   `token_hash` (SHA-256 of the `pg_admin_device` cookie, never the raw
@@ -852,7 +852,7 @@ v7 adds columns, see below):
   control tables the generator writes; it reaches them with its own
   MySQL account and runs without them when it can't.
 
-`stellarObjects/adminAuth.py` is the only code that reads/writes the
+`planetgen/admin/auth.py` is the only code that reads/writes the
 admin tables directly — `bootstrap_control_schema` creates the schema and,
 when `admin_users` is empty, seeds an `admin` row with a random first
 password that `migrateDb.py` prints once (`migrateDb.py` calls this

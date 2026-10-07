@@ -90,7 +90,8 @@ from rich.text import Text
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, activitylog, progressFile, progressRate, workQueue
+from stellarObjects import _db, progressFile, progressRate, workQueue
+from planetgen.admin import activity_log
 from planetgen.population import model
 from planetgen.generation import bright_stars as brightStars, limits, stats as generationStats
 from planetgen.galaxy import nebula_field, seed as galaxySeed, version_key
@@ -4506,7 +4507,7 @@ def main():
         database = _db.DEFAULT_MYSQL_CONFIG.database
     started = time.monotonic()
     if logged:
-        activitylog.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
+        activity_log.event("GEN", "generate.start", user=_run_user(), command=args.command, db=database)
     status = "failed"
     root = _open_run_node(args, database) if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
@@ -4535,7 +4536,7 @@ def main():
         if history is not None:
             _finish_history(args, history, status)
         if logged:
-            activitylog.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
+            activity_log.event("GEN", "generate.finish", user=_run_user(), command=args.command, db=database,
                               status=status, seconds=round(time.monotonic() - started, 1),
                               **{key: RUN_COUNTS[key] for key in ("sectors", "systems", "phenomena")})
 

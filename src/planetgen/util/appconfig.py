@@ -57,7 +57,7 @@ DEFAULT_CONFIG = {
     "api_base_url": "http://127.0.0.1/api",
     "debug": False,
     "log_file": "/var/log/planetgen.log",
-    # The always-on activity log's folder (stellarObjects/activitylog.py).
+    # The always-on activity log's folder (planetgen/admin/activity_log.py).
     # Empty means the platform's standard place (`default_log_dir`).
     "log_dir": "",
     # "auto", "system" (logrotate/newsyslog moves the file) or "app" (the

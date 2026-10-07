@@ -20,7 +20,8 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from stellarObjects import _db  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from web import csrf  # noqa: E402
 from web.helpers import page_url  # noqa: E402

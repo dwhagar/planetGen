@@ -37,7 +37,7 @@ import pytest
 from stellarObjects import _db
 from stellarObjects._db import MySQLConfig
 
-# The always-on activity log (stellarObjects/activitylog.py) would
+# The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
 # to a throwaway folder instead. Tests that read it point
 # PLANETGEN_LOG_DIR at their own tmp_path and call activitylog.reset().
@@ -328,7 +328,7 @@ def _fast_password_hashing(request, monkeypatch):
     if request.node.get_closest_marker("real_password_hashing"):
         yield
         return
-    from stellarObjects import adminAuth
+    from planetgen.admin import auth as adminAuth
     monkeypatch.setattr(adminAuth, "PASSWORD_HASH_METHOD", FAST_PASSWORD_HASH_METHOD)
     # The unknown-username dummy hash is cached; make the next one cheap
     # too (monkeypatch puts the production one back afterwards).

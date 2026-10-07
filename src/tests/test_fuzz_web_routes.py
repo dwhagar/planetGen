@@ -62,7 +62,8 @@ from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.common import is_http_url
 from api.config import Config
-from stellarObjects import _db, adminAuth
+from stellarObjects import _db
+from planetgen.admin import auth as adminAuth
 from stellarObjects._db import MySQLConfig
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula

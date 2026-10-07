@@ -3,7 +3,7 @@
 """
 The checks around every password check (SEC.1, SEC.20, SEC.21): the
 per-address lockout and the per-username backoff
-(`stellarObjects/loginThrottle.py`), and the activity-log line and audit
+(`planetgen/admin/throttle.py`), and the activity-log line and audit
 row each refused sign-in writes.
 
 A view builds one `LoginGuard` for the username being tried and the
@@ -28,12 +28,12 @@ import sys
 
 from flask import current_app, jsonify, request
 
-from stellarObjects import activitylog, adminAuth, loginThrottle
+from planetgen.admin import activity_log, auth, throttle
 from planetgen.util import log
 
 from .common import get_control_db
 
-memory_store = loginThrottle.MemoryStore()
+memory_store = throttle.MemoryStore()
 """MemoryStore: The fallback while `login_throttle` can't be used (and
 what tests clear between runs)."""
 
@@ -50,7 +50,7 @@ def _warn_once(key, message):
 def allowlist():
     """The configured `login_allowlist` as networks; a bad entry is
     skipped with one warning."""
-    networks, bad = loginThrottle.parse_allowlist(current_app.config.get("LOGIN_ALLOWLIST") or ())
+    networks, bad = throttle.parse_allowlist(current_app.config.get("LOGIN_ALLOWLIST") or ())
     for entry in bad:
         _warn_once(f"allowlist:{entry}", f"planetgen: ignoring login_allowlist entry {entry!r}: "
                                          f"not an address or network.")
@@ -61,7 +61,7 @@ def with_store(operation):
     """Runs `operation(store)` against the database, or against
     `memory_store` when the database can't be used."""
     try:
-        return operation(loginThrottle.DbStore(get_control_db()))
+        return operation(throttle.DbStore(get_control_db()))
     except Exception as exc:  # noqa: BLE001 -- never fail a login because of the counters
         _warn_once("store", f"planetgen: the login_throttle table can't be used ({exc}); counting failed "
                             f"logins in memory per process until it can. Run update.sh to create it.")
@@ -85,8 +85,8 @@ def record_failure_row(action, username, admin_user_id=None):
     """One `admin_audit_log` row for a refused sign-in; a database error is
     logged, never raised."""
     try:
-        adminAuth.record_login_failure(get_control_db(), action, username,
-                                       ip=activitylog.clean_ip(request.remote_addr), admin_user_id=admin_user_id)
+        auth.record_login_failure(get_control_db(), action, username,
+                                       ip=activity_log.clean_ip(request.remote_addr), admin_user_id=admin_user_id)
     except Exception as exc:  # noqa: BLE001
         log.error(f"Could not record {action} for {username!r} in admin_audit_log: {exc}")
 
@@ -100,12 +100,12 @@ class LoginGuard:
         self.admin_user_id = admin_user_id
         self.enabled = current_app.config.get("LOGIN_BACKOFF_ENABLED", True)
         self.address = request.remote_addr
-        self.ip = loginThrottle.ip_subject(self.address, allowlist()) if self.enabled else None
+        self.ip = throttle.ip_subject(self.address, allowlist()) if self.enabled else None
         # A browser holding this admin's device cookie (SEC.22) is neither
         # held back nor counted by the per-username lock, so failures on
         # purpose from elsewhere can't lock the real admin out; the
         # per-address lock still applies to it.
-        self.user = loginThrottle.normalize_username(username) if self.enabled and not trusted_device else None
+        self.user = throttle.normalize_username(username) if self.enabled and not trusted_device else None
 
     def refusal(self):
         """
@@ -113,13 +113,13 @@ class LoginGuard:
         before the password, so a guess made during a lock learns
         nothing), after logging it as `login.locked`; `None` otherwise.
         """
-        for scope, subject, what in ((loginThrottle.SCOPE_IP, self.ip, "from this address"),
-                                     (loginThrottle.SCOPE_USER, self.user, "for this username")):
+        for scope, subject, what in ((throttle.SCOPE_IP, self.ip, "from this address"),
+                                     (throttle.SCOPE_USER, self.user, "for this username")):
             if not subject:
                 continue
-            wait = with_store(lambda store: loginThrottle.check(store, scope, subject))
+            wait = with_store(lambda store: throttle.check(store, scope, subject))
             if wait:
-                activitylog.event("AUTH", "login.locked", user=self.username, scope=scope, retry_after=wait)
+                activity_log.event("AUTH", "login.locked", user=self.username, scope=scope, retry_after=wait)
                 record_failure_row("login.locked", self.username, self.admin_user_id)
                 resp = jsonify({"error": f"too many failed logins {what}; try again in {wait_text(wait)}",
                                 "retry_after": wait, "scope": scope})
@@ -132,17 +132,17 @@ class LoginGuard:
         """Counts a wrong password against the address and the username,
         and logs it (plus a `lockout.start` line for each lock it starts)."""
         locks = {}
-        for scope, subject in ((loginThrottle.SCOPE_IP, self.ip), (loginThrottle.SCOPE_USER, self.user)):
+        for scope, subject in ((throttle.SCOPE_IP, self.ip), (throttle.SCOPE_USER, self.user)):
             if subject:
-                locks[scope] = with_store(lambda store: loginThrottle.record_failure(store, scope, subject))
-        activitylog.event("AUTH", action, user=self.username)
+                locks[scope] = with_store(lambda store: throttle.record_failure(store, scope, subject))
+        activity_log.event("AUTH", action, user=self.username)
         record_failure_row(action, self.username, self.admin_user_id)
         for scope, seconds in locks.items():
             if seconds:
-                activitylog.event("AUTH", "lockout.start", user=self.username, scope=scope,
-                                  subject=self.ip if scope == loginThrottle.SCOPE_IP else self.user,
+                activity_log.event("AUTH", "lockout.start", user=self.username, scope=scope,
+                                  subject=self.ip if scope == throttle.SCOPE_IP else self.user,
                                   seconds=int(seconds))
-        if locks.get(loginThrottle.SCOPE_IP) and loginThrottle.is_private_address(self.address) \
+        if locks.get(throttle.SCOPE_IP) and throttle.is_private_address(self.address) \
                 and not (current_app.config.get("PROXY_FIX") or {}).get("x_for"):
             _warn_once("proxy", f"planetgen: locked out the private address {self.address} after failed logins. "
                                 f"If the site is behind a reverse proxy, every visitor has that address: set "
@@ -152,6 +152,6 @@ class LoginGuard:
     def succeeded(self):
         """Clears the username's count and the address's failure count
         (its doubling level stays and decays)."""
-        for scope, subject in ((loginThrottle.SCOPE_IP, self.ip), (loginThrottle.SCOPE_USER, self.user)):
+        for scope, subject in ((throttle.SCOPE_IP, self.ip), (throttle.SCOPE_USER, self.user)):
             if subject:
-                with_store(lambda store: loginThrottle.record_success(store, scope, subject))
+                with_store(lambda store: throttle.record_success(store, scope, subject))

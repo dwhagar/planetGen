@@ -25,7 +25,8 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import queryDb  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from stellarObjects import _db  # noqa: E402
+from planetgen.admin import auth as adminAuth
 from planetgen.physics import constants
 from planetgen.population import facilities as facility_rules  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402

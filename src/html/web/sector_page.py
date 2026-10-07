@@ -47,7 +47,7 @@ from starmap import render_map_panel
 from systempage import facility_kind_label
 
 from api.common import is_http_url
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.geometry import provisional_sector_designation
@@ -329,7 +329,7 @@ def _start_neighborhood_job(sector_id, admin):
     except OSError as exc:
         log.error(f"Could not start the neighborhood job for sector {sector_id}: {exc}")
         return f"The job could not be started: {exc}"
-    activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
+    activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                       title=title)
     return None
 

@@ -275,7 +275,7 @@ the browser loads.
 | [`population.py`](../../src/html/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
 | `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
 | `authz.py` | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
-| `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`stellarObjects/loginThrottle.py`, kept in the control database's `login_throttle`, in memory only while that table is missing), and the log line and audit row for each refused sign-in. |
+| `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in the control database's `login_throttle`, in memory only while that table is missing), and the log line and audit row for each refused sign-in. |
 | `admin.py` | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `src/adminStats.py`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
 | `limiter.py` | The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits. |
 | `config.py` | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
@@ -676,7 +676,7 @@ flowchart TD
 
 **Login.** The `/login` page posts the form through `apiclient.auth_login`
 to `POST /api/auth/login`. That route is limited per IP (10 a minute), then
-checks the lockouts (`api/loginguard.py`, `stellarObjects/loginThrottle.py`):
+checks the lockouts (`api/loginguard.py`, `planetgen/admin/throttle.py`):
 3 failures from one address lock it for 5 minutes, doubling up to a day,
 and 10 for one username lock it for 1 second, doubling up to 15 minutes,
 both kept in the control database's `login_throttle` table. The

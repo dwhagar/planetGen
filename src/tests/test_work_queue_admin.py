@@ -20,7 +20,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth, systemLoad, workQueue
+from stellarObjects import _db, systemLoad, workQueue
+from planetgen.admin import auth as adminAuth
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402

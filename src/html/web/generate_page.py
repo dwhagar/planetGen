@@ -53,7 +53,7 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen.generation import stats
 from planetgen import tuning
 from planetgen.util import log
@@ -520,7 +520,7 @@ def _admin_or_redirect():
 def _admin_or_403():
     admin = current_admin()
     if admin is None or admin.get("must_change_credentials"):
-        activitylog.event("AUTHZ", "admin.required", user=admin.get("username") if admin else None,
+        activity_log.event("AUTHZ", "admin.required", user=admin.get("username") if admin else None,
                           path=request.path)
         abort(403, description="Only a logged-in admin can do that.")
     return admin
@@ -689,7 +689,7 @@ def generate():
         job_id = request.form.get("job") or ""
         try:
             if jobs.cancel_job(job_id):
-                activitylog.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
+                activity_log.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
         except OSError as exc:
             log.error(f"Could not cancel job {job_id}: {exc}")
         return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
@@ -722,7 +722,7 @@ def generate():
                                       if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD)])
     try:
         job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
-        activitylog.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
+        activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                           title=title)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"

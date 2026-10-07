@@ -1,4 +1,4 @@
-# stellarObjects/loginThrottle.py
+# planetgen/admin/throttle.py
 
 """
 Login lockouts per client address (SEC.1) and per username (SEC.21)

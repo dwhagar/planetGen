@@ -19,7 +19,8 @@ import pymysql
 from flask import Blueprint, current_app, jsonify, request
 
 import adminStats
-from stellarObjects import _db, adminAuth, loginThrottle
+from stellarObjects import _db
+from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen._version import __version__
 
@@ -134,7 +135,7 @@ def login_failures():
     (wrong username or password, a locked login, a wrong current password
     on change-credentials), newest first: `{"items": [{"action",
     "username", "ip", "created_at"}]}`. `limit` defaults to 20, at most
-    200. Kept for `adminAuth.LOGIN_FAILURE_RETENTION_DAYS` days.
+    200. Kept for `auth.LOGIN_FAILURE_RETENTION_DAYS` days.
     """
     raw = request.args.get("limit")
     limit = LOGIN_FAILURES_DEFAULT_LIMIT
@@ -145,7 +146,7 @@ def login_failures():
             raise ApiError("'limit' must be an integer")
         if not 1 <= limit <= LOGIN_FAILURES_MAX_LIMIT:
             raise ApiError(f"'limit' must be between 1 and {LOGIN_FAILURES_MAX_LIMIT}")
-    rows = adminAuth.recent_login_failures(get_control_db(), limit=limit)
+    rows = auth.recent_login_failures(get_control_db(), limit=limit)
     return jsonify({"items": [{
         **row,
         # UTC (the connection's zone), with an explicit offset.
@@ -163,14 +164,14 @@ def _proxy_warning(locked, failures):
     """
     if (current_app.config.get("PROXY_FIX") or {}).get("x_for"):
         return False
-    if any(row["scope"] == loginThrottle.SCOPE_IP and loginThrottle.is_private_address(row["subject"])
+    if any(row["scope"] == throttle.SCOPE_IP and throttle.is_private_address(row["subject"])
            for row in locked):
         return True
     addresses = [row["ip"] for row in failures if row["ip"]]
     if len(addresses) < 10:
         return False
     top = max(set(addresses), key=addresses.count)
-    shared = loginThrottle.is_private_address(top) or top in ("127.0.0.1", "::1")
+    shared = throttle.is_private_address(top) or top in ("127.0.0.1", "::1")
     return shared and addresses.count(top) >= 0.9 * len(addresses)
 
 
@@ -206,8 +207,8 @@ def lockouts():
     (an IPv6 subject is a /64) or `user` (case-folded). `proxy_warning`
     says the site seems to be behind a reverse proxy without `proxy_fix`.
     """
-    rows = with_store(loginThrottle.locked_subjects)
-    failures = adminAuth.recent_login_failures(get_control_db(), limit=50)
+    rows = with_store(throttle.locked_subjects)
+    failures = auth.recent_login_failures(get_control_db(), limit=50)
     return jsonify({
         "items": [{
             "scope": row["scope"],
@@ -236,13 +237,13 @@ def lift_lockout():
         return jsonify({"lifted": lifted})
     scope = body.get("scope")
     subject = body.get("subject")
-    if scope not in loginThrottle.SCOPES:
+    if scope not in throttle.SCOPES:
         raise ApiError("'scope' must be 'ip' or 'user'")
-    if not isinstance(subject, str) or not subject.strip() or len(subject) > loginThrottle.MAX_SUBJECT_LENGTH:
+    if not isinstance(subject, str) or not subject.strip() or len(subject) > throttle.MAX_SUBJECT_LENGTH:
         raise ApiError("'subject' is required")
     subject = subject.strip()
-    if scope == loginThrottle.SCOPE_USER:
-        subject = loginThrottle.normalize_username(subject)
+    if scope == throttle.SCOPE_USER:
+        subject = throttle.normalize_username(subject)
     lifted = with_store(lambda store: store.lift(scope, subject))
     audit("lockout.lift", target=f"{scope}:{subject}", detail=f"lifted={lifted}")
     return jsonify({"lifted": lifted})

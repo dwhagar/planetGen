@@ -15,7 +15,7 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 from planetgen.physics import mathcheck as mathCheck
 
 pytestmark = pytest.mark.mathcheck
@@ -42,7 +42,7 @@ def handlers(monkeypatch):
     ran, events = [], []
     for name in list(generate._COMMAND_HANDLERS):
         monkeypatch.setitem(generate._COMMAND_HANDLERS, name, lambda args, name=name: ran.append(name))
-    monkeypatch.setattr(activitylog, "event", lambda *a, **k: events.append((a, k)))
+    monkeypatch.setattr(activity_log, "event", lambda *a, **k: events.append((a, k)))
     return ran, events
 
 

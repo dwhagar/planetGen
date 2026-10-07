@@ -1,7 +1,7 @@
 # tests/test_activity_log.py
 
 """
-The always-on activity log (SEC.28, `stellarObjects/activitylog.py`) and
+The always-on activity log (SEC.28, `planetgen/admin/activity_log.py`) and
 the sign-in lines and audit rows SEC.20 writes through it.
 """
 
@@ -11,7 +11,7 @@ import stat
 
 import pytest
 
-from stellarObjects import activitylog, adminAuth
+from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import appconfig
 
 LINE = re.compile(
@@ -31,9 +31,9 @@ def log_dir(tmp_path, monkeypatch):
     folder = tmp_path / "logs"
     monkeypatch.setenv("PLANETGEN_LOG_DIR", str(folder))
     monkeypatch.setattr(appconfig, "SYSTEM_ROTATION_FILES", (str(tmp_path / "no-such-rotation"),))
-    activitylog.reset()
+    activity_log.reset()
     yield folder
-    activitylog.reset()
+    activity_log.reset()
 
 
 def _lines(folder):
@@ -44,7 +44,7 @@ def _lines(folder):
 # --- line format --------------------------------------------------------------
 
 def test_line_shape():
-    line = activitylog.format_line("AUTH", "login.failed", ip="203.0.113.5", user="admin",
+    line = activity_log.format_line("AUTH", "login.failed", ip="203.0.113.5", user="admin",
                                    when=1790000000, pid=1234)
     assert line == '2026-09-21T14:13:20Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"'
     assert LINE.match(line)
@@ -52,7 +52,7 @@ def test_line_shape():
 
 
 def test_missing_ip_and_user_are_dashes():
-    line = activitylog.format_line("GEN", "generate.start", fields={"command": "galaxy", "db": "planetgen"})
+    line = activity_log.format_line("GEN", "generate.start", fields={"command": "galaxy", "db": "planetgen"})
     match = LINE.match(line)
     assert match.group("ip") == "-" and match.group("user") == "-"
     assert match.group("rest") == " command=galaxy db=planetgen"
@@ -60,13 +60,13 @@ def test_missing_ip_and_user_are_dashes():
 
 @pytest.mark.parametrize("address", ["1.2.3.4 user=x", "not-an-address", "", None, "1.2.3.4\n", "::1 ip=9.9.9.9"])
 def test_bad_addresses_never_reach_the_line_unquoted(address):
-    line = activitylog.format_line("AUTH", "login.failed", ip=address, user="a")
+    line = activity_log.format_line("AUTH", "login.failed", ip=address, user="a")
     assert LINE.match(line).group("ip") in ("-", "1.2.3.4")
     assert "user=x" not in line and "9.9.9.9" not in line
 
 
 def test_ipv6_is_normalized():
-    line = activitylog.format_line("AUTH", "login.failed", ip="2001:DB8:0:0::1", user="a")
+    line = activity_log.format_line("AUTH", "login.failed", ip="2001:DB8:0:0::1", user="a")
     assert " ip=2001:db8::1 " in line
 
 
@@ -79,7 +79,7 @@ def test_ipv6_is_normalized():
     "x" * 1000,
 ])
 def test_crafted_usernames_cant_fake_fields_or_lines(username):
-    line = activitylog.format_line("AUTH", "login.failed", ip="10.0.0.1", user=username)
+    line = activity_log.format_line("AUTH", "login.failed", ip="10.0.0.1", user=username)
     assert "\n" not in line and "\r" not in line and "\u2028" not in line and "\x85" not in line
     match = LINE.match(line)
     assert match and match.group("ip") == "10.0.0.1" and match.group("rest") == ""
@@ -88,7 +88,7 @@ def test_crafted_usernames_cant_fake_fields_or_lines(username):
 
 
 def test_field_values_quoted_only_when_needed():
-    line = activitylog.format_line("DB", "sector.update", user="boss", fields={
+    line = activity_log.format_line("DB", "sector.update", user="boss", fields={
         "target": "sector:42", "detail": "{'name': 'New \"Home\"'}", "count": 3, "seconds": 1.5,
         "ok": True, "skip": None,
     })
@@ -100,42 +100,42 @@ def test_field_values_quoted_only_when_needed():
 ])
 def test_bad_calls_are_refused(category, action, fields):
     with pytest.raises(ValueError):
-        activitylog.format_line(category, action, fields=fields)
+        activity_log.format_line(category, action, fields=fields)
 
 
 # --- the file -----------------------------------------------------------------
 
 def test_event_writes_one_line_to_the_file(log_dir):
-    line = activitylog.event("AUTH", "logout", user="boss", ip="192.0.2.7")
+    line = activity_log.event("AUTH", "logout", user="boss", ip="192.0.2.7")
     assert _lines(log_dir) == [line]
-    assert activitylog.log_path() == str(log_dir / "planetgen.log")
-    activitylog.event("DB", "migrate", db="planetgen", from_version=43, to_version=44)
+    assert activity_log.log_path() == str(log_dir / "planetgen.log")
+    activity_log.event("DB", "migrate", db="planetgen", from_version=43, to_version=44)
     lines = _lines(log_dir)
     assert len(lines) == 2 and lines[1].endswith("DB migrate ip=- user=\"-\" db=planetgen from_version=43 to_version=44")
 
 
 @pytest.mark.skipif(os.name != "posix", reason="POSIX file modes")
 def test_new_file_is_not_world_readable(log_dir):
-    activitylog.event("AUTH", "logout", user="boss")
+    activity_log.event("AUTH", "logout", user="boss")
     mode = stat.S_IMODE(os.stat(log_dir / "planetgen.log").st_mode)
     assert mode & 0o007 == 0
 
 
 def test_app_rotation_without_system_rotation(log_dir):
-    activitylog.event("AUTH", "logout")
-    handler = activitylog._handler
-    assert handler.maxBytes == activitylog.ROTATE_MAX_BYTES
-    assert handler.backupCount == activitylog.ROTATE_BACKUP_COUNT
+    activity_log.event("AUTH", "logout")
+    handler = activity_log._handler
+    assert handler.maxBytes == activity_log.ROTATE_MAX_BYTES
+    assert handler.backupCount == activity_log.ROTATE_BACKUP_COUNT
 
 
 def test_system_rotation_reopens_the_moved_file(log_dir, tmp_path, monkeypatch):
     marker = tmp_path / "planetgen-log"
     marker.write_text("")
     monkeypatch.setattr(appconfig, "SYSTEM_ROTATION_FILES", (str(marker),))
-    activitylog.reset()
-    activitylog.event("AUTH", "logout", user="before")
+    activity_log.reset()
+    activity_log.event("AUTH", "logout", user="before")
     os.rename(log_dir / "planetgen.log", log_dir / "planetgen.log.1")
-    activitylog.event("AUTH", "logout", user="after")
+    activity_log.event("AUTH", "logout", user="after")
     assert len(_lines(log_dir)) == 1 and 'user="after"' in _lines(log_dir)[0]
 
 
@@ -143,32 +143,32 @@ def test_unwritable_folder_warns_once_and_never_raises(tmp_path, monkeypatch, ca
     blocker = tmp_path / "file-not-folder"
     blocker.write_text("")
     monkeypatch.setenv("PLANETGEN_LOG_DIR", str(blocker / "logs"))
-    activitylog.reset()
+    activity_log.reset()
     try:
-        assert activitylog.event("AUTH", "logout") is not None
-        assert activitylog.event("AUTH", "logout") is not None
-        assert activitylog.log_path() is None
+        assert activity_log.event("AUTH", "logout") is not None
+        assert activity_log.event("AUTH", "logout") is not None
+        assert activity_log.log_path() is None
     finally:
-        activitylog.reset()
+        activity_log.reset()
 
 
 def test_existing_but_unwritable_folder_warns(tmp_path, monkeypatch, capsys):
     folder = tmp_path / "logs"
     folder.mkdir()
     monkeypatch.setenv("PLANETGEN_LOG_DIR", str(folder))
-    activitylog.reset()
+    activity_log.reset()
 
     def refuse(*args, **kwargs):
         raise PermissionError(13, "Permission denied")
-    monkeypatch.setattr(activitylog, "_RotatingHandler", refuse)
-    monkeypatch.setattr(activitylog, "_WatchedHandler", refuse)
+    monkeypatch.setattr(activity_log, "_RotatingHandler", refuse)
+    monkeypatch.setattr(activity_log, "_WatchedHandler", refuse)
     try:
-        activitylog.event("AUTH", "logout")
-        activitylog.event("AUTH", "logout")
+        activity_log.event("AUTH", "logout")
+        activity_log.event("AUTH", "logout")
         err = capsys.readouterr().err
         assert err.count("can't be opened") == 1
     finally:
-        activitylog.reset()
+        activity_log.reset()
 
 
 # --- configuration ------------------------------------------------------------
@@ -212,7 +212,7 @@ def test_debug_log_also_gets_each_line(log_dir, monkeypatch):
     from planetgen.util import log
     seen = []
     monkeypatch.setattr(log, "trace", lambda message, *args, **kwargs: seen.append(message % args))
-    line = activitylog.event("AUTH", "logout", user="boss")
+    line = activity_log.event("AUTH", "logout", user="boss")
     assert seen == [f"activity: {line}"]
 
 

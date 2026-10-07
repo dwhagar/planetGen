@@ -21,7 +21,7 @@ from flask import abort, current_app, flash, get_flashed_messages, redirect, req
 
 import apiclient
 
-from stellarObjects import activitylog
+from planetgen.admin import activity_log
 
 from .helpers import current_admin, db_name, page_url
 
@@ -143,7 +143,7 @@ def handle_post(allowed, here, after_delete=None):
     """
     admin = current_admin()
     if admin is None:
-        activitylog.event("AUTHZ", "admin.required", path=request.path)
+        activity_log.event("AUTHZ", "admin.required", path=request.path)
         abort(403)
     action = request.form.get("edit_action")
     kind, _sep, raw_id = (request.form.get("edit_target") or "").partition(":")

@@ -55,7 +55,8 @@ from api.app import create_app  # noqa: E402
 from api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from api.config import Config  # noqa: E402
 from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
-from stellarObjects import _db, adminAuth  # noqa: E402
+from stellarObjects import _db  # noqa: E402
+from planetgen.admin import auth
 from stellarObjects._db import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
@@ -258,13 +259,13 @@ def site_app(site_db):
 def admin_token(site_db):
     """A logged-in admin session (credentials already changed, so no
     page forces the change-credentials form)."""
-    adminAuth.bootstrap_control_schema(site_db)
+    auth.bootstrap_control_schema(site_db)
     conn = _db.get_control_connection(site_db)
     try:
         conn.execute("UPDATE admin_users SET must_change_credentials = 0")
         conn.commit()
         admin_id = conn.execute("SELECT id FROM admin_users ORDER BY id LIMIT 1").fetchone()["id"]
-        return adminAuth.create_session(conn, admin_id)
+        return auth.create_session(conn, admin_id)
     finally:
         conn.close()
 

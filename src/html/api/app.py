@@ -12,7 +12,8 @@ import time
 import pymysql
 from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
-from stellarObjects import _db, activitylog
+from stellarObjects import _db
+from planetgen.admin import activity_log
 from planetgen.util import log
 
 from .admin import bp as admin_bp
@@ -304,7 +305,7 @@ def _register_error_handlers(app):
         if request.path in _SIGN_IN_PATHS:
             # A password guesser past the per-address limit (SEC.20);
             # the form never got as far as reading a username.
-            activitylog.event("AUTH", "login.ratelimited", path=request.path)
+            activity_log.event("AUTH", "login.ratelimited", path=request.path)
         if not _is_api_request() and request.endpoint != "web.galaxy_tiles":
             return render_error(429, "Too many requests. Please wait a minute and try again.")
         return jsonify({"error": "rate limit exceeded", "detail": exc.description}), 429

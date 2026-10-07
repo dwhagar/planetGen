@@ -1,4 +1,4 @@
-# stellarObjects/totp.py
+# planetgen/admin/totp.py
 
 """
 Time-based one-time codes (RFC 6238, the six-digit codes of any
@@ -87,8 +87,8 @@ def qr_svg(text):
     `text` as a QR code in SVG (dark modules on a white, quiet-zoned
     square), drawn with the vendored `qrcodegen` (Project Nayuki, MIT).
     """
-    from . import qrcodegen
-    qr = qrcodegen.QrCode.encode_text(text, qrcodegen.QrCode.Ecc.MEDIUM)
+    from planetgen.admin import qrcode
+    qr = qrcode.QrCode.encode_text(text, qrcode.QrCode.Ecc.MEDIUM)
     border = 4
     size = qr.get_size() + border * 2
     parts = []
