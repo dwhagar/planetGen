@@ -21,7 +21,8 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from web.population_pages import format_years  # noqa: E402
-from stellarObjects import _db, population  # noqa: E402
+from stellarObjects import _db  # noqa: E402
+from planetgen.population import model
 from tests.test_population import _set_age, galaxy  # noqa: E402,F401
 from tests.test_web_facilities import _planet as _facility_planet  # noqa: E402
 from tests.test_web_system_phen import app, client, fake  # noqa: E402,F401
@@ -213,10 +214,10 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
 
     conn = _db.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        model.run_pass(conn)
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
-        population.run_pass(conn)
+        model.run_pass(conn)
         homeworld = conn.execute("SELECT homeworld_planet_id FROM species WHERE star_system_id = ?",
                                  (galaxy["a"],)).fetchone()["homeworld_planet_id"]
         name = conn.execute("SELECT name FROM species WHERE homeworld_planet_id = ?", (homeworld,)).fetchone()["name"]

@@ -27,7 +27,7 @@ import apiclient  # noqa: E402
 import queryDb  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from planetgen.physics import constants
-from stellarObjects import facilities as facility_rules  # noqa: E402
+from planetgen.population import facilities as facility_rules  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402

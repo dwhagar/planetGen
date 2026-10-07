@@ -2,7 +2,7 @@
 
 """
 TEST.38: the population pass run again and again as the galaxy grows
-(`population.scan_life_worlds`, `refresh_civilizations`,
+(`model.scan_life_worlds`, `refresh_civilizations`,
 `refresh_territories` and the `population_state` watermark): a rescan
 after new fills adds only the new worlds, leaves earlier species as they
 were, never scans below the watermark, gives the same species in any
@@ -14,7 +14,8 @@ skipped, not failed, when no MySQL test server is reachable.
 
 import pytest
 
-from stellarObjects import _db, population
+from stellarObjects import _db
+from planetgen.population import model
 
 from tests.test_population import _civilized_system, _place, _plain_system, _set_age, galaxy  # noqa: F401
 
@@ -45,16 +46,16 @@ def conn(mysql_config):
 
 def test_a_rescan_after_new_fills_adds_only_the_new_worlds(mysql_config, conn):
     _civilized_system(mysql_config)
-    first = population.run_pass(conn)
+    first = model.run_pass(conn)
     before = _species(conn)
     assert first["new_species"] == len(before) >= 1
-    assert population._watermark(conn) == _top_planet(conn)
+    assert model._watermark(conn) == _top_planet(conn)
 
     new_system = _civilized_system(mysql_config)
     # Plain systems have no intelligent life, but now and then still
     # a multicellular world, so this one may add a species too.
     plain = _plain_system(mysql_config)
-    second = population.run_pass(conn)
+    second = model.run_pass(conn)
     after = _species(conn)
     added = {planet: row for planet, row in after.items() if planet not in before}
     assert second["new_species"] == len(added) >= 1
@@ -62,24 +63,24 @@ def test_a_rescan_after_new_fills_adds_only_the_new_worlds(mysql_config, conn):
     assert {row["star_system_id"] for row in added.values()} <= {new_system, plain}
     # Earlier species keep their ids, names and traits.
     assert {planet: after[planet] for planet in before} == before
-    assert population._watermark(conn) == _top_planet(conn)
+    assert model._watermark(conn) == _top_planet(conn)
 
-    assert population.run_pass(conn)["new_species"] == 0
+    assert model.run_pass(conn)["new_species"] == 0
     assert _species(conn) == after
 
 
 def test_worlds_below_the_watermark_are_not_scanned_again(mysql_config, conn):
     _civilized_system(mysql_config)
-    population.run_pass(conn)
+    model.run_pass(conn)
     species = _species(conn)
     victim = min(species)
     with conn:
         conn.execute("DELETE FROM species WHERE homeworld_planet_id = ?", (victim,))
     # An ordinary pass starts at the watermark, so the gap stays...
-    assert population.run_pass(conn)["new_species"] == 0
+    assert model.run_pass(conn)["new_species"] == 0
     assert victim not in _species(conn)
     # ...until a full rescan.
-    counts = population.run_pass(conn, rescan=True)
+    counts = model.run_pass(conn, rescan=True)
     assert counts["new_species"] == len(species)
     assert victim in _species(conn)
 
@@ -90,9 +91,9 @@ def test_a_rescan_rebuilds_the_same_species_traits(mysql_config, conn):
     fresh)."""
     for _ in range(2):
         _civilized_system(mysql_config)
-    population.run_pass(conn)
+    model.run_pass(conn)
     before = _species(conn)
-    counts = population.run_pass(conn, rescan=True)
+    counts = model.run_pass(conn, rescan=True)
     assert counts["new_species"] == len(before)
     assert _without_ids_and_names(_species(conn)) == _without_ids_and_names(before)
 
@@ -102,59 +103,59 @@ def test_any_scan_batch_size_finds_the_same_worlds(mysql_config, conn, monkeypat
     for _ in range(2):
         _civilized_system(mysql_config)
     _plain_system(mysql_config)
-    population.run_pass(conn)
+    model.run_pass(conn)
     whole = _without_ids_and_names(_species(conn))
-    monkeypatch.setattr(population, "SCAN_BATCH", batch)
-    population.run_pass(conn, rescan=True)
+    monkeypatch.setattr(model, "SCAN_BATCH", batch)
+    model.run_pass(conn, rescan=True)
     assert _without_ids_and_names(_species(conn)) == whole
-    assert population._watermark(conn) == _top_planet(conn)
+    assert model._watermark(conn) == _top_planet(conn)
 
 
 def test_an_empty_database_scans_nothing_and_sets_no_watermark(conn):
-    counts = population.run_pass(conn)
+    counts = model.run_pass(conn)
     assert counts == {"new_species": 0, "species": 0, "spacefaring": 0, "polities": 0, "owned_systems": 0}
-    assert population._watermark(conn) == 0
+    assert model._watermark(conn) == 0
 
 
 def test_territories_only_skips_new_worlds(mysql_config, conn):
     _civilized_system(mysql_config)
-    population.run_pass(conn)
-    mark = population._watermark(conn)
+    model.run_pass(conn)
+    mark = model._watermark(conn)
     count = len(_species(conn))
     _civilized_system(mysql_config)
-    assert population.run_pass(conn, territories_only=True)["new_species"] == 0
+    assert model.run_pass(conn, territories_only=True)["new_species"] == 0
     assert len(_species(conn)) == count
-    assert population._watermark(conn) == mark
-    assert population.run_pass(conn)["new_species"] >= 1
+    assert model._watermark(conn) == mark
+    assert model.run_pass(conn)["new_species"] >= 1
 
 
 def test_refresh_civilizations_follows_changed_ages(mysql_config, conn, galaxy):  # noqa: F811
-    population.run_pass(conn)
+    model.run_pass(conn)
     with conn:
         _set_age(conn, galaxy["a"], 1e6)
         _set_age(conn, galaxy["b"], 500)    # below interstellar: no polity
-    population.refresh_civilizations(conn)
+    model.refresh_civilizations(conn)
     polities = conn.execute("SELECT id, capital_system_id, reach_ly FROM polities").fetchall()
     assert [row["capital_system_id"] for row in polities] == [galaxy["a"]]
-    assert polities[0]["reach_ly"] == pytest.approx(population.reach_ly(1e6))
+    assert polities[0]["reach_ly"] == pytest.approx(model.reach_ly(1e6))
     # Older still: the same polity, a longer reach.
     with conn:
         conn.execute("UPDATE species SET civilization_age_years = 2e6 WHERE star_system_id = ?"
                      " AND civilization_age_years = 1e6", (galaxy["a"],))
-    population.refresh_civilizations(conn)
+    model.refresh_civilizations(conn)
     again = conn.execute("SELECT id, reach_ly FROM polities").fetchall()
     assert [row["id"] for row in again] == [polities[0]["id"]]
-    assert again[0]["reach_ly"] == pytest.approx(population.reach_ly(2e6))
+    assert again[0]["reach_ly"] == pytest.approx(model.reach_ly(2e6))
     # A second refresh with nothing changed founds nothing new.
-    population.refresh_civilizations(conn)
+    model.refresh_civilizations(conn)
     assert conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"] == 1
 
 
 def test_territories_grow_to_systems_filled_after_the_first_pass(mysql_config, conn, galaxy):  # noqa: F811
-    population.run_pass(conn)
+    model.run_pass(conn)
     with conn:
         _set_age(conn, galaxy["a"], 1e6)
-    population.run_pass(conn)
+    model.run_pass(conn)
     polity = conn.execute("SELECT id FROM polities WHERE capital_system_id = ?", (galaxy["a"],)).fetchone()["id"]
     owned_before = {row["star_system_id"] for row in conn.execute(
         "SELECT star_system_id FROM system_owners WHERE polity_id = ?", (polity,)).fetchall()}
@@ -162,7 +163,7 @@ def test_territories_grow_to_systems_filled_after_the_first_pass(mysql_config, c
     late = _plain_system(mysql_config)
     with conn:
         _place(conn, galaxy["sector"], late, -1.6)
-    counts = population.run_pass(conn)
+    counts = model.run_pass(conn)
     owners = {row["star_system_id"]: row["polity_id"] for row in conn.execute(
         "SELECT star_system_id, polity_id FROM system_owners").fetchall()}
     assert owners[late] == polity

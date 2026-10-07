@@ -1756,7 +1756,7 @@ replays. Writing them never stops a run.
 ### `species` / `polities` / `system_owners` / `population_state`
 
 Added in v44, filled only by the population pass
-(`stellarObjects/population.py`); see "Population and politics (v44)"
+(`planetgen/population/model.py`); see "Population and politics (v44)"
 above and `docs/design/population-and-politics.md`.
 
 **`species`**: one dominant species per life world.

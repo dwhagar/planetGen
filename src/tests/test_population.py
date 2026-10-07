@@ -11,7 +11,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, population
+from stellarObjects import _db
+from planetgen.population import model as population
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem

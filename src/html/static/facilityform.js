@@ -6,7 +6,7 @@
 //
 // - Placement decides the Host list: a host shows only when its
 //   `data-placements` holds the chosen placement
-//   (stellarObjects/facilities.py `host_placements`).
+//   (planetgen/population/facilities.py `host_placements`).
 // - The orbit slider shows only for "in orbit", and reads out the
 //   distance, period and speed as it moves. Its steps run on a log scale
 //   from the host's `data-min-km` to `data-max-km` (just above the

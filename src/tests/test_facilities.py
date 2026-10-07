@@ -5,7 +5,8 @@ math, storage and the API."""
 
 import pytest
 
-from stellarObjects import _db, facilities
+from stellarObjects import _db
+from planetgen.population import facilities
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.planets import calculate_orbital_period_years

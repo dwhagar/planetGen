@@ -858,7 +858,7 @@
 -- v44: population and politics (POP.1 to POP.4,
 --   docs/design/population-and-politics.md) -- the `species`, `polities`,
 --   `system_owners` and `population_state` tables below, all filled by
---   `generate.py population` (stellarObjects/population.py).
+--   `generate.py population` (planetgen/population/model.py).
 --   `_migrate_v43_to_v44` creates them empty.
 --
 -- v45: id blocks for batched writes (PERF.13) -- the `id_blocks` table
@@ -2587,7 +2587,7 @@ CREATE TABLE IF NOT EXISTS id_blocks (
 -- ---------------------------------------------------------------------
 -- Population and politics (v44, POP.1 to POP.4): see
 -- docs/design/population-and-politics.md. Filled by `generate.py
--- population` (stellarObjects/population.py) from what is already
+-- population` (planetgen/population/model.py) from what is already
 -- stored; nothing in system generation writes these.
 --
 -- species: one dominant species per life world (a planet whose

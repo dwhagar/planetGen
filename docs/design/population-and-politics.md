@@ -283,7 +283,7 @@ Boss accepted every recommended default on 2026-10-01:
   (they follow the new species ids), but ages, traits and the
   civilization draw are seeded by the planet id and come out the same,
   so borders stay the same unless the constants were retuned.
-- The module docstring of `stellarObjects/population.py` still says the
+- The module docstring of `planetgen/population/model.py` still says the
   pass runs "after every `galaxy`/`sector` run"; since 7.58.2 it does
   only with `--population`.
 - `docs/TODO.md` still lists the territory overlay as open; it shipped in

@@ -241,7 +241,7 @@ recorded.
 
 **Chosen:** species, civilizations, polities and territories are built by
 their own pass over what is already stored (`generate.py population`,
-`stellarObjects/population.py`), not during system generation. The pass
+`planetgen/population/model.py`), not during system generation. The pass
 is opt-in: `generate.py sector` and `galaxy` run it only with
 `--population`, the admin Generate page never passes that flag, and
 `install.sh`/`update.sh` (and the PowerShell twins) ask y/N with a

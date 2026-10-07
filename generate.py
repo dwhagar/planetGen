@@ -57,7 +57,7 @@ sections build on earlier ones):
    its own sparse, science-based population of the same seven types.
 6. Population and politics (`population`) -- species, civilizations
    and territories from what is already stored
-   (`stellarObjects/population.py`); also run after a `sector` or
+   (`planetgen/population/model.py`); also run after a `sector` or
    `galaxy` run given `--population`.
 7. The unified CLI itself (argument parsing/validation, dispatch,
    `main`).
@@ -90,7 +90,8 @@ from rich.text import Text
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import _db, activitylog, population, progressFile, progressRate, workQueue
+from stellarObjects import _db, activitylog, progressFile, progressRate, workQueue
+from planetgen.population import model
 from planetgen.generation import bright_stars as brightStars, limits, stats as generationStats
 from planetgen.galaxy import nebula_field, seed as galaxySeed, version_key
 from planetgen.physics import constants, mathcheck
@@ -4248,7 +4249,7 @@ def _population_summary(counts):
 
 def run_population(args):
     """
-    Runs the population pass (`population.run_pass`): names the dominant
+    Runs the population pass (`model.run_pass`): names the dominant
     species of every new life world, dates civilizations, founds polities
     and recomputes territories. See docs/design/population-and-politics.md.
 
@@ -4258,7 +4259,7 @@ def run_population(args):
     """
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
-        counts = population.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
+        counts = model.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -4272,7 +4273,7 @@ def run_population_after(args):
     conn = _db.get_connection(_db.mysql_config_from_args(args))
     try:
         with workQueue.job_node("population", "Population pass"):
-            counts = population.run_pass(conn)
+            counts = model.run_pass(conn)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")

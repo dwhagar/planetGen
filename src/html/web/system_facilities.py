@@ -9,7 +9,7 @@ The form is a plain POST to the system page carrying `csrf_field()` and a
 `facility_action`:
 
 - `preview`: checks the choice against the placement rules
-  (`stellarObjects.facilities.check_facility`, the same check
+  (`planetgen.population.facilities.check_facility`, the same check
   `POST /api/facilities` runs) and, for an orbital facility, shows the
   orbit `GET /api/facilities/orbit` works out from the host's mass, then
   re-renders the page with the form still filled in. Nothing is saved.
@@ -42,7 +42,7 @@ from systempage import facility_kind_label, facility_row
 from tabledisplay import format_period
 
 from stellarObjects import activitylog
-from stellarObjects import facilities as facility_rules
+from planetgen.population import facilities as facility_rules
 from planetgen.tuning import FACILITY_KINDS, FACILITY_ORBIT_STEPS
 
 from .helpers import current_admin, db_name, page_url, trusted_html

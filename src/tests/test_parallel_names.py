@@ -17,7 +17,8 @@ import threading
 
 import pytest
 
-from stellarObjects import _db, population
+from stellarObjects import _db
+from planetgen.population import model
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 from planetgen.galaxy.sector import SpaceSector
@@ -201,7 +202,7 @@ def test_two_population_passes_at_once_name_each_world_once(mysql_config):
     def run(_index):
         conn = _db.get_connection(mysql_config)
         try:
-            return population.run_pass(conn)
+            return model.run_pass(conn)
         finally:
             conn.close()
 
@@ -209,7 +210,7 @@ def test_two_population_passes_at_once_name_each_world_once(mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         species = conn.execute("SELECT name, homeworld_planet_id FROM species").fetchall()
-        watermark = population._watermark(conn)
+        watermark = model._watermark(conn)
         top = conn.execute("SELECT MAX(id) AS id FROM planets").fetchone()["id"]
     finally:
         conn.close()
@@ -232,7 +233,7 @@ def test_two_passes_drawing_the_same_names_still_save_unique_ones(mysql_config, 
         local.n = getattr(local, "n", 0) + 1
         return f"Kevra{local.n}"
 
-    monkeypatch.setattr(population, "new_species_name", same_sequence)
+    monkeypatch.setattr(model, "new_species_name", same_sequence)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
@@ -247,7 +248,7 @@ def test_two_passes_drawing_the_same_names_still_save_unique_ones(mysql_config, 
 def _pass_on_own_connection(config, **kwargs):
     conn = _db.get_connection(config)
     try:
-        return population.run_pass(conn, **kwargs)
+        return model.run_pass(conn, **kwargs)
     finally:
         conn.close()
 
@@ -273,16 +274,16 @@ class _Row:
 
 
 def test_a_species_name_taken_every_draw_falls_back_to_a_number(monkeypatch):
-    monkeypatch.setattr(population, "new_species_name", lambda: "Vorn")
+    monkeypatch.setattr(model, "new_species_name", lambda: "Vorn")
     conn = _AllTaken(free="Vorn 4")
-    assert population._unique_species_name(conn, taken=set()) == "Vorn 4"
+    assert model._unique_species_name(conn, taken=set()) == "Vorn 4"
     # Drawn names already in `taken` never reach the database.
     conn = _AllTaken(free="Vorn 2")
-    assert population._unique_species_name(conn, taken={"Vorn"}) == "Vorn 2"
+    assert model._unique_species_name(conn, taken={"Vorn"}) == "Vorn 2"
     assert conn.asked == ["Vorn 2"]
 
 
 def test_no_free_species_name_at_all_is_an_error(monkeypatch):
-    monkeypatch.setattr(population, "new_species_name", lambda: "Vorn")
+    monkeypatch.setattr(model, "new_species_name", lambda: "Vorn")
     with pytest.raises(RuntimeError, match="could not find a free species name"):
-        population._unique_species_name(_AllTaken(), taken=set())
+        model._unique_species_name(_AllTaken(), taken=set())

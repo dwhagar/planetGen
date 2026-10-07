@@ -72,7 +72,7 @@ from planetgen.util.appconfig import load_config
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-from . import facilities as facility_rules
+from planetgen.population import facilities as facility_rules
 from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
@@ -4193,7 +4193,7 @@ def _add_sector_to_nearest(conn, sector_id):
 
 
 # ---------------------------------------------------------------------------
-# Facilities (schema v42) -- see stellarObjects/facilities.py
+# Facilities (schema v42) -- see planetgen/population/facilities.py
 # for the rules and the orbit math.
 # ---------------------------------------------------------------------------
 

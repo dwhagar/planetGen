@@ -279,7 +279,7 @@ planet's or moon's Hill sphere, a star's heliosphere); a surface or belt
 facility has no distance control, and a belt one gets a random spot in
 the belt when saved. It POSTs to `/system/<id>` with
 `{{ csrf_field() }}` and a `facility_action`: `preview` checks the
-placement rules (`stellarObjects.facilities.check_facility`) and shows the
+placement rules (`planetgen.population.facilities.check_facility`) and shows the
 orbit `GET /api/facilities/orbit` works out from the host's mass, saving
 nothing; `save` calls `POST /api/facilities` and answers `303` back to
 `/system/<id>?facility=added#facilities`; `remove` (each row's Remove

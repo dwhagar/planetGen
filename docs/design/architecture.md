@@ -272,7 +272,7 @@ the browser loads.
 |---|---|
 | [`app.py`](../../src/html/api/app.py) | `create_app`: registers the API blueprints (`routes`, `auth`, `admin`, `population`), calls `web.init_app`, the rate limiter, proxy fix, security headers, request logging and the error handlers (JSON under `/api`, HTML pages elsewhere). |
 | [`routes.py`](../../src/html/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, wiki upload, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
-| [`population.py`](../../src/html/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `stellarObjects/population.py`; shares `routes.py`'s connection and pagination. |
+| [`population.py`](../../src/html/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
 | `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
 | `authz.py` | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
 | `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`stellarObjects/loginThrottle.py`, kept in the control database's `login_throttle`, in memory only while that table is missing), and the log line and audit row for each refused sign-in. |
@@ -592,7 +592,7 @@ tunes or disables it.
 
 **Admin writes from the pages.** The system page's facility form
 (`web/system_facilities.py`) previews a placement against
-`stellarObjects.facilities.check_facility` and `GET
+`planetgen.population.facilities.check_facility` and `GET
 /api/facilities/orbit`, then saves with `POST /api/facilities` or removes
 with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
 303 back to the page. Like every API write it clears the page cache.

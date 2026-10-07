@@ -77,7 +77,7 @@ from queryDb import (
 from stellarObjects import _db
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
-from stellarObjects import facilities as facility_rules
+from planetgen.population import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
 from planetgen.generation.config import SystemConfig
@@ -1566,7 +1566,7 @@ def delete_system(system_id):
 
 # ---------------------------------------------------------------------
 # Facilities (schema v42): starbases, colonies and
-# outposts. See stellarObjects/facilities.py for the placement rules.
+# outposts. See planetgen/population/facilities.py for the placement rules.
 # ---------------------------------------------------------------------
 
 FACILITY_FIELDS = {

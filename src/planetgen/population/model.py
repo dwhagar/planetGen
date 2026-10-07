@@ -1,4 +1,4 @@
-# stellarObjects/population.py
+# planetgen/population/model.py
 
 """
 Population and politics (POP.1 to POP.4, schema v44)
@@ -34,7 +34,7 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from .utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
+from stellarObjects.utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly
 
 _YEARS_PER_UNIT = {"Billion": 1e9, "Million": 1e6}
 
@@ -501,7 +501,7 @@ def refresh_territories(conn):
     Returns:
         int: Systems owned.
     """
-    from ._db import sectors_reached_by
+    from stellarObjects._db import sectors_reached_by
 
     # Each polity only looks at the sectors its own reach touches, so the
     # cost is the sum of their territories, not polities x all systems.

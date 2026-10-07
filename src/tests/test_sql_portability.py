@@ -48,7 +48,7 @@ VALUES_FUNCTION_ALLOWED = {
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
         "outer_ring_index",
     },
-    "stellarObjects/population.py": {"scanned_planet_id"},
+    "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }
 
