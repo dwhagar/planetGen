@@ -29,6 +29,8 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) |  | Back burner (Boss 17:11Z): GEN.65's 18 edge tests pass (PR #476); waits for his error text. |
+| GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) |  | Boss 19:04Z: as close to the observed Milky Way as possible, not flattened. Needs a regenerate; merge on Boss's go. |
+| GEN.119 | The galaxy density model has no thick disk (bug) | GEN.118 | Same density code; may land with GEN.118. |
 
 ### Bugfixes: console and progress
 
