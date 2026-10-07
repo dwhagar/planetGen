@@ -19,6 +19,12 @@ flow below changes shape (a new step, a new cache, a new process), update
 its diagram too. Each module's own docstring stays the detailed source of
 truth; this file only needs one line per module.
 
+**Planned restructuring (2026-10-07).** The code is to be reorganized
+into importable packages and moved onto third-party libraries (RQ on
+Redis for the queue, SQLAlchemy and Alembic for the database, and
+others); see [library-migration.md](library-migration.md). Until those
+land, the map below describes the code as it is.
+
 ## Contents
 
 - [The big picture](#the-big-picture)

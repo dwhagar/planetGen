@@ -61,3 +61,30 @@ distance first.
   and its core stays `<remnant> Core`.
 - Rows saved before this keep their names; GEN.39 already calls for a
   fresh galaxy.
+
+## Planned: an ID for everything, and names from IDs
+
+Boss (2026-10-03, 2026-10-07) asked to drop word-salad names entirely
+and to give everything in the galaxy a unique ID, including sectors that
+haven't been filled. The plan:
+
+1. **Research** the cheapest way to make those IDs: this document's packed
+   position ID, an ID derived from a sector's address (so an unfilled
+   sector has one before any row exists), a hash of the seed and address,
+   or a database sequence; compared for cost, collision risk and stability
+   when content moves or is regenerated in place.
+2. **IDs for every object**: sectors, systems, stars, planets, moons,
+   belts, comets and phenomena.
+3. **A naming key** in the control database, drawn from the galaxy seed
+   when the galaxy is created and changeable by an admin.
+4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root) turns an
+   ID into pronounceable words and back, keyed by a domain and the naming
+   key, so a name is unique because its ID is, and changing the key
+   renames everything without rewriting rows. Planets keep the "<system>
+   I" pattern; a wide binary's pair share one name with "A" and "B"
+   (default until Boss decides).
+5. **Removal** of the word lists, the nltk corpus, the name registries
+   and the collision rules.
+
+A bright star placed by the backfill shows its ID until its sector is
+generated, and only then gets its name.

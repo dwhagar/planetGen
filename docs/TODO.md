@@ -80,7 +80,7 @@ that default.
 | VIEW | The view from a planet |
 | POP | Population and politics |
 
-SEC, DOC and POP have no open items today.
+DOC has no open items today.
 
 ## Background
 
@@ -98,9 +98,10 @@ maps, search, NAV, admin auth and wiki publishing.
 Boss (2026-10-01 23:53Z) asked for the open work to be planned in
 phases, one plan file per phase with everything that phase needs, and
 this file as the master and index. On 2026-10-02 the phases were
-rebuilt as phases 0 to 3+ from the dependency report (each item's
-prerequisites, the files it shares, and Boss's decisions of that
-night). Every open item below is in exactly one phase, and every
+rebuilt as phases 0 to 3+ from the dependency report, and on
+2026-10-07 rebuilt again from Boss's lists of 2026-10-03 and
+2026-10-07: every bug in phase 0, which has two lanes (bugfixes and
+groundwork). Every open item below is in exactly one phase, and every
 item's prerequisites are in its own phase or an earlier one. Each phase
 file gives the goal, the build threads with their order and
 prerequisites, and the open questions;
@@ -111,11 +112,11 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Bug fixes first (Boss 04:45Z: phase 0 is primarily bug fixes and the groundwork that goes with them; 04:55Z: "Bugs first"): the binary-pair and forcing bugs, the Galaxy Map follow-ups and drill-down fixes, the System Map, the generation bugs (with class S for GEN.38), sector stats and colors (with the per-sector stats table MAP.86 needs), the routing groundwork, the sector and system page bugs, the small page bugs, and ops and test flakes last. The parallel path lane is done (GEN.39, DB.6, OPS.10: PRs #381, #387, #391), and so are the binary pairs lane (GEN.62, GEN.51, TEST.85: PRs #393, #398, #403) the System Map lane (MAP.57, MAP.88, MAP.92: PR #405), the generation bugs lane (GEN.60, GEN.38, GEN.47: PRs #415, #419), the routing groundwork lane (TEST.79, NAV.34: PR #427), the sector stats and colors lane (GEN.44, PERF.11, PERF.1, MAP.80, MAP.86: PRs #425, #429, #432), and the Galaxy Map drill-down lane (PRs #408, #410, #413, #422). GEN.65, a web-only generation error, is high priority but held until Boss says to start. | MAP.101, GEN.65, UX.28, UX.24, UX.29, UX.25, UX.26, UX.31, UX.27, UX.2, ADM.14, NAV.41, UX.36, UX.33, UX.38, OPS.6, OPS.7, OPS.19, UX.34, OPS.9, TEST.71, TEST.72, TEST.78, TEST.80, TEST.81, TEST.82, TEST.83, TEST.84, TEST.86, TEST.87 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Opens with object references (NAV.7) and the database consistency check (DB.8, then DB.9 repair). Then the work that needs phase 0 in place: prevalence controls, the other new planet classes, reproducible galaxies up to the golden-seed test (update key history, creation settings JSON, admin changes as a net diff), routing with no hop limit and the nearby search, the first picker pieces, the unit ladder, the API call log and the queue. | NAV.7, DB.8, GEN.33, GEN.28, GEN.27, GEN.52, TEST.75, ADM.16, GEN.48, GEN.24, GEN.41, MAP.95, MAP.89, NAV.8, NAV.9, NAV.13, NAV.14, NAV.10, NAV.12, UX.35, NAV.11, UX.23, UX.22, UX.3, PERF.19, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, GEN.59, OPS.8, OPS.13, OPS.14, DB.9, ADM.18, GEN.63, NAV.42, NAV.43, NAV.44 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The Galaxy Map built out around the arc pick, the shared picker and courses (with unknown-space jumps marked), the parallel backfill and density pass, the update's check for changed output, the daily maintenance run (positional update, merge of the day's admin changes into a new settings JSON, 18 backups), the UX sweep, and the API pieces remote generation needs first. | MAP.58, MAP.75, MAP.59, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, NAV.16, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, GEN.29, UX.32, UX.30, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, MAP.69, MAP.70, API.16, ADM.17, NAV.36, NAV.39, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.37 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The three maps on one engine, the 3D system view, courses that bend around gravity wells, remote generation through the API reproducing what the server would make, and repair that reads the newest settings JSON plus pending changes. | MAP.66, MAP.67, MAP.68, MAP.61, MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, NAV.32, NAV.3, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, UX.21, API.17, DB.10, ADM.20 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | API.6, USR.2, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55, OPS.12 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | TEST.81, TEST.87, OPS.25, PERF.27, DB.12, MAP.114, GEN.65, PERF.26, ADM.27, GEN.76, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.80, TEST.82, TEST.84, TEST.86, OPS.21, OPS.23, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
+| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
@@ -182,6 +183,9 @@ with `clamp()`.
   checked at 390, 600, 768, 820, 1024 and 1280 px in both themes and
   both orientations, with touch targets still at least 44 px on touch
   screens.
+  Prerequisite: UX.40.
+  Plan (2026-10-07): Folded into UX.40: the menus become Shoelace
+  dropdowns.
 
 - [ ] **UX.3 Warn every visitor while a background job changes the galaxy**
   Boss (2026-10-01): "a warning to all users on the UI when a
@@ -202,6 +206,9 @@ with `clamp()`.
   from the command line, which don't take the web jobs lock today
   (they would need to write the same lock and progress file)? What does
   it say when there's no ETA yet?
+  Prerequisite: ADM.22.
+  Plan (2026-10-07): The banner reads the RQ job's published progress
+  (ADM.22), not progress.json.
 
 - [ ] **UX.21 Clean up the web interface: overlapping buttons and dead controls (bug)**
   Boss (2026-10-01 14:58Z): "clean up the web interface, still have
@@ -233,6 +240,9 @@ with `clamp()`.
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
   controls), so this layout pass checks the controls that are kept.
+  Prerequisites: MAP.68, UX.26, UX.27, UX.31, NAV.32, UX.37.
+  Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
+  last item of the groundwork lane.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -265,6 +275,8 @@ with `clamp()`.
     JavaScript twins agree for a table of values. Then one sub-item per
     quantity family: mass; temperature; pressure and gravity; density,
     luminosity and power.
+    Prerequisite: GEN.66.
+    Plan (2026-10-07): The ladder is built on astropy.units (GEN.66).
 
 - [ ] **UX.24 Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug)**
   Boss (2026-10-01 23:53Z): "rogue planets should come after star
@@ -278,6 +290,10 @@ with `clamp()`.
   then rogue planets (each group still nearest first); an expanded row's
   content spans every column of the table (a full-width detail row
   under it, `colspan` of the whole table), on phones too.
+  Plan (2026-10-07): Built in the paused Sector and system pages lane
+  and committed only in its container (branch
+  claude/sector-system-pages-wjs5vn, not pushed), so it may have to be
+  rebuilt.
 
 - [ ] **UX.25 Rogue planets: octant and a small map symbol beside each name (bug)**
   Boss (2026-10-01 23:53Z): "Rogue planets each one has a location and
@@ -291,6 +307,8 @@ with `clamp()`.
   text label for screen readers and a tooltip) that selects it on the
   Sector Map, as the button does today. Applies to the same link on
   other rows once UX.28 settles the icon set.
+  Prerequisites: UX.24, UX.28.
+  Plan (2026-10-07): Half built in the paused lane (not pushed).
 
 - [ ] **UX.26 Edit and admin actions as a button that opens a menu (bug)**
   Boss (2026-10-01 23:53Z): "Edit buttons and admin buttons in any view
@@ -304,6 +322,9 @@ with `clamp()`.
   or a click outside, doesn't shift the page); picking an action opens
   its confirm step or form on top (a popover or dialog), not inline
   below the page. UX.31 is the system page's case.
+  Prerequisites: UX.28, UX.25, UX.40.
+  Plan (2026-10-07): Folded into UX.40, and the first screen of ADM.34
+  (one admin menu per screen).
 
   - [ ] **UX.31 Editing a star system: an edit button with a quick menu, not a long panel (bug)**
     Boss (2026-10-01 23:53Z): "Edit on a star system shouldn't be a big
@@ -317,6 +338,9 @@ with `clamp()`.
     menu of its actions (Regenerate, Delete, Change star or Change
     class); choosing one opens just that form; the long Edit panel is
     gone.
+    Prerequisite: UX.26.
+    Plan (2026-10-07): Folded into UX.40; the system page's case of
+    ADM.34.
 
 - [ ] **UX.27 System page: the system and navigation buttons on one row that doesn't overlap (bug)**
   Boss (2026-10-01 23:53Z): "When viewing a star from sector view system
@@ -330,6 +354,8 @@ with `clamp()`.
   two navigate buttons fold into one "Navigate" button whose menu holds
   "From here" and "To here" (container query, not a device check).
   Ties in with NAV.29 (the Start Here / End Here wording) and UX.21.
+  Prerequisites: UX.28, UX.40.
+  Plan (2026-10-07): Folded into UX.40.
 
 - [ ] **UX.28 Investigate icons instead of words on buttons**
   Boss (2026-10-01 23:53Z): "Investigate using symbols for buttons
@@ -345,6 +371,8 @@ with `clamp()`.
   Galaxy Map buttons (Back, Forward, Up, Reset, Bookmarks, Menu) as text
   labels with a hook for icons, so the survey covers them and swapping
   in icons there is a small follow-up.
+  Plan (2026-10-07): Boss approved the icon set (2026-10-02). The sprite
+  is reused by the Shoelace components (UX.40).
 
 - [ ] **UX.29 Every comet in a system shows its type as a link (bug)**
   Boss (2026-10-01 23:53Z): "Comets in a star system some show the type
@@ -357,6 +385,8 @@ with `clamp()`.
   class reference page, parabolic comets included (a class entry for
   them, or a link to the comet class overview), and a test checks every
   comet kind has a working link.
+  Plan (2026-10-07): Built in the paused lane and committed only in its
+  container (not pushed), so it may have to be rebuilt.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -401,6 +431,9 @@ with `clamp()`.
   The filter options are built from each kind's class list, so classes
   GEN.28 adds later appear on their own; GEN.47 (nebulae that exist)
   is done (PR #419), so nothing blocks it.
+  Prerequisite: UX.41.
+  Plan (2026-10-07): Folded into UX.41: the phenomena list gets faceted
+  filters there.
 
 - [ ] **UX.34 The sector summary calls white dwarfs "B-type" and "A-type" systems (bug)**
   Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The "Systems: 4 B-type, ..." line in `generate.py`
@@ -461,7 +494,9 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: UX.28, MAP.95, NAV.41, UX.26, UX.27, UX.31, UX.40, ADM.34.
+  Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
+  UX.21 is a bug and needs it.
 
 - [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
   Split out of UX.21 (replan, 2026-10-02), its one known dead control:
@@ -472,6 +507,93 @@ with `clamp()`.
   strict xfail in `test_web_browser_maps.py`. Done: the diagram opens
   with room to zoom out (or the "-" button is disabled at the limit,
   with its hint text), the xfail is dropped and the test passes.
+  Prerequisite: MAP.105.
+  Plan (2026-10-07): Folded into MAP.105: the nebula view becomes the 3D
+  shape, which replaces this diagram.
+
+- [ ] **UX.39 Markdown rendered by the markdown library**
+  Today `mdconvert.py` converts the system and wiki Markdown by hand.
+  Done: the `markdown` package renders it with the same output for the
+  pages and wiki export (a test compares a sample), and `mdconvert.py`
+  is deleted.
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **UX.40 Buttons, menus and dialogs from Shoelace web components**
+  From "Web UX Development Notes.md": buttons, menus, dropdowns, dialogs
+  and form fields use Shoelace components, vendored as ES modules (no
+  CDN at runtime). Done: a shared component set in the base template;
+  the menus size to their contents (UX.2), admin and edit actions open
+  from a button menu (UX.26, UX.31), the system page buttons sit on one
+  row (UX.27), and the Generate page text boxes line up (ADM.14), each
+  closed in this item's PRs; both themes and keyboard use work.
+  Prerequisites: OPS.21, UX.28.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
+  Today every list page is a server-rendered table paged 50 rows at a
+  time (`tabledisplay.py`). Done: list pages use TanStack Table with
+  virtual scrolling, sorting and faceted filters fed by the API, keeping
+  50-row pages for the server; the phenomena page filters by class and
+  type (UX.33) through it.
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **UX.42 In-universe wording across the interface**
+  Boss (2026-10-03 05:38Z): "Begin replacing wording to make the
+  interface in-universe (i.e. the interface and wording should not be
+  designed so they sound like they know it's for a game)." Done: a word
+  list (for example "Generate" becomes "Chart", "Generated only" became
+  "Charted only" in MAP item MAP.111) agreed with Boss, then pages,
+  buttons and messages changed page by page; admin-only tools may keep
+  plain wording.
+  Prerequisite: UX.37.
+
+- [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
+  Boss (2026-10-07 11:47Z): "All design elements should be built from
+  the ground up to look like, as much as possible, a starmap and
+  navigational system that a space pilot might use." Done: a design
+  brief (colours, type, panel shapes, iconography) approved by Boss,
+  then the base template and shared components restyled to it in both
+  themes, with contrast and reduced motion kept.
+  Prerequisites: UX.42, UX.37.
+
+- [ ] **UX.44 Search: mutually exclusive tags should combine with OR, the rest with AND (bug)**
+  Boss (2026-10-07 11:47Z): "Search tags that are mutually exclusive
+  (you cannot have a Type O and a Type M star for example) should be
+  considered OR while items that are not mutually exclusive are AND."
+  Today every facet in the search (`queryDb` search facets) is ANDed, so
+  picking two star types finds nothing. Done: tags in one exclusive
+  group (star type, planet class, phenomenon kind and the like) are ORed
+  within the group and groups are ANDed; a test covers both.
+
+- [ ] **UX.45 Bookmark management**
+  Boss (2026-10-07 11:47Z): "Bookmark management system." Today
+  bookmarks are kept per browser by `bookmarks.js` (NAV.40). Done when
+  its subitems are.
+  Prerequisites: UX.46, UX.47, UX.48.
+
+  - [ ] **UX.46 Wiping the galaxy wipes the bookmarks**
+    Boss (2026-10-07 11:47Z): "When a galaxy is wiped all bookmarks are
+    wiped too." Done: bookmarks are stamped with the galaxy seed, and a
+    page load that finds bookmarks for another seed (after a reset or
+    new galaxy) drops them; a test covers it.
+
+  - [ ] **UX.47 A bookmark manager: list, rename, sort, group and delete**
+    Done: a Bookmarks page listing every bookmark with its kind and
+    place, where each can be renamed, grouped, sorted, opened on its map
+    and deleted, and the list can be exported and imported as a file.
+    Prerequisite: UX.46.
+
+  - [ ] **UX.48 Charted regions as bookmarks that frame and outline the region**
+    Boss (2026-10-07 11:47Z): "Clusters of contiguous generated content
+    gets added to a system bookmark which will zoom in as close as it
+    can to see all sectors in the group and highlight the shape of the
+    region specifically." Done: every contiguous group of charted
+    sectors gets a system bookmark (kept up to date as sectors are
+    charted) that opens the Galaxy Map fitted to the group with its
+    outline highlighted.
+    Prerequisites: UX.47, MAP.65.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -675,6 +797,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before (or as the first PR of) the MAP.52 to MAP.60 work, because
   those items rewrite the same files (`galaxymap3d.js`,
   `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
+  Prerequisites: MAP.65, MAP.66, MAP.67, MAP.68.
+  Plan (2026-10-07): Moved into phase 0 with its subitems. MAP.125
+  (infinite zoom) is its end state in phase 3.
 
   - [ ] **MAP.65 One picking, hover and info-panel layer**
     Done: one module for raycast and screen-space picking, the hover
@@ -682,6 +807,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     panel (fields, Nav from/to, Use as destination, Generate buttons,
     bookmark ☆), fed by each view's objects. The Sector Map's info
     panel gains the ☆ the drill-down design left for later.
+    Plan (2026-10-07): Moved into phase 0: the shared picking layer is
+    what fixes MAP.108, MAP.107, MAP.112 and NAV.46.
 
   - [ ] **MAP.66 The sector as the drill-down's last stage, on the same page**
     Today clicking a generated sector leaves `/galaxy` for
@@ -735,6 +862,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     body's position at a time, so the view can animate and NAV.6 can
     plan around where bodies will be. A time control (now, play,
     faster, pause) in the view.
+    Prerequisite: MAP.69.
+    Plan (2026-10-07): Positions go through the point-in-space object
+    (GEN.74).
 
   - [ ] **MAP.71 Scale modes that keep everything visible**
     True scale makes planets invisible dots. Done: true scale, plus a
@@ -778,25 +908,218 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dim", so rogue planets are also drawn dim by default (a faint point,
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
+  Prerequisite: MAP.65.
+  Plan (2026-10-07): Moved into phase 0 with the engine. Its per-kind
+  toggles include nebulae, which closes half of MAP.113; MAP.123 extends
+  them to star types and the Galaxy Map.
 
-- [ ] **MAP.101 Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug)**
-  High priority, phase 0. Boss (2026-10-02 08:52Z): "Found a pretty
-  serious bug that we need to add to the to-do list, and that is: stars
-  are selectable from the galaxy interface for the map. If the star
-  density is high enough on a generated sector, as you zoom in you can't
-  actually select the sector because there are too many stars. We need
-  to make it so that the stars are just unselectable from the galactic
-  menu. They're visible but I can't click on one and find information
-  about it. I have to navigate to its sector". Today a click inside a
-  container first asks `showPointAt` in `galaxymap3d.js` for a star
-  (`starAtClientPoint`) or a cloud's core under the pointer and shows
-  it instead of picking the block (`clickAt` in `galaxystageview.js`).
-  Done: stars on the Galaxy Map are drawn but never clicked, tapped or
-  hovered (no ring, no star panel, no tooltip), so a click always picks
-  the block, slab or sector under it at any zoom and star density; a
-  star's details are reached by going to its sector. Clouds keep their
-  core click unless Boss says otherwise (his message names stars only).
-  [map]
+- [ ] **MAP.102 Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering**
+  From "Web UX Development Notes.md": the Galaxy Map streams its stars
+  as 3D tiles with level of detail, picks through a BVH (three-mesh-bvh)
+  instead of scanning points, and draws camera-relative so far-out
+  coordinates don't jitter (`galaxymap3d.js`, `galaxyprisms.js`). Done:
+  zooming loads only the tiles in view at the right detail, picking
+  stays fast in dense sectors, and the existing map tests pass.
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **MAP.103 Nebulae don't show on the Galaxy Map or any other map (bug)**
+  Boss (2026-10-03 05:38Z): "I cannot see nebula on the galaxy map or on
+  any other map." GEN.47 (PR #419) made nebulae exist. Done: nebulae are
+  drawn on the Galaxy Map, the Sector Map and the System Map from their
+  shape mesh, and a browser test finds one.
+  Prerequisite: GEN.75.
+
+- [ ] **MAP.104 Nebula shading is missing on unfilled sectors (bug)**
+  Boss (2026-10-03 05:38Z): "Nebula shading should show up on unknown /
+  unfilled sectors as in the galactic map as well as for filled
+  sectors." Done: a nebula placed galaxy-wide shades the Galaxy Map over
+  unfilled sectors as well as filled ones.
+  Prerequisite: MAP.103.
+
+- [ ] **MAP.105 The nebula view should show its whole shape with the dimmed galaxy around it (bug)**
+  Boss (2026-10-03 05:38Z): "Nebula phenomena view should show the total
+  shape of the nebula's area as a oblong region with the larger galaxy
+  map around it but dimmed (just there for reference with the brightest
+  stars showing)." Done: the nebula page shows its mesh in the 3D view
+  with the surrounding galaxy dimmed and only the brightest stars drawn.
+  Prerequisite: GEN.75.
+
+- [ ] **MAP.106 The breadcrumb trail falls out of sync with the map (bug)**
+  Boss (2026-10-03 05:38Z): "Breadcrumb trail should always be in sync
+  with the actual map interface and view." Done: the breadcrumb is drawn
+  from the map's current state on every change (zoom, pick, back and
+  forward, URL load), and a browser test walks the levels and checks
+  them.
+  Prerequisites: NAV.14, MAP.67, MAP.107.
+
+  - [ ] **MAP.107 Selecting an empty slab near the core says "There is no layer x here" (bug)**
+    Boss (2026-10-03 05:38Z): "When selecting an empty slab near the
+    galactic core results in an error where it says "There is no layer x
+    here" (x is whatever layer it is).  This happens because it gets out
+    of sync, you select the slap, or try to, and nothing happens except
+    it moves the breadcrumb trail along." Done: picking any slab, empty
+    or not, moves the map and breadcrumb together with no error.
+    Prerequisite: MAP.65.
+
+- [ ] **MAP.108 Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug)**
+  Boss (2026-10-03 05:38Z): "Galacit view, some slabs are unselectable
+  near the core when zooming in.  The buttons to the side block being
+  clicked on and the map interface does not respond to those clicks in
+  that region. The system seems unable to allow me to select any slab or
+  wedge in which nothing exists. I should be able to navigate to any
+  space freely because I might be selecting a sector or space to fill."
+  Done: every slab, wedge and block can be picked whether or not
+  anything is in it, and the slab buttons never cover the map's pick
+  area.
+  Prerequisite: MAP.65.
+
+- [ ] **MAP.109 Zooming in and out loads slowly (bug)**
+  Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
+  very sluggish." Done: a measured zoom in and out across levels stays
+  under a stated time on a full test galaxy, with tiles streamed by
+  MAP.102.
+  Prerequisite: MAP.102.
+
+- [ ] **MAP.110 Slab button lines come out of numerical order (bug)**
+  Boss (2026-10-03 05:38Z): "Slab button lines don't always appear in
+  the button order, sometimes appearing out of numerical order." Done:
+  slab buttons and their leader lines are always in slab-number order
+  (`galaxystageview.js`), with a test.
+
+- [ ] **MAP.111 "Generated only" should be "Charted only" and dim the stars too (bug)**
+  Boss (2026-10-03 05:38Z): "In the full galaxy view when I select
+  "generated only" (change the name to charted only), it should dim the
+  stars as well and make it blatantly obvious where all the generated
+  sectors are within each wedge." Today the toggle (`galaxymap3d.py`
+  line 581, `galaxyblocks.js`) dims blocks only. Done: renamed "Charted
+  only", it dims stars outside charted sectors as well and outlines the
+  charted sectors in each wedge.
+
+- [ ] **MAP.112 Nothing can be selected while "Generated only" is on (bug)**
+  Boss (2026-10-03 05:38Z): "Cannot select things from the galacitc map
+  while the only generated filter is on." Done: picking works the same
+  with the filter on or off.
+  Prerequisites: MAP.65, MAP.111.
+
+- [ ] **MAP.113 A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug)**
+  Boss (2026-10-03 05:38Z): "When I select a nebula either on purpose of
+  on accident in the sector map, I cannot unselect it if it covers the
+  entire sector space, as if often does.  Nebula should also have a
+  toggle button to turn on or off so if they get in the way we can turn
+  them off from the display." Done: Escape or a click on the selected
+  nebula clears it, and the Sector Map's nebula toggle hides them.
+  Prerequisite: MAP.79.
+
+- [ ] **MAP.114 The Sector Map's Reset view leaves the picture unchanged (bug)**
+  Seen on PR #431's CI (2026-10-02, browser-a11y): after turning the
+  Sector Map, its Reset view button leaves the picture unchanged. Done:
+  Reset view returns the camera to the preset (as MAP.97 does on the
+  Galaxy Map) and the browser test is green.
+
+- [ ] **MAP.115 Comets, rogue planets and asteroid fields show above the sector level (bug)**
+  Boss (2026-10-03 05:38Z): "Comets don't need to show up in a sector
+  map until we get to the full sector, don't show comets, rogue planets,
+  or asteroid fields from the galactic map." Done: the Galaxy Map's
+  tiles and drill-down leave out comets, rogue planets and asteroid
+  fields; they appear only on the Sector Map.
+
+- [ ] **MAP.116 Dense generated sectors crowd the Galaxy Map when zoomed out (bug)**
+  Boss (2026-10-03 05:38Z): "When sectors are filled in and we're in the
+  galaxy view, we have to be more intentional and strict with how many
+  stars to show from those sectors as we zoom out. Recent test run
+  indicates that for dense sectors it becomes unreadable at about 2-3
+  zoom levels outside of the sector zoom in the galactic view. Fix with
+  an algorithm that is more choosey about what to show even if we have
+  to allow a fudge factor for when it's a very dense sector vs. when
+  it's a very sparse sector.  Sparse sectors have more room to show more
+  and be usable." Done: each tile level keeps a screen-density budget,
+  choosing the brightest stars first with a per-sector allowance that
+  gives sparse sectors more room.
+  Prerequisite: MAP.102.
+
+- [ ] **MAP.117 Surface pressure missing from the planet and moon side panel (bug)**
+  Boss (2026-10-03 05:38Z): "Surface pressure should appear in the
+  side-box for a planet or moon just below the temperature." Done: the
+  System Map side panel (`systemmap.js` line 503, `lib/systemmap.py`)
+  shows surface pressure under surface temperature.
+
+- [ ] **MAP.118 The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug)**
+  Boss (2026-10-07 11:47Z): "Galaxy map shows an unfilled sector above
+  the galaxy that cannot be filled." Done: the map draws only addresses
+  inside the layer's stored extent (or the fill accepts every address it
+  draws), and a test checks the top layer.
+
+- [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
+  Boss (2026-10-03 05:38Z): "In the galaxy view, the expected star
+  density should be an editable field for admin and a static field for
+  users/guests.  Once edited it changes it for the current view (i.e. an
+  entire slab or entire block)." Done: the info panel shows expected
+  density; admins can edit it for the slab or block in view, stored as
+  an override that later fills use and logged.
+  Prerequisite: MAP.65.
+
+- [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
+  Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
+  galactic view." Done: the admin menu on a block, slab or wedge runs
+  the bright-star backfill for it as a job.
+  Prerequisite: MAP.65.
+
+- [ ] **MAP.121 The Sector Map shows the neighbouring sectors dimmed, fading the ones in the way**
+  Boss (2026-10-03 05:38Z): "In the sector level map, we should show
+  adjacent sectors dimmed around it, showing all surrounding sector
+  interiors dimmed and minus comets and rogue planets for anything but
+  the sector in question.  Implement so that the sectors between the
+  camera eye and the sector we are viewing become invisible when they
+  would block the view in a fade, the more they obstruct the view the
+  more invisible they become." Done as he says.
+  Prerequisite: MAP.66.
+
+- [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
+  Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
+  a star / star system or other object that is normally blocked from
+  being selected in the galaxy interface across all interfaces." And:
+  "At all galactic views we have a 'Select Mode' it defaults to Galaxy
+  (wedges, blocks, slabs, etc like we have right now), but one can have
+  a Star Select mode where the stars become selectable, when a star is
+  selected you can bookmark it or set a waypoint." Done: a Select mode
+  control on every galaxy view (default Galaxy); in Star mode stars and
+  other objects pick, hover and open their info panel with Bookmark and
+  Waypoint actions.
+  Prerequisite: MAP.65.
+
+- [ ] **MAP.123 Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps**
+  Boss (2026-10-07 11:47Z): "Sector display can hide systems by star
+  type or phenomena, same in galaxy views, users can select to hide or
+  show classes of stars, adjust the luminosity at which stars appear on
+  the map, and highlight phenomena or hide them in the galactic view."
+  Done: both maps have a filter panel for star classes and phenomenon
+  kinds (show, hide, highlight) and a luminosity slider, kept in the
+  URL.
+  Prerequisites: MAP.65, MAP.79.
+
+- [ ] **MAP.124 The Galaxy Map opens zoomed to fit all charted space**
+  Boss (2026-10-07 11:47Z): "Galactic map should automatically zoom in
+  to the nearest zoom possible to see as much of the charted space as
+  possible." Done: with no view in the URL, the map opens at the closest
+  zoom that shows every charted sector.
+  Prerequisite: MAP.67.
+
+- [ ] **MAP.125 Infinite zoom: one 3D interface from the galaxy down to a moon**
+  Boss (2026-10-07 11:47Z): "Infinite Zoom!  Able to use the same
+  interface to go from galaxy all the way down to a moon by zooming in
+  and out.  Make everything the same 3D interface." Done: one view zooms
+  continuously from the galaxy through block, sector and system to a
+  planet and its moons, with the frames switched by the position object
+  (GEN.74).
+  Prerequisites: MAP.61, MAP.62.
+
+- [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
+  Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected
+  objects in their frame of reference." Done: selecting a body draws its
+  path (orbit, or galactic trajectory) in the frame of what it moves
+  around.
+  Prerequisites: MAP.70, MAP.73.
 
 ## NAV: Navigation and courses
 
@@ -825,6 +1148,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.6.
   Needs NAV.7. Built on MAP.61's engine; the parts that don't need the
   engine (the picker module, the breadcrumb, pick mode) can start first.
+  Prerequisites: NAV.13, NAV.14, NAV.15, NAV.16, NAV.32.
+  Plan (2026-10-07): Moved from phase 3 to phase 1: its subitems are now
+  in phases 0 and 1.
 
   - [ ] **NAV.13 A picker module: select, step out, step in, step sideways**
     The stage view already does this inside the galaxy (Esc and
@@ -843,6 +1169,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     It keeps MAP.93's one-line collapse and MAP.94's phone layout (PR #399) on
     every page (Boss 04:29Z: "the breadcrumbs should never be more
     than a single line").
+    Prerequisite: NAV.13.
+    Plan (2026-10-07): Moved into phase 0; the one breadcrumb fixes
+    MAP.106.
 
   - [ ] **NAV.15 Pick mode everywhere**
     Today pick mode (choose a NAV start or destination) exists on the
@@ -861,6 +1190,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     today); a course inside one system is one in-system leg. Open
     question: does an in-system leg use the same warp and fold speeds,
     or sublight speeds (impulse)? Default: the same tables, with a note.
+    Prerequisite: NAV.7.
+    Plan (2026-10-07): Moved from phase 2 to phase 1 so the picker
+    parent (NAV.3) closes there.
 
 - [ ] **NAV.4 Save a course**
   Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
@@ -920,6 +1252,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   draws one line through the route's stops with the ends named. Missing:
   the direct line drawn apart from the route, a fitted zoom, and any
   course inside a sector.
+  Prerequisites: NAV.20, NAV.21, NAV.22, NAV.23.
+  Plan (2026-10-07): Boss (2026-10-07): "Plotted courses should appear
+  on the galactic map and stay until cleared." See NAV.49.
 
   - [ ] **NAV.20 Draw the direct line and the route apart**
     Done: the direct line and the system-to-system route as two styles
@@ -1028,6 +1363,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picker (NAV.3), saved courses (NAV.4), the course on the map (NAV.5),
   gravity-aware courses (NAV.6) and the 3D system view (MAP.62) all use
   it.
+  Plan (2026-10-07): Moved into phase 0 (groundwork lane): the map
+  engine items that fix the 2026-10-03 map bugs need it.
 
   - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
     A star, planet, moon, belt or comet reference opens something:
@@ -1059,6 +1396,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems. NAV.34 (joining the graph's islands) is done (PR #427), and NAV.12
   (a route always exists, no hop limit) is built with it.
   Design: [docs/design/course-routing.md](design/course-routing.md)
+  Prerequisite: DB.11.
+  Plan (2026-10-07): The position indexes are an Alembic migration
+  (DB.11).
 
   - [ ] **NAV.11 Travel times for the system-to-system route too**
     Today warp and fold times are shown only for the direct distance;
@@ -1118,6 +1458,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
   rather than as a separate copy; until then each map fix must be
   checked in pick mode too.
+  Prerequisites: MAP.68, NAV.15, NAV.29, NAV.33, MAP.79.
+  Plan (2026-10-07): Moved into phase 0 with the engine (all bugs in
+  phase 0).
 
 - [ ] **NAV.33 After picking one end of a course, stay at that zoom level (bug)**
   Boss (2026-10-01 21:17Z): "when nevigating via the picker, when we
@@ -1263,6 +1606,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
   any object on the maps. Prerequisites: NAV.44, MAP.65, NAV.15.
 
+- [ ] **NAV.46 The NAV picker can't click galaxy wedges to zoom in (bug)**
+  Boss (2026-10-03 05:38Z): "When trying to select a destination from
+  the picker in the galaxy nav screen, I cannot click on any galactic
+  wedges to begin zooming in." Done: in course-pick mode the wedges,
+  slabs and blocks pick and zoom as on the Galaxy Map.
+  Prerequisite: NAV.15.
+
+- [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
+  Boss (2026-10-03 05:38Z): "navigational jump path (system to system)
+  should use scattered stars in unfilled sectors as potential stops
+  along the path.  Same for black holes, neutron stars, quasars, but the
+  by far preference is system-to-system, only if a jump crosses unknown
+  space should it start looking for other things." Done as he says; such
+  stops are marked as their kind in the route.
+  Prerequisites: NAV.12, GEN.100.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
+
+- [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
+  Boss (2026-10-07 11:47Z): "From navigation menu if there are
+  unexplored / uncharted / unfilled sectors in the way that cannot be
+  bypassed, it should have the option to generate all sectors between
+  the two points." Done: when a route has to cross uncharted sectors,
+  the NAV page offers (to admins) a job that charts the sectors along
+  the line, with the estimate first, and re-plots after.
+  Prerequisite: NAV.12.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
+
+- [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
+  Boss (2026-10-07 11:47Z): "Then you can go find another location
+  (star, planet, whatever) and select it and you can add a 2nd waypoint,
+  waypoints are highlighted at all map levels with an icon it will plot
+  a course." And: "Plotted courses should appear on the galactic map and
+  stay until cleared." Done: waypoints set from Star select mode are
+  marked with an icon at every map level, two or more plot a course, and
+  the course stays drawn on every map until cleared.
+  Prerequisites: MAP.122, NAV.16, NAV.17.
+  Design: [docs/design/course-routing.md](design/course-routing.md)
+
 ## GEN: Generation and physics
 
 - [ ] **GEN.9 Plan for more than one galaxy in the database**
@@ -1327,6 +1708,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   consistent at the outer edge of the habitable zone. Evidence: the
   planet class gap report
   (https://claude.ai/code/artifact/549f0ba8-ca6f-4d35-be2d-0c7591b93256).
+  Prerequisite: GEN.33.
+  Plan (2026-10-07): Moved to phase 2 under GEN.90.
 
 - [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
   Boss (2026-10-01 15:26Z): "add the other 6 classes filling in the
@@ -1366,12 +1749,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (PR #415): barren rocky super-Earth, 1.2-1.8 Earth radii, 2-10 Earth
   masses, not allowed as a moon, weight 0.03. The other six classes
   (R, U, W, X, Y, Z) follow in phase 1.
+  Prerequisite: GEN.33.
+  Plan (2026-10-07): Moved to phase 2 under GEN.90. Class Z covers
+  Boss's 2026-10-03 ask: "We need a planet that is like earth sized but
+  never had any life so it has an atmosphere that was never matabolized
+  by life."
 
   - [ ] **GEN.33 One class per PR, each with its tests**
     Suggested split: R and S (the commonest missing types) first; then
     U, W, X, Y and Z. Each adds the class to `PLANET_CLASSES`, the
     reference pages, the rogue flag, moon eligibility, and a
     distribution test over 1,000 generated systems.
+    Prerequisite: GEN.89.
+    Plan (2026-10-07): Moved to phase 2 under GEN.90 (the class
+    refactor), after the habitability score GEN.89.
 
 - [ ] **GEN.29 Sweep every planet class for sense once the new ones are in (bug)**
   Boss (2026-10-01 15:26Z): "do a full sweep of planet classes to make
@@ -1386,6 +1777,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10-16 Earth masses come out up to 17,600 km, past class S's
   11,468 km top, and get S as the nearest fit (PR #415); Boss to decide
   whether those sizes make sense or need their own range.
+  Prerequisites: GEN.28, GEN.27, GEN.91, GEN.92.
+  Plan (2026-10-07): Under GEN.90: the refactor is the sweep, so it
+  stays with it in phase 2.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -1437,6 +1831,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   large_star, moons, max_planets, intelligent_life, binary_system,
   wide_binary, planets) force every system in a sector or galaxy run,
   which is impractical and on some stars impossible (GEN.49).
+  Prerequisites: GEN.52, ADM.16, TEST.75.
+  Plan (2026-10-07): Moved into phase 0 with GEN.52, ADM.16 and TEST.75:
+  Boss wants every bug in phase 0.
 
   - [ ] **GEN.52 Prevalence controls for sector and galaxy runs**
     Each former forcing option gets a prevalence setting: a percentage
@@ -1444,16 +1841,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     chance that a system has comets; -100% means never). It applies to
     every system the run generates, through the CLI (`--prevalence
     comets=+50`, or one option per feature) and the stored system config.
+    Plan (2026-10-07): Moved into phase 0 with the GEN.48 bug.
 
   - [ ] **ADM.16 Prevalence controls on the Generate page**
     The Generate page's sector, galaxy and "around a sector" forms swap
     their forcing checkboxes for the prevalence fields (GEN.52),
     defaulting to 0%. The one-off system page keeps forcing.
+    Prerequisites: GEN.52, ADM.14.
+    Plan (2026-10-07): Moved into phase 0 with GEN.48.
 
   - [ ] **TEST.75 Tests for forcing and prevalence**
     Single systems: every forced option holds or is refused. Sector runs:
     the measured shares across many seeds move by the requested
     percentage within a tolerance. [generation]
+    Prerequisite: GEN.52.
+    Plan (2026-10-07): Moved into phase 0 with GEN.48.
 
 - [ ] **GEN.55 A version number and a seed reproduce the same galaxy (end goal)**
   Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
@@ -1560,27 +1962,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     cost)? Default: statistically equal.
     Prerequisite: GEN.56.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **GEN.63 Planet names are unique within a sector**
-    Boss (2026-10-02 04:03Z), with GEN.62's binary naming: "we don't
-    care if planet names are duplicated just like there are 100 cities
-    named Paris out there. Add a Phase 1 TODO item though for ensure
-    planet names unique in a single sector." Since GEN.62 names a wide
-    pair's planets for one word of their star's name (`Blue I`, `Red I`),
-    two systems in one sector can produce the same planet name, and
-    today nothing checks planet names (`bodyNames.py` says derived
-    names are unique only because system names are). Done: no two
-    planets, belts or moons in one sector share a name; a clash is
-    resolved by the system with the lower address keeping the name and
-    the other renaming from its own seeded stream (GEN.57's rule, so
-    the result doesn't depend on generation order or worker count); the
-    check reads the sector's existing names, not a running count (TEST.85,
-    done in PR #403, fixed the negative collision count in
-    `nameUniqueness.py`); duplicates
-    across sectors stay allowed; and a test generates crowded sectors
-    and checks every name is unique within each. Rogue planets and
-    their moons are named by position ID (GEN.64, done, PR #406), so they drop out
-    of this check. Prerequisites: GEN.57.
+    Plan (2026-10-07): Name collisions disappear with GEN.67 (names come
+    from IDs), so the name part of this item is dropped, and GEN.63 with
+    it.
 
   - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
     Done: each sector row records the PlanetGen release that generated
@@ -1593,6 +1977,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     because a mixed-version galaxy reproduces only sector by sector, each
     on its own version. Prerequisite: none (DB.6 done, PR #387).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+    Prerequisite: DB.11.
+    Plan (2026-10-07): Written as an Alembic migration (DB.11).
 
   - [ ] **OPS.13 Every update records the version key, keeping the last 10**
     Boss (2026-10-02 02:08Z): "I approve the plan, every time the script
@@ -1614,6 +2000,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     key next to the unchanged seed, because a changed seed makes a
     different galaxy. Prerequisites: OPS.7, OPS.8.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+    Plan (2026-10-07): The nltk corpus, offensive_words.txt and
+    name-list hashes are dropped once GEN.71 lands; the lock-file hashes
+    stay.
 
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
@@ -1768,8 +2157,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     OPS.12 rebuilds from this file. A test creates a small galaxy,
     downloads the file and checks the name, settings, seed, key and word
     list.
-    Prerequisites: DB.7, OPS.13.
+    Prerequisites: DB.7, OPS.13, GEN.70.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+    Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
+    instead of the word list; the word list and corpus hashes go with
+    GEN.71.
 
   - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
     Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
@@ -1886,6 +2278,549 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   error is reproduced from the web UI, the difference between the web
   and CLI paths that causes it is found and fixed, and a test runs the
   same generation through both paths. [generation, web]
+  Plan (2026-10-07): May be the same failure as GEN.76 (sectors below
+  the star threshold); still held until Boss sends the error text.
+
+- [ ] **GEN.66 Physics on scipy, and astropy constants and units**
+  Today `keplerMotion.py` solves Kepler and Barker by hand and
+  `physical_constants.py` holds 450 lines of constants. Done: Kepler
+  solving uses `scipy.optimize` (vectorised where many bodies move at
+  once), constants and unit conversions come from `astropy.constants`
+  and `astropy.units`, results agree with today's within stated
+  tolerances (tests), and the hand-rolled solvers are deleted.
+  Prerequisite: OPS.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **GEN.67 Names from IDs: replace word-salad name generation**
+  Boss (2026-10-03 05:38Z): "Do away with name generation for any
+  object, do away with our word-salad code entirely add a value in the
+  control database that will be generated by random generation at the
+  galaxy generation time (add the ability to change it via admin consol)
+  so when the galaxy is generated we'll generate a random numbe." Boss's
+  `gatedPhonemeCodec.py` (repo root) turns an ID and a key into
+  pronounceable words and back. Done: every name is the codec's output
+  for the object's ID under the galaxy's naming key, word-salad naming
+  is gone, and the subitems are done.
+  Prerequisites: GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73.
+  Design: [docs/design/object-ids.md](design/object-ids.md)
+
+  - [ ] **GEN.68 Research: the cheapest unique IDs for every object, unfilled sectors included**
+    Boss (2026-10-07 11:47Z): "Research different ways to generate an
+    object ID (star, sector, planet, etc) everything in the galaxy needs
+    a unique ID, but I also need to create unique ID's for sectors that
+    haven't been filled yet, etc.  Research the most computationally
+    efficient way to do this." Done: a short comparison (GEN.64's packed
+    position ID, address-derived IDs for sectors, hash-derived IDs,
+    database sequences) for cost, collision risk, stability when content
+    moves, and whether an unfilled sector can have its ID before any row
+    exists; Boss picks one.
+
+  - [ ] **GEN.69 A unique ID for every object, star systems and unfilled sectors included**
+    Today only interstellar objects and bright-sweep systems carry
+    GEN.64's 76-bit position ID; star systems keep generated names and
+    sectors have only an address. Done: every sector (filled or not),
+    system, star, planet, moon, belt, comet and phenomenon has an ID by
+    GEN.68's method, stored and indexed, and stable across regeneration
+    in place.
+    Prerequisite: GEN.68.
+    Design: [docs/design/object-ids.md](design/object-ids.md)
+
+  - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
+    Done: a new galaxy draws a random naming key (from the galaxy seed's
+    stream) into the control database; the admin console can change it,
+    which renames everything at once with no rows rewritten (names are
+    computed from ID and key); ADM.18's settings JSON stores it instead
+    of the word list.
+    Design: [docs/design/object-ids.md](design/object-ids.md)
+
+  - [ ] **GEN.71 Remove the word-salad name code, nltk and the name registries**
+    Done: names come from the codec everywhere (systems, stars, planets
+    as "<system> I", moons, belts, sectors, phenomena), and `names.py`,
+    `bodyNames.py`, `nameUniqueness.py`, `dedupeNames.py`, the nltk
+    corpus and the name registry tables go, with an Alembic migration.
+    Wide-binary naming (GEN.62) is re-expressed on codec names (open
+    question for Boss; default: the pair shares the codec name with "A"
+    and "B").
+    Prerequisites: GEN.69, GEN.70.
+    Design: [docs/design/object-ids.md](design/object-ids.md)
+
+  - [ ] **GEN.72 A backfilled bright star should get a name only when its sector is generated (bug)**
+    Boss (2026-10-03 05:38Z): "When the system generates a sector with
+    an existing bright star that was created during a bright star back
+    fill, the start should then, and only then, get a unique name rather
+    than only it's ID, we'll still keep the ID of course but we need to
+    change the star's name when we generate the star system's content."
+    Done: a bright-sweep star shows its position ID until its sector is
+    generated; at that point it gets its codec name and keeps the ID.
+    Prerequisite: GEN.69.
+
+  - [ ] **GEN.73 Nebulae don't get unique names (bug)**
+    Boss (2026-10-03 05:38Z): "Nebulae should get unique names." Done:
+    every nebula and remnant has a unique codec name from its ID, shown
+    on the maps, lists and its page.
+    Prerequisite: GEN.69.
+
+- [ ] **GEN.74 One point-in-space object that keeps every coordinate system in step, used by every object**
+  Boss (2026-10-07 11:47Z): "Introduce a centralized point-in-space
+  object.  When any of it's coordinates are changed in any coordinate
+  system (cartesian, spherical, cylindrical, etc...) it automatically
+  updates itself to the new position, and integrate that into all of our
+  objects, and we'll store with that the point-mass information with
+  that moving forward." Boss's prototype is `spacial-position.py` (repo
+  root, `SpatialPosition3D`: galactic, sector and system frames,
+  Cartesian, cylindrical and spherical forms, velocity,
+  observable-movement thresholds). Done: the class moves into the
+  physics package with tests, every positioned object (sector, system,
+  star, planet, moon, belt, comet, phenomenon) holds one, with its mass
+  and `mu` beside it, and the stored columns map to it.
+  Prerequisite: OPS.24.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.75 A nebula shape from metaballs and warped noise, as a mesh**
+  Boss (2026-10-03 05:38Z): "Generate a realistic shape mathematically
+  for a nebula so on the map it will appear as a shape, not a sphere,
+  not an ellipse, but a kind of bulbous region with an irregular shape."
+  His recommended pipeline: 4 to 8 centres in an anisotropic ellipsoid
+  as polynomial metaballs, coordinates warped by 3D domain-warped
+  simplex noise, then marching cubes (or dual contouring) at isovalue T
+  for a mesh, or raymarching with density max(0, F(x) - T) for shading.
+  Done: each nebula has a seeded shape (centres, radii, warp settings)
+  stored with it, a mesh built from it (marching cubes) with a low-poly
+  level for the Galaxy Map, and a containment test that tells whether a
+  point is inside; nebula sectors and `surrounding_cloud` use that test.
+  Prerequisite: OPS.21.
+  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+- [ ] **GEN.76 A sector with no qualifying stars never generates or is marked generated (bug)**
+  Boss (2026-10-03 05:38Z): "Sectors do not generate or mark as
+  generated if they do not contain any stars. ... Specifically got this
+  line:  "ring 2790 layer 122 slot 7537 doesn't qualify -- it would hold
+  no real content at this galaxy's own predicted density (below the
+  1-star-per-sector threshold, or outside the layer's stored extent)."
+  All sectors once generated should be filled with something and then
+  let's use our lowest-solar luminosity value for back filling a sector
+  to say if it has been generated or not, if that value is 0 then it has
+  been fully generated and filled, if it is not 0 it has not been
+  filled.  No sector should generate and not fill with stuff even if
+  there are no star systems." Boss (2026-10-07 11:47Z): "Star generation
+  should always actually take place, so even if a sector has 0 expected
+  stars, we'll try anyway because there's always a chance. The projected
+  density is just to be used in generation, not to block generation
+  anywhere." Boss commented out the two `star_count < 1.0` checks in
+  `generate.py` (lines 1928 and 2378: "system needs to generate a sector
+  no matter if it has stars in it or not. Might break things."). Done:
+  every address inside the galaxy's bounds can be generated; a run
+  always draws (systems may come out zero) and always adds the sector's
+  rogue planets, comets and fields; `sector_stats.bright_level_sol` = 0
+  is the one "generated" flag the maps and lists read; the leftover
+  qualify wording and dead code go; and tests generate an empty-density
+  sector and check it is marked generated.
+
+- [ ] **GEN.77 Neighborhood generation fails when its first sector is below the star threshold (bug)**
+  Boss (2026-10-03 05:38Z): "Sector generation even fails if
+  neighborhood mode is used and the distance is pushed out so some
+  sectors would have stars based on estimated density.  I think it has
+  something to do with the first sector being below the star threshold."
+  Done: a neighborhood run from a sparse centre fills every sector in
+  range, and a test runs one at the galaxy's edge.
+  Prerequisite: GEN.76.
+
+- [ ] **GEN.78 Some regions have a star probability of zero (bug)**
+  Boss (2026-10-03 05:38Z): "No region of the galaxy should have a star
+  probability of 0, no matter what the expected density is.  Every
+  sector should have the chance to have at least 1 star of any type.
+  Same for bright star backfill across the entire galaxy, and backfill.
+  Every sector should have at least some chance to have a star in it and
+  some chance to have a very bright star in it." Done: the density
+  model, the sector draw, the bright-star scatter and the backfill all
+  have a small floor probability everywhere inside the galaxy's bounds
+  (`galaxyDensity.py`, `brightStars.py` zeroing bins whose centre
+  "doesn't qualify"), and a test samples the far edge and the halo.
+  Prerequisite: GEN.76.
+
+- [ ] **GEN.79 Bright stars only land between layers -121 and 121, so the bulge never shows (bug)**
+  Boss (2026-10-03 05:38Z): "Backfill bright stars should show the
+  galactic bulge near the center, they do not, verify layers are being
+  filled properly at the extremes." Boss (2026-10-07 11:47Z): "Major
+  bug, bright star placement is exclusively on the central galactic
+  plane between layers -121 and 121.  Created a test galaxy tweaking the
+  central bulge to be significantly larger than normal and ran the
+  bright star test.  All start appeared between layers +/- 121.
+  Generation reported that all 5685 layers were generated." Done: the
+  cause is found (a layer cap, a height scale, or a bin mask in
+  `brightStars.py`), bright stars follow the density model in every
+  layer including a large bulge, the progress report counts only layers
+  that drew, and a test with a large bulge finds bright stars well above
+  layer 121.
+  Prerequisite: GEN.78.
+
+- [ ] **GEN.80 Population and species generation runs on worlds without a technological civilization (bug)**
+  Boss (2026-10-07 11:47Z): "Population and species generation should
+  only run for worlds which have a technological civilization."
+  `population.py` (`has_civilization`, `run_pass`) decides who gets a
+  species and polity. Done: species, polities and population are made
+  only for worlds whose life reaches a technological civilization, a
+  population pass over a galaxy removes or skips the others, and a test
+  checks no non-technological world has a species.
+
+- [ ] **GEN.81 The console refuses runs instead of warning and doing what was asked (bug)**
+  Boss (2026-10-07 11:47Z): "The console will never tell the user no.
+  It will warn about expected size but it will not say no. If there is a
+  user at the command line, you do what the user has asked." Done: every
+  `generate.py` refusal that isn't a bad argument (density, qualify,
+  size, "no room") becomes a warning and the run goes ahead; scripts
+  that want the old stop get `--strict`.
+  Prerequisite: GEN.76.
+
+- [ ] **GEN.82 Black holes show a Hawking temperature and luminosity of zero (bug)**
+  Boss (2026-10-07 11:47Z): "Recheck calculations on Hawking temperature
+  and luminosity of black holes please.  I'm seeing a Luminosity of 0.00
+  x 10^0 W and a temp of 0.00e+00 K which are both absurd." A stellar
+  black hole's Hawking temperature is about 6e-8 K per solar mass and
+  its luminosity about 1e-29 W, so the values are real but tiny; zero
+  means they underflow, aren't stored, or are rounded (`system_pages.py`
+  line 519 prints `.2e`). Done: the formulas are checked against
+  references, the stored values are non-zero, the pages show them in
+  scientific notation, and a test checks a 10 M_sun case.
+
+- [ ] **GEN.83 A planetary habitability index (PHI)**
+  Boss (2026-10-03 05:38Z): "Create a habitability index based on the
+  pressure, temperature, composition, etc...  This will use several
+  documents in the design docs folder: Atmospheric Toxicity.md, Chemical
+  Habitability.md, Naturally Occurring Ionizing Radiation.md, Planetary
+  Habitability and Speculative Xenobiology.md, Planetary Habitability
+  Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
+  Examples.md, Mathematical and Algorithmic Implementation of the
+  Planetary Habitability Index.md" Done when the subitems are.
+  Prerequisites: GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89.
+  Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.84 Habitability design: one score structure and reconciled thresholds**
+    The docs give two structures (PHI-4's Pressure, Temperature,
+    Chemistry, Radiation with colour tiers, and the Xenobiology doc's
+    PHI_bio, PHI_cpx and Phi_tech), conflicting CO, CO2 and
+    mask-pressure thresholds, undefined constants, and a PHI_bio formula
+    that doesn't reproduce its own table (habitability-index.md lists
+    them). Done: one structure chosen by Boss, every constant and
+    threshold fixed with its source, worked examples that reproduce,
+    written into habitability-index.md.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.85 Atmosphere species, partial pressures and mantle redox for every planet**
+    Today `atmosphere` and `composition` are free text. Done: each
+    planet and moon stores its mantle redox state and the partial
+    pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2
+    (columns, DB.13), drawn by class and redox, with the free text
+    generated from them.
+    Prerequisite: GEN.84.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.86 Stellar activity (XUV, flares) and planetary magnetic fields**
+    Done: stars store activity (saturation phase, L_XUV/L_bol, flare and
+    particle-event rates by mass and age), and planets a magnetic field
+    strength from mass, rotation and tidal locking (the spin from GEN
+    item GEN.104 when it lands).
+    Prerequisite: GEN.84.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.87 Surface radiation dose**
+    Done: each planet stores its surface dose from column mass (P0/g),
+    magnetic field, cosmic rays (more inside a compressed heliosphere,
+    using the nebula containment of GEN.75) and flares, plus an
+    ozone-loss flag, following the radiation doc's tables.
+    Prerequisites: GEN.85, GEN.86.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.88 Hydrosphere and ocean chemistry**
+    Done: each planet stores water fraction, ocean and land fraction,
+    ocean depth or ice shell, and an ocean class (acid sulfate, neutral,
+    soda, chloride brine, ice-sealed) with pH, water activity and
+    phosphorus flags.
+    Prerequisite: GEN.85.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.89 The habitability score for every planet and moon**
+    Done: every planet and moon gets the scores GEN.84 defines, with a
+    colour tier and a human equipment profile (shirtsleeve, mask, mask
+    and scrubber, pressure suit, full life support), shown on its page
+    and searchable.
+    Prerequisites: GEN.85, GEN.86, GEN.87, GEN.88.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+- [ ] **GEN.90 Refactor the planet classes around the habitability index**
+  Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
+  align with our habitability index system and the research for the
+  different kinds of life, etc." Known conflicts with the research: N
+  (Venus analog, about 737 K) carries life with no stage cap, E sits
+  above the 122 C ceiling, K and L are below the Armstrong limit while L
+  has land animals, P is uncapped, and no class is an Earth-size world
+  with air that life never touched (GEN.28's Z). Done when its subitems
+  are.
+  Prerequisites: GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92.
+  Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.91 Classes like S and V in the hot and cold zones**
+    Boss (2026-10-03 05:38Z): "We need a planet class for like Class S
+    and V but in the other zones, so that will require research on when
+    an atmosphere is possible and when it isn't." Candidates from the
+    research: a desiccated post-runaway super-Earth (hot), a
+    hydrogen-rich Hycean super-Earth (cold or outer). Done: atmosphere
+    retention rules (escape velocity, XUV, temperature) written down,
+    then the classes added one per PR under GEN.33's rule.
+    Prerequisites: GEN.33, GEN.85.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+  - [ ] **GEN.92 Life and its highest stage follow the habitability score**
+    Done: whether a world has life, and how far it gets, comes from its
+    scores instead of its class alone; life chemistry follows the
+    atmosphere, radiation and solvent rather than the star's letter
+    only; existing galaxies are unchanged until regenerated.
+    Prerequisites: GEN.89, GEN.28.
+    Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+- [ ] **GEN.93 Nebula conditions in planet generation**
+  Boss (2026-10-03 05:38Z): "Account for nebula temperature and
+  conditions when generating planets and calculating surface conditions.
+  You'll have to do a fesability study for our nebula classes in if a
+  planet could even form there and what would happen if one did, how it
+  would change the planets development and envirionment according to the
+  science." Done when the subitems are.
+  Prerequisites: GEN.94, GEN.95.
+  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+  - [ ] **GEN.94 Feasibility study: can planets form in each nebula class, and what changes**
+    Done: for each nebula and remnant class (A to W), whether disks
+    survive (photoevaporation near O and B stars), what enrichment does
+    (26Al and 60Fe heating), how extinction and cosmic rays change
+    surface conditions, and a rule table for generation, written into
+    nebula-and-asteroid-field-classes.md and reviewed by Boss.
+    Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+  - [ ] **GEN.95 Nebula conditions applied when planets and surfaces are generated**
+    Done: generation knows a system's surrounding cloud while it runs
+    (today `surrounding_cloud` is set only when a system is loaded) and
+    applies GEN.94's rules to planet formation and surface conditions.
+    Prerequisites: GEN.94, GEN.89, GEN.75.
+    Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+- [ ] **GEN.96 Generation directives for a sector (an override button)**
+  Boss (2026-10-03 05:38Z): "When generating a sector should have the
+  ability to click an override button and give directive (must have a
+  certain density, must have at least x types of x stars, needs to have
+  at least x habitable worlds within the sector, etc etc)." Done: an
+  Override button on sector generation opens directives (density, at
+  least N stars of a type, at least N habitable worlds and the like);
+  the run draws until they hold or reports which it couldn't meet;
+  `generate.py` takes the same as `--directive`.
+  Prerequisite: GEN.52.
+
+- [ ] **GEN.97 Generate N random neighborhoods**
+  Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
+  produce x number of random neighborhoods in the generation process."
+  Done: the Generate page and `generate.py` take a count and a
+  neighborhood radius and fill that many neighborhoods around random
+  qualifying centres.
+
+- [ ] **GEN.98 Bright-star backfill from the farthest generated boundary outward**
+  Boss (2026-10-03 05:38Z): "Make star backfill after a sector or group
+  of sectors is generated go from the edge of the farthest sector
+  boundary in all directions by the specified distance in the
+  algorithm." Done: after a run, the backfill region is the run's outer
+  boundary pushed out by the backfill distance in every direction, not a
+  radius around the starting sector.
+
+- [ ] **GEN.99 Nebula volume backfill with the star types the nebula needs**
+  Boss (2026-10-03 05:38Z): "Some Nebulae must have certain stars in
+  them by their definition, so backfill nebula volume sectors to seed
+  with stars of required types.  Any nebulae that requires backfill
+  after it's created will trigger a back fill for the nebula volume down
+  to 750 Solar Luminisities with the probability skewed to ensure
+  dominance of the correct types of stars.  Existing backfilled stars
+  should also be regenerated in-place (star location doesn't change)
+  with the skewed probabilities favoring the correct class and similar
+  luminocity as the original if possible (it won't always be compatible
+  between what is required and what brightness to use, if it is NOT
+  possible, then don't regenerate the star." Done as he says, using the
+  nebula's shape for its volume.
+  Prerequisites: GEN.75, GEN.100.
+  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+- [ ] **GEN.100 Phenomena placed galaxy-wide first and kept when sectors fill**
+  Boss (2026-10-03 05:38Z): "Move black hole (all types), neutron star,
+  and quasar scattering to just before the bright star scatter during
+  galaxy creation, use the same table as the star scatter for ease just
+  add type data if needed." Boss (2026-10-07 11:47Z): "Have phenomena
+  like neutron stars, nebula, quasars, and black holes generated through
+  the entire galaxy first.  Thus do not regenerate those when a sector
+  is filled in.  Account for all contents in a sector to stay where they
+  have already been put if more content is being added." Done: black
+  holes, neutron stars, quasars and nebulae are scattered galaxy-wide
+  during creation, just before the bright-star scatter, in the
+  bright-star table with a type column; a sector fill keeps everything
+  already placed in it and only adds.
+
+- [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
+  Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors
+  nearest to the original sector first, circling outward using a
+  geometric 3D space-filling curve via a pruned Hilbert octree over the
+  $\mathbb{Z}^3$ integer lattice. Recursively traverse the octree from
+  the origin sector outward to depth $D = \lceil\log_2(2R)\rceil$,
+  restricting traversal to cells satisfying $\Vert{}v - v_0\Vert{}_2 \le
+  R$ to achieve deterministic $\mathcal{O}(N)$ generation without the
+  NP-complete overhead of general Hamiltonian path searches. The
+  generated sequence must maintain face-adjacent unit steps
+  ($\Vert{}v_{i+1} - v_i\Vert{}_1 = 1$) visiting every valid voxel
+  centroid exactly once with zero backtracking, preserving radial
+  locality as it scales to the boundary." Note: a pruned ball is not
+  always walkable with unit steps and no backtracking; the item reports
+  where that fails and what it does then. Done: neighborhood and radial
+  runs fill in this order, deterministically, with a test of the
+  unit-step and visit-once rules.
+
+- [ ] **GEN.102 Investigate filling all near-zero-density void space at once**
+  Boss (2026-10-07 11:47Z): "Investigate filling all void space (space
+  that plots to have a 0 or nearly 0 star density) at once, since those
+  sectors have the least in them, we can afford to fill them." Done: a
+  count of such sectors, the time and storage a fill would take, and a
+  recommendation for Boss.
+  Prerequisite: GEN.78.
+
+- [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
+  Boss (2026-10-07 11:47Z): "Research and add tiered structure
+  information about where stars of different types would be in the
+  galactic structure, what kinds of phenomena have similar restrictions,
+  etc." Done: a design note (thin and thick disk, bulge, bar, halo,
+  arms; ages and metallicity; where O and B stars, white dwarfs,
+  remnants, clusters and nebulae sit) and the rules added to the density
+  and type draws.
+
+- [ ] **GEN.104 A spin vector and a realistic axial tilt for every rotating object**
+  Boss (2026-10-07 11:47Z): "Add to the database every object gets a
+  spin value as a vector containing direction of spin, velocity of spin,
+  in 3 dimensional space.  Each rotating object will be generated a
+  realistic axis tilt. To be clear when I say spin I am talking
+  literally about the movement of a body around it's center of gravity
+  (i.e. the rotation of the Earth)." Done: stars, planets, moons, small
+  bodies and black holes store a spin axis and rate, drawn by the doc's
+  cascade (tidal locking, gyrochronology for cool stars, log-normal
+  speeds under the breakup limit for hot ones, the 2.2-hour spin barrier
+  for small bodies, black hole spin distributions).
+  Prerequisite: GEN.74.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.105 Orbital updates**
+  Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
+  moves only what has visibly moved, counts what changed, and lets
+  nearby masses bend paths, with "reasonable limitations for when the
+  math breaks down at the edge cases". `updateOrbits.py` is today's
+  positional update. Done when its subitems are.
+  Prerequisites: GEN.106, GEN.107, GEN.108, GEN.109, GEN.110.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+  - [ ] **GEN.106 Movement thresholds and a next-update-due column**
+    Boss (2026-10-03 05:38Z): "orbital update script should only count
+    items that it had to change the position for.  It should only update
+    the position of items that changed location in a noticable way.  On
+    a galactic scale that's going to be only if it has had sufficient
+    time to move by at least 0.01 mpc (milliparsec), that includes
+    stars, black holes, neutron stars, brown dwarves, basically anything
+    star-like that isn't a planet.  For system scale (planets, binary
+    stars, etc) it will need to have moved at least 0.01 AU to get an
+    update.  For planetary scale (moons and other satellites) the
+    position will only be updated if it has moved at least 100,000 km
+    since the lsat positional update. Update the database schema so that
+    we can as fast as possible check for items due for an update.  When
+    we update the position on any item for any reason, we will update
+    the table with when the next update should be due for that object."
+    Done as he says: an indexed `next_update_due` per object, set from
+    its speed and its threshold whenever it moves.
+    Prerequisites: GEN.74, DB.11.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+  - [ ] **GEN.107 The update reports how many objects moved, changed sector, or entered or left a nebula**
+    Boss (2026-10-03 05:38Z): "orbital update script should also say how
+    many objects changed sector or entered / exited a nebulae." Done:
+    the update's summary counts objects moved (only those past their
+    threshold), sector changes and nebula entries and exits (by the
+    nebula shape test).
+    Prerequisites: GEN.106, GEN.75.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+  - [ ] **GEN.108 Orbital math limits: where each method breaks down and what happens there**
+    Boss (2026-10-07 11:47Z): "Orbital path implementation, we need to
+    ensure that reasonable limitations for when the math breaks down at
+    the edge cases." Done: orbital-updates.md lists each edge case
+    (near-parabolic orbits, e close to 1, time steps longer than an
+    orbit, bodies inside a Roche limit or a Hill sphere, the galactic
+    centre's singular potential, float precision at galactic distances)
+    with the guard the code applies, and tests hit each guard.
+    Prerequisite: GEN.106.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+  - [ ] **GEN.109 N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning**
+    Boss (2026-10-03 05:38Z): "Add robust vector geometry updates for
+    orbital path influenced by the nearest 10 gravitational bodies that
+    are as large or larger than the object in question so that object
+    effect each other's orbital path.  Again, we only change
+    trajectories when the movement is updated.  Should fire off a
+    warning if any object is foudn to be within the hill radius of
+    another object." Following "Orbital Update Full Algorithm.md":
+    Velocity Verlet over the top influencers from per-sector point-mass
+    tables, swept-sphere collision checks, then Hill-sphere crossings
+    handled per system. Done: trajectories change only at updates,
+    warnings go to the debug and activity logs.
+    Prerequisites: GEN.106, GEN.108.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+  - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
+    Boss (2026-10-03 05:38Z): "If rogue planets ever hit and at least
+    one is terrestrial both are destroyed and they turn into an asteroid
+    field.  If two rogue gas giant collide we assume they become a
+    bigger gas giant losing only a small % of their mass, then we have
+    to find out if they would have sufficient mass for nuclear fusion to
+    occur and then add a star to the map if that's yes.  If a star does
+    get added to the map that gets reported to admin as well and the
+    star should get no planets and instead should be a planetary nebula.
+    Anything like that" Done as he says, with momentum kept (the
+    collision doc's inelastic merger) and every event in the admin
+    report.
+    Prerequisite: GEN.109.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.111 Email the admin when two objects are inside each other's Hill radius**
+  Boss (2026-10-03 05:38Z): "If email is configured and that happens,
+  call the API to send an email to admin the exact ID and location
+  information for where the objects are located." Done: with SMTP
+  configured, each Hill-radius warning from GEN.109 emails the admin the
+  two IDs and their positions.
+  Prerequisites: GEN.109, USR.3.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.112 Plan asteroid fields and belts as object systems for rendering**
+  Boss (2026-10-03 05:38Z): "Begin planning for actually generating
+  asteroid fields and asteroid belts as a system of objects but we're
+  still going to treat them like a single object for positional updating
+  and orbital speed, only for rendering will be generate a system of
+  objects." Done: a plan (how many bodies, seeded from the field's ID so
+  they are the same every time, size and spacing laws, level of detail)
+  reviewed by Boss.
+  Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
+
+- [ ] **GEN.113 Analyze the anomaly docs: which anomalies to add and how**
+  Boss (2026-10-07 11:47Z): "Two additional files have been added, but
+  these are part of adding more anomalies to the starmap so it'll be
+  probably Phase 2 and 3 just to analyze those." The files are "Star
+  Trek Anomalies and Science.md" and "Star Trek Anomaly
+  Probabilities.md" (anomaly classes, per-sector rates with a lore
+  multiplier, sensor-path encounters). Done: a list of anomalies worth
+  adding, each with its real-science basis, rate, placement and how it
+  is drawn, reviewed by Boss; note the docs' 20 ly sectors against our 4
+  pc (about 13 ly) sectors.
+
+- [ ] **GEN.114 Add the chosen anomalies to the starmap**
+  Done: the anomalies GEN.113 chose are generated, stored, shown on the
+  maps and searchable, one kind per PR.
+  Prerequisite: GEN.113.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -1903,6 +2838,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work instead of doing it inside the request. The bright-star scatter
   already runs per layer in parallel (PERF.7) but stays serial within a
   layer.
+  Prerequisites: PERF.19, PERF.24.
+  Plan (2026-10-07): The backfill blocks become RQ jobs (PERF.24).
 
 - [ ] **PERF.19 Everything the API or web site starts runs on the work queue (investigate)**
   Boss (2026-10-01 22:13Z): "I want _everything_ that communicates
@@ -1915,6 +2852,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   today, and which should move. Done: the audit, written up with a plan
   that Boss approves; the moves themselves are filed as their own items
   from that plan.
+  Plan (2026-10-07): Boss chose Redis and RQ for the queue (2026-10-03).
+  This audit is now the first step of PERF.24, in phase 0; the moves it
+  lists are done there.
 
 - [ ] **PERF.20 Short-term caching through the work queue and API (needs planning)**
   Boss (2026-10-01 22:17Z): "Everything should go through the work
@@ -1931,6 +2871,79 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the API and the queue hand results back and forth with fewer round
   trips. Done: an approved plan, with the build work filed as its own
   items from it.
+  Prerequisites: PERF.19, PERF.24, PERF.25.
+  Plan (2026-10-07): Plans on RQ job results and the
+  cachetools/diskcache caches (PERF.24, PERF.25).
+
+- [ ] **PERF.24 The work queue and web jobs on Redis with RQ**
+  Today `stellarObjects/workQueue.py` (1,600 lines) runs its own process
+  pool with database leases (`work_lease`), heartbeats and stale-run
+  reclaim, and `jobRunner.py` runs the web jobs as process trees with
+  state in the jobs folder. Boss chose Redis (2026-10-03), which
+  overrides the job guide's broker-less `ProcessPoolExecutor`. Done:
+  generation units (sectors, layer scatters, backfill blocks) and web
+  jobs run as RQ jobs on Redis workers; the worker count, retries,
+  timeouts and status come from RQ; a dead worker's job is retried, not
+  lost (PERF.22's case); progress and log lines are published per job
+  for ADM.22; results match the old queue for the same seed at any
+  worker count; and `workQueue.py`, `jobRunner.py` and the `work_lease`
+  table go. PERF.19's audit is its first step.
+  Prerequisites: OPS.21, PERF.19.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **PERF.25 The page and tile caches on cachetools and diskcache**
+  Today `pagecache.py` and `tilecache.py` hand-roll an in-memory LRU and
+  a disk cache. Done: in-memory caches use `cachetools` (TTL and LRU),
+  the Galaxy Map tile cache uses `diskcache` with the same keys and
+  invalidation (MAP.72 tiles, PR #72), the old modules are deleted, and
+  the cache tests pass unchanged.
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **PERF.26 Size estimates don't match what generation stores (bug)**
+  Boss (2026-10-03 05:38Z): "Size estimates seem off, double check. Do
+  analysis of reported size added for large amoutns of data and what it
+  actually takes in the database after generation." Today the Generate
+  page and `generate.py` show an estimate before a run (`estimate_only`
+  in `sector_page.py` and `generate_page.py`). Done: the estimate is
+  compared with what runs of several sizes actually add (table sizes
+  from `information_schema` before and after), the per-system and
+  per-star constants are corrected, the findings are written down, and a
+  test keeps the estimate within a stated margin of a measured run.
+
+- [ ] **PERF.27 On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug)**
+  Seen on PR #431's CI (2026-10-02, Python 3.9 tests): passing
+  `--workers=--` and similar values makes the parsed option a list
+  instead of a number, and generate.py's CLI checks crash instead of
+  printing a usage error. Done: on every supported Python the bad value
+  gives a clear usage error with exit status 2, and the 3.9 leg is
+  green.
+
+- [ ] **PERF.28 The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug)**
+  Boss (2026-10-07 11:47Z): "In the console the secondary progress bar
+  for star back fill after sector generation does not update it's ETA."
+  The ETA comes from the decaying rate behind `_DecayingRemainingColumn`
+  in `generate.py` (PERF.7). Done: the backfill bar's ETA updates as
+  blocks finish, and a test drives the bar through a fake backfill and
+  checks the ETA changes.
+
+- [ ] **PERF.29 Record which runs a partly filled sector still needs**
+  Boss (2026-10-07 11:47Z): "Add a way to record and resume which
+  sectors might be only partially filled by identifying what runs
+  haven't been made yet." Done: each sector records which steps of its
+  fill have finished (systems, phenomena, bright-star levels,
+  population), so a check lists every partly filled sector and the steps
+  it still needs; the level rule of GEN.44 (-1 untouched, a positive
+  L_sun, 0 generated) stays the summary.
+  Prerequisite: GEN.76.
+
+- [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
+  Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
+  block or sector on next start." Done: when the site or `generate.py`
+  starts, unfinished runs found by PERF.29 are offered (web) or listed
+  with a `--resume` flag (CLI) and finish from the step they reached,
+  with the same result as an uninterrupted run.
+  Prerequisite: PERF.29.
 
 ## DB: Database and schema
 
@@ -1963,6 +2976,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damages a copy of a small galaxy in each of these ways and checks the
   matching problem is reported, and an undamaged one passes.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+  Prerequisite: DB.11.
+  Plan (2026-10-07): The schema check reads Alembic's revision (DB.11);
+  the name-registry check is dropped, since GEN.71 removes the
+  registries.
 
 - [ ] **DB.9 Repair a damaged galaxy database from a parity file**
   Boss (same message): "then Phase 1 inject a DB repair using parity
@@ -1995,6 +3012,36 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   repairs a sector with both merged and pending changes. Prerequisites:
   DB.9, GEN.61, OPS.18.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+
+- [ ] **DB.11 The database layer and migrations on SQLAlchemy and Alembic**
+  Today `_db.py` (9,800 lines) builds SQL strings over PyMySQL with its
+  own pooling, and `migrateDb.py` replays `schema_vNN.sql.gz` fixtures.
+  Done: tables are declared as SQLAlchemy models (MySQL 8.4 and MariaDB
+  11.4 both supported), connections and transactions use SQLAlchemy's
+  pool, Alembic carries migrations from the current schema (v53) forward
+  with a baseline that recognises existing databases, and the id-block
+  and batching behaviour is kept (TEST.81 and TEST.87 stay fixed).
+  Prerequisite: OPS.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **DB.12 MariaDB reads a stored -0.0 back as +0.0 (bug)**
+  Seen on PR #431's CI (2026-10-02, MariaDB tests): a value stored as
+  -0.0 reads back as +0.0, so a round-trip test that compares signs
+  fails. Done: either stored values are normalised so -0.0 is never
+  written (a coordinate or velocity of zero has no sign that matters) or
+  the test compares with that rule, and the MariaDB legs are green.
+
+- [ ] **DB.13 Every stored value in its own column, not in JSON blocks, and indexed for search**
+  Boss (2026-10-07 11:47Z): "Ensure to have all database information to
+  be stored directly in the database and not in JSON blocks.  Optimize
+  to be able to use any bit of information to search the database
+  quickly with the right query.  This is to be considered a Phaser 0
+  priority." Done: an audit lists every JSON or serialized column in the
+  galaxy and control schemas and what reads it; each becomes real
+  columns or child tables (as Alembic migrations), the searches in
+  `queryDb.py` and the API use indexed columns, and a test checks no
+  galaxy table keeps a JSON blob.
+  Prerequisite: DB.11.
 
 ## API: The JSON API
 
@@ -2069,6 +3116,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     Done: a route that returns, compressed, what a local run needs
     (galaxy seed, skeleton, filled sectors, name registries, reserved
     id ranges), so `generate.py` needs no database.
+    Prerequisite: API.5.
+    Plan (2026-10-07): Downloads the naming key (GEN.70) instead of name
+    registries.
 
   - [ ] **API.13 Generation without a database**
     Today `generate.py` writes through `_db` as it goes. Done: a mode
@@ -2172,6 +3222,37 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Open question: which corrections the server makes on its own, and
   which reject the unit so the client regenerates it.
 
+- [ ] **API.18 Generate by recipe: JSON for sectors, systems, planets, moons and phenomena**
+  Boss (2026-10-07 11:47Z): "API should contain a 'generate recipe'
+  function, the API would accept JSON for configurations.  Basically you
+  need to make an adaptable JSON system for the API to accept to
+  generate exactly what the user wants with all possible items
+  configurable and varied degrees of randomness.  There should even be
+  an API JSON input to create a galaxy, sectors, planets, moons.  More
+  than that, phenomena of all types should be creatable by recipe.
+  Validation errors should return error objects in JSON from the API but
+  also have details, log output for the command, why it failed, HTTP
+  code should be 400 or 422 depending.  A 400 error would be for a
+  gibberish request, something that the system cannot handle because it
+  makes no sense.  A 422 error should be returned for validation
+  failures." Done: a documented recipe schema where any field can be
+  fixed, ranged or left random; recipes for a sector, a system, a
+  planet, a moon and each phenomenon run as jobs; errors come back as
+  JSON with details and log output, 400 or 422 as he says.
+  Prerequisites: ADM.21, GEN.96, API.9.
+
+- [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
+  Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to
+  create an approximation of the known galaxy if they were willing to
+  build the JSON file for it and the server had enough data to store it.
+  In reality, I want the framework and theoretical capability, but I
+  know the system cannot really handle that.  I DO however want the
+  ability to perhaps (one bit at a time) build a simulated Milky Way but
+  that's like so far down the road it doesn't even matter." Done: a
+  galaxy recipe (shape, settings, seed) creates a galaxy, and recipes
+  can be applied region by region to build one up over time.
+  Prerequisite: API.18.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -2202,6 +3283,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   labels are, at desktop and phone widths, in both themes. This includes
   ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
   #295).
+  Prerequisite: UX.40.
+  Plan (2026-10-07): Folded into UX.40: the Generate page fields become
+  Shoelace inputs.
 
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
@@ -2222,16 +3306,217 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   local MySQL, while still giving the web site and database calls enough
   time that they keep working, if slowly. The change is written to the
   admin activity log.
+  Prerequisite: PERF.24.
+  Plan (2026-10-07): The worker count now means RQ worker processes
+  (PERF.24).
+
+- [ ] **ADM.21 Input validation on Pydantic models**
+  Today `validation.py` checks systems and admin input by hand (ADM.5).
+  Done: request bodies, admin forms and generation settings are Pydantic
+  models with the same limits, validation errors list every field at
+  once, and the old checks are deleted.
+  Prerequisite: OPS.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **ADM.22 Job logs streamed over SSE into Xterm.js, with native progress bars**
+  From "Web UX and Job Management Guide.md": the Generate page and Queue
+  page show a running job's log in an Xterm.js terminal fed by
+  Server-Sent Events from the RQ job, and its progress in native
+  `<progress>` bars (`generatejobs.js`, `generatefolds.js`, `jobs.py`,
+  `progressRate.py`). SSE needs threaded or gevent workers under Apache
+  (mod_wsgi settings documented). Done: logs and progress stream live,
+  reconnect after a drop, and keep the full log for download.
+  Prerequisite: PERF.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **ADM.23 Log output wraps with hard line breaks (bug)**
+    Boss (2026-10-03 05:38Z): "Log output should not use hard line
+    breaks for word wrapping let the browser or CLI handle that." Done:
+    log messages are written as single lines (no wrapping in the message
+    text), the terminal and console wrap them, and the debug log keeps
+    one record per line (OPS.9).
+    Prerequisite: ADM.22.
+
+  - [ ] **ADM.24 A failed action's log closes before it can be read (bug)**
+    Boss (2026-10-03 05:38Z): "If action fails that has a log screen,
+    pause on the log output waiting for user input to continue so they
+    can read the log." Done: when a job with a log fails, its log stays
+    open with the error in view until the user clicks Continue (web) or
+    presses Enter (interactive console; non-interactive runs exit as
+    now).
+    Prerequisite: ADM.22.
+
+  - [ ] **ADM.25 Error tracebacks don't reach the console and the web log window (bug)**
+    Boss (2026-10-03 05:38Z): "Error traces should be output to the
+    console and to the web-log-window when an action is running so they
+    can be readily copy-pasted into documents for tracing." Done: an
+    exception in a running action prints its full traceback to the
+    console and to the job's web log, with a Copy button, as well as to
+    the debug log.
+    Prerequisite: ADM.22.
+
+  - [ ] **ADM.26 The bright-star backfill shows no progress bar on the web (bug)**
+    Boss (2026-10-07 11:47Z): "During star backfill progress bars do not
+    appear on the web at all." Done: the backfill publishes progress
+    like the sector run does, and the Generate page shows its bar and
+    ETA.
+    Prerequisite: ADM.22.
+
+- [ ] **ADM.27 Changing a planet's class doesn't regenerate its surface conditions (bug)**
+  Boss (2026-10-03 05:38Z): "When changing a class regenerate the
+  planet's surface conditions with the assumption it is that class.
+  Fail gracefully if it cannot do it." Today "Change class" (ADM.6,
+  `adminEdits.py`) stores the new class over the old values. Done: the
+  change regenerates temperature, pressure, atmosphere, composition and
+  life as that class (keeping orbit, mass and name), and when the class
+  can't fit (for example a gas giant class on a small rocky body) it
+  refuses with a message and changes nothing.
+
+- [ ] **ADM.28 A simpler Generate page: layer specs, a Customize window and plain controls**
+  Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
+  screen.  Let's also have a customize button that brings up a special
+  window with all the settings, the generate screen is getting a bit
+  complex, we need to do a full rework to make it easier to use." Done:
+  the page shows the galaxy's layer specs (count, height, extent, how
+  many charted), the common actions stay on the page and every other
+  setting moves into a Customize dialog, and its subitems are done.
+  Prerequisites: UX.40, ADM.29, ADM.30, ADM.31, GEN.97.
+
+  - [ ] **ADM.29 Fill a span of layers, rings or columns**
+    Boss (2026-10-07 11:47Z): "Ability to specify a span of layers to
+    fill in or a span of rings to fill in.  Or a span of columns to fill
+    in." Done: the Generate page and `generate.py` take a layer range, a
+    ring range or a column range (with the estimate shown first).
+
+  - [ ] **ADM.30 Radial generation: a cylinder of N sectors around a point**
+    Boss (2026-10-07 11:47Z): "From generate menu specify a radial
+    generation from a point in a direct cylinder x sectors radius (1 =
+    minimum for contiguous orthogonal connection between each sector and
+    it's adjacent sectors." Done: a point (sector or coordinates) and a
+    radius in sectors fill a cylinder around it; radius 1 fills the
+    point and its face neighbours.
+
+  - [ ] **ADM.31 Every generate action offers to show what it made on the Galaxy Map**
+    Boss (2026-10-03 05:38Z): "Add a button from the generate screen to
+    show generated sectors in galaxy view." Boss (2026-10-07 11:47Z):
+    "Generating any space gives you the option to see that space in the
+    galaxy viewer." Done: the Generate page has a "Show charted sectors"
+    button, and every finished generate action (page, map menus, API
+    job) offers "Show on Galaxy Map", which opens the map fitted to what
+    it made with those sectors highlighted.
+
+  - [ ] **GEN.97 Generate N random neighborhoods**
+    Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
+    produce x number of random neighborhoods in the generation process."
+    Done: the Generate page and `generate.py` take a count and a
+    neighborhood radius and fill that many neighborhoods around random
+    qualifying centres.
+
+- [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
+  Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
+  sector, the computer will place in the area of lowest density if it
+  can without crossing the hill sphere of another object, if the object
+  cannot be placed then it will gracefully error out." And: "Add the
+  ability to insert a sector or move a stand-alone sector into some
+  location in a sector of admin's choosing.  They can specify
+  coordinates (in 3 different ways) of the star system relative to the
+  center of the sector or center of the galaxy (either needs to be an
+  option).  The admin should also be able to select random placement
+  within the sector so long as it is not in a hill sphere, the system
+  will not move existing stars without admin approval. Admin can also
+  choose to have the computer put the new star system in the least
+  populated area, basically the spot that is farthest from everything
+  that you can get within the sector." Done: from the sector page, an
+  admin adds a new or existing stand-alone system by (1) the emptiest
+  point (farthest from every object), (2) coordinates in Cartesian,
+  cylindrical or spherical form relative to the sector centre or the
+  galaxy centre (GEN.74), or (3) random; no placement may fall inside
+  another object's Hill sphere, nothing existing moves without the admin
+  confirming, and a placement that can't be made fails with a message
+  and changes nothing.
+  Prerequisite: GEN.74.
+
+- [ ] **ADM.33 The owner can override "no room" warnings and generate anyway**
+  Boss (2026-10-07 11:47Z): "Ability to override warnings as owner and
+  tell it to generate things even if it doesn't think it has room."
+  Done: where the web interface warns that a sector or system has no
+  room (density, Hill spheres, size), the Owner (and admins until
+  accounts exist) gets a "Generate anyway" choice that is logged in the
+  activity log.
+  Prerequisite: GEN.81.
+
+- [ ] **ADM.34 One admin menu per screen, holding only that screen's actions**
+  Boss (2026-10-07 11:47Z): "All admin items are hidden under a simple
+  menu and each menu list is customized to the actual screen we're in."
+  Done: every page and map view has one Admin menu button (hidden for
+  visitors) listing only the actions that apply there; inline admin
+  panels are gone.
+  Prerequisites: UX.40, UX.26, UX.31.
+
+- [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
+  Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
+  me for all possible inputs to regen any item in the system from the
+  item detail screen, from the galactic screen (regen entire sectors),
+  backfill bright stars again to any currently viewed wedge or slap,
+  erase all contents if I ask, etc, full control from every screen."
+  Done: every object's detail screen can edit each stored field and
+  regenerate it with a form holding every generation input (defaults
+  filled in); the Galaxy Map can regenerate or erase whole sectors and
+  blocks and re-run the bright-star backfill for the wedge or slab in
+  view; erasing always asks first.
+  Prerequisites: ADM.34, MAP.120.
+
+  - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
+    Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus
+    in galactic view." Done: the admin menu on a block, slab or wedge
+    runs the bright-star backfill for it as a job.
+    Prerequisite: MAP.65.
+
+- [ ] **ADM.36 Change an object's trajectory vector**
+  Boss (2026-10-07 11:47Z): "Give the user the ability to change an
+  object's trajectory vector." Done: an admin sets a body's velocity
+  vector (in any frame the position object supports) from its detail
+  screen; the change is validated (escape, collisions), logged, and used
+  by the next orbital update.
+  Prerequisites: GEN.74, GEN.109.
 
 ## SEC: Security
 
-No open items. The login protection of 2026-10-01 (SEC.1, SEC.20 to
+The login protection of 2026-10-01 (SEC.1, SEC.20 to
 SEC.28: the always-on activity log, per-address and per-username
 lockouts, trusted devices, the password blocklist and hashing cost,
 two-factor sign-in and the fail2ban example) shipped in PRs #217, #220
 and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
+
+- [ ] **SEC.29 Two-step sign-in on pyotp, QR codes on segno**
+  Today `totp.py` (100 lines) and `qrcodegen.py` (900 lines, a copy of
+  Nayuki's generator) do this by hand. Done: TOTP codes come from
+  `pyotp` with the same secrets, step and window, so enrolled users keep
+  working; QR codes come from `segno` as SVG; both old modules are
+  deleted; and the two-step tests pass every run, including near a step
+  boundary (TEST.72).
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **SEC.30 Login and request rate limits on Flask-Limiter with Redis storage**
+  Today `loginThrottle.py`, `api/limiter.py` and `api/loginguard.py`
+  keep their own counters. Done: request limits use Flask-Limiter with
+  Redis storage; the per-address and per-username lockouts keep their
+  rules (docs/design/login-brute-force-protection.md) on the same
+  storage; the activity log and fail2ban lines are unchanged; and the
+  rate-limit tests pass alone and under `-n auto` (TEST.83).
+  Prerequisite: OPS.21.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **SEC.31 Signing in as admin works but shows a "form expired" error (bug)**
+  Boss (2026-10-07 11:47Z): "Weird admin sign in signs me in but gives
+  me an error about form expired." The message is the CSRF check's
+  (`src/html/web/csrf.py` line 120). Likely a stale token after the
+  session changes on sign-in, or a second submit. Done: the cause is
+  found, signing in never shows the error, and a test signs in (with and
+  without two-step) and checks no 400 follows.
 
 ## TEST: The test suite
 
@@ -2254,6 +3539,9 @@ clears each one.
   found (loop the test over seeds or runs), the cause is fixed in the
   test or in the code it found, and the test passes on every run tried.
   [infra, ADM]
+  Prerequisite: GEN.71.
+  Plan (2026-10-07): Folded into GEN.67: codec names have no
+  apostrophes; fix the test's escaping in GEN.71.
 
 - [ ] **TEST.72 Intermittent failure in the two-step (2FA) sign-in test (bug)**
   Found by the bug audit (2026-10-01, `bug-audit.md`): the two-step sign-in test failed once in a full run for PR #263
@@ -2261,6 +3549,9 @@ clears each one.
   it, including near a time-step boundary of the one-time code), the
   cause is fixed in the test or in the code it found, and the test
   passes on every run tried. [infra, SEC]
+  Prerequisite: SEC.29.
+  Plan (2026-10-07): Folded into SEC.29: the TOTP code moves to pyotp,
+  and the test is fixed there.
 
 - [ ] **TEST.78 A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug)**
   Reported by the Database thread (PR #342, 2026-10-02):
@@ -2290,6 +3581,9 @@ clears each one.
   is found, block reservation retries or orders its locks so two
   processes never deadlock, and the test passes on every run tried.
   [infra, DB]
+  Plan (2026-10-07): Also failed on MySQL 8.4 on PR #431's CI
+  (2026-10-02, the ID-block test deadlocked), so it is CI red: first in
+  the bugfix lane.
 
 - [ ] **TEST.82 Intermittent failure in the orbit-ceiling trim test (bug)**
   `test_validation.py::test_trim_to_orbit_ceiling_returns_what_it_removed`
@@ -2310,6 +3604,9 @@ clears each one.
   (loop them under load), the tests or the rate limits stop depending
   on wall-clock speed, and they pass on every run tried, alone and
   under `-n auto`. [infra, SEC]
+  Prerequisite: SEC.30.
+  Plan (2026-10-07): Folded into SEC.30: the limits move to
+  Flask-Limiter on Redis, and the tests are fixed there.
 
 - [ ] **TEST.84 The every-column round-trip test depends on whether a quasar got placed (bug)**
   `test_db_column_round_trip.py::test_every_column_is_written` fails
@@ -2545,6 +3842,241 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   skipping a running job) and removes the empty old folder, saying
   what it did; a `jobs.dir` set in `config.json` is left alone; and a
   test checks the default and the move.
+  Prerequisite: PERF.24.
+  Plan (2026-10-07): Folded into PERF.24: the web jobs move to RQ, and
+  the jobs folder default is fixed in the same PR.
+
+- [ ] **OPS.20 Move the code base from zero dependencies to third-party open-source libraries**
+  Boss (2026-10-03 05:38Z): "Transition the code to open source 3rd
+  party libraries and simplify the code base, also in this step we'll
+  use a redis server for use in managing and executing the work queue.
+  Read document "Library Migration Workflow.md" for python libraries
+  that we'll be switching to and we'll also begin using libraries for
+  our web interface as well from files "Web UX Development Notes.md" and
+  "Web UX and Job Management Guide.md".  To be clear, we have an
+  explicit directive to move the code base from a 0-dependency model
+  into using 3rd party open source libraries to simplify our own code
+  deployment." This ends the zero-dependency rule (design decision 11).
+  Each library swap is its own subitem and PR, after the package layout
+  (OPS.23, OPS.24) so code moves once. Done when every subitem is done
+  and the hand-rolled modules they replace are deleted.
+  Prerequisites: OPS.21, SEC.29, UX.39, PERF.24, SEC.30, PERF.25, DB.11,
+  ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **OPS.21 Pinned third-party dependencies and a Redis server in install, update and CI**
+    Today `requirements.lock` and `requirements-server.lock` pin a
+    handful of packages, and nothing needs a separate service besides
+    MySQL or MariaDB. Done: the libraries in the migration plan are
+    pinned in the lock files (with hashes, so OPS.13's lock hash still
+    means something); `install.sh`, `install.ps1`, `update.sh` and
+    `update.ps1` install a Redis server (or check for one) and add its
+    address to `config.json` (`redis.url`); CI starts a Redis service
+    next to MySQL and MariaDB; and the deployment docs list Redis. Open
+    question for Boss: Redis has no supported native Windows build.
+    Default: on Windows the installer points at Memurai or a Redis in
+    WSL, and the docs say so.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **PERF.24 The work queue and web jobs on Redis with RQ**
+    Today `stellarObjects/workQueue.py` (1,600 lines) runs its own
+    process pool with database leases (`work_lease`), heartbeats and
+    stale-run reclaim, and `jobRunner.py` runs the web jobs as process
+    trees with state in the jobs folder. Boss chose Redis (2026-10-03),
+    which overrides the job guide's broker-less `ProcessPoolExecutor`.
+    Done: generation units (sectors, layer scatters, backfill blocks)
+    and web jobs run as RQ jobs on Redis workers; the worker count,
+    retries, timeouts and status come from RQ; a dead worker's job is
+    retried, not lost (PERF.22's case); progress and log lines are
+    published per job for ADM.22; results match the old queue for the
+    same seed at any worker count; and `workQueue.py`, `jobRunner.py`
+    and the `work_lease` table go. PERF.19's audit is its first step.
+    Prerequisites: OPS.21, PERF.19.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **PERF.25 The page and tile caches on cachetools and diskcache**
+    Today `pagecache.py` and `tilecache.py` hand-roll an in-memory LRU
+    and a disk cache. Done: in-memory caches use `cachetools` (TTL and
+    LRU), the Galaxy Map tile cache uses `diskcache` with the same keys
+    and invalidation (MAP.72 tiles, PR #72), the old modules are
+    deleted, and the cache tests pass unchanged.
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **DB.11 The database layer and migrations on SQLAlchemy and Alembic**
+    Today `_db.py` (9,800 lines) builds SQL strings over PyMySQL with
+    its own pooling, and `migrateDb.py` replays `schema_vNN.sql.gz`
+    fixtures. Done: tables are declared as SQLAlchemy models (MySQL 8.4
+    and MariaDB 11.4 both supported), connections and transactions use
+    SQLAlchemy's pool, Alembic carries migrations from the current
+    schema (v53) forward with a baseline that recognises existing
+    databases, and the id-block and batching behaviour is kept (TEST.81
+    and TEST.87 stay fixed).
+    Prerequisite: OPS.24.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **SEC.29 Two-step sign-in on pyotp, QR codes on segno**
+    Today `totp.py` (100 lines) and `qrcodegen.py` (900 lines, a copy of
+    Nayuki's generator) do this by hand. Done: TOTP codes come from
+    `pyotp` with the same secrets, step and window, so enrolled users
+    keep working; QR codes come from `segno` as SVG; both old modules
+    are deleted; and the two-step tests pass every run, including near a
+    step boundary (TEST.72).
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **SEC.30 Login and request rate limits on Flask-Limiter with Redis storage**
+    Today `loginThrottle.py`, `api/limiter.py` and `api/loginguard.py`
+    keep their own counters. Done: request limits use Flask-Limiter with
+    Redis storage; the per-address and per-username lockouts keep their
+    rules (docs/design/login-brute-force-protection.md) on the same
+    storage; the activity log and fail2ban lines are unchanged; and the
+    rate-limit tests pass alone and under `-n auto` (TEST.83).
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **UX.39 Markdown rendered by the markdown library**
+    Today `mdconvert.py` converts the system and wiki Markdown by hand.
+    Done: the `markdown` package renders it with the same output for the
+    pages and wiki export (a test compares a sample), and `mdconvert.py`
+    is deleted.
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **UX.40 Buttons, menus and dialogs from Shoelace web components**
+    From "Web UX Development Notes.md": buttons, menus, dropdowns,
+    dialogs and form fields use Shoelace components, vendored as ES
+    modules (no CDN at runtime). Done: a shared component set in the
+    base template; the menus size to their contents (UX.2), admin and
+    edit actions open from a button menu (UX.26, UX.31), the system page
+    buttons sit on one row (UX.27), and the Generate page text boxes
+    line up (ADM.14), each closed in this item's PRs; both themes and
+    keyboard use work.
+    Prerequisites: OPS.21, UX.28.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
+    Today every list page is a server-rendered table paged 50 rows at a
+    time (`tabledisplay.py`). Done: list pages use TanStack Table with
+    virtual scrolling, sorting and faceted filters fed by the API,
+    keeping 50-row pages for the server; the phenomena page filters by
+    class and type (UX.33) through it.
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **ADM.21 Input validation on Pydantic models**
+    Today `validation.py` checks systems and admin input by hand
+    (ADM.5). Done: request bodies, admin forms and generation settings
+    are Pydantic models with the same limits, validation errors list
+    every field at once, and the old checks are deleted.
+    Prerequisite: OPS.24.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **ADM.22 Job logs streamed over SSE into Xterm.js, with native progress bars**
+    From "Web UX and Job Management Guide.md": the Generate page and
+    Queue page show a running job's log in an Xterm.js terminal fed by
+    Server-Sent Events from the RQ job, and its progress in native
+    `<progress>` bars (`generatejobs.js`, `generatefolds.js`, `jobs.py`,
+    `progressRate.py`). SSE needs threaded or gevent workers under
+    Apache (mod_wsgi settings documented). Done: logs and progress
+    stream live, reconnect after a drop, and keep the full log for
+    download.
+    Prerequisite: PERF.24.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+    - [ ] **ADM.23 Log output wraps with hard line breaks (bug)**
+      Boss (2026-10-03 05:38Z): "Log output should not use hard line
+      breaks for word wrapping let the browser or CLI handle that."
+      Done: log messages are written as single lines (no wrapping in the
+      message text), the terminal and console wrap them, and the debug
+      log keeps one record per line (OPS.9).
+      Prerequisite: ADM.22.
+
+    - [ ] **ADM.24 A failed action's log closes before it can be read (bug)**
+      Boss (2026-10-03 05:38Z): "If action fails that has a log screen,
+      pause on the log output waiting for user input to continue so they
+      can read the log." Done: when a job with a log fails, its log
+      stays open with the error in view until the user clicks Continue
+      (web) or presses Enter (interactive console; non-interactive runs
+      exit as now).
+      Prerequisite: ADM.22.
+
+    - [ ] **ADM.25 Error tracebacks don't reach the console and the web log window (bug)**
+      Boss (2026-10-03 05:38Z): "Error traces should be output to the
+      console and to the web-log-window when an action is running so
+      they can be readily copy-pasted into documents for tracing." Done:
+      an exception in a running action prints its full traceback to the
+      console and to the job's web log, with a Copy button, as well as
+      to the debug log.
+      Prerequisite: ADM.22.
+
+    - [ ] **ADM.26 The bright-star backfill shows no progress bar on the web (bug)**
+      Boss (2026-10-07 11:47Z): "During star backfill progress bars do
+      not appear on the web at all." Done: the backfill publishes
+      progress like the sector run does, and the Generate page shows its
+      bar and ETA.
+      Prerequisite: ADM.22.
+
+  - [ ] **GEN.66 Physics on scipy, and astropy constants and units**
+    Today `keplerMotion.py` solves Kepler and Barker by hand and
+    `physical_constants.py` holds 450 lines of constants. Done: Kepler
+    solving uses `scipy.optimize` (vectorised where many bodies move at
+    once), constants and unit conversions come from `astropy.constants`
+    and `astropy.units`, results agree with today's within stated
+    tolerances (tests), and the hand-rolled solvers are deleted.
+    Prerequisite: OPS.24.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **MAP.102 Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering**
+    From "Web UX Development Notes.md": the Galaxy Map streams its stars
+    as 3D tiles with level of detail, picks through a BVH
+    (three-mesh-bvh) instead of scanning points, and draws
+    camera-relative so far-out coordinates don't jitter
+    (`galaxymap3d.js`, `galaxyprisms.js`). Done: zooming loads only the
+    tiles in view at the right detail, picking stays fast in dense
+    sectors, and the existing map tests pass.
+    Prerequisite: OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **OPS.22 Reorganize the code into importable Python packages with shared utility libraries**
+  Boss (2026-10-03 05:38Z): "Code reorganize to put things into distinct
+  python modules as different importable objects for modularity of code
+  and easier maintenance.  Maximize the use of utility libraries for
+  shared functions across all modules." Today almost all code sits flat
+  in `src/stellarObjects/` (about 75 modules, `_db.py` alone 9,800
+  lines), with `generate.py` (3,000+ lines) at the repo root and helpers
+  repeated across modules. Done when the layout plan is approved and the
+  code lives in it.
+  Prerequisites: OPS.23, OPS.24.
+  Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **OPS.23 A package layout plan for the reorganization**
+    Done: a short plan in docs/design/library-migration.md that names
+    the packages (for example `planetgen.physics`,
+    `planetgen.generation`, `planetgen.galaxy`, `planetgen.db`,
+    `planetgen.names`, `planetgen.queue`, `planetgen.web`,
+    `planetgen.util`), which module goes where, which shared helpers
+    become one utility module (number formatting, unit conversion,
+    seeded random helpers, logging setup), and how old import paths keep
+    working during the move. Boss approves it before OPS.24 starts.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+  - [ ] **OPS.24 Move the code into the new package layout, one package per PR**
+    Done: each package in the plan is moved in its own PR with no
+    behavior change (the full test suite passes unchanged apart from
+    import paths), shared helpers are merged into the utility modules,
+    and `generate.py` becomes a thin entry point over the generation
+    package.
+    Prerequisites: OPS.23, OPS.21.
+    Design: [docs/design/library-migration.md](design/library-migration.md)
+
+- [ ] **OPS.25 Update tries to drop bright_star_blocks, a table that no longer exists (bug)**
+  Seen on PR #431's CI (2026-10-02, the linux-update job): the upgrade
+  check tries to drop `bright_star_blocks`, which galaxy schema v53
+  already removed (`_db.py` around lines 8982 to 9007 move each block
+  level onto its sectors and drop the table). Done: the upgrade path
+  only drops the table when it exists, a galaxy already past v53
+  upgrades cleanly, and the linux-update job is green.
 
 ## VIEW: The view from a planet
 
@@ -2609,3 +4141,59 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     VIEW.3. Open questions: what counts as a source list (licensing of
     sky culture data such as Stellarium's), transliteration of non-Latin
     scripts, and whether names are unique per planet or galaxy-wide.
+    Plan (2026-10-07): Constellation names come from the codec under the
+    naming key (GEN.67), not from sliced word lists.
+
+- [ ] **VIEW.5 Light-travel positions: where an object appears to a distant observer**
+  Boss (2026-10-03 05:38Z): "Begin laying groundwork to produce a
+  snapshot of what any point in the galaxy would see.  The groundwork
+  that needs to be laid is calculations for calculating the previous
+  position of an object say 1 ly away from where it would be to the
+  viewer from 1 year ago (i.e. we never see where a distant star really
+  is at this moment in time, only where it was)." Done: a function
+  giving an object's apparent position from an observer point (position
+  at now minus distance over c, solved iteratively for moving bodies),
+  tested against a hand case.
+  Prerequisites: GEN.74, MAP.70.
+
+## POP: Population and politics
+
+Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
+#184.
+
+- [ ] **POP.7 Tech levels for technological species**
+  Boss (2026-10-03 05:38Z): "Integrate a technolog leveling system for
+  planets that have a technological species present using the document:
+  "Technological Assessment.md"  Use the data to develop a method of
+  generating a tech level for every technological species." Done when
+  the subitems are.
+  Prerequisites: POP.8, POP.9.
+  Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
+
+  - [ ] **POP.8 A tech-level design from the six domain indices**
+    The doc scores six domains 0 to 7 (Energy, Materials, Information,
+    Medical, Propulsion, Defense) and weights them: TL = 0.25 EI + 0.20
+    MI + 0.20 II + 0.15 MeI + 0.10 PI + 0.10 DI. Done: how each index is
+    drawn from a species' age, era and world (population.py's
+    civilization age and era), written into population-and-politics.md.
+    Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
+
+  - [ ] **POP.9 A tech level generated for every technological species**
+    Done: every technological species stores its six indices and its
+    tech level (columns), shown on the species page and searchable;
+    existing species get theirs on the next population pass.
+    Prerequisites: POP.8, GEN.80.
+    Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
+
+- [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
+  Boss (2026-10-03 05:38Z): "Add facility types that are programable and
+  can be selected from a dropdown when adding facilities.  Facility data
+  should include affiliation and a place to store data like a
+  Green/Yellow/Red system for saying the facilities crime, housing,
+  resources, maintenance, and health." Today facilities
+  (`facilities.py`, ADM.9) have no type list. Done: admins define
+  facility types (name, icon, fields) and pick one from a dropdown when
+  placing a facility; each facility stores an affiliation and
+  Green/Yellow/Red ratings for crime, housing, resources, maintenance
+  and health.
+  Design: [docs/design/population-and-politics.md](design/population-and-politics.md)

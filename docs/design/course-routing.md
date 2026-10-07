@@ -123,6 +123,19 @@ every system on the route (Boss, 2026-10-02 04:19Z).
   since sectors may have been filled since; a hop that is now known
   shows as ordinary and the course says what changed.
 
+## 4a. Planned (2026-10-03 and 2026-10-07)
+
+- **Stops in unknown space**: the route prefers system to system; only
+  when a jump crosses unknown space does it look for scattered bright
+  stars, black holes, neutron stars and quasars in unfilled sectors as
+  stops.
+- **Chart the way**: when uncharted sectors can't be bypassed, the NAV
+  page offers admins a job that charts the sectors along the line, then
+  plots again.
+- **Waypoints**: objects picked in the maps' Star select mode become
+  waypoints, marked at every map level; two or more plot a course, which
+  stays drawn on the maps until cleared.
+
 ## 5. Order
 
 | ID | Piece | Phase | Needs |

@@ -255,3 +255,32 @@ components come from the cometary ices list.
   for remnants; the reason is not recorded beyond the column comments).
 - Generating diffuse gas (classes A-B): treated as background.
 - Letters for black holes and neutron stars: not wanted (Boss, 2026-09-30).
+
+## Planned changes (2026-10-03 and 2026-10-07)
+
+- **Shapes**: a nebula gets an irregular, bulbous shape: 4 to 8 centres
+  scattered in an anisotropic ellipsoid, evaluated as polynomial
+  metaballs, with coordinates warped by domain-warped 3D simplex noise;
+  marching cubes at an isovalue gives a mesh (a low-poly level for the
+  Galaxy Map), and the same field gives an inside test. Boss also listed
+  fBm, deformed spherical harmonics, diffusion-limited aggregation and
+  level sets as alternatives.
+- **Placed galaxy-wide first**: nebulae, black holes, neutron stars and
+  quasars are placed across the galaxy when it is created, just before
+  the bright-star scatter, and a sector fill keeps them and only adds.
+- **Volume backfill**: a nebula that needs certain stars triggers a
+  backfill of its volume down to 750 L_sun with the draw skewed to those
+  types; existing backfilled stars inside are redrawn in place when a
+  compatible type and brightness exist, and left alone when not.
+- **Names**: every nebula gets a unique name from its ID (object-ids.md).
+- **On the maps**: drawn from the mesh on every map, shaded over unfilled
+  sectors too, with a show and hide toggle; the nebula page shows the
+  whole shape with the dimmed galaxy around it.
+- **Planets inside nebulae**: a feasibility study per class (disk
+  photoevaporation near O and B stars, 26Al and 60Fe heating, extinction,
+  cosmic rays) turns into generation rules; generation must know a
+  system's surrounding cloud while it runs, not only on load
+  (habitability-index.md, section 6).
+- **Asteroid fields and belts as object systems**: still one object for
+  positions and orbital speed, but rendered as many bodies seeded from
+  the field's ID (a plan first).

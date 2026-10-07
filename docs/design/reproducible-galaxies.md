@@ -325,6 +325,17 @@ release produces exactly what the server would, checked by fingerprint
 GEN.42, PERF.18, API.12, API.13) uses the derived seeds and keeps
 TEST.77 green.
 
+## 10a. Changes from the 2026-10-07 plan
+
+- Names come from IDs and a naming key (object-ids.md), so the settings
+  file stores the naming key instead of the word list, the update history
+  drops the corpus and name-list hashes (the lock-file hashes stay), and
+  the name-collision rule in section 5 goes away.
+- Schema changes are Alembic migrations, and the consistency check reads
+  Alembic's revision.
+- Generation runs as RQ jobs on Redis; results must not depend on the
+  worker count or the order jobs finish.
+
 ## 11. Order
 
 | Phase | Items | Needs |

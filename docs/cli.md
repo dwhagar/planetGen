@@ -437,7 +437,13 @@ Not built yet. Each names its TODO item and phase; the design is in
 | `generate.py fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
 | Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
 | `generate.py repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
+| `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |
+| `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
+| Layer, ring and column ranges; a radial cylinder; N random neighborhoods | ADM.29, ADM.30, GEN.97 | 1 | New fill shapes, also on the Generate page. |
+| `--directive` | GEN.96 | 1 | Generation directives for a sector (density, at least N stars of a type, at least N habitable worlds). |
 | `generate.py reproduce --seed X --version Y` | OPS.12 | 3+ | Rebuild a galaxy or region into a fresh database from the seed, the run history and the settings file, and compare fingerprints. |
+
+Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
 
 Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`
 (Linux and macOS) and `scripts/maintenance.ps1` (Windows), set up as a
