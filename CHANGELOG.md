@@ -1,5 +1,74 @@
 # Changelog
 
+## [7.230.618] - 2026-10-07
+
+### Fixed
+
+- The Generate page's "New galaxy" and "Generate sectors" forms (every mode, "around a sector" included) have a folded Prevalence section: one percentage per feature, blank or 0 for the usual chance, passed to the run as `--prevalence FEATURE=PERCENT` (ADM.16).
+
+## [7.229.618] - 2026-10-07
+
+### Added
+
+- TODO item TEST.93: timing tests fail and MariaDB drops connections under full-suite load (phase 0, Bugfixes: ops and flakes).
+
+## [7.228.618] - 2026-10-07
+
+### Changed
+
+- `POST /api/sectors/<id>/regenerate` now queues the delete-and-regenerate on Redis and answers `202` with a job id, instead of holding a web worker (PERF.24, step 4b). Unknown (404) and off-grid or unplanned (409) sectors still answer before anything is deleted. The admin page's Regenerate button says the job is queued.
+
+## [7.227.618] - 2026-10-07
+
+### Fixed
+
+- Sector and galaxy runs can make a feature more or less common instead of forcing it on every system: `--prevalence comets=+50` gives 1.5 times as many systems with comets, `--prevalence habitable_world=-100` none. It works for every former forcing option (habitable world, asteroid belt, comets, large star, moons, max planets, intelligent life, binary, wide binary, planets), and each system stores the setting with its config (database schema v54).
+- `-large_star` on a single system now really keeps out a large star; it used to make no difference.
+
+## [7.226.618] - 2026-10-07
+
+### Changed
+
+- `POST /api/sectors/<id>/generate-neighborhood` now queues the run on Redis and answers `202` with a job id, instead of holding a web worker for the whole run (PERF.24, step 4a). The math check, the unknown-sector and missing-skeleton errors (404, 409) and the disk-space refusal (507) still answer before anything is queued; `estimate_only` still answers at once.
+- Added `GET /api/jobs/<id>`, the state, result and error of a queued API job.
+
+## [7.225.618] - 2026-10-07
+
+### Fixed
+- **The galaxy had almost no bulge, so edge-on views showed a flat disk
+  (GEN.118), and no thick disk (GEN.119).** The density model's bulge was
+  a 200 pc sphere holding 0.6% of the stars; the Milky Way's holds about
+  31%. The model is now three published Milky Way components:
+  - a thin disk (scale length 2.6 kpc, scale height 300 pc) carrying the
+    spiral arms. `--disk-scale-height-pc` is now the exponential scale
+    height surveys quote, so the disk is twice as thick as before;
+  - a thick disk (2.0 kpc, 900 pc, 4% of the plane's density at the Sun);
+  - a boxy bar bulge, Dwek et al. 1995's fit to the COBE/DIRBE image,
+    angled 27 degrees from the Sun-center line.
+
+  New `planetgen plan` defaults: `--disk-scale-length-pc 2600`,
+  `--disk-scale-height-pc 300`, `--bulge-scale-radius-pc 1580` (along the
+  bar), `--bulge-amplitude 3.11`, and the calibration point at 8.2 kpc
+  (3.15 scale lengths). The young and intermediate populations' scale
+  heights are now 50 and 150 pc. The Galaxy Map's prisms draw the same
+  model. `tests/test_galaxy_milky_way.py` and two new math checks compare
+  it with Bland-Hawthorn & Gerhard 2016.
+
+  At the default shape a full galaxy has about 23.9 billion candidate
+  sectors (was 12.3), 21.0 billion qualifying (was 10.3) and 299 billion
+  systems (was 88), reaching 4.1 kpc above the plane (was 1.3). An
+  existing galaxy keeps its stored shape numbers but the new formulas read
+  them differently, so plan and generate it again.
+- **The Galaxy Map's slab lines could cross after the view turned.** The
+  buttons were ordered by each slab's middle but each line ends where the
+  slab's outline comes nearest its button; when those ends come out of
+  order the buttons now follow them.
+
+## [7.224.618] - 2026-10-07
+
+### Changed
+- **The admin Generate page's jobs run on Redis with RQ (PERF.24, step 3).** Starting a job queues it on a queue of its own and starts one burst worker for it, detached from the web server; the worker exits when the job is done. The job's files (`state.json`, `output.log`, progress, the Cancel file) and the one-job lock work as before. Without a Redis server at `redis.url` no job starts and the page says so, except on Windows, where Redis runs in WSL: there the job runs in its own process as before. `planetgen.cli.job` is now `planetgen.web.job_runner`.
+
 ## [7.223.617] - 2026-10-07
 
 ### Added

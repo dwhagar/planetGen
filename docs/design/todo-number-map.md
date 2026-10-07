@@ -404,7 +404,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.13 | Incomplete uploads page | none | open |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
-| ADM.16 | Prevalence controls on the Generate page | none | open |
+| ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
