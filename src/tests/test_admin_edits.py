@@ -6,6 +6,7 @@ planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
 (`planetgen/admin/edits.py`), against a real throwaway database.
 """
 import pytest
+from markupsafe import escape
 
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
@@ -313,11 +314,21 @@ def test_edit_panel_shows_only_for_an_admin(web_app, mysql_config):
 def test_system_page_regenerates_a_planet(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
+    # TEST.71: a drawn name can hold an apostrophe, which the page escapes;
+    # give it one every time.
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("UPDATE planets SET name = ? WHERE id = ?", ("Ilq'Ot", planet.db_id))
+    finally:
+        conn.close()
+    planet = next(p for p in _load(mysql_config, system_id).planets if p.db_id == planet.db_id)
+    assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
     response = _edit(web_app, client, f"/system/{system_id}", "regenerate", f"planet:{planet.db_id}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
-    assert f"Regenerated {planet.name}" in page
+    assert f"Regenerated {escape(planet.name)}" in page
 
 
 def test_system_page_refuses_a_body_from_another_system(web_app, mysql_config):

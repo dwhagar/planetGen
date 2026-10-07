@@ -119,10 +119,14 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         ids = _ids(conn, system_id)
+        # TEST.88: an orbit inside whatever sphere of influence the drawn
+        # giant has (it can be smaller than 500,000 km).
+        limits = store.facility_orbit(conn, "planet", ids["giant"])
+        yard_km = (limits["min_distance_km"] * limits["max_distance_km"]) ** 0.5
         with conn:
             colony = store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", ids["terrestrial"])
             yard = store.add_facility(conn, "High Yard", "starbase", "orbital", "planet", ids["giant"],
-                                    distance_km=5.0e5, phase_deg=370.0)
+                                    distance_km=yard_km, phase_deg=370.0)
             store.add_facility(conn, "Sunwatch", "outpost", "orbital", "star", ids["star"],
                              distance_km=constants.AU_TO_KM * 0.5)
             store.add_facility(conn, "Rockpile", "mining-colony", "asteroid", "asteroid_belt", ids["belt"])
