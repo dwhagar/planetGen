@@ -19,7 +19,7 @@ import pytest
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
 from stellarObjects.roguePlanetData import RoguePlanet
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from tests.conftest import _test_server_kwargs
 

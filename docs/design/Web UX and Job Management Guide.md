@@ -33,7 +33,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 4: Spatial Partitioning & 3D Viewport Optimization
 
-* **Target Files:** `src/html/static/galaxymap3d.js`, `src/html/static/galaxyprisms.js`, `src/stellarObjects/galaxyGeometry.py`.
+* **Target Files:** `src/html/static/galaxymap3d.js`, `src/html/static/galaxyprisms.js`, `src/planetgen/galaxy/geometry.py`.
 * **Objective:** Eliminate GPU coordinate jitter and memory limits across astronomical scale jumps.
 * **Steps:**
   1. Update `galaxyGeometry.py` to export sector bounding volumes into a Hierarchical Bounding Volume Hierarchy (BVH) structure (Open Geospatial Consortium, 2023).

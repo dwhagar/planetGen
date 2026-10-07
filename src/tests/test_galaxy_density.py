@@ -1,7 +1,7 @@
 # tests/test_galaxy_density.py
 
 """
-Tests for `stellarObjects.galaxyDensity` -- the exponential-disk-plus-
+Tests for `planetgen.galaxy.density` -- the exponential-disk-plus-
 bulge-plus-spiral-arm density model from
 `docs/design/galaxy-disk-density.md` revision 2.
 """
@@ -10,7 +10,7 @@ import math
 
 import pytest
 
-from stellarObjects.galaxyDensity import (
+from planetgen.galaxy.density import (
     build_galaxy_shape,
     predicted_star_count,
     relative_density,

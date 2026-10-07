@@ -198,7 +198,7 @@ connectivity to that specific schema rather than the default one.
   same reason `/api/galaxy/sectors` isn't.
 - `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
   density-skeleton shape (`generate.py plan`'s output): every
-  `stellarObjects.galaxyDensity.GalaxyShape` field plus `edge_pc`,
+  `planetgen.galaxy.density.GalaxyShape` field plus `edge_pc`,
   `outer_ring_index`, and `expected_system_count_at_density_1`
   (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
   has never been built. The Galaxy Map shades its "expected density"
@@ -274,7 +274,7 @@ connectivity to that specific schema rather than the default one.
   `{share, color, colored}`, their mean `fill_share` (0 for one without
   stats), the mean sRGB `[r, g, b]` of those with stars (`null` if none)
   and how many had one. Blocks are 243,
-  27 and 3 sectors a side (`stellarObjects.galaxyDrill`); with no `at`,
+  27 and 3 sectors a side (`planetgen.galaxy.drill`); with no `at`,
   the children are the galaxy's level-243 blocks. Children with nothing
   generated are left out (the page computes totals itself). At a level-3
   block the children are sectors (`wedge` is the slot, `slab` the layer)
@@ -691,7 +691,7 @@ in over HTTPS, `Strict-Transport-Security: max-age=31536000`.
 
 `GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
 (distance, bearing and mark, warp and fold travel times) plus an optimal route via
-adjacent systems (`stellarObjects.navGraph`, a k-nearest-neighbor adjacency
+adjacent systems (`planetgen.galaxy.nav_graph`, a k-nearest-neighbor adjacency
 graph with Dijkstra shortest-path) between two endpoints -- each either a
 star system (the default) or a standalone phenomenon (nebula/asteroid
 field/black hole/neutron star/supernova remnant/rogue planet/interstellar
@@ -727,7 +727,7 @@ every intermediate hop is always a system.
   endpoints to share a sector, or both to have a galaxy placement"`.
 
 **Course convention.** Courses use Boss's nested reference frames
-(`docs/design/navigation-frames.md`, `stellarObjects/navigation.py`):
+(`docs/design/navigation-frames.md`, `planetgen/galaxy/navigation.py`):
 `bearing_deg` is 0-360 with 0 pointing from `from` toward the frame's
 center (flattened onto the galactic plane) and 90 to the East (North x Up);
 `elevation_deg` is -90 to +90 above or below the galactic plane, and

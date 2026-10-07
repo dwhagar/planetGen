@@ -91,9 +91,10 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, nebulaField,
-    population, progressFile, progressRate, versionKey, workQueue,
+    _db, activitylog, brightStars, generationLimits, generationStats, population, progressFile,
+    progressRate, workQueue,
 )
+from planetgen.galaxy import nebula_field, seed as galaxySeed, version_key
 from planetgen.physics import constants, mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -101,22 +102,22 @@ from planetgen._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
-from stellarObjects.galaxyDrill import (
+from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
+from planetgen.galaxy.drill import (
     DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
     parse_drill_key,
 )
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     SectorCell, enumerate_sectors_within_radius, galactic_radius_pc,
     provisional_sector_designation, ring_bounds_pc, ring_sector_count, sector_address_at, sector_position_pc,
 )
-from stellarObjects.galaxySkeleton import (
+from planetgen.galaxy.skeleton import (
     DEFAULT_MAX_RING, build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
 from stellarObjects.nebulaData import Nebula, choose_weighted_class
 from stellarObjects.quasarData import Quasar
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.spaceSector import SpaceSector, _sample_poisson_count
+from planetgen.galaxy.sector import SpaceSector, _sample_poisson_count
 from stellarObjects.starData import STAR_TYPE_PATTERN
 from stellarObjects.stellarPopulation import bright_star_fraction
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
@@ -1121,7 +1122,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             Hill-sphere/galactic-orbit calculation, exactly like every star
             in the sector already gets.
         cloud_field (tuple, optional): For a galaxy-placed sector, the
-            `nebulaField.clouds_reaching` arguments `(galaxy_seed, shape,
+            `nebula_field.clouds_reaching` arguments `(galaxy_seed, shape,
             center_pc, reach_pc)`: its molecular clouds then come from the
             galaxy's cloud field (GEN.47, into `sector.field_nebulae`)
             instead of this sector's own `"molecular-cloud"` roll.
@@ -1140,7 +1141,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
 
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
         if kind == "molecular-cloud" and cloud_field is not None:
-            sector.field_nebulae = nebulaField.clouds_reaching(*cloud_field)
+            sector.field_nebulae = nebula_field.clouds_reaching(*cloud_field)
             continue
         count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
         for _ in range(count):
@@ -4480,7 +4481,7 @@ def main():
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
     logged = not getattr(args, "output", None) and args.command != "check-math"
-    log.normal(versionKey.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
+    log.normal(version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 

@@ -33,7 +33,7 @@ from galaxymap3d import (  # noqa: E402
     view_radius_bounds,
 )
 
-from stellarObjects.galaxyViewport import (  # noqa: E402
+from planetgen.galaxy.viewport import (  # noqa: E402
     parse_tile_key,
     tile_level_for_view_radius,
     tiles_intersecting_sphere,

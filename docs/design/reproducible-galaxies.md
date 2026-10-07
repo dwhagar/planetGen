@@ -76,7 +76,7 @@ GEN.39 builds after PERF.21 in the parallel path thread. Its tests: one
 seed gives the same sectors at 1, 2 and N workers, and two seeds that
 differ only in their high 64 bits give different output.
 
-As built (GEN.39): `stellarObjects/galaxySeed.py` holds the seed helpers.
+As built (GEN.39): `planetgen/galaxy/seed.py` holds the seed helpers.
 A sector fill (its save included) and the bright-star scatter, bands
 and backfill blocks run on their unit seed; the sector seeds the
 module-level `random` stream for the length of the unit
@@ -87,7 +87,7 @@ passing a `random.Random` down, which is GEN.56's change. `secrets` and
 deadlock replays the same draws. The `phenomenon` and `system` subcommands and the run's own
 choices (a random start's address) still draw from the run's stream.
 
-As built (DB.6): `stellarObjects/versionKey.py` computes the key
+As built (DB.6): `planetgen/galaxy/version_key.py` computes the key
 (`version_key`) and the versions stored beside it (`current`). The galaxy
 records them in `galaxy_shape` whenever its seed is written (schema
 v52), and every `generate.py` run that changes the galaxy writes a

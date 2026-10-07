@@ -1,6 +1,6 @@
 """
 Bright/dim star sampling (`stellarObjects.stellarPopulation`), stellar
-populations by position (`galaxyDensity.population_densities`) and
+populations by position (`density.population_densities`) and
 pre-placed systems (`SpaceSector.add_preplaced_system`): GEN.21
 and GEN.22, the Physics part of bright-star pre-placement.
 
@@ -12,19 +12,19 @@ import random
 
 import pytest
 
-from stellarObjects import galaxyDensity
+from planetgen.galaxy import density
 from planetgen.physics import constants as phys_c
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
 from stellarObjects import stellarPopulation as sp
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector, distance_between, required_separation_ly
+from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
 from stellarObjects.starData import Star
 from stellarObjects.systemData import StarSystem
 
 THRESHOLD = 500.0
 
-SHAPE = galaxyDensity.build_galaxy_shape(
+SHAPE = density.build_galaxy_shape(
     disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
     bulge_amplitude=1.0, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
 )
@@ -113,15 +113,15 @@ def test_bright_star_params_rebuild_a_full_system():
 
 @pytest.mark.parametrize("position", [(8000, 0, 0), (8000, 0, 300), (500, 0, 0), (0, 0, 0), (8000, 0, 20000)])
 def test_population_densities_sum_to_the_total(position):
-    densities = galaxyDensity.population_densities(position, SHAPE)
+    densities = density.population_densities(position, SHAPE)
     assert set(densities) == set(sp.POPULATIONS)
     assert all(value >= 0 for value in densities.values())
-    assert sum(densities.values()) == pytest.approx(galaxyDensity.relative_density(position, SHAPE), rel=1e-12)
+    assert sum(densities.values()) == pytest.approx(density.relative_density(position, SHAPE), rel=1e-12)
 
 
 def test_young_stars_hug_the_plane_and_the_bulge_is_old():
     def shares(position):
-        densities = galaxyDensity.population_densities(position, SHAPE)
+        densities = density.population_densities(position, SHAPE)
         total = sum(densities.values())
         return {name: value / total for name, value in densities.items()}
 

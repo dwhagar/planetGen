@@ -17,7 +17,7 @@ from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects.config import SystemConfig
 from stellarObjects.nameUniqueness import strip_decoration
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 

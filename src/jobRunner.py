@@ -131,14 +131,15 @@ def _run_line(job):
     """
     The job log's first line (OPS.10): the galaxy seed when the job
     starts, the PlanetGen version with its key, and the job's title
-    (`versionKey.run_line`). Each `generate.py` step then writes its own
+    (`version_key.run_line`). Each `generate.py` step then writes its own
     as its first line. Never raises: without planetGen's modules or the
     database, the line says what it can.
     """
     run = job.get("title") or job["id"]
     try:
         sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-        from stellarObjects import _db, versionKey
+        from stellarObjects import _db
+        from planetgen.galaxy import version_key
     except Exception:  # noqa: BLE001 -- the job runs without the line's details
         return f"Galaxy seed unknown, PlanetGen unknown, run: {run}"
     seed = None
@@ -150,7 +151,7 @@ def _run_line(job):
             conn.close()
     except Exception:  # noqa: BLE001 -- no database or no galaxy yet
         pass
-    return versionKey.run_line(seed, run)
+    return version_key.run_line(seed, run)
 
 
 class _JobTree:

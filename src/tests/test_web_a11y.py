@@ -140,7 +140,7 @@ def _add_bright_stars(config, count=300):
     (`bright_stars`), as a scatter would write them."""
     import math
 
-    from stellarObjects.galaxyGeometry import sector_address_at
+    from planetgen.galaxy.geometry import sector_address_at
 
     rng = random.Random(5)
     conn = _db.get_connection(config)

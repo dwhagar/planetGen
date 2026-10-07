@@ -10,7 +10,7 @@ links only (the NAV page, `/nav`).
 
 Deliberately modeled on `galaxymap.py`'s flat 2D SVG rather than
 `starmap.py`'s rotatable 3D CSS scene: like a galaxy Quadrant, this map is
-blind to height by design. Both NAV frames (`stellarObjects.navigation`'s
+blind to height by design. Both NAV frames (`planetgen.galaxy.navigation`'s
 Galactic and Sector frames) keep galactic +Z as up, so a course's bearing
 lives in this X-Y plane, and the mark the NAV page's course panel reports
 covers the third axis -- a route's

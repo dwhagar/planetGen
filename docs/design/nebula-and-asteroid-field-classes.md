@@ -151,7 +151,7 @@ Boss (2026-10-01): "No nebulae are being created at all." Molecular
 clouds (classes M-Q) were rolled per sector at 5e-6 per pc^3 and placed
 inside it, about 3e-4 per 13 ly sector, so a cloud tens of light-years
 across showed up only if the one sector holding its center was
-generated. Now they belong to the galaxy (`stellarObjects/nebulaField.py`):
+generated. Now they belong to the galaxy (`planetgen/galaxy/nebula_field.py`):
 
 - The galaxy is cut into 50 pc cells (`NEBULA_FIELD_CELL_PC`). Each cell
   draws its clouds from its own seed (`galaxySeed.seeded`, kind

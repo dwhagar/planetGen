@@ -26,7 +26,7 @@ import pytest
 import generate
 from stellarObjects import _db
 from planetgen import tuning
-from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
+from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 
 from tests import worker_patches
 from tests.bughunt_support import mysql_argv, run_cli

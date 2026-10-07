@@ -16,7 +16,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects.galaxyDensity import build_galaxy_shape
+from planetgen.galaxy.density import build_galaxy_shape
 
 NODE = shutil.which("node")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static")
@@ -33,7 +33,7 @@ GALAXY_RADIUS_PC = 15000.0
 def _shape():
     """The test shape with the galaxy's sector threshold, as the page
     embeds it (lib/galaxymap3d._density_shape)."""
-    from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
+    from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from stellarObjects.utils import pc_to_ly
 
     return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}

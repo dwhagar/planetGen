@@ -135,7 +135,7 @@ def _system_in(mysql_config, sector_id, name):
     """Adds one star system named `name` to `sector_id` (raw rows are
     enough for the locate and course lookups)."""
     from stellarObjects.config import SystemConfig
-    from stellarObjects.spaceSector import SpaceSector
+    from planetgen.galaxy.sector import SpaceSector
     from stellarObjects.systemData import StarSystem
 
     cfg = SystemConfig()

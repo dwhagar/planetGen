@@ -41,9 +41,9 @@ GALAXY_RADIUS_PC = 15000.0
 def fixtures():
     """The values the JavaScript tests compare against, as a dict."""
     from galaxymap3d import render_galaxy_map3d_panel
-    from stellarObjects.galaxyDensity import build_galaxy_shape
-    from stellarObjects.galaxyGeometry import provisional_sector_designation, ring_sector_count
-    from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
+    from planetgen.galaxy.density import build_galaxy_shape
+    from planetgen.galaxy.geometry import provisional_sector_designation, ring_sector_count
+    from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from stellarObjects.utils import pc_to_ly
 
     shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)

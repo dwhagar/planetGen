@@ -13,9 +13,9 @@ import pytest
 
 from stellarObjects import _db, objectId
 from stellarObjects.config import SystemConfig
-from stellarObjects.navigation import course_between
+from planetgen.galaxy.navigation import course_between
 from stellarObjects.roguePlanetData import RoguePlanet
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 
 _POSITION = {"center_x_pc": 8000.0, "center_y_pc": 20.0, "center_z_pc": 5.0, "galactic_radius_pc": 8000.03}
 

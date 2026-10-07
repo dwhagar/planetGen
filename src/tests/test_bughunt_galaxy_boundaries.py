@@ -17,7 +17,7 @@ import math
 
 import pytest
 
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     cylindrical_radius_pc, layer_center_z_pc, ring_bounds_pc, ring_radius_pc, ring_sector_count,
     sector_address_at, sector_cell_vertices_pc, sector_position_pc,
 )

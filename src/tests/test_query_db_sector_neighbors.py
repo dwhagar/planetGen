@@ -23,8 +23,8 @@ import pytest
 
 import queryDb
 from stellarObjects import _db
-from stellarObjects.galaxyGeometry import galactic_radius_pc, neighbor_addresses, sector_position_pc
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.geometry import galactic_radius_pc, neighbor_addresses, sector_position_pc
+from planetgen.galaxy.sector import SpaceSector
 
 EDGE_PC = 4.0  # DEFAULT_SECTOR_EDGE_PC.
 ADDRESS = (5, 2, 17)

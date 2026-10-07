@@ -1,4 +1,4 @@
-# stellarObjects/galaxySeed.py
+# planetgen/galaxy/seed.py
 
 """
 The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see

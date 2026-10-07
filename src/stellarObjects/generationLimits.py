@@ -13,8 +13,8 @@ instead of a job that runs for days or exhausts memory.
 """
 
 from planetgen import tuning
-from .galaxyGeometry import ring_sector_count
-from .galaxySkeleton import DEFAULT_MAX_RING
+from planetgen.galaxy.geometry import ring_sector_count
+from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
 from .utils import pc_to_ly
 
 MAX_GENERATE_RADIUS_PC = 200.0

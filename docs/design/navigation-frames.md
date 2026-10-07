@@ -3,7 +3,7 @@
 Boss's design for nested navigation frames, recorded 2026-09-30 (NAV.1
 and NAV.2). Built in versions 7.8.0 (warp curve) and 7.14.0 (bearing
 and mark on nested frames), plus the squeezed heliopause in 7.39.0.
-Implemented in `stellarObjects/navigation.py`:
+Implemented in `planetgen/galaxy/navigation.py`:
 `course_between` is Boss's `compute_course` below, `format_course` writes
 "000 mark 000", and `warp_speed_c`/`fold_speed_c` are the travel speeds.
 Later releases changed how a course is picked and shown, not the frames:

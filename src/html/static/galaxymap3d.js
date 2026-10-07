@@ -586,7 +586,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // theta: azimuth from +x in the xy-plane; phi: polar angle from +z --
   // the same (r, theta, phi) convention docs/design/galaxy-coordinate-
-  // system.md and stellarObjects.galaxyGeometry.sector_position_pc use,
+  // system.md and planetgen.galaxy.geometry.sector_position_pc use,
   // deliberately not THREE.Spherical (which assumes a +y-up world).
   var orbit = { radius: initialRadius, theta: THREE.MathUtils.degToRad(-32), phi: THREE.MathUtils.degToRad(60) };
 
@@ -813,7 +813,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Cube tiles ----------------------------------------------------------
   //
   // The map asks for fixed cubes of space ("tiles") rather than "everything
-  // within R of the camera target" -- see stellarObjects.galaxyViewport's
+  // within R of the camera target" -- see planetgen.galaxy.viewport's
   // "Cube tiles" section. Space is an octree: level 0 is one cube
   // tileRootEdgePc on a side centered on the galactic origin, each level
   // halves the edge, and a tile's key is "level/ix/iy/iz". neededTiles()

@@ -33,7 +33,7 @@ from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
 from planetgen.physics.planets import calculate_orbital_period_years
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
 
@@ -2265,7 +2265,7 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
     the skeleton is rebuilt from the stored shape (by v33, which runs
     right after).
     """
-    from stellarObjects.galaxyDensity import build_galaxy_shape
+    from planetgen.galaxy.density import build_galaxy_shape
     from stellarObjects.roguePlanetData import RoguePlanet
 
     shape = build_galaxy_shape(
@@ -2341,8 +2341,8 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
     everything, `galaxy_ring_band` goes, and `galaxy_layer` is rebuilt
     from the stored shape at the standard edge.
     """
-    from stellarObjects.galaxyDensity import build_galaxy_shape
-    from stellarObjects.galaxySkeleton import build_layer_extents, column_extents
+    from planetgen.galaxy.density import build_galaxy_shape
+    from planetgen.galaxy.skeleton import build_layer_extents, column_extents
     from stellarObjects.roguePlanetData import RoguePlanet
 
     shape = build_galaxy_shape(
@@ -2449,7 +2449,7 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
     their systems and phenomena. A sector in an unchanged ring (ring 1
     holds 9 slots under both rules) and a never-placed sector keep
     everything, and the skeleton stays."""
-    from stellarObjects.galaxyDensity import build_galaxy_shape
+    from planetgen.galaxy.density import build_galaxy_shape
     from stellarObjects.roguePlanetData import RoguePlanet
 
     shape = build_galaxy_shape(
@@ -2889,7 +2889,7 @@ def test_system_grid_nearest_matches_brute_force():
 
 
 def test_galaxy_to_local_undoes_local_to_galaxy():
-    from stellarObjects.galaxyGeometry import galaxy_to_local_pc, local_to_galaxy_pc
+    from planetgen.galaxy.geometry import galaxy_to_local_pc, local_to_galaxy_pc
     center = (30.0, -40.0, 2.0)
     offset = (1.2, -0.7, 0.3)
     assert galaxy_to_local_pc(center, local_to_galaxy_pc(center, offset)) == pytest.approx(offset)
@@ -2958,7 +2958,7 @@ def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
             nebula_id = _placed_nebula(conn, sector_id, (0.5, 200.5, -0.5), radius_ly=0.5)
             _db.refresh_nearest_systems(conn, [sector_id])
         quadrant = conn.execute("SELECT quadrant FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()["quadrant"]
-        from stellarObjects.spaceSector import classify_octant
+        from planetgen.galaxy.sector import classify_octant
         assert quadrant == classify_octant((0.5, -0.5, -0.5))[0]
         listed = [p for p in queryDb.phenomena_near_sector(conn, sector_id) if p["type"] == "nebula"][0]
         assert listed["octant"] == quadrant
@@ -3130,7 +3130,7 @@ def test_migrate_v48_to_v49_adds_bright_star_blocks_and_v53_replaces_them(mysql_
 
 
 def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
-    from stellarObjects.galaxyDrill import DrillBlock, drill_block_sectors, drill_slabs
+    from planetgen.galaxy.drill import DrillBlock, drill_block_sectors, drill_slabs
 
     block = DrillBlock(3, 2, 1, 0)
     sectors = [(sector.ring, sector.slab, sector.wedge) for slab in drill_slabs(block)

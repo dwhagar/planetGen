@@ -1,6 +1,6 @@
 """
 Tests for the Galaxy Map drill-down's block ladder:
-`stellarObjects/galaxyDrill.py` and its page twin, the `drill*` functions in
+`planetgen/galaxy/drill.py` and its page twin, the `drill*` functions in
 `html/static/galaxyprisms.js` (run under node; those parity tests are
 skipped where node isn't installed). The ladder must nest -- every block
 inside exactly one parent, a parent's sectors exactly its children's --
@@ -15,11 +15,11 @@ import subprocess
 
 import pytest
 
-from stellarObjects.galaxyDrill import (
+from planetgen.galaxy.drill import (
     DRILL_LEVELS, DrillBlock, drill_block_sectors, drill_chain_of, drill_children, drill_parent, drill_slabs,
     drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from stellarObjects.galaxyGeometry import ring_sector_count
+from planetgen.galaxy.geometry import ring_sector_count
 
 NODE = shutil.which("node")
 MODULE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static", "galaxyprisms.js")

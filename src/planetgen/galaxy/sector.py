@@ -1,4 +1,4 @@
-# stellarObjects/spaceSector.py
+# planetgen/galaxy/sector.py
 
 """
 Space Sector Storage
@@ -188,14 +188,14 @@ import random
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning as program_constants
 from planetgen.util import log
-from .asteroidFieldData import AsteroidField
-from .compactRemnant import BlackHole, NeutronStar
-from .config import SystemConfig
-from .nebulaData import Nebula
-from .quasarData import Quasar
-from .roguePlanetData import InterstellarComet, RoguePlanet
-from .supernovaRemnantData import SupernovaRemnant
-from .systemData import StarSystem
+from stellarObjects.asteroidFieldData import AsteroidField
+from stellarObjects.compactRemnant import BlackHole, NeutronStar
+from stellarObjects.config import SystemConfig
+from stellarObjects.nebulaData import Nebula
+from stellarObjects.quasarData import Quasar
+from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+from stellarObjects.supernovaRemnantData import SupernovaRemnant
+from stellarObjects.systemData import StarSystem
 
 class _GlobalStream(random.Random):
     """
@@ -1252,7 +1252,7 @@ class SpaceSector:
         """
         cell = None
         if data.get("cell") is not None:
-            from .galaxyGeometry import SectorCell
+            from planetgen.galaxy.geometry import SectorCell
             cell = SectorCell(**{key: data["cell"][key] for key in ("r_inner", "r_outer", "half_angle", "half_height")})
         sector = cls(data["name"], edge_ly=data.get("edge_ly", program_constants.DEFAULT_SECTOR_EDGE_LY),
                      cell=cell)

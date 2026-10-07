@@ -1,4 +1,4 @@
-# stellarObjects/galaxyViewport.py
+# planetgen/galaxy/viewport.py
 
 """
 Interactive 3D Galaxy Map viewport queries.
@@ -39,8 +39,8 @@ own placed-sector rows.
 import heapq
 import math
 
-from .galaxyDensity import predicted_star_count, relative_density
-from .galaxyGeometry import enumerate_sectors_within_radius, provisional_sector_designation
+from planetgen.galaxy.density import predicted_star_count, relative_density
+from planetgen.galaxy.geometry import enumerate_sectors_within_radius, provisional_sector_designation
 
 PLANNED_RADIUS_CAP_PC = 40.0
 """float: The largest view radius `planned_slots_in_view` will actually

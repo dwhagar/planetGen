@@ -3,7 +3,7 @@
 **Status:** built. The cylindrical grid arrived in 6.0.0 (schema v32), the
 4 pc edge and aligned layers in 7.0.0 (schema v33), and the hybrid
 master-wedge slot counts in 7.13.0 (schema v35). Code:
-`src/stellarObjects/galaxyGeometry.py` (the grid), `galaxySkeleton.py` (the
+`src/planetgen/galaxy/geometry.py` (the grid), `galaxySkeleton.py` (the
 outline), `galaxyDensity.py` (the density model, see
 `galaxy-disk-density.md`) and `generate.py plan` / `generate.py galaxy`.
 

@@ -27,9 +27,9 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import tilecache  # noqa: E402
-from stellarObjects.galaxyDensity import build_galaxy_shape  # noqa: E402
-from stellarObjects.galaxyDrill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
-from stellarObjects.galaxySkeleton import expected_system_count_at_density_1  # noqa: E402
+from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
+from planetgen.galaxy.drill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
+from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402
 from stellarObjects.utils import pc_to_ly  # noqa: E402
 from api.limiter import PAGE_LIMITS_OFF  # noqa: E402
 
@@ -92,7 +92,7 @@ def _star_field():
     `galaxy_bright_stars_in_box` shape), luminosities 1e-4 to 1e5 L_sun."""
     import random
 
-    from stellarObjects.galaxyGeometry import sector_address_at
+    from planetgen.galaxy.geometry import sector_address_at
 
     rng = random.Random(87)
     stars = []
@@ -140,7 +140,7 @@ def galaxy_shape():
 
 
 def _sector_center_pc(ring, layer, slot):
-    from stellarObjects.galaxyGeometry import sector_position_pc
+    from planetgen.galaxy.geometry import sector_position_pc
 
     return sector_position_pc(ring, layer, slot, EDGE_PC)
 
@@ -241,7 +241,7 @@ class FixtureApi:
         return {"stamp": "00000000000000f1", "state": "s", "full": since is None, "tiles": []}
 
     def get_galaxy_tiles(self, db, tile_keys):
-        from stellarObjects.galaxyViewport import parse_tile_key, tile_bounds_pc
+        from planetgen.galaxy.viewport import parse_tile_key, tile_bounds_pc
 
         tiles = {}
         for key in tile_keys:

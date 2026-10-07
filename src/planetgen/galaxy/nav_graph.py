@@ -1,4 +1,4 @@
-# stellarObjects/navGraph.py
+# planetgen/galaxy/nav_graph.py
 
 """
 Navigation Graph

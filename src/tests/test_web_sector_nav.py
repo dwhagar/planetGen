@@ -26,7 +26,7 @@ import apiclient  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from planetgen import tuning
 from stellarObjects.config import SystemConfig  # noqa: E402
-from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 from web import csrf, generate_page, jobs  # noqa: E402
 from web.helpers import page_url  # noqa: E402
@@ -729,7 +729,7 @@ def test_real_sector_page_unknown_id_is_404(db_client, mysql_config):
 
 
 def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_client, mysql_config):
-    from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
+    from planetgen.galaxy.geometry import galactic_radius_pc, sector_position_pc
 
     edge_pc = 3.526
     address = (5, 1, 20)
@@ -947,7 +947,7 @@ def test_nav_bad_preset_destination_is_404(client, fake):
 
 
 def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
-    from stellarObjects.galaxyGeometry import provisional_sector_designation
+    from planetgen.galaxy.geometry import provisional_sector_designation
 
     html = client.get("/sector/5").get_data(as_text=True)
     designation = provisional_sector_designation(5, 1, 20)
@@ -957,7 +957,7 @@ def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
 
 
 def test_galaxy_map_redirects(client, fake):
-    from stellarObjects.galaxyGeometry import provisional_sector_designation
+    from planetgen.galaxy.geometry import provisional_sector_designation
 
     designation = provisional_sector_designation(5, 1, 20)
     resp = client.get("/sector/5/galaxy")
@@ -979,7 +979,7 @@ def _bookmark_button(html):
 
 
 def test_sector_page_has_a_bookmark_button(client, fake):
-    from stellarObjects.galaxyGeometry import provisional_sector_designation
+    from planetgen.galaxy.geometry import provisional_sector_designation
 
     html = client.get("/sector/5").get_data(as_text=True)
     assert re.search(r'<script type="module" src="/static/bookmarks.js\?v=[^"]+"></script>', html)

@@ -5,7 +5,7 @@ Covers cubic-volume placement (explicit, home-system-near-center, and random
 with minimum-separation enforcement), density-based sizing, distance/neighbor
 queries, Poisson-disk growth (`grow_from_seed`), named-location (octant)
 formatting, and JSON round-tripping via
-`stellarObjects.spaceSector.SpaceSector`.
+`planetgen.galaxy.sector.SpaceSector`.
 
 Run with: pytest tests/test_space_sector.py
 """
@@ -20,9 +20,9 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
-from stellarObjects import spaceSector as spaceSector_module
+from planetgen.galaxy import sector as spaceSector_module
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import (
+from planetgen.galaxy.sector import (
     SectorSystemEntry,
     SpaceSector,
     _nudge_away,
@@ -653,7 +653,7 @@ def test_grow_from_seed_calls_factory_at_least_once_when_growing():
 
 def test_space_sector_module_does_not_import_the_generate_script():
     """
-    Architectural regression guard: stellarObjects/spaceSector.py must not
+    Architectural regression guard: planetgen/galaxy/sector.py must not
     depend on the root `generate.py` script (once `systemGen.py`) -- root
     scripts depend on the stellarObjects package, never the reverse. Checks
     for an actual import statement, not a mention of the name in prose.
@@ -678,7 +678,7 @@ from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.spaceSector import SectorPhenomenonEntry
+from planetgen.galaxy.sector import SectorPhenomenonEntry
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 
 

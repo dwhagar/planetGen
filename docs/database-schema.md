@@ -160,9 +160,9 @@ display-string column (superseded by computing display formatting on
 demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`);
 v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
 built from an exact local spherical Voronoi tessellation among its
-same-shell neighbors — see `stellarObjects/galaxyGeometry.py`); v8 added
+same-shell neighbors — see `planetgen/galaxy/geometry.py`); v8 added
 the galaxy-wide density "skeleton" (`galaxy_shape`/`galaxy_layer`,
-built by `generate.py plan` — see `stellarObjects/galaxyDensity.py`/
+built by `generate.py plan` — see `planetgen/galaxy/density.py`/
 `galaxySkeleton.py`) plus a `UNIQUE (shell_index, shell_slot_index)`
 constraint on `sectors`, turning a concurrent lazy-generation race
 (`generate.ensure_sector_generated`) into a recoverable `IntegrityError`
@@ -963,7 +963,7 @@ One row per generated sector.
 | `edge_mpc` | DOUBLE | NOT NULL | Cube edge length, milliparsecs. Native generator value is `SpaceSector.edge_ly` (light-years). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`generate.py sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
-| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `stellarObjects/galaxyGeometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
+| `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `planetgen/galaxy/geometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
 | `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 | `created_at` | TIMESTAMP | NOT NULL | Added in v27. See "Row timestamps (v27)" above. |
 | `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Indexed. |
@@ -987,8 +987,8 @@ duplicate row at the same address.
 The galaxy-wide density "skeleton" (v8) — a singleton row (`id` pinned to
 `1`) holding everything needed to recompute any sector's exact position
 and density on demand, built by `generate.py plan`. Deliberately **not** one
-row per sector: a sector's position (`stellarObjects.galaxyGeometry.
-sector_position_pc`), density (`stellarObjects.galaxyDensity.
+row per sector: a sector's position (`planetgen.galaxy.geometry.
+sector_position_pc`), density (`planetgen.galaxy.density.
 relative_density`), and corners (`galaxyGeometry.sector_cell_vertices_pc`)
 are all pure deterministic functions of its `(ring_index, layer_index,
 ring_slot_index)`
@@ -1005,7 +1005,7 @@ billions of candidates).
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Pinned to `1` — there is exactly one galaxy. |
-| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `stellarObjects.galaxyDensity.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
+| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `planetgen.galaxy.density.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
 | `arm_count` | INT | NOT NULL | Same source. |
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs: always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC` (4) since v33. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
@@ -1024,7 +1024,7 @@ The galaxy's outline, one row per layer that can hold content (v33,
 replacing v32's `galaxy_ring_band`), from the highest layer to the lowest.
 Each layer is a circular slice holding rings 0 through `outer_ring_index`,
 the last ring whose sector centers could clear the qualification
-threshold (`stellarObjects.galaxySkeleton.build_layer_extents`). It comes
+threshold (`planetgen.galaxy.skeleton.build_layer_extents`). It comes
 from an exact upper bound over every spiral-arm angle, so a sector inside
 a layer's extent isn't guaranteed to qualify, but one outside it is
 guaranteed not to. The exact per-sector answer (one `relative_density`
@@ -1182,7 +1182,7 @@ One row per generated system (single-star or binary).
 | `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Also bumped when a child row (star, planet, moon, belt, comet) changes. |
 
 **Quadrant labeling.** `quadrant` reuses the generator's own octant scheme
-(`src/stellarObjects/spaceSector.py`'s `classify_octant`, backed by
+(`src/planetgen/galaxy/sector.py`'s `classify_octant`, backed by
 `program_constants.SECTOR_OCTANT_LABELS`): each axis's sign (`x >= 0`,
 `y >= 0`, `z >= 0`) picks one of 8 Roman-numeral labels, `I` through
 `VIII` — the same labels the generator's own `format_named_location`

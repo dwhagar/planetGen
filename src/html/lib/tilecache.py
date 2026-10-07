@@ -5,7 +5,7 @@ On-disk cache of the 3D Galaxy Map's cube tiles, kept by the web layer so
 the map doesn't hit the API (and through it, the database) every time the
 camera moves.
 
-A tile's contents (see `stellarObjects.galaxyViewport`'s "Cube tiles"
+A tile's contents (see `planetgen.galaxy.viewport`'s "Cube tiles"
 section and `queryDb.galaxy_tiles`) depend only on its key and on the
 database's contents, which `queryDb.galaxy_content_stamp` summarizes as a
 short "stamp". Tiles are cached as `<cache dir>/<db>/<generation>/
@@ -45,8 +45,8 @@ import time
 from apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from privatedir import ensure_private_dir
 from planetgen.util.appconfig import load_config
-from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
-from stellarObjects.galaxyViewport import parse_tile_key, tile_key
+from planetgen.galaxy.drill import format_drill_key, parse_drill_key
+from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 """str: Used when neither `PLANETGEN_TILE_CACHE_DIR` nor `config.json`'s
