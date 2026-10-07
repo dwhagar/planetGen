@@ -195,9 +195,11 @@ All in `src/`; `python3 src/<tool>.py --help` shows each one's options:
 | [docs/api.md](docs/api.md) | The JSON API |
 | [docs/database-schema.md](docs/database-schema.md) | The database tables and migrations |
 | [docs/design/architecture.md](docs/design/architecture.md) | How the program fits together: every file and the main flows |
+| [docs/design/architecture.html](docs/design/architecture.html) | The same as an illustrated page to open in a browser: modules, flows, data and deployment (a 2026-10-07 snapshot from before the package move) |
 | [docs/design/](docs/design/) | Design notes: the galaxy model, coordinates, navigation, phenomena, and why each choice was made |
 | [docs/TODO.md](docs/TODO.md) | Open work, and the index of the phase plans |
 | [docs/plan/](docs/plan/) | The phase plans: order, dependencies and research notes for each phase of the open work |
+| [docs/plan/tier-plan.html](docs/plan/tier-plan.html) | Every open item by phase, lane and dependency, as one page to open in a browser |
 | [docs/testing.md](docs/testing.md) | Running the tests |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
 
