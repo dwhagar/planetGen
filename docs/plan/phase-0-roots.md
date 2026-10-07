@@ -75,7 +75,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage |  | Folds TEST.83 (rate-limit tests under load). |
 | TEST.83 | Rate-limit tests fail under parallel load (bug) | SEC.30 | Folded into SEC.30 (Flask-Limiter). test_web_admin.py; passes alone, fails under -n auto. |
 | UX.39 | Markdown rendered by the markdown library |  |  |
-| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | SEC.29, UX.39, PERF.24, SEC.30, PERF.25, DB.11, ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102 | Parent of the library migration; closes with its subitems. Boss's explicit directive. |
+| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | SEC.29, UX.39, PERF.24, SEC.30, DB.11, ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102 | Parent of the library migration; closes with its subitems. Boss's explicit directive. |
 
 ### Groundwork: data model
 
@@ -106,7 +106,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) |  | Moved into phase 0 as the first step of PERF.24 (Boss chose Redis, 2026-10-03). Audit only; nothing moves to the queue until it runs at any worker count. |
 | PERF.24 | The work queue and web jobs on Redis with RQ | PERF.19 | Replaces workQueue.py and jobRunner.py; folds OPS.19 and settles PERF.19. |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | PERF.24 | Folded into PERF.24: the job store moves with the queue. jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
-| PERF.25 | The page cache on cachetools; the tile cache stays |  | tilecache.py stays (JSON only, Boss 13:27Z); diskcache, sqlitedict, cachelib and Flask-Caching are out. PERF.20 plans short-term API caching on top of it. |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | PERF.24 | Folds the four log and progress bugs below. |
 | ADM.23 | Log output wraps with hard line breaks (bug) | ADM.22 |  |
 | ADM.24 | A failed action's log closes before it can be read (bug) | ADM.22 |  |
@@ -187,7 +186,7 @@ GEN.116 keeps watch for Boss's error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). MAP.115 is folded into MAP.116 (2026-10-07).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 
