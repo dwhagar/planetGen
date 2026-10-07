@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, GEN.116, GEN.118, GEN.119, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | UX.28, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, GEN.116, GEN.118, GEN.119, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -128,7 +128,7 @@ became these items:
 | # | Boss's item | ID |
 |---|---|---|
 | 1 | Store every sector's backfill level (-1, lowest L_sun, 0) | GEN.44 (done, PR #425) |
-| 2 | Rogue planets after systems and phenomena; expanded rows span the table | UX.24 |
+| 2 | Rogue planets after systems and phenomena; expanded rows span the table | UX.24 (done, PR #487) |
 | 3 | Rogue planet gas giant vs terrestrial probability | GEN.45 |
 | 4 | Rogue planet octant and a map symbol link | UX.25 |
 | 5 | Edit and admin buttons as a button menu | UX.26 |
@@ -138,7 +138,7 @@ became these items:
 | 9 | System and nav buttons in one row, nav folding into a menu | UX.27 |
 | 10 | Icons instead of words on buttons (investigate) | UX.28 |
 | 11 | Star names at most two words | GEN.46 (done, PR #370) |
-| 12 | Every comet's type shown with a link | UX.29 |
+| 12 | Every comet's type shown with a link | UX.29 (done, PR #487) |
 | 13 | Planet information without the Markdown render | UX.30 |
 | 14 | System edit as a quick menu, not a long panel | UX.31 |
 | 15 | Planet rows show class only | UX.32 |
@@ -278,23 +278,6 @@ with `clamp()`.
     Prerequisite: GEN.66.
     Plan (2026-10-07): The ladder is built on astropy.units (GEN.66).
 
-- [ ] **UX.24 Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug)**
-  Boss (2026-10-01 23:53Z): "rogue planets should come after star
-  systems and other phenomena, and each line item should span the table
-  when expanded." Today `_contents` in `web/sector_page.py` sorts every
-  row (systems, phenomena, facilities, the folded "N rogue planets" row)
-  by distance from the sector's center only, and the only row that
-  expands is the rogue group, a `<details>` inside its Name cell
-  (`templates/sector.html`), so its members squeeze into one column.
-  Done: the table lists star systems first, then the other phenomena,
-  then rogue planets (each group still nearest first); an expanded row's
-  content spans every column of the table (a full-width detail row
-  under it, `colspan` of the whole table), on phones too.
-  Plan (2026-10-07): Built in the paused Sector and system pages lane
-  and committed only in its container (branch
-  claude/sector-system-pages-wjs5vn, not pushed), so it may have to be
-  rebuilt.
-
 - [ ] **UX.25 Rogue planets: octant and a small map symbol beside each name (bug)**
   Boss (2026-10-01 23:53Z): "Rogue planets each one has a location and
   octant, show on map should be a little map symbol next to the name as
@@ -307,7 +290,7 @@ with `clamp()`.
   text label for screen readers and a tooltip) that selects it on the
   Sector Map, as the button does today. Applies to the same link on
   other rows once UX.28 settles the icon set.
-  Prerequisites: UX.24, UX.28.
+  Prerequisite: UX.28.
   Plan (2026-10-07): Half built in the paused lane (not pushed).
 
 - [ ] **UX.26 Edit and admin actions as a button that opens a menu (bug)**
@@ -373,20 +356,6 @@ with `clamp()`.
   in icons there is a small follow-up.
   Plan (2026-10-07): Boss approved the icon set (2026-10-02). The sprite
   is reused by the Shoelace components (UX.40).
-
-- [ ] **UX.29 Every comet in a system shows its type as a link (bug)**
-  Boss (2026-10-01 23:53Z): "Comets in a star system some show the type
-  with a link and some don't. Type / link should be there for all."
-  Today `_comet_row_html` (`lib/systempage.py`) shows "Elliptical comet"
-  or "Parabolic comet" as plain text and links only the period class
-  (`class_url("comet", period_class)`); parabolic comets have no period
-  class (`cometData.py`), so they get no link, and an unknown code gets
-  none either. Done: every comet row shows its type as a link to its
-  class reference page, parabolic comets included (a class entry for
-  them, or a link to the comet class overview), and a test checks every
-  comet kind has a working link.
-  Plan (2026-10-07): Built in the paused lane and committed only in its
-  container (not pushed), so it may have to be rebuilt.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
