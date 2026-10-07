@@ -76,7 +76,7 @@ database only.
    disk-space refusal (PERF.3, ADM.33) and the math gate (TEST.68) run
    before anything is queued, so a refused run never reaches a worker.
 
-## The decision for Boss
+## The first choice: short generation
 
 Point 3 is the one choice here. Single-object generation is quick
 today, so it could stay in the request. Queuing it follows Boss's
