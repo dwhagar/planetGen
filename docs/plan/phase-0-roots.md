@@ -64,13 +64,12 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) |  | test_facilities.py; a random giant's sphere of influence can be under the test's 500,000 km orbit. |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) |  | test_web_browser_maps.py drill-down by clicks; failed once under -n auto on MariaDB 10.11, passed 3 of 3 alone. |
+| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  | Apostrophe in a random planet name; compare against html.escape(planet.name). Moved from Groundwork: names from IDs (2026-10-07 18:18Z). |
 
 ### Groundwork: layout and libraries
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.24 | Move the code into the new package layout, one package per PR |  | Mechanical moves with no shims or wrappers (Boss 13:04Z): each PR updates every caller; every other open branch merges main after each one. |
-| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | OPS.24 | Parent; closes with its subitems. Goes before the library swaps so each file moves once. |
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno |  | Folds TEST.72 (the 2FA flake). |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | SEC.29 | Folded into SEC.29 (pyotp). |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage |  | Folds TEST.83 (rate-limit tests under load). |
@@ -82,11 +81,11 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.11 | The database layer and migrations on SQLAlchemy and Alembic | OPS.24 | Every later schema change (DB.7, NAV.10, API.11, DB.13, GEN.106) is an Alembic migration. |
+| DB.11 | The database layer and migrations on SQLAlchemy and Alembic |  | Every later schema change (DB.7, NAV.10, API.11, DB.13, GEN.106) is an Alembic migration. |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | DB.11 | Boss (2026-10-07 11:47Z): "This is to be considered a Phaser 0 priority." |
-| ADM.21 | Input validation on Pydantic models | OPS.24 | Also the error objects API recipes (API.18) return. |
-| GEN.66 | Physics on scipy, and astropy constants and units | OPS.24 |  |
-| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | OPS.24 | Groundwork for the orbital work, Hill-sphere placement and light-travel positions. |
+| ADM.21 | Input validation on Pydantic models |  | Also the error objects API recipes (API.18) return. |
+| GEN.66 | Physics on scipy, and astropy constants and units |  |  |
+| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object |  | Groundwork for the orbital work, Hill-sphere placement and light-travel positions. |
 
 ### Groundwork: names from IDs
 
@@ -96,10 +95,9 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | GEN.68 |  |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin |  |  |
 | GEN.71 | Remove the word-salad name code, nltk and the name registries | GEN.69, GEN.70 |  |
-| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | GEN.71 | Folded into GEN.67: codec names have no apostrophes; fix the test's escaping there. |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | GEN.69 |  |
 | GEN.73 | Nebulae don't get unique names (bug) | GEN.69 |  |
-| GEN.67 | Names from IDs: replace word-salad name generation | GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73 | Parent; folds the two naming bugs, TEST.71, and drops GEN.63. |
+| GEN.67 | Names from IDs: replace word-salad name generation | GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73 | Parent; folds the two naming bugs and drops GEN.63. |
 
 ### Groundwork: queue, logs and caches
 
@@ -190,7 +188,7 @@ held: it is a test across many neighbourhood centres (see TODO.md).
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). MAP.115 is folded into MAP.116 (2026-10-07).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 
