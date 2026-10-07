@@ -1,5 +1,28 @@
 # Changelog
 
+## [7.189.607] - 2026-10-07
+
+### Fixed
+- **The bright-star backfill after a `galaxy` run has its own progress
+  bar with a working ETA** (PERF.28). A `--slot` run (the Sector Map's
+  "Generate neighborhood" among them) used to backfill inside the
+  sector's bar, which sat at 0 of 1 with no ETA for minutes; the backfill
+  now runs at the end of the run, counting the sectors it visits.
+
+## [7.188.607] - 2026-10-07
+
+### Added
+- **Two browsable development pages in the docs**: `docs/design/architecture.html`
+  (modules, flows, data and deployment, as of 2026-10-07 before the
+  package move) and `docs/plan/tier-plan.html` (every open TODO item by
+  phase, lane and dependency), linked from the README's documentation
+  table.
+
+## [7.187.607] - 2026-10-07
+
+### Changed
+- **The web pages' shared modules move into `planetgen.web.lib` and `planetgen.web.maps` (OPS.24, step 10 of 14).** apiclient, fmt, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir and systempage are now in `planetgen.web.lib`. The map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) are now in `planetgen.web.maps`. `src/html/lib/` is gone, along with the `sys.path` pushes that reached it, and the Apache example no longer needs a deny rule for it.
+
 ## [7.186.607] - 2026-10-07
 
 ### Changed

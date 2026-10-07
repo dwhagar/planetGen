@@ -272,14 +272,14 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
     conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
-        planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1",
-                                 (galaxy["plain"][0],)).fetchone()["id"]
+        # Any stored planet will do (a random system may have none).
+        planet = conn.execute("SELECT id, star_system_id FROM planets ORDER BY id LIMIT 1").fetchone()
         with conn:
             conn.execute(
                 "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
                 "climate, size, civilization_age_years, era, spacefaring) "
                 "VALUES ('Leftover', ?, ?, 'carbon', 'multicellularity', 'average', 'temperate', 'medium', "
-                "NULL, NULL, 0)", (planet_id, galaxy["plain"][0]),
+                "NULL, NULL, 0)", (planet["id"], planet["star_system_id"]),
             )
         population.run_pass(conn)
         assert conn.execute("SELECT COUNT(*) AS n FROM species WHERE name = 'Leftover'").fetchone()["n"] == 0
