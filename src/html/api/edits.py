@@ -199,8 +199,11 @@ def _change_class(kind, body_id):
 @require_admin(fresh=True)
 def change_planet_class(body_id):
     """`POST /api/planets/<id>/class` `{"class": "M", "force": false}` --
-    changes a planet's class (ADM.6). Without `force` only a recommended
-    class is accepted (409 otherwise); with it any class. The rest of the
+    changes a planet's class (ADM.6), re-generating its surface
+    conditions as that class and keeping its orbit, mass and name
+    (ADM.27). A class its mass doesn't fit is refused (409) and nothing
+    changes. Without `force` only a recommended class is accepted (409
+    otherwise); with it any class its mass fits. The rest of the
     system is re-spaced to fit, never trimmed; what still doesn't validate
     comes back in `warnings`, and the change is saved either way."""
     return _change_class("planet", body_id)

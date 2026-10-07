@@ -1474,6 +1474,38 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     return sector_name, sector
 
 
+_GIANT_YERKES = ("III", "II")
+_SUPERGIANT_YERKES = ("IB", "IAB", "IA", "IA+", "0")
+
+
+def _summary_star_label(star):
+    """
+    `(label, plural)` for one system's star in the sector summary (UX.34):
+    white dwarfs, black holes and neutron stars by name, giants and
+    supergiants under their letter, others by spectral letter alone.
+    """
+    yerkes = getattr(star, "yerkes_class", None)
+    if yerkes in ("D", "VII"):
+        return "white dwarf", "white dwarfs"
+    if yerkes == "BH":
+        return "black hole", "black holes"
+    if yerkes == "NS":
+        return "neutron star", "neutron stars"
+    letter = (star.type or "?")[0]
+    if yerkes in _GIANT_YERKES:
+        return f"{letter}-type giant", f"{letter}-type giants"
+    if yerkes in _SUPERGIANT_YERKES:
+        return f"{letter}-type supergiant", f"{letter}-type supergiants"
+    return f"{letter}-type", f"{letter}-type"
+
+
+def _log_summary(text):
+    """Logs a multi-line summary one line per record, so each line gets
+    the debug log's timestamp, process and source prefix (OPS.9)."""
+    for line in text.splitlines():
+        log.normal(line)
+
+
 def sector_generation_summary_lines(sector, args_used):
     """
     Builds the per-sector status lines every sector-generating command
@@ -1501,7 +1533,7 @@ def sector_generation_summary_lines(sector, args_used):
             real local stellar density, matching `--density`'s own
             convention).
     """
-    system_types = Counter((entry.star_system.star.type or "?")[0] for entry in sector.entries)
+    system_types = Counter(_summary_star_label(entry.star_system.star) for entry in sector.entries)
     phenomenon_types = Counter(entry.phenomenon_type for entry in sector.phenomena)
 
     e_value = sector.expected_system_count()
@@ -1515,7 +1547,8 @@ def sector_generation_summary_lines(sector, args_used):
 
     lines = []
     if system_types:
-        types_str = ", ".join(f"{count} {cls}-type" for cls, count in sorted(system_types.items()))
+        types_str = ", ".join(f"{count} {label if count == 1 else plural}"
+                              for (label, plural), count in sorted(system_types.items()))
     else:
         types_str = "none"
     lines.append(f"    Systems: {types_str}")
@@ -1572,7 +1605,7 @@ def run_sector(args):
             f"{result['systems']} systems{phenomena_note}, "
             f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port})."
         )
-        log.normal(result["summary"])
+        _log_summary(result["summary"])
 
     try:
         with _work_queue(args, f"Sectors ({args.num_sectors} unplaced)") as queue:
@@ -2405,7 +2438,7 @@ def _log_saved(saved, address, suffix=""):
         f"Saved sector '{saved['name']}' [{designation}] at {_format_address(address)}{suffix} "
         f"(sector_id={saved['sector_id']})."
     )
-    log.normal(saved["summary"])
+    _log_summary(saved["summary"])
 
 
 def _log_level(args):
@@ -3070,7 +3103,7 @@ def run_random_start(args, edge_pc, progress):
         f"Saved random starting sector '{sector_name}' [{designation}] at {_format_address(address)} "
         f"(sector_id={sector_id})."
     )
-    log.normal(sector_generation_summary_lines(sector, sector_args))
+    _log_summary(sector_generation_summary_lines(sector, sector_args))
 
     args.center_sector = sector_id
     args.radius_pc = radius_pc

@@ -403,14 +403,68 @@ def test_unrecommended_class_needs_force(admin, mysql_config):
     system = _load(mysql_config, system_id)
     planet = _first_planet(system)
     recommended = adminEdits.recommended_classes(system, planet, system.planets)
-    other = next(c for c in sorted(tuning.PLANET_CLASSES)
-                 if c not in recommended and c != planet.planet_class)
+    other = next((c for c in sorted(tuning.PLANET_CLASSES)
+                  if c not in recommended and c != planet.planet_class
+                  and adminEdits.class_fits_mass(c, planet.mass)), None)
+    if other is None:
+        pytest.skip("every class this planet's mass fits is recommended")
     assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other}).status_code == 409
     assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": "?"}).status_code == 400
     response = admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other, "force": True})
     assert response.status_code == 200, response.get_json()
     assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
                  (planet.db_id,))[0]["planet_class"] == other
+
+
+def _unsaved_system_with_planet():
+    for _ in range(200):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.PLANETS = True
+        cfg.MOONS = True
+        cfg.BINARY_SYSTEM = False
+        system = StarSystem(cfg)
+        if any(p.body_type == 't' for p in system.planets):
+            return system
+    pytest.skip("no rocky planet generated")
+
+
+def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name():
+    """ADM.27: the body is re-generated as the new class -- composition,
+    atmosphere, temperature, pressure, life -- at its orbit, mass and name."""
+    system = _unsaved_system_with_planet()
+    planet = next(p for p in system.planets if p.body_type == 't')
+    new_class = next(c for c in sorted(tuning.PLANET_CLASSES)
+                     if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
+    name, mass, distance = planet.name, planet.mass, planet.distance
+    adminEdits.change_class(system, planet, system.planets, new_class, force=True)
+    data = tuning.PLANET_CLASSES[new_class]
+    assert planet.planet_class == new_class
+    assert planet.name == name
+    assert planet.mass == pytest.approx(mass, rel=1e-9)
+    assert planet.distance == pytest.approx(distance, rel=1e-6)
+    assert planet.composition == data["composition"]
+    assert planet.atmosphere == (data["atmosphere"] or "None")
+    low, high = data["radius_range"]
+    assert low <= planet.radius <= high
+    volume_m3 = 4 / 3 * 3.141592653589793 * (planet.radius * 1000) ** 3
+    assert planet.density == pytest.approx(mass / volume_m3 / 1000, rel=1e-6)
+    assert planet.surface_temperature is not None
+
+
+def test_class_change_the_mass_cant_fit_is_refused_and_changes_nothing():
+    """ADM.27: a gas giant class for a rocky world is refused, even forced,
+    with a message, and the body is left as it was."""
+    system = _unsaved_system_with_planet()
+    planet = next(p for p in system.planets if p.body_type == 't')
+    assert not adminEdits.class_fits_mass("J", planet.mass)
+    before = dict(vars(planet))
+    with pytest.raises(ValueError, match="Earth masses; class J needs"):
+        adminEdits.change_class(system, planet, system.planets, "J", force=True)
+    assert "J" not in adminEdits.recommended_classes(system, planet, system.planets)
+    after = vars(planet)
+    assert {k: v for k, v in after.items() if not isinstance(v, list)} == \
+        {k: v for k, v in before.items() if not isinstance(v, list)}
 
 
 def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
@@ -456,7 +510,8 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     client = _web_admin(web_app, mysql_config)
     html = client.get(f"/system/{system_id}").get_data(as_text=True)
     assert "Change class" in html and "Change star" in html
-    other = "J" if planet.planet_class != "J" else "T"
+    other = next(c for c in sorted(tuning.PLANET_CLASSES)
+                 if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
     response = _edit(web_app, client, f"/system/{system_id}", "class", f"planet:{planet.db_id}",
                      planet_class=f"force:{other}")
     assert response.status_code == 303

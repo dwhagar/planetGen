@@ -4,8 +4,8 @@
 Population and politics (POP.1 to POP.4, schema v44)
 ====================================================
 
-Names the dominant species of every life world, dates each technological
-civilization and places it in an era, founds a polity for every
+Names the species of every world with a technological civilization
+(GEN.80; worlds with simpler life get none), dates each one and places it in an era, founds a polity for every
 spacefaring species, and splits the generated systems around them into
 territories. See `docs/design/population-and-politics.md`.
 
@@ -318,6 +318,7 @@ def _run_pass(conn, rescan, territories_only):
                 conn.execute("DELETE FROM species")
                 conn.execute("DELETE FROM population_state")
         new_species = scan_life_worlds(conn)
+        drop_species_without_civilization(conn)
         refresh_civilizations(conn)
     owned = refresh_territories(conn)
     counts = conn.execute(
@@ -358,9 +359,10 @@ def _unique_species_name(conn, taken):
 
 def scan_life_worlds(conn):
     """
-    Adds a `species` row for every life world among the planets not yet
-    scanned (`population_state.scanned_planet_id`), batch by batch, and
-    moves the watermark past them.
+    Adds a `species` row for every world with a technological civilization
+    (GEN.80) among the planets not yet scanned
+    (`population_state.scanned_planet_id`), batch by batch, and moves the
+    watermark past them.
 
     Returns:
         int: Species added.
@@ -378,8 +380,8 @@ def scan_life_worlds(conn):
             "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
             "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
             "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
-            "AND (e.paragraph LIKE ? OR e.paragraph LIKE ?) ORDER BY p.id, e.position",
-            (low, high, "%would have been Multicellularity at%", "%would have been Technological Civilization at%"),
+            "AND e.paragraph LIKE ? ORDER BY p.id, e.position",
+            (low, high, "%would have been Technological Civilization at%"),
         ).fetchall()
         planets = {}
         for row in rows:
@@ -392,11 +394,11 @@ def scan_life_worlds(conn):
                 continue
             rng = random.Random(planet_id)
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
-            age = era = None
-            spacefaring = False
-            if has_civilization(timeline, row["intelligent_life"], rng):
-                age = civilization_age(timeline.window_years, rng)
-                era, spacefaring = era_for_age(age)
+            if not has_civilization(timeline, row["intelligent_life"], rng):
+                # Only a technological civilization gets a species (GEN.80).
+                continue
+            age = civilization_age(timeline.window_years, rng)
+            era, spacefaring = era_for_age(age)
             name = _unique_species_name(conn, taken)
             taken.add(name)
             inserts.append((name, planet_id, row["star_system_id"], row["life_chemical"], timeline.life_stage,
@@ -414,6 +416,23 @@ def scan_life_worlds(conn):
     if added:
         log.debug(f"Population: {added} new species")
     return added
+
+
+def drop_species_without_civilization(conn):
+    """
+    Deletes the species an earlier pass named for worlds with no
+    technological civilization (GEN.80: only those get a species). They
+    never had a polity; anything else of theirs goes with them (`ON DELETE
+    CASCADE`).
+
+    Returns:
+        int: Species deleted.
+    """
+    with conn:
+        dropped = conn.execute("DELETE FROM species WHERE civilization_age_years IS NULL").rowcount
+    if dropped:
+        log.debug(f"Population: {dropped} species without a technological civilization removed")
+    return dropped
 
 
 def refresh_civilizations(conn):

@@ -21,12 +21,13 @@ This lets a `CompactRemnant` drop into every place `StarSystem` expects a
 `Star` -- orbit placement, serialization, `adjust_age_for_planets` --
 without any of that code needing to know compact remnants exist.
 
-A compact remnant's `luminosity` is zero (or a small accretion-disk/thermal
-value), which makes `utils.calculate_habitable_zone` naturally collapse its
+A compact remnant's `luminosity` is tiny (a black hole's Hawking
+radiation, a neutron star's thermal glow) unless it has an accretion disk,
+which makes `utils.calculate_habitable_zone` naturally collapse its
 `habitable_zone` to (0, 0) AU -- there is no thermal habitable zone around a
 dark object -- without any special-casing in `StarSystem._generate_planets`.
 Likewise, `StarSystem._estimate_max_objects_from_disk_physics`'s snow-line
--driven ceiling naturally comes out to zero planets for a zero-luminosity
+-driven ceiling naturally comes out to zero planets for such a dim
 remnant, matching the real rarity of confirmed planets around black
 holes/neutron stars; `SystemConfig.PLANETS`/`NUM_ORBITS` can still force
 orbiting bodies explicitly (see `phenomenonGen.py --num-orbits`).
@@ -55,6 +56,27 @@ from stellarObjects.utils import (calculate_habitable_zone, format_age_string, f
 def _log_uniform(low, high):
     """A value drawn uniformly in log space between `low` and `high`."""
     return math.exp(random.uniform(math.log(low), math.log(high)))
+
+
+def hawking_temperature_k(mass_solar):
+    """
+    A black hole's Hawking temperature, T = hbar c^3 / (8 pi G M k_B):
+    about 6.2e-8 K for one solar mass, falling as 1/M (GEN.82).
+    """
+    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 3
+            / (8 * math.pi * constants.G * mass_kg * constants.BOLTZMANN))
+
+
+def hawking_luminosity_w(mass_solar):
+    """
+    A black hole's Hawking luminosity, L = hbar c^6 / (15360 pi G^2 M^2)
+    (photons only): about 9e-29 W for one solar mass, falling as 1/M^2
+    (GEN.82).
+    """
+    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 6
+            / (15360 * math.pi * constants.G ** 2 * mass_kg ** 2))
 
 
 def infer_black_hole_mass_class(mass_solar):
@@ -273,8 +295,10 @@ class BlackHole(CompactRemnant):
                 self.luminosity = random.uniform(0.0001, 0.05) * eddington_luminosity_w
                 self.temperature = random.uniform(1e5, 1e7)
             else:
-                self.luminosity = 0.0
-                self.temperature = 0.0
+                # No disk: all it gives off is Hawking radiation, real but
+                # tiny (it once stored a flat 0, GEN.82).
+                self.luminosity = hawking_luminosity_w(self.mass_solar)
+                self.temperature = hawking_temperature_k(self.mass_solar)
 
         self.type = f"{self.mass_class_label} Black Hole"
         self.yerkes_class = "BH"

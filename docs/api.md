@@ -964,15 +964,19 @@ shape as above.
 - **Class (ADM.6).** `GET /api/systems/<id>/class-options` answers
   `{"recommended": {"planet:<id>" or "moon:<id>": [classes]}, "all":
   [classes]}`: for each planet and moon, the classes it could take where
-  it is without moving any other planet (valid in its zone, at a typical mass
-  for the class still clear of its neighbors and able to hold its moons;
-  for a moon, a class its planet can hold), most common first, its own
-  class left out (a planet's own moons may still be re-spaced for its new
-  size). `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
-  `{"class": "M", "force": false}` re-rolls the body as that class at
-  the same orbit, keeping its name, row and moons. Without `force` only a
-  recommended class is accepted (`409` otherwise); with `"force": true`
-  any class is, even one that can't form where the body is. The body
+  it is without moving any other planet (valid in its zone, a class its
+  mass fits and, for a planet, big enough to hold its moons; for a moon,
+  a class its planet can hold), most common first, its own class left
+  out (a planet's own moons may still be re-spaced for its new size).
+  `POST /api/planets/<id>/class` (or `/api/moons/<id>/class`)
+  `{"class": "M", "force": false}` re-generates the body's surface
+  conditions as that class (radius, density, composition, atmosphere,
+  temperature, pressure and life), keeping its orbit, mass, name, row
+  and moons. A class its mass doesn't fit (a gas giant class for a small
+  rocky world) is refused with `409` and a message, and nothing changes.
+  Without `force` only a recommended class is accepted (`409` otherwise);
+  with `"force": true` any class its mass fits is, even one that can't
+  form where the body is. The body
   keeps the class it was given; the rest of the system is re-spaced
   around it, nothing is removed, and what still doesn't validate comes
   back in `warnings`.
