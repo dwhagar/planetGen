@@ -368,7 +368,7 @@ def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monk
     monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
     resp = _post(client, action="galaxy", mode="block", block="3.40.7.0", estimate_ok="1", generate_anyway="1")
     assert resp.status_code == 303 and len(no_spawn) == 1
-    assert "--strict" not in no_spawn[0]["steps"][-1]["argv"]   # generate.py warns and goes ahead
+    assert "--strict" not in no_spawn[0]["steps"][-1]["argv"]   # the CLI warns and goes ahead
     names = [args[1] for args, _kwargs in events]
     assert names == ["job.start", "job.generate_anyway"]
     assert events[1][1]["job"] == events[0][1]["job"]
