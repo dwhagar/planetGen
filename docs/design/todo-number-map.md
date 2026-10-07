@@ -772,9 +772,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
-| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | open |
+| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | done, PR #473 |
 | OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
-| OPS.24 | Move the code into the new package layout, one package per PR | none | open |
+| OPS.24 | Move the code into the new package layout, one package per PR | none | done, PR #473 |
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | done, PR #442 |
 | OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) | none | done, PR #467 |
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | open |

@@ -195,7 +195,6 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 |---|---|---|
 | TEST.72 | SEC.29 | The TOTP code it tests moves to pyotp. |
 | TEST.83 | SEC.30 | The rate limits move to Flask-Limiter on Redis. |
-| TEST.71 | GEN.67 | Codec names have no apostrophes. |
 | PERF.19 | PERF.24 | Boss chose Redis and RQ; the audit is its first step. |
 | OPS.19 | PERF.24 | The job store moves with the queue. |
 | UX.2, ADM.14, UX.26, UX.31, UX.27 | UX.40 | Menus, buttons and form fields become Shoelace components. |
@@ -270,10 +269,10 @@ No decisions are open.
 
 | Files | Items | Order |
 |---|---|---|
-| Every module (the package move) | OPS.24 | Land before the library swaps; every open branch merges main after each move PR. |
+| Every module (the package move) | none (OPS.24 done, PR #473) | The move is finished; the library swaps build on the new layout. |
 | stellarObjects/workQueue.py, jobRunner.py, web/jobs.py | PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20 | PERF.19's audit, then PERF.24 with OPS.19, then ADM.22. |
 | _db.py and migrateDb.py | DB.11, DB.13, GEN.71, DB.7, NAV.10, API.11 | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
-| Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, TEST.71, VIEW.4, API.12 | One stream, in TODO order. |
+| Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, VIEW.4, API.12 | One stream, in TODO order. |
 | generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
 | Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js) | MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124 | Bugfix lane items first; the engine group next; phase 1 map items after. |
 | sectormap.js | MAP.79, MAP.113, MAP.66, MAP.68 | MAP.68 deletes the file. |
