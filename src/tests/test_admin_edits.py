@@ -253,6 +253,22 @@ def test_regenerate_sector_off_the_grid_is_refused(admin, mysql_config):
     assert _rows(mysql_config, "SELECT id FROM star_systems WHERE id = ?", (system_id,))
 
 
+def test_regenerate_sector_is_queued(admin, mysql_config, monkeypatch):
+    """A placed sector with a density plan is queued, not regenerated in
+    the request: 202 with a job id, and nothing deleted yet."""
+    from planetgen.queue import api_jobs
+    sector_id, system_id = _saved_system(mysql_config)
+    monkeypatch.setattr(editStore, "sector_address", lambda conn, sector: (1, 2, 3))
+    monkeypatch.setattr(store, "get_galaxy_shape", lambda conn: object())
+    queued = []
+    monkeypatch.setattr(api_jobs, "submit", lambda function, *args: queued.append((function, args)) or "cd" * 8)
+    response = admin.post(f"/api/sectors/{sector_id}/regenerate")
+    assert response.status_code == 202, response.get_json()
+    assert response.get_json()["job_id"] == "cd" * 8
+    assert queued == [(api_jobs.regenerate_sector, (sector_id, queued[0][1][1]))]
+    assert _rows(mysql_config, "SELECT id FROM star_systems WHERE id = ?", (system_id,))
+
+
 # ---------------------------------------------------------------------
 # The web pages' buttons
 # ---------------------------------------------------------------------

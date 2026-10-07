@@ -17,11 +17,10 @@ Kept in its own blueprint, like `population.py`, so this work doesn't
 touch `routes.py`.
 """
 
-import random
 
 from flask import Blueprint, jsonify, request
 
-from planetgen.generation import run_galaxy
+from planetgen.queue import api_jobs
 from planetgen.generation import run_phenomenon
 from planetgen.db import edits as editStore, store
 from planetgen.admin import edits as adminEdits
@@ -32,7 +31,7 @@ from planetgen.generation.config import SystemConfig
 from .authz import audit, require_admin
 from .common import ApiError
 from .limiter import limiter
-from .routes import WRITE_RATE_LIMIT, _resolve_requested_write_db_config, _write_conn
+from .routes import WRITE_RATE_LIMIT, accepted, _resolve_requested_write_db_config, _write_conn
 
 bp = Blueprint("edits", __name__, url_prefix="/api")
 
@@ -377,10 +376,13 @@ def delete_sector_with_contents(sector_id):
 def regenerate_sector(sector_id):
     """`POST /api/sectors/<id>/regenerate` -- deletes a galaxy-placed
     sector with everything in it (as `DELETE .../contents`) and generates
-    its slot again from the galaxy's density plan. The new sector gets a
-    new id and name (`sector_id` in the answer; `null` if the slot is
-    outside the galaxy's outline). 409 for a sector off the galaxy grid
-    or before `planetgen plan` has run."""
+    its slot again from the galaxy's density plan. 409 for a sector off the
+    galaxy grid or before `planetgen plan` has run, 404 for an unknown one;
+    both answer before anything is queued. The delete and the generation
+    run as a queued job (PERF.24): `202` with the job's id, and
+    `GET /api/jobs/<id>` gives its `result`: `deleted`, and the new
+    sector's `sector_id` and `sector_name` (`null` if the slot is outside
+    the galaxy's outline)."""
     _options()
     config = _resolve_requested_write_db_config()
     conn = _write_conn()
@@ -395,12 +397,11 @@ def regenerate_sector(sector_id):
                                status_code=409)
             if store.get_galaxy_shape(conn) is None:
                 raise ApiError("the galaxy has no density plan yet; run 'planetgen plan' first", status_code=409)
-            counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
-    random.seed()
-    result = run_galaxy.ensure_sector_generated(*address, config=config)
-    audit("sector.regenerate", target=f"sector:{sector_id}",
-          detail=f"deleted {counts}; new sector {result['sector_id']}")
-    return jsonify({"status": "ok", "deleted": counts, "sector_id": result["sector_id"],
-                    "sector_name": result["sector_name"]})
+    try:
+        job_id = api_jobs.submit(api_jobs.regenerate_sector, sector_id, config)
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    audit("sector.regenerate", target=f"sector:{sector_id}", detail=f"job={job_id}")
+    return accepted(job_id)

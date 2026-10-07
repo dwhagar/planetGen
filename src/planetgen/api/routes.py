@@ -1189,10 +1189,10 @@ def generate_sector_neighborhood_route(sector_id):
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
         detail=f"radius_ly={radius_ly!r} job={job_id}",
     )
-    return _accepted(job_id)
+    return accepted(job_id)
 
 
-def _accepted(job_id):
+def accepted(job_id):
     """`202 Accepted` for work queued as job `job_id`: its state is at the
     `Location` header's `GET /api/jobs/<id>`."""
     url = f"/api/jobs/{job_id}"
