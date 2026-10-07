@@ -269,7 +269,7 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
 
 def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, galaxy):
     # Earlier passes named a species on every life world (GEN.80).
-    conn = _db.get_connection(mysql_config)
+    conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
         planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1",

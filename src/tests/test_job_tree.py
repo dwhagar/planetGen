@@ -320,8 +320,9 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
     src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     child = (
         "import sys; sys.path.insert(0, %r)\n"
-        "from stellarObjects import _db, workQueue\n"
-        "with workQueue.job_node('galaxy', 'Inside the step', _db.control_mysql_config()):\n"
+        "from planetgen.db import store\n"
+        "from stellarObjects import workQueue\n"
+        "with workQueue.job_node('galaxy', 'Inside the step', store.control_mysql_config()):\n"
         "    pass\n"
     ) % src
     env = {
