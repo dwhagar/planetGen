@@ -30,7 +30,8 @@ from dataclasses import dataclass
 
 import pymysql
 
-from . import log, program_constants
+from . import program_constants
+from planetgen.util import log
 from .evolution import life_stage_from_paragraphs
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .utils import generate_phoneme_salad_name, ly_to_pc, pc_to_ly

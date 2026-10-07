@@ -43,7 +43,8 @@ from hypothesis import strategies as st
 
 import generate
 from stellarObjects.starData import STAR_TYPE_PATTERN
-from stellarObjects import _db, generationLimits, log, program_constants
+from stellarObjects import _db, generationLimits, program_constants
+from planetgen.util import log
 from stellarObjects.galaxyDensity import build_galaxy_shape
 from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
 from stellarObjects.utils import ly_to_pc

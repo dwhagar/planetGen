@@ -45,7 +45,7 @@ UPDATE_HINT = "sudo ./update.sh"
 
 
 def load_appconfig(repo_dir):
-    path = os.path.join(repo_dir, "src", "stellarObjects", "appconfig.py")
+    path = os.path.join(repo_dir, "src", "planetgen", "util", "appconfig.py")
     spec = importlib.util.spec_from_file_location("planetgen_appconfig", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)

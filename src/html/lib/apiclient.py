@@ -36,11 +36,11 @@ import urllib.request
 # stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
 # at src/html/lib/, two levels down from src/ -- add src/ to sys.path the
 # so
-# `stellarObjects.appconfig` is importable here too.
+# `planetgen.util.appconfig` is importable here too.
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from stellarObjects import log  # noqa: E402
-from stellarObjects.appconfig import load_config  # noqa: E402
+from planetgen.util import log  # noqa: E402
+from planetgen.util.appconfig import load_config  # noqa: E402
 
 import pagecache  # noqa: E402 -- a sibling in lib/
 

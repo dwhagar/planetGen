@@ -114,7 +114,7 @@ ensure_nltk_words() {
 # answer warns rather than stopping the install or update.
 ensure_redis() {
     local url host
-    url="$("$PYTHON" -c "import sys; sys.path.insert(0, sys.argv[1]); from stellarObjects.appconfig import load_config; print(load_config()['redis']['url'])" "$SCRIPT_DIR/src")" || {
+    url="$("$PYTHON" -c "import sys; sys.path.insert(0, sys.argv[1]); from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])" "$SCRIPT_DIR/src")" || {
         echo "warning: couldn't read redis.url from config.json; skipping the Redis check." >&2
         return 0
     }

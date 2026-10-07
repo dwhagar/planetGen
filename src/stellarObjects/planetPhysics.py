@@ -20,7 +20,8 @@ import math
 import random
 import re
 
-from . import log, physical_constants, program_constants
+from . import physical_constants, program_constants
+from planetgen.util import log
 from .utils import (calculate_object_mass, calculate_hill_sphere, calculate_reflex_offset,
                     circular_orbital_speed_kms, minimum_update_interval_years,
                     finite_domain, orbital_position_au, sample_bounded_bell,

@@ -1,5 +1,5 @@
 """
-Tests for the debug log (`config.json`'s `"debug"`, see `stellarObjects/log.py`):
+Tests for the debug log (`config.json`'s `"debug"`, see `planetgen/util/log.py`):
 it's written only when debug is on, carries timestamps, errors and every
 random roll, never changes what a seeded run generates, and never breaks
 the program when the file can't be opened.
@@ -13,7 +13,8 @@ import sys
 
 import pytest
 
-from stellarObjects import appconfig, log
+from planetgen.util import appconfig
+from planetgen.util import log
 
 
 ROLL_CHANCE = 0.25

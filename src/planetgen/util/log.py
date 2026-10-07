@@ -2,8 +2,8 @@
 Unified CLI Logging
 ====================
 
-A single, shared logging channel for `generate.py` and every module under
-`stellarObjects` -- everything routes through here instead of bare
+A single, shared logging channel for `generate.py` and every planetGen
+module -- everything routes through here instead of bare
 `print()` calls, so `--debug`/`--quiet`/`--silent` behave consistently
 everywhere.
 
@@ -18,7 +18,7 @@ threshold filtering is just `Logger.setLevel`, not reinvented:
 
 `configure()` is called exactly once, from `generate.py`'s `main()`, right
 after argument parsing. Every other module just does
-`from stellarObjects import log` and calls `log.debug(...)`/`log.normal(...)`/
+`from planetgen.util import log` and calls `log.debug(...)`/`log.normal(...)`/
 `log.error(...)`.
 
 Separately from the console, `config.json`'s `"debug": true` (or
@@ -64,7 +64,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from stellarObjects import appconfig
+from planetgen.util import appconfig
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -258,7 +258,7 @@ def _redacted_argv():
 
 def _package_version():
     try:
-        from stellarObjects._version import __version__
+        from planetgen._version import __version__
         return __version__
     except Exception:  # noqa: BLE001
         return "unknown"
@@ -409,9 +409,9 @@ _RANDOM_FUNCTIONS = (
 _original_random_functions = {}
 
 # planetGen's own code lives under the repo (a source checkout, including
-# src/html/) or, once pip-installed, in the stellarObjects package and the
-# top-level generate module.
-_PACKAGE_DIR = os.path.dirname(os.path.abspath(__file__))
+# src/html/) or, once pip-installed, in the planetgen package and the
+# top-level generate module. This file is src/planetgen/util/log.py.
+_PACKAGE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 _REPO_DIR = os.path.dirname(os.path.dirname(_PACKAGE_DIR))
 _OWN_MODULES = ("generate", "__main__")
 

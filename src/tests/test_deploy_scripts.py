@@ -165,9 +165,9 @@ def _run_log_locations(tmp_path, user=None, group=None, config=None, **env_overr
     """Runs log-locations.py against a fake checkout holding the real
     appconfig.py and, when given, a config.json."""
     repo = tmp_path / "repo"
-    package = repo / "src" / "stellarObjects"
+    package = repo / "src" / "planetgen" / "util"
     package.mkdir(parents=True, exist_ok=True)
-    shutil.copy(os.path.join(REPO_DIR, "src", "stellarObjects", "appconfig.py"), package / "appconfig.py")
+    shutil.copy(os.path.join(REPO_DIR, "src", "planetgen", "util", "appconfig.py"), package / "appconfig.py")
     if config is not None:
         (repo / "config.json").write_text(json.dumps(config))
     me_user, me_group = _me()

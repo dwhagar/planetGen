@@ -771,7 +771,7 @@ check and change only what is missing. The maintenance timers in
 checks it with `bump_version.py --check-pr`. After the merge,
 `stamp-version.yml` runs `bump_version.py --commit`: each pending note
 becomes its own release (oldest merge first), bumping
-`src/stellarObjects/_version.py`, the README `**Version:**` badge and
+`src/planetgen/_version.py`, the README `**Version:**` badge and
 `CHANGELOG.md` together, and the bot pushes `Release x.y.z` to `main`.
 `test_version_sync.py` checks the three stay in step. Servers pick the
 release up on their next `update.sh`.

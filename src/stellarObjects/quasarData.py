@@ -30,8 +30,9 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import log, physical_constants, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from . import physical_constants, program_constants
+from planetgen.util import log
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import format_distance_km, format_distance_ly, format_number, generate_phoneme_salad_name
 
 

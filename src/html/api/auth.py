@@ -23,7 +23,8 @@ import hashlib
 from flask import Blueprint, current_app, g, jsonify, request
 from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
-from stellarObjects import activitylog, adminAuth, log
+from stellarObjects import activitylog, adminAuth
+from planetgen.util import log
 
 from .authz import SESSION_COOKIE_NAME, audit, require_admin
 from .common import ApiError, get_control_db, require_json_body

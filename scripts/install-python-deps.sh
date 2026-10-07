@@ -422,7 +422,7 @@ install_unmanaged() {
     # --force-reinstall (not a plain `pip install .`): plain `pip install .`
     # skips reinstalling when pip thinks the same version is already
     # installed -- true on every run between version bumps in
-    # `stellarObjects/_version.py` -- and install.sh is the full reinstall.
+    # `planetgen/_version.py` -- and install.sh is the full reinstall.
     # (update.sh never comes here: it runs --check, which installs only
     # what's missing. Nothing needs the pip-installed copy of planetGen to
     # be current anyway, since every entry point imports from the checkout

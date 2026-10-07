@@ -26,7 +26,7 @@ from fmt import format_distance_ly
 from galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from pagination import page_slice, parse_page
-from stellarObjects import log
+from planetgen.util import log
 from stellarObjects.program_constants import DEFAULT_SECTOR_EDGE_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 from tilecache import TileRequestError, fetch_stage, fetch_tiles
