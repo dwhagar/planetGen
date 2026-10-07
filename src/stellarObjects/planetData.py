@@ -26,7 +26,7 @@ import random
 
 from .config import SystemConfig
 from . import physical_constants, planetPhysics, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_distance_au, format_distance_km, format_number,
                     properties_to_string, to_paragraph,
                     format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k)

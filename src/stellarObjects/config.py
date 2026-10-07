@@ -20,7 +20,7 @@ syntax (see `systemGen.process_args`): `+name` sets the option to `True`,
 `-name` sets it to `False`, and omitting it leaves it `None`.
 """
 
-from .serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 
 # The SystemConfig attributes that make up a system's generation "recipe" --
 # i.e. everything a `--system-file` JSON document can set (see

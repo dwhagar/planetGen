@@ -11,7 +11,8 @@ import stat
 
 import pytest
 
-from stellarObjects import activitylog, adminAuth, appconfig
+from stellarObjects import activitylog, adminAuth
+from planetgen.util import appconfig
 
 LINE = re.compile(
     r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
@@ -208,7 +209,7 @@ def test_rotation_mode(monkeypatch, tmp_path):
 
 
 def test_debug_log_also_gets_each_line(log_dir, monkeypatch):
-    from stellarObjects import log
+    from planetgen.util import log
     seen = []
     monkeypatch.setattr(log, "trace", lambda message, *args, **kwargs: seen.append(message % args))
     line = activitylog.event("AUTH", "logout", user="boss")

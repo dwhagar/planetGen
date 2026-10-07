@@ -53,7 +53,8 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog, generationStats, log, program_constants
+from stellarObjects import activitylog, generationStats, program_constants
+from planetgen.util import log
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
 from stellarObjects.galaxyGeometry import sector_address_at
 from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly

@@ -44,7 +44,7 @@ import time
 
 from apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from privatedir import ensure_private_dir
-from stellarObjects.appconfig import load_config
+from planetgen.util.appconfig import load_config
 from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
 from stellarObjects.galaxyViewport import parse_tile_key, tile_key
 

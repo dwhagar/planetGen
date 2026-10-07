@@ -24,7 +24,7 @@ The steps below name these by their row:
 ## 1. Is the new code deployed?
 
     cd /var/lib/planetGen && git log -1 --oneline
-    grep __version__ src/stellarObjects/_version.py
+    grep __version__ src/planetgen/_version.py
 
 Pass: the version you meant to deploy (the **Version** badge at the top
 of `README.md` on `main`).

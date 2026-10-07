@@ -20,8 +20,9 @@ this module's logic.
 import random
 
 from .config import SystemConfig
-from . import log, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from . import program_constants
+from planetgen.util import log
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import format_distance_au
 
 

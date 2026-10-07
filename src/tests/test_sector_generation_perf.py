@@ -10,7 +10,7 @@ Not a correctness test -- profiles how long `generate.generate_sector`
 placement + `generate_sector_phenomena`) takes, broken down by phase.
 
 The phase breakdown comes from `--debug`'s own logging, not a separate
-profiling API: `stellarObjects.log.timed_phase` (used by `generate_sector`
+profiling API: `planetgen.util.log.timed_phase` (used by `generate_sector`
 and `StarSystem.__init__` at each of their major phases) logs
 `"{label}: {elapsed}ms"` at DEBUG severity, with a timestamp, exactly as
 `generate.py sector --debug` would print to a terminal. This module just
@@ -48,7 +48,7 @@ from collections import defaultdict
 import pytest
 
 import generate as gen
-from stellarObjects import log
+from planetgen.util import log
 
 pytestmark = pytest.mark.skipif(
     not os.environ.get("PLANETGEN_RUN_PERF_BENCHMARK"),

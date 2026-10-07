@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(_HTML_DIR, "lib"))
 import fmt  # noqa: E402
 import web  # noqa: E402
 from mdconvert import markdown_to_html  # noqa: E402
-from stellarObjects._version import __version__  # noqa: E402
+from planetgen._version import __version__  # noqa: E402
 
 
 # --- static_url ---------------------------------------------------------------

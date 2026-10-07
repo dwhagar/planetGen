@@ -23,8 +23,9 @@ import re
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import log, physical_constants, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from . import physical_constants, program_constants
+from planetgen.util import log
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .stellarEvolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
 from .utils import (format_age_string, format_number, calculate_galactic_orbit,

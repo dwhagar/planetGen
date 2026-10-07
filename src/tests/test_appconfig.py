@@ -1,7 +1,7 @@
 # tests/test_appconfig.py
 
 """
-Tests for `stellarObjects.appconfig` -- the unified deployment
+Tests for `planetgen.util.appconfig` -- the unified deployment
 configuration loader (see `docs/config.md`).
 
 Covers both branches of `load_config()` (missing file -> defaults,
@@ -18,7 +18,7 @@ import copy
 import json
 import os
 
-from stellarObjects import appconfig
+from planetgen.util import appconfig
 
 
 def test_load_config_returns_defaults_when_file_missing(tmp_path, monkeypatch):

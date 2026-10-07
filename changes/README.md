@@ -4,7 +4,7 @@ PRs don't bump the version themselves any more. Instead, each PR adds **one
 note file here**, and `.github/workflows/stamp-version.yml` turns it into a
 real release right after the PR merges to `main`: it picks the next version
 number, moves the note to the top of `CHANGELOG.md`, updates `__version__` in
-`src/stellarObjects/_version.py` and the `**Version:**` badge in `README.md`,
+`src/planetgen/_version.py` and the `**Version:**` badge in `README.md`,
 deletes the note, and commits `Release x.y.z` to `main`.
 
 Because every note has its own file name, two PRs open at the same time never

@@ -20,7 +20,8 @@ from flask import abort, current_app, request, url_for
 
 import apiclient
 from pagination import fetch_page, parse_page
-from stellarObjects import activitylog, log, workQueue
+from stellarObjects import activitylog, workQueue
+from planetgen.util import log
 
 from . import bp, jobs
 from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash

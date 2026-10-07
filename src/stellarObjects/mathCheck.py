@@ -46,8 +46,11 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from . import (galaxyDensity, galaxyGeometry, keplerMotion, log, physical_constants as pc,
-               program_constants, spaceSector, stellarEvolution, utils)
+from . import (
+    galaxyDensity, galaxyGeometry, keplerMotion, physical_constants as pc, program_constants,
+    spaceSector, stellarEvolution, utils,
+)
+from planetgen.util import log
 from . import planetPhysics
 
 SEED = 20261001

@@ -39,11 +39,12 @@ import math
 import random
 
 from .config import SystemConfig
-from . import keplerMotion, log, physical_constants, program_constants
+from . import keplerMotion, physical_constants, program_constants
+from planetgen.util import log
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from .planetPhysics import calculate_orbital_period_years
 from .roguePlanetData import format_comet_composition_summary
-from .serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (
     format_distance_au, format_period_years, format_speed_kms, generate_phoneme_salad_name, minimum_update_interval_years,
 )

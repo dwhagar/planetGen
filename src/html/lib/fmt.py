@@ -123,7 +123,7 @@ _ladder_pc = dash_unless_finite(_ladder_pc, "&ndash;")
 
 def _read_package_version():
     """
-    The planetGen package version (`src/stellarObjects/_version.py`'s
+    The planetGen package version (`src/planetgen/_version.py`'s
     `__version__`, which the post-merge stamp Action updates), read as
     text with a regex the way `setup.py` does -- importing
     `stellarObjects` would pull in `nltk` and friends just for a string.
@@ -131,7 +131,7 @@ def _read_package_version():
     still renders (just without a meaningful cache-busting value).
     """
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                        "stellarObjects", "_version.py")
+                        "planetgen", "_version.py")
     try:
         with open(path, encoding="utf-8") as handle:
             match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', handle.read(), re.MULTILINE)

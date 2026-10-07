@@ -5,7 +5,7 @@ Configuration for the planetGen API.
 
 `MYSQL_CONFIG` is a `stellarObjects._db.MySQLConfig`, itself built from
 the same `PLANETGEN_MYSQL_*` environment variables (or `config.json`'s
-`mysql` section -- see `stellarObjects.appconfig` and `docs/config.md`)
+`mysql` section -- see `planetgen.util.appconfig` and `docs/config.md`)
 every other entry point in this project (`sectorGen.py`, `systemGen.py`,
 `queryDb.py`) reads, so a WSGI deployment (see `wsgi.py`) points this API
 at a specific database without editing code, set via the vhost's `SetEnv`
@@ -36,7 +36,7 @@ import os
 import secrets
 
 from stellarObjects._db import MySQLConfig, control_mysql_config
-from stellarObjects.appconfig import load_config
+from planetgen.util.appconfig import load_config
 
 DEFAULT_RATE_LIMITS = "200 per day;50 per hour"
 """str: Flask-Limiter's own quickstart uses this exact pair as its

@@ -26,9 +26,8 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import (
-    _db, appconfig, log, physical_constants, program_constants, progressFile, serialization, utils,
-)
+from stellarObjects import _db, physical_constants, program_constants, progressFile, utils
+from planetgen.util import appconfig, log, serialization
 from stellarObjects.config import SERIALIZABLE_FIELDS, SystemConfig
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled
 

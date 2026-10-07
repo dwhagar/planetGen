@@ -4,7 +4,7 @@
 The activity log: an always-on record of who did what (SEC.28)
 ================================================================
 
-Separate from the debug log (`stellarObjects.log`), which is written only
+Separate from the debug log (`planetgen.util.log`), which is written only
 while `config.json`'s `"debug"` is on and records every SQL statement and
 random roll, this file is written all the time, at one line per event,
 and holds only what an administrator (or a tool such as fail2ban) needs
@@ -58,7 +58,7 @@ import sys
 import threading
 import time
 
-from stellarObjects import appconfig
+from planetgen.util import appconfig
 
 ROTATE_MAX_BYTES = 100 * 1024 * 1024
 """int: The size at which the program rotates the file itself (when no
@@ -265,7 +265,7 @@ def event(category, action, user=None, ip=None, **fields):
             _logger.info(line)
         except Exception:  # noqa: BLE001 -- logging's own handleError already reported it
             pass
-    from stellarObjects import log
+    from planetgen.util import log
     log.trace("activity: %s", line)
     return line
 

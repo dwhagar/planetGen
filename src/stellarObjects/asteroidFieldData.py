@@ -25,8 +25,9 @@ import random
 from .asteroidData import format_composition_summary, generate_asteroid_composition
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import log, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from . import program_constants
+from planetgen.util import log
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name
 
 

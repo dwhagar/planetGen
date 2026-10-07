@@ -185,7 +185,8 @@ import json
 import math
 import random
 
-from . import log, physical_constants, program_constants
+from . import physical_constants, program_constants
+from planetgen.util import log
 from .asteroidFieldData import AsteroidField
 from .compactRemnant import BlackHole, NeutronStar
 from .config import SystemConfig

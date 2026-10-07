@@ -20,7 +20,7 @@ from flask import Blueprint, current_app, jsonify, request
 
 import adminStats
 from stellarObjects import _db, adminAuth, generationStats, loginThrottle
-from stellarObjects._version import __version__
+from planetgen._version import __version__
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body

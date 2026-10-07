@@ -142,7 +142,7 @@ The shared `<head>` has:
 
 Every `static/` URL, here and in the pages' own `<script>` tags, comes
 from `lib/fmt.py`'s `static_url(name)`, which appends `?v=<package
-version>` (read from `src/stellarObjects/_version.py`, which the release
+version>` (read from `src/planetgen/_version.py`, which the release
 Action stamps). A release therefore changes every static URL, and the
 web server can let browsers cache them for a year (see
 [`deployment/apache.md`](deployment/apache.md#static-files-compression-and-security-headers);

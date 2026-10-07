@@ -5,7 +5,7 @@ Stamps pending release notes into a real version number.
 Why this exists
 ===============
 Every PR used to pick "main's version + 1" on its own and write that number
-into three places at once (`src/stellarObjects/_version.py`'s `__version__`,
+into three places at once (`src/planetgen/_version.py`'s `__version__`,
 `README.md`'s `**Version:**` badge, and a new top `CHANGELOG.md` entry).
 Two PRs open at the same time always claimed the same number, and whichever
 merged second needed a hand-renumbering merge (e.g. 5.41.0/5.41.1 ->
@@ -59,7 +59,7 @@ import sys
 
 REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-VERSION_FILE = os.path.join("src", "stellarObjects", "_version.py")
+VERSION_FILE = os.path.join("src", "planetgen", "_version.py")
 README_FILE = "README.md"
 CHANGELOG_FILE = "CHANGELOG.md"
 CHANGES_DIR = "changes"

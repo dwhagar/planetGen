@@ -24,8 +24,9 @@ import random
 from .config import SystemConfig
 from .rogueSurface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import log, physical_constants, planetPhysics, program_constants
-from .serialization import fields_from_dict, fields_to_dict
+from . import physical_constants, planetPhysics, program_constants
+from planetgen.util import log
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
                     generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, sample_power_law)

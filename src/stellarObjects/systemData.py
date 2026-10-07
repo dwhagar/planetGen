@@ -26,7 +26,8 @@ from .bodyNames import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide
 from .cometData import Comet
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from . import log, physical_constants, planetLife, program_constants, validation
+from . import physical_constants, planetLife, program_constants, validation
+from planetgen.util import log
 from .planetData import Planet
 from .starData import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
 from .utils import (

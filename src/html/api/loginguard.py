@@ -28,7 +28,8 @@ import sys
 
 from flask import current_app, jsonify, request
 
-from stellarObjects import activitylog, adminAuth, log, loginThrottle
+from stellarObjects import activitylog, adminAuth, loginThrottle
+from planetgen.util import log
 
 from .common import get_control_db
 

@@ -15,7 +15,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 2: Real-Time SSE Log Streaming & Terminal Integration
 
-* **Target Files:** `src/html/static/generatejobs.js`, `src/html/web/jobs.py`, `src/stellarObjects/log.py`.
+* **Target Files:** `src/html/static/generatejobs.js`, `src/html/web/jobs.py`, `src/planetgen/util/log.py`.
 * **Objective:** Transition process log rendering from client HTTP polling to Server-Sent Events (SSE) and Xterm.js (Xterm.js, 2024).
 * **Steps:**
   1. Modify `log.py` to publish log outputs into thread-safe in-memory queues per job ID.

@@ -130,7 +130,7 @@ from stellarObjects._db import (
     mysql_config_from_args,
     refresh_after_motion,
 )
-from stellarObjects._version import VersionAction, version_banner
+from planetgen._version import VersionAction, version_banner
 
 
 TABLE_LABELS = {

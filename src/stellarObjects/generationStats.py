@@ -34,7 +34,7 @@ import os
 import time
 from dataclasses import dataclass, field
 
-from stellarObjects import log
+from planetgen.util import log
 
 MIN_DENSITY = 0.01
 """float: The bottom edge of bucket 0; anything sparser counts as 0."""
