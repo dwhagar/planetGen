@@ -81,8 +81,9 @@ database only.
 Point 3 is the one choice here. Single-object generation is quick
 today, so it could stay in the request. Queuing it follows Boss's
 "everything ... whenever possible" and keeps all generation behind one
-queue, at the cost of a Redis round trip on each edit. The
-recommendation is to queue it, waited on, as above.
+queue, at the cost of a Redis round trip on each edit. Boss approved
+the plan on 2026-10-07 with the recommendation: queue it, waited on, as
+above.
 
 ## How PERF.24 gets built
 
