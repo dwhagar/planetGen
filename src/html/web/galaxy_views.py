@@ -31,7 +31,7 @@ from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles
 
-from api.limiter import page_limit
+from planetgen.api.limiter import page_limit
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html

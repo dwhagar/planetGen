@@ -44,7 +44,7 @@ from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
-from api.limiter import page_limit  # noqa: E402
+from planetgen.api.limiter import page_limit  # noqa: E402
 from planetgen.util.appconfig import load_config  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402

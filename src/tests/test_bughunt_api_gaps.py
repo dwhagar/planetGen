@@ -3,7 +3,7 @@
 """
 Tier 1 bug-hunt coverage: the 4 API routes confirmed (by grepping every
 literal path fragment `test_api.py` actually calls against every
-`@bp.route` in `html/api/routes.py`) to have zero existing test coverage
+`@bp.route` in `planetgen/api/routes.py`) to have zero existing test coverage
 -- `GET /api/galaxy/phenomena`, `GET /api/phenomena`, `GET
 /api/phenomena/<type>/<id>`, and `POST
 /api/sectors/<id>/generate-neighborhood` -- plus a systematic

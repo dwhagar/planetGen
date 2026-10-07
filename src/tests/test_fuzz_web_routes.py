@@ -2,7 +2,7 @@
 
 """
 Brute-force/property-based tests for every route of the Flask app: the
-HTML pages (`src/html/web/`) and the JSON API (`src/html/api/`), both
+HTML pages (`src/html/web/`) and the JSON API (`src/planetgen/api/`), both
 served by `api.app.create_app`.
 
 The routes are not hand-listed: the sweeps walk `app.url_map`, so a route
@@ -58,10 +58,10 @@ from hypothesis import example, given, settings
 from flask.testing import FlaskClient
 from hypothesis import strategies as st
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.common import is_http_url
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.common import is_http_url
+from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 from planetgen.db.store import MySQLConfig
@@ -1381,7 +1381,7 @@ def test_regression_raw_non_utf8_query_string_is_a_400(app, fuzz_db, path, raw):
 
 # B12 (fixed): /api/databases calls open_readonly outside its try; a listed schema that can't be opened (dropped meanwhile, no grant) raises SystemExit, which escapes Flask entirely
 def test_regression_databases_listing_survives_an_unopenable_schema(app, fuzz_db, monkeypatch):
-    import api.routes as routes
+    from planetgen.api import routes
 
     real = routes.list_databases
 

@@ -9,8 +9,8 @@ import sys
 
 import pytest
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.population import model as population
 from planetgen import tuning

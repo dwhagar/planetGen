@@ -26,7 +26,7 @@ import pytest
 
 pytest.importorskip("playwright.sync_api")
 
-from api.authz import SESSION_COOKIE_NAME  # noqa: E402
+from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 
 from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     PAGE_ENDPOINTS,

@@ -38,8 +38,8 @@ import sys
 import pytest
 from markupsafe import escape
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 
 import generate
 import web

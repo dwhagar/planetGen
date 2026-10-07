@@ -1,7 +1,7 @@
 # tests/test_api.py
 
 """
-End-to-end tests for the read-only Flask API (`src/html/api/`) against a real,
+End-to-end tests for the read-only Flask API (`src/planetgen/api/`) against a real,
 throwaway MySQL database (see `conftest.py`'s `mysql_config` fixture) --
 every test here is skipped, not failed, when no MySQL test server is
 configured/reachable.
@@ -18,9 +18,9 @@ import time
 
 import pytest
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.config import Config
 from planetgen.db import store as _db
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
@@ -224,7 +224,7 @@ def fake_wiki_client(monkeypatch):
     """Installs `_FakeWikiClient` in place of `api.routes.WikiClient` for
     one test, resetting its recorded calls first."""
     _FakeWikiClient.calls = []
-    monkeypatch.setattr("api.routes.WikiClient", _FakeWikiClient)
+    monkeypatch.setattr("planetgen.api.routes.WikiClient", _FakeWikiClient)
     return _FakeWikiClient
 
 
@@ -2062,7 +2062,7 @@ def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seed
         def create_page(self, **kwargs):
             raise WikiClientPageExistsError("a page already exists there")
 
-    monkeypatch.setattr("api.routes.WikiClient", RaisingClient)
+    monkeypatch.setattr("planetgen.api.routes.WikiClient", RaisingClient)
     _config, _sector_id, system_ids = seeded_sector
 
     response = admin_client_with_wiki.post(

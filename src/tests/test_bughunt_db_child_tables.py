@@ -23,7 +23,7 @@ but was never actually written to (or was written wrong to) its own
 table."
 
 Also covers the cascade-delete path: `DELETE FROM star_systems` (what
-`html/api/routes.py`'s `delete_system` actually runs) relies entirely on
+`planetgen/api/routes.py`'s `delete_system` actually runs) relies entirely on
 `schema.sql`'s `ON DELETE CASCADE` foreign keys to clean up every child
 row (planets, moons, belts, comets, and their own child tables in turn) --
 `test_api.py`'s own delete test uses a planet-less system, so it never
@@ -287,7 +287,7 @@ def test_asteroid_belt_composition_round_trips_every_component(mysql_config):
 def test_deleting_a_system_cascades_to_every_child_table(mysql_config):
     """Generate a system with planets, moons, an asteroid belt, and a
     comet, save it, delete its star_systems row the same way
-    html/api/routes.py's delete_system does, and confirm every child
+    planetgen/api/routes.py's delete_system does, and confirm every child
     table (planets, moons, asteroid_belts, comets, plus their own
     grandchild tables) is left with zero rows for it -- not just that the
     star_systems row itself is gone."""

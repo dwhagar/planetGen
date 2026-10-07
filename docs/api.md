@@ -26,7 +26,7 @@ Flask has no opinion
 about the data layer (route handlers call straight into `planetgen.db.query`'s and
 `planetgen.db.store`'s existing functions), deploys as a plain WSGI app
 (`mod_wsgi`, gunicorn or waitress), and
-lives at `../src/html/api/`, mounted at `/api/` by the same Flask app that
+lives at `../src/planetgen/api/`, mounted at `/api/` by the same Flask app that
 serves the HTML pages (`../src/html/web/`, see "Deploying"
 below). Those pages are this API's own frontend, calling it in-process. FastAPI's
 headline advantages (async, auto-generated OpenAPI docs) still don't pay
@@ -921,7 +921,7 @@ applied first). Success returns `{"status": "ok", "id", "name",
 
 ### Deleting and regenerating
 
-`src/html/api/edits.py` (ADM.8). Every one of these needs an admin whose
+`src/planetgen/api/edits.py` (ADM.8). Every one of these needs an admin whose
 credentials are current and writes an audit-log row.
 
 - **Planets, moons and asteroid belts.** `DELETE /api/planets/<id>`
@@ -958,7 +958,7 @@ credentials are current and writes an audit-log row.
 
 ### Changing a class or a star
 
-Also `src/html/api/edits.py`, with the same admin, audit and answer
+Also `src/planetgen/api/edits.py`, with the same admin, audit and answer
 shape as above.
 
 - **Class (ADM.6).** `GET /api/systems/<id>/class-options` answers
@@ -1149,7 +1149,7 @@ both are set.
 Every read *and* write (sector/system create/update/delete) goes through
 the same `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` account —
 `WRITE_MYSQL_CONFIG` simply reuses `MYSQL_CONFIG` (see
-`html/api/config.py`), there's no separate write-capable override. Point
+`planetgen/api/config.py`), there's no separate write-capable override. Point
 it at an account with `INSERT`/`UPDATE`/`DELETE`/`SELECT` grants in
 production — see [`deployment/README.md`](deployment/README.md#mysql-accounts).
 
@@ -1190,8 +1190,7 @@ setup loads that one file:
 
 - **Apache + `mod_wsgi`** (the reference setup, `examples/apache/`): a
   `WSGIScriptAlias` for `/` pointing at `src/html/wsgi.py`, in its own
-  `WSGIDaemonProcess`, plus the `<Directory>` blocks that deny direct
-  requests into `html/api/`. See
+  `WSGIDaemonProcess`. See
   [`deployment/apache.md`](deployment/apache.md).
 - **gunicorn** behind nginx or Caddy (Linux, macOS):
   `gunicorn --pythonpath <checkout>/src/html wsgi:application`.
@@ -1214,7 +1213,7 @@ endpoint write through it (see "Running locally" above and
 process environment (e.g. `/etc/apache2/envvars`, or an `Environment=`
 line on the apache2 systemd unit), **not** the vhost's `SetEnv`
 directives: those never reach `os.environ` under `mod_wsgi` --
-`html/api/config.py` reads its config from `os.environ` once, at process
+`planetgen/api/config.py` reads its config from `os.environ` once, at process
 startup, and `SetEnv` values only ever show up in a request's `environ`
 dict, which doesn't exist yet at that point. Under gunicorn or waitress,
 the service's own environment (systemd `EnvironmentFile`, launchd

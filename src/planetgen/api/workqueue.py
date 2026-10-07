@@ -1,4 +1,4 @@
-# html/api/workqueue.py
+# planetgen/api/workqueue.py
 
 """
 Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`):

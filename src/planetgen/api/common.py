@@ -1,4 +1,4 @@
-# html/api/common.py
+# planetgen/api/common.py
 
 """
 Small pieces shared by `routes.py` (content-schema reads/writes) and

@@ -11,7 +11,7 @@ import re
 
 import pytest
 
-from api import loginguard
+from planetgen.api import loginguard
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth, totp
 
@@ -111,8 +111,8 @@ def test_setup_confirm_and_check(control_conn, admin_id):
 
 @pytest.fixture
 def real_app(mysql_config):
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class RealConfig(Config):
         MYSQL_CONFIG = mysql_config
@@ -255,7 +255,7 @@ def test_command_line_reset(mysql_config, real_app, capsys, monkeypatch):
 
 
 def _csrf(app, client):
-    from api.authz import SESSION_COOKIE_NAME
+    from planetgen.api.authz import SESSION_COOKIE_NAME
     from web import csrf
     nonce = "n" * 43
     client.set_cookie(csrf.COOKIE_NAME, nonce)

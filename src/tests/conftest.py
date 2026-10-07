@@ -344,7 +344,7 @@ def _reset_login_backoff():
     address in every later test. The database-backed counts live in each
     test's own throwaway database."""
     try:
-        from api.loginguard import memory_store
+        from planetgen.api.loginguard import memory_store
     except ImportError:  # the API's dependencies aren't installed
         yield
         return

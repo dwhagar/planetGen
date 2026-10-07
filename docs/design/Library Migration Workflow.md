@@ -142,8 +142,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 #### Current Codebase State
 
 * `src/planetgen/admin/throttle.py` (393 lines): Dual-counter lockout tracking (per client IP address and per username) backed by custom database and memory stores.
-* `src/html/api/limiter.py` (108 lines): Flask rate-limiter setup wrapper.
-* `src/html/api/loginguard.py` (156 lines): Middleware guarding password checks against brute-force attacks.
+* `src/planetgen/api/limiter.py` (108 lines): Flask rate-limiter setup wrapper.
+* `src/planetgen/api/loginguard.py` (156 lines): Middleware guarding password checks against brute-force attacks.
 
 #### Recommended Stack
 

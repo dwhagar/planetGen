@@ -41,7 +41,7 @@ from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
 from planetgen.web.lib import apiclient
-from api.authz import SESSION_COOKIE_NAME
+from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.web.lib.pagination import render_pagination
 
 from . import csrf

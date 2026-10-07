@@ -42,11 +42,6 @@
 #     read access, the execute bit is a leftover from the old CGI pages
 #     and harmless). Reported with a count at the end so a wrong
 #     `html-dir` path is obvious rather than silently matching zero files.
-#   - html/api is included in the general file/directory pass like any
-#     other subdirectory -- direct web access to it is denied at the
-#     Apache config level (see examples/apache/planetgen.conf.example), not by
-#     filesystem permissions, since Apache's own worker still needs to
-#     read those modules to import them.
 #   - config.json (at the repo root, two levels above html-dir), when it
 #     exists: root:<Apache group>, mode 640 -- it holds the database
 #     password and the session secret_key, so only root and Apache may

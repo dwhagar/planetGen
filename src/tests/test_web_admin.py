@@ -18,9 +18,9 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
@@ -853,8 +853,8 @@ def test_real_login_account_admin_logout_flow(db_app, monkeypatch):
 
 
 def test_real_login_keeps_rate_limit(db_app):
-    from api.auth import LOGIN_RATE_LIMIT
-    from api.limiter import limiter
+    from planetgen.api.auth import LOGIN_RATE_LIMIT
+    from planetgen.api.limiter import limiter
     per_minute = int(LOGIN_RATE_LIMIT.split()[0])
     client, token = _csrf_client(db_app)
     limiter.reset()
