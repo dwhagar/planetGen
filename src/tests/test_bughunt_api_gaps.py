@@ -83,7 +83,7 @@ def test_phenomena_listing_on_never_initialized_database_fails_cleanly(client, m
     zero tables) -- the read-only API connection deliberately can't run
     DDL itself (get_connection's own docstring: a read-only account has
     no CREATE grant), so querying a table before any write-path call
-    (generate.py, or here, store.save_phenomenon) has ever initialized the
+    (planetgen, or here, store.save_phenomenon) has ever initialized the
     schema is expected to fail. What matters is HOW it fails: app.py's
     generic 500 handler must still turn the resulting
     pymysql.err.ProgrammingError ("table doesn't exist") into the same

@@ -623,7 +623,7 @@ def _slots_near_angle(n, theta_center, half_width):
 def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
     """
     Every sector address whose center lies within `radius_pc` of `center`
-    -- the primitive behind `generate.py galaxy`'s neighborhood modes and
+    -- the primitive behind `planetgen galaxy`'s neighborhood modes and
     the Galaxy Map's planned-sector tier. Visits only the rings and
     layers that can reach the sphere and, within each, only the slots in
     the matching angular window, so the cost scales with the answer, not

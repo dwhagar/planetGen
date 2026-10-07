@@ -1,7 +1,7 @@
 """
 Bright-star pre-placement: every star at least
 `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` bright is drawn and
-placed galaxy-wide right after `generate.py plan`, into `bright_stars`,
+placed galaxy-wide right after `planetgen plan`, into `bright_stars`,
 while every sector stays unfilled. A sector's fill later builds a full
 system around each of its pre-placed stars (`fill_context`, used by
 `generate.generate_sector`) and draws the rest of its systems from dimmer
@@ -20,7 +20,7 @@ generated sector, block by block, it adds the stars between a lower floor
 (by the block's distance, `BRIGHT_STAR_BACKFILL_TIERS`, GEN.30) and
 whatever was already placed there, cell by cell.
 
-The scatter can go down in stages (`generate.py plan
+The scatter can go down in stages (`planetgen plan
 --bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add
 only the band from, say, 100 up to (not including) 500, keeping every
 star already placed. `galaxy_shape.bright_star_min_luminosity_sol` holds

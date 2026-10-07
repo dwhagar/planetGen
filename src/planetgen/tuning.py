@@ -136,7 +136,7 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # neighbor's spacing to protect one body's zone in place.
 MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
-# How many whole systems (star and all) `generate.py system` builds while
+# How many whole systems (star and all) `planetgen system` builds while
 # looking for one that meets every forced option (`StarSystem.
 # unmet_requirements`) before it gives up with an error and saves nothing.
 # Some stars rarely allow a forced body: around an O5V star a habitable
@@ -2661,14 +2661,14 @@ GALAXY_RADIUS_PC = 15000.0
 """
 float: The Milky Way's real approximate radius, in parsecs (commonly cited
 ~15 kpc). Only a fallback for the Galaxy Map's camera range before any
-`generate.py plan` has run; once a galaxy is planned, its stored outline
+`planetgen plan` has run; once a galaxy is planned, its stored outline
 (`galaxy_layer`) is the only bound anything uses -- generation never picks
 or accepts an address outside it.
 """
 
 DEFAULT_GENERATE_RADIUS_PC = 12.0
 """
-float: The default generate-around sphere, in parsecs: `generate.py
+float: The default generate-around sphere, in parsecs: `planetgen
 galaxy`'s no-argument random start, and `POST
 /api/sectors/<id>/generate-neighborhood` (the Sector page's and the
 Generate page's neighborhood) when no radius is given, fill every
@@ -2688,7 +2688,7 @@ tier it falls in: under 10 ly, 100 L_sun; 10 to under 25 ly, 250; 25 to
 under 50 ly, 500; 50 to 100 ly, 750 (Boss, 2026-10-01). A sector keeps
 the dimmest level it has been filled to (`sector_stats`, GEN.44), so a
 sector a nearer one reaches later is topped up with only the band it
-lacks, and no star is drawn twice (`generate.py`'s
+lacks, and no star is drawn twice (`planetgen`'s
 `backfill_bright_stars`).
 """
 
@@ -2869,7 +2869,7 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 BRIGHT_STAR_MIN_LUMINOSITY_SOL = 1000.0
 """float: Every star at least this bright (solar luminosities) is generated
-and placed galaxy-wide right after `generate.py plan`, before any sector is
+and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. Boss, 2026-09-30; kept at 500 on 2026-10-01 rather than 100,
 which would add ~35 GB; raised to 1000 the same day (GEN.30), with the

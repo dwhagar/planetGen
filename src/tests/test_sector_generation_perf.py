@@ -13,7 +13,7 @@ The phase breakdown comes from `--debug`'s own logging, not a separate
 profiling API: `planetgen.util.log.timed_phase` (used by `generate_sector`
 and `StarSystem.__init__` at each of their major phases) logs
 `"{label}: {elapsed}ms"` at DEBUG severity, with a timestamp, exactly as
-`generate.py sector --debug` would print to a terminal. This module just
+`planetgen sector --debug` would print to a terminal. This module just
 attaches its own `logging.Handler` to capture those same records instead
 of a human reading them off the console, and aggregates the elapsed
 values already embedded in each message. A `cProfile` run cross-checks
@@ -47,7 +47,8 @@ from collections import defaultdict
 
 import pytest
 
-import generate as gen
+from planetgen.cli import generate as generate_cli
+from planetgen.generation import run_sector
 from planetgen.util import log
 
 pytestmark = pytest.mark.skipif(
@@ -93,15 +94,15 @@ class _PhaseCapture(logging.Handler):
 
 
 def _sector_args(num_systems, name):
-    """Builds a real `sector` subcommand namespace via `generate.py`'s own
+    """Builds a real `sector` subcommand namespace via `planetgen`'s own
     parser/validators (not a hand-built `SimpleNamespace`), so this
     benchmark exercises exactly the option surface/defaults a real
-    `generate.py sector` invocation would."""
-    parser, command_parsers = gen.build_parser()
+    `planetgen sector` invocation would."""
+    parser, command_parsers = generate_cli.build_parser()
     args = parser.parse_args(["sector", "--num-systems", str(num_systems), "--name", name])
     command_parser = command_parsers["sector"]
-    gen.validate_shared_generation_args(args, command_parser)
-    gen.validate_sector_args(args, command_parser)
+    generate_cli.validate_shared_generation_args(args, command_parser)
+    generate_cli.validate_sector_args(args, command_parser)
     return args
 
 
@@ -145,7 +146,7 @@ def test_sector_generation_phase_breakdown():
         for i, size in enumerate(sector_sizes):
             args = _sector_args(size, f"BenchSector{i}")
             start = time.perf_counter()
-            _name, sector = gen.generate_sector(args)
+            _name, sector = run_sector.generate_sector(args)
             elapsed_ms = (time.perf_counter() - start) * 1000
             wall_times.append((size, len(sector.entries), elapsed_ms))
     finally:
@@ -184,7 +185,7 @@ def test_sector_generation_cprofile_hotspots():
 
     profiler = cProfile.Profile()
     profiler.enable()
-    _name, sector = gen.generate_sector(args)
+    _name, sector = run_sector.generate_sector(args)
     profiler.disable()
 
     assert len(sector.entries) > 0

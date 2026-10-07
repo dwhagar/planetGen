@@ -167,7 +167,7 @@ def _status_view(status):
 
 
 def _task_retry_argv(task):
-    """`generate.py` arguments that fill one failed sector again, or
+    """`planetgen` arguments that fill one failed sector again, or
     `None` for a task that can't be rerun alone."""
     match = SECTOR_KEY_RE.match(task.get("task_key") or "")
     if task.get("kind") != "sector" or not match:
@@ -181,7 +181,7 @@ def _retry_plan(root, node=None):
     What Retry on `node` runs again, as `{"kind", "title", "steps",
     "database", "describe"}`, or `None`: for a Generate page job, its
     steps from the one that didn't finish; for a run started anywhere
-    else, the same `generate.py` command line. Either way the whole job
+    else, the same `planetgen` command line. Either way the whole job
     is retried, not one node of it: generation skips what is already
     there, so only the missing work is done again.
     """
@@ -198,9 +198,9 @@ def _retry_plan(root, node=None):
                 "describe": ", then ".join(step["label"] for step in steps)}
     if root["argv"] and root["kind"] in ("plan", "galaxy", "sector", "population"):
         argv = [str(arg) for arg in root["argv"]]
-        label = " ".join(["generate.py", *argv])
+        label = " ".join(["planetgen", *argv])
         return {"kind": root["kind"], "title": f"Retry: {label}"[:200],
-                "steps": [{"label": label, "argv": [jobs.python_executable(), jobs.GENERATE_SCRIPT, *argv]}],
+                "steps": [{"label": label, "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, *argv]}],
                 "database": root["database_name"], "describe": label}
     return None
 
@@ -282,7 +282,7 @@ def _confirm_text(action, tree, node, task):
     if task is not None:
         argv = _task_retry_argv(task)
         return (f"Retry sector {task['task_key']}?",
-                f"Starts a Generate page job that runs generate.py {' '.join(argv[:1] + argv[1:])} on "
+                f"Starts a Generate page job that runs planetgen {' '.join(argv[:1] + argv[1:])} on "
                 f"{db_name()}.")
     if action == "retry":
         plan = _retry_plan(tree, node)
@@ -388,10 +388,10 @@ def admin_queue_action():
                     if argv is None:
                         error = "That task can't be retried on its own."
                     else:
-                        label = " ".join(["generate.py", *argv])
+                        label = " ".join(["planetgen", *argv])
                         plan = {"kind": "galaxy", "title": f"Retry: {label}", "database": tree["database_name"],
                                 "steps": [{"label": label, "argv": [jobs.python_executable(),
-                                                                    jobs.GENERATE_SCRIPT, *argv]}]}
+                                                                    *jobs.GENERATE_COMMAND, *argv]}]}
                         message, error = _start_retry(admin, plan, f"{node_id}/{task_id}")
                 else:
                     plan = _retry_plan(tree, node)
@@ -404,7 +404,7 @@ def admin_queue_action():
             else:
                 ok = apiclient.admin_work_control(cookie_header, node_id, action)
                 if action == "cancel" and node["kind"] in ("web-job", "step") and node["web_job_id"]:
-                    # A step that isn't a generate.py run (a reset) only
+                    # A step that isn't a planetgen run (a reset) only
                     # stops through the Generate page's own cancel.
                     try:
                         ok = jobs.cancel_job(node["web_job_id"]) or ok

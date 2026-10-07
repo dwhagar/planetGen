@@ -211,7 +211,7 @@ URLs" below).
 | `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), the newest failed sign-ins, and this server's generation speed per density bucket with the galaxy's size per star system (`GET /api/admin/generation-stats`). |
 | `/admin/queue` | (new) | Admins only: the work queue (ADM.10). Workers active and the server's load as "x / x / x" (1, 5 and 15 minutes; CPU percent on Windows), who holds the workers' lease and how long since it was refreshed, Pause the queue / Resume the queue, Clear the stale lease, then every job tree newest first (paged) with its state, start, end, duration, progress, task counts and ETA. `/admin/queue/<id>` shows one tree as nested expandable nodes down to single tasks, each with Pause, Resume, Cancel, Retry (a failed or cancelled job, or one failed sector) and Delete (a finished job). Every control first shows `/admin/queue/confirm/<action>?node=<id>`, then posts to `/admin/queue/action`. Retry starts a Generate page job. |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
-| `/admin/generate/system` | (new) | Admins only: one star system with every `generate.py system` option, shown as Markdown or wikitext and never saved (see below). |
+| `/admin/generate/system` | (new) | Admins only: one star system with every `planetgen system` option, shown as Markdown or wikitext and never saved (see below). |
 
 **System page wiki upload.** For an admin (`current_admin()`), the
 system page asks `GET /api/wiki-config` and offers an "Upload to Wiki"
@@ -404,11 +404,11 @@ terminal on the server, as background jobs:
 
 | Form | Runs |
 |---|---|
-| New galaxy | `python3 -m planetgen.cli.reset --yes`, then `generate.py plan --no-bright-stars`, then the bright-star scatter (`generate.py plan --bright-stars-only`), then `generate.py galaxy` around a random start. |
-| Generate sectors | `generate.py galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc` for a filled sector found by name through `/galaxy/locate`, picked from a paged list of filled sectors (`/admin/generate/sectors`) or typed by ID; or `--ring --layer --slot --radius-pc` for a sector address or a galaxy-frame x, y, z in pc, turned into the address of the cell holding it with the plan's sector edge), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended), or a Galaxy Map block (`--block m.I.s.S`, optionally one `--block-layer`). The single-sector neighborhood radius can be given in light-years (13 ly up to the parsec limit). Sent with `Accept: application/json`, the form answers `202 {"job", "url", "status_url"}` (or `{"error"}`) so the Galaxy Map can start a job without leaving the map. The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. Before the job starts the page shows its size, time and the database disk's free space (`generate.py galaxy --estimate-only`) with a Generate button to confirm, or the refusal when the disk can't hold it; a JSON caller gets `409 {"error", "estimate", "confirm_field"}` and re-sends with `estimate_ok=1`. |
-| Plan the galaxy | `generate.py plan --no-bright-stars` with the galaxy shape fields, then the bright-star scatter as its own step (`generate.py plan --bright-stars-only`), so the job shows the scatter's progress bar and the count it placed. On New galaxy and Plan, "Skip the bright-star scatter" leaves that step out. |
-| Rebuild the bright stars | `generate.py plan --bright-stars-only` on the stored plan; "Leave filled sectors out" adds `--force` (otherwise the scatter refuses once any sector is filled). |
-| Add a dimmer layer of bright stars | `generate.py plan --bright-stars-down-to N`: keeps the bright stars already placed and adds only those from N up to the current star-fill level (shown on the panel), leaving filled sectors out. Disabled until a scatter has run. |
+| New galaxy | `python3 -m planetgen.cli.reset --yes`, then `planetgen plan --no-bright-stars`, then the bright-star scatter (`planetgen plan --bright-stars-only`), then `planetgen galaxy` around a random start. |
+| Generate sectors | `planetgen galaxy` in any of its modes: around a random start, a whole ring at one layer (`--ring --layer`, with `--limit`, or `--yes` for a very large one), around a sector (`--center-sector --radius-pc` for a filled sector found by name through `/galaxy/locate`, picked from a paged list of filled sectors (`/admin/generate/sectors`) or typed by ID; or `--ring --layer --slot --radius-pc` for a sector address or a galaxy-frame x, y, z in pc, turned into the address of the cell holding it with the plan's sector edge), one address (`--ring --layer --slot`, with an optional neighborhood radius), a column (`--ring --slot --column`), or a shell (`--ring --shell`, marked not recommended), or a Galaxy Map block (`--block m.I.s.S`, optionally one `--block-layer`). The single-sector neighborhood radius can be given in light-years (13 ly up to the parsec limit). Sent with `Accept: application/json`, the form answers `202 {"job", "url", "status_url"}` (or `{"error"}`) so the Galaxy Map can start a job without leaving the map. The Sector Map's Generate buttons on an unfilled neighbor post straight to this form. Before the job starts the page shows its size, time and the database disk's free space (`planetgen galaxy --estimate-only`) with a Generate button to confirm, or the refusal when the disk can't hold it; a JSON caller gets `409 {"error", "estimate", "confirm_field"}` and re-sends with `estimate_ok=1`. |
+| Plan the galaxy | `planetgen plan --no-bright-stars` with the galaxy shape fields, then the bright-star scatter as its own step (`planetgen plan --bright-stars-only`), so the job shows the scatter's progress bar and the count it placed. On New galaxy and Plan, "Skip the bright-star scatter" leaves that step out. |
+| Rebuild the bright stars | `planetgen plan --bright-stars-only` on the stored plan; "Leave filled sectors out" adds `--force` (otherwise the scatter refuses once any sector is filled). |
+| Add a dimmer layer of bright stars | `planetgen plan --bright-stars-down-to N`: keeps the bright stars already placed and adds only those from N up to the current star-fill level (shown on the panel), leaving filled sectors out. Disabled until a scatter has run. |
 | Reset | `python3 -m planetgen.cli.reset --yes`. |
 
 Every section of the page folds (a `<details>` whose summary is the
@@ -417,7 +417,7 @@ close as the browser last left them (`static/generatefolds.js`, in
 `localStorage`), except the section of a form shown again with its error
 or estimate, which the server keeps open.
 
-The number fields have upper bounds, the same ones `generate.py` checks
+The number fields have upper bounds, the same ones `planetgen` checks
 (`src/planetgen/generation/limits.py`): a radius of at most 200 pc,
 rings up to 100,000, and at most 500 orbital slots on the one-off system
 page.
@@ -427,7 +427,7 @@ database name typed back. Every job writes the database this site shows,
 passed to the child as `PLANETGEN_MYSQL_*` environment variables (so the
 MySQL account needs the generator's grants, including `DROP` for
 `TRUNCATE`). One job runs at a time; the page shows its step, a progress
-bar (from `generate.py`'s `PLANETGEN_PROGRESS_FILE`, see
+bar (from `planetgen`'s `PLANETGEN_PROGRESS_FILE`, see
 `planetgen/queue/progress_file.py`; the bright-star scatter's bar shows a
 share done, with a second line for slow layers' stars, PERF.4 and PERF.9),
 elapsed time and live output
@@ -437,10 +437,10 @@ button. The last jobs are listed with their full output at
 
 **The one-off system page** (`/admin/generate/system`,
 `web/system_page.py` + `templates/generate_system.html`, linked from the
-Generate page) offers every `generate.py system` option: the ten
+Generate page) offers every `planetgen system` option: the ten
 force/forbid choices, name, star type, age, orbital slots, the flavor
 overrides, a pasted `--system-file` JSON, Markdown or wikitext, and the
-`--debug` narration. It runs `generate.py system --output FILE` in a
+`--debug` narration. It runs `planetgen system --output FILE` in a
 temporary directory and waits for it (a system takes about a second), so
 nothing touches the database. The result shows in a code box with Copy
 and Download buttons (Download posts the text back to
@@ -630,7 +630,7 @@ Unknown URLs get the HTML 404 page; `/api/...` keeps its JSON errors.
 of the `web` blueprint (read from the app's `url_map`, so a new page is
 covered automatically) in headless Chromium at 390px and 1280px,
 in the light and dark color schemes, against a small database generated
-by `generate.py`. Each page must have no serious or critical axe-core
+by `planetgen`. Each page must have no serious or critical axe-core
 violations of the WCAG 2.1 A/AA rules, no horizontal page scroll (wide
 tables scroll inside `.table-scroll`), no console errors, failed
 requests or CSP violations, a skip link that is the first Tab stop, and

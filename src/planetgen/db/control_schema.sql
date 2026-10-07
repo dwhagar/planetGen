@@ -198,7 +198,7 @@ CREATE TABLE IF NOT EXISTS admin_recovery_codes (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v5 (PERF.8): the generation work queue (`planetgen/queue/work.py`).
--- `work_jobs` is one row per run that queued work (a `generate.py`
+-- `work_jobs` is one row per run that queued work (a `planetgen`
 -- galaxy, sector or plan run, from the command line or the Generate
 -- page); `work_tasks` is one row per unit it handed to the worker pool
 -- (a sector to fill, a layer of bright stars to scatter), with its
@@ -239,7 +239,7 @@ CREATE TABLE IF NOT EXISTS work_jobs (
     CONSTRAINT fk_work_jobs_parent FOREIGN KEY (parent_id) REFERENCES work_jobs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v7 (ADM.12): every job is a tree. A `generate.py` run is the root
+-- v7 (ADM.12): every job is a tree. A `planetgen` run is the root
 -- (`kind` = its command), or, when the Generate page started it, a
 -- child of that page job's "step" node, whose parent is the page job
 -- itself (`kind` 'web-job', `web_job_id` its directory). Phases of a run

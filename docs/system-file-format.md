@@ -1,14 +1,14 @@
 # System Specification Files
 
-[`../generate.py`](../generate.py)'s `system` subcommand can load a full
+[`.planetgen`](.planetgen)'s `system` subcommand can load a full
 (or partial) star system specification from a JSON file with
 `--system-file` / `-f`:
 
 ```bash
-python generate.py system --system-file examples/systems/solar_system.json
+planetgen system --system-file examples/systems/solar_system.json
 ```
 
-Like any `generate.py system` run, this saves the system to the
+Like any `planetgen system` run, this saves the system to the
 configured database. Add `--output FILE` (or `--output -` for standard
 output) to write the page to a file instead and leave the database alone.
 

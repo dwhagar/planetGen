@@ -197,7 +197,7 @@ connectivity to that specific schema rather than the default one.
   `/api/sectors/<id>`'s `phenomena` key above). Not paginated, for the
   same reason `/api/galaxy/sectors` isn't.
 - `GET /api/galaxy/shape` — `{"shape": ...}`, the galaxy's stored
-  density-skeleton shape (`generate.py plan`'s output): every
+  density-skeleton shape (`planetgen plan`'s output): every
   `planetgen.galaxy.density.GalaxyShape` field plus `edge_pc`,
   `outer_ring_index`, and `expected_system_count_at_density_1`
   (`queryDb.galaxy_density_shape`). `shape` is `null` when the skeleton
@@ -445,7 +445,7 @@ connectivity to that specific schema rather than the default one.
   generating anything; a run the database disk can't hold is refused
   with `507` and nothing written. `404`
   for an unknown or unplaced sector, `409`
-  when the galaxy has never been planned (`generate.py plan`). Every new
+  when the galaxy has never been planned (`planetgen plan`). Every new
   sector also gets the bright stars (100 L_sun and up) within 100 ly of it
   (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
   so this can run for a long time; a reverse proxy's timeout may need raising for it. The sector
@@ -715,8 +715,8 @@ every intermediate hop is always a system.
   positions). Checked first/preferred over the galaxy-scope rule below.
 - Otherwise, both have a galaxy-frame position -- a system whose sector has
   a galaxy placement (`sectors.center_x/y/z_pc IS NOT NULL`, i.e. placed by
-  `generate.py galaxy`), or a phenomenon that's itself been placed in the galaxy
-  (`--sector-id` at generation time -- see `generate.py phenomenon`'s own
+  `planetgen galaxy`), or a phenomenon that's itself been placed in the galaxy
+  (`--sector-id` at generation time -- see `planetgen phenomenon`'s own
   help). A phenomenon endpoint can only ever be resolved this way: it has
   no sector-local position of its own, regardless of which sector its own
   `sector_id` names as its nearest neighbor (that column is a browsing
@@ -852,10 +852,10 @@ type, or a value failing the constraints above is a `400`.
 ### Systems — request body
 
 `POST /api/systems` takes a generation **"recipe"**, the same shape
-`generate.py system --system-file` already takes (`SystemConfig.to_dict()`/
+`planetgen system --system-file` already takes (`SystemConfig.to_dict()`/
 `from_dict()`) — every field is optional (`null`/omitted means "let the
 generator decide"), and the server generates a brand-new, real system from
-it the same way `generate.py system` does, via `StarSystem(system_config=...)`:
+it the same way `planetgen system` does, via `StarSystem(system_config=...)`:
 
 ```json
 {
@@ -889,7 +889,7 @@ fully-specified object graph shaped like `StarSystem.to_dict()`) is a
 **Placing it in a sector.** Two more optional fields: `sector_id` (a
 sector's id) and `position` (`[x, y, z]` light-years from that sector's
 center; needs `sector_id`). Without `sector_id` the system is standalone
-(`sector_id = NULL`, like `generate.py system`). With it, the system is
+(`sector_id = NULL`, like `planetgen system`). With it, the system is
 placed clear of every system already in the sector's Hill sphere
 (`SpaceSector.add_system`, via `_db.add_system_to_sector`), or exactly at
 `position`, which must lie inside the sector. A sector in the galaxy also
@@ -954,7 +954,7 @@ credentials are current and writes an audit-log row.
   does the same, then generates the slot again from the galaxy's density
   plan; the new sector has a new id and name (`sector_id`,
   `sector_name`; `null` when the slot is outside the galaxy's outline). It is a `409`
-  for a sector off the galaxy grid or before `generate.py plan`.
+  for a sector off the galaxy grid or before `planetgen plan`.
 
 ### Changing a class or a star
 

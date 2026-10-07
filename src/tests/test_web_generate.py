@@ -6,7 +6,7 @@ The admin Generate page (`web/generate_page.py`), its background jobs
 
 The page tests fake the logged-in admin and the galaxy summary through
 `apiclient`, and point the jobs directory at `tmp_path`. The job tests
-run the real runner on tiny Python one-liners instead of `generate.py`,
+run the real runner on tiny Python one-liners instead of `planetgen`,
 so they need no database. The last test resets a real throwaway database
 through the runner and `planetgen.cli.reset` (skipped without a MySQL test
 server, like the rest of the suite).
@@ -198,10 +198,9 @@ def test_page_survives_an_unreachable_database(site, client, monkeypatch):
 
 
 def test_plan_defaults_match_generate_py():
-    sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
-    import generate
+    from planetgen.cli import generate as generate_cli
 
-    _parser, parsers = generate.build_parser()
+    _parser, parsers = generate_cli.build_parser()
     defaults = vars(parsers["plan"].parse_args([]))
     for name, flag, _label, kind, default, _minimum, _maximum in generate_page.PLAN_FIELDS:
         assert defaults[flag.lstrip("-").replace("-", "_")] == default, flag
@@ -211,7 +210,7 @@ def test_plan_defaults_match_generate_py():
 # --- Building jobs ----------------------------------------------------------------
 
 def _argv(step):
-    return step["argv"][2:]
+    return step["argv"][1 + len(jobs.GENERATE_COMMAND):]
 
 
 def _work_steps(job):
@@ -219,7 +218,7 @@ def _work_steps(job):
     (TEST.68), which this checks is there."""
     check, *rest = job["steps"]
     assert check["label"] == generate_page.MATH_CHECK_LABEL
-    assert check["argv"][1] == jobs.GENERATE_SCRIPT and _argv(check) == ["check-math"]
+    assert check["argv"][1:3] == jobs.GENERATE_COMMAND and _argv(check) == ["check-math"]
     return rest
 
 
@@ -230,7 +229,7 @@ def test_plan_job_passes_only_given_fields(site, client, no_spawn):
     (job,) = no_spawn
     assert job["kind"] == "plan"
     assert _argv(_work_steps(job)[0]) == ["plan", "--arm-count", "3", "--no-bright-stars"]
-    assert _work_steps(job)[0]["argv"][1] == jobs.GENERATE_SCRIPT
+    assert _work_steps(job)[0]["argv"][1:3] == jobs.GENERATE_COMMAND
     assert job["admin"] == "boss" and job["database"] == DB
     assert job["env"]["PLANETGEN_MYSQL_DATABASE"] == DB
 
@@ -368,7 +367,7 @@ def test_an_estimate_that_fails_is_shown_as_an_error(site, client, no_spawn, mon
 
 
 def test_run_estimate_reads_the_estimate_line(tmp_path):
-    script = tmp_path / "fake_generate.py"
+    script = tmp_path / "fake_generator.py"
     script.write_text("import json, sys\nprint('Estimate for x: ...')\n"
                       "print('ESTIMATE ' + json.dumps({'sectors': 3, 'args': sys.argv[1:]}))\n")
     result = generate_page.run_estimate([sys.executable, str(script), "galaxy"], {})
@@ -539,11 +538,10 @@ def test_dimmer_layer_needs_a_level(site, client, no_spawn):
 
 
 def test_scatter_flags_exist_in_generate_py():
-    """Every flag the page passes is one `generate.py plan` accepts."""
-    sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
-    import generate
+    """Every flag the page passes is one `planetgen plan` accepts."""
+    from planetgen.cli import generate as generate_cli
 
-    _parser, parsers = generate.build_parser()
+    _parser, parsers = generate_cli.build_parser()
     plan = parsers["plan"]
     assert plan.parse_args(["--no-bright-stars"]).no_bright_stars is True
     args = plan.parse_args(["--bright-stars-only", "--force"])
@@ -892,12 +890,12 @@ def test_system_page_renders_every_option(site, client):
 
 
 def test_system_options_match_generate_py():
-    sys.path.insert(0, os.path.dirname(jobs.GENERATE_SCRIPT))
-    import generate
+    from planetgen.cli import generate as generate_cli
+    from planetgen.generation import run_system
 
     assert [name for name, _label in system_page.TRISTATE_FIELDS] == [
-        name for name, _attr, _description in generate.TRISTATE_OPTIONS]
-    _parser, parsers = generate.build_parser()
+        name for name, _attr, _description in run_system.TRISTATE_OPTIONS]
+    _parser, parsers = generate_cli.build_parser()
     spec = system_page.system_request({
         "habitable_world": "yes", "comets": "no", "name": "-Odd Name", "star_type": "G2V", "age": "old",
         "num_orbits": "4", "flavor_chance_system": "0.5", "flavor_chance_planet": "1",
@@ -954,7 +952,7 @@ def test_system_page_shows_a_bad_value(site, client):
 
 
 def test_system_page_shows_generator_failures(site, client, monkeypatch):
-    monkeypatch.setattr(system_page.jobs, "GENERATE_SCRIPT", "-c")
+    monkeypatch.setattr(system_page.jobs, "GENERATE_COMMAND", ["-c"])
     monkeypatch.setattr(system_page.jobs, "python_executable", lambda: PY)
     # `python -c system ...` runs the word "system" as code: a NameError.
     resp = _post_system(client)
@@ -980,14 +978,14 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     # UTF-8 both ways, so Windows' cp1252 default never decodes the output.
     env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
            "PYTHONIOENCODING": "utf-8"}
-    proc = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--markdown", "--output", str(out),
+    proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--markdown", "--output", str(out),
                            "--name=Output Test", "+habitable_world"],
-                          capture_output=True, encoding="utf-8", timeout=120, env=env)
+                          cwd=jobs.SRC_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
-    wiki = subprocess.run([PY, jobs.GENERATE_SCRIPT, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
-                          capture_output=True, encoding="utf-8", timeout=120, env=env)
+    wiki = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
+                          cwd=jobs.SRC_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
     assert wiki.returncode == 0 and wiki.stdout.startswith("= Wiki Out =")
 
 
@@ -997,16 +995,16 @@ from planetgen.generation import limits as generationLimits  # noqa: E402
 
 
 def _generate_py_args(monkeypatch, argv):
-    """`generate.process_args()` on `argv`: the Namespace (valid) or
+    """`generate_cli.process_args()` on `argv`: the Namespace (valid) or
     raises SystemExit (a usage error)."""
-    import generate
-    monkeypatch.setattr(sys, "argv", ["generate.py"] + argv)
-    return generate.process_args()
+    from planetgen.cli import generate as generate_cli
+    monkeypatch.setattr(sys, "argv", ["planetgen"] + argv)
+    return generate_cli.process_args()
 
 
 def test_largest_allowed_values_pass_the_page_and_generate_py(site, no_spawn, monkeypatch):
-    """The page's bounds and generate.py's are the same constants: the
-    largest value the page accepts, generate.py accepts too."""
+    """The page's bounds and planetgen's are the same constants: the
+    largest value the page accepts, planetgen accepts too."""
     limits = generationLimits
     forms = [
         {"mode": "random", "radius_pc": str(limits.MAX_GENERATE_RADIUS_PC),
@@ -1084,7 +1082,7 @@ def test_map_generate_target_only_for_a_usable_admin():
 def test_every_generating_job_checks_the_math_first(action, form):
     kind, title, steps = generate_page.build_job(action, form, DB)
     assert steps[0]["label"] == generate_page.MATH_CHECK_LABEL
-    assert steps[0]["argv"][1:] == [jobs.GENERATE_SCRIPT, "check-math"]
+    assert steps[0]["argv"][1:] == [*jobs.GENERATE_COMMAND, "check-math"]
     assert len(steps) > 1
 
 

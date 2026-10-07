@@ -2,7 +2,7 @@
 
 """
 A small galaxy with something in nearly every table, built through the
-real `generate.py` commands (TEST.11, TEST.14): a planned skeleton, a few
+real `planetgen` commands (TEST.11, TEST.14): a planned skeleton, a few
 bright stars, a generated sector with the population pass, standalone
 systems forced into each shape (close and wide binaries, comets, moons,
 belts, life, a system file's slots), every phenomenon type (placed in that sector where the CLI

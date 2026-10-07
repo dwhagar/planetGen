@@ -1,7 +1,7 @@
 # tests/test_web_fresh_after_cli.py
 
 """
-TEST.42: the pages show what `generate.py` wrote straight to the
+TEST.42: the pages show what `planetgen` wrote straight to the
 database, not through the API.
 
 An API write clears the page cache at once (`test_page_cache.py`), but a
@@ -11,7 +11,7 @@ can notice it are the galaxy's content stamp (`GET /api/galaxy/changes`)
 (`planetgen/web/lib/pagecache.py`) and once per `STAMP_TTL_SECONDS` by the Galaxy Map's
 disk tile cache (`planetgen/web/lib/tilecache.py`) -- and the page cache's age limit.
 
-Each test warms the pages and both caches, runs `generate.py` through
+Each test warms the pages and both caches, runs `planetgen` through
 its real entry point (`main()`, via `sys.argv`, as
 `test_galaxy_gen.py` does) against the same throwaway database, lets the
 stamp checks fall due (a fake clock for the page cache, `stamp.json`'s
@@ -41,7 +41,7 @@ from markupsafe import escape
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
-import generate
+from planetgen.cli import generate as generate_cli
 from planetgen import web
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
@@ -150,11 +150,11 @@ def _mysql_argv(mysql_config):
 
 
 def _generate(mysql_config, *argv):
-    """Runs `generate.py <argv...>` in-process, as from a shell."""
+    """Runs `planetgen <argv...>` in-process, as from a shell."""
     old_argv = sys.argv
     try:
-        sys.argv = ["generate.py", *argv, *_mysql_argv(mysql_config), "--quiet"]
-        generate.main()
+        sys.argv = ["planetgen", *argv, *_mysql_argv(mysql_config), "--quiet"]
+        generate_cli.main()
     finally:
         sys.argv = old_argv
 
@@ -282,7 +282,7 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
 
 
 def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_config):
-    """`generate.py phenomenon --sector-id` adds a row to no table the
+    """`planetgen phenomenon --sector-id` adds a row to no table the
     stamp reads, so it must touch its sector (`store.save_phenomenon`):
     before it did, the sector page stayed stale until the page cache's age
     limit, and a cached tile never showed the new cloud at all."""

@@ -430,7 +430,7 @@ def test_every_forced_flag_off_together(seed, star_type):
        num_orbits=st.one_of(st.none(), st.integers(0, 30)), moons=st.sampled_from([None, True, False]),
        galactic_dist=st.one_of(st.none(), st.floats(min_value=1.0, max_value=60000.0)))
 def test_compact_remnant_anchored_systems(seed, remnant_cls, num_orbits, moons, galactic_dist):
-    """`StarSystem(compact_remnant=...)` (`generate.py phenomenon
+    """`StarSystem(compact_remnant=...)` (`planetgen phenomenon
     --anchor-system`). JSON round trip is documented as unsupported for
     these (no `star_kind` discriminator), so only generation invariants
     are checked; a remnant's own zero-luminosity surface temperature is

@@ -6,7 +6,7 @@ counts each layer's expected work (`bright_stars.layer_weight`), credited
 star by star as layers report (`scatter_layer`'s `on_progress`), so the
 near-empty edge layers no longer count as much as the dense middle; and
 while layers finish slowly a second bar shows the stars of the layers
-being drawn (`generate._LayerTracker`), mirrored to the web job's
+being drawn (`run_plan._LayerTracker`), mirrored to the web job's
 progress file as its `detail` and shown on the Generate page.
 """
 
@@ -14,7 +14,8 @@ import json
 
 import pytest
 
-import generate
+from planetgen.generation import run_common
+from planetgen.generation import run_plan
 from planetgen.queue import progress_file
 from planetgen.generation import bright_stars
 
@@ -105,7 +106,7 @@ def test_reporting_progress_leaves_the_stars_unchanged():
 
 def test_the_main_bar_credits_layers_in_progress_and_never_goes_back():
     progress, clock = _FakeProgress(), _Clock()
-    tracker = generate._LayerTracker(progress, "Bright stars", {0: 100.0, 1: 20.0, -1: 20.0}, clock=clock)
+    tracker = run_plan._LayerTracker(progress, "Bright stars", {0: 100.0, 1: 20.0, -1: 20.0}, clock=clock)
     main = progress.tasks[tracker.task]
     assert main["total"] == 140.0 and main["percent"] is True
     assert progress.main_task == tracker.task
@@ -125,7 +126,7 @@ def test_a_late_report_for_a_finished_layer_is_ignored():
     `layer_done` (the channel's thread lagging behind) used to put the
     layer back in flight, counting it twice and ending the bar at 101%."""
     progress, clock = _FakeProgress(), _Clock()
-    tracker = generate._LayerTracker(progress, "Bright stars", {0: 100.0, 1: 20.0}, clock=clock)
+    tracker = run_plan._LayerTracker(progress, "Bright stars", {0: 100.0, 1: 20.0}, clock=clock)
     main = progress.tasks[tracker.task]
     tracker.layer_progress(0, 40, 50)
     tracker.layer_done(0)
@@ -145,11 +146,11 @@ def test_a_weighted_bar_never_shows_more_than_100_percent(tmp_path, monkeypatch,
     cap a share at 100%, whatever the count says."""
     path = tmp_path / "progress.json"
     monkeypatch.setenv(progress_file.ENV_VAR, str(path))
-    progress = generate._generation_progress()
+    progress = run_common._generation_progress()
     main = progress.add_task("Bright stars (41 of 41 layers)", total=200.0, percent=True)
     progress.main_task = main
     progress.update(main, completed=202.6, total=200.0)  # a new total writes the file at once
-    assert generate._CountColumn().render(progress.tasks[main]).plain == "100%"
+    assert run_common._CountColumn().render(progress.tasks[main]).plain == "100%"
     data = json.loads(path.read_text())
     assert data["completed"] == 200.0
     job = {"id": "abc", "created_at": 0, "finished": False, "progress": dict(data, completed=202.6)}
@@ -159,7 +160,7 @@ def test_a_weighted_bar_never_shows_more_than_100_percent(tmp_path, monkeypatch,
 def test_slow_layers_add_a_second_bar_that_goes_once_they_speed_up():
     progress, clock = _FakeProgress(), _Clock()
     weights = {layer: 10.0 for layer in range(-5, 6)}
-    tracker = generate._LayerTracker(progress, "Bright stars", weights, clock=clock)
+    tracker = run_plan._LayerTracker(progress, "Bright stars", weights, clock=clock)
     tracker.layer_progress(0, 5, 50)
     assert tracker.detail is None and len(progress.tasks) == 1
     clock.now += 31
@@ -187,7 +188,7 @@ def test_slow_layers_add_a_second_bar_that_goes_once_they_speed_up():
 def test_the_progress_file_carries_the_second_bar(tmp_path, monkeypatch):
     path = tmp_path / "progress.json"
     monkeypatch.setenv(progress_file.ENV_VAR, str(path))
-    progress = generate._generation_progress()
+    progress = run_common._generation_progress()
     main = progress.add_task("Bright stars (0 of 3 layers)", total=200.0, percent=True)
     progress.main_task = main
     progress.update(main, completed=50.0)
@@ -206,10 +207,10 @@ def test_the_progress_file_carries_the_second_bar(tmp_path, monkeypatch):
 
 
 def test_the_count_column_shows_a_share_for_a_weighted_bar():
-    progress = generate._generation_progress()
+    progress = run_common._generation_progress()
     weighted = progress.add_task("Bright stars", total=200.0, completed=50.0, percent=True)
     counted = progress.add_task("Sectors", total=40, completed=12)
-    column = generate._CountColumn()
+    column = run_common._CountColumn()
     assert column.render(progress.tasks[weighted]).plain == "25%"
     assert column.render(progress.tasks[counted]).plain == "12/40"
 

@@ -39,14 +39,9 @@ def read_version():
 setup(
     name='planetGen',
     version=read_version(),
-    # planetgen and tests live under src/ (src layout) while the
-    # top-level entry script (generate.py, py_modules below) stays at the
-    # repo root -- a blanket `package_dir={'': 'src'}` would also redirect
-    # that py_modules lookup into src/, where it doesn't exist, so each
-    # discovered package gets its own explicit mapping instead of one
-    # root-wide override.
+    # Everything lives under src/ (src layout).
     packages=find_packages(where='src'),
-    package_dir={pkg: 'src/' + pkg.replace('.', '/') for pkg in find_packages(where='src')},
+    package_dir={'': 'src'},
     package_data={
         # Data files the modules read at run time (setuptools leaves non-.py
         # files out of a package by default, and the module would crash on
@@ -57,10 +52,9 @@ setup(
         'planetgen.db': ['schema.sql', 'control_schema.sql'],
         'planetgen.names': ['offensive_words.txt'],
     },
-    py_modules=['generate'],
     entry_points={
         'console_scripts': [
-            'planetgen=generate:main',
+            'planetgen=planetgen.cli.generate:main',
         ],
     },
     install_requires=[
@@ -69,7 +63,7 @@ setup(
         # keep flowing without needing this file edited for each one.
         'nltk>=3.9.1',
         # MySQL persistence (planetgen/db/store.py, TODO.md Phase 5) --
-        # every entry point that touches the database (generate.py,
+        # every entry point that touches the database (the `planetgen` command,
         # planetgen.db.query, planetgen.cli.migrate, the html/ CGI browser) needs these,
         # not just the Flask API, so they're core requirements rather
         # than the 'api' extra below.
@@ -85,9 +79,9 @@ setup(
         # transitively), so installing both extras together never
         # downgrades it.
         'werkzeug>=3.0.0',
-        # Progress bar for generate.py galaxy's sector-generation loops
+        # Progress bar for `planetgen galaxy`'s sector-generation loops
         # (TimeElapsedColumn/TimeRemainingColumn; see _generation_progress
-        # in generate.py).
+        # in planetgen/generation/run_common.py).
         'rich>=13.7.0',
         # The library migration (OPS.20, docs/design/library-migration.md):
         # pinned here first (OPS.21) so each swap PR only changes code.

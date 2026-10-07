@@ -14,7 +14,8 @@ import math
 
 import pytest
 
-import generate
+from planetgen.generation import run_common
+from planetgen.generation import run_galaxy
 from planetgen.db import store
 from planetgen.generation import stats as generationStats
 from planetgen.generation.stats import (
@@ -220,7 +221,7 @@ def test_without_the_stats_tables_nothing_is_recorded(mysql_config):
 
 
 # ---------------------------------------------------------------------------
-# generate.py: the estimate before a bulk run, the refusal, the question,
+# planetgen: the estimate before a bulk run, the refusal, the question,
 # and the speed recorded after it
 # ---------------------------------------------------------------------------
 
@@ -228,9 +229,9 @@ RING_0 = ["--ring", "0", "--num-systems", "2"]   # ring 0 holds 3 slots
 
 
 def _estimate_line(capsys):
-    lines = [line for line in capsys.readouterr().out.splitlines() if line.startswith(generate.ESTIMATE_PREFIX)]
+    lines = [line for line in capsys.readouterr().out.splitlines() if line.startswith(run_common.ESTIMATE_PREFIX)]
     assert len(lines) == 1
-    return json.loads(lines[0][len(generate.ESTIMATE_PREFIX):])
+    return json.loads(lines[0][len(run_common.ESTIMATE_PREFIX):])
 
 
 def test_estimate_only_writes_nothing(mysql_config, capsys):
@@ -275,7 +276,7 @@ def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):
 
 def test_a_terminal_is_asked_first_and_no_stops_the_run(mysql_config, monkeypatch):
     _plan_wide_galaxy(mysql_config)
-    monkeypatch.setattr(generate, "_interactive", lambda: True)
+    monkeypatch.setattr(run_common, "_interactive", lambda: True)
     questions = []
     monkeypatch.setattr("builtins.input", lambda prompt: questions.append(prompt) or "n")
     with pytest.raises(SystemExit) as exit_info:
@@ -291,7 +292,7 @@ def test_a_terminal_is_asked_first_and_no_stops_the_run(mysql_config, monkeypatc
 
 def test_yes_skips_the_question(mysql_config, monkeypatch):
     _plan_wide_galaxy(mysql_config)
-    monkeypatch.setattr(generate, "_interactive", lambda: True)
+    monkeypatch.setattr(run_common, "_interactive", lambda: True)
     monkeypatch.setattr("builtins.input", lambda prompt: pytest.fail("asked"))
     _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 3
@@ -302,7 +303,7 @@ def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypa
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", control_config.database)
     # Without the GEN.23 bright-star backfill each sector holds exactly
     # its --num-systems, so the per-task counts below are exact.
-    monkeypatch.setattr(generate, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
+    monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
     _plan_wide_galaxy(control_config)
     _run_cli(RING_0 + _mysql_argv(control_config))
     stats = GenerationStats(control_config)
@@ -310,21 +311,21 @@ def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypa
     assert bucket["samples"] == 3 and bucket["seconds_per_task"] > 0
     assert bucket["systems_per_task"] == pytest.approx(2.0)
     assert stats.sizes[control_config.database]["systems"] == 6
-    assert generate._RUN_STATS == {}
+    assert run_common._RUN_STATS == {}
 
 
 def test_the_web_neighborhood_can_be_estimated_and_refused(mysql_config, monkeypatch):
     _plan_wide_galaxy(mysql_config)
     _run_cli(RING_0 + _mysql_argv(mysql_config))
     center = _all_sectors(mysql_config)[0]["id"]
-    result = generate.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config, estimate_only=True)
+    result = run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config, estimate_only=True)
     assert result["generated"] == 0 and result["estimate"]["sectors"] >= 1
     assert len(_all_sectors(mysql_config)) == 3
 
     monkeypatch.setattr(generationStats, "database_disk",
                         lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
-    with pytest.raises(generate.GenerationRefused, match="must stay free"):
-        generate.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config)
+    with pytest.raises(run_galaxy.GenerationRefused, match="must stay free"):
+        run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config)
     assert len(_all_sectors(mysql_config)) == 3
 
 

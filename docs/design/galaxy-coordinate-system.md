@@ -5,7 +5,7 @@
 master-wedge slot counts in 7.13.0 (schema v35). Code:
 `src/planetgen/galaxy/geometry.py` (the grid), `galaxySkeleton.py` (the
 outline), `galaxyDensity.py` (the density model, see
-`galaxy-disk-density.md`) and `generate.py plan` / `generate.py galaxy`.
+`galaxy-disk-density.md`) and `planetgen plan` / `planetgen galaxy`.
 
 The spherical-shell design this replaced (shells, Fibonacci slots, Voronoi
 prisms, the `sector_vertices` and `galaxy_shell_band` tables) is kept in
@@ -87,7 +87,7 @@ same label on every placed phenomenon) comes from this frame.
 ## 3. Sector size: 4 pc
 
 `program_constants.DEFAULT_SECTOR_EDGE_PC = 4` (13.05 ly), used by the
-generator, the skeleton, the Galaxy pages and the Galaxy Map. `generate.py
+generator, the skeleton, the Galaxy pages and the Galaxy Map. `planetgen
 plan` has no edge option. It replaced 11.5 ly (3.53 pc) in 7.0.0.
 
 The edge sets where the galaxy ends, because a sector exists only where it
@@ -111,7 +111,7 @@ center's highest possible density over angle is
 and `|z|` grow, so each layer's rings are one unbroken run from ring 0 and
 each layer reaches no farther than the one below it (toward the plane).
 
-`generate.py plan` stores:
+`planetgen plan` stores:
 
 - `galaxy_shape`: one row with the shape parameters, `edge_pc`,
   `expected_system_count_at_density_1`, `outer_ring_index`, and (schema v43)
@@ -125,20 +125,20 @@ The build takes a few milliseconds. A sector inside its layer's extent may
 still fall short (an inter-arm trough); that exact check is one density call
 when the sector is visited.
 
-**Validation before generation.** Every `generate.py galaxy` mode (a ring, a
+**Validation before generation.** Every `planetgen galaxy` mode (a ring, a
 slot, a neighborhood, a random start) and visit-time generation
 (`generate.ensure_sector_generated`) ask `galaxySkeleton.GalaxyBounds.contains`
 first. An address outside is refused with the reason, even with `--density`
 or `--num-systems`. A neighborhood near the edge leaves out the sectors past
 it. A random start draws a uniformly random sector from inside the outline
-(`GalaxyBounds.random_address`). `generate.py galaxy` refuses to run before
-`generate.py plan`.
+(`GalaxyBounds.random_address`). `planetgen galaxy` refuses to run before
+`planetgen plan`.
 
-**Bright stars (schema v43, 7.38.0).** `generate.py plan` also places every
+**Bright stars (schema v43, 7.38.0).** `planetgen plan` also places every
 star at or above `BRIGHT_STAR_MIN_LUMINOSITY_SOL` (500 by default) at a
 fixed point in its sector, in `bright_stars`, before any sector is filled.
 Filling the sector later builds a full system around each of them. Since
-7.40.1, `generate.py plan --bright-star-min-luminosity` accepts down to
+7.40.1, `planetgen plan --bright-star-min-luminosity` accepts down to
 100 (about 220 million stars and 35 GB in a Milky Way, against about 60
 million and 10 GB at 500); white dwarfs are never pre-placed. The Galaxy
 Map draws them from 7.42.0, so the arms show before any sector is filled.

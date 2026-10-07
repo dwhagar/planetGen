@@ -11,7 +11,7 @@ Sectors are inserted directly via `planetgen.db.store.insert_sector` with
 an explicit `galaxy_position` (real `galaxyGeometry` addresses and
 positions, not hand-picked placeholders -- see `test_galaxy_gen.py`'s
 `test_sectors_table_rejects_duplicate_address` for the same pattern) rather than through the much
-heavier `generate.py galaxy` path, since these tests only need real
+heavier `planetgen galaxy` path, since these tests only need real
 `sectors` rows at known addresses, not fully generated systems.
 
 Every test here takes the `mysql_config` fixture (see `conftest.py`) --

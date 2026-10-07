@@ -160,7 +160,7 @@ def view_radius_bounds(edge_pc, galaxy_shape):
     Args:
         edge_pc (float): The sector edge length, parsecs.
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
-            return shape, or `None` if `generate.py plan` has never been
+            return shape, or `None` if `planetgen plan` has never been
             run against this database.
 
     Returns:
@@ -357,7 +357,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                        database's are kept apart; it is never sent back
                        to the server.
         galaxy_shape (dict or None): `apiclient.get_galaxy_shape`'s own
-            return shape, or `None` if `generate.py plan` has never been
+            return shape, or `None` if `planetgen plan` has never been
             run -- when `None`, the panel shows a hint that density
             shading isn't real yet (see
             `queryDb.galaxy_tiles`'s own `has_shape` field, which
@@ -496,7 +496,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         if galaxy_shape
         else (
             '<p class="hint">The galaxy\'s density skeleton hasn\'t been built yet '
-            "(<code>generate.py plan</code>) -- only generated sectors are shown, as blocks, "
+            "(<code>planetgen plan</code>) -- only generated sectors are shown, as blocks, "
             "and no density shading is shown.</p>"
         )
     )

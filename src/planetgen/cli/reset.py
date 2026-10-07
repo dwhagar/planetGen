@@ -183,8 +183,8 @@ def reset_database(config, dry_run=False, assume_yes=False):
 
         print(f"Wiped {len(tables)} table(s) ({total_rows:,} row(s)) from '{config.database}'.")
         print("Ready for a new galaxy -- e.g.:")
-        print("  python3 generate.py plan ...   # rebuild the density skeleton")
-        print("  python3 generate.py galaxy ... # generate sectors into it")
+        print("  planetgen plan ...   # rebuild the density skeleton")
+        print("  planetgen galaxy ... # generate sectors into it")
         return True
     finally:
         conn.close()

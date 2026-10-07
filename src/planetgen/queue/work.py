@@ -6,7 +6,7 @@ sector to fill, a layer of bright stars to scatter) on a pool of worker
 processes, at most about 80% of the machine's cores and at a lower
 scheduling priority than everything else on it.
 
-A `WorkQueue` belongs to the run that queues the work -- a `generate.py`
+A `WorkQueue` belongs to the run that queues the work -- a `planetgen`
 run, started from the command line or by the Generate page's job
 runner. That run is the supervisor for as long as it has work: there is
 no daemon, service or scheduler to install, and nothing runs once the
@@ -35,7 +35,7 @@ order, seeded the same way a worker would seed it (still recorded in
 the control database, without the lease, when the run passes one).
 
 Every job is a tree (ADM.12, control schema v7). `job_node` opens a
-node under the one this process has open (a `generate.py` run is the
+node under the one this process has open (a `planetgen` run is the
 root; its phases, such as the bright stars, are nodes under it), and a
 `WorkQueue` is a node whose leaves are its tasks. A process started by
 the Generate page's job runner hangs its root under the runner's step

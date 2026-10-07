@@ -194,7 +194,7 @@ def test_panel_passes_the_admin_generate_target_through():
 def test_panel_shows_a_hint_when_no_shape_has_been_built():
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(has_shape=False))
     assert "density skeleton hasn&#x27;t been built yet" in html or "density skeleton hasn't been built yet" in html
-    assert "generate.py plan" in html
+    assert "planetgen plan" in html
 
 
 def test_panel_omits_the_hint_when_a_shape_exists():

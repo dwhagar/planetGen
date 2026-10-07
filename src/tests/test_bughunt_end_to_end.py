@@ -2,7 +2,7 @@
 
 """
 Tier 1 bug-hunt coverage: true top-to-bottom pipeline tests -- generate a
-system via the real `generate.py system` CLI entry point, confirm it
+system via the real `planetgen system` CLI entry point, confirm it
 landed in the database with the values the CLI was asked for, confirm the
 JSON API serves the same data back, and confirm the web page renders that
 same data (name, star type) correctly. Every other bug-hunt file in this
@@ -20,7 +20,7 @@ from tests.webpage_support import live_api  # noqa: F401
 
 def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):
     # 1. Generate via the real CLI entry point -- the same code path a
-    # real user's `python generate.py system ...` invocation runs.
+    # real user's `planetgen system ...` invocation runs.
     system_name = "Bughunt E2E Test System"
     run_cli(
         "system",

@@ -18,7 +18,7 @@ This tool never writes -- `open_readonly` below connects with the same
 that the connection can't write is a deployment concern: point
 `PLANETGEN_MYSQL_USER`/`PLANETGEN_MYSQL_PASSWORD` at a database account
 with `SELECT`-only grants for this tool rather than the read-write account
-`generate.py` and the Flask app use (the app writes too: the admin pages
+`planetgen` and the Flask app use (the app writes too: the admin pages
 and the API's write endpoints, see `planetgen/api/config.py`) -- MySQL has no per-connection "open this read-only"
 flag the way SQLite's `file:...?mode=ro` URI trick gave the old SQLite
 version of this function, so the guarantee lives in the account's grants
@@ -908,7 +908,7 @@ def sector_neighbors(conn, sector):
     exists there. Drives the Sector Map's (`planetgen/web/maps/starmap.py`)
     neighboring-sector indicators -- an existing neighbor links straight
     to it; a not-yet-generated one shows its address so it can be fed to
-    `generate.py galaxy --ring I --layer J --slot K`.
+    `planetgen galaxy --ring I --layer J --slot K`.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -2012,11 +2012,11 @@ def galaxy_placed_sectors(conn):
 def galaxy_density_shape(conn):
     """
     The galaxy's stored density-skeleton shape (the singleton
-    `galaxy_shape` row `generate.py plan` writes -- see
+    `galaxy_shape` row `planetgen plan` writes -- see
     `planetgen.galaxy.density.GalaxyShape` and `_db.get_galaxy_shape`),
     serialized to a plain JSON-able dict. This is the real
     exponential-disk-plus-bulge-plus-spiral-arm model already used to gate
-    and weight actual sector generation (`generate.py`'s `_BatchDensity`);
+    and weight actual sector generation (`planetgen`'s `_BatchDensity`);
     exposing it here lets the Galaxy Map (`planetgen/web/maps/galaxymap.py`) shade
     its "expected density" cloud from this same model instead of a
     generic illustrative gradient, so un-generated space still reads as
@@ -2028,7 +2028,7 @@ def galaxy_density_shape(conn):
     Returns:
         dict or None: Every `GalaxyShape` field plus `edge_pc`,
             `outer_ring_index`, `expected_system_count_at_density_1`.
-            `None` if `generate.py plan` has never been run against this
+            `None` if `planetgen plan` has never been run against this
             database (no `galaxy_shape` row yet).
     """
     skeleton = get_galaxy_shape(conn)
@@ -2522,7 +2522,7 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
 
 def bright_star_scatter_status(conn):
     """
-    Whether the galaxy's bright-star scatter (`generate.py plan`) has run,
+    Whether the galaxy's bright-star scatter (`planetgen plan`) has run,
     and with what threshold and seed -- so the Generate page can say so
     and offer the right next step.
 
@@ -2568,7 +2568,7 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     The pre-placed bright stars (`bright_stars`) in one sector cell, most
     luminous first -- the stars a sector page lists for a cell that hasn't
     been filled yet (filling builds each into a system, see
-    `generate.py fill`). Reads `idx_bright_stars_address`, so it's cheap
+    `planetgen fill`). Reads `idx_bright_stars_address`, so it's cheap
     at any galaxy size.
 
     Args:

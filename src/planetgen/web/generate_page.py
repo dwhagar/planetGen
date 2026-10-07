@@ -6,9 +6,9 @@ needs a terminal on the server. Four actions, each a background job
 (`web/jobs.py`) running the same command-line tools an admin would type:
 
 - New galaxy: wipe the database (`python3 -m planetgen.cli.reset --yes`), build the
-  density skeleton (`generate.py plan --no-bright-stars`), then generate
+  density skeleton (`planetgen plan --no-bright-stars`), then generate
   a first neighborhood around a random start and only then scatter the
-  bright stars, leaving those sectors out (`generate.py galaxy
+  bright stars, leaving those sectors out (`planetgen galaxy
   --then-scatter`, GEN.30).
 - Plan: rebuild the density skeleton, then scatter the bright stars.
   The scatter is its own step so the job shows its progress bar and the
@@ -17,8 +17,8 @@ needs a terminal on the server. Four actions, each a background job
   sectors are always left out).
 - Add a dimmer layer: keep the bright stars already placed and add only
   those from a lower level up to the current one
-  (`generate.py plan --bright-stars-down-to N`).
-- Generate sectors: `generate.py galaxy` in any of its modes (random
+  (`planetgen plan --bright-stars-down-to N`).
+- Generate sectors: `planetgen galaxy` in any of its modes (random
   start, a whole ring, around a sector, one address, ...). "Around a
   sector" names its center as a filled sector (searched by name or
   picked from `/admin/generate/sectors`'s list), a sector address, or a
@@ -73,7 +73,7 @@ from .helpers import crumb, current_admin, db_name, page_url, render_page, trust
 # ---------------------------------------------------------------------
 
 PLAN_FIELDS = (
-    # (form name, generate.py flag, label, type, default, minimum, exclusive maximum)
+    # (form name, planetgen flag, label, type, default, minimum, exclusive maximum)
     ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, 2800.0, 1.0, None),
     ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, 350.0, 1.0, None),
     ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, 200.0, 1.0, None),
@@ -82,8 +82,8 @@ PLAN_FIELDS = (
     ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, 15.0, 1.0, 90.0),
     ("arm_amplitude", "--arm-amplitude", "Arm contrast (0 to 1)", float, 0.4, 0.0, 1.0),
 )
-"""tuple: The `plan` options the page offers, with `generate.py`'s own
-defaults (a test checks they still match `generate.py plan`'s parser)."""
+"""tuple: The `plan` options the page offers, with `planetgen`'s own
+defaults (a test checks they still match `planetgen plan`'s parser)."""
 
 def _backfill_text():
     """The backfill tiers in words ("down to 100 solar luminosities within
@@ -162,14 +162,14 @@ BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 Plan and Rebuild the bright stars."""
 
 MATH_CHECK_LABEL = "Check the math"
-"""str: Every generating job's first step (TEST.68): `generate.py
+"""str: Every generating job's first step (TEST.68): `planetgen
 check-math`. A failure stops the job there, before anything is written."""
 """str: The step that pre-places every bright star
 (`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` and up) on the plan."""
 
 
 ESTIMATE_TIMEOUT_S = 120
-"""int: How long the page waits for `generate.py galaxy --estimate-only`."""
+"""int: How long the page waits for `planetgen galaxy --estimate-only`."""
 
 ESTIMATE_PREFIX = "ESTIMATE "
 """str: `generate.ESTIMATE_PREFIX`: the line the estimate is read from."""
@@ -185,7 +185,7 @@ class FormError(ValueError):
 def run_estimate(argv, env):
     """
     PERF.3: the size and time a Generate sectors job would take, from
-    `generate.py galaxy ... --estimate-only` (run here, while the admin
+    `planetgen galaxy ... --estimate-only` (run here, while the admin
     waits, before anything is written).
 
     Args:
@@ -197,12 +197,12 @@ def run_estimate(argv, env):
 
     Raises:
         FormError: The estimate couldn't be made; the message says why
-            (`generate.py`'s own last lines, e.g. a ring too large to
+            (`planetgen`'s own last lines, e.g. a ring too large to
             generate without a limit).
     """
     try:
-        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, capture_output=True,
-                              text=True, timeout=ESTIMATE_TIMEOUT_S, check=False)
+        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, cwd=jobs.SRC_DIR,
+                              capture_output=True, text=True, timeout=ESTIMATE_TIMEOUT_S, check=False)
     except subprocess.TimeoutExpired:
         raise FormError("Working out the size and time took too long. Nothing was generated.") from None
     except OSError as exc:
@@ -214,7 +214,7 @@ def run_estimate(argv, env):
             except ValueError:
                 break
     tail = [line.strip() for line in (done.stderr + "\n" + done.stdout).splitlines() if line.strip()]
-    message = " ".join(tail[-3:]) if tail else f"generate.py exited with {done.returncode}"
+    message = " ".join(tail[-3:]) if tail else f"the generator exited with {done.returncode}"
     raise FormError(f"Nothing was generated: {message}")
 
 
@@ -238,7 +238,7 @@ def _number(form, name, label, kind, required=False, minimum=None, maximum=None,
 
 
 def plan_argv(form):
-    """`generate.py plan` arguments from the Plan fields (blank means
+    """`planetgen plan` arguments from the Plan fields (blank means
     the default)."""
     argv = []
     for name, flag, label, kind, _default, minimum, maximum in PLAN_FIELDS:
@@ -249,7 +249,7 @@ def plan_argv(form):
 
 
 def random_start_argv(form):
-    """`generate.py galaxy` arguments for a random start."""
+    """`planetgen galaxy` arguments for a random start."""
     argv = []
     radius = _number(form, "radius_pc", "Radius (pc)", float, minimum=0.1, maximum=MAX_GENERATE_RADIUS_PC)
     if radius is not None:
@@ -330,7 +330,7 @@ def center_argv(form, edge_pc=None):
 
 def galaxy_argv(form, edge_pc=None):
     """
-    `generate.py galaxy` arguments for the chosen mode. `edge_pc` is the
+    `planetgen galaxy` arguments for the chosen mode. `edge_pc` is the
     plan's sector edge, which only "Around a sector" by position needs.
 
     Returns:
@@ -403,7 +403,7 @@ def galaxy_argv(form, edge_pc=None):
 
 def scatter_argv(form):
     """
-    `generate.py plan --bright-stars-only` plus the form's galaxy-wide
+    `planetgen plan --bright-stars-only` plus the form's galaxy-wide
     threshold (GEN.30: `--bright-star-min-luminosity`; blank means
     `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
 
@@ -419,7 +419,7 @@ def scatter_argv(form):
 
 def backfill_argv(form):
     """
-    `generate.py galaxy --backfill-from all` when the form's "backfill
+    `planetgen galaxy --backfill-from all` when the form's "backfill
     from every generated sector" box is ticked (GEN.30); nothing
     otherwise, so the backfill runs from the requested sector only.
     """
@@ -429,7 +429,7 @@ def backfill_argv(form):
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
-    box is ticked, the scatter as a second step (`generate.py plan` would
+    box is ticked, the scatter as a second step (`planetgen plan` would
     otherwise run both in one command, with no separate label), at the
     form's threshold (`scatter_argv`).
 
@@ -459,14 +459,14 @@ def build_job(action, form, database, edge_pc=None):
     kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind != "reset":
         python = jobs.python_executable()
-        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, jobs.GENERATE_SCRIPT, "check-math"]}, *steps]
+        steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]}, *steps]
     return kind, title, steps
 
 
 def _build_job_steps(action, form, edge_pc=None):
     """`build_job`'s `(kind, title, steps)` before the math check step."""
     python = jobs.python_executable()
-    generate = [python, jobs.GENERATE_SCRIPT]
+    generate = [python, *jobs.GENERATE_COMMAND]
     reset_step = {"label": "Reset the galaxy", "argv": [python, *jobs.RESET_COMMAND, "--yes"]}
     if action == "new_galaxy":
         # GEN.30: the scatter runs after the sectors (`galaxy

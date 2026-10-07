@@ -18,7 +18,8 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics.units import ly_to_pc
 
-import generate
+from planetgen.cli import generate as generate_cli
+from planetgen.generation import run_population
 
 
 # ---------------------------------------------------------------------------
@@ -290,11 +291,11 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
 
 
 def test_population_cli(mysql_config, galaxy, monkeypatch):
-    argv = ["generate.py", "population", "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
+    argv = ["planetgen", "population", "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
     monkeypatch.setattr(sys, "argv", argv)
-    generate.main()
+    generate_cli.main()
     conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] >= 2
@@ -303,7 +304,7 @@ def test_population_cli(mysql_config, galaxy, monkeypatch):
 
     monkeypatch.setattr(sys, "argv", argv + ["--rescan", "--territories-only"])
     with pytest.raises(SystemExit):
-        generate.main()
+        generate_cli.main()
 
 
 def test_migration_from_v43_adds_the_tables(mysql_config):
@@ -384,10 +385,10 @@ def test_fills_skip_population_unless_asked(monkeypatch):
     pass with --population."""
     import argparse
     calls = []
-    monkeypatch.setattr(generate.store, "get_connection", lambda *a, **k: calls.append(1))
-    generate.run_population_after(argparse.Namespace(population=False))
+    monkeypatch.setattr(store, "get_connection", lambda *a, **k: calls.append(1))
+    run_population.run_population_after(argparse.Namespace(population=False))
     assert calls == []
-    parser, _commands = generate.build_parser()
+    parser, _commands = generate_cli.build_parser()
     assert parser.parse_args(["galaxy"]).population is False
     assert parser.parse_args(["sector", "--population"]).population is True
 

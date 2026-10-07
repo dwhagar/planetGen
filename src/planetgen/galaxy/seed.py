@@ -6,7 +6,7 @@ docs/design/reproducible-galaxies.md, section 3).
 
 One seed belongs to the galaxy: 16 bytes in `galaxy_shape.galaxy_seed`
 (`BINARY(16)`), shown and typed as 32 hex digits, written once when the
-galaxy is first planned (`generate.py plan --seed`, or drawn at random).
+galaxy is first planned (`planetgen plan --seed`, or drawn at random).
 Every unit of work gets its own seed from it:
 
     unit seed = SHA-256(galaxy seed || "kind:" address)

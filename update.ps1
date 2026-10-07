@@ -15,13 +15,13 @@
          importing it; only when one is missing, too old or broken does
          pip install from requirements-server.lock (--require-hashes).
       3. The NLTK 'words' corpus: fetched only if it's missing.
-      4. generate.py check-math, the math check (TEST.68). A failure
+      4. planetgen.cli.generate check-math, the math check (TEST.68). A failure
          only warns (repeated at the end).
       5. planetgen.cli.migrate, a no-op when the database is current. When a
          migration is pending it first asks (y/N, 30 seconds, default N)
          whether to delete the galaxy data instead; a scheduled run with
          no console keeps the data and migrates it. The update never runs
-         the population pass (OPS.7); run generate.py population by hand
+         the population pass (OPS.7); run planetgen.cli.generate population by hand
          when wanted.
       6. The tile cache, jobs and log folders. A log folder that can't be
          made only warns.
@@ -115,7 +115,7 @@ if (-not $mathOk) {
     Write-Warning "The math check failed (step 4): bulk generation refuses to start until it passes."
 }
 Write-Host "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
-Write-Host "  $(Get-VenvPython) $(Join-Path $Root 'generate.py') population"
+Write-Host "  cd $(Join-Path $Root 'src'); $(Get-VenvPython) -m planetgen.cli.generate population"
 if ($before -ne $after) {
     Write-Host "Done. Restart the app so the site runs the new code:"
     Write-Host "  $(Get-RestartHint)"

@@ -858,7 +858,7 @@
 -- v44: population and politics (POP.1 to POP.4,
 --   docs/design/population-and-politics.md) -- the `species`, `polities`,
 --   `system_owners` and `population_state` tables below, all filled by
---   `generate.py population` (planetgen/population/model.py).
+--   `planetgen population` (planetgen/population/model.py).
 --   `_migrate_v43_to_v44` creates them empty.
 --
 -- v45: id blocks for batched writes (PERF.13) -- the `id_blocks` table
@@ -916,7 +916,7 @@
 --   docs/design/reproducible-galaxies.md): `galaxy_shape` gains the
 --   22-hex-digit version key (`versionKey.version_key`), the PlanetGen,
 --   Python and platform versions, written with the galaxy seed; and the
---   `generation_runs` table below holds one row per `generate.py` run that
+--   `generation_runs` table below holds one row per `planetgen` run that
 --   changes the galaxy. A galaxy is built by a series of commands, not by
 --   the seed alone, so these rows are what a rebuild replays.
 --   `_migrate_v51_to_v52` adds both empty.
@@ -1056,7 +1056,7 @@ CREATE TABLE IF NOT EXISTS sectors (
 -- comment's notes).
 -- `galaxy_shape` is a singleton (`id` pinned to 1, enforced by the CHECK)
 -- -- there is exactly one galaxy. Building or rebuilding the skeleton
--- (`generate.py plan`) replaces this row and every `galaxy_layer`/
+-- (`planetgen plan`) replaces this row and every `galaxy_layer`/
 -- `galaxy_column` row
 -- wholesale; neither
 -- table is ever partially updated.
@@ -1090,7 +1090,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     expected_system_count_at_density_1  DOUBLE NOT NULL,
 
     -- The last ring with any qualifying content (the plane's layer reaches
-    -- farthest) -- this galaxy's real edge, found by `generate.py plan`,
+    -- farthest) -- this galaxy's real edge, found by `planetgen plan`,
     -- not picked as an arbitrary radius. (v32; was `outer_shell_index`.)
     outer_ring_index            INT NOT NULL,
 
@@ -1100,7 +1100,7 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     bright_star_min_luminosity_sol  DOUBLE,
     bright_star_seed                BIGINT UNSIGNED,
 
-    -- v51: the galaxy's 128-bit seed (GEN.39), set by `generate.py plan`
+    -- v51: the galaxy's 128-bit seed (GEN.39), set by `planetgen plan`
     -- (`--seed`, or drawn at random) and kept by every later plan.
     -- NULL only on a galaxy planned before v51.
     galaxy_seed                     BINARY(16),
@@ -2457,7 +2457,7 @@ CREATE TABLE IF NOT EXISTS facilities (
 -- ---------------------------------------------------------------------
 -- bright_stars (v43): every star at least
 -- `galaxy_shape.bright_star_min_luminosity_sol` bright, generated and
--- placed galaxy-wide by `generate.py plan`'s scatter step before any
+-- placed galaxy-wide by `planetgen plan`'s scatter step before any
 -- sector is filled. Each row is a finished star (no planets or companion
 -- yet, and no name: it's named when its system is made) at a galaxy-frame
 -- position (milliparsecs) inside its sector's cell. Filling that sector
@@ -2546,7 +2546,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
 
 
 -- ---------------------------------------------------------------------
--- generation_runs (v52, DB.6): one row per `generate.py` run that changes
+-- generation_runs (v52, DB.6): one row per `planetgen` run that changes
 -- the galaxy, written when it starts and finished when it ends: its
 -- subcommand and command line (JSON, without the --mysql-* and --debug
 -- options), the run's own 128-bit seed (what a random start or a
@@ -2586,7 +2586,7 @@ CREATE TABLE IF NOT EXISTS id_blocks (
 
 -- ---------------------------------------------------------------------
 -- Population and politics (v44, POP.1 to POP.4): see
--- docs/design/population-and-politics.md. Filled by `generate.py
+-- docs/design/population-and-politics.md. Filled by `planetgen
 -- population` (planetgen/population/model.py) from what is already
 -- stored; nothing in system generation writes these.
 --

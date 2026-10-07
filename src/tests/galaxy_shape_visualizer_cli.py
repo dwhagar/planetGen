@@ -4,7 +4,7 @@
 """
 Diagnostic tool: renders this galaxy's real density model
 (`planetgen.galaxy.density.GalaxyShape`) as actual images, so a
-person can eyeball whether a set of shape parameters (`generate.py
+person can eyeball whether a set of shape parameters (`planetgen
 plan`'s own args) actually looks like a recognizable spiral galaxy --
 face-on and edge-on -- rather than only ever judging it through
 `relative_density` numbers or the Galaxy Map's own density
@@ -72,9 +72,9 @@ DEFAULT_BULGE_AMPLITUDE = 1.0
 DEFAULT_ARM_COUNT = 2
 DEFAULT_PITCH_ANGLE_DEG = 15.0
 DEFAULT_ARM_AMPLITUDE = 0.4
-"""These mirror `generate.py plan`'s own `add_plan_arguments` defaults
+"""These mirror `planetgen plan`'s own `add_plan_arguments` defaults
 exactly, so running this tool with no shape flags at all visualizes the
-same default galaxy a bare `generate.py plan` would build."""
+same default galaxy a bare `planetgen plan` would build."""
 
 FACE_ON_EXTENT_SCALE_LENGTHS = 4.0
 """float: Default face-on half-width, in disk scale lengths -- wide
@@ -94,7 +94,7 @@ scale height is meaningfully smaller than disk scale length" framing)."""
 
 def _add_shape_arguments(parser):
     """Adds every `GalaxyShape` parameter as a CLI flag, mirroring
-    `generate.py`'s own `add_plan_arguments` names/help text/defaults
+    `planetgen`'s own `add_plan_arguments` names/help text/defaults
     exactly, so the two tools' output can be compared apples-to-apples."""
     parser.add_argument("--disk-scale-length-pc", type=float, default=DEFAULT_DISK_SCALE_LENGTH_PC,
                         help="Disk radial exponential scale length, parsecs.")

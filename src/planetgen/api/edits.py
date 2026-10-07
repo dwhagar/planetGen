@@ -21,7 +21,8 @@ import random
 
 from flask import Blueprint, jsonify, request
 
-import generate
+from planetgen.generation import run_galaxy
+from planetgen.generation import run_phenomenon
 from planetgen.db import edits as editStore, store
 from planetgen.admin import edits as adminEdits
 from planetgen.generation import validation
@@ -332,7 +333,7 @@ def regenerate_phenomenon(phenomenon_type, phenomenon_id):
             row = editStore.phenomenon_row(conn, phenomenon_type, phenomenon_id)
             if row is None:
                 raise ApiError(f"no such {phenomenon_type}: {phenomenon_id}", status_code=404)
-            fresh = generate.generate_phenomenon(editStore.GENERATOR_TYPES[phenomenon_type], SystemConfig(),
+            fresh = run_phenomenon.generate_phenomenon(editStore.GENERATOR_TYPES[phenomenon_type], SystemConfig(),
                                                  anchor_system=False, name=row["name"])
             try:
                 editStore.replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, fresh)
@@ -379,7 +380,7 @@ def regenerate_sector(sector_id):
     its slot again from the galaxy's density plan. The new sector gets a
     new id and name (`sector_id` in the answer; `null` if the slot is
     outside the galaxy's outline). 409 for a sector off the galaxy grid
-    or before `generate.py plan` has run."""
+    or before `planetgen plan` has run."""
     _options()
     config = _resolve_requested_write_db_config()
     conn = _write_conn()
@@ -393,12 +394,12 @@ def regenerate_sector(sector_id):
                 raise ApiError("this sector isn't placed in the galaxy, so it can't be generated again",
                                status_code=409)
             if store.get_galaxy_shape(conn) is None:
-                raise ApiError("the galaxy has no density plan yet; run 'generate.py plan' first", status_code=409)
+                raise ApiError("the galaxy has no density plan yet; run 'planetgen plan' first", status_code=409)
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
     random.seed()
-    result = generate.ensure_sector_generated(*address, config=config)
+    result = run_galaxy.ensure_sector_generated(*address, config=config)
     audit("sector.regenerate", target=f"sector:{sector_id}",
           detail=f"deleted {counts}; new sector {result['sector_id']}")
     return jsonify({"status": "ok", "deleted": counts, "sector_id": result["sector_id"],

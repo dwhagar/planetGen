@@ -125,46 +125,47 @@ and [`docs/api.md`](docs/api.md) the JSON API.
 
 ### The command line
 
-`generate.py`, in the checkout, is the one entry point for every
-generator. On Linux and macOS the installer also adds a `planetgen`
-command that runs it; on Windows run it with the venv's Python
-(`C:\srv\planetgen-venv\Scripts\python.exe generate.py`). Each
+`planetgen.cli.generate`, in the checkout, is the one entry point for
+every generator. On Linux and macOS the installer adds a `planetgen`
+command that runs it; on Windows run it from the checkout's `src\` with
+the venv's Python
+(`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate`). Each
 subcommand saves what it makes to the database unless told otherwise:
 
 ```bash
-python3 generate.py plan         # plan the galaxy's shape (once, before galaxy)
-python3 generate.py galaxy       # generate sectors in the galaxy
-python3 generate.py sector       # one or more standalone sectors
-python3 generate.py system       # one star system
-python3 generate.py phenomenon   # one exotic phenomenon
-python3 generate.py population   # optional: species, civilizations and territories
+planetgen plan         # plan the galaxy's shape (once, before galaxy)
+planetgen galaxy       # generate sectors in the galaxy
+planetgen sector       # one or more standalone sectors
+planetgen system       # one star system
+planetgen phenomenon   # one exotic phenomenon
+planetgen population   # optional: species, civilizations and territories
 ```
 
 Common examples:
 
 ```bash
 # A random neighborhood: a random start and every sector within 100 ly of it
-python3 generate.py galaxy
+planetgen galaxy
 
 # One whole ring of the galactic plane, one sector of it, or one column
 # of sectors through every layer
-python3 generate.py galaxy --ring 12
-python3 generate.py galaxy --ring 12 --layer 0 --slot 5
-python3 generate.py galaxy --ring 12 --slot 5 --column
+planetgen galaxy --ring 12
+planetgen galaxy --ring 12 --layer 0 --slot 5
+planetgen galaxy --ring 12 --slot 5 --column
 
 # A quick test galaxy: plan with fewer pre-placed bright stars
-python3 generate.py plan --bright-star-min-luminosity 5000
+planetgen plan --bright-star-min-luminosity 5000
 
 # A single system with a habitable world, printed as Markdown, not saved
-python3 generate.py system +habitable_world --markdown --output -
+planetgen system +habitable_world --markdown --output -
 
 # A system built from a specification file
-python3 generate.py system --system-file examples/systems/solar_system.json
+planetgen system --system-file examples/systems/solar_system.json
 ```
 
 Most options use a `+name`/`-name` form: `+moons` forces moons,
 `-moons` forbids them, and leaving it off leaves it to chance.
-`python3 generate.py <command> --help` lists every option, and
+`planetgen <command> --help` lists every option, and
 [`docs/cli.md`](docs/cli.md) is the full reference, including the
 system specification file format and the incompatible option pairs.
 

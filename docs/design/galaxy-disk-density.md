@@ -37,7 +37,7 @@ relative_density = k_norm * (rho_bulge + rho_disk_radial * f_z * arm_factor)
 default shape. The module does not read `GALACTIC_CENTER_DISTANCE_LY`, so
 the same formulas work for a galaxy of any size.
 
-## 2. Default shape (`generate.py plan`)
+## 2. Default shape (`planetgen plan`)
 
 | Parameter | Default | Basis |
 |---|---|---|

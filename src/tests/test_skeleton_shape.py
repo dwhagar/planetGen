@@ -12,7 +12,7 @@ than through
 `galaxyViewport.planned_slots_in_view`, whose own view-radius cap
 (`PLANNED_RADIUS_CAP_PC`) only ever returns a small sphere around the view
 center; this test is about where qualifying slot centers really are.
-Uses `generate.py plan`'s own default shape parameters.
+Uses `planetgen plan`'s own default shape parameters.
 """
 
 import math
@@ -29,7 +29,7 @@ from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 EDGE_LY = 11.5
 EDGE_PC = EDGE_LY / 3.26156
 
-# generate.py's own `plan` defaults (--disk-scale-length-pc etc.).
+# planetgen's own `plan` defaults (--disk-scale-length-pc etc.).
 DEFAULT_SHAPE = build_galaxy_shape(
     disk_scale_length_pc=2800.0,
     disk_scale_height_pc=350.0,

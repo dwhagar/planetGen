@@ -112,7 +112,7 @@ In build order. Each step stands on its own.
      doubling level decays (for example halves after a day without a
      lockout) instead of resetting at once, so an attacker can't clear it
      with one right guess.
-   - An admin command (`generate.py` or a small `planetgen-admin`
+   - An admin command (`planetgen` or a small `planetgen-admin`
      script) and an admin page list and lift lockouts.
 3. **Move the per-username backoff into the same table**, so it is
    shared across workers and restarts; the numbers stay as they are.
