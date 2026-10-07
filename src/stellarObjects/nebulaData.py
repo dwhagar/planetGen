@@ -17,7 +17,7 @@ import math
 import random
 
 from .config import SystemConfig
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict

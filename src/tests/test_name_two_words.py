@@ -15,10 +15,10 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
-from stellarObjects.nameUniqueness import (
+from planetgen.names.uniqueness import (
     GREEK_ROMAN_CAPACITY, MAX_SYSTEM_NAME_WORDS, resolve_greek_roman_collision, word_count,
 )
-from stellarObjects.names import DIMINUTIVE_PREFIXES, GREEK_LETTERS
+from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 

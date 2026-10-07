@@ -1010,7 +1010,7 @@ objects are searched. Success returns
 `{"status": "ok", "id", "name"}` (plus `star_system_id` for a star,
 planet or moon).
 
-Generated names derive from the system (`src/stellarObjects/bodyNames.py`):
+Generated names derive from the system (`src/planetgen/names/bodies.py`):
 a single star shares the system's name (`Voranthis`), a close pair's stars
 are its A and B (`Voranthis A`, `Voranthis B`), a wide pair's stars are the
 system name's first word plus their own word (`Voranthis Kelmoor`,

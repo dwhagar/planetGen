@@ -17,7 +17,7 @@ the complexity of a multi-star system.
 import math
 import random
 
-from .bodyNames import close_pair_label
+from planetgen.names.bodies import close_pair_label
 from .config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years

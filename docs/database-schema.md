@@ -500,7 +500,7 @@ order, moons add a letter (`<star> IIa`), and a binary's stars are
 and `body_name_registry` (v24's planet/moon registry, which gave
 colliding names a companion suffix like `"Kin"`) is dropped by
 `_migrate_v33_to_v34`. Existing rows keep their names until regenerated.
-See `stellarObjects/bodyNames.py`.
+See `planetgen/names/bodies.py`.
 
 **Hybrid master-wedge slots (v35).** Ring `i` now holds the multiple of
 its master wedge count (3 at the center, doubling once each master wedge
@@ -682,7 +682,7 @@ planet, standalone black hole or neutron star, nebula, supernova remnant
 and its collapsed core, quasar, interstellar comet or asteroid field)
 and every star system built around a bright-sweep star is named by its
 76-bit position ID, 19 hex digits, instead of the rules below:
-`stellarObjects/objectId.py` packs type, distance unit, distance,
+`planetgen/names/object_id.py` packs type, distance unit, distance,
 bearing, mark and a 4-bit collision number from the galactic center,
 and `_db._claim_object_ids` hands out collision numbers in generation
 order. These names never go through `system_name_registry`. A name given
@@ -1637,7 +1637,7 @@ concentration shape — both are generated via the same shared
 
 ### `sector_name_registry` / `system_name_registry`
 
-Name-uniqueness bookkeeping (v24, `stellarObjects/nameUniqueness.py`).
+Name-uniqueness bookkeeping (v24, `planetgen/names/uniqueness.py`).
 One row per base name (the name with every decoration this project adds
 stripped off) that has collided at least once; a name only ever used once
 has no row. `first_*` names the row that first used the base name, the

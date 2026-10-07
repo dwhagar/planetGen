@@ -23,7 +23,7 @@ from . import validation
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from .asteroidData import AsteroidBelt
-from .bodyNames import moon_letters
+from planetgen.names.bodies import moon_letters
 from .planetData import Planet
 
 EditResult = namedtuple("EditResult", ["summary", "moved", "reclassified", "removed", "warnings"])

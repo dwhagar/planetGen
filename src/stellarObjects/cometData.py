@@ -42,7 +42,7 @@ from .config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
 from planetgen.util import log
-from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
+from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics.planets import calculate_orbital_period_years
 from .roguePlanetData import format_comet_composition_summary
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
