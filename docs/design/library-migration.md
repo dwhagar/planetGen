@@ -39,7 +39,7 @@ by the new libraries rather than patched in the old code.
 | Markdown | `mdconvert.py` | markdown | Same output for pages and the wiki export. |
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
 | Work queue and web jobs | `workQueue.py` (1,600 lines), `jobRunner.py`, the `work_lease` table | RQ on Redis | See section 3. |
-| Caches | `pagecache.py`, `tilecache.py` | cachetools, diskcache | Same keys and invalidation. |
+| Caches | `pagecache.py`, `tilecache.py` | cachetools (not diskcache) | Same keys and invalidation. diskcache was left out of the pins (OPS.21, PR #437): its latest release has an unfixed advisory (it unpickles its cache folder) and the dependency audit rejects it, so PERF.25 needs another way to replace the tile cache's disk store. |
 | Database | `_db.py` (9,800 lines), `migrateDb.py` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
 | Physics | `keplerMotion.py`, `physical_constants.py` | scipy, astropy | Results checked against today's within stated tolerances. |
