@@ -87,25 +87,141 @@ Shoelace, TanStack and three-mesh-bvh are vendored as ES module builds and
 served by Flask, with no bundler and no CDN at runtime (default until Boss
 decides otherwise). Both themes, keyboard use and reduced motion are kept.
 
-## 6. Package layout
+## 6. Package layout (OPS.23)
 
-The layout plan (to be approved before the move) groups the code roughly
-as follows; names may change in the plan:
+The plan for OPS.24's move. Boss approves it before the move starts.
 
-| Package | Holds |
+### 6.1 Where things live today
+
+- `src/stellarObjects/`: 75 flat modules, 46,000 lines, among them
+  `_db.py` (9,800), `program_constants.py` (2,900), `systemData.py`
+  (2,100) and `utils.py` (1,900, a mix of formatting, unit conversion,
+  random sampling, orbital formulas and word-salad names).
+- `generate.py` (4,600 lines) at the repo root, and nine scripts in
+  `src/` (`queryDb.py` alone is 4,300).
+- `src/html/`: `api/` and `web/` import as top-level packages and the 17
+  modules in `lib/` as top-level modules, because `wsgi.py`,
+  `web/__init__.py`, `routes.py` and `apiclient.py` each push a folder
+  onto `sys.path`. `fmt.py` repeats `utils.py`'s distance formatting and
+  `galaxymap.py` repeats `galaxyGeometry.py`'s quadrant and zone helpers.
+- `src/wikiClient/`: the wiki export client.
+
+### 6.2 No compatibility layer
+
+Boss (2026-10-07 13:04Z): "In the end I don't want shims or wrappers or
+such, so far no one uses this but me, so I don't want to worry yet about
+backward compatibility." So:
+
+- A moved module leaves nothing at its old path. Each move PR changes
+  every caller in the same PR: code, tests, scripts, install and update,
+  CI, the Generate page's job commands and the docs.
+- The command-line scripts don't stay at their old paths as wrappers.
+  Each becomes a module in `planetgen.cli` run as
+  `python3 -m planetgen.cli.<name>` (and `planetgen` stays the console
+  command for generation).
+- install and update install the checkout as an editable package
+  (`pip install -e .`), so `planetgen` imports from anywhere with no
+  `sys.path` pushes, and a `git pull` takes effect without a reinstall.
+- `stellarObjects`, `src/html/api`, `src/html/web`, `src/html/lib`,
+  `src/wikiClient`, `generate.py` and the `src/*.py` scripts are gone
+  when the move is done.
+- `src/html/` keeps only `wsgi.py` (the WSGI entry point Apache, gunicorn
+  and waitress load) and `static/`, so the server's Apache config needs
+  no change. wsgi.py imports `planetgen.web.app` and nothing else.
+
+A branch open during the move (the Bugfixes lane's) merges main after
+each move PR. Git follows a renamed file, so an edit to a moved module
+usually merges cleanly; an import of an old path fails loudly and is
+fixed to the new one.
+
+### 6.3 The packages
+
+One top-level package, `planetgen`, in `src/planetgen/`. Module names
+become `snake_case`. Every package's `__init__.py` stays empty (no
+imports), so no package pulls in another just by being imported and no
+import cycle can form between them.
+
+| Package | Modules (today's name in brackets) |
 |---|---|
-| `planetgen.physics` | constants, units, orbits, the point-in-space object, planet physics |
-| `planetgen.generation` | systems, stars, planets, phenomena, the galaxy model, backfill |
-| `planetgen.galaxy` | geometry, skeleton, sectors, navigation |
-| `planetgen.names` | the codec-based names from IDs (object-ids.md) |
-| `planetgen.db` | SQLAlchemy models, Alembic migrations, queries |
-| `planetgen.queue` | RQ jobs and progress publishing |
-| `planetgen.population` | species, civilizations, polities, tech levels |
-| `planetgen.web` | the Flask app, API and pages |
-| `planetgen.util` | shared helpers: number formatting, seeded random helpers, logging setup |
+| `planetgen.util` | `log` (log), `appconfig` (appconfig), `serialization` (serialization), `checks` (`finite_domain` from utils), `format` (number, distance, speed, duration, temperature, pressure and age text from utils, merged with the same helpers in html/lib/fmt), `random` (seeded sampling: power law, bounded bell, the five copies of `_log_uniform`) |
+| `planetgen.tuning` | one module (program_constants): every package reads it, so it sits outside them all |
+| `planetgen.physics` | `constants` (physical_constants), `units` (ly, pc, mpc and AU conversions from utils), `orbits` (habitable zone, Hill sphere, Holman-Wiegert, reflex offset, orbital position and update interval from utils), `formation` (snow line, MMSN, isolation mass from utils), `kepler` (keplerMotion), `planets` (planetPhysics), `rogue_surface` (rogueSurface), `stellar_evolution` (stellarEvolution), `mathcheck` (mathCheck) |
+| `planetgen.galaxy` | `geometry` (galaxyGeometry), `density` (galaxyDensity), `skeleton` (galaxySkeleton), `drill` (galaxyDrill), `viewport` (galaxyViewport), `seed` (galaxySeed), `version_key` (versionKey), `sector` (spaceSector), `sector_look` (sectorLook), `nebula_field` (nebulaField), `navigation` (navigation), `nav_graph` (navGraph), `galactic_orbit` (the galactic orbit helpers from utils) |
+| `planetgen.names` | `wordlists` (names, with offensive_words.txt), `wordsalad` (the syllable and phoneme-salad helpers from utils), `uniqueness` (nameUniqueness), `bodies` (bodyNames), `object_id` (objectId). GEN.67 adds the codec here (today's root `gatedPhonemeCodec.py`); GEN.71 deletes `wordlists` and `wordsalad`. |
+| `planetgen.generation` | `config` (config: SystemConfig), `star` (starData), `planet` (planetData), `system` (systemData), `binary` (doubleStar), `wide_binary` (wideBinary), `belt` (asteroidData), `comet` (cometData), `life` (planetLife), `evolution` (evolution), `star_population` (stellarPopulation), `bright_stars` (brightStars), `limits` (generationLimits), `stats` (generationStats), `validation` (validation), `plausibility` (plausibility), `phenomena_plausibility` (phenomenaPlausibility); and `run_system`, `run_sector`, `run_galaxy`, `run_plan`, `run_phenomenon`, `run_population` (generate.py's sections) |
+| `planetgen.generation.phenomena` | `asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue` (rogue planets and interstellar comets), `supernova_remnant` (the six phenomenon `*Data.py` modules) |
+| `planetgen.population` | `model` (population), `facilities` (facilities) |
+| `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats), `migrate`, `reset`, `orbits`, `dedupe`, `render_parity` (the logic of migrateDb, resetDb, updateOrbits, dedupeNames, checkRenderParity) |
+| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits), `lockouts` (loginLockouts' logic) |
+| `planetgen.queue` | `work` (workQueue), `runner` (jobRunner's logic), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
+| `planetgen.api` | everything in `src/html/api/` under the same module names |
+| `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |
+| `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
+| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query`, `migrate`, `reset`, `orbits`, `dedupe`, `lockouts`, `render_parity`, `job` (jobRunner) |
 
-Old import paths keep working through thin re-export modules until every
-caller has moved.
+Large modules move whole. `_db.py` is split by DB.11 (SQLAlchemy), and
+`queryDb.py` with it; splitting them during the move would make every
+open branch conflict twice. `utils.py`, `fmt.py` and `generate.py` are
+the exceptions: they are split as listed, because nothing replaces them
+later.
+
+`src/tests/` stays where it is; each move PR changes the tests' imports
+and string patch targets (`monkeypatch.setattr("stellarObjects.utils.x",
+...)`) along with everything else. `_version.py` moves to
+`planetgen/_version.py` in the first PR, with `setup.py`,
+`scripts/bump_version.py` and the release workflow.
+
+### 6.4 Shared helpers merged into utilities
+
+Only where the merged helper gives identical results, so a seeded galaxy
+is unchanged (reproducible-galaxies.md):
+
+- Number and distance formatting: `utils.format_distance_*` and
+  `fmt.format_distance_*` into `planetgen.util.format`; `planetgen.web.lib.fmt`
+  keeps only the HTML helpers.
+- `sector_quadrant` and `sector_zone`: galaxymap calls
+  `planetgen.galaxy.geometry`'s.
+- `_log_uniform` (generate.py, compactRemnant, quasarData,
+  stellarEvolution, rogueSurface): one `planetgen.util.random.log_uniform`
+  where the draws match; a copy whose draw order differs stays local,
+  with a note, until a seeded test proves the swap is safe.
+- `sys.path` pushes: all four go (the editable install makes them
+  unnecessary).
+
+### 6.5 The order of the move (OPS.24)
+
+One package per PR, each mechanical (`git mv`, import lines, callers),
+each with the full suite green and no change to behavior. Leaves first,
+so each PR's modules import ones that already moved:
+
+1. Scaffold `src/planetgen/` with `_version.py`, the editable install in
+   install, update and CI, and `planetgen.util` (log, appconfig,
+   serialization).
+2. `planetgen.tuning` and `planetgen.physics`.
+3. `planetgen.galaxy`.
+4. `planetgen.names`.
+5. `planetgen.generation` and its phenomena.
+6. `planetgen.population`.
+7. `planetgen.admin`.
+8. `planetgen.db`, with the `src/` scripts into `planetgen.cli`.
+9. `planetgen.queue`, with jobRunner.
+10. `planetgen.web.lib` and `planetgen.web.maps`.
+11. `planetgen.api`.
+12. `planetgen.web` with its templates, and wsgi.py; `src/html/` is down
+    to `wsgi.py` and `static/`.
+13. The split of `utils.py` and `fmt.py` into the utility modules
+    (section 6.4); `stellarObjects` is gone.
+14. `generate.py` into `planetgen.generation.run_*` and
+    `planetgen.cli.generate`; the root file is gone, and `pytest.ini`'s
+    `pythonpath` is gone.
+
+### 6.6 Deployment
+
+The server needs `update.sh` once after step 1 (for the editable
+install) and again after each step that renames a script install or
+update runs (steps 8, 9 and 14). The Apache config doesn't change. The
+web server's user needs read access to `src/planetgen/`;
+`set-permissions.sh` covers it from step 1.
 
 ## 7. Why it works this way
 
