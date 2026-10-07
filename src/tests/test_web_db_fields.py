@@ -9,8 +9,8 @@ rogue planets folded into one Contents row, plus the nebula or remnant
 a system or phenomenon sits inside (schema v39).
 """
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 
 from planetgen.web.lib import fmt  # noqa: E402
 from web import sector_page, system_pages  # noqa: E402

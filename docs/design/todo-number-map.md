@@ -802,7 +802,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.25 | The page cache on cachetools; the tile cache stays | none | open |
 | PERF.26 | Size estimates don't match what generation stores (bug) | none | open |
 | PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | done, PR #442 |
-| PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | open |
+| PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | done, PR #454 |
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |

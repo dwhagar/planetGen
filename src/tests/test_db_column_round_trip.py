@@ -109,8 +109,8 @@ NEVER_READ = {
 
 
 def _client(config):
-    from api.app import create_app
-    from api.config import Config
+    from planetgen.api.app import create_app
+    from planetgen.api.config import Config
 
     class TestConfig(Config):
         MYSQL_CONFIG = config

@@ -1,7 +1,7 @@
 # planetgen/web/lib/apiclient.py
 
 """
-Client for the planetGen Flask API (`html/api/`), used by every page in
+Client for the planetGen Flask API (`planetgen/api/`), used by every page in
 `html/web/` instead of querying the database directly (in-process there,
 see `web/transport.py`; over HTTP anywhere else).
 

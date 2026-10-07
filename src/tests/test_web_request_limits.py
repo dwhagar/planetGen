@@ -19,8 +19,8 @@ admin is refused too.
 
 import pytest
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 from web import CONTENT_SECURITY_POLICY, SECURITY_HEADERS, csrf
 
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401

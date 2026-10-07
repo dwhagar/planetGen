@@ -35,7 +35,7 @@ _HTML_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(_HTML_DIR))
 sys.path.insert(0, _HTML_DIR)
 
-from api.app import create_app
+from planetgen.api.app import create_app
 from planetgen.util import log
 
 # The API's log lines are named "api" in the debug log; mod_wsgi owns

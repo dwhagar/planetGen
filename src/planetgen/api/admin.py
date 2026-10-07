@@ -1,4 +1,4 @@
-# html/api/admin.py
+# planetgen/api/admin.py
 
 """
 Admin-only read endpoints behind the admin stats page (`html/adminstats.py`):

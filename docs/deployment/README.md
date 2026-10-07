@@ -130,7 +130,7 @@ account is used everywhere: the generation CLIs, `planetgen.cli.migrate` (run by
 `install.sh` and `update.sh`), and the web app's reads and writes. There
 is no separate read-only or write account to configure:
 `WRITE_MYSQL_CONFIG` and `CONTROL_MYSQL_CONFIG` reuse `MYSQL_CONFIG`
-(`src/html/api/config.py`). Set it once in `config.json`'s `mysql`
+(`src/planetgen/api/config.py`). Set it once in `config.json`'s `mysql`
 section (or `PLANETGEN_MYSQL_*`; see [`config.md`](../config.md)).
 
 That account creates and changes the schema, so it needs full rights on

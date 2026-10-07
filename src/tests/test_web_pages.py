@@ -14,9 +14,9 @@ import re
 
 import pytest
 
-from api.app import create_app
-from api.authz import SESSION_COOKIE_NAME
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.authz import SESSION_COOKIE_NAME
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store  # noqa: E402
@@ -497,7 +497,7 @@ def test_page_views_are_not_rate_limited(db_client, mysql_config):
     against the default limit would turn a page into a 502/429. A
     direct API call from the same address still counts.
     """
-    from api.limiter import limiter
+    from planetgen.api.limiter import limiter
     store.get_connection(mysql_config).close()  # lay down the (empty) content schema
     limiter.reset()
     try:

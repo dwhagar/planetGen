@@ -13,7 +13,7 @@ from planetgen.web.lib.fmt import format_density, format_distance_ly
 from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.pagination import fetch_page, parse_page
 
-from api.limiter import page_limit
+from planetgen.api.limiter import page_limit
 
 from . import bp
 from . import searchpage

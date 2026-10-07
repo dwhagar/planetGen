@@ -776,8 +776,8 @@ v7 adds columns, see below):
   a hard delete, so a revoked key's history stays visible).
 - **`admin_audit_log`** — one row per write/admin action (`admin_user_id`
   + a denormalized `admin_username` snapshot, `action`, `target`,
-  `detail`, `created_at`) — written by `html/api/routes.py`'s write
-  routes (`html/api/authz.audit`) after each one actually succeeds,
+  `detail`, `created_at`) — written by `planetgen/api/routes.py`'s write
+  routes (`planetgen/api/authz.audit`) after each one actually succeeds,
   plus one per refused sign-in (`login.failed`, `login.locked`,
   `password.failed`, with `target` `ip:<address>`; those are deleted
   after 90 days).
@@ -858,7 +858,7 @@ when `admin_users` is empty, seeds an `admin` row with a random first
 password that `planetgen.cli.migrate` prints once (`planetgen.cli.migrate` calls this
 automatically, alongside its usual content-schema migration), and every
 other function there implements one piece of the login/session/API-key/
-audit lifecycle `html/api/auth.py`'s routes expose.
+audit lifecycle `planetgen/api/auth.py`'s routes expose.
 
 ### Booleans and tri-state flags
 
@@ -964,7 +964,7 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`generate.py sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `ring_index`, `layer_index`, `ring_slot_index` | INT | nullable | This sector's address on the cylindrical grid (v32, `planetgen/galaxy/geometry.py`; see `docs/design/galaxy-coordinate-system.md`, "Cylindrical sector grid"): the radial ring (one sector edge, 4 pc, wide), the height layer (layer 0 centered on the plane) and the angular slot within the ring. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
-| `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `html/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
+| `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `planetgen/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 | `created_at` | TIMESTAMP | NOT NULL | Added in v27. See "Row timestamps (v27)" above. |
 | `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Indexed. |
 

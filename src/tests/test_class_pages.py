@@ -11,8 +11,8 @@ and phenomenon pages' data layer is faked like `test_web_system_phen.py`.
 
 import pytest
 
-from api.app import create_app
-from api.config import Config
+from planetgen.api.app import create_app
+from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402

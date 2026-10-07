@@ -46,7 +46,7 @@ from planetgen.web.lib.pagination import page_slice, parse_page
 from planetgen.web.maps.starmap import render_map_panel
 from planetgen.web.lib.systempage import facility_kind_label
 
-from api.common import is_http_url
+from planetgen.api.common import is_http_url
 from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log

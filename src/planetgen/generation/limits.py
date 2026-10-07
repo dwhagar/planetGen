@@ -3,7 +3,7 @@
 """
 Upper bounds on the generation inputs an admin can type: the Generate
 pages (`html/web/generate_page.py`, `html/web/system_page.py`), the API
-(`html/api/routes.py`) and `generate.py`'s own argument parsing all check
+(`planetgen/api/routes.py`) and `generate.py`'s own argument parsing all check
 against these same constants, so no form, request or command line can
 ask for an unbounded run.
 
