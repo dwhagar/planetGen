@@ -177,6 +177,12 @@ ESTIMATE_PREFIX = "ESTIMATE "
 ESTIMATE_CONFIRM_FIELD = "estimate_ok"
 """str: The form field a confirmed estimate's "Generate" button adds."""
 
+GENERATE_ANYWAY_FIELD = "generate_anyway"
+"""str: The form field the "Generate anyway" button adds to a run the
+database disk has no room for (ADM.33). The job then starts like any
+confirmed one (`generate.py` warns and goes ahead without `--strict`),
+and the override goes in the activity log."""
+
 
 class FormError(ValueError):
     """A form value the page rejects; the message is shown to the admin."""
@@ -671,6 +677,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         estimate_title=estimate_title,
         estimate_fields=estimate_fields,
         estimate_confirm_field=ESTIMATE_CONFIRM_FIELD,
+        generate_anyway_field=GENERATE_ANYWAY_FIELD,
         status=status,
     ))
 
@@ -717,14 +724,18 @@ def generate():
             return _no_store(make_response(jsonify({
                 "error": estimate["refusal"] or f"Confirm first: {estimate['summary']}",
                 "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
+                "generate_anyway_field": GENERATE_ANYWAY_FIELD,
             }), 409))
         return _page(admin, form=request.form, estimate=_estimate_view(estimate), estimate_title=title,
                      estimate_fields=[(name, value) for name, value in request.form.items(multi=True)
-                                      if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD)])
+                                      if name not in ("csrf_token", ESTIMATE_CONFIRM_FIELD, GENERATE_ANYWAY_FIELD)])
     try:
         job_id = jobs.start_job(kind, title, steps, env=env, admin=admin.get("username"), database=database)
         activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                           title=title)
+        if kind == "galaxy" and request.form.get(GENERATE_ANYWAY_FIELD):
+            activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=job_id, db=database,
+                               title=title)
     except jobs.JobBusy as exc:
         running = exc.job["title"] if exc.job else "Another job"
         message = f"{running} is still running. Wait for it to finish, or cancel it first."

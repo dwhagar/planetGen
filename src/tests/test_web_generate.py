@@ -347,14 +347,39 @@ def test_a_galaxy_job_shows_its_estimate_before_starting(site, client, no_spawn,
     assert 'name="action" value="galaxy"' in form
 
 
-def test_a_refused_galaxy_job_cant_be_started(site, client, no_spawn, monkeypatch):
+def test_a_refused_galaxy_job_offers_generate_anyway(site, client, no_spawn, monkeypatch):
+    """ADM.33: a run the disk has no room for isn't started, but the
+    admin can generate it anyway."""
     refused = dict(_ESTIMATE, refused=True, refusal="Refused: it would leave 2 GB free.")
     monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: refused)
     html = _post(client, action="galaxy", mode="block", block="3.40.7.0").get_data(as_text=True)
-    assert "Refused: it would leave 2 GB free." in html and 'name="estimate_ok"' not in html
+    assert "Refused: it would leave 2 GB free." in html
+    form = html[html.index('id="estimate"'):]
+    form = form[:form.index("</section>")]
+    assert 'name="estimate_ok" value="1"' in form and 'name="generate_anyway" value="1"' in form
+    assert "Generate anyway" in form and "activity log" in form
     resp = _post(client, headers={"Accept": "application/json"}, action="galaxy", mode="block", block="3.40.7.0")
     assert resp.status_code == 409 and resp.get_json()["error"] == "Refused: it would leave 2 GB free."
+    assert resp.get_json()["generate_anyway_field"] == "generate_anyway"
     assert no_spawn == []
+
+
+def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monkeypatch):
+    events = []
+    monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
+    resp = _post(client, action="galaxy", mode="block", block="3.40.7.0", estimate_ok="1", generate_anyway="1")
+    assert resp.status_code == 303 and len(no_spawn) == 1
+    assert "--strict" not in no_spawn[0]["steps"][-1]["argv"]   # generate.py warns and goes ahead
+    names = [args[1] for args, _kwargs in events]
+    assert names == ["job.start", "job.generate_anyway"]
+    assert events[1][1]["job"] == events[0][1]["job"]
+
+
+def test_a_plain_confirm_is_not_logged_as_an_override(site, client, no_spawn, monkeypatch):
+    events = []
+    monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
+    assert _post(client, action="galaxy", mode="block", block="3.40.7.0", estimate_ok="1").status_code == 303
+    assert [args[1] for args, _kwargs in events] == ["job.start"]
 
 
 def test_an_estimate_that_fails_is_shown_as_an_error(site, client, no_spawn, monkeypatch):

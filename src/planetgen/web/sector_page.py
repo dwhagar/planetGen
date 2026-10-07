@@ -300,7 +300,8 @@ def _handle_post(sector_id, admin):
             return "neighborhood_estimate", result["estimate"]
         # ADM.11: a background job, like the Generate page's, so it runs
         # to the end whether or not this page stays open.
-        error = _start_neighborhood_job(sector_id, admin)
+        error = _start_neighborhood_job(sector_id, admin,
+                                        generate_anyway=bool(request.form.get(generate_page.GENERATE_ANYWAY_FIELD)))
         if error:
             return "neighborhood", error
         flash("Started generating the sectors around this one. It keeps running if you close this page; "
@@ -310,10 +311,12 @@ def _handle_post(sector_id, admin):
     return page_again
 
 
-def _start_neighborhood_job(sector_id, admin):
+def _start_neighborhood_job(sector_id, admin, generate_anyway=False):
     """Starts `generate.py galaxy --center-sector <id>` over the default
-    radius as a Generate page job (`web/jobs.py`). Returns an error
-    message, or `None` once it has started."""
+    radius as a Generate page job (`web/jobs.py`). `generate_anyway`: the
+    admin chose "Generate anyway" over a no-room refusal (ADM.33), which
+    goes in the activity log. Returns an error message, or `None` once it
+    has started."""
     database = db_name()
     form = {"mode": "center", "center_sector": str(sector_id),
             "center_radius_pc": str(tuning.DEFAULT_GENERATE_RADIUS_PC)}
@@ -331,6 +334,9 @@ def _start_neighborhood_job(sector_id, admin):
         return f"The job could not be started: {exc}"
     activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=kind, db=database,
                       title=title)
+    if generate_anyway:
+        activity_log.event("GEN", "job.generate_anyway", user=admin.get("username"), job=job_id, db=database,
+                           title=title)
     return None
 
 

@@ -28,7 +28,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
-from planetgen.web import csrf, generate_page, jobs  # noqa: E402
+from planetgen.web import csrf, generate_page, jobs, sector_page  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 from planetgen.web.nav_page import endpoint, nav_url  # noqa: E402
 
@@ -349,13 +349,32 @@ def test_generate_neighborhood_shows_the_estimate_first(app, client, fake):
     assert 'name="estimate_ok" value="1"' in html and "Generate these 4 sectors" in html
 
 
-def test_a_refused_neighborhood_has_no_generate_button(app, client, fake):
+def test_a_refused_neighborhood_offers_generate_anyway(app, client, fake):
+    """ADM.33: no room on the disk stops the plain button, but the admin
+    can generate anyway."""
     _log_in(client, fake)
     fake.estimate = dict(fake.estimate, refused=True, refusal="Refused: not enough disk.")
     resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
     html = resp.get_data(as_text=True)
-    assert "Refused: not enough disk." in html and 'name="estimate_ok"' not in html
+    assert "Refused: not enough disk." in html and "recorded in the activity log" in html
+    assert 'name="estimate_ok" value="1"' in html and 'name="generate_anyway" value="1"' in html
+    assert "Generate these 4 sectors anyway" in html
     assert ("generate", 5) not in fake.calls
+
+
+def test_generate_anyway_starts_the_neighborhood_job_and_logs_it(app, client, fake, monkeypatch, tmp_path):
+    monkeypatch.setenv("PLANETGEN_JOBS_DIR", str(tmp_path / "jobs"))
+    real_start = jobs.start_job
+    monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: real_start(kind, title, steps,
+                                                                                       spawn=False, **kw))
+    events = []
+    monkeypatch.setattr(sector_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
+    _log_in(client, fake)
+    resp = client.post("/sector/5", data={"action": "generate_neighborhood", "estimate_ok": "1",
+                                          "generate_anyway": "1", csrf.FIELD_NAME: _csrf(app, client)})
+    assert resp.status_code == 303
+    names = [args[1] for args, _kwargs in events if args[0] == "GEN"]
+    assert names == ["job.start", "job.generate_anyway"]
 
 
 def test_generate_neighborhood_starts_a_job_then_redirects_to_get(app, client, fake, monkeypatch, tmp_path):

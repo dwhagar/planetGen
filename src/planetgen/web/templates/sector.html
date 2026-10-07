@@ -89,15 +89,20 @@
   <p id="neighborhood-estimate">{{ estimate.summary }}</p>
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
-  {%- else %}
+  <p class="hint">You can still generate them. Generating anyway is recorded in the activity log.</p>
+  {%- endif %}
   <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="generate_neighborhood">
     <input type="hidden" name="estimate_ok" value="1">
+    {%- if estimate.refused %}
+    <input type="hidden" name="generate_anyway" value="1">
+    <button type="submit" class="btn">Generate these {{ num(estimate.sectors) }} sectors anyway</button>
+    {%- else %}
     <button type="submit" class="btn">Generate these {{ num(estimate.sectors) }} sectors</button>
+    {%- endif %}
     <a class="btn" href="{{ url_for('web.sector', sector_id=sector_id) }}">Cancel</a>
   </form>
-  {%- endif %}
   {%- else %}
   <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form">
     {{ csrf_field() }}
