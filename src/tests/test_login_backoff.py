@@ -279,7 +279,7 @@ def test_login_page_names_the_wait(app):
 @pytest.fixture
 def control(mysql_config):
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     yield conn
     conn.close()
 
@@ -303,12 +303,12 @@ def test_db_store_applies_the_same_rules(control):
 
 def test_control_schema_has_login_throttle(control):
     row = control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
-    assert row["v"] == adminAuth._db.CONTROL_SCHEMA_VERSION >= 2
+    assert row["v"] == adminAuth.store.CONTROL_SCHEMA_VERSION >= 2
 
 
 def test_older_control_schema_gets_the_table(mysql_config):
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
         conn.execute("DROP TABLE login_throttle")
         conn.execute("DELETE FROM control_schema_migrations")
@@ -317,11 +317,11 @@ def test_older_control_schema_gets_the_table(mysql_config):
     finally:
         conn.close()
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
         assert throttle.DbStore(conn).get(SCOPE_IP, "203.0.113.5") is None
         versions = [r["version"] for r in conn.execute("SELECT version FROM control_schema_migrations").fetchall()]
-        assert sorted(versions) == [1, adminAuth._db.CONTROL_SCHEMA_VERSION]
+        assert sorted(versions) == [1, adminAuth.store.CONTROL_SCHEMA_VERSION]
     finally:
         conn.close()
 
@@ -339,7 +339,7 @@ def real_app(mysql_config):
         SECRET_KEY = "test-secret"
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
-    adminAuth._db.get_connection(mysql_config).close()
+    adminAuth.store.get_connection(mysql_config).close()
     application = create_app(RealConfig)
     application.testing = True
     application.first_password = password
@@ -389,7 +389,7 @@ def test_private_lockout_warns_about_a_proxy(real_app):
 def test_command_line_lists_and_lifts(mysql_config, capsys, monkeypatch):
     from planetgen.cli import lockouts as loginLockouts
     adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth._db.get_control_connection(mysql_config)
+    conn = adminAuth.store.get_control_connection(mysql_config)
     try:
         store = throttle.DbStore(conn)
         for _ in range(3):
@@ -399,7 +399,7 @@ def test_command_line_lists_and_lifts(mysql_config, capsys, monkeypatch):
     args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
             "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
             "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(adminAuth._db, "configured_control_database", lambda: mysql_config.database)
+    monkeypatch.setattr(adminAuth.store, "configured_control_database", lambda: mysql_config.database)
     assert loginLockouts.main(args) == 0
     assert "2001:db8:1:2::/64" in capsys.readouterr().out
     assert loginLockouts.main(["--ip", "2001:db8:1:2::99"] + args) == 0

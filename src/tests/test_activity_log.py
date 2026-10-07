@@ -231,7 +231,7 @@ def real_app(mysql_config, log_dir):
         SECRET_KEY = "test-secret"
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
-    adminAuth._db.get_connection(mysql_config).close()  # the content schema
+    adminAuth.store.get_connection(mysql_config).close()  # the content schema
     application = create_app(RealConfig)
     application.testing = True
     application.first_password = password
@@ -261,7 +261,7 @@ def test_failed_and_good_logins_are_logged_with_the_address(real_app, log_dir):
 def test_failures_go_to_the_audit_log_and_the_api(real_app):
     client = real_app.test_client()
     _login(client, "nobody", "wrong", ip="203.0.113.5")
-    conn = adminAuth._db.get_control_connection(real_app.mysql_config)
+    conn = adminAuth.store.get_control_connection(real_app.mysql_config)
     try:
         rows = adminAuth.recent_login_failures(conn)
     finally:
@@ -291,7 +291,7 @@ def test_wrong_current_password_is_logged(real_app, log_dir):
 
 
 def test_old_failure_rows_are_pruned(real_app):
-    conn = adminAuth._db.get_control_connection(real_app.mysql_config)
+    conn = adminAuth.store.get_control_connection(real_app.mysql_config)
     try:
         conn.execute("INSERT INTO admin_audit_log (admin_username, action, created_at) "
                      "VALUES ('old', 'login.failed', DATE_SUB(CURRENT_TIMESTAMP, INTERVAL 91 DAY))")

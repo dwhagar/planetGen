@@ -384,7 +384,7 @@ def test_fills_skip_population_unless_asked(monkeypatch):
     pass with --population."""
     import argparse
     calls = []
-    monkeypatch.setattr(generate._db, "get_connection", lambda *a, **k: calls.append(1))
+    monkeypatch.setattr(generate.store, "get_connection", lambda *a, **k: calls.append(1))
     generate.run_population_after(argparse.Namespace(population=False))
     assert calls == []
     parser, _commands = generate.build_parser()

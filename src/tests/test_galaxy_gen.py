@@ -789,7 +789,7 @@ def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_co
             return None  # ensure_sector_generated's own initial "not yet generated" check
         return winner["sector_id"]  # its post-IntegrityError recovery re-check
 
-    monkeypatch.setattr(galaxyGen._db, "get_sector_id_at", _fake_get_sector_id_at)
+    monkeypatch.setattr(galaxyGen.store, "get_sector_id_at", _fake_get_sector_id_at)
 
     def _fake_generate_and_save_sector_at(*_args, **_kwargs):
         raise pymysql.err.IntegrityError(1062, "Duplicate entry for key 'uq_sectors_address'")

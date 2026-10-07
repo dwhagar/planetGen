@@ -111,7 +111,7 @@ def test_neighborhood_generation_refuses_before_touching_the_database(broken_mat
     def no_database(*args, **kwargs):
         raise AssertionError("the database was touched")
 
-    monkeypatch.setattr(generate._db, "get_connection", no_database)
+    monkeypatch.setattr(generate.store, "get_connection", no_database)
     with pytest.raises(generate.MathCheckFailed, match="snow_line_1_lsun"):
         generate.generate_sector_neighborhood(1)
 
@@ -125,7 +125,7 @@ def test_neighborhood_estimate_is_not_gated(broken_math, monkeypatch):
     def reached(*args, **kwargs):
         raise Reached
 
-    monkeypatch.setattr(generate._db, "get_connection", reached)
+    monkeypatch.setattr(generate.store, "get_connection", reached)
     with pytest.raises(Reached):
         generate.generate_sector_neighborhood(1, estimate_only=True)
 
