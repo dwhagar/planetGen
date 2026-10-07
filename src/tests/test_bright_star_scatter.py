@@ -1,5 +1,5 @@
 """
-Bright-star pre-placement (`stellarObjects.brightStars`, `generate.py
+Bright-star pre-placement (`planetgen.generation.bright_stars`, `generate.py
 plan`'s scatter step and the fill in `generate_sector`): every scattered
 star lands inside a qualifying cell at or above the threshold, the same
 seed gives the same stars, and filling a sector builds a system around
@@ -13,9 +13,10 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db, brightStars
+from stellarObjects import _db
+from planetgen.generation import bright_stars as brightStars
 from planetgen.physics import constants
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
 from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
 from stellarObjects.utils import ly_to_pc
@@ -261,7 +262,7 @@ FLOOR = 100.0
 
 
 def test_band_stars_stay_inside_their_band():
-    from stellarObjects.stellarPopulation import bright_band_fraction, sample_bright_stars
+    from planetgen.generation.star_population import bright_band_fraction, sample_bright_stars
     stars = sample_bright_stars(40, FLOOR, "young", random.Random(5), max_luminosity_sol=THRESHOLD)
     for star in stars:
         luminosity = star["luminosity_w"] / constants.SOLAR_LUMINOSITY

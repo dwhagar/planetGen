@@ -4,7 +4,7 @@ src/tests/phenomena_plausibility_cli.py -- exotic-phenomena plausibility
 anomaly finder (CLI). Not a pytest test module itself (no `test_*` name,
 so pytest won't collect it) -- it lives alongside
 `test_phenomena_plausibility.py` because it shares that file's engine
-(`stellarObjects/phenomenaPlausibility.py`) and exists specifically to
+(`planetgen/generation/phenomena_plausibility.py`) and exists specifically to
 batch-run it for human-reviewed findings, rather than as an automated
 pass/fail check. Mirrors `physical_plausibility_cli.py`'s own role for
 the planet-focused engine.
@@ -23,7 +23,7 @@ then reports:
     proportion vs. its configured chance) -- flagged for human review,
     not asserted to be exactly the configured value.
 
-See `stellarObjects/phenomenaPlausibility.py` for the full design
+See `planetgen/generation/phenomena_plausibility.py` for the full design
 rationale.
 
 This file lives at src/tests/, two levels under src/ where
@@ -43,7 +43,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from stellarObjects import phenomenaPlausibility as pp
+from planetgen.generation import phenomena_plausibility as pp
 
 # Suppress transformers warnings pulled in transitively via stellarObjects.
 logging.getLogger("transformers").setLevel(logging.ERROR)

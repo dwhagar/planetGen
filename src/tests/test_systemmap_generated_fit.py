@@ -19,8 +19,8 @@ import pytest
 
 import queryDb
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
 

@@ -1,4 +1,4 @@
-# stellarObjects/roguePlanetData.py
+# planetgen/generation/phenomena/rogue.py
 
 """
 Rogue Planets & Interstellar Comets
@@ -21,14 +21,14 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
+from stellarObjects.utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
                     generate_galactic_orbit_fields,
                     generate_phoneme_salad_name, sample_power_law)
 

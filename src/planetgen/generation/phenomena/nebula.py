@@ -1,4 +1,4 @@
-# stellarObjects/nebulaData.py
+# planetgen/generation/phenomena/nebula.py
 
 """
 Nebula Generation
@@ -16,12 +16,12 @@ phenomenon mode (see that module's docstring), not by
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
+from stellarObjects.utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name)
 
 

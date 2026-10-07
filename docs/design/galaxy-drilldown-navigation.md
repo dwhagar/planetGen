@@ -880,7 +880,7 @@ every star of the sector (MAP.80, phase 1).
   9(4), 2003, pp. 424-431. The source of the formulas in section 5.3.
 - This repo: `static/galaxyprisms.js` (`blockWedgeCount`,
   `blockSlotRange`, `blockSectorCount`), `planetgen/galaxy/geometry.py`
-  (`ring_master_count`, `ring_sector_count`), `stellarObjects/generationLimits.py`,
+  (`ring_master_count`, `ring_sector_count`), `planetgen/generation/limits.py`,
   `web/generate_page.py`, `web/nav_page.py`.
 
 ## 14. Why it works this way

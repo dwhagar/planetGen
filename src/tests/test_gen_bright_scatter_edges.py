@@ -23,7 +23,8 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db, brightStars
+from stellarObjects import _db
+from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 from planetgen import tuning

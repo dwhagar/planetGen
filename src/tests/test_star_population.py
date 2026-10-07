@@ -18,9 +18,9 @@ import pytest
 from planetgen.physics import constants as phys_c
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
-from stellarObjects.config import SystemConfig
-from stellarObjects.starData import STAR_TYPE_PATTERN, Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.star import STAR_TYPE_PATTERN, Star
+from planetgen.generation.system import StarSystem
 
 SAMPLE_SIZE = 200_000
 

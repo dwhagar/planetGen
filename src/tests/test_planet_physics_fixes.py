@@ -20,13 +20,13 @@ import statistics
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 from planetgen.physics import planets
 from planetgen import tuning as prog_c
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.roguePlanetData import RoguePlanet
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.phenomena.rogue import RoguePlanet
+from planetgen.generation.star import Star
 
 N_SAMPLE = 300
 

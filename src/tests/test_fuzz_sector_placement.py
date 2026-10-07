@@ -49,10 +49,10 @@ from hypothesis import strategies as st
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import SectorCell, ring_sector_count
 from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import any_float, deterministic_entropy as _seeded_generation, hostile_text, scaled
 

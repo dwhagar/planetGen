@@ -14,9 +14,9 @@ Run with: pytest src/tests/test_evolution.py
 """
 import pytest
 
-from stellarObjects.config import SystemConfig
-from stellarObjects.evolution import MILESTONE_KEYS, get_evolutionary_timeline
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.evolution import MILESTONE_KEYS, get_evolutionary_timeline
+from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 
 

@@ -1,4 +1,4 @@
-# stellarObjects/systemData.py
+# planetgen/generation/system.py
 
 """
 Star System Generation
@@ -21,18 +21,18 @@ the system.
 import math
 import random
 
-from .asteroidData import AsteroidBelt
+from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
-from .cometData import Comet
-from .config import SystemConfig
-from .doubleStar import BinaryStarProxy
-from . import planetLife, validation
+from planetgen.generation.comet import Comet
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation import life as planetLife, validation
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util import log
-from .planetData import Planet
-from .starData import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
-from .utils import (
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
+from stellarObjects.utils import (
     calculate_reflex_offset,
     format_distance_au,
     disk_surface_density_scale,
@@ -42,7 +42,7 @@ from .utils import (
     snow_line_au,
     to_paragraph,
 )
-from .wideBinary import WideBinaryPair
+from planetgen.generation.wide_binary import WideBinaryPair
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
 """float: The system text mentions the surrounding cloud's squeeze only when

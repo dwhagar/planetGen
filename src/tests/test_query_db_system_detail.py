@@ -19,8 +19,8 @@ import pytest
 
 import queryDb
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 
 
 def _insert(mysql_config, system, cfg):

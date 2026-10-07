@@ -20,7 +20,7 @@ Run with: pytest tests/test_heliosphere_model.py
 """
 import math
 
-from stellarObjects.starData import Star
+from planetgen.generation.star import Star
 from planetgen.physics import constants as pc
 
 

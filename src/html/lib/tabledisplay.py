@@ -61,7 +61,7 @@ def to_plain_text(formatted):
 
 try:
     from planetgen.physics import constants
-    from stellarObjects.config import SystemConfig
+    from planetgen.generation.config import SystemConfig
     from stellarObjects.utils import (
         format_body_radius_km, format_distance_km, format_period_years, format_relative_to_sol,
         to_scientific_notation,

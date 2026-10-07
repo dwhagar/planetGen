@@ -36,7 +36,7 @@ import pytest
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import SectorCell
 from planetgen.galaxy.sector import SpaceSector
 

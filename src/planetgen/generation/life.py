@@ -1,4 +1,4 @@
-# stellarObjects/planetLife.py
+# planetgen/generation/life.py
 
 """
 Planet Life Chemistry and Evolutionary Data
@@ -20,10 +20,10 @@ the star's final age rather than a provisional pre-adjustment one.
 
 import random
 
-from .evolution import get_evolutionary_timeline
+from planetgen.generation.evolution import get_evolutionary_timeline
 from planetgen import tuning
 from planetgen.util import log
-from .utils import get_star_evolutionary_profile, get_star_spectral_class
+from stellarObjects.utils import get_star_evolutionary_profile, get_star_spectral_class
 
 
 def get_viable_life_chemicals(planet, spectral_class=None):

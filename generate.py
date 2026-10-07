@@ -90,18 +90,16 @@ from rich.text import Text
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import (
-    _db, activitylog, brightStars, generationLimits, generationStats, population, progressFile,
-    progressRate, workQueue,
-)
+from stellarObjects import _db, activitylog, population, progressFile, progressRate, workQueue
+from planetgen.generation import bright_stars as brightStars, limits, stats as generationStats
 from planetgen.galaxy import nebula_field, seed as galaxySeed, version_key
 from planetgen.physics import constants, mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
 from planetgen.galaxy.drill import (
     DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
@@ -114,14 +112,14 @@ from planetgen.galaxy.geometry import (
 from planetgen.galaxy.skeleton import (
     DEFAULT_MAX_RING, build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
-from stellarObjects.nebulaData import Nebula, choose_weighted_class
-from stellarObjects.quasarData import Quasar
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.nebula import Nebula, choose_weighted_class
+from planetgen.generation.phenomena.quasar import Quasar
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.galaxy.sector import SpaceSector, _sample_poisson_count
-from stellarObjects.starData import STAR_TYPE_PATTERN
-from stellarObjects.stellarPopulation import bright_star_fraction
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.star import STAR_TYPE_PATTERN
+from planetgen.generation.star_population import bright_star_fraction
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 from stellarObjects.systemRender import render_star_system
 from stellarObjects.utils import generate_sector_name, ly_to_pc, pc_to_ly
 
@@ -543,14 +541,14 @@ def validate_system_args(args, parser):
         file_num_orbits = file_data.get("num_orbits")
         if file_num_orbits is not None and not (
                 isinstance(file_num_orbits, int) and not isinstance(file_num_orbits, bool)
-                and 0 <= file_num_orbits <= generationLimits.MAX_NUM_ORBITS):
+                and 0 <= file_num_orbits <= limits.MAX_NUM_ORBITS):
             parser.error(f"--system-file {args.system_file!r}: num_orbits {file_num_orbits!r} must be a "
-                         f"whole number from 0 to {generationLimits.MAX_NUM_ORBITS}.")
+                         f"whole number from 0 to {limits.MAX_NUM_ORBITS}.")
 
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")
-    if args.num_orbits is not None and args.num_orbits > generationLimits.MAX_NUM_ORBITS:
-        parser.error(f"--num-orbits must be at most {generationLimits.MAX_NUM_ORBITS}.")
+    if args.num_orbits is not None and args.num_orbits > limits.MAX_NUM_ORBITS:
+        parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
 
     if args.num_orbits is not None and args.planets is False:
         parser.error("--num-orbits cannot be combined with -planets.")
@@ -1752,8 +1750,8 @@ def validate_galaxy_args(args, parser):
         if block_layer is not None and block_layer not in block_layers(args.block):
             layers = block_layers(args.block)
             parser.error(f"--block-layer must be one of the block's layers, {layers[0]} to {layers[-1]}.")
-        if args.limit is not None and not 1 <= args.limit <= generationLimits.MAX_GENERATE_LIMIT:
-            parser.error(f"--limit must be between 1 and {generationLimits.MAX_GENERATE_LIMIT}.")
+        if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
+            parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
         args.sector_name = args.system_file = args.num_orbits = args.name = None
         return
     if block_layer is not None:
@@ -1763,8 +1761,8 @@ def validate_galaxy_args(args, parser):
 
     if args.ring is not None and args.ring < 0:
         parser.error("--ring must be >= 0.")
-    if args.ring is not None and args.ring > generationLimits.MAX_GENERATE_RING:
-        parser.error(f"--ring must be at most {generationLimits.MAX_GENERATE_RING}.")
+    if args.ring is not None and args.ring > limits.MAX_GENERATE_RING:
+        parser.error(f"--ring must be at most {limits.MAX_GENERATE_RING}.")
     if args.column and (args.ring is None or args.slot is None):
         parser.error("--column requires --ring and --slot.")
     if args.shell and args.ring is None:
@@ -1805,15 +1803,15 @@ def validate_galaxy_args(args, parser):
                      "(neither --ring nor --center-sector), not --ring alone.")
     if args.radius_pc is not None and args.radius_pc <= 0:
         parser.error("--radius-pc must be a positive number.")
-    if args.radius_pc is not None and args.radius_pc > generationLimits.MAX_GENERATE_RADIUS_PC:
-        parser.error(f"--radius-pc must be at most {generationLimits.MAX_GENERATE_RADIUS_PC:g}.")
+    if args.radius_pc is not None and args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
+        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
 
     if args.limit is not None and args.ring is None:
         parser.error("--limit only applies to --ring.")
     if args.limit is not None and args.limit < 1:
         parser.error("--limit must be a positive integer.")
-    if args.limit is not None and args.limit > generationLimits.MAX_GENERATE_LIMIT:
-        parser.error(f"--limit must be at most {generationLimits.MAX_GENERATE_LIMIT}.")
+    if args.limit is not None and args.limit > limits.MAX_GENERATE_LIMIT:
+        parser.error(f"--limit must be at most {limits.MAX_GENERATE_LIMIT}.")
     if args.yes and args.ring is None:
         parser.error("--yes only applies to --ring.")
     if args.column:
@@ -1825,8 +1823,8 @@ def validate_galaxy_args(args, parser):
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and args.max_ring < 0:
         parser.error("--max-ring must be >= 0.")
-    if args.max_ring is not None and args.max_ring > generationLimits.MAX_GENERATE_RING:
-        parser.error(f"--max-ring must be at most {generationLimits.MAX_GENERATE_RING}.")
+    if args.max_ring is not None and args.max_ring > limits.MAX_GENERATE_RING:
+        parser.error(f"--max-ring must be at most {limits.MAX_GENERATE_RING}.")
 
     if args.min_start_density is not None and not random_start:
         parser.error("--min-start-density only applies to random-start mode (neither --ring nor "
@@ -3444,7 +3442,7 @@ def add_plan_arguments(parser):
     parser.add_argument('--max-ring', type=int, default=DEFAULT_MAX_RING,
                         help=f"Hard cap on how far out a layer is scanned. Default: {DEFAULT_MAX_RING}.")
 
-    bright_group = parser.add_argument_group("bright-star pre-placement (stellarObjects.brightStars)")
+    bright_group = parser.add_argument_group("bright-star pre-placement (planetgen.generation.bright_stars)")
     bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,
                               default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
                               help="Every star at least this bright (solar luminosities) is generated "
@@ -4125,8 +4123,8 @@ def validate_phenomenon_args(args, parser):
         parser.error("--num-orbits requires --anchor-system.")
     if args.num_orbits is not None and args.num_orbits < 0:
         parser.error("--num-orbits must be zero or a positive integer.")
-    if args.num_orbits is not None and args.num_orbits > generationLimits.MAX_NUM_ORBITS:
-        parser.error(f"--num-orbits must be at most {generationLimits.MAX_NUM_ORBITS}.")
+    if args.num_orbits is not None and args.num_orbits > limits.MAX_NUM_ORBITS:
+        parser.error(f"--num-orbits must be at most {limits.MAX_NUM_ORBITS}.")
     if args.anchor_system and args.type not in (None, "black-hole", "neutron-star"):
         parser.error("--anchor-system is only valid with --type black-hole or --type neutron-star.")
     if args.sector_id is not None and args.anchor_system:

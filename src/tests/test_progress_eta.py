@@ -16,7 +16,8 @@ import json
 import pytest
 
 import generate
-from stellarObjects import _db, brightStars, progressFile
+from stellarObjects import _db, progressFile
+from planetgen.generation import bright_stars as brightStars
 from stellarObjects.progressRate import DecayingRate
 
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy

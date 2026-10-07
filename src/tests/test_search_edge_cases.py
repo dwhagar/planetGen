@@ -22,10 +22,10 @@ import pytest
 
 import queryDb
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_position_pc
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.test_web_pages import db_client  # noqa: F401 -- fixture
 from tests.test_web_search import _panel

@@ -30,7 +30,7 @@ from stellarObjects import _db, progressFile, utils
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
 from planetgen.util import appconfig, log, serialization
-from stellarObjects.config import SERIALIZABLE_FIELDS, SystemConfig
+from planetgen.generation.config import SERIALIZABLE_FIELDS, SystemConfig
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled
 
 positive = st.floats(min_value=1e-9, max_value=1e12, allow_nan=False, allow_infinity=False)

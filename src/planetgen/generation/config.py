@@ -1,4 +1,4 @@
-# stellarObjects/config.py
+# planetgen/generation/config.py
 
 """
 Configuration settings for the stellarObjects package.

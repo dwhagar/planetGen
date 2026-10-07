@@ -1,4 +1,4 @@
-# stellarObjects/asteroidData.py
+# planetgen/generation/belt.py
 
 """
 Asteroid Belt Generation
@@ -19,11 +19,11 @@ this module's logic.
 
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_au
+from stellarObjects.utils import format_distance_au
 
 
 def generate_asteroid_composition():

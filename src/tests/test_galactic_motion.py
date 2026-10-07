@@ -9,12 +9,12 @@ import math
 import pytest
 
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, local_to_galaxy_pc, sector_position_pc, slot_angle_bounds,
 )
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from stellarObjects.utils import pc_to_ly
 
 EDGE_PC = 4.0
@@ -87,7 +87,7 @@ def test_phenomena_and_facilities_move_and_the_quasar_stays(mysql_config):
     sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=position)
     conn = _db.get_connection(mysql_config)
     try:
-        from stellarObjects.nebulaData import Nebula
+        from planetgen.generation.phenomena.nebula import Nebula
         center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
         with conn:
             nebula = Nebula(SystemConfig())

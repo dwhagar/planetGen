@@ -16,8 +16,8 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects.cometData import Comet
-from stellarObjects.config import SystemConfig
+from planetgen.generation.comet import Comet
+from planetgen.generation.config import SystemConfig
 
 TRIALS = 20
 

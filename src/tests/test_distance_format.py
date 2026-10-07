@@ -17,7 +17,7 @@ import subprocess
 import pytest
 
 from planetgen.physics import constants as pc
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from stellarObjects.utils import (
     DISTANCE_PAREN_MIN_LY,
     distance_parenthetical, format_body_radius_km, format_distance_au, format_distance_km,

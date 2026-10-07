@@ -28,13 +28,13 @@ import pytest
 from stellarObjects import _db
 from planetgen import tuning
 from planetgen.physics import constants as pc
-from stellarObjects.cometData import Comet
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
-from stellarObjects.doubleStar import BinaryStarProxy
+from planetgen.generation.comet import Comet
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
 
 
@@ -2068,8 +2068,8 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
     stay unplaced. A batch size of 1 makes the backfill cross batch
     boundaries.
     """
-    from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
     from stellarObjects.utils import ly_to_pc
 
     monkeypatch.setattr(_db, "_V27_BACKFILL_BATCH_SIZE", 1)
@@ -2266,7 +2266,7 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
     right after).
     """
     from planetgen.galaxy.density import build_galaxy_shape
-    from stellarObjects.roguePlanetData import RoguePlanet
+    from planetgen.generation.phenomena.rogue import RoguePlanet
 
     shape = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
@@ -2343,7 +2343,7 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
     """
     from planetgen.galaxy.density import build_galaxy_shape
     from planetgen.galaxy.skeleton import build_layer_extents, column_extents
-    from stellarObjects.roguePlanetData import RoguePlanet
+    from planetgen.generation.phenomena.rogue import RoguePlanet
 
     shape = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
@@ -2450,7 +2450,7 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
     holds 9 slots under both rules) and a never-placed sector keep
     everything, and the skeleton stays."""
     from planetgen.galaxy.density import build_galaxy_shape
-    from stellarObjects.roguePlanetData import RoguePlanet
+    from planetgen.generation.phenomena.rogue import RoguePlanet
 
     shape = build_galaxy_shape(
         disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
@@ -2497,7 +2497,7 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
 
 def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
     """v36 adds `black_holes.mass_class`, filled from each row's mass."""
-    from stellarObjects.compactRemnant import BlackHole
+    from planetgen.generation.phenomena.compact_remnant import BlackHole
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -2528,7 +2528,7 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
 def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_config):
     """v37 adds `rogue_planets.mass_bin` (filled from mass) and
     `star_systems.runaway_class`/`runaway_speed_kms`."""
-    from stellarObjects.roguePlanetData import RoguePlanet
+    from planetgen.generation.phenomena.rogue import RoguePlanet
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -2575,9 +2575,9 @@ def test_runaway_flags_round_trip(mysql_config):
 def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_config):
     """v38 adds letter classes and contents, inferring them for old rows,
     and widens `nebula_type` to the `diffuse` family."""
-    from stellarObjects.asteroidFieldData import AsteroidField
-    from stellarObjects.nebulaData import Nebula
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -2623,8 +2623,8 @@ def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_c
 
 
 def test_classed_phenomena_round_trip_their_contents(mysql_config):
-    from stellarObjects.asteroidFieldData import AsteroidField
-    from stellarObjects.nebulaData import Nebula
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.nebula import Nebula
 
     nebula = Nebula(SystemConfig(), nebula_class="Q")
     field = AsteroidField(SystemConfig())
@@ -2655,7 +2655,7 @@ def test_innermost_container_picks_the_smallest_cloud_holding_the_point():
 
 
 def _placed_nebula(conn, sector_id, center_pc, radius_ly, nebula_class="D"):
-    from stellarObjects.nebulaData import Nebula
+    from planetgen.generation.phenomena.nebula import Nebula
     nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
     nebula.radius_ly = radius_ly
     x, y, z = center_pc
@@ -2739,7 +2739,7 @@ def _named_system(name):
 
 
 def _remnant_with_core(name):
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
     for _ in range(200):
         remnant = SupernovaRemnant(SystemConfig(), name=name)
         if remnant.compact_remnant is not None:
@@ -2751,7 +2751,7 @@ def test_phenomena_share_the_system_name_registry(mysql_config):
     """GEN.13 (v40): a nebula whose name clashes with a system's is
     decorated like a second system would be, and the first holder is
     renamed whichever kind it is."""
-    from stellarObjects.nebulaData import Nebula
+    from planetgen.generation.phenomena.nebula import Nebula
 
     conn = _db.get_connection(mysql_config)
     try:
@@ -2766,7 +2766,7 @@ def test_phenomena_share_the_system_name_registry(mysql_config):
 
         with conn:
             first = _db.insert_rogue_planet(conn, __import__(
-                "stellarObjects.roguePlanetData", fromlist=["RoguePlanet"]).RoguePlanet(SystemConfig(), name="Ossandre"))
+                "planetgen.generation.phenomena.rogue", fromlist=["RoguePlanet"]).RoguePlanet(SystemConfig(), name="Ossandre"))
             system, cfg = _named_system("Ossandre")
             _db.insert_star_system(conn, system, cfg)
         assert conn.execute("SELECT name FROM rogue_planets WHERE id = ?", (first,)).fetchone()["name"] == "Alpha Ossandre"
@@ -2782,7 +2782,7 @@ def test_a_renamed_remnant_takes_its_core_along(mysql_config):
         with conn:
             remnant_id = _db.insert_supernova_remnant(conn, _remnant_with_core("Thessavel"))
             _db.insert_nebula(conn, __import__(
-                "stellarObjects.nebulaData", fromlist=["Nebula"]).Nebula(SystemConfig(), name="Thessavel"))
+                "planetgen.generation.phenomena.nebula", fromlist=["Nebula"]).Nebula(SystemConfig(), name="Thessavel"))
         row = conn.execute("SELECT * FROM supernova_remnants WHERE id = ?", (remnant_id,)).fetchone()
         assert row["name"] == "Alpha Thessavel"
         core_table = "black_holes" if row["compact_remnant_black_hole_id"] else "neutron_stars"
@@ -2799,7 +2799,7 @@ def test_a_renamed_remnant_takes_its_core_along(mysql_config):
 
 
 def test_comets_carry_designations_that_follow_their_host(mysql_config):
-    from stellarObjects.cometData import PERIODIC_COMET_MAX_PERIOD_YEARS
+    from planetgen.generation.comet import PERIODIC_COMET_MAX_PERIOD_YEARS
 
     system, cfg = _make_system_with_comets()
     conn = _db.get_connection(mysql_config)
@@ -2822,8 +2822,8 @@ def test_comets_carry_designations_that_follow_their_host(mysql_config):
 
 
 def test_interstellar_comets_and_asteroid_fields_are_designated_by_sector(mysql_config):
-    from stellarObjects.asteroidFieldData import AsteroidField
-    from stellarObjects.roguePlanetData import InterstellarComet
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.rogue import InterstellarComet
 
     sector_id = _db.save_sector(_sector_with_one_system("Designated"), config=mysql_config)
     conn = _db.get_connection(mysql_config)
@@ -2850,7 +2850,7 @@ def test_migrate_v39_to_v40_registers_and_designates_existing_rows(mysql_config)
         with conn:
             system_id = _db.insert_star_system(conn, system, cfg)
             conn.execute("UPDATE comets SET name = 'Old Comet' WHERE star_system_id = ?", (system_id,))
-            from stellarObjects.nebulaData import Nebula
+            from planetgen.generation.phenomena.nebula import Nebula
             nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Unregistered"))
             # Before v40 a phenomenon's name was never checked.
             conn.execute("UPDATE nebulae SET name = 'Morrowen' WHERE id = ?", (nebula_id,))

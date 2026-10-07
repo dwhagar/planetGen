@@ -20,12 +20,12 @@ from unittest.mock import patch
 
 import pytest
 
-from stellarObjects.asteroidData import AsteroidBelt
-from stellarObjects.config import SystemConfig
-from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
-from stellarObjects.systemData import SERIALIZATION_SCHEMA_VERSION, StarSystem
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
+from planetgen.generation.system import SERIALIZATION_SCHEMA_VERSION, StarSystem
 
 RETRIES = 30
 
@@ -99,7 +99,7 @@ def test_binary_star_proxy_round_trip_snapshots_without_recomputing():
     assert isinstance(proxy, BinaryStarProxy)
     data = proxy.to_dict()
 
-    with patch("stellarObjects.doubleStar.calculate_habitable_zone",
+    with patch("planetgen.generation.binary.calculate_habitable_zone",
                side_effect=AssertionError("habitable_zone should not be recomputed")), \
          patch.object(BinaryStarProxy, "_calculate_system_perimeter_static",
                       side_effect=AssertionError("system_perimeter should not be recomputed")), \

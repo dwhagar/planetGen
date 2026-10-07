@@ -34,8 +34,8 @@ from tabledisplay import format_star_radius, to_plain_text
 
 from classref import ROGUE_MASS_CLASS_NAMES
 from stellarObjects import activitylog
-from stellarObjects.asteroidData import format_composition_summary
-from stellarObjects.roguePlanetData import format_comet_composition_summary
+from planetgen.generation.belt import format_composition_summary
+from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 

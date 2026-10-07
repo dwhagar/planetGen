@@ -17,10 +17,10 @@ import math
 
 import pytest
 
-from stellarObjects.asteroidData import AsteroidBelt
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
-from stellarObjects.doubleStar import BinaryStarProxy
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
+from planetgen.generation.binary import BinaryStarProxy
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
 from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,

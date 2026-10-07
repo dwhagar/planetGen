@@ -56,8 +56,8 @@ from planetgen.galaxy.geometry import (
     sector_position_pc,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from .stellarPopulation import bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars
-from .utils import pc_to_ly
+from planetgen.generation.star_population import bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars
+from stellarObjects.utils import pc_to_ly
 
 POPULATIONS = ("young", "intermediate", "old", "bulge")
 """tuple: The stellar populations `galaxyDensity.population_densities`

@@ -1,4 +1,4 @@
-# stellarObjects/supernovaRemnantData.py
+# planetgen/generation/phenomena/supernova_remnant.py
 
 """
 Supernova Remnant Generation
@@ -19,14 +19,14 @@ explosion, embedded via `compactRemnant.BlackHole`/`NeutronStar`.
 import math
 import random
 
-from .compactRemnant import BlackHole, NeutronStar
-from .config import SystemConfig
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from .nebulaData import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
+from planetgen.generation.phenomena.nebula import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
+from stellarObjects.utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
                     generate_phoneme_salad_name)
 
 

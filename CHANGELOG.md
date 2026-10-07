@@ -1073,7 +1073,7 @@ needed; the backfill starts with the next sector generated.
 
 ### Added
 - **One module to validate a planet, a lunar system and a star system
-  (ADM.5).** `stellarObjects/validation.py` holds checks that report what
+  (ADM.5).** `planetgen/generation/validation.py` holds checks that report what
   is wrong without changing anything, the orbit-spacing pass generation
   already ran (moved there unchanged), and a stabilize pass that re-spaces
   an edited system from its moons outward, ready for the admin overrides
@@ -2164,7 +2164,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   down from 1,000,000 ly), a ring or highest ring over 100,000, a ring
   `--limit` over 628,322 (ring 100,000's slot count), and more than 500
   orbital slots (also in a `--system-file`). All four share the constants
-  in `src/stellarObjects/generationLimits.py`, and the page's number
+  in `src/planetgen/generation/limits.py`, and the page's number
   inputs carry them as `max`.
 
 ## [7.10.1] - 2026-09-30
@@ -4717,7 +4717,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   correctly, reusing the same satellite-row-plus-base-row combination
   `_binary_proxy_row_to_dict` already does for a close binary's merged
   proxy.
-- **`stellarObjects/phenomenaPlausibility.py`, a statistical anomaly
+- **`planetgen/generation/phenomena_plausibility.py`, a statistical anomaly
   finder for all seven exotic phenomena** -- the same two-tier design as
   the existing planet-focused `plausibility.py` (analytically-derived hard
   invariants, e.g. an event horizon radius must match the Schwarzschild
@@ -5173,7 +5173,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   correction absorbs whatever reordering a class-biased redraw causes
   against already-placed neighbors, the same way it already absorbed
   `calculate_distance_for_class`'s explicit-slot distance nudging.
-  `stellarObjects.plausibility._extract_record` now also reports
+  `planetgen.generation.plausibility._extract_record` now also reports
   `distance`, letting a new `test_planets.py` regression suite verify
   the bias directly (per-class mean zone-fraction close to its declared
   mode; Class N < Class M < Class K in mean orbital distance; a moon's
@@ -6381,7 +6381,7 @@ enhancements") for where this started as a plan.
     case it needs restoring").
 - **New: `src/tests/climate_tuning_cli.py`.** A human-driven tuning tool
   (mirrors `physical_plausibility_cli.py`'s batch-generate-and-report
-  pattern, reusing `stellarObjects.plausibility`'s engine): generates N
+  pattern, reusing `planetgen.generation.plausibility`'s engine): generates N
   bodies of one class, reports summary stats, and — for classes with a
   direct real-world analog (M/Earth, K/Mars, N/Venus) — a delta line against
   that reference. `--albedo`/`--molar-density`/`--density`/`--greenhouse`
@@ -6627,7 +6627,7 @@ enhancements") for where this started as a plan.
   would produce a self-contradictory star (e.g. a red giant younger than
   its own progenitor's main-sequence lifespan); this is the deeper fix it
   called for. `Star.generate_star`'s evolved-star mass sampling now uses a
-  new `_sample_evolved_star_mass_sol` helper (`stellarObjects/starData.py`)
+  new `_sample_evolved_star_mass_sol` helper (`planetgen/generation/star.py`)
   that rejects and resamples (not clamps, which would just pile an
   artificial spike at the cutoff) any candidate mass whose implied
   main-sequence lifespan would exceed `UNIVERSE_AGE_GY`, capped at

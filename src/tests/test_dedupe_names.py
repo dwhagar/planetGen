@@ -20,9 +20,9 @@ Run with: pytest tests/test_dedupe_names.py
 from dedupeNames import dedupe_names
 
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 
 def test_dedupe_fixes_a_legacy_sector_duplicate_and_is_idempotent(mysql_config):

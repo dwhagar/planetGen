@@ -191,7 +191,7 @@ Each of these has an upper bound, so a typo can't start a run that never
 ends: `--radius-pc` at most 200 (about 650 ly), `--ring` and `--max-ring`
 at most 100,000, and `--limit` at most the slot count of ring 100,000.
 The web Generate page and the API check the same bounds
-(`src/stellarObjects/generationLimits.py`).
+(`src/planetgen/generation/limits.py`).
 
 ### Parallel generation
 

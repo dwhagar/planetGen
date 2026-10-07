@@ -27,19 +27,19 @@ import pytest
 
 from tests.bughunt_support import FUZZ_SEEDS
 
-from stellarObjects.asteroidData import AsteroidBelt
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.cometData import Comet
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
-from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects.nebulaData import Nebula
-from stellarObjects.planetData import Planet
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.starData import Star
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
-from stellarObjects.wideBinary import WideBinaryPair
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.comet import Comet
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.planet import Planet
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.star import Star
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
+from planetgen.generation.wide_binary import WideBinaryPair
 
 # A modest subset of the full 150-seed fuzz list -- a full StarSystem
 # generation (with binaries) is far more expensive per-iteration than the

@@ -12,9 +12,9 @@ reading the rows.
 import pytest
 
 from stellarObjects import _db
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.config import SystemConfig
-from stellarObjects.roguePlanetData import InterstellarComet
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.rogue import InterstellarComet
 from tests.test_admin_edits import web_app  # noqa: F401
 from tests.test_api import client  # noqa: F401
 

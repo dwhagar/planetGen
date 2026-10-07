@@ -33,10 +33,10 @@ import pytest
 
 import generate as sectorGen
 from planetgen import tuning
-from stellarObjects.compactRemnant import BlackHole
-from stellarObjects.config import SystemConfig
+from planetgen.generation.phenomena.compact_remnant import BlackHole
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 
 def _make_cheap_system(star_type="G2V"):

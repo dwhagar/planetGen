@@ -15,8 +15,8 @@ from stellarObjects import _db
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
-from stellarObjects.config import SystemConfig
-from stellarObjects.roguePlanetData import RoguePlanet
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.rogue import RoguePlanet
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 from api.app import create_app  # noqa: E402

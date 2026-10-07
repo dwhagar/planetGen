@@ -1,4 +1,4 @@
-# stellarObjects/doubleStar.py
+# planetgen/generation/binary.py
 
 """
 Binary Star Proxy
@@ -18,12 +18,12 @@ import math
 import random
 
 from planetgen.names.bodies import close_pair_label
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .starData import Star, adjust_pair_age_for_planets
-from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
+from planetgen.generation.star import Star, adjust_pair_age_for_planets
+from stellarObjects.utils import (finite_domain, format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,
                     format_distance_au, format_distance_km, format_galactic_orbit, format_relative_to_sol,
                     minimum_update_interval_years, orbital_position_au,

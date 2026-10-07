@@ -9,7 +9,7 @@ audit-log row, and answers with what the edit did.
 
 A body edit loads its system (`_db.load_star_system`), changes it with
 `stellarObjects.adminEdits`, re-validates it from the moons outward
-(`stellarObjects.validation`) and writes it back in place
+(`planetgen.generation.validation`) and writes it back in place
 (`stellarObjects.editStore`), so the other bodies keep their rows. The
 answer lists the bodies the re-validation moved and any warnings left.
 
@@ -22,9 +22,10 @@ import random
 from flask import Blueprint, jsonify, request
 
 import generate
-from stellarObjects import _db, adminEdits, editStore, validation
+from stellarObjects import _db, adminEdits, editStore
+from planetgen.generation import validation
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 
 from .authz import audit, require_admin
 from .common import ApiError

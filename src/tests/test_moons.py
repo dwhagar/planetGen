@@ -13,9 +13,9 @@ import math
 
 import pytest
 
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 
 # A spread of host classes: small/large terrestrial and gas giants, in

@@ -18,10 +18,10 @@ import threading
 import pytest
 
 from stellarObjects import _db, population
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import DIMINUTIVE_PREFIXES, GREEK_LETTERS
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.test_population import _civilized_system
 

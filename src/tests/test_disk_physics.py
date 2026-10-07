@@ -22,8 +22,8 @@ import pytest
 
 from planetgen.physics import constants
 from planetgen import tuning as prog_c
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 from stellarObjects.utils import (
     disk_surface_density_scale,
     isolation_mass_kg,

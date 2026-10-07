@@ -32,9 +32,9 @@ import math
 
 from planetgen.physics import constants as phys
 from planetgen import tuning as pc
-from stellarObjects.cometData import PERIOD_CLASS_LABELS
-from stellarObjects.nebulaData import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
-from stellarObjects.starData import STAR_TYPE_PATTERN
+from planetgen.generation.comet import PERIOD_CLASS_LABELS
+from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
+from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}

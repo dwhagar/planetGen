@@ -1,16 +1,16 @@
 """
-Tests for the central validate module, `stellarObjects/validation.py`
+Tests for the central validate module, `planetgen/generation/validation.py`
 (TODO ADM.5): its checks find nothing wrong with generated systems and
 find each kind of fault, and the stabilize pass fixes what an edit broke.
 """
 import pytest
 
-from stellarObjects import validation
+from planetgen.generation import validation
 from planetgen.physics import constants, planets as planetPhysics
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 
 def make_system(star_type="G2V", **overrides):

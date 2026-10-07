@@ -994,7 +994,7 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
 
 # --- Upper bounds (SEC.18) ----------------------------------
 
-from stellarObjects import generationLimits  # noqa: E402
+from planetgen.generation import limits as generationLimits  # noqa: E402
 
 
 def _generate_py_args(monkeypatch, argv):

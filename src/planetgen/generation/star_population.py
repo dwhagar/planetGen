@@ -1,4 +1,4 @@
-# stellarObjects/stellarPopulation.py
+# planetgen/generation/star_population.py
 
 """
 Bright and Dim Star Sampling

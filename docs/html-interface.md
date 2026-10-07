@@ -419,7 +419,7 @@ close as the browser last left them (`static/generatefolds.js`, in
 or estimate, which the server keeps open.
 
 The number fields have upper bounds, the same ones `generate.py` checks
-(`src/stellarObjects/generationLimits.py`): a radius of at most 200 pc,
+(`src/planetgen/generation/limits.py`): a radius of at most 200 pc,
 rings up to 100,000, and at most 500 orbital slots on the one-off system
 page.
 

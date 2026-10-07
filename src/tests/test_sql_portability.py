@@ -49,7 +49,7 @@ VALUES_FUNCTION_ALLOWED = {
         "outer_ring_index",
     },
     "stellarObjects/population.py": {"scanned_planet_id"},
-    "stellarObjects/generationStats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
+    "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }
 
 # --- Tokens ----------------------------------------------------------------
