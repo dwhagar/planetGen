@@ -376,6 +376,31 @@ def test_login_page_when_already_logged_in_goes_to_next(client, fake):
     assert resp.headers["Location"] == "/admin/stats"
 
 
+@pytest.mark.parametrize("path,form", [
+    ("/login", {"username": "boss", "password": "long-password-1"}),
+    ("/login/code", {"username": "boss", "pending": "signed-pending", "code": "123456"}),
+])
+def test_a_sign_in_form_sent_again_after_signing_in_never_shows_form_expired(client, fake, token, path, form):
+    # SEC.31: the login (or two-step code) form, sent a second time after
+    # the first sign-in set the session cookie, carries the token minted
+    # before sign-in. It goes back to the login page, which forwards the
+    # signed-in admin to `next`; no 400 and no second sign-in.
+    _logged_in(client, fake)
+    resp = client.post(path, data={csrf.FIELD_NAME: token, "next": "/admin/stats", **form})
+    assert resp.status_code == 303
+    assert _redirect(resp) == ("/login", "/admin/stats")
+    assert not fake.called("auth_login") and not fake.called("auth_login_totp")
+    follow = client.get(resp.headers["Location"])
+    assert follow.status_code == 302
+    assert follow.headers["Location"] == "/admin/stats"
+
+
+def test_a_stale_sign_in_form_without_a_session_is_still_refused(client, fake):
+    resp = client.post("/login/code", data={csrf.FIELD_NAME: "wrong", "pending": "p", "code": "1"})
+    assert resp.status_code == 400
+    assert not fake.called("auth_login_totp")
+
+
 # --- /logout -------------------------------------------------------------------------------
 
 def test_logout_get_changes_nothing(client, fake):
@@ -690,15 +715,15 @@ def test_admin_stats_shows_generation_speed(client, fake):
 def test_admin_stats_counts_bright_stars(client, fake):
     _logged_in(client, fake)
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert re.search(r'<th scope="row">Bright stars</th><td>about 6.12 × 10⁴ placed in all \(estimate\)</td>', html)
+    assert re.search(r'<th scope="row">Bright stars</th><td>about 61,234 placed in all \(estimate\)</td>', html)
 
 
 def test_admin_stats_exact_bright_star_counts(client, fake):
     _logged_in(client, fake)
     fake.database_extra = {"bright_stars": {"placed": 61234, "filled": 1234, "unfilled": 60000}}
     html = client.get("/admin/stats").get_data(as_text=True)
-    assert re.search(r'<th scope="row">Bright stars</th><td>6.12 × 10⁴ placed: 1,234 built into systems, '
-                     r'6.00 × 10⁴ waiting for their sectors</td>', html)
+    assert re.search(r'<th scope="row">Bright stars</th><td>61,234 placed: 1,234 built into systems, '
+                     r'60,000 waiting for their sectors</td>', html)
 
 
 @pytest.mark.parametrize("database, text", [
