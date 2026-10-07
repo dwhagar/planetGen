@@ -3750,7 +3750,10 @@ def _search_facet_phenomenon_class(conn):
 
 def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
     """Every standalone phenomenon matching the Phenomenon and Phenomenon
-    Class tags (both narrow: a class tag keeps only its own type's rows)."""
+    Class tags. Tags in one group combine with OR, the two groups with AND,
+    and a class tag only narrows its own type (UX.44): Black Hole + Nebula
+    + nebula class D is every black hole and the class D nebulae. With no
+    Phenomenon tag, the class tags pick their own types."""
     classes = {}
     for tag in class_tags:
         type_label, _sep, value = tag.partition(":")
@@ -3760,7 +3763,7 @@ def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
     for table, type_label in _search_phenomenon_tables():
         if type_tags and type_label not in type_tags:
             continue
-        if class_tags and type_label not in classes:
+        if class_tags and not type_tags and type_label not in classes:
             continue
         column = _SEARCH_PHENOMENON_CLASS_COLUMNS.get(type_label)
         class_sql = column if column else "NULL"
