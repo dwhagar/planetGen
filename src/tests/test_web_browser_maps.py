@@ -12,6 +12,7 @@ or the MySQL test server, like `test_web_a11y.py`.
 """
 
 import re
+import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -269,8 +270,24 @@ def _query(page):
     return urlparse(page.url).query
 
 
-def _wait_settled(page):
-    page.wait_for_timeout(250)
+def _state(page):
+    return page.url, _crumbs(page)
+
+
+def _wait_settled(page, before=None, timeout_s=15.0):
+    """Waits until the URL and the steps have held still for 250 ms
+    (and, given `before`, moved off it). TEST.89: a fixed 250 ms wait
+    read the map mid-change under a loaded parallel run."""
+    deadline = time.monotonic() + timeout_s
+    page.wait_for_timeout(100)
+    last, since = _state(page), time.monotonic()
+    while time.monotonic() < deadline:
+        page.wait_for_timeout(50)
+        now = _state(page)
+        if now != last:
+            last, since = now, time.monotonic()
+        elif (before is None or now != before) and time.monotonic() - since >= 0.25:
+            return
 
 
 def _hover_choice(page, wanted=None):
@@ -299,10 +316,10 @@ def _click_choice(page, wanted=None):
     found = _hover_choice(page, wanted)
     assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
     x, y, text = found
-    before = (page.url, _crumbs(page))
+    before = _state(page)
     page.mouse.click(x, y)
-    _wait_settled(page)
-    assert (page.url, _crumbs(page)) != before, f"clicking {text!r} did nothing"
+    _wait_settled(page, before)
+    assert _state(page) != before, f"clicking {text!r} did nothing"
     return text
 
 
@@ -345,32 +362,38 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     queries = [q for q, _ in steps]
     at = len(steps) - 1
     for _ in range(3):
+        before = _state(page)
         page.go_back()
-        _wait_settled(page)
+        _wait_settled(page, before)
         query = _query(page)
         assert query in queries[:at], f"Back went to {query!r}, not an earlier stage of {queries[:at]}"
         at = max(n for n in range(at) if queries[n] == query)
         assert _crumbs(page) == steps[at][1]
+    before = _state(page)
     page.go_forward()
-    _wait_settled(page)
+    _wait_settled(page, before)
     forward = _query(page)
     assert forward in queries[at + 1:], f"Forward went to {forward!r}"
+    before = _state(page)
     page.go_back()
-    _wait_settled(page)
+    _wait_settled(page, before)
     assert _query(page) == queries[at]
 
     # The map's own Back, Forward and Up buttons.
     here = _query(page)
+    before = _state(page)
     page.click('#galaxymap3d-controls [data-action="back"]')
-    _wait_settled(page)
+    _wait_settled(page, before)
     back = _query(page)
     assert back != here and back in queries
+    before = _state(page)
     page.click('#galaxymap3d-controls [data-action="forward"]')
-    _wait_settled(page)
+    _wait_settled(page, before)
     assert _query(page) == here
     crumbs = _crumbs(page)
+    before = _state(page)
     page.click('#galaxymap3d-controls [data-action="up"]')
-    _wait_settled(page)
+    _wait_settled(page, before)
     assert _crumbs(page) == crumbs[:-1], "Up drops the last breadcrumb"
 
     # A stage's URL opens it directly.
@@ -387,8 +410,9 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
         page.locator("#galaxymap3d-crumbs button.galaxy-crumb").nth(1).click()
     _wait_settled(page)
     assert _crumbs(page) == steps[1][1]
+    before = _state(page)
     page.click('#galaxymap3d-controls [data-action="reset"]')
-    _wait_settled(page)
+    _wait_settled(page, before)
     assert _crumbs(page) == ["Galaxy"]
     assert _query(page) == ""
 

@@ -817,11 +817,20 @@ def test_ensure_sector_generated_recovers_from_a_concurrent_insert_race(mysql_co
     """
     _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
-    # A sector generated at a different address, standing in for "the
+    # A sector row at a different address, standing in for "the
     # concurrent winner's row" the mocked recovery re-check below returns
-    # regardless of which address it's actually asked about.
-    winner = run_galaxy.ensure_sector_generated(0, 0, 1, config=mysql_config)
-    assert winner["created"] is True
+    # regardless of which address it's actually asked about. Written
+    # directly (TEST.86): generating it filled hundreds of random systems
+    # the race under test never looks at.
+    from planetgen.galaxy.sector import SpaceSector
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            winner = {"sector_id": _db.insert_sector(conn, SpaceSector(name="Winner"), galaxy_position={
+                "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0, "galactic_radius_pc": 3.74,
+                "ring_index": 0, "layer_index": 0, "ring_slot_index": 1})}
+    finally:
+        conn.close()
 
     calls = {"n": 0}
 
