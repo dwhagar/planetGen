@@ -5,7 +5,8 @@ find each kind of fault, and the stabilize pass fixes what an edit broke.
 """
 import pytest
 
-from stellarObjects import physical_constants, planetPhysics, validation
+from stellarObjects import validation
+from planetgen.physics import constants, planets as planetPhysics
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.starData import Star
@@ -103,7 +104,7 @@ def test_stabilize_lunar_system_respaces_crowded_moons(star):
 def test_check_lunar_system_reports_a_moon_outside_the_stable_range(star):
     planet = planet_at(star, 5.0, "J", moon_count=1)
     _low, high = planetPhysics.moon_orbit_bounds_km(planet)
-    planet.moons[0].distance = high * 2 / physical_constants.AU_TO_KM
+    planet.moons[0].distance = high * 2 / constants.AU_TO_KM
     assert any("outside" in p.message for p in validation.check_lunar_system(planet))
 
 

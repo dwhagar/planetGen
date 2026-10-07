@@ -74,7 +74,7 @@ uniquely named, throwaway database, so the database tests are safe under
 
 ## The math check runs first
 
-`src/stellarObjects/mathCheck.py` is a fixed list of checks that the
+`src/planetgen/physics/mathcheck.py` is a fixed list of checks that the
 generator's math gives the right answers (TEST.63): known values from real
 astronomy (the Sun, Earth's and Jupiter's orbits, the habitable zone, white
 dwarf sizes, Holman & Wiegert's stability limits, the Kepler and Barker
@@ -98,7 +98,7 @@ where the expected value comes from. It takes well under a second.
   [cli.md](cli.md#subcommands)); `update.sh`/`update.ps1` warn.
 
 ```sh
-cd src && python -m stellarObjects.mathCheck -v   # the report, exit 1 on failure
+cd src && python -m planetgen.physics.mathcheck -v   # the report, exit 1 on failure
 pytest -m mathcheck                               # just the math check tests
 ```
 

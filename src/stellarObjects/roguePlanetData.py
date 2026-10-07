@@ -22,9 +22,10 @@ import math
 import random
 
 from .config import SystemConfig
-from .rogueSurface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
+from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import physical_constants, planetPhysics, program_constants
+from planetgen.physics import constants, planets as planetPhysics
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (format_body_radius_km, format_galactic_orbit, format_number, format_speed_kms,
@@ -61,10 +62,10 @@ def format_comet_composition_summary(composition):
 def infer_rogue_mass_bin(mass_kg):
     """The `ROGUE_PLANET_MASS_BIN_CHOICES` bin `mass_kg` falls in, for
     rows saved before the bin was stored (schema v37)."""
-    if mass_kg >= program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG:
+    if mass_kg >= tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * constants.JUPITER_MASS_TO_KG:
         return "brown-dwarf"
-    mass_earth = mass_kg / physical_constants.EARTH_MASS_TO_KG
-    for name, (_low, high, _rate) in program_constants.ROGUE_PLANET_MASS_BINS.items():
+    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    for name, (_low, high, _rate) in tuning.ROGUE_PLANET_MASS_BINS.items():
         if mass_earth < high:
             return name
     return "jupiter"
@@ -74,7 +75,7 @@ def rogue_planet_classes(planet_type):
     """Every `PLANET_CLASSES` class a rogue planet of `planet_type`
     (`'t'` or `'g'`) may have: those flagged `"r": True` (GEN.8), whose
     own `"type"` matches."""
-    return [code for code, data in program_constants.PLANET_CLASSES.items()
+    return [code for code, data in tuning.PLANET_CLASSES.items()
             if data.get("r") and data["type"] == planet_type]
 
 
@@ -98,15 +99,15 @@ def rogue_planet_class_candidates(planet_type, radius_km, mass_kg):
     eligible = rogue_planet_classes(planet_type)
     fitting = [
         code for code in eligible
-        if program_constants.PLANET_CLASSES[code]["radius_range"][0] <= radius_km
-        <= program_constants.PLANET_CLASSES[code]["radius_range"][1]
+        if tuning.PLANET_CLASSES[code]["radius_range"][0] <= radius_km
+        <= tuning.PLANET_CLASSES[code]["radius_range"][1]
         and planetPhysics.planet_mass_ranges[code][0] <= mass_kg <= planetPhysics.planet_mass_ranges[code][1]
     ]
     if fitting or not eligible:
         return fitting
 
     def gap(code):
-        low, high = program_constants.PLANET_CLASSES[code]["radius_range"]
+        low, high = tuning.PLANET_CLASSES[code]["radius_range"]
         return max(math.log(low / radius_km), math.log(radius_km / high), 0.0)
     return [min(eligible, key=gap)]
 
@@ -144,7 +145,7 @@ def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
     candidates = rogue_planet_class_candidates(planet_type, radius_km, mass_kg)
     if not candidates:
         return None
-    return max(candidates, key=lambda code: program_constants.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
+    return max(candidates, key=lambda code: tuning.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
 
 
 class RoguePlanet:
@@ -156,7 +157,7 @@ class RoguePlanet:
         name (str): A generated or explicitly given name.
         planet_type (str): `'t'` (terrestrial/icy) or `'g'` (gas giant),
             the same letters `Planet.body_type` uses, chosen by mass
-            relative to `program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`.
+            relative to `tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`.
         planet_class (str or None): Its `PLANET_CLASSES` letter (GEN.8),
             drawn from the classes flagged `"r"`; `None` for a brown dwarf.
         mass_kg (float): Mass in kilograms.
@@ -193,7 +194,7 @@ class RoguePlanet:
                 (used only for its `MARKDOWN` flag, via `to_paragraph_list`).
             name (str, optional): An explicit name. Random if omitted.
             mass_bin (str, optional): One of
-                `program_constants.ROGUE_PLANET_MASS_BIN_CHOICES`. Omitted,
+                `tuning.ROGUE_PLANET_MASS_BIN_CHOICES`. Omitted,
                 a planet bin is drawn by its per-star rate
                 (`ROGUE_PLANET_MASS_BINS`); `"brown-dwarf"` is only ever
                 asked for explicitly (its own rate,
@@ -204,38 +205,38 @@ class RoguePlanet:
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if mass_bin is None:
-            bins = program_constants.ROGUE_PLANET_MASS_BINS
+            bins = tuning.ROGUE_PLANET_MASS_BINS
             mass_bin = random.choices(list(bins), weights=[rate for _lo, _hi, rate in bins.values()])[0]
             log.choice("Rogue planet mass bin", mass_bin, "drawn by ROGUE_PLANET_MASS_BINS' per-star rates")
-        elif mass_bin not in program_constants.ROGUE_PLANET_MASS_BIN_CHOICES:
-            raise ValueError(f"mass_bin must be one of {program_constants.ROGUE_PLANET_MASS_BIN_CHOICES}, got {mass_bin!r}")
+        elif mass_bin not in tuning.ROGUE_PLANET_MASS_BIN_CHOICES:
+            raise ValueError(f"mass_bin must be one of {tuning.ROGUE_PLANET_MASS_BIN_CHOICES}, got {mass_bin!r}")
         self.mass_bin = mass_bin
 
         if mass_bin == "brown-dwarf":
-            low, high = (m * physical_constants.JUPITER_MASS_TO_KG
-                         for m in program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
+            low, high = (m * constants.JUPITER_MASS_TO_KG
+                         for m in tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
             self.mass_kg = math.exp(random.uniform(math.log(low), math.log(high)))
         else:
             # The same mass function the bins' rates come from (GEN.45).
-            low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[mass_bin]
-            low, high = low * physical_constants.EARTH_MASS_TO_KG, high * physical_constants.EARTH_MASS_TO_KG
-            self.mass_kg = sample_power_law(low, high, program_constants.ROGUE_PLANET_MASS_FUNCTION_SLOPE)
-        mass_jupiter = self.mass_kg / physical_constants.JUPITER_MASS_TO_KG
+            low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[mass_bin]
+            low, high = low * constants.EARTH_MASS_TO_KG, high * constants.EARTH_MASS_TO_KG
+            self.mass_kg = sample_power_law(low, high, tuning.ROGUE_PLANET_MASS_FUNCTION_SLOPE)
+        mass_jupiter = self.mass_kg / constants.JUPITER_MASS_TO_KG
 
         if mass_bin == "brown-dwarf":
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
             self.planet_type = 'g'
             # Brown dwarfs share Jupiter's near-flat mass-radius relation
             # (Chabrier & Baraffe 2000), slightly smaller when old.
-            self.radius_km = physical_constants.JUPITER_RADIUS_KM * random.uniform(0.75, 1.1)
+            self.radius_km = constants.JUPITER_RADIUS_KM * random.uniform(0.75, 1.1)
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"
             )
-        elif mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
+        elif mass_jupiter >= tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             log.choice("Rogue planet type", "gas giant",
                        f"mass {mass_jupiter:.4g} Mjup >= ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
-                       f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
+                       f"({tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 'g'
             # The same giant mass-radius relation as a bound giant (GEN.34,
             # GEN.60): radius grows with mass up to about Saturn's mass,
@@ -245,9 +246,9 @@ class RoguePlanet:
         else:
             log.choice("Rogue planet type", "terrestrial",
                        f"mass {mass_jupiter:.4g} Mjup < ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
-                       f"({program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
+                       f"({tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 't'
-            density_range_gcm3 = physical_constants.PLANET_DENSITY["t"]
+            density_range_gcm3 = constants.PLANET_DENSITY["t"]
             density_kg_m3 = random.uniform(*density_range_gcm3) * 1000
             radius_m = (self.mass_kg / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3)
             self.radius_km = radius_m / 1000
@@ -261,7 +262,7 @@ class RoguePlanet:
 
         self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
 
-        self.has_moons = random.random() < program_constants.ROGUE_PLANET_MOON_CHANCE
+        self.has_moons = random.random() < tuning.ROGUE_PLANET_MOON_CHANCE
         self._apply_surface_conditions(rogue_surface_conditions(
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
 
@@ -431,7 +432,7 @@ class InterstellarComet:
             generator's own name is purely descriptive/narrative).
         nucleus_diameter_km (float): Nucleus diameter in kilometers.
         composition (list): A list of composition component strings,
-            sampled from `program_constants.COMET_COMPOSITION`.
+            sampled from `tuning.COMET_COMPOSITION`.
         velocity_kms (float): Hyperbolic excess speed, in km/s.
         is_active (bool): Whether it currently shows a coma/tail from
             sublimating ices.
@@ -466,15 +467,15 @@ class InterstellarComet:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.nucleus_diameter_km = random.uniform(*program_constants.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
-        self.velocity_kms = random.uniform(*program_constants.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
-        self.is_active = random.random() < program_constants.INTERSTELLAR_COMET_ACTIVE_CHANCE
+        self.nucleus_diameter_km = random.uniform(*tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        self.velocity_kms = random.uniform(*tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
+        self.is_active = random.random() < tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE
         log.choice("Interstellar comet activity", self.is_active,
                    f"roll against INTERSTELLAR_COMET_ACTIVE_CHANCE "
-                   f"({program_constants.INTERSTELLAR_COMET_ACTIVE_CHANCE})")
+                   f"({tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE})")
 
-        num_components = min(3, len(program_constants.COMET_COMPOSITION))
-        self.composition = random.sample(program_constants.COMET_COMPOSITION, k=num_components)
+        num_components = min(3, len(tuning.COMET_COMPOSITION))
+        self.composition = random.sample(tuning.COMET_COMPOSITION, k=num_components)
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \

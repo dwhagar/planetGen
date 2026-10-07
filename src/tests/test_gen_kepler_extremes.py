@@ -12,7 +12,7 @@ import math
 
 import pytest
 
-from stellarObjects import keplerMotion as km
+from planetgen.physics import kepler as km
 
 TWO_PI = 2 * math.pi
 

@@ -19,7 +19,9 @@ import math
 import random
 from collections import namedtuple
 
-from . import physical_constants, planetPhysics, program_constants, validation
+from . import validation
+from planetgen.physics import constants, planets as planetPhysics
+from planetgen import tuning
 from .asteroidData import AsteroidBelt
 from .bodyNames import moon_letters
 from .planetData import Planet
@@ -110,7 +112,7 @@ def moon_classes(planet):
 def make_moon(planet, distance_au, moon_class):
     """A new moon of `planet` of `moon_class` at `distance_au` from it."""
     ceiling = planetPhysics.moon_class_options(planet, planet.zone)[moon_class]
-    low = program_constants.PLANET_CLASSES[moon_class]["radius_range"][0]
+    low = tuning.PLANET_CLASSES[moon_class]["radius_range"][0]
     radius = planetPhysics._sample_class_radius(moon_class, low, ceiling)
     return Planet(planet.system_config, planet.star, planet.habitable_zone, distance_au,
                   radius=radius, planet_class=moon_class, zone_override=planet.zone,
@@ -185,7 +187,7 @@ def class_fits_mass(planet_class, mass_kg):
 def _mass_refusal(body, planet_class):
     """The message refusing `planet_class` for `body` because of its mass."""
     low, high = planetPhysics.planet_mass_ranges[planet_class]
-    earth = physical_constants.EARTH_MASS_TO_KG
+    earth = constants.EARTH_MASS_TO_KG
     return (f"{body.name} is {body.mass / earth:.3g} Earth masses; class {planet_class} needs "
             f"{low / earth:.3g} to {high / earth:.3g}, so its class wasn't changed")
 
@@ -222,7 +224,7 @@ def _can_hold_moons(body, planet_class):
     if not body.moons:
         return True
     largest = max(m.radius for m in body.moons)
-    low, high = program_constants.PLANET_CLASSES[planet_class]["radius_range"]
+    low, high = tuning.PLANET_CLASSES[planet_class]["radius_range"]
     return (low * high) ** 0.5 / (10 ** (1 / 3)) >= largest
 
 
@@ -238,7 +240,7 @@ def _roll_fits(body, owner):
     # fit and stay inside its Hill sphere.
     _low_km, high_km = planetPhysics.moon_orbit_bounds_km(body)
     return (max(m.radius for m in body.moons) <= validation.max_moon_radius_km(body)
-            and max(m.distance for m in body.moons) * physical_constants.AU_TO_KM <= high_km)
+            and max(m.distance for m in body.moons) * constants.AU_TO_KM <= high_km)
 
 
 RECOMMENDED_ROLLS = 40
@@ -255,7 +257,7 @@ class _StandIn:
         self.distance = distance
         self.mass = mass
         self.star = star
-        self.hill_radius = hill_radius_au * physical_constants.AU_TO_KM
+        self.hill_radius = hill_radius_au * constants.AU_TO_KM
         self.min_orbit_distance = 5 * hill_radius_au
 
 
@@ -273,13 +275,13 @@ def recommended_classes(system, body, owner):
     else:
         zone = validation.zone_for(body.habitable_zone, body.distance)
         candidates = [
-            c for c, data in program_constants.PLANET_CLASSES.items()
+            c for c, data in tuning.PLANET_CLASSES.items()
             if data[zone] and _can_hold_moons(body, c)
         ]
         if planetPhysics._habitable_classes_barred(body, zone):
-            candidates = [c for c in candidates if c not in program_constants.HABITABLE_PLANET_CLASSES]
+            candidates = [c for c in candidates if c not in tuning.HABITABLE_PLANET_CLASSES]
     candidates = [c for c in candidates if c != body.planet_class and class_fits_mass(c, body.mass)]
-    return sorted(candidates, key=lambda c: -program_constants.PLANET_CLASS_PROBABILITIES.get(c, 0))
+    return sorted(candidates, key=lambda c: -tuning.PLANET_CLASS_PROBABILITIES.get(c, 0))
 
 
 def class_options(system):
@@ -308,10 +310,10 @@ def _keep_mass(body, mass_kg):
         body.radius = None
         planetPhysics._apply_giant_mass_and_radius(body, radius_given=False, mass_given=True)
     else:
-        low, high = program_constants.PLANET_CLASSES[body.planet_class]["radius_range"]
+        low, high = tuning.PLANET_CLASSES[body.planet_class]["radius_range"]
         radius_m = (3 * mass_kg / (4 * math.pi * body.density * 1000)) ** (1 / 3)
-        body.radius = min(max(radius_m / physical_constants.KM_TO_M_FACTOR, low), high)
-        radius_m = body.radius * physical_constants.KM_TO_M_FACTOR
+        body.radius = min(max(radius_m / constants.KM_TO_M_FACTOR, low), high)
+        radius_m = body.radius * constants.KM_TO_M_FACTOR
         body.density = mass_kg / ((4 / 3) * math.pi * radius_m ** 3) / 1000
     body.volume = (4 / 3) * math.pi * body.radius ** 3
 
@@ -326,7 +328,7 @@ def _apply_class(body, owner, planet_class):
     distance = body.distance
     parent_distance = owner.distance if body.is_moon else None
     real_zone = validation.zone_for(body.habitable_zone, parent_distance if body.is_moon else distance)
-    data = program_constants.PLANET_CLASSES[planet_class]
+    data = tuning.PLANET_CLASSES[planet_class]
     gen_zone = real_zone if data[real_zone] else next(z for z in "ech" if data[z])
     config = body.system_config
     habitable_rule = config.HABITABLE_WORLD
@@ -373,7 +375,7 @@ def change_class(system, body, owner, planet_class, force=False):
             fit, or a class that isn't recommended without `force`.
             Nothing is changed.
     """
-    if planet_class not in program_constants.PLANET_CLASSES:
+    if planet_class not in tuning.PLANET_CLASSES:
         raise ValueError(f"unknown class: {planet_class}")
     if not class_fits_mass(planet_class, body.mass):
         raise ValueError(_mass_refusal(body, planet_class))
@@ -510,7 +512,7 @@ def change_star(system, star_type):
             validation.reapply_life(item)
 
     for comet in system.comets:
-        _rescale_comet(comet, factor, mass_ratio, new.mass / physical_constants.SOLAR_MASS_TO_KG)
+        _rescale_comet(comet, factor, mass_ratio, new.mass / constants.SOLAR_MASS_TO_KG)
 
     # Every planet keeps its class, as promised above: re-spacing must not
     # reclassify one it nudged into another zone (TEST.80).

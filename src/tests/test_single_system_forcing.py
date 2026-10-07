@@ -9,7 +9,7 @@ import random
 import pytest
 
 import generate
-from stellarObjects import program_constants
+from planetgen import tuning
 from stellarObjects.systemData import StarSystem
 from tests.bughunt_support import run_cli
 
@@ -28,7 +28,7 @@ def test_a_system_that_never_meets_a_forced_option_is_not_saved(tmp_path, monkey
     with pytest.raises(SystemExit) as exc:
         run_cli("system", ["--star-type", "O5V", "+habitable_world", "--output", str(out)])
     assert exc.value.code == 1
-    assert len(built) == program_constants.SINGLE_SYSTEM_GENERATION_ATTEMPTS
+    assert len(built) == tuning.SINGLE_SYSTEM_GENERATION_ATTEMPTS
     assert not out.exists()
     captured = capsys.readouterr()
     assert "nothing was saved" in captured.out + captured.err

@@ -22,7 +22,8 @@ import random
 from flask import Blueprint, jsonify, request
 
 import generate
-from stellarObjects import _db, adminEdits, editStore, program_constants, validation
+from stellarObjects import _db, adminEdits, editStore, validation
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 
 from .authz import audit, require_admin
@@ -165,15 +166,15 @@ def system_class_options(system_id):
         options = adminEdits.class_options(system)
     finally:
         conn.close()
-    return jsonify({"recommended": options, "all": sorted(program_constants.PLANET_CLASSES)})
+    return jsonify({"recommended": options, "all": sorted(tuning.PLANET_CLASSES)})
 
 
 def _change_class(kind, body_id):
     body = _json_object({"class", "force"})
     planet_class = body.get("class")
     force = body.get("force", False)
-    if not isinstance(planet_class, str) or planet_class not in program_constants.PLANET_CLASSES:
-        raise ApiError(f"'class' must be one of {', '.join(sorted(program_constants.PLANET_CLASSES))}")
+    if not isinstance(planet_class, str) or planet_class not in tuning.PLANET_CLASSES:
+        raise ApiError(f"'class' must be one of {', '.join(sorted(tuning.PLANET_CLASSES))}")
     if not isinstance(force, bool):
         raise ApiError("'force' must be a boolean")
     conn = _write_conn()

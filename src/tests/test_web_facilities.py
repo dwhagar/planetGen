@@ -25,7 +25,8 @@ from api.config import Config
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import queryDb  # noqa: E402
-from stellarObjects import _db, adminAuth, physical_constants  # noqa: E402
+from stellarObjects import _db, adminAuth  # noqa: E402
+from planetgen.physics import constants
 from stellarObjects import facilities as facility_rules  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
 from stellarObjects.spaceSector import SpaceSector  # noqa: E402
@@ -34,7 +35,7 @@ from systemmap import render_system_map_panel  # noqa: E402
 from web import csrf  # noqa: E402
 
 DB = "planetgen_web_test"
-AU_KM = physical_constants.AU_TO_KM
+AU_KM = constants.AU_TO_KM
 
 
 class _FakeConfig(Config):

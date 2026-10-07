@@ -30,7 +30,7 @@ from dataclasses import dataclass
 
 import pymysql
 
-from . import program_constants
+from planetgen import tuning
 from planetgen.util import log
 from .evolution import life_stage_from_paragraphs
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
@@ -85,11 +85,11 @@ def parse_timeline(paragraphs):
 
     Returns:
         Timeline or None: `None` unless the milestone is one of
-            `program_constants.LIFE_WORLD_STAGES` and both ages can be
+            `tuning.LIFE_WORLD_STAGES` and both ages can be
             read back.
     """
     stage = life_stage_from_paragraphs(paragraphs)
-    if stage not in program_constants.LIFE_WORLD_STAGES:
+    if stage not in tuning.LIFE_WORLD_STAGES:
         return None
     text = " ".join(paragraphs)
     system_age = _SYSTEM_AGE_RE.search(text)
@@ -132,7 +132,7 @@ def has_civilization(timeline, forced, rng):
         return False
     if forced:
         return True
-    return rng.random() < program_constants.CIVILIZATION_CHANCE
+    return rng.random() < tuning.CIVILIZATION_CHANCE
 
 
 def civilization_age(window_years, rng):
@@ -143,7 +143,7 @@ def civilization_age(window_years, rng):
     window shorter than the minimum (the stored ages are rounded to 10
     million years, so this is rounding) gives the minimum.
     """
-    low = program_constants.CIVILIZATION_MIN_AGE_YEARS
+    low = tuning.CIVILIZATION_MIN_AGE_YEARS
     if window_years <= low:
         return low
     return math.exp(rng.uniform(math.log(low), math.log(window_years)))
@@ -151,9 +151,9 @@ def civilization_age(window_years, rng):
 
 def era_for_age(age_years):
     """`(era, spacefaring)` for a civilization `age_years` old
-    (`program_constants.CIVILIZATION_ERAS`)."""
+    (`tuning.CIVILIZATION_ERAS`)."""
     era, spacefaring = None, False
-    for name, start, is_spacefaring in program_constants.CIVILIZATION_ERAS:
+    for name, start, is_spacefaring in tuning.CIVILIZATION_ERAS:
         if age_years >= start:
             era, spacefaring = name, is_spacefaring
     return era, spacefaring
@@ -161,7 +161,7 @@ def era_for_age(age_years):
 
 def interstellar_start_years():
     """The age at which a civilization first counts as spacefaring."""
-    return min(start for _name, start, spacefaring in program_constants.CIVILIZATION_ERAS if spacefaring)
+    return min(start for _name, start, spacefaring in tuning.CIVILIZATION_ERAS if spacefaring)
 
 
 def reach_ly(age_years, cap_ly=None):
@@ -170,16 +170,16 @@ def reach_ly(age_years, cap_ly=None):
     interstellar, growing with the square root of age, capped at `cap_ly`
     (`TERRITORY_REACH_CAP_LY` by default). 0 before it is spacefaring.
     """
-    cap = program_constants.TERRITORY_REACH_CAP_LY if cap_ly is None else cap_ly
+    cap = tuning.TERRITORY_REACH_CAP_LY if cap_ly is None else cap_ly
     start = interstellar_start_years()
     if age_years < start:
         return 0.0
-    return min(cap, program_constants.TERRITORY_BASE_REACH_LY * math.sqrt(age_years / start))
+    return min(cap, tuning.TERRITORY_BASE_REACH_LY * math.sqrt(age_years / start))
 
 
 def government_for(species_id):
     """The polity's form of government, stable for a species."""
-    forms = program_constants.GOVERNMENT_FORMS
+    forms = tuning.GOVERNMENT_FORMS
     return forms[random.Random(species_id * 7919).randrange(len(forms))]
 
 

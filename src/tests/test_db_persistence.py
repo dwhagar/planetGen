@@ -25,14 +25,14 @@ import time
 
 import pytest
 
-from stellarObjects import _db, program_constants
-from stellarObjects import physical_constants as pc
-from stellarObjects import program_constants
+from stellarObjects import _db
+from planetgen import tuning
+from planetgen.physics import constants as pc
 from stellarObjects.cometData import Comet
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig
 from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects.planetPhysics import calculate_orbital_period_years
+from planetgen.physics.planets import calculate_orbital_period_years
 from stellarObjects.spaceSector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au
@@ -197,7 +197,7 @@ def _make_system_with_comets():
     """Retries generation (bounded) until a system with at least one
     elliptical AND at least one parabolic comet comes out -- COMETS=True
     biases generation heavily toward having some, but not toward any
-    particular orbit_type mix (see program_constants.COMET_PARABOLIC_CHANCE)."""
+    particular orbit_type mix (see tuning.COMET_PARABOLIC_CHANCE)."""
     for _ in range(30):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "G2V"
@@ -2323,7 +2323,7 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
 
         # v33 then rebuilds the skeleton per layer at the standard edge.
         skeleton = _db.get_galaxy_shape(conn)
-        assert skeleton.edge_pc == program_constants.DEFAULT_SECTOR_EDGE_PC
+        assert skeleton.edge_pc == tuning.DEFAULT_SECTOR_EDGE_PC
         assert _db.get_galaxy_layers(conn)
         assert _db.get_galaxy_layer_outer_ring(conn, 0) == skeleton.outer_ring_index
     finally:
@@ -2389,12 +2389,12 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
         ).fetchone() is None
 
         skeleton = _db.get_galaxy_shape(conn)
-        assert skeleton.edge_pc == program_constants.DEFAULT_SECTOR_EDGE_PC
+        assert skeleton.edge_pc == tuning.DEFAULT_SECTOR_EDGE_PC
         assert skeleton.expected_system_count_at_density_1 == pytest.approx(
-            SpaceSector("x", edge_ly=program_constants.DEFAULT_SECTOR_EDGE_LY).expected_system_count()
+            SpaceSector("x", edge_ly=tuning.DEFAULT_SECTOR_EDGE_LY).expected_system_count()
         )
         expected, outer, _confirmed = build_layer_extents(
-            shape, program_constants.DEFAULT_SECTOR_EDGE_PC, 1.0 / skeleton.expected_system_count_at_density_1,
+            shape, tuning.DEFAULT_SECTOR_EDGE_PC, 1.0 / skeleton.expected_system_count_at_density_1,
         )
         assert _db.get_galaxy_layers(conn) == expected
         assert skeleton.outer_ring_index == outer
@@ -3045,7 +3045,7 @@ def test_bright_star_web_queries(mysql_config):
         assert adminStats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
-        assert status["default_min_luminosity_sol"] == program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
+        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
         assert queryDb.bright_stars_in_sector(conn, 3, 0, 1) == []
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"

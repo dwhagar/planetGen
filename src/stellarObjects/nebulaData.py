@@ -18,7 +18,7 @@ import random
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import program_constants
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .utils import (format_distance_ly, format_galactic_orbit, format_number, generate_galactic_orbit_fields,
@@ -26,13 +26,13 @@ from .utils import (format_distance_ly, format_galactic_orbit, format_number, ge
 
 
 NEBULA_CLASS_LETTERS = tuple(
-    letter for letter, data in program_constants.NEBULA_CLASSES.items()
+    letter for letter, data in tuning.NEBULA_CLASSES.items()
     if data["family"] != "supernova-remnant"
 )
 """tuple: The nebula classes (A-Q); R-W are supernova remnants."""
 
 REMNANT_CLASS_LETTERS = tuple(
-    letter for letter, data in program_constants.NEBULA_CLASSES.items()
+    letter for letter, data in tuning.NEBULA_CLASSES.items()
     if data["family"] == "supernova-remnant"
 )
 """tuple: The supernova remnant classes (R-W)."""
@@ -59,13 +59,13 @@ def draw_class_contents(letter):
     Draws the physical contents of one nebula or remnant class.
 
     Args:
-        letter (str): A `program_constants.NEBULA_CLASSES` key.
+        letter (str): A `tuning.NEBULA_CLASSES` key.
 
     Returns:
         tuple: `(dominant_species, density_cm3, temperature_k,
             extinction_av)`.
     """
-    data = program_constants.NEBULA_CLASSES[letter]
+    data = tuning.NEBULA_CLASSES[letter]
     return (
         data["species"],
         _draw_in_range(*data["density_range_cm3"]),
@@ -77,7 +77,7 @@ def draw_class_contents(letter):
 def typical_class_contents(letter):
     """The same tuple as `draw_class_contents`, but each value the middle
     of its range -- what `_db`'s v38 migration fills for existing rows."""
-    data = program_constants.NEBULA_CLASSES[letter]
+    data = tuning.NEBULA_CLASSES[letter]
     return (
         data["species"],
         _mid_of_range(*data["density_range_cm3"]),
@@ -89,7 +89,7 @@ def typical_class_contents(letter):
 def choose_weighted_class(letters, label):
     """Picks one of `letters` by its `NEBULA_CLASSES` frequency, logging
     the choice under `label`."""
-    weights = [program_constants.NEBULA_CLASSES[letter]["frequency"] for letter in letters]
+    weights = [tuning.NEBULA_CLASSES[letter]["frequency"] for letter in letters]
     letter = random.choices(letters, weights=weights, k=1)[0]
     log.choice(label, letter, f"weighted draw among {list(letters)} by NEBULA_CLASSES frequency")
     return letter
@@ -103,12 +103,12 @@ def infer_nebula_class(nebula_type, radius_ly):
     most common class.
     """
     candidates = [letter for letter in NEBULA_CLASS_LETTERS
-                  if program_constants.NEBULA_CLASSES[letter]["family"] == nebula_type]
+                  if tuning.NEBULA_CLASSES[letter]["family"] == nebula_type]
     if not candidates:
         candidates = list(NEBULA_CLASS_LETTERS)
-    by_frequency = sorted(candidates, key=lambda letter: -program_constants.NEBULA_CLASSES[letter]["frequency"])
+    by_frequency = sorted(candidates, key=lambda letter: -tuning.NEBULA_CLASSES[letter]["frequency"])
     for letter in by_frequency:
-        low, high = program_constants.NEBULA_CLASSES[letter]["radius_range_ly"]
+        low, high = tuning.NEBULA_CLASSES[letter]["radius_range_ly"]
         if low <= radius_ly <= high:
             return letter
     return by_frequency[0]
@@ -125,9 +125,9 @@ class Nebula:
     Attributes:
         name (str): A generated or explicitly given name for the nebula.
         nebula_class (str): A nebula letter class A-Q
-            (`program_constants.NEBULA_CLASSES`).
+            (`tuning.NEBULA_CLASSES`).
         nebula_type (str): The class's family, one of
-            `program_constants.NEBULA_FAMILIES`' keys (`"diffuse"`,
+            `tuning.NEBULA_FAMILIES`' keys (`"diffuse"`,
             `"emission"`, `"reflection"`, `"planetary"` or `"dark"`).
         radius_ly (float): The nebula's approximate radius, in light-years.
         composition (str): A descriptive composition string for the family.
@@ -188,15 +188,15 @@ class Nebula:
                 raise ValueError(f"nebula_class must be one of {list(NEBULA_CLASS_LETTERS)}, got {nebula_class!r}")
             self.nebula_class = nebula_class
         else:
-            if nebula_type is not None and nebula_type not in program_constants.NEBULA_FAMILIES:
-                raise ValueError(f"nebula_type must be one of {list(program_constants.NEBULA_FAMILIES)}, got {nebula_type!r}")
+            if nebula_type is not None and nebula_type not in tuning.NEBULA_FAMILIES:
+                raise ValueError(f"nebula_type must be one of {list(tuning.NEBULA_FAMILIES)}, got {nebula_type!r}")
             letters = tuple(letter for letter in NEBULA_CLASS_LETTERS
                             if nebula_type is None
-                            or program_constants.NEBULA_CLASSES[letter]["family"] == nebula_type)
+                            or tuning.NEBULA_CLASSES[letter]["family"] == nebula_type)
             self.nebula_class = choose_weighted_class(letters, "Nebula class")
-        class_data = program_constants.NEBULA_CLASSES[self.nebula_class]
+        class_data = tuning.NEBULA_CLASSES[self.nebula_class]
         self.nebula_type = class_data["family"]
-        family_data = program_constants.NEBULA_FAMILIES[self.nebula_type]
+        family_data = tuning.NEBULA_FAMILIES[self.nebula_type]
         self.radius_ly = random.uniform(*class_data["radius_range_ly"])
         self.composition = family_data["composition"]
         self.formation_cause = family_data["formation_cause"]
@@ -246,7 +246,7 @@ class Nebula:
     @property
     def class_name(self):
         """The class's own name, e.g. "Classical H II region"."""
-        return program_constants.NEBULA_CLASSES[self.nebula_class]["name"]
+        return tuning.NEBULA_CLASSES[self.nebula_class]["name"]
 
     def to_paragraph_list(self):
         """

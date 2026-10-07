@@ -14,7 +14,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects import program_constants
+from planetgen import tuning
 from stellarObjects.generationLimits import MAX_GENERATE_RADIUS_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 
@@ -42,7 +42,7 @@ def test_light_years_convert_the_same_way_python_does(ly):
 def test_the_radius_bounds_match_the_generation_limits():
     out = _run("console.log(JSON.stringify({min: G.NEIGHBORHOOD_MIN_LY, max: G.NEIGHBORHOOD_MAX_LY, "
                "fallback: G.NEIGHBORHOOD_DEFAULT_LY, confirm: G.NEIGHBORHOOD_CONFIRM_SECTORS}));")
-    assert out["fallback"] == round(pc_to_ly(program_constants.DEFAULT_GENERATE_RADIUS_PC))
+    assert out["fallback"] == round(pc_to_ly(tuning.DEFAULT_GENERATE_RADIUS_PC))
     assert out["confirm"] == 5000
     # Never past what the Generate page accepts, and never under one sector.
     assert out["max"] <= MAX_GENERATE_RADIUS_LY

@@ -74,7 +74,8 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db, brightStars, generationLimits, program_constants
+from stellarObjects import _db, brightStars, generationLimits
+from planetgen import tuning
 from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
@@ -735,7 +736,7 @@ def galaxy_cell():
 
     conn = get_db()
     skeleton = get_galaxy_shape(conn)
-    edge_pc = skeleton.edge_pc if skeleton else float(program_constants.DEFAULT_SECTOR_EDGE_PC)
+    edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     ring, layer, slot = number("ring", int), number("layer", int), number("slot", int)
     x, y, z = number("x", float), number("y", float), number("z", float)
     # An address astronomically far out overflows the float geometry
@@ -1128,7 +1129,7 @@ def delete_sector(sector_id):
 def generate_sector_neighborhood_route(sector_id):
     """`POST /api/sectors/<id>/generate-neighborhood` -- generates every
     not-yet-generated sector within `radius_ly` (optional JSON body
-    field; defaults to `program_constants.DEFAULT_GENERATE_RADIUS_PC`,
+    field; defaults to `tuning.DEFAULT_GENERATE_RADIUS_PC`,
     12 pc, the sphere `generate.py galaxy`'s own random-start mode uses)
     of this already galaxy-placed sector -- see
     `generate.generate_sector_neighborhood`. Every new sector also gets
@@ -1569,7 +1570,7 @@ def delete_system(system_id):
 
 FACILITY_FIELDS = {
     "name": (str, lambda v: bool(v.strip()) and len(v) <= MAX_NAME_LENGTH),
-    "kind": (str, lambda v: v in program_constants.FACILITY_KINDS),
+    "kind": (str, lambda v: v in tuning.FACILITY_KINDS),
     "placement": (str, lambda v: v in facility_rules.PLACEMENTS),
     "host_type": (str, lambda v: v in facility_rules.HOST_TYPES),
     "host_id": (int, lambda v: v > 0),

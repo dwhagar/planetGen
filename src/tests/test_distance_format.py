@@ -16,7 +16,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 from stellarObjects.config import SystemConfig
 from stellarObjects.utils import (
     DISTANCE_PAREN_MIN_LY,

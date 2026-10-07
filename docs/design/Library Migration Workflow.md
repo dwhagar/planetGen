@@ -44,9 +44,9 @@ Architectural refactoring is structured around four primary criteria:
 
 #### Current Codebase State
 
-* `src/stellarObjects/keplerMotion.py` (408 lines): Custom bisection and Newton-Raphson solvers for Kepler's equation (elliptical orbits) and Barker's equation (parabolic orbits).
-* `src/stellarObjects/physical_constants.py` (447 lines): Hardcoded astronomical, physical, and conversion constants.
-* `src/stellarObjects/planetPhysics.py` (1,154 lines): Custom calculations for orbital period, mean anomaly, and gravitational parameters.
+* `src/planetgen/physics/kepler.py` (408 lines): Custom bisection and Newton-Raphson solvers for Kepler's equation (elliptical orbits) and Barker's equation (parabolic orbits).
+* `src/planetgen/physics/constants.py` (447 lines): Hardcoded astronomical, physical, and conversion constants.
+* `src/planetgen/physics/planets.py` (1,154 lines): Custom calculations for orbital period, mean anomaly, and gravitational parameters.
 
 #### Theoretical Mathematical Models
 
@@ -217,7 +217,7 @@ Phase 1: Low Risk / High Reduction (Security & Utility Modules)
 └── Replace src/html/lib/mdconvert.py        --> markdown
 
 Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)
-├── Refactor src/stellarObjects/keplerMotion.py --> scipy.optimize
+├── Refactor src/planetgen/physics/kepler.py --> scipy.optimize
 ├── Refactor physical_constants.py              --> astropy.constants & astropy.units
 ├── Replace src/html/lib/pagecache.py           --> cachetools
 └── Replace src/html/lib/tilecache.py           --> diskcache

@@ -6,8 +6,10 @@ a moon, and on the class reference page.
 
 import pytest
 
-from stellarObjects import physical_constants as pc
-from stellarObjects import plausibility, planetPhysics, program_constants
+from planetgen.physics import constants as pc
+from stellarObjects import plausibility
+from planetgen.physics import planets as planetPhysics
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.starData import Star
@@ -24,7 +26,7 @@ def host_star():
 
 
 def test_class_s_ranges():
-    data = program_constants.PLANET_CLASSES["S"]
+    data = tuning.PLANET_CLASSES["S"]
     low, high = data["radius_range"]
     assert low / pc.EARTH_RADIUS_KM == pytest.approx(1.2, rel=0.01)
     assert high / pc.EARTH_RADIUS_KM == pytest.approx(1.8, rel=0.01)
@@ -33,14 +35,14 @@ def test_class_s_ranges():
     assert high_kg / pc.EARTH_MASS_TO_KG == pytest.approx(10.0, rel=0.01)
     assert data["h"] and data["e"] and data["c"] and data["r"]
     assert data["type"] == "t" and data["life_chemical"] is None
-    assert "S" not in program_constants.HABITABLE_PLANET_CLASSES
-    assert "S" in program_constants.MOON_BLACKLIST
-    assert program_constants.PLANET_CLASS_PROBABILITIES["S"] > 0
+    assert "S" not in tuning.HABITABLE_PLANET_CLASSES
+    assert "S" in tuning.MOON_BLACKLIST
+    assert tuning.PLANET_CLASS_PROBABILITIES["S"] > 0
 
 
 @pytest.mark.parametrize("zone", ["h", "e", "c"])
 def test_class_s_planets_fit_the_class(host_star, zone):
-    low, high = program_constants.PLANET_CLASSES["S"]["radius_range"]
+    low, high = tuning.PLANET_CLASSES["S"]["radius_range"]
     low_kg, high_kg = planetPhysics.planet_mass_ranges["S"]
     for _ in range(50):
         planet = Planet(SystemConfig(), host_star, host_star.habitable_zone,

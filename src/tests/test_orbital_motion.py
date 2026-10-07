@@ -33,9 +33,9 @@ import types
 
 import pytest
 
-from stellarObjects import physical_constants as pc
+from planetgen.physics import constants as pc
 from stellarObjects.config import SystemConfig
-from stellarObjects.planetPhysics import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
+from planetgen.physics.planets import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
 from stellarObjects.starData import Star
 from stellarObjects.systemData import StarSystem
 

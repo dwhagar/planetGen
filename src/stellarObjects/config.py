@@ -134,7 +134,7 @@ class SystemConfig:
         binary star system. If False, a single star system is generated. If
         None, whether the system is binary is rolled against real
         stellar-multiplicity statistics for the primary star's own spectral
-        type (see `stellarObjects.program_constants.
+        type (see `planetgen.tuning.
         BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, used by
         `StarSystem._should_generate_binary`) rather than always coming out
         single. Defaults to None.

@@ -174,7 +174,7 @@ elapsed time between runs (see that table's own section above); v10 added
 `galactic_orbital_speed_kms`/`galactic_orbital_period_gy` to `stars` (and
 their `binary_galactic_orbital_*` counterparts on `star_systems`) — a star
 system's circular orbital speed/period around the galactic center, from a
-simple rotation-curve model (see `stellarObjects/physical_constants.py`'s
+simple rotation-curve model (see `planetgen/physics/constants.py`'s
 `GALACTIC_ROTATION_FLAT_VELOCITY_KMS` comment); v11 added
 `position_x_km`/`_y_km`/`_z_km`/`orbital_speed_kms` to `planets`/`moons` —
 each body's Cartesian position relative to its orbital anchor (the star,

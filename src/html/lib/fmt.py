@@ -17,7 +17,7 @@ import re
 from urllib.parse import quote
 
 try:
-    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
+    from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
 except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # density is still shown, just without the "% of local average"

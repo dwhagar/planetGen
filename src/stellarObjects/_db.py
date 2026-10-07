@@ -62,7 +62,9 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, galaxySeed, keplerMotion, objectId, physical_constants, program_constants, versionKey
+from . import activitylog, galaxySeed, objectId, versionKey
+from planetgen.physics import constants as physical_constants, kepler
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
 from .asteroidData import AsteroidBelt
@@ -85,7 +87,7 @@ from .nameUniqueness import (
 )
 from .nebulaData import Nebula
 from .planetData import Planet
-from .rogueSurface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
+from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
 from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
 from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
@@ -3237,7 +3239,7 @@ _PHENOMENON_INSERTERS = {
     "comet": insert_interstellar_comet,
     "quasar": insert_quasar,
 }
-"""dict: `program_constants.PHENOMENON_TYPE_CHOICES` value -> the
+"""dict: `tuning.PHENOMENON_TYPE_CHOICES` value -> the
 `insert_*` function for its table. Every one takes `sector_id=` and
 `placement=` keywords (v28 gave the last three types placement columns),
 so `insert_sector` and `save_phenomenon` share this one lookup."""
@@ -3262,7 +3264,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
             `phenomenon` is a `StarSystem`; no other phenomenon type has a
             `SystemConfig` row of its own.
         phenomenon_type (str): One of
-            `program_constants.PHENOMENON_TYPE_CHOICES`, naming which
+            `tuning.PHENOMENON_TYPE_CHOICES`, naming which
             table `phenomenon` belongs in (ignored when `phenomenon` is a
             `StarSystem`, which always goes through `insert_star_system`
             regardless of whether it's anchored by a black hole or a
@@ -4306,7 +4308,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
     Args:
         conn (Connection): Part of the caller's transaction.
         name (str): What it's called.
-        kind (str): A `program_constants.FACILITY_KINDS` key.
+        kind (str): A `tuning.FACILITY_KINDS` key.
         placement (str): `terrestrial`, `orbital`, `asteroid` or `standalone`.
         host_type (str): `star`, `planet`, `moon`, `asteroid_belt`,
             `asteroid_field`, or `space` (then `host_id` is a sector).
@@ -8248,7 +8250,7 @@ def _migrate_v32_to_v33(conn):
     """
     Moves the galaxy to the one sector standard -- see `schema.sql`'s
     "v33" header note: a whole-parsec edge
-    (`program_constants.DEFAULT_SECTOR_EDGE_PC`), `round(2*pi*(i + 1/2))`
+    (`tuning.DEFAULT_SECTOR_EDGE_PC`), `round(2*pi*(i + 1/2))`
     slots per ring, and a per-layer skeleton (`galaxy_layer`). Nearly
     every cell's address and position changes, so, as in v32, every
     galaxy-placed sector is **deleted** together with its star systems and
@@ -8283,8 +8285,8 @@ def _migrate_v32_to_v33(conn):
 
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
-        edge_pc = float(program_constants.DEFAULT_SECTOR_EDGE_PC)
-        e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
+        edge_pc = float(tuning.DEFAULT_SECTOR_EDGE_PC)
+        e_value = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
         extents, outer_ring_index, _confirmed = build_layer_extents(skeleton.shape, edge_pc, 1.0 / e_value)
         replace_galaxy_layers(extents, conn=conn)
         conn.execute(
@@ -8376,8 +8378,8 @@ def _migrate_v35_to_v36(conn):
             "UPDATE black_holes SET mass_class = CASE "
             "WHEN mass_solar >= ? THEN 'supermassive' WHEN mass_solar >= ? THEN 'intermediate' "
             "ELSE 'stellar' END, modified_at = modified_at",
-            (program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0],
-             program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]),
+            (tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0],
+             tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]),
         )
     conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
 
@@ -8400,8 +8402,8 @@ def _migrate_v36_to_v37(conn):
             "ALTER TABLE rogue_planets ADD COLUMN mass_bin VARCHAR(16) NOT NULL DEFAULT 'terrestrial' AFTER planet_type"
         )
         earth = physical_constants.EARTH_MASS_TO_KG
-        bins = program_constants.ROGUE_PLANET_MASS_BINS
-        brown_dwarf_kg = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG
+        bins = tuning.ROGUE_PLANET_MASS_BINS
+        brown_dwarf_kg = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * physical_constants.JUPITER_MASS_TO_KG
         conn.execute(
             "UPDATE rogue_planets SET mass_bin = CASE "
             "WHEN mass_kg >= ? THEN 'brown-dwarf' WHEN mass_kg < ? THEN 'terrestrial' "
@@ -9682,7 +9684,7 @@ def advance_comet_orbits(conn, elapsed_years):
     elliptical comet, `parabolic_mean_anomaly` for a parabolic one) by
     `elapsed_years`, and recomputes `distance_km`/`position_x/y/z_km`/
     `orbital_speed_kms` from the new anomaly via
-    `keplerMotion.comet_orbital_state` -- the Kepler/Barker-equation
+    `kepler.comet_orbital_state` -- the Kepler/Barker-equation
     analog of `advance_orbital_phases`'s planet/moon handling, called
     separately by `updateOrbits.py` alongside it.
 
@@ -9696,7 +9698,7 @@ def advance_comet_orbits(conn, elapsed_years):
     expressible in standard SQL. So this fetches every `comets` row and
     does that computation in Python -- one Python loop instead of one
     set-based statement, the necessary tradeoff for correctness here (in
-    practice a small table -- see `program_constants.SYSTEM_COMET_COUNT_RANGE`
+    practice a small table -- see `tuning.SYSTEM_COMET_COUNT_RANGE`
     -- so this isn't the scaling concern it would be for `planets`/`moons`).
     The resulting rows are still written back in one batched `UPDATE` via
     `executemany` (like `insert_sector`'s per-vertex rows), not one
@@ -9709,7 +9711,7 @@ def advance_comet_orbits(conn, elapsed_years):
     the identical way (see `advance_orbital_phases`'s docstring) -- skipped
     entirely, not just a no-op write, when `elapsed_years` is below it. A
     parabolic comet's `parabolic_mean_anomaly` instead advances LINEARLY
-    (via `keplerMotion.parabolic_mean_anomaly`) and does NOT wrap (a
+    (via `kepler.parabolic_mean_anomaly`) and does NOT wrap (a
     parabolic pass is a one-shot event, not periodic -- see
     `cometData.Comet`'s own `parabolic_mean_anomaly` docstring), and has no
     `min_update_interval_years` floor to guard against (same docstring) --
@@ -9757,12 +9759,12 @@ def advance_comet_orbits(conn, elapsed_years):
         else:
             new_mean_anomaly_deg = None
             mean_anomaly_rad = None
-            new_parabolic_mean_anomaly = row["parabolic_mean_anomaly"] + keplerMotion.parabolic_mean_anomaly(
+            new_parabolic_mean_anomaly = row["parabolic_mean_anomaly"] + kepler.parabolic_mean_anomaly(
                 elapsed_years, perihelion_distance_au, row["primary_mass_solar"]
             )
             parabolic_mean_anomaly_value = new_parabolic_mean_anomaly
 
-        state = keplerMotion.comet_orbital_state(
+        state = kepler.comet_orbital_state(
             row["orbit_type"], perihelion_distance_au, row["eccentricity"],
             row["inclination_deg"], row["arg_periapsis_deg"], row["ascending_node_deg"],
             row["primary_mass_solar"],

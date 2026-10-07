@@ -87,8 +87,8 @@ try:
         TILE_MAX_LEVEL,
         TILE_ROOT_EDGE_PC,
     )
-    from stellarObjects.physical_constants import LOCAL_STELLAR_DENSITY_LY3
-    from stellarObjects.program_constants import GALAXY_RADIUS_PC
+    from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
+    from planetgen.tuning import GALAXY_RADIUS_PC
     from stellarObjects.utils import ly_to_pc, pc_to_ly
 except ImportError:
     TILE_ROOT_EDGE_PC = 65536.0
@@ -104,7 +104,7 @@ except ImportError:
         return pc * 3.2616
 
 DEFAULT_SECTOR_EDGE_LY_FALLBACK = 13.046  # 4 pc
-"""float: Used only if `stellarObjects.program_constants` itself isn't
+"""float: Used only if `planetgen.tuning` itself isn't
 importable (see the top-of-file fallback above) -- matches that module's
 own `DEFAULT_SECTOR_EDGE_LY`."""
 

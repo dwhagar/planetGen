@@ -1,6 +1,6 @@
 """
 Bright-star pre-placement: every star at least
-`program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL` bright is drawn and
+`tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL` bright is drawn and
 placed galaxy-wide right after `generate.py plan`, into `bright_stars`,
 while every sector stays unfilled. A sector's fill later builds a full
 system around each of its pre-placed stars (`fill_context`, used by
@@ -42,7 +42,8 @@ stars that overshoot it).
 import math
 import random
 
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from .galaxyDensity import population_densities, predicted_star_count
 from .galaxyGeometry import (
     galaxy_to_local_pc,
@@ -102,7 +103,7 @@ def canonical_bands(min_luminosity_sol, max_luminosity_sol=None):
             `band_fractions` does).
     """
     band_fractions(min_luminosity_sol, max_luminosity_sol)  # refuses a bad threshold first
-    lowest = program_constants.WD_LUMINOSITY_RANGE_SOL[1]
+    lowest = tuning.WD_LUMINOSITY_RANGE_SOL[1]
     k = min(math.floor(BANDS_PER_DECADE * math.log10(min_luminosity_sol) + 1e-9), TOP_BAND)
     while k > -10 ** 6 and 10 ** (k / BANDS_PER_DECADE) > min_luminosity_sol:
         k -= 1
@@ -124,8 +125,8 @@ def _in_range(row, min_luminosity_sol, max_luminosity_sol):
     """Whether a drawn row's luminosity (column 12, watts) is in `[min,
     max)` Lsun."""
     watts = row[12]
-    return (watts >= min_luminosity_sol * physical_constants.SOLAR_LUMINOSITY
-            and (max_luminosity_sol is None or watts < max_luminosity_sol * physical_constants.SOLAR_LUMINOSITY))
+    return (watts >= min_luminosity_sol * constants.SOLAR_LUMINOSITY
+            and (max_luminosity_sol is None or watts < max_luminosity_sol * constants.SOLAR_LUMINOSITY))
 
 
 def _densities(position_pc, shape):

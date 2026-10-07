@@ -21,7 +21,8 @@ from .names import (
     NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
     UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
 )
-from . import physical_constants, program_constants
+from planetgen.physics import constants as physical_constants
+from planetgen import tuning
 
 def _numeric_leaves(value):
     if isinstance(value, (tuple, list)):
@@ -135,7 +136,7 @@ def get_star_evolutionary_profile(star):
     """
     reference_star = star._primary if hasattr(star, '_primary') else star
     spectral_class_char = reference_star.type[0].upper()
-    base_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+    base_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
     if not base_info:
         return {}
 
@@ -149,7 +150,7 @@ def get_star_evolutionary_profile(star):
 
     reachable_scales = [
         scale for scale in ["fast", "normal", "slow"]
-        if program_constants.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
+        if tuning.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
     ]
     if not reachable_scales:
         # Even the fastest pace doesn't fit -- still return it so callers have
@@ -519,7 +520,7 @@ def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None
         system_config (SystemConfig): Picks HTML or wikitext notation.
         radius_km (float): The radius, in kilometers.
         precision (int, optional): Decimal places of the mantissa; defaults
-            to `program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES`.
+            to `tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES`.
 
     Returns:
         str: e.g. "6.371 × 10^3 km".
@@ -527,7 +528,7 @@ def format_body_radius_km(system_config: SystemConfig, radius_km, precision=None
     if radius_km is None:
         return "\u2013"
     if precision is None:
-        precision = program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES
+        precision = tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES
     return f"{to_scientific_notation(system_config, radius_km, precision)} km"
 
 
@@ -577,10 +578,10 @@ def format_relative_to_sol(system_config: SystemConfig, value, sol_constant, uni
     """
     sol_val = value / sol_constant
     sci_notation = to_scientific_notation(system_config, value)
-    if sol_val < program_constants.PERCENT_SOL_THRESHOLD_LOW:
-        return f"{sci_notation} {unit} ({sol_val * program_constants.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
-    elif sol_val < program_constants.PERCENT_SOL_THRESHOLD_HIGH:
-        return f"{sci_notation} {unit} ({sol_val * program_constants.PERCENT_MULTIPLIER:.1f}% of Sol)"
+    if sol_val < tuning.PERCENT_SOL_THRESHOLD_LOW:
+        return f"{sci_notation} {unit} ({sol_val * tuning.PERCENT_MULTIPLIER:.{low_percent_precision}f}% of Sol)"
+    elif sol_val < tuning.PERCENT_SOL_THRESHOLD_HIGH:
+        return f"{sci_notation} {unit} ({sol_val * tuning.PERCENT_MULTIPLIER:.1f}% of Sol)"
     else:
         return f"{sci_notation} {unit} ({format_number(sol_val, ',.1f')}× Sol)"
 
@@ -823,7 +824,7 @@ def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max
     real-world single-body analog sits 27% of the way from its declared
     radius minimum to its maximum uses `mode_fraction=0.27` so generated
     instances cluster around that real value instead of being spread flatly
-    across the whole declared range (see `program_constants.PLANET_CLASSES`'
+    across the whole declared range (see `tuning.PLANET_CLASSES`'
     own `size_mode` values and the real-world analogs their docstrings
     cite).
 
@@ -977,7 +978,7 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
                          - 5.09*mu^2 + 4.61*e^2*mu^2
 
     `mu` is the lighter star's fraction of the pair's total mass. Inputs
-    are clamped to `program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE`/
+    are clamped to `tuning.HOLMAN_WIEGERT_P_TYPE_MU_RANGE`/
     `HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE` (the fit's tested grid)
     rather than extrapolated. A circular equal-mass pair gives about
     2.39 * a_bin.
@@ -990,8 +991,8 @@ def holman_wiegert_circumbinary_a_crit_au(binary_separation_au, secondary_mass_f
     Returns:
         float: The innermost stable circumbinary orbit, in AU.
     """
-    mu_min, mu_max = program_constants.HOLMAN_WIEGERT_P_TYPE_MU_RANGE
-    e_min, e_max = program_constants.HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
+    mu_min, mu_max = tuning.HOLMAN_WIEGERT_P_TYPE_MU_RANGE
+    e_min, e_max = tuning.HOLMAN_WIEGERT_P_TYPE_ECCENTRICITY_RANGE
     mu = min(max(secondary_mass_fraction, mu_min), mu_max)
     e = min(max(eccentricity, e_min), e_max)
 
@@ -1037,7 +1038,7 @@ def mutual_hill_radius_au(mass1_kg, mass2_kg, distance1_au, distance2_au, centra
 def sample_wide_binary_separation_au():
     """
     Draws an S-type (wide) binary's separation (semi-major axis), log-
-    uniformly between `program_constants.WIDE_BINARY_SEPARATION_MIN_AU`
+    uniformly between `tuning.WIDE_BINARY_SEPARATION_MIN_AU`
     and `WIDE_BINARY_SEPARATION_MAX_AU` -- see those constants' own
     docstring for why log-uniform (not linear-uniform) sampling is used.
     Uses the same `math.exp(random.uniform(math.log(...), math.log(...)))`
@@ -1047,8 +1048,8 @@ def sample_wide_binary_separation_au():
     Returns:
         float: A separation, in AU.
     """
-    low = program_constants.WIDE_BINARY_SEPARATION_MIN_AU
-    high = program_constants.WIDE_BINARY_SEPARATION_MAX_AU
+    low = tuning.WIDE_BINARY_SEPARATION_MIN_AU
+    high = tuning.WIDE_BINARY_SEPARATION_MAX_AU
     return math.exp(random.uniform(math.log(low), math.log(high)))
 
 
@@ -1056,7 +1057,7 @@ def sample_wide_binary_eccentricity():
     """
     Draws an S-type (wide) binary's orbital eccentricity from a "thermal"
     distribution, `f(e) = 2e`, capped at
-    `program_constants.WIDE_BINARY_ECCENTRICITY_MAX` -- see that constant's
+    `tuning.WIDE_BINARY_ECCENTRICITY_MAX` -- see that constant's
     own docstring for why wide pairs (unlike the close/P-type pair) keep a
     realistic, generally non-zero eccentricity.
 
@@ -1069,7 +1070,7 @@ def sample_wide_binary_eccentricity():
     Returns:
         float: An eccentricity, in [0, `WIDE_BINARY_ECCENTRICITY_MAX`).
     """
-    return program_constants.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())
+    return tuning.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())
 
 
 @finite_domain()
@@ -1089,7 +1090,7 @@ def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_m
     -- i.e. the single-body formula generalized to use the *pair's*
     combined mass and average distance, rather than either body's own
     mass and distance alone. See
-    `program_constants.MUTUAL_HILL_RADII_SEPARATION` for how this
+    `tuning.MUTUAL_HILL_RADII_SEPARATION` for how this
     generator turns this length into an actual minimum separation.
 
     Args:
@@ -1133,7 +1134,7 @@ def disk_surface_density_scale(star_mass_kg):
     How much a star's own protoplanetary disk's solid surface density
     should be scaled relative to the Sun's (MMSN) value, based on the
     real, observed disk-mass-vs-stellar-mass relation -- see
-    `program_constants.DISK_MASS_STELLAR_MASS_EXPONENT`'s docstring for
+    `tuning.DISK_MASS_STELLAR_MASS_EXPONENT`'s docstring for
     the literature basis. Feeds `mmsn_surface_density_gcm2`'s own
     `density_scale` argument.
 
@@ -1144,7 +1145,7 @@ def disk_surface_density_scale(star_mass_kg):
         float: A dimensionless scale factor, 1.0 for a solar-mass star.
     """
     solar_masses = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
-    return solar_masses ** program_constants.DISK_MASS_STELLAR_MASS_EXPONENT
+    return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT
 
 
 @finite_domain()
@@ -1184,7 +1185,7 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
     The oligarchic-growth isolation mass (Lissauer 1993; Kokubo & Ida
     2000, 2002): the mass a growing embryo reaches once it has cleared its
     own feeding zone of width `b` mutual Hill radii
-    (`program_constants.MUTUAL_HILL_RADII_SEPARATION`) -- the same `b`
+    (`tuning.MUTUAL_HILL_RADII_SEPARATION`) -- the same `b`
     `StarSystem._mutual_min_distance_au` uses for adjacent-planet spacing,
     so this count estimate and that spacing rule are provably consistent.
 
@@ -1209,7 +1210,7 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
     """
     distance_m = distance_au * physical_constants.AU_TO_M
     surface_density_kgm2 = surface_density_gcm2 * 10  # 1 g/cm^2 = 10 kg/m^2
-    b = program_constants.MUTUAL_HILL_RADII_SEPARATION
+    b = tuning.MUTUAL_HILL_RADII_SEPARATION
     base = 2 * math.pi * b * surface_density_kgm2 * distance_m ** 2
     return base ** (3 / 2) / (3 * star_mass_kg) ** 0.5
 

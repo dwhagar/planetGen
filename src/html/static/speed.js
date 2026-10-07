@@ -11,7 +11,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 
-// Exact (the SI definition), km/s (stellarObjects/physical_constants.py).
+// Exact (the SI definition), km/s (planetgen/physics/constants.py).
 export const SPEED_OF_LIGHT_KMS = 299792.458;
 
 // [label, km/s per unit, shown from this many km/s up], slowest first.

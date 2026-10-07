@@ -43,7 +43,8 @@ import math
 import random
 
 from .config import SystemConfig
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .starData import Star
@@ -62,9 +63,9 @@ def hawking_temperature_k(mass_solar):
     A black hole's Hawking temperature, T = hbar c^3 / (8 pi G M k_B):
     about 6.2e-8 K for one solar mass, falling as 1/M (GEN.82).
     """
-    mass_kg = mass_solar * physical_constants.SOLAR_MASS_TO_KG
-    return (physical_constants.REDUCED_PLANCK * physical_constants.SPEED_OF_LIGHT_M_S ** 3
-            / (8 * math.pi * physical_constants.G * mass_kg * physical_constants.BOLTZMANN))
+    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 3
+            / (8 * math.pi * constants.G * mass_kg * constants.BOLTZMANN))
 
 
 def hawking_luminosity_w(mass_solar):
@@ -73,17 +74,17 @@ def hawking_luminosity_w(mass_solar):
     (photons only): about 9e-29 W for one solar mass, falling as 1/M^2
     (GEN.82).
     """
-    mass_kg = mass_solar * physical_constants.SOLAR_MASS_TO_KG
-    return (physical_constants.REDUCED_PLANCK * physical_constants.SPEED_OF_LIGHT_M_S ** 6
-            / (15360 * math.pi * physical_constants.G ** 2 * mass_kg ** 2))
+    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 6
+            / (15360 * math.pi * constants.G ** 2 * mass_kg ** 2))
 
 
 def infer_black_hole_mass_class(mass_solar):
     """The mass class a black hole of `mass_solar` falls in, for rows
     saved before `mass_class` was stored (schema v36)."""
-    if mass_solar >= program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0]:
+    if mass_solar >= tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0]:
         return "supermassive"
-    if mass_solar >= program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]:
+    if mass_solar >= tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0]:
         return "intermediate"
     return "stellar"
 
@@ -120,7 +121,7 @@ class CompactRemnant(Star):
         """
         Draws an age since the core-collapse supernova that formed this
         remnant, in billions of years
-        (`program_constants.COMPACT_REMNANT_AGE_RANGE_GY`). Lifespan is
+        (`tuning.COMPACT_REMNANT_AGE_RANGE_GY`). Lifespan is
         `float('inf')` -- the same convention `Star` uses for white dwarfs
         -- since a black hole/neutron star doesn't have a further
         evolutionary endpoint this generator models; it simply persists.
@@ -128,7 +129,7 @@ class CompactRemnant(Star):
         Returns:
             tuple: `(age_gy, lifespan_gy)`.
         """
-        age = random.uniform(*program_constants.COMPACT_REMNANT_AGE_RANGE_GY)
+        age = random.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY)
         return age, float('inf')
 
     def _finish_init(self, galactic_orbital_phase_deg=None):
@@ -242,45 +243,45 @@ class BlackHole(CompactRemnant):
             raise ValueError(f"mass_class must be None or 'supermassive', got {mass_class!r}")
         if mass_class == "supermassive":
             self.mass_class = "supermassive"
-            self.mass_solar = _log_uniform(*program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
-        elif random.random() < program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
+            self.mass_solar = _log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
+        elif random.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
             self.mass_class = "intermediate"
-            self.mass_solar = _log_uniform(*program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
+            self.mass_solar = _log_uniform(*tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "intermediate-mass",
                        f"roll passed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
-                       f"({program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
+                       f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
         else:
             self.mass_class = "stellar"
-            self.mass_solar = random.uniform(*program_constants.BLACK_HOLE_MASS_RANGE_SOLAR)
+            self.mass_solar = random.uniform(*tuning.BLACK_HOLE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "stellar-mass",
                        f"roll failed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
-                       f"({program_constants.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
-        self.mass = self.mass_solar * physical_constants.SOLAR_MASS_TO_KG
+                       f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
+        self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
 
         # Schwarzschild radius: r_s = 2GM/c^2 (the non-rotating event
         # horizon radius -- spin technically shrinks this for a Kerr black
         # hole, but the Schwarzschild value is used here as the simple,
         # standard reference radius).
         schwarzschild_radius_m = (
-            2 * physical_constants.G * self.mass / physical_constants.SPEED_OF_LIGHT_M_S ** 2
+            2 * constants.G * self.mass / constants.SPEED_OF_LIGHT_M_S ** 2
         )
         self.event_horizon_radius_km = schwarzschild_radius_m / 1000
         self.radius = self.event_horizon_radius_km
 
-        self.spin = random.uniform(*program_constants.BLACK_HOLE_SPIN_RANGE)
+        self.spin = random.uniform(*tuning.BLACK_HOLE_SPIN_RANGE)
         if self.mass_class == "supermassive":
             # Always some accretion flow, far below Eddington (Sgr A*).
             self.has_accretion_disk = True
-            eddington_ratio = _log_uniform(*program_constants.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE)
+            eddington_ratio = _log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE)
             self.luminosity = (
-                eddington_ratio * program_constants.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * self.mass_solar
+                eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * self.mass_solar
             )
             self.temperature = random.uniform(1e5, 1e7)
         else:
-            self.has_accretion_disk = random.random() < program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE
+            self.has_accretion_disk = random.random() < tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE
             log.choice("Accretion disk", self.has_accretion_disk,
                        f"roll against BLACK_HOLE_ACCRETION_DISK_CHANCE "
-                       f"({program_constants.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
+                       f"({tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
 
             if self.has_accretion_disk:
                 # Eddington luminosity, L_edd = 1.26e31 * (M/Msun) W (standard
@@ -309,8 +310,8 @@ class BlackHole(CompactRemnant):
             # sphere of influence (G*M / sigma^2), not a galactic Hill sphere.
             (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
              self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = None, None, None, None
-            sigma_m_s = program_constants.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
-            self.system_perimeter = physical_constants.G * self.mass / sigma_m_s ** 2 / physical_constants.AU_TO_M
+            sigma_m_s = tuning.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+            self.system_perimeter = constants.G * self.mass / sigma_m_s ** 2 / constants.AU_TO_M
 
     @property
     def mass_class_label(self):
@@ -337,11 +338,11 @@ class BlackHole(CompactRemnant):
             dict: Keys `type`, `mass`, `event_horizon`, `spin`, `disk`,
                  `orbit`, `loc`, each an already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
         radius_string = format_length_km(
             self.system_config, self.radius,
-            program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-            program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
+            tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+            tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
         orbit_string = (
             "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
@@ -359,7 +360,7 @@ class BlackHole(CompactRemnant):
         if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * physical_constants.AU_TO_KM
+            ) * constants.AU_TO_KM
             properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 
@@ -437,38 +438,38 @@ class NeutronStar(CompactRemnant):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.mass_solar = random.uniform(*program_constants.NEUTRON_STAR_MASS_RANGE_SOLAR)
-        self.mass = self.mass_solar * physical_constants.SOLAR_MASS_TO_KG
-        self.radius = random.uniform(*program_constants.NEUTRON_STAR_RADIUS_RANGE_KM)
-        self.surface_temperature_k = random.uniform(*program_constants.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
+        self.mass_solar = random.uniform(*tuning.NEUTRON_STAR_MASS_RANGE_SOLAR)
+        self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
+        self.radius = random.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
+        self.surface_temperature_k = random.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
 
-        is_pulsar = random.random() < program_constants.NEUTRON_STAR_PULSAR_CHANCE
-        if is_pulsar and random.random() < program_constants.PULSAR_MILLISECOND_CHANCE:
+        is_pulsar = random.random() < tuning.NEUTRON_STAR_PULSAR_CHANCE
+        if is_pulsar and random.random() < tuning.PULSAR_MILLISECOND_CHANCE:
             self.pulsar_type = "millisecond"
-            self.spin_period_ms = random.uniform(*program_constants.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
-            self.magnetic_field_gauss = random.uniform(*program_constants.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND)
+            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
+            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND)
         elif is_pulsar:
             self.pulsar_type = "young"
-            self.spin_period_ms = random.uniform(*program_constants.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
-            self.magnetic_field_gauss = random.uniform(*program_constants.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
+            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
+            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
         else:
             self.pulsar_type = "non-pulsing"
-            self.spin_period_ms = random.uniform(*program_constants.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
-            self.magnetic_field_gauss = random.uniform(*program_constants.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
+            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
+            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
         log.choice("Pulsar type", self.pulsar_type,
                    f"is_pulsar={is_pulsar} (NEUTRON_STAR_PULSAR_CHANCE="
-                   f"{program_constants.NEUTRON_STAR_PULSAR_CHANCE}, PULSAR_MILLISECOND_CHANCE="
-                   f"{program_constants.PULSAR_MILLISECOND_CHANCE})")
+                   f"{tuning.NEUTRON_STAR_PULSAR_CHANCE}, PULSAR_MILLISECOND_CHANCE="
+                   f"{tuning.PULSAR_MILLISECOND_CHANCE})")
 
         # Blackbody thermal luminosity from the surface (Stefan-Boltzmann
         # law), the same physical relationship Star.generate_star's white-
         # dwarf branch and calculate_heliosphere both already lean on
         # elsewhere in this package -- a neutron star's small radius keeps
         # this a tiny fraction of Sol's luminosity even at its hottest.
-        radius_m = self.radius * physical_constants.KM_TO_M_FACTOR
+        radius_m = self.radius * constants.KM_TO_M_FACTOR
         self.luminosity = (
-            physical_constants.STEFAN_BOLTZMANN_CONSTANT * 4 * math.pi * radius_m ** 2
+            constants.STEFAN_BOLTZMANN_CONSTANT * 4 * math.pi * radius_m ** 2
             * self.surface_temperature_k ** 4
         )
 
@@ -489,11 +490,11 @@ class NeutronStar(CompactRemnant):
                  `magnetic_field`, `surface_temp`, `orbit`, `loc`, each an
                  already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
         radius_string = format_length_km(
             self.system_config, self.radius,
-            program_constants.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-            program_constants.ROUND_RADIUS_KM, program_constants.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
+            tuning.RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+            tuning.ROUND_RADIUS_KM, tuning.SCIENTIFIC_NOTATION_DECIMAL_PLACES,
         )
         orbit_string = (
             "None (the galaxy's center)" if self.galactic_orbital_period_gy is None
@@ -512,7 +513,7 @@ class NeutronStar(CompactRemnant):
         if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * physical_constants.AU_TO_KM
+            ) * constants.AU_TO_KM
             properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 

@@ -1,4 +1,4 @@
-# stellarObjects/rogueSurface.py
+# planetgen/physics/rogue_surface.py
 
 """
 Rogue Planet Surface Conditions
@@ -26,7 +26,8 @@ a new `RoguePlanet` and back-fills stored rows (`_db._migrate_v47_to_v48`).
 import math
 import random
 
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 
 SURFACE_REGIMES = (
     "bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world",
@@ -64,7 +65,7 @@ NITROGEN_TRIPLE_POINT_PA = 12.5e3
 NITROGEN_SUBLIMATION_J_MOL = 6.9e3
 GAS_CONSTANT_J_MOL_K = 8.314
 BAR_TO_PA = 1e5
-HYDROGEN_MOLECULE_KG = 2 * physical_constants.HYDROGEN_ATOM_MASS_KG
+HYDROGEN_MOLECULE_KG = 2 * constants.HYDROGEN_ATOM_MASS_KG
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 
 
@@ -73,7 +74,7 @@ def _log_uniform(rng, low, high):
 
 
 def _sigma():
-    return physical_constants.STEFAN_BOLTZMANN_CONSTANT
+    return constants.STEFAN_BOLTZMANN_CONSTANT
 
 
 def radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance=1.0):
@@ -83,7 +84,7 @@ def radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance=1.0):
     mantle concentrations (`ROGUE_RADIOGENIC_ISOTOPES`) as they stood at
     `age_gy`, times `abundance`.
     """
-    pc = program_constants
+    pc = tuning
     mantle_kg = mass_kg * pc.ROGUE_MANTLE_MASS_FRACTION
     area_m2 = 4 * math.pi * (radius_km * 1000.0) ** 2
     heat_w_kg = 0.0
@@ -98,8 +99,8 @@ def _giant_luminosity_w(mass_kg, age_gy):
     mass through Neptune and Jupiter below 1 Mjup, from Jupiter to Burrows
     & Liebert's brown dwarf law at 13 Mjup, then that law; all fading as
     t^-1.3 (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
-    pc = program_constants
-    phys = physical_constants
+    pc = tuning
+    phys = constants
     jupiter_l = pc.ROGUE_JUPITER_INTERNAL_FLUX_W_M2 * 4 * math.pi * (phys.JUPITER_RADIUS_KM * 1000.0) ** 2
     neptune_mass_kg, neptune_radius_m = 1.024e26, 2.4764e7
     neptune_l = _sigma() * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
@@ -125,36 +126,36 @@ def giant_internal_flux_w_m2(mass_kg, radius_km, age_gy):
     """A giant's or brown dwarf's internal heat flux at its photosphere,
     W/m^2, capped at `ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`'s."""
     flux = _giant_luminosity_w(mass_kg, age_gy) / (4 * math.pi * (radius_km * 1000.0) ** 2)
-    return min(flux, _sigma() * program_constants.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K ** 4)
+    return min(flux, _sigma() * tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K ** 4)
 
 
 def effective_temperature_k(flux_w_m2):
     """Step 2: T_eff = ((F_int + sigma T_CMB^4) / sigma)^(1/4)."""
-    cmb = physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K
+    cmb = constants.COSMIC_BACKGROUND_TEMPERATURE_K
     return ((flux_w_m2 + _sigma() * cmb ** 4) / _sigma()) ** 0.25
 
 
 def surface_gravity_m_s2(mass_kg, radius_km):
-    return physical_constants.G * mass_kg / (radius_km * 1000.0) ** 2
+    return constants.G * mass_kg / (radius_km * 1000.0) ** 2
 
 
 def escape_parameter(mass_kg, radius_km, molecule_kg, temperature_k):
     """Jeans escape parameter lambda = G M m / (k T R)."""
-    return (physical_constants.G * mass_kg * molecule_kg
-            / (physical_constants.BOLTZMANN * temperature_k * radius_km * 1000.0))
+    return (constants.G * mass_kg * molecule_kg
+            / (constants.BOLTZMANN * temperature_k * radius_km * 1000.0))
 
 
 def adiabat_temperature_k(top_temperature_k, top_pressure_pa, pressure_pa):
     """Down a dry H2/He adiabat: T = T_top (P / P_top)^((gamma - 1) / gamma)."""
-    gamma = physical_constants.ADIABATIC_INDEX_H2_HE
+    gamma = constants.ADIABATIC_INDEX_H2_HE
     return top_temperature_k * (pressure_pa / top_pressure_pa) ** ((gamma - 1) / gamma)
 
 
 def giant_photosphere_pressure_pa(gravity_m_s2):
     """Where tau = 2/3: P = (2/3) g / kappa_R, with one Rosseland opacity
     for every giant fixed by Jupiter (`ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR`)."""
-    jupiter_g = surface_gravity_m_s2(physical_constants.JUPITER_MASS_TO_KG, physical_constants.JUPITER_RADIUS_KM)
-    kappa = (2 / 3) * jupiter_g / (program_constants.ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR * BAR_TO_PA)
+    jupiter_g = surface_gravity_m_s2(constants.JUPITER_MASS_TO_KG, constants.JUPITER_RADIUS_KM)
+    kappa = (2 / 3) * jupiter_g / (tuning.ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR * BAR_TO_PA)
     return (2 / 3) * gravity_m_s2 / kappa
 
 
@@ -193,7 +194,7 @@ def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATE
     D = (A / F) ln(T_base / T_top). 0 when the top is already at melting."""
     if top_temperature_k >= base_temperature_k:
         return 0.0
-    return (program_constants.ROGUE_ICE_CONDUCTIVITY_A_W_M / flux_w_m2
+    return (tuning.ROGUE_ICE_CONDUCTIVITY_A_W_M / flux_w_m2
             * math.log(base_temperature_k / top_temperature_k) / 1000.0)
 
 
@@ -225,7 +226,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
             (`None` when there is no ice or no ocean), `has_liquid_water`
             and `has_internal_heat` (still geologically active, or a giant).
     """
-    pc = program_constants
+    pc = tuning
     age_gy = rng.uniform(*pc.ROGUE_PLANET_AGE_RANGE_GY)
     gravity = surface_gravity_m_s2(mass_kg, radius_km)
     result = {
@@ -262,7 +263,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
     water_fraction = None
     if rng.random() < pc.ROGUE_WATER_RICH_CHANCE.get(mass_bin, 0.0):
         water_fraction = _log_uniform(rng, *pc.ROGUE_WATER_MASS_FRACTION_RANGE)
-    had_air = mass_kg / physical_constants.EARTH_MASS_TO_KG >= pc.ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH
+    had_air = mass_kg / constants.EARTH_MASS_TO_KG >= pc.ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH
 
     # Step 4: down the envelope's adiabat, or the bare surface at T_eff.
     if envelope_pa is not None:
@@ -292,7 +293,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         "internal_heat_flux_w_m2": flux,
         "effective_temperature_k": t_eff,
         "surface_regime": regime,
-        "surface_temperature_k": max(surface_k, physical_constants.COSMIC_BACKGROUND_TEMPERATURE_K),
+        "surface_temperature_k": max(surface_k, constants.COSMIC_BACKGROUND_TEMPERATURE_K),
         "surface_pressure_pa": pressure_pa,
         "has_internal_heat": flux >= pc.ROGUE_ACTIVE_HEAT_FLUX_W_M2,
     })

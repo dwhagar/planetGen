@@ -37,8 +37,8 @@ from stellarObjects import activitylog
 from stellarObjects.asteroidData import format_composition_summary
 from stellarObjects.compactRemnant import hawking_luminosity_w, hawking_temperature_k
 from stellarObjects.roguePlanetData import format_comet_composition_summary
-from stellarObjects.program_constants import NEBULA_CLASSES
-from stellarObjects.rogueSurface import SURFACE_REGIME_LABELS
+from planetgen.tuning import NEBULA_CLASSES
+from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 
 from . import bp
 from . import edit_actions, system_facilities

@@ -23,10 +23,11 @@ import re
 
 from .config import SystemConfig
 from .names import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .stellarEvolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
+from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
                                star_params)
 from .utils import (format_age_string, format_number, calculate_galactic_orbit,
                     calculate_habitable_zone, calculate_hill_sphere, format_galactic_orbit,
@@ -50,7 +51,7 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     (`SOLAR_MS_LIFESPAN_GY * mass_sol ** MS_LIFESPAN_MASS_EXPONENT`, the
     same formula `Star._calculate_initial_star_age_and_lifespan`'s
     evolved-star branch uses) would already exceed
-    `program_constants.UNIVERSE_AGE_GY` on its own.
+    `tuning.UNIVERSE_AGE_GY` on its own.
 
     Such a mass could not actually have finished a main-sequence phase yet
     in the real universe, so a star with it could never legitimately be
@@ -60,14 +61,14 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
     keeps the accepted mass uniformly distributed over its valid portion
     instead of piling an artificial spike at the cutoff, matching the bias
     reasoning `spaceSector._random_point_in_annulus` documents for its own
-    sampling. `program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
+    sampling. `tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
     caps the retries, mirroring `SpaceSector._random_position`'s own
     reject-and-resample loop, so a caller passing a range that's entirely
     invalid fails loudly with a `ValueError` instead of looping forever or
     silently returning a self-contradictory mass.
 
     Not used for Yerkes class VI (subdwarfs): their entire allowed mass
-    range (0.1-0.8 Msun, see `physical_constants.YERKES_MASS_CONSTRAINTS`)
+    range (0.1-0.8 Msun, see `constants.YERKES_MASS_CONSTRAINTS`)
     sits below the ~0.88 Msun cutoff, so every draw would be rejected. Real
     subdwarfs are thought to form via binary mass-stripping rather than
     single-star post-main-sequence evolution, so applying a single-star
@@ -89,21 +90,21 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
 
     Raises:
         ValueError: If no valid mass was found within
-                   `program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
+                   `tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS`
                    attempts.
     """
-    for _ in range(program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS):
+    for _ in range(tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS):
         mass_sol = random.uniform(min_mass_sol, max_mass_sol)
-        ms_lifespan = (program_constants.SOLAR_MS_LIFESPAN_GY
-                       * mass_sol ** program_constants.MS_LIFESPAN_MASS_EXPONENT)
-        if ms_lifespan <= program_constants.UNIVERSE_AGE_GY:
+        ms_lifespan = (tuning.SOLAR_MS_LIFESPAN_GY
+                       * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT)
+        if ms_lifespan <= tuning.UNIVERSE_AGE_GY:
             return mass_sol
 
     raise ValueError(
         f"Could not sample a mass in [{min_mass_sol}, {max_mass_sol}] Msun whose implied "
         f"main-sequence lifespan doesn't exceed the age of the universe "
-        f"({program_constants.UNIVERSE_AGE_GY} Gy) after "
-        f"{program_constants.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS} attempts."
+        f"({tuning.UNIVERSE_AGE_GY} Gy) after "
+        f"{tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS} attempts."
     )
 
 
@@ -111,7 +112,7 @@ def cloud_pressure_pa(density_cm3, temperature_k):
     """
     The pressure a nebula or supernova remnant's gas puts on a star's
     heliopause: ram pressure from the star moving through it at
-    `physical_constants.STAR_CLOUD_RELATIVE_SPEED_MS` plus thermal pressure.
+    `constants.STAR_CLOUD_RELATIVE_SPEED_MS` plus thermal pressure.
 
     Args:
         density_cm3 (float): The cloud's hydrogen density (nH), per cm^3.
@@ -120,17 +121,17 @@ def cloud_pressure_pa(density_cm3, temperature_k):
     Returns:
         float: The pressure in pascals.
     """
-    n_m3 = max(density_cm3 or 0.0, 0.0) * physical_constants.CM3_TO_M3
-    rho = n_m3 * physical_constants.ISM_MASS_PER_HYDROGEN * physical_constants.HYDROGEN_ATOM_MASS_KG
-    ram = rho * physical_constants.STAR_CLOUD_RELATIVE_SPEED_MS ** 2
-    thermal = n_m3 * physical_constants.BOLTZMANN * max(temperature_k or 0.0, 0.0)
+    n_m3 = max(density_cm3 or 0.0, 0.0) * constants.CM3_TO_M3
+    rho = n_m3 * constants.ISM_MASS_PER_HYDROGEN * constants.HYDROGEN_ATOM_MASS_KG
+    ram = rho * constants.STAR_CLOUD_RELATIVE_SPEED_MS ** 2
+    thermal = n_m3 * constants.BOLTZMANN * max(temperature_k or 0.0, 0.0)
     return ram + thermal
 
 
 def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
     """
     A heliopause radius (computed against the open interstellar medium,
-    `physical_constants.ISM_PRESSURE`) pressed in by the cloud the star sits
+    `constants.ISM_PRESSURE`) pressed in by the cloud the star sits
     inside. The heliopause sits where the wind's momentum flux balances the
     outside pressure, so R scales as P^-1/2: a dense cold cloud (nH ~3,000
     cm^-3) shrinks the Sun's from ~85 AU to well under 1 AU. A cloud thinner
@@ -144,8 +145,8 @@ def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
     Returns:
         float: The compressed radius, AU.
     """
-    pressure = max(cloud_pressure_pa(density_cm3, temperature_k), physical_constants.ISM_PRESSURE)
-    return radius_au * math.sqrt(physical_constants.ISM_PRESSURE / pressure)
+    pressure = max(cloud_pressure_pa(density_cm3, temperature_k), constants.ISM_PRESSURE)
+    return radius_au * math.sqrt(constants.ISM_PRESSURE / pressure)
 
 
 class Star:
@@ -308,7 +309,7 @@ class Star:
         main-sequence lifespan the way it does for an ordinary giant. Age is
         instead drawn directly from a dedicated, old-population-biased
         range, and lifespan is that age plus a short remaining-phase window
-        (see `program_constants.SUBDWARF_*`) -- see this method's Yerkes-VI
+        (see `tuning.SUBDWARF_*`) -- see this method's Yerkes-VI
         branch below for the full rationale.
 
         For white dwarfs, the lifespan is considered effectively infinite as
@@ -339,12 +340,12 @@ class Star:
             # it just cools for trillions of years -- so age is drawn from a
             # dedicated cooling-age range instead of a lifespan fraction.
             lifespan = float('inf')
-            min_age = program_constants.WHITE_DWARF_MIN_AGE_GY
-            max_age = program_constants.WHITE_DWARF_MAX_AGE_GY
+            min_age = tuning.WHITE_DWARF_MIN_AGE_GY
+            max_age = tuning.WHITE_DWARF_MAX_AGE_GY
             if self.system_config.AGE == "old":
-                min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+                min_age = min_age + (max_age - min_age) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
-                max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+                max_age = max_age - (max_age - min_age) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
             age = random.uniform(min_age, max_age)
             return age, lifespan
 
@@ -373,16 +374,16 @@ class Star:
             # is short relative to that age (real sdB stars: roughly
             # 0.05-0.3 Gy), so lifespan is simply age plus a short
             # remaining-phase window rather than a separately-derived value.
-            min_age = program_constants.SUBDWARF_MIN_AGE_GY
-            max_age = program_constants.SUBDWARF_MAX_AGE_GY
+            min_age = tuning.SUBDWARF_MIN_AGE_GY
+            max_age = tuning.SUBDWARF_MAX_AGE_GY
             if self.system_config.AGE == "old":
-                min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+                min_age = min_age + (max_age - min_age) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
-                max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+                max_age = max_age - (max_age - min_age) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
             age = random.uniform(min_age, max_age)
             lifespan = age + random.uniform(
-                program_constants.SUBDWARF_REMAINING_PHASE_MIN_GY,
-                program_constants.SUBDWARF_REMAINING_PHASE_MAX_GY,
+                tuning.SUBDWARF_REMAINING_PHASE_MIN_GY,
+                tuning.SUBDWARF_REMAINING_PHASE_MAX_GY,
             )
             return age, lifespan
 
@@ -397,9 +398,9 @@ class Star:
             # from its own already-generated mass instead, then extend it
             # for the (much shorter) post-main-sequence phase it's
             # currently in.
-            mass_sol = self.mass / physical_constants.SOLAR_MASS_TO_KG
-            ms_lifespan = program_constants.SOLAR_MS_LIFESPAN_GY * mass_sol ** program_constants.MS_LIFESPAN_MASS_EXPONENT
-            lifespan = ms_lifespan / program_constants.MS_LIFESPAN_FRACTION_OF_TOTAL
+            mass_sol = self.mass / constants.SOLAR_MASS_TO_KG
+            ms_lifespan = tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
+            lifespan = ms_lifespan / tuning.MS_LIFESPAN_FRACTION_OF_TOTAL
 
             # The star must already have completed its main-sequence phase to
             # be observed as an evolved class, so age is drawn from the
@@ -407,9 +408,9 @@ class Star:
             min_age = ms_lifespan
             max_age = lifespan
             if self.system_config.AGE == "old":
-                min_age = min_age + (max_age - min_age) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+                min_age = min_age + (max_age - min_age) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
-                max_age = max_age - (max_age - min_age) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+                max_age = max_age - (max_age - min_age) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
 
             # No star observed today can be older than the universe itself,
             # regardless of how long its class could theoretically keep
@@ -430,13 +431,13 @@ class Star:
             # happen in practice; this `max(..., min_age)` is kept as a
             # defensive fallback rather than an assumption that `self.mass`
             # is always already valid.
-            max_age = max(min(max_age, program_constants.UNIVERSE_AGE_GY), min_age)
+            max_age = max(min(max_age, tuning.UNIVERSE_AGE_GY), min_age)
             age = random.uniform(min_age, max_age)
 
             return age, lifespan
 
         spectral_class_char = self.type[0]
-        star_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+        star_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
 
         min_lifespan, max_lifespan = star_info["lifespan_gy"]
         lifespan = random.uniform(min_lifespan, max_lifespan)
@@ -447,17 +448,17 @@ class Star:
         # make min_age exceed max_age below, silently discarding the young/old
         # request and any real age variance for those types. Scale it down for
         # short-lived stars so it never exceeds a small fraction of their own lifespan.
-        min_age = min(program_constants.MIN_INITIAL_STAR_AGE_GY,
-                      lifespan * program_constants.MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO)
-        max_age = lifespan * program_constants.MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
+        min_age = min(tuning.MIN_INITIAL_STAR_AGE_GY,
+                      lifespan * tuning.MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO)
+        max_age = lifespan * tuning.MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO
 
         # Values are calculated to be either in last ratio of the
         # lifespan (i.e. the last 1/3 of the star's life or the
         # first 1/3 of a star's life).
         if self.system_config.AGE == "old":
-            min_age = min_age + lifespan * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+            min_age = min_age + lifespan * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
         elif self.system_config.AGE == "young":
-            max_age = max_age - lifespan * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+            max_age = max_age - lifespan * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
 
         # No star observed today can be older than the universe itself,
         # regardless of how long its class could theoretically keep burning
@@ -466,7 +467,7 @@ class Star:
         # an implausible "918 billion years old" age. Re-clamp min_age down
         # to the (possibly now-lower) max_age afterward so an "old" bias
         # never inverts the range for such a star.
-        max_age = min(max_age, program_constants.UNIVERSE_AGE_GY)
+        max_age = min(max_age, tuning.UNIVERSE_AGE_GY)
         min_age = min(min_age, max_age)
 
         age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
@@ -487,8 +488,8 @@ class Star:
         supported_scales = get_star_evolutionary_profile(self).get("supported_evolutionary_scales", [])
         required = 0.0
         for planet in planets:
-            if hasattr(planet, 'planet_class') and planet.planet_class in program_constants.PLANET_CLASSES:
-                age_ranges = program_constants.PLANET_CLASSES[planet.planet_class].get("age_ranges", {})
+            if hasattr(planet, 'planet_class') and planet.planet_class in tuning.PLANET_CLASSES:
+                age_ranges = tuning.PLANET_CLASSES[planet.planet_class].get("age_ranges", {})
                 for scale in supported_scales:
                     if scale in age_ranges:
                         required = max(required, age_ranges[scale][0])
@@ -513,8 +514,8 @@ class Star:
             limit = self.lifespan
         else:
             return float('inf')
-        return max(self.age, min(limit * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                                 program_constants.UNIVERSE_AGE_GY))
+        return max(self.age, min(limit * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                                 tuning.UNIVERSE_AGE_GY))
 
     def adjust_age_for_planets(self, planets, min_required_age_gy=0.0, age_ceiling_gy=None):
         """
@@ -564,8 +565,8 @@ class Star:
                 # A population-model star can't age past its present phase
                 # without its class, luminosity and radius becoming wrong.
                 max_reachable_age = min(
-                    self.phase_end_age_gy * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                    program_constants.UNIVERSE_AGE_GY,
+                    self.phase_end_age_gy * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                    tuning.UNIVERSE_AGE_GY,
                 )
             elif self.lifespan != float('inf'):
                 # Capped at the age of the universe for the same reason as
@@ -573,11 +574,11 @@ class Star:
                 # -- a long-lived class's lifespan-derived ceiling can be far
                 # larger than any star could actually have reached yet.
                 max_reachable_age = min(
-                    self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
-                    program_constants.UNIVERSE_AGE_GY,
+                    self.lifespan * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
+                    tuning.UNIVERSE_AGE_GY,
                 )
             else:
-                max_reachable_age = min_required_age_for_system + program_constants.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
+                max_reachable_age = min_required_age_for_system + tuning.WHITE_DWARF_AGE_ADDITION_GY # Add 5 GY for WD if no upper bound
             if age_ceiling_gy is not None:
                 max_reachable_age = max(min(max_reachable_age, age_ceiling_gy), original_age)
 
@@ -592,7 +593,7 @@ class Star:
                 # capped at UNIVERSE_AGE_GY, which would otherwise widen this
                 # into a near-full-lifespan random range instead of "near the end."
                 self.age = random.uniform(
-                    min(self.lifespan * program_constants.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
+                    min(self.lifespan * tuning.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
                     max_reachable_age,
                 )
                 if self.phase_end_age_gy is not None or age_ceiling_gy is not None:
@@ -606,14 +607,14 @@ class Star:
                 # age falls, mirroring the young/old bias used for the initial age roll.
                 low, high = min_required_age_for_system, max_reachable_age
                 if self.system_config.AGE == "old":
-                    low = low + (high - low) * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+                    low = low + (high - low) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
                 elif self.system_config.AGE == "young":
-                    high = high - (high - low) * (1 - program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO)
+                    high = high - (high - low) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
                 self.age = random.uniform(low, high)
 
         # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
         if self.lifespan != float('inf') and self.age >= self.lifespan:
-            self.age = self.lifespan * program_constants.MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
+            self.age = self.lifespan * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR # Star is near end of life
         if age_ceiling_gy is not None:
             self.age = max(min(self.age, age_ceiling_gy), original_age)
 
@@ -639,7 +640,7 @@ class Star:
                 are placed in galaxy-space (see
                 `docs/design/galaxy-coordinate-system.md` section 5). `None`
                 (the default) falls back to the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant --
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant --
                 the correct behavior for a system generated outside any
                 galaxy context (e.g. `sectorGen.py`'s own standalone CLI,
                 whose sectors are never placed in a galaxy).
@@ -648,10 +649,10 @@ class Star:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
-        galactic_center_dist_m = galactic_center_dist_ly * physical_constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, physical_constants.MILKY_WAY_MASS)
-        return hill_radius_m / physical_constants.AU_TO_M
+            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_m = galactic_center_dist_ly * constants.LY_TO_M
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, constants.MILKY_WAY_MASS)
+        return hill_radius_m / constants.AU_TO_M
 
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
         """
@@ -669,14 +670,14 @@ class Star:
                 distance from the galactic center, in light-years -- see
                 `calculate_system_perimeter`'s docstring for the same
                 parameter. `None` (the default) uses the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
 
         Returns:
             tuple: `(orbital_speed_kms, orbital_period_gy)` -- see
                   `utils.calculate_galactic_orbit`.
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
         return calculate_galactic_orbit(galactic_center_dist_ly)
 
     @staticmethod
@@ -718,16 +719,16 @@ class Star:
             float: The estimated radius of the heliosphere in Astronomical Units (AU).
         """
         # --- 1. Get Fundamental Stellar Properties (from arguments) ---
-        radius_m = radius_km * physical_constants.KM_TO_M_FACTOR  # Convert radius from km to meters
-        lum_sol = luminosity / physical_constants.SOLAR_LUMINOSITY
-        mass_sol = mass / physical_constants.SOLAR_MASS_TO_KG
-        radius_sol = radius_m / physical_constants.SOLAR_RADIUS_M
+        radius_m = radius_km * constants.KM_TO_M_FACTOR  # Convert radius from km to meters
+        lum_sol = luminosity / constants.SOLAR_LUMINOSITY
+        mass_sol = mass / constants.SOLAR_MASS_TO_KG
+        radius_sol = radius_m / constants.SOLAR_RADIUS_M
         spectral_class = star_type[0].upper() if star_type else None
 
         # --- 2. Calculate Mass-Loss Rate (M-dot) and Wind Velocity (v_inf) ---
         # A single formula for mass loss is insufficient. We use a tiered system based on
         # the star's Yerkes luminosity class (evolutionary stage) and spectral type.
-        escape_velocity = math.sqrt(physical_constants.ESCAPE_VELOCITY_CONSTANT * physical_constants.G * mass / radius_m)
+        escape_velocity = math.sqrt(constants.ESCAPE_VELOCITY_CONSTANT * constants.G * mass / radius_m)
 
 
         # TIER 1: Evolved stars -- giants (III), subgiants (IV), bright giants
@@ -739,22 +740,22 @@ class Star:
         # orders of magnitude out of calibration unnoticed. Nieuwenhuijzen &
         # de Jager (1990) is a single empirical mass-loss fit spanning this
         # whole regime, so one formula and one continuous curve now covers
-        # all of it (see physical_constants.py for the correction applied
+        # all of it (see constants.py for the correction applied
         # above its known high-luminosity overestimation threshold).
         if yerkes_class in ["0", "IA+", "IA", "IAB", "IB", "II", "III", "IV"]:
-            mass_loss_rate_smyr = (physical_constants.NDJ_MASS_LOSS_COEFFICIENT
-                                   * (lum_sol**physical_constants.NDJ_LUMINOSITY_EXPONENT)
-                                   * (mass_sol**physical_constants.NDJ_MASS_EXPONENT)
-                                   * (radius_sol**physical_constants.NDJ_RADIUS_EXPONENT))
-            if lum_sol > physical_constants.NDJ_HIGH_LUMINOSITY_THRESHOLD_LSUN:
-                mass_loss_rate_smyr *= physical_constants.NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR
+            mass_loss_rate_smyr = (constants.NDJ_MASS_LOSS_COEFFICIENT
+                                   * (lum_sol**constants.NDJ_LUMINOSITY_EXPONENT)
+                                   * (mass_sol**constants.NDJ_MASS_EXPONENT)
+                                   * (radius_sol**constants.NDJ_RADIUS_EXPONENT))
+            if lum_sol > constants.NDJ_HIGH_LUMINOSITY_THRESHOLD_LSUN:
+                mass_loss_rate_smyr *= constants.NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR
 
             if yerkes_class == "0":
                 # Hypergiant winds are an extreme multiple of escape velocity.
-                wind_velocity = physical_constants.HYPERGIANT_WIND_VELOCITY_FACTOR * escape_velocity
+                wind_velocity = constants.HYPERGIANT_WIND_VELOCITY_FACTOR * escape_velocity
             else:
                 # Wind velocity is a smaller fraction of escape velocity for these cooler giants/supergiants.
-                wind_velocity = physical_constants.GIANT_WIND_VELOCITY_FACTOR * escape_velocity
+                wind_velocity = constants.GIANT_WIND_VELOCITY_FACTOR * escape_velocity
 
         # TIER 2a: Hot main-sequence dwarfs (O and B, Class V/VI)
         # Unlike cool dwarfs, O/B stars have powerful radiation-driven winds (line-driven,
@@ -763,8 +764,8 @@ class Star:
         # scaling used for cool dwarfs below. Without this tier, a hot O-type star would be
         # (incorrectly) modeled with a weaker wind than a cool, dim M dwarf.
         elif spectral_class in ("O", "B") and yerkes_class in ["V", "VI"]:
-            mass_loss_rate_smyr = physical_constants.OB_DWARF_MASS_LOSS_RATE_FACTOR * (lum_sol**physical_constants.OB_DWARF_MASS_LOSS_RATE_EXPONENT)
-            wind_velocity = physical_constants.OB_DWARF_WIND_VELOCITY_FACTOR * escape_velocity
+            mass_loss_rate_smyr = constants.OB_DWARF_MASS_LOSS_RATE_FACTOR * (lum_sol**constants.OB_DWARF_MASS_LOSS_RATE_EXPONENT)
+            wind_velocity = constants.OB_DWARF_WIND_VELOCITY_FACTOR * escape_velocity
 
         # TIER 2b: Cool main-sequence dwarfs (A through M, Class V/VI) and White Dwarfs (VII)
         # For sun-like and cooler stars (plus stellar remnants), mass loss is very low. We
@@ -778,29 +779,29 @@ class Star:
             # This results in a scaling relationship of M-dot ~ R^2 * L^-0.5
             # We normalize this to the Sun's known mass-loss rate.
             # The mass term is added to account for gravitational binding.
-            scaling_factor = (radius_sol**physical_constants.RADIUS_SOL_EXPONENT) * (lum_sol**physical_constants.LUMINOSITY_SOL_EXPONENT) * (mass_sol**physical_constants.MASS_SOL_EXPONENT)
-            mass_loss_rate_smyr = physical_constants.SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR * scaling_factor # 2e-14 is the Sun's M-dot in M_sol/yr
+            scaling_factor = (radius_sol**constants.RADIUS_SOL_EXPONENT) * (lum_sol**constants.LUMINOSITY_SOL_EXPONENT) * (mass_sol**constants.MASS_SOL_EXPONENT)
+            mass_loss_rate_smyr = constants.SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR * scaling_factor # 2e-14 is the Sun's M-dot in M_sol/yr
 
             # Scale wind velocity based on the star's escape velocity relative to the Sun's.
-            wind_velocity = physical_constants.SOLAR_WIND_VELOCITY * (escape_velocity / physical_constants.SOLAR_ESCAPE_VELOCITY)
+            wind_velocity = constants.SOLAR_WIND_VELOCITY * (escape_velocity / constants.SOLAR_ESCAPE_VELOCITY)
 
         # --- 3. Convert and Calculate Final Radius ---
 
         # Convert M-dot from (solar masses/year) to (kg/s)
-        mass_loss_rate_kgs = mass_loss_rate_smyr * physical_constants.SOLAR_MASS_TO_KG / physical_constants.SECONDS_PER_YEAR
+        mass_loss_rate_kgs = mass_loss_rate_smyr * constants.SOLAR_MASS_TO_KG / constants.SECONDS_PER_YEAR
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
-        momentum_flux = max(mass_loss_rate_kgs * wind_velocity, physical_constants.MIN_MOMENTUM_FLUX) # Ensure momentum_flux is not zero or negative
+        momentum_flux = max(mass_loss_rate_kgs * wind_velocity, constants.MIN_MOMENTUM_FLUX) # Ensure momentum_flux is not zero or negative
 
         try:
-            heliopause_radius_m = math.sqrt(momentum_flux / (physical_constants.FOUR_PI * physical_constants.ISM_PRESSURE))
+            heliopause_radius_m = math.sqrt(momentum_flux / (constants.FOUR_PI * constants.ISM_PRESSURE))
         except ValueError:
             # This should not happen with the floor value, but as a final safety net.
-            heliopause_radius_m = physical_constants.HELIOPAUSE_RADIUS_DEFAULT_M
+            heliopause_radius_m = constants.HELIOPAUSE_RADIUS_DEFAULT_M
 
         # Convert the final radius from meters to Astronomical Units (AU) for output.
-        return heliopause_radius_m / physical_constants.AU_TO_M
+        return heliopause_radius_m / constants.AU_TO_M
 
     def calculate_heliosphere(self):
         """
@@ -848,7 +849,7 @@ class Star:
                 distance from the galactic center, in light-years, threaded
                 into `calculate_system_perimeter` -- see that method's
                 docstring. `None` (the default) uses the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
             galactic_orbital_phase_deg (float, optional): This star's
                 current angular position around its galactic orbit, in
                 degrees -- the value `stellarObjects._db.advance_orbital_phases`
@@ -918,8 +919,8 @@ class Star:
             dict: Keys `type`, `radius`, `mass`, `temp`, `lum`, `hab`, `orbit`,
                  `loc`, each an already-formatted display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
-        lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg", low_percent_precision=2)
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
         radius_string = format_body_radius_km(self.system_config, self.radius)
 
@@ -941,7 +942,7 @@ class Star:
         if self.reflex_offset_x or self.reflex_offset_y or self.reflex_offset_z:
             offset_km = math.sqrt(
                 self.reflex_offset_x ** 2 + self.reflex_offset_y ** 2 + self.reflex_offset_z ** 2
-            ) * physical_constants.AU_TO_KM
+            ) * constants.AU_TO_KM
             properties["wobble"] = f"{format_distance_km(offset_km)} from its nominal position, pulled by its own planets"
         return properties
 
@@ -1002,7 +1003,7 @@ class Star:
         # "main-sequence lifespan" quoted for its current temperature class).
         if self.yerkes_class == "V":
             spectral_class_char = self.type[0]
-            star_info = program_constants.STAR_EVOLUTION.get(spectral_class_char, {})
+            star_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
             if "evolutionary_constraint_notes" in star_info:
                 # Append notes directly as they are a continuation, ensuring a space and period at the end
                 full_age_and_notes_sentence += " and " + star_info["evolutionary_constraint_notes"]
@@ -1047,7 +1048,7 @@ class Star:
         age_bias = self.system_config.AGE
         state = None
         if initial_mass_sol is not None:
-            initial_mass_sol = max(initial_mass_sol, program_constants.IMF_BREAKS_SOL[0])
+            initial_mass_sol = max(initial_mass_sol, tuning.IMF_BREAKS_SOL[0])
             age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
             state = evolve_star(initial_mass_sol, age)
             # A companion of a specified-type primary takes a fraction of
@@ -1055,8 +1056,8 @@ class Star:
             # collapsed already at the pair's age. Lighten it until it is
             # alive rather than redraw it at another age: the pair shares
             # one age (GEN.53).
-            while state is None and initial_mass_sol > program_constants.IMF_BREAKS_SOL[0]:
-                initial_mass_sol = max(initial_mass_sol * 0.8, program_constants.IMF_BREAKS_SOL[0])
+            while state is None and initial_mass_sol > tuning.IMF_BREAKS_SOL[0]:
+                initial_mass_sol = max(initial_mass_sol * 0.8, tuning.IMF_BREAKS_SOL[0])
                 state = evolve_star(initial_mass_sol, age)
         if state is None:
             # No companion given.
@@ -1180,15 +1181,15 @@ class Star:
             yerkes_type = yerkes_lookup[yerkes_class_str]
 
             # 2. Calculate Temperature from spectral class and subclass.
-            min_temp, max_temp = physical_constants.TEMP_RANGES[spectral_class]
+            min_temp, max_temp = constants.TEMP_RANGES[spectral_class]
             temp_range_size = max_temp - min_temp
-            temperature = min_temp + (physical_constants.SUBCLASS_MAX_VALUE - subclass) * (temp_range_size / physical_constants.SUBCLASS_MAX_VALUE)
-            temperature = int(round(temperature, program_constants.ROUND_TEMPERATURE_NEAREST_HUNDRED))
+            temperature = min_temp + (constants.SUBCLASS_MAX_VALUE - subclass) * (temp_range_size / constants.SUBCLASS_MAX_VALUE)
+            temperature = int(round(temperature, tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
 
             # 3. Determine a physically valid Luminosity.
             # Find the overlapping luminosity range between the spectral and Yerkes classes.
-            spec_min_lum, spec_max_lum = physical_constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
-            yerkes_min_lum, yerkes_max_lum = physical_constants.YERKES_LUMINOSITY_RANGES[yerkes_class_str]
+            spec_min_lum, spec_max_lum = constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
+            yerkes_min_lum, yerkes_max_lum = constants.YERKES_LUMINOSITY_RANGES[yerkes_class_str]
             
             # Special case for hot, young white dwarfs, which can be temporarily very luminous.
             if yerkes_class_str in ["VII", "D"] and spectral_class in ["O", "B"]:
@@ -1212,10 +1213,10 @@ class Star:
 
             # 1. Generate Spectral Class based on galactic population.
             if self.system_config.LARGE_STAR:
-                spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_LARGE_STAR
+                spectral_probabilities = tuning.SPECTRAL_PROBABILITIES_LARGE_STAR
                 table_name = "SPECTRAL_PROBABILITIES_LARGE_STAR"
             else:
-                spectral_probabilities = program_constants.SPECTRAL_PROBABILITIES_NORMAL
+                spectral_probabilities = tuning.SPECTRAL_PROBABILITIES_NORMAL
                 table_name = "SPECTRAL_PROBABILITIES_NORMAL"
             spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
             log.choice("Spectral class", spectral_class,
@@ -1223,25 +1224,25 @@ class Star:
                        f"{self.system_config.LARGE_STAR})")
 
             # 2. Generate Luminosity from the spectral class's typical range.
-            min_luminosity, max_luminosity = physical_constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
+            min_luminosity, max_luminosity = constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
             luminosity = random.uniform(min_luminosity, max_luminosity)
 
             # 3. Determine Yerkes Class from the resulting luminosity.
-            if luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["0"][0]:
+            if luminosity > constants.YERKES_LUMINOSITY_RANGES["0"][0]:
                 self.yerkes_class, yerkes_type = "0", "Hypergiant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["IA"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["IA"][0]:
                 self.yerkes_class, yerkes_type = "IA", "Supergiant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["IAB"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["IAB"][0]:
                 self.yerkes_class, yerkes_type = "IAB", "Intermediate-size Luminous Supergiant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["IB"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["IB"][0]:
                 self.yerkes_class, yerkes_type = "IB", "Less Luminous Supergiant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["II"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["II"][0]:
                 self.yerkes_class, yerkes_type = "II", "Bright Giant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["III"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["III"][0]:
                 self.yerkes_class, yerkes_type = "III", "Giant"
-            elif luminosity > physical_constants.YERKES_LUMINOSITY_RANGES["IV"][0]:
+            elif luminosity > constants.YERKES_LUMINOSITY_RANGES["IV"][0]:
                 self.yerkes_class, yerkes_type = "IV", "Subgiant"
-            elif luminosity > physical_constants.SPECTRAL_LUMINOSITY_RANGES["M"][0]: # Check against dimmest main sequence
+            elif luminosity > constants.SPECTRAL_LUMINOSITY_RANGES["M"][0]: # Check against dimmest main sequence
                 self.yerkes_class, yerkes_type = "V", "Main Sequence"
             else:
                 self.yerkes_class, yerkes_type = "VII", "White Dwarf"
@@ -1250,31 +1251,31 @@ class Star:
                        f"luminosity {luminosity:.4g} Lsun falls into the {yerkes_type} threshold band")
 
             # 4. Calculate Temperature and Subclass.
-            min_temp, max_temp = physical_constants.TEMP_RANGES[spectral_class]
-            temperature = int(round(random.uniform(min_temp, max_temp), program_constants.ROUND_TEMPERATURE_NEAREST_HUNDRED))
+            min_temp, max_temp = constants.TEMP_RANGES[spectral_class]
+            temperature = int(round(random.uniform(min_temp, max_temp), tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
             temp_range_size = max_temp - min_temp
-            subclass = physical_constants.SUBCLASS_MAX_VALUE - round((temperature - min_temp) / temp_range_size * physical_constants.SUBCLASS_MAX_VALUE)
+            subclass = constants.SUBCLASS_MAX_VALUE - round((temperature - min_temp) / temp_range_size * constants.SUBCLASS_MAX_VALUE)
 
         # --- CALCULATE FINAL PROPERTIES (COMMON TO BOTH PATHS) ---
 
         # 5. Calculate Mass based on Yerkes class constraints.
-        min_mass, max_mass = physical_constants.YERKES_MASS_CONSTRAINTS[self.yerkes_class]
+        min_mass, max_mass = constants.YERKES_MASS_CONSTRAINTS[self.yerkes_class]
         
         if self.yerkes_class == "V":
             # For main-sequence stars, the mass-luminosity relation is strong.
             if mass_override:
-                mass_sol = mass_override / physical_constants.SOLAR_MASS_TO_KG
+                mass_sol = mass_override / constants.SOLAR_MASS_TO_KG
             else:
-                mass_sol = luminosity ** (1 / physical_constants.MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT)
+                mass_sol = luminosity ** (1 / constants.MAIN_SEQUENCE_MASS_LUMINOSITY_EXPONENT)
         elif self.yerkes_class in ["VII", "D"]:
             # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
             # are typically more massive, closer to the Chandrasekhar limit.
             if spectral_class in ["O", "B"]:
-                mass_sol = random.uniform(physical_constants.HOT_WHITE_DWARF_MIN_MASS_SOL, physical_constants.CHANDRASEKHAR_LIMIT_SOL)
+                mass_sol = random.uniform(constants.HOT_WHITE_DWARF_MIN_MASS_SOL, constants.CHANDRASEKHAR_LIMIT_SOL)
             else:
-                mass_sol = random.uniform(min_mass, physical_constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
+                mass_sol = random.uniform(min_mass, constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
             if mass_override: # If mass is overridden for a WD, ensure it's within limits
-                mass_sol = max(min(mass_override / physical_constants.SOLAR_MASS_TO_KG, physical_constants.CHANDRASEKHAR_LIMIT_SOL), min_mass)
+                mass_sol = max(min(mass_override / constants.SOLAR_MASS_TO_KG, constants.CHANDRASEKHAR_LIMIT_SOL), min_mass)
         else:
             # For giants and supergiants, mass is less predictable from luminosity alone.
             # We choose a random mass within the physically allowed range for the class,
@@ -1289,7 +1290,7 @@ class Star:
             # would otherwise be rejected outright (see _sample_evolved_star_mass_sol's
             # docstring).
             if mass_override:
-                mass_sol = mass_override / physical_constants.SOLAR_MASS_TO_KG
+                mass_sol = mass_override / constants.SOLAR_MASS_TO_KG
             elif self.yerkes_class == "VI":
                 mass_sol = random.uniform(min_mass, max_mass)
             else:
@@ -1298,28 +1299,28 @@ class Star:
 
         # Ensure the calculated mass is within the absolute physical bounds for its class.
         mass_sol = max(min(mass_sol, max_mass), min_mass)
-        mass = mass_sol * physical_constants.SOLAR_MASS_TO_KG
+        mass = mass_sol * constants.SOLAR_MASS_TO_KG
 
         # 6. Calculate Radius based on the star's type.
         if self.yerkes_class in ["VII", "D"]:
             # White dwarf radius follows an inverse mass-radius relationship.
             # R ∝ M^(-1/3). A 1 solar mass WD is the base.
-            radius = physical_constants.WHITE_DWARF_BASE_RADIUS_KM * (mass_sol ** physical_constants.WHITE_DWARF_MASS_RADIUS_EXPONENT)
+            radius = constants.WHITE_DWARF_BASE_RADIUS_KM * (mass_sol ** constants.WHITE_DWARF_MASS_RADIUS_EXPONENT)
         else:
             # For all other stars, radius is calculated from luminosity and temperature
             # using the Stefan-Boltzmann law.
-            luminosity_watts = luminosity * physical_constants.SOLAR_LUMINOSITY
-            radius = math.sqrt(luminosity_watts / (physical_constants.FOUR_PI * physical_constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / physical_constants.KM_TO_M_FACTOR
+            luminosity_watts = luminosity * constants.SOLAR_LUMINOSITY
+            radius = math.sqrt(luminosity_watts / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4)) / constants.KM_TO_M_FACTOR
 
         # 7. Set final star properties.
-        color_descriptions = physical_constants.SPECTRAL_CLASS_COLORS
+        color_descriptions = constants.SPECTRAL_CLASS_COLORS
         star_type_str = f"{spectral_class}{subclass}{self.yerkes_class} {color_descriptions[spectral_class]} {yerkes_type} Star"
 
         self.type = star_type_str
         self.radius = radius
         self.mass = mass
         self.temperature = temperature
-        self.luminosity = luminosity * physical_constants.SOLAR_LUMINOSITY
+        self.luminosity = luminosity * constants.SOLAR_LUMINOSITY
 
 
 def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets):

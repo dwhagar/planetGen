@@ -9,7 +9,8 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth, adminEdits, editStore, program_constants, validation
+from stellarObjects import _db, adminAuth, adminEdits, editStore, validation
+from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.spaceSector import SpaceSector
@@ -401,7 +402,7 @@ def test_unrecommended_class_needs_force(admin, mysql_config):
     system = _load(mysql_config, system_id)
     planet = _first_planet(system)
     recommended = adminEdits.recommended_classes(system, planet, system.planets)
-    other = next((c for c in sorted(program_constants.PLANET_CLASSES)
+    other = next((c for c in sorted(tuning.PLANET_CLASSES)
                   if c not in recommended and c != planet.planet_class
                   and adminEdits.class_fits_mass(c, planet.mass)), None)
     if other is None:
@@ -432,11 +433,11 @@ def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name
     atmosphere, temperature, pressure, life -- at its orbit, mass and name."""
     system = _unsaved_system_with_planet()
     planet = next(p for p in system.planets if p.body_type == 't')
-    new_class = next(c for c in sorted(program_constants.PLANET_CLASSES)
+    new_class = next(c for c in sorted(tuning.PLANET_CLASSES)
                      if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
     name, mass, distance = planet.name, planet.mass, planet.distance
     adminEdits.change_class(system, planet, system.planets, new_class, force=True)
-    data = program_constants.PLANET_CLASSES[new_class]
+    data = tuning.PLANET_CLASSES[new_class]
     assert planet.planet_class == new_class
     assert planet.name == name
     assert planet.mass == pytest.approx(mass, rel=1e-9)
@@ -508,7 +509,7 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     client = _web_admin(web_app, mysql_config)
     html = client.get(f"/system/{system_id}").get_data(as_text=True)
     assert "Change class" in html and "Change star" in html
-    other = next(c for c in sorted(program_constants.PLANET_CLASSES)
+    other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
     response = _edit(web_app, client, f"/system/{system_id}", "class", f"planet:{planet.db_id}",
                      planet_class=f"force:{other}")

@@ -23,7 +23,9 @@ import math
 
 import pytest
 
-from stellarObjects import _db, physical_constants, program_constants
+from stellarObjects import _db
+from planetgen.physics import constants
+from planetgen import tuning
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
                                            hawking_temperature_k)
@@ -59,10 +61,10 @@ def test_black_hole_mass_and_spin_within_configured_ranges():
     for _ in range(TRIALS):
         bh = BlackHole(make_config())
         assert (
-            program_constants.BLACK_HOLE_MASS_RANGE_SOLAR[0] <= bh.mass_solar <= program_constants.BLACK_HOLE_MASS_RANGE_SOLAR[1]
-            or program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0] <= bh.mass_solar <= program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]
+            tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0] <= bh.mass_solar <= tuning.BLACK_HOLE_MASS_RANGE_SOLAR[1]
+            or tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0] <= bh.mass_solar <= tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]
         )
-        assert program_constants.BLACK_HOLE_SPIN_RANGE[0] <= bh.spin <= program_constants.BLACK_HOLE_SPIN_RANGE[1]
+        assert tuning.BLACK_HOLE_SPIN_RANGE[0] <= bh.spin <= tuning.BLACK_HOLE_SPIN_RANGE[1]
         assert bh.event_horizon_radius_km > 0
         assert bh.radius == bh.event_horizon_radius_km
         assert bh.yerkes_class == "BH"
@@ -82,29 +84,29 @@ def test_hawking_values_of_a_ten_solar_mass_black_hole():
 
 
 def test_black_hole_mass_class_matches_its_mass(monkeypatch):
-    monkeypatch.setattr(program_constants, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 1.0)
+    monkeypatch.setattr(tuning, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 1.0)
     bh = BlackHole(make_config())
-    low, high = program_constants.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
+    low, high = tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR
     assert bh.mass_class == "intermediate" and low <= bh.mass_solar <= high
     assert bh.type == "Intermediate-Mass Black Hole"
 
-    monkeypatch.setattr(program_constants, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 0.0)
+    monkeypatch.setattr(tuning, "BLACK_HOLE_INTERMEDIATE_MASS_CHANCE", 0.0)
     bh = BlackHole(make_config())
     assert bh.mass_class == "stellar" and bh.type == "Stellar-Mass Black Hole"
 
 
 def test_supermassive_black_hole_sits_still_and_glows_faintly():
     bh = BlackHole(make_config(), mass_class="supermassive")
-    low, high = program_constants.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
+    low, high = tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR
     assert bh.mass_class == "supermassive" and low <= bh.mass_solar <= high
     assert bh.type == "Supermassive Black Hole"
     assert bh.galactic_orbital_period_gy is None and bh.galactic_orbital_speed_kms is None
     assert bh.has_accretion_disk
-    eddington = program_constants.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * bh.mass_solar
-    assert 0 < bh.luminosity <= program_constants.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE[1] * eddington
+    eddington = tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * bh.mass_solar
+    assert 0 < bh.luminosity <= tuning.BLACK_HOLE_SUPERMASSIVE_EDDINGTON_RATIO_RANGE[1] * eddington
     # Sphere of influence G*M/sigma^2: ~2 pc (~4e5 AU) for Sgr A*'s mass.
-    sigma = program_constants.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
-    assert bh.system_perimeter == pytest.approx(physical_constants.G * bh.mass / sigma ** 2 / physical_constants.AU_TO_M)
+    sigma = tuning.BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS * 1000
+    assert bh.system_perimeter == pytest.approx(constants.G * bh.mass / sigma ** 2 / constants.AU_TO_M)
     text = " ".join(bh.to_paragraph_list())
     assert "supermassive black hole at the heart of the galaxy" in text
     rebuilt = BlackHole.from_dict(bh.to_dict(), make_config())
@@ -126,17 +128,17 @@ def test_black_hole_schwarzschild_radius_matches_known_value():
     # than only checking it falls in a range.
     cfg = make_config()
     bh = object.__new__(BlackHole)
-    bh.mass = 10 * physical_constants.SOLAR_MASS_TO_KG
-    schwarzschild_radius_m = 2 * physical_constants.G * bh.mass / physical_constants.SPEED_OF_LIGHT_M_S ** 2
+    bh.mass = 10 * constants.SOLAR_MASS_TO_KG
+    schwarzschild_radius_m = 2 * constants.G * bh.mass / constants.SPEED_OF_LIGHT_M_S ** 2
     assert schwarzschild_radius_m / 1000 == pytest.approx(29.5, abs=0.5)
 
 
 def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
     for _ in range(TRIALS):
         ns = NeutronStar(make_config())
-        assert program_constants.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= program_constants.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
-        assert program_constants.NEUTRON_STAR_RADIUS_RANGE_KM[0] <= ns.radius <= program_constants.NEUTRON_STAR_RADIUS_RANGE_KM[1]
-        assert program_constants.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= program_constants.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
+        assert tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[0] <= ns.mass_solar <= tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]
+        assert tuning.NEUTRON_STAR_RADIUS_RANGE_KM[0] <= ns.radius <= tuning.NEUTRON_STAR_RADIUS_RANGE_KM[1]
+        assert tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[0] <= ns.surface_temperature_k <= tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K[1]
         assert ns.pulsar_type in ("young", "millisecond", "non-pulsing")
         assert ns.yerkes_class == "NS"
         assert ns.lifespan == float('inf')
@@ -153,7 +155,7 @@ def test_compact_remnants_are_star_subclasses():
 def test_nebula_type_and_radius_within_configured_ranges():
     for _ in range(TRIALS):
         nebula = Nebula(make_config())
-        class_data = program_constants.NEBULA_CLASSES[nebula.nebula_class]
+        class_data = tuning.NEBULA_CLASSES[nebula.nebula_class]
         assert nebula.nebula_type == class_data["family"] != "supernova-remnant"
         radius_range = class_data["radius_range_ly"]
         assert radius_range[0] <= nebula.radius_ly <= radius_range[1]
@@ -172,7 +174,7 @@ def test_nebula_family_request_draws_a_class_in_that_family():
 def test_remnant_class_matches_its_progenitor_and_core():
     for _ in range(TRIALS):
         remnant = SupernovaRemnant(make_config())
-        class_data = program_constants.NEBULA_CLASSES[remnant.remnant_class]
+        class_data = tuning.NEBULA_CLASSES[remnant.remnant_class]
         assert remnant.morphology == class_data["morphology"]
         kind = None if remnant.compact_remnant is None else type(remnant.compact_remnant).__name__
         kind = {"BlackHole": "black_hole", "NeutronStar": "neutron_star", None: None}[kind]
@@ -189,7 +191,7 @@ def test_asteroid_field_class_is_letter_plus_size_digit():
     assert asteroid_field_class("icy", "typical", 1.0) == "L4"
     for _ in range(TRIALS):
         field = AsteroidField(make_config())
-        family = program_constants.ASTEROID_FIELD_COMPOSITIONS[field.composition_family]
+        family = tuning.ASTEROID_FIELD_COMPOSITIONS[field.composition_family]
         assert field.field_class[0] == family["letters"][field.density]
         assert field.field_class[1] in "1234"
 
@@ -213,11 +215,11 @@ def test_old_saved_phenomena_get_inferred_classes():
 def test_supernova_remnant_morphology_and_sedov_taylor_radius():
     for _ in range(TRIALS):
         remnant = SupernovaRemnant(make_config())
-        assert remnant.morphology in program_constants.SUPERNOVA_REMNANT_MORPHOLOGIES
-        assert program_constants.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[0] <= remnant.age_years <= program_constants.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[1]
+        assert remnant.morphology in tuning.SUPERNOVA_REMNANT_MORPHOLOGIES
+        assert tuning.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[0] <= remnant.age_years <= tuning.SUPERNOVA_REMNANT_AGE_RANGE_YEARS[1]
         expected_radius = (
-            program_constants.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
-            * (remnant.age_years ** program_constants.SEDOV_TAYLOR_TIME_EXPONENT)
+            tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
+            * (remnant.age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
         )
         assert remnant.radius_ly == pytest.approx(expected_radius)
         assert remnant.progenitor_type in ("Type Ia", "core-collapse")
@@ -232,15 +234,15 @@ def test_supernova_remnant_morphology_and_sedov_taylor_radius():
 def test_rogue_planet_mass_and_type_within_configured_ranges():
     for _ in range(TRIALS):
         planet = RoguePlanet(make_config())
-        mass_jupiter = planet.mass_kg / physical_constants.JUPITER_MASS_TO_KG
-        low, high, _rate = program_constants.ROGUE_PLANET_MASS_BINS[planet.mass_bin]
-        mass_earth = planet.mass_kg / physical_constants.EARTH_MASS_TO_KG
+        mass_jupiter = planet.mass_kg / constants.JUPITER_MASS_TO_KG
+        low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[planet.mass_bin]
+        mass_earth = planet.mass_kg / constants.EARTH_MASS_TO_KG
         assert low * (1 - 1e-9) <= mass_earth <= high * (1 + 1e-9)
         assert planet.planet_type in ('t', 'g')
         if planet.planet_type == 'g':
-            assert mass_jupiter >= program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
+            assert mass_jupiter >= tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
         else:
-            assert mass_jupiter < program_constants.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
+            assert mass_jupiter < tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
         assert planet.radius_km > 0
         assert planet.mass_kg > 0
 
@@ -249,15 +251,15 @@ def test_rogue_planets_are_mostly_terrestrial():
     """Terrestrial rogues outnumber the rest (about 5.6 of 6.5 per star)."""
     bins = [RoguePlanet(make_config()).mass_bin for _ in range(400)]
     share = bins.count("terrestrial") / len(bins)
-    expected = program_constants.ROGUE_PLANET_MASS_BINS["terrestrial"][2] / program_constants.ROGUE_PLANET_RATE_PER_STAR
+    expected = tuning.ROGUE_PLANET_MASS_BINS["terrestrial"][2] / tuning.ROGUE_PLANET_RATE_PER_STAR
     assert abs(share - expected) < 0.08
-    assert set(bins) <= set(program_constants.ROGUE_PLANET_MASS_BINS)
+    assert set(bins) <= set(tuning.ROGUE_PLANET_MASS_BINS)
 
 
 def test_rogue_brown_dwarf():
     dwarf = RoguePlanet(make_config(), mass_bin="brown-dwarf")
-    low, high = program_constants.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
-    assert low <= dwarf.mass_kg / physical_constants.JUPITER_MASS_TO_KG <= high
+    low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
+    assert low <= dwarf.mass_kg / constants.JUPITER_MASS_TO_KG <= high
     assert dwarf.planet_type == 'g' and dwarf.kind_label == "Brown Dwarf"
     assert "Rogue Brown Dwarf" in dwarf.to_paragraph_list()[0]
     with pytest.raises(ValueError):
@@ -270,20 +272,20 @@ def test_rogue_brown_dwarf():
 def test_interstellar_comet_within_configured_ranges():
     for _ in range(TRIALS):
         comet = InterstellarComet(make_config())
-        assert program_constants.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= program_constants.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
-        assert program_constants.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[0] <= comet.velocity_kms <= program_constants.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[1]
+        assert tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
+        assert tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[0] <= comet.velocity_kms <= tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[1]
         assert 0 < len(comet.composition) <= 3
-        assert all(component in program_constants.COMET_COMPOSITION for component in comet.composition)
+        assert all(component in tuning.COMET_COMPOSITION for component in comet.composition)
 
 
 def test_asteroid_field_within_configured_ranges():
     for _ in range(TRIALS):
         field = AsteroidField(make_config())
-        assert program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY[0] <= field.radius_ly <= program_constants.ASTEROID_FIELD_RADIUS_RANGE_LY[1]
+        assert tuning.ASTEROID_FIELD_RADIUS_RANGE_LY[0] <= field.radius_ly <= tuning.ASTEROID_FIELD_RADIUS_RANGE_LY[1]
         assert field.density in ("dense", "sparse", "typical")
         assert 0 < len(field.composition) <= 4
         for component, concentration in field.composition:
-            assert component in program_constants.ASTEROID_COMPONENTS + program_constants.COMET_COMPOSITION
+            assert component in tuning.ASTEROID_COMPONENTS + tuning.COMET_COMPOSITION
             assert concentration in ("high", "moderate", "small", "trace")
 
 
@@ -649,7 +651,7 @@ def test_a_core_collapse_core_drifts_by_its_kick_and_a_type_ia_has_none():
             assert remnant.compact_offset_ly is None
             continue
         kind = "black_hole" if isinstance(remnant.compact_remnant, BlackHole) else "neutron_star"
-        low, high = program_constants.SUPERNOVA_KICK_SPEED_RANGE_KMS[kind]
+        low, high = tuning.SUPERNOVA_KICK_SPEED_RANGE_KMS[kind]
         distance = math.hypot(*remnant.compact_offset_ly)
         speed_kms = distance / remnant.age_years * 299792.458
         assert low * 0.999 <= speed_kms <= high * 1.001

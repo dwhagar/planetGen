@@ -7,7 +7,8 @@ A nebula or supernova remnant around a system presses its heliopause in
 import pytest
 
 import queryDb
-from stellarObjects import _db, physical_constants
+from stellarObjects import _db
+from planetgen.physics import constants
 from stellarObjects.starData import cloud_pressure_pa, compressed_heliosphere_radius
 from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
 
@@ -24,7 +25,7 @@ def test_the_squeeze_follows_the_inverse_square_root_of_pressure():
 
 
 def test_thin_gas_leaves_the_heliopause_alone():
-    assert cloud_pressure_pa(0.1, 8000.0) < physical_constants.ISM_PRESSURE
+    assert cloud_pressure_pa(0.1, 8000.0) < constants.ISM_PRESSURE
     assert compressed_heliosphere_radius(100.0, 0.1, 8000.0) == 100.0
     assert compressed_heliosphere_radius(100.0, None, None) == 100.0
 

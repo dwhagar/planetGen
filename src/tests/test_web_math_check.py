@@ -2,7 +2,7 @@
 
 """
 The website's math check at startup (TEST.63): `web.init_app` runs
-`stellarObjects.mathCheck` once per process; a failure is shown to admins
+`planetgen.physics.mathcheck` once per process; a failure is shown to admins
 on every page, never to visitors, and the site keeps serving.
 """
 
@@ -14,7 +14,7 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import mathCheck  # noqa: E402
+from planetgen.physics import mathcheck as mathCheck  # noqa: E402
 
 pytestmark = pytest.mark.mathcheck
 

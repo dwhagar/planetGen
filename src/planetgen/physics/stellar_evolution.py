@@ -1,4 +1,4 @@
-# stellarObjects/stellarEvolution.py
+# planetgen/physics/stellar_evolution.py
 
 """
 Star Population Model
@@ -25,7 +25,8 @@ section.
 import math
 import random
 
-from . import physical_constants, program_constants
+from planetgen.physics import constants
+from planetgen import tuning
 
 
 YERKES_CLASS_NAMES = {
@@ -39,7 +40,7 @@ YERKES_CLASS_NAMES = {
 
 def main_sequence_lifetime_gy(mass_sol):
     """t_MS = 10 Gy * M^-2.5, the same law the rest of the generator uses."""
-    return program_constants.SOLAR_MS_LIFESPAN_GY * mass_sol ** program_constants.MS_LIFESPAN_MASS_EXPONENT
+    return tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
 
 
 def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=random):
@@ -52,8 +53,8 @@ def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=random):
     segments joined continuously at the breaks); a segment is picked by
     weight and the mass drawn from it by inverse transform.
     """
-    breaks = program_constants.IMF_BREAKS_SOL
-    slopes = program_constants.IMF_SLOPES
+    breaks = tuning.IMF_BREAKS_SOL
+    slopes = tuning.IMF_SLOPES
     lo = breaks[0] if min_mass_sol is None else max(min_mass_sol, breaks[0])
     hi = breaks[-1] if max_mass_sol is None else min(max_mass_sol, breaks[-1])
     if not lo < hi:
@@ -100,9 +101,9 @@ def age_window_gy(low, high, age_bias=None):
     """
     span = high - low
     if age_bias == "young":
-        high = low + span * program_constants.YOUNG_STAR_AGE_LIFESPAN_RATIO
+        high = low + span * tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO
     elif age_bias == "old":
-        low = low + span * program_constants.OLD_STAR_AGE_LIFESPAN_RATIO
+        low = low + span * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
     return low, high
 
 
@@ -114,12 +115,12 @@ def population_age_range_gy(population=None):
     (`STAR_FORMATION_AGE_RANGE_GY`).
     """
     if population is None:
-        return program_constants.STAR_FORMATION_AGE_RANGE_GY
+        return tuning.STAR_FORMATION_AGE_RANGE_GY
     try:
-        return program_constants.STELLAR_POPULATION_AGE_RANGES_GY[population]
+        return tuning.STELLAR_POPULATION_AGE_RANGES_GY[population]
     except KeyError:
         raise ValueError(f"unknown stellar population {population!r}; expected one of "
-                         f"{sorted(program_constants.STELLAR_POPULATION_AGE_RANGES_GY)} or None") from None
+                         f"{sorted(tuning.STELLAR_POPULATION_AGE_RANGES_GY)} or None") from None
 
 
 def sample_star_age_gy(age_bias=None, rng=random, population=None):
@@ -131,26 +132,26 @@ def sample_star_age_gy(age_bias=None, rng=random, population=None):
 
 def main_sequence_luminosity_sol(mass_sol):
     """The piecewise mass-luminosity relation (`MS_MASS_LUMINOSITY_PIECES`)."""
-    for piece in program_constants.MS_MASS_LUMINOSITY_PIECES:
+    for piece in tuning.MS_MASS_LUMINOSITY_PIECES:
         if piece["max_mass_sol"] is None or mass_sol < piece["max_mass_sol"]:
             return piece["coeff"] * mass_sol ** piece["exponent"]
 
 
 def main_sequence_radius_sol(mass_sol):
     """R = M^0.8 below 1 Msun, M^0.57 above."""
-    exponent = (program_constants.MS_RADIUS_EXPONENT_BELOW_1_SOL if mass_sol < 1.0
-                else program_constants.MS_RADIUS_EXPONENT_ABOVE_1_SOL)
+    exponent = (tuning.MS_RADIUS_EXPONENT_BELOW_1_SOL if mass_sol < 1.0
+                else tuning.MS_RADIUS_EXPONENT_ABOVE_1_SOL)
     return mass_sol ** exponent
 
 
 def effective_temperature_k(luminosity_sol, radius_sol):
     """Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4)."""
-    return program_constants.SUN_EFFECTIVE_TEMPERATURE_K * (luminosity_sol / radius_sol ** 2) ** 0.25
+    return tuning.SUN_EFFECTIVE_TEMPERATURE_K * (luminosity_sol / radius_sol ** 2) ** 0.25
 
 
 def white_dwarf_radius_km(mass_sol):
     """The generator's existing white dwarf mass-radius relation."""
-    return physical_constants.WHITE_DWARF_BASE_RADIUS_KM * mass_sol ** physical_constants.WHITE_DWARF_MASS_RADIUS_EXPONENT
+    return constants.WHITE_DWARF_BASE_RADIUS_KM * mass_sol ** constants.WHITE_DWARF_MASS_RADIUS_EXPONENT
 
 
 def spectral_letter_and_subclass(temperature_k):
@@ -159,7 +160,7 @@ def spectral_letter_and_subclass(temperature_k):
     to O above the table and M below it), and the 0-9 subclass within it
     (0 hottest), the same subclass rule the generator already uses.
     """
-    ranges = physical_constants.TEMP_RANGES
+    ranges = constants.TEMP_RANGES
     letter = None
     for candidate, (low, high) in ranges.items():
         if low <= temperature_k <= high:
@@ -169,8 +170,8 @@ def spectral_letter_and_subclass(temperature_k):
         letter = "O" if temperature_k > ranges["O"][1] else "M"
     low, high = ranges[letter]
     clamped = min(max(temperature_k, low), high)
-    subclass = physical_constants.SUBCLASS_MAX_VALUE - round(
-        (clamped - low) / (high - low) * physical_constants.SUBCLASS_MAX_VALUE)
+    subclass = constants.SUBCLASS_MAX_VALUE - round(
+        (clamped - low) / (high - low) * constants.SUBCLASS_MAX_VALUE)
     return letter, subclass
 
 
@@ -180,7 +181,7 @@ def _log_uniform(low, high, rng):
 
 def _supergiant_yerkes_class(luminosity_sol):
     yerkes = "IB"
-    for name, threshold in program_constants.SUPERGIANT_YERKES_THRESHOLDS_SOL.items():
+    for name, threshold in tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL.items():
         if luminosity_sol >= threshold:
             yerkes = name
     return yerkes
@@ -207,7 +208,7 @@ def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
         white dwarf) and `phase_end_gy` (the age at which it leaves its
         present phase; infinite for a white dwarf).
     """
-    pc = program_constants
+    pc = tuning
     t_ms = main_sequence_lifetime_gy(mass_sol)
     t_sub = t_ms * pc.SUBGIANT_PHASE_END_MS_FRACTION
     t_giant = t_ms * pc.GIANT_PHASE_END_MS_FRACTION
@@ -254,7 +255,7 @@ def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
         luminosity = pc.WD_COOLING_L0_SOL * (final_mass / 0.6) * cooling_age ** pc.WD_COOLING_EXPONENT
         luminosity = min(max(luminosity, pc.WD_LUMINOSITY_RANGE_SOL[0]), pc.WD_LUMINOSITY_RANGE_SOL[1])
         radius_km = white_dwarf_radius_km(final_mass)
-        radius_sol = radius_km * physical_constants.KM_TO_M_FACTOR / physical_constants.SOLAR_RADIUS_M
+        radius_sol = radius_km * constants.KM_TO_M_FACTOR / constants.SOLAR_RADIUS_M
         state.update(yerkes_class="VII", mass_sol=final_mass, luminosity_sol=luminosity,
                      temperature_k=effective_temperature_k(luminosity, radius_sol), radius_km=radius_km,
                      lifespan_gy=float("inf"), phase_end_gy=float("inf"))
@@ -278,7 +279,7 @@ def sample_living_star(age_bias=None, large_star=False, rng=random, habitable_ho
     redraws any star but a white dwarf at or above that luminosity (a
     sector's dim stars, once its bright ones were pre-placed).
     """
-    pc = program_constants
+    pc = tuning
     if large_star and population is not None:
         oldest_large_star_gy = main_sequence_lifetime_gy(pc.LARGE_STAR_MIN_MASS_SOL) * pc.GIANT_PHASE_END_MS_FRACTION
         if population_age_range_gy(population)[0] >= oldest_large_star_gy:
@@ -328,20 +329,20 @@ def star_params(initial_mass_sol, age_gy, state):
         `luminosity_w`, `age_gy`, `lifespan_gy`, `initial_mass_sol` and
         `phase_end_age_gy`.
     """
-    temperature = int(round(state["temperature_k"], program_constants.ROUND_TEMPERATURE_NEAREST_HUNDRED))
+    temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
     spectral_class, subclass = spectral_letter_and_subclass(temperature)
-    luminosity_w = state["luminosity_sol"] * physical_constants.SOLAR_LUMINOSITY
+    luminosity_w = state["luminosity_sol"] * constants.SOLAR_LUMINOSITY
     if state["radius_km"] is not None:
         radius_km = state["radius_km"]
     else:
-        radius_km = math.sqrt(luminosity_w / (physical_constants.FOUR_PI * physical_constants.STEFAN_BOLTZMANN_CONSTANT
-                                              * temperature ** 4)) / physical_constants.KM_TO_M_FACTOR
+        radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
+                                              * temperature ** 4)) / constants.KM_TO_M_FACTOR
     yerkes = state["yerkes_class"]
-    color = physical_constants.SPECTRAL_CLASS_COLORS[spectral_class]
+    color = constants.SPECTRAL_CLASS_COLORS[spectral_class]
     return {
         "type": f"{spectral_class}{subclass}{yerkes} {color} {YERKES_CLASS_NAMES[yerkes]} Star",
         "yerkes_class": yerkes,
-        "mass_kg": state["mass_sol"] * physical_constants.SOLAR_MASS_TO_KG,
+        "mass_kg": state["mass_sol"] * constants.SOLAR_MASS_TO_KG,
         "radius_km": radius_km,
         "temperature_k": temperature,
         "luminosity_w": luminosity_w,

@@ -21,7 +21,8 @@ from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
 from stellarObjects.systemData import StarSystem
 from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects import physical_constants, program_constants as prog_c
+from planetgen.physics import constants
+from planetgen import tuning as prog_c
 from stellarObjects.utils import (circular_orbital_speed_kms, minimum_update_interval_years,
                                    mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au)
 
@@ -105,10 +106,10 @@ def _assert_no_overlap_within(objects):
             # see `StarSystem._mutual_min_distance_au`'s own docstring for
             # why the owning planet's own `.star` is used instead.
             mutual_radius_m = mutual_hill_radius_m(
-                cur.distance * physical_constants.AU_TO_M, prev.distance * physical_constants.AU_TO_M,
+                cur.distance * constants.AU_TO_M, prev.distance * constants.AU_TO_M,
                 cur.mass, prev.mass, cur.star.mass,
             )
-            min_gap = (mutual_radius_m / physical_constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
+            min_gap = (mutual_radius_m / constants.AU_TO_M) * prog_c.MUTUAL_HILL_RADII_SEPARATION
             # validation.mutual_min_distance_au clamps kappa (the gap over
             # the mean distance) at 1.8 for a pair heavy next to its star.
             min_gap = min(min_gap, 1.8 * (cur.distance + prev.distance) / 2)
@@ -237,7 +238,7 @@ def assert_cross_star_clearance_holds(system):
         r_h_mutual_au = mutual_hill_radius_au(
             outer_p.mass, outer_s.mass, outer_p.distance, outer_s.distance, central_mass_kg,
         )
-        threshold_au = physical_constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
+        threshold_au = constants.GLADMAN_MUTUAL_HILL_STABILITY_FACTOR * r_h_mutual_au
 
     tolerance = max(1e-9, abs(threshold_au) * 1e-9)
     assert worst_case_gap_au >= threshold_au - tolerance, (

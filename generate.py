@@ -91,10 +91,11 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, mathCheck,
-    nebulaField, physical_constants, population, program_constants, progressFile, progressRate,
-    versionKey, workQueue,
+    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, nebulaField,
+    population, progressFile, progressRate, versionKey, workQueue,
 )
+from planetgen.physics import constants, mathcheck
+from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
@@ -1244,13 +1245,13 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
         sector (SpaceSector): The populated sector, changed in place.
         galactic_center_dist_ly (float, optional): The sector's distance
             from the galactic center; `None` uses
-            `physical_constants.GALACTIC_CENTER_DISTANCE_LY`.
+            `constants.GALACTIC_CENTER_DISTANCE_LY`.
 
     Returns:
         int: How many systems were flagged.
     """
     if galactic_center_dist_ly is None:
-        galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
     radius_pc = max(ly_to_pc(galactic_center_dist_ly), 1.0)
     hvs_chance = min(1.0, program_constants.phenomenon_rate_per_star("hypervelocity-star")
                      * (program_constants.HVS_REFERENCE_RADIUS_PC / radius_pc) ** 2)
@@ -2898,7 +2899,7 @@ class GenerationRefused(RuntimeError):
 
 
 class MathCheckFailed(RuntimeError):
-    """TEST.68: the math check (`stellarObjects.mathCheck`) failed, so a
+    """TEST.68: the math check (`planetgen.physics.mathcheck`) failed, so a
     bulk generation was refused before writing anything; the message
     names the failed checks."""
 
@@ -2906,13 +2907,13 @@ class MathCheckFailed(RuntimeError):
 def require_math_check():
     """
     The gate in front of every bulk generation (TEST.68): runs the math
-    check once per process (`mathCheck.startup_failures`, cached after
+    check once per process (`mathcheck.startup_failures`, cached after
     that) and raises if any check failed.
 
     Raises:
         MathCheckFailed: Naming the failed checks.
     """
-    failed = mathCheck.startup_failures()
+    failed = mathcheck.startup_failures()
     if failed:
         raise MathCheckFailed(
             f"the math check failed ({', '.join(r.name for r in failed)}), so nothing was generated. "
@@ -3957,7 +3958,7 @@ def add_bright_star_band(args):
         # GEN.32: a band run that stopped part way left the band in the
         # layers it finished; this run draws the whole band again, so it
         # starts from none of it.
-        stale = _db.delete_unfinished_band(conn, current * physical_constants.SOLAR_LUMINOSITY, skip)
+        stale = _db.delete_unfinished_band(conn, current * constants.SOLAR_LUMINOSITY, skip)
         conn.commit()
         if stale:
             log.normal(f"Removed {stale:,} bright stars an unfinished earlier run left below {current:g} L_sun.")
@@ -4371,7 +4372,7 @@ def build_parser():
 
     check_math_parser = subparsers.add_parser(
         'check-math',
-        description="Runs the math check (stellarObjects/mathCheck.py): reference values from real "
+        description="Runs the math check (planetgen/physics/mathcheck.py): reference values from real "
                     "astronomy, identities and sampler distributions. Exits 1 if any check fails.",
         help="Check the generator's math before generating.")
     check_math_parser.add_argument('-v', '--verbose', action='store_true',
@@ -4459,9 +4460,9 @@ def process_args():
 def run_check_math(args):
     """`generate.py check-math`: prints the math check's report and exits
     1 if any check failed (TEST.68)."""
-    results = mathCheck.run_all()
-    report = mathCheck.format_report(results, verbose=args.verbose)
-    if mathCheck.failures(results):
+    results = mathcheck.run_all()
+    report = mathcheck.format_report(results, verbose=args.verbose)
+    if mathcheck.failures(results):
         log.error(report)
         raise SystemExit(1)
     log.normal(report)

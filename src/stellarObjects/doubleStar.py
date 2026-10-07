@@ -19,8 +19,8 @@ import random
 
 from .bodyNames import close_pair_label
 from .config import SystemConfig
-from . import physical_constants
-from .planetPhysics import calculate_orbital_period_years
+from planetgen.physics import constants
+from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .starData import Star, adjust_pair_age_for_planets
 from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
@@ -98,7 +98,7 @@ class BinaryStarProxy(Star):
                 into `_calculate_system_perimeter_static` -- see
                 `Star.calculate_system_perimeter`'s docstring for the same
                 parameter. `None` (the default) uses the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
             galactic_orbital_phase_deg (float, optional): This system's
                 current angular position around its galactic orbit, in
                 degrees -- see `Star.__init__`'s docstring for the same
@@ -142,8 +142,8 @@ class BinaryStarProxy(Star):
         base_separation = random.uniform(0.05, 0.25)
         # Convert star radii from kilometers to AU before adding to separation
         self._binary_separation_au = base_separation + \
-                                     (self._primary.radius / physical_constants.AU_TO_KM) + \
-                                     (self._secondary.radius / physical_constants.AU_TO_KM)
+                                     (self._primary.radius / constants.AU_TO_KM) + \
+                                     (self._secondary.radius / constants.AU_TO_KM)
 
         # Override base Star properties with effective values
         # Use only the primary star's own bare name for the system name --
@@ -345,8 +345,8 @@ class BinaryStarProxy(Star):
                  `mutual_orbit`, `orbit`, `loc`, each an already-formatted
                  display string.
         """
-        mass_string = format_relative_to_sol(self.system_config, self.mass, physical_constants.SOLAR_MASS_TO_KG, "kg")
-        lum_string = format_relative_to_sol(self.system_config, self.luminosity, physical_constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
+        mass_string = format_relative_to_sol(self.system_config, self.mass, constants.SOLAR_MASS_TO_KG, "kg")
+        lum_string = format_relative_to_sol(self.system_config, self.luminosity, constants.SOLAR_LUMINOSITY, "W", low_percent_precision=4)
 
         separation_string = format_distance_au(self.binary_separation_au)
 
@@ -362,11 +362,11 @@ class BinaryStarProxy(Star):
         primary_offset_km = math.sqrt(
             self.binary_primary_position_x ** 2 + self.binary_primary_position_y ** 2
             + self.binary_primary_position_z ** 2
-        ) * physical_constants.AU_TO_KM
+        ) * constants.AU_TO_KM
         secondary_offset_km = math.sqrt(
             self.binary_secondary_position_x ** 2 + self.binary_secondary_position_y ** 2
             + self.binary_secondary_position_z ** 2
-        ) * physical_constants.AU_TO_KM
+        ) * constants.AU_TO_KM
         wobble_string = (
             f"{self._primary.name}: {format_distance_km(primary_offset_km)}, "
             f"{self._secondary.name}: {format_distance_km(secondary_offset_km)} "
@@ -426,13 +426,13 @@ class BinaryStarProxy(Star):
                 distance from the galactic center, in light-years -- see
                 `Star.calculate_system_perimeter`'s docstring. `None` (the
                 default) uses the fixed
-                `physical_constants.GALACTIC_CENTER_DISTANCE_LY` constant.
+                `constants.GALACTIC_CENTER_DISTANCE_LY` constant.
 
         Returns:
             float: The radius of the Hill sphere in Astronomical Units (AU).
         """
         if galactic_center_dist_ly is None:
-            galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
-        galactic_center_dist_m = galactic_center_dist_ly * physical_constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, physical_constants.MILKY_WAY_MASS)
-        return hill_radius_m / physical_constants.AU_TO_M
+            galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
+        galactic_center_dist_m = galactic_center_dist_ly * constants.LY_TO_M
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, constants.MILKY_WAY_MASS)
+        return hill_radius_m / constants.AU_TO_M

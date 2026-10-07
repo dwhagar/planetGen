@@ -15,7 +15,8 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import activitylog, mathCheck
+from stellarObjects import activitylog
+from planetgen.physics import mathcheck as mathCheck
 
 pytestmark = pytest.mark.mathcheck
 

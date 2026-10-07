@@ -13,16 +13,17 @@ import random
 import pytest
 
 import generate
-from stellarObjects import _db, brightStars, physical_constants
+from stellarObjects import _db, brightStars
+from planetgen.physics import constants
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
 from stellarObjects.galaxyGeometry import sector_address_at, sector_position_pc
 from stellarObjects.utils import ly_to_pc
-from stellarObjects import program_constants
+from planetgen import tuning
 
-EDGE_PC = ly_to_pc(program_constants.DEFAULT_SECTOR_EDGE_LY)
+EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 THRESHOLD = 500.0
-TIERS = program_constants.BRIGHT_STAR_BACKFILL_TIERS
+TIERS = tuning.BRIGHT_STAR_BACKFILL_TIERS
 
 # A small toy galaxy (the same one test_galaxy_gen.py seeds), with a high
 # systems-per-sector value so a few rings hold enough bright stars to test.
@@ -50,7 +51,7 @@ def test_scattered_stars_sit_in_their_own_qualifying_cell_and_are_bright():
         address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
         assert sector_address_at(point, EDGE_PC) == address
         assert predicted_star_count(sector_position_pc(*address, EDGE_PC), SHAPE, E_VALUE) >= 1.0
-        assert row["luminosity_w"] >= THRESHOLD * physical_constants.SOLAR_LUMINOSITY * 0.99
+        assert row["luminosity_w"] >= THRESHOLD * constants.SOLAR_LUMINOSITY * 0.99
         assert row["population"] in brightStars.POPULATIONS
 
 
@@ -87,8 +88,8 @@ def test_a_band_scatter_draws_only_stars_between_its_limits():
     rows_low = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, low, 5, max_luminosity_sol=THRESHOLD))
     assert len(rows_low) > len(_scatter(seed=5)) > 0
     for row in map(_row_dict, rows_low):
-        assert low * physical_constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"]
-        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
+        assert low * constants.SOLAR_LUMINOSITY * 0.99 <= row["luminosity_w"]
+        assert row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
     # The band's expected share is the difference of the two fractions.
     for population in brightStars.POPULATIONS:
         band = brightStars.bright_band_fraction(low, THRESHOLD, population)
@@ -217,8 +218,8 @@ def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_con
     added = [row for row in rows if row["id"] not in before]
     assert len(added) == band["total"]
     for row in added:
-        assert row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY
-        assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY * 0.99
+        assert row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY
+        assert row["luminosity_w"] >= 100.0 * constants.SOLAR_LUMINOSITY * 0.99
         assert (row["ring_index"], row["layer_index"], row["ring_slot_index"]) != address
 
     # At or above the stored level there is nothing to add.
@@ -263,7 +264,7 @@ def test_band_stars_stay_inside_their_band():
     from stellarObjects.stellarPopulation import bright_band_fraction, sample_bright_stars
     stars = sample_bright_stars(40, FLOOR, "young", random.Random(5), max_luminosity_sol=THRESHOLD)
     for star in stars:
-        luminosity = star["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY
+        luminosity = star["luminosity_w"] / constants.SOLAR_LUMINOSITY
         assert FLOOR * 0.99 <= luminosity < THRESHOLD
     assert bright_band_fraction(FLOOR, THRESHOLD, "young") == pytest.approx(
         brightStars.bright_star_fraction(FLOOR, "young") - brightStars.bright_star_fraction(THRESHOLD, "young"))
@@ -281,7 +282,7 @@ def test_backfilled_cells_get_band_stars_in_their_own_cell():
         address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
         assert address in addresses
         assert sector_address_at(point, EDGE_PC) == address
-        assert FLOOR * 0.99 <= row["luminosity_w"] / physical_constants.SOLAR_LUMINOSITY < THRESHOLD
+        assert FLOOR * 0.99 <= row["luminosity_w"] / constants.SOLAR_LUMINOSITY < THRESHOLD
 
     # The count matches the band's share of each cell's expected stars.
     expected = 0.0
@@ -325,7 +326,7 @@ def test_backfill_fills_sectors_once_and_skips_filled_sectors(mysql_config):
         assert len(levels) == first["sectors"] and set(levels.values()) == {FLOOR}
         added = conn.execute("SELECT luminosity_w FROM bright_stars ORDER BY id").fetchall()[before:]
         assert len(added) == first["stars"]
-        assert all(row["luminosity_w"] < THRESHOLD * physical_constants.SOLAR_LUMINOSITY for row in added)
+        assert all(row["luminosity_w"] < THRESHOLD * constants.SOLAR_LUMINOSITY for row in added)
         address = (4, 0, 5)
         assert _db.bright_star_fill_level(conn, *address) == FLOOR
         assert _db.bright_star_fill_level(conn, 0, 3, 0) == THRESHOLD  # a sector nobody reached
@@ -406,7 +407,7 @@ def test_going_down_a_layer_gives_backfilled_sectors_only_what_they_lack(mysql_c
     inside = [row for row in added if (row["ring_index"], row["layer_index"], row["ring_slot_index"]) in cells]
     assert inside
     for row in inside:
-        assert row["luminosity_w"] < partial * physical_constants.SOLAR_LUMINOSITY
+        assert row["luminosity_w"] < partial * constants.SOLAR_LUMINOSITY
 
 
 def _database_now(mysql_config):
@@ -541,7 +542,7 @@ def test_a_sector_holding_stars_but_no_level_is_wiped_and_drawn_again(mysql_conf
         clean = _stored_stars(conn)
         _db.clear_bright_stars(conn)
         stray = list(brightStars.backfill_cells(SHAPE, [address], EDGE_PC, E_VALUE, 2000.0, None, 99))[:1] or [
-            (*address, 0, 0, 0, "young", "B", "III", 1e31, 1e6, 9000.0, 2000.0 * physical_constants.SOLAR_LUMINOSITY,
+            (*address, 0, 0, 0, "young", "B", "III", 1e31, 1e6, 9000.0, 2000.0 * constants.SOLAR_LUMINOSITY,
              0.1, 0.2, 5.0, 0.15, 7)]
         _db.insert_bright_stars(conn, stray)
         conn.commit()
@@ -581,7 +582,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         assert stats["expected_systems"] == pytest.approx(stats["relative_density"] * E_VALUE)
         assert stats["mean_temperature_k"] == pytest.approx(sum(row["temperature_k"] for row in stars) / len(stars))
         assert stats["mean_luminosity_sol"] == pytest.approx(
-            sum(row["luminosity_w"] for row in stars) / len(stars) / physical_constants.SOLAR_LUMINOSITY)
+            sum(row["luminosity_w"] for row in stars) / len(stars) / constants.SOLAR_LUMINOSITY)
         assert stats["filled_at"] is not None
         # MAP.86: its map color, from those means and how full it is.
         from stellarObjects import sectorLook
@@ -627,7 +628,7 @@ def test_backfill_tiers_default_and_override():
     assert generate.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
     assert generate.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
     assert generate.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
-    assert program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
 
 
 @pytest.mark.parametrize("distance_ly, floor", [
@@ -668,8 +669,8 @@ def test_each_sector_takes_its_own_tier_and_a_nearer_sector_tops_it_up(mysql_con
     assert after[target] == 100.0
     assert second["stars"] == len(added)
     for row in added:
-        assert row["luminosity_w"] >= 100.0 * physical_constants.SOLAR_LUMINOSITY
-        assert row["luminosity_w"] < 300.0 * physical_constants.SOLAR_LUMINOSITY or (
+        assert row["luminosity_w"] >= 100.0 * constants.SOLAR_LUMINOSITY
+        assert row["luminosity_w"] < 300.0 * constants.SOLAR_LUMINOSITY or (
             row["ring_index"], row["layer_index"], row["ring_slot_index"]) not in levels
     # Sectors it reached only at the 300 tier were already that deep.
     assert all(after[address] <= levels.get(address, math.inf) for address in after)

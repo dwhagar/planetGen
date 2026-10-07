@@ -19,7 +19,7 @@ import pytest
 from stellarObjects.config import SystemConfig
 from stellarObjects.planetData import Planet
 from stellarObjects.starData import Star
-from stellarObjects import program_constants as prog_c
+from planetgen import tuning as prog_c
 from stellarObjects import planetLife
 
 ZONE_CHARS = "hec"
