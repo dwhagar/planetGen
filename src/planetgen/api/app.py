@@ -7,6 +7,7 @@ See `docs/api.md` for how to run this in development and how it deploys
 behind the project's existing Apache2 vhost (`examples/apache/`).
 """
 
+import os
 import time
 
 import pymysql
@@ -41,7 +42,11 @@ def create_app(config_object=Config):
     # /static/ is src/html/static/ -- Apache serves it directly in
     # production (examples/apache/); this only matters for the dev server
     # (`python src/html/wsgi.py`) and tests.
-    app = Flask(__name__, static_folder=web.STATIC_DIR)
+    # Named outside the "planetgen" logger tree (which doesn't propagate):
+    # the app's errors keep going to Flask's own stderr handler, so to
+    # Apache's error log, and through the root logger to the debug log.
+    app = Flask("planetgen_api", root_path=os.path.dirname(os.path.abspath(__file__)),
+                static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
