@@ -2086,9 +2086,9 @@ code {
   cursor: pointer;
 }
 
-.contents-group-list {
+.contents-group-table {
+  width: 100%;
   margin: 0.4rem 0 0;
-  padding-left: 1.1rem;
 }
 
 /* The Sector Map's Generate buttons for an unfilled neighbor (admins

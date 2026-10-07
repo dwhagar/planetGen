@@ -267,6 +267,27 @@ def test_sector_contents_pager_uses_get_links(client, fake):
     assert len(_scene(page2)["stars"]) == 55
 
 
+def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
+    """UX.24: systems first, then other phenomena, then rogue planets, each
+    nearest first; the rogue group is one full-width row whose members
+    show their octant and location."""
+    rogue = {"type": "rogue_planet", "descriptor": "jupiter", "class": "J", "radius_ly": 0.0,
+             "offset_x_ly": 0.1, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
+             "octant": "+x+y+z", "nearest": [{"id": 1002, "name": "Other", "distance_ly": 0.5}]}
+    fake.sectors[5]["phenomena"] += [
+        {**rogue, "id": 21, "name": "Drifter", "distance_ly": 0.1},
+        {**rogue, "id": 22, "name": "Wanderer", "distance_ly": 0.2, "octant": "-x-y-z"},
+    ]
+    fake.sectors[5]["phenomena"][0]["distance_ly"] = 9.0
+    html = client.get("/sector/5").get_data(as_text=True)
+    contents = html[html.index('id="sector-contents"'):]
+    assert contents.index(">Other<") < contents.index(">Alpha<") < contents.index(">Veil<") < contents.index(">Drifter<")
+    group = re.search(r'<tr class="contents-group-row">\s*<td colspan="6">(.*?)</details>', contents, re.S).group(1)
+    assert ">Drifter</a>" in group and ">Wanderer</a>" in group
+    assert "+x+y+z" in group and "-x-y-z" in group
+    assert 'Nearest: <a href="/system/1002">Other</a>' in group
+
+
 def test_sector_page_takes_database_from_config(client, fake):
     client.get("/sector/5?db=someone_elses")
     assert {call[1] for call in fake.calls if call[0] == "get_sector"} == {DB}

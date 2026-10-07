@@ -118,9 +118,9 @@ def debris_html(count):
     return trusted_html(f"About {esc(format_number(round(count)))} interstellar comets and planetesimals (estimated)")
 
 
-def _rogue_group_row(rogues):
+def _rogue_group_row(rogues, system_url):
     """One Contents row holding every rogue planet near the sector (a
-    `<details>` list in the Name cell), placed by the nearest one."""
+    `<details>` row the table's full width, UX.24)."""
     rogues = sorted(rogues, key=lambda r: (r["distance_ly"] is None, r["distance_ly"] or 0.0, r["name"]))
     members = [
         {
@@ -131,6 +131,8 @@ def _rogue_group_row(rogues):
                 (row["descriptor"] or "").capitalize(),
             ) if bit),
             "distance": trusted_html(format_distance_ly(row["distance_ly"])),
+            "octant": row.get("octant"),
+            "location": _nearest_html(row.get("nearest"), system_url),
             "map_target": f"rogue_planet:{row['id']}",
         }
         for row in rogues
@@ -144,6 +146,7 @@ def _rogue_group_row(rogues):
         "details": "Unbound planets drifting between the stars",
         "octant": None,
         "location": None,
+        "group": ROGUE_GROUP,
     }
 
 
@@ -193,11 +196,18 @@ def _facility_rows(sector, facilities):
     return rows
 
 
+SYSTEM_GROUP, PHENOMENON_GROUP, ROGUE_GROUP = 0, 1, 2
+"""int: The Contents table's groups in the order they're listed (UX.24):
+star systems, then other phenomena and facilities, then rogue planets."""
+
+
 def _contents(sector, facilities=()):
     """
     Every system, phenomenon and facility outside a system as Contents
-    rows, nearest the sector's center first (anything without a position
-    last), plus the placed systems for the map.
+    rows: star systems first, then the other phenomena and facilities,
+    then rogue planets (UX.24), each group nearest the sector's center
+    first (anything without a position last), plus the placed systems for
+    the map.
     """
     systems = sector["systems"]
     name_to_id = {row["name"]: row["id"] for row in systems}
@@ -212,6 +222,7 @@ def _contents(sector, facilities=()):
             "distance_ly": row.get("center_distance_ly"),
             "name": row["name"],
             "url": system_url(row["id"]),
+            "group": SYSTEM_GROUP,
             "type": "Binary Star System" if row["is_binary"] else "Star System",
             "details": ", ".join(
                 bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
@@ -231,7 +242,7 @@ def _contents(sector, facilities=()):
         # Boss's choice: many rogue planets read as one folded row, not a
         # screenful of near-identical ones.
         phenomena = [row for row in phenomena if row["type"] != "rogue_planet"]
-        rows.append(_rogue_group_row(rogues))
+        rows.append(_rogue_group_row(rogues, system_url))
 
     for row in phenomena:
         details = [(row["descriptor"] or "").replace("_", " ").capitalize()]
@@ -249,11 +260,12 @@ def _contents(sector, facilities=()):
             "location": _nearest_html(row.get("nearest"), system_url),
             # MAP.46: a rogue planet's row can point at it on the Sector Map.
             "map_target": f"rogue_planet:{row['id']}" if row["type"] == "rogue_planet" else None,
+            "group": ROGUE_GROUP if row["type"] == "rogue_planet" else PHENOMENON_GROUP,
         })
 
-    rows.extend(_facility_rows(sector, facilities))
+    rows.extend(dict(row, group=PHENOMENON_GROUP) for row in _facility_rows(sector, facilities))
 
-    rows.sort(key=lambda entry: (entry["distance_ly"] is None, entry["distance_ly"] or 0.0))
+    rows.sort(key=lambda entry: (entry["group"], entry["distance_ly"] is None, entry["distance_ly"] or 0.0))
     for entry in rows:
         entry["distance"] = trusted_html(format_distance_ly(entry["distance_ly"]))
     return rows, map_systems

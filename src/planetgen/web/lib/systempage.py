@@ -26,7 +26,7 @@ disclosure button would be a control nested in a control); it opens the
 row's detail instead.
 """
 
-from planetgen.web.lib.classref import class_entry, star_type_classes
+from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
 from planetgen.web.lib.mdconvert import markdown_to_html
 from planetgen.web.lib.tabledisplay import (
@@ -312,9 +312,10 @@ def _comet_row_html(comet, sections, class_url=None):
         _stat(format_period(comet["orbital_period_years"]) if comet.get("orbital_period_years") is not None
               else "Single apparition"),
     ]
-    period_class = comet.get("period_class")
-    period_url = class_url("comet", period_class) if class_url and period_class else None
-    links = [_link(period_url, esc(class_entry("comet", period_class)["name"]))] if period_url else []
+    # UX.29: every comet links its class, a parabolic one too.
+    code = comet.get("period_class") if comet["orbit_type"] == "elliptical" else PARABOLIC_COMET_CLASS
+    period_url = class_url("comet", code) if class_url and code else None
+    links = [_link(period_url, esc(class_entry("comet", code)["name"]))] if period_url else []
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links)
 
 
