@@ -70,10 +70,10 @@ DEFAULT_KEEP = 20
 deleted when a new job starts."""
 
 LOCK_NAME = "active"
-"""str: Must match `jobRunner.LOCK_NAME`."""
+"""str: Must match `planetgen.cli.job.LOCK_NAME`."""
 
 CANCEL_NAME = "cancel"
-"""str: Must match `jobRunner.CANCEL_NAME`."""
+"""str: Must match `planetgen.cli.job.CANCEL_NAME`."""
 
 WINDOWS = os.name == "nt"
 
