@@ -13,9 +13,8 @@ on every deploy, so a database created under an older schema keeps
 working after a `git pull` brings in a newer one. Also runnable directly
 for a one-off check/migration outside of a deployment.
 
-This file lives alongside `stellarObjects/` under `src/`, so Python's own
-sys.path[0] (the running script's directory) already makes
-`stellarObjects` importable -- no sys.path shim needed.
+Run it from the checkout's `src/` (`python3 -m` puts the current
+directory on sys.path, so `planetgen` imports).
 
 Shows a progress bar while it migrates: one tick per migration step,
 with the elapsed time and an estimate of the time left (from how long the

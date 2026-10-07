@@ -27,9 +27,8 @@ how many rows currently share it is left untouched, so re-running this
 script against a database it's already cleaned (with no new duplicates
 added by some other means in between) is a no-op.
 
-This file lives alongside `stellarObjects/` under `src/`, so Python's own
-sys.path[0] (the running script's directory) already makes
-`stellarObjects` importable -- no sys.path shim needed.
+Run it from the checkout's `src/` (`python3 -m` puts the current
+directory on sys.path, so `planetgen` imports).
 
 Usage:
     python3 -m planetgen.cli.dedupe [--mysql-host HOST] [--mysql-port PORT]

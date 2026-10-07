@@ -100,9 +100,8 @@ systems changed. Orbital facilities advance their orbit phase like moons
 (`advance_facility_orbits`). Page text is rendered from these rows
 (schema v29), so nothing else names the old sector.
 
-This file lives alongside `stellarObjects/` under `src/`, so Python's own
-sys.path[0] (the running script's directory) already makes
-`stellarObjects` importable -- no sys.path shim needed.
+Run it from the checkout's `src/` (`python3 -m` puts the current
+directory on sys.path, so `planetgen` imports).
 
 Usage:
     python3 -m planetgen.cli.orbits [--mysql-host HOST] [--mysql-port PORT]

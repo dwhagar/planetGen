@@ -151,13 +151,13 @@ import cycle can form between them.
 | `planetgen.generation` | `config` (config: SystemConfig), `star` (starData), `planet` (planetData), `system` (systemData), `binary` (doubleStar), `wide_binary` (wideBinary), `belt` (asteroidData), `comet` (cometData), `life` (planetLife), `evolution` (evolution), `star_population` (stellarPopulation), `bright_stars` (brightStars), `limits` (generationLimits), `stats` (generationStats), `validation` (validation), `plausibility` (plausibility), `phenomena_plausibility` (phenomenaPlausibility); and `run_system`, `run_sector`, `run_galaxy`, `run_plan`, `run_phenomenon`, `run_population` (generate.py's sections) |
 | `planetgen.generation.phenomena` | `asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue` (rogue planets and interstellar comets), `supernova_remnant` (the six phenomenon `*Data.py` modules) |
 | `planetgen.population` | `model` (population), `facilities` (facilities) |
-| `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats), `migrate`, `reset`, `orbits`, `dedupe`, `render_parity` (the logic of migrateDb, resetDb, updateOrbits, dedupeNames, checkRenderParity) |
-| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits), `lockouts` (loginLockouts' logic) |
+| `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats) |
+| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits) |
 | `planetgen.queue` | `work` (workQueue), `runner` (jobRunner's logic), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
 | `planetgen.api` | everything in `src/html/api/` under the same module names |
 | `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |
 | `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
-| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query`, `migrate`, `reset`, `orbits`, `dedupe`, `lockouts`, `render_parity`, `job` (jobRunner) |
+| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query` (queryDb's command line), `migrate` (migrateDb), `reset` (resetDb), `orbits` (updateOrbits), `dedupe` (dedupeNames), `lockouts` (loginLockouts), `render_parity` (checkRenderParity), `job` (jobRunner). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into `planetgen.db` buys nothing. |
 
 Large modules move whole. `store.py` is split by DB.11 (SQLAlchemy), and
 `planetgen.db.query` with it; splitting them during the move would make every
@@ -205,7 +205,10 @@ so each PR's modules import ones that already moved:
 5. `planetgen.generation` and its phenomena.
 6. `planetgen.population`.
 7. `planetgen.admin`.
-8. `planetgen.db`, with the `src/` scripts into `planetgen.cli`.
+8. `planetgen.db`, with the `src/` scripts into `planetgen.cli`. Until
+   step 14's editable install, they run as `python3 -m planetgen.cli.<name>`
+   from the checkout's `src/`; install and update do that, and the job
+   runner puts `src/` on its steps' `PYTHONPATH`.
 9. `planetgen.queue`, with jobRunner.
 10. `planetgen.web.lib` and `planetgen.web.maps`.
 11. `planetgen.api`.
