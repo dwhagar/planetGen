@@ -26,11 +26,11 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
 
 MILKY_WAY = build_galaxy_shape(
-    disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
-    bulge_amplitude=1.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
+    disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+    bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
 LARGE_BULGE = build_galaxy_shape(
-    disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=1500.0,
+    disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=4000.0,
     bulge_amplitude=20.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
 EDGE_PC = tuning.DEFAULT_SECTOR_EDGE_PC
@@ -107,7 +107,7 @@ def test_old_and_bulge_stars_reach_the_bright_star_threshold(population):
             < bright_star_fraction(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, "young") / 5)
 
 
-@pytest.mark.parametrize("layer_index", [400, -800])
+@pytest.mark.parametrize("layer_index", [400, -600])
 def test_a_large_bulge_gets_bright_stars_far_above_layer_121(layer_index):
     extents = dict(build_layer_extents(LARGE_BULGE, EDGE_PC, 1.0 / E_VALUE)[0])
     assert extents[layer_index] > 60
@@ -143,9 +143,10 @@ def test_bright_stars_rise_far_above_the_thin_young_band(layer_index):
 def test_the_bright_stars_z_spread_by_population():
     plane = [row[6] for row in _scatter(0)]
     high = [row[6] for row in _scatter(60)]       # about 240 pc up
-    # The plane is mostly young stars; 240 pc up young ones are rare,
-    # but every older population is still there in strength.
-    assert plane.count("young") > 0.5 * len(plane)
+    # Young stars are a big share of the plane's (the rest is mostly the
+    # bar bulge, which fills the inner kiloparsec); 240 pc up young ones
+    # are rare, but every older population is still there in strength.
+    assert plane.count("young") > 0.25 * len(plane)
     assert high.count("young") < 0.1 * len(high)
     for population in ("intermediate", "old", "bulge"):
         assert high.count(population) > 0.1 * plane.count(population), population

@@ -164,7 +164,7 @@ generated. Now they belong to the galaxy (`planetgen/galaxy/nebula_field.py`):
 - The gas factor is the young stars' density (they share the gas's thin
   layer and radial profile) with the gas's own arm contrast
   (`NEBULA_FIELD_ARM_AMPLITUDE` 0.6, about 4:1), relative to the average
-  around the solar circle (2.82 disk scale lengths), to the power 1.4
+  around the solar circle (3.15 disk scale lengths), to the power 1.4
   (`GMC_GAS_DENSITY_EXPONENT`), capped at 3
   (`NEBULA_FIELD_MAX_GAS_FACTOR`). At the solar circle that is about
   2.3 on an arm's crest, 0.9 midway and 0.2 between arms, and almost

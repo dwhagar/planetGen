@@ -4,11 +4,11 @@
 Galaxy Disk/Spiral Density Model
 ====================================
 
-Implements the exponential-disk-plus-bulge-plus-spiral-arm density model
-from `docs/design/galaxy-disk-density.md` (revision 2) -- the piece of
-that design pass that was, until now, only ever prototyped in throwaway
-scratch scripts during design discussion, never shipped as real,
-tested code.
+Implements the galaxy density model from
+`docs/design/galaxy-disk-density.md`: an exponential thin disk carrying
+the spiral arms, an exponential thick disk, and a boxy bar bulge, each
+fitted to published Milky Way structure (GEN.118, GEN.119; sources in
+`tuning`'s "galaxy density model" block).
 
 The model gives a `relative_density` at any galaxy-frame position,
 normalized so it equals `1.0` at a chosen calibration point (by
@@ -35,6 +35,7 @@ that's an occupancy decision, a `--density` multiplier, or just an
 analysis figure), and own persistence, if any.
 """
 
+import functools
 import math
 from collections import namedtuple
 
@@ -87,10 +88,106 @@ def _sech_squared(x):
     return min(1.0, 4.0 * e / (1.0 + e) ** 2)
 
 
+def _vertical(z, scale_height_pc):
+    """A disk's vertical profile: `sech^2(z / (2 * h))`, the isothermal
+    sheet, whose tail away from the plane is `exp(-|z| / h)` -- so `h` is
+    the exponential scale height surveys quote (BHG16's 300 pc thin disk,
+    900 pc thick disk)."""
+    return _sech_squared(z / (2.0 * scale_height_pc))
+
+
+@functools.lru_cache(maxsize=64)
+def model_terms(shape):
+    """
+    The parts of the model that aren't `GalaxyShape` fields but follow
+    from them (`tuning`'s fixed Milky Way ratios): the thick disk's scale
+    length, height and amplitude, and the bar's axes and angle. The Galaxy
+    Map's prisms read the same dict (`galaxymap3d._density_shape`).
+
+    Returns:
+        dict: `thick_disk_amplitude` (raw density at the center, in the
+            plane, against the thin disk's 1), `thick_disk_scale_length_pc`,
+            `thick_disk_scale_height_pc`, `bulge_scale_y_pc`,
+            `bulge_scale_z_pc`, `bar_angle_rad` (galaxy-frame azimuth of
+            the bar's near end) with its `bar_cos` and `bar_sin`, and
+            `solar_angle_rad` (the Sun's azimuth: the inter-arm minimum
+            at the solar radius).
+    """
+    length = shape.disk_scale_length_pc
+    solar_radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * length
+    thick_length = tuning.THICK_DISK_SCALE_LENGTH_RATIO * length
+    solar_angle = _interarm_angle(solar_radius, shape)
+    bar_angle = solar_angle + math.radians(tuning.BULGE_BAR_ANGLE_DEG)
+    return {
+        "thick_disk_amplitude": tuning.THICK_DISK_LOCAL_DENSITY_RATIO
+        * math.exp(solar_radius / thick_length - solar_radius / length),
+        "thick_disk_scale_length_pc": thick_length,
+        "thick_disk_scale_height_pc": tuning.THICK_DISK_SCALE_HEIGHT_RATIO * shape.disk_scale_height_pc,
+        "bulge_scale_y_pc": tuning.BULGE_AXIS_RATIO_Y * shape.bulge_scale_radius_pc,
+        "bulge_scale_z_pc": tuning.BULGE_AXIS_RATIO_Z * shape.bulge_scale_radius_pc,
+        "bar_angle_rad": bar_angle,
+        "bar_cos": math.cos(bar_angle),
+        "bar_sin": math.sin(bar_angle),
+        "solar_angle_rad": solar_angle,
+    }
+
+
+def shape_with_terms(shape):
+    """`shape`'s fields and its `model_terms` in one plain dict: what the
+    Galaxy Map's prisms read (`queryDb.galaxy_density_shape`)."""
+    return {**shape._asdict(), **model_terms(shape)}
+
+
+def _interarm_angle(radius_pc, shape):
+    """The azimuth of the inter-arm minimum at `radius_pc`."""
+    theta_arm = (
+        shape.spiral_reference_angle_rad
+        + math.log(radius_pc / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
+    )
+    return theta_arm + math.pi / shape.arm_count
+
+
+def _bulge(x, y, z, shape, terms):
+    """The boxy bar bulge (Dwek et al. 1995 G2; see `tuning.BULGE_*`):
+    `bulge_amplitude * exp(-r_s^2 / 2)`, `r_s^4 = ((x'/x0)^2 +
+    (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame."""
+    cos_a, sin_a = terms["bar_cos"], terms["bar_sin"]
+    along = (x * cos_a + y * sin_a) / shape.bulge_scale_radius_pc
+    across = (y * cos_a - x * sin_a) / terms["bulge_scale_y_pc"]
+    up = z / terms["bulge_scale_z_pc"]
+    in_plane = along * along + across * across
+    return shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(in_plane * in_plane + up ** 4))
+
+
+def bulge_bound(r_cyl, z, shape):
+    """The bulge's maximum over azimuth at `(r_cyl, z)` (unnormalized):
+    along the bar's long axis. Falls as `r_cyl` and `|z|` grow."""
+    terms = model_terms(shape)
+    along = r_cyl / shape.bulge_scale_radius_pc
+    up = z / terms["bulge_scale_z_pc"]
+    return shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(along ** 4 + up ** 4))
+
+
+def _thick_disk(r_cyl, z, shape, terms):
+    """The thick disk (BHG16; see `tuning.THICK_DISK_*`), unnormalized."""
+    return (terms["thick_disk_amplitude"] * math.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
+            * _vertical(z, terms["thick_disk_scale_height_pc"]))
+
+
+def _components(position_pc, shape):
+    """`(bulge, thin disk without arms, thick disk, arm cosine)` at a
+    point, unnormalized."""
+    x, y, z = position_pc
+    terms = model_terms(shape)
+    r_cyl = math.hypot(x, y)
+    thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
+    return _bulge(x, y, z, shape, terms), thin, _thick_disk(r_cyl, z, shape, terms), _arm_cosine(x, y, shape)
+
+
 def _raw_density(position_pc, shape):
     """
     `relative_density` before the `k_norm` normalization is applied --
-    see `docs/design/galaxy-disk-density.md` revision 2, section 1.
+    see `docs/design/galaxy-disk-density.md`, section 1.
 
     Args:
         position_pc (tuple): `(x, y, z)`, galaxy-frame parsecs.
@@ -99,28 +196,11 @@ def _raw_density(position_pc, shape):
                              value).
 
     Returns:
-        float: `rho_bulge(r_3d) + rho_disk_radial(r_cyl) * f_z(z) *
-              arm_factor(r_cyl, theta)`, unnormalized (`>= 0`).
+        float: `bulge + thin_disk * arm_factor + thick_disk`,
+              unnormalized (`>= 0`).
     """
-    x, y, z = position_pc
-    r_cyl = math.hypot(x, y)
-    r_3d = math.sqrt(x * x + y * y + z * z)
-
-    bulge = shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
-    disk_radial = math.exp(-r_cyl / shape.disk_scale_length_pc)
-    f_z = _sech_squared(z / shape.disk_scale_height_pc)
-
-    if r_cyl > 1e-9:
-        theta = math.atan2(y, x)
-        theta_arm = (
-            shape.spiral_reference_angle_rad
-            + math.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
-        )
-        arm_factor = 1 + shape.arm_amplitude * math.cos(shape.arm_count * (theta - theta_arm))
-    else:
-        arm_factor = 1.0
-
-    return bulge + disk_radial * f_z * arm_factor
+    bulge, thin, thick, arm_cos = _components(position_pc, shape)
+    return bulge + thin * (1 + shape.arm_amplitude * arm_cos) + thick
 
 
 def _arm_cosine(x, y, shape):
@@ -146,36 +226,34 @@ def population_densities(position_pc, shape):
     system's age from the mix where it sits.
 
     The components always sum to `relative_density`, so no sector's total
-    changes. The bulge term is the "bulge" population. The disk term is
-    shared among the three disk populations in proportion to how many
-    stars each would put here: its share of disk star formation (the
-    length of its age range), times its own vertical profile
-    (`sech^2(z/h)/h`, a thinner disk for younger stars) and its own arm
-    contrast (`1 + A cos(arm phase)`, strongest for young stars). So young
-    stars crowd the arms near the plane, and far off the plane or in the
-    bulge nearly every star is old.
+    changes. The bulge term is the "bulge" population, and the thick disk
+    and the halo floor are "old". The thin disk is shared among the three
+    disk populations in proportion to how many stars each would put here:
+    its share of disk star formation (the length of its age range), times
+    its own vertical profile (`sech^2(z/2h)/h`, a thinner disk for younger
+    stars) and its own arm contrast (`1 + A cos(arm phase)`, strongest for
+    young stars). So young stars crowd the arms near the plane, and far
+    off the plane or in the bulge nearly every star is old.
 
     Returns:
         dict: `{"young", "intermediate", "old", "bulge"}` -> density, each
               `>= 0`, summing to `relative_density(position_pc, shape)`.
     """
-    x, y, z = position_pc
-    r_3d = math.sqrt(x * x + y * y + z * z)
-    bulge = shape.k_norm * shape.bulge_amplitude * math.exp(-r_3d / shape.bulge_scale_radius_pc)
-    model = shape.k_norm * _raw_density(position_pc, shape)
-    disk = model - bulge
+    z = position_pc[2]
+    bulge, thin, thick, arm_cos = _components(position_pc, shape)
+    disk = shape.k_norm * thin * (1 + shape.arm_amplitude * arm_cos)
+    model = shape.k_norm * (bulge + thick) + disk
     # The halo floor's share (`tuning.MIN_RELATIVE_DENSITY`, GEN.78): old
     # stars, wherever the model itself falls below it.
-    halo = relative_density(position_pc, shape) - model
+    halo = max(model, tuning.MIN_RELATIVE_DENSITY) - model
 
     ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
     formation_span = tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0]
-    arm_cos = _arm_cosine(x, y, shape)
     weights = {}
     for name, ratio in tuning.STELLAR_POPULATION_SCALE_HEIGHT_RATIO.items():
         height = shape.disk_scale_height_pc * ratio
         share = (ages[name][1] - ages[name][0]) / formation_span
-        weights[name] = (share * _sech_squared(z / height) / height
+        weights[name] = (share * _vertical(z, height) / height
                          * (1 + tuning.STELLAR_POPULATION_ARM_AMPLITUDE[name] * arm_cos))
     total = sum(weights.values())
     if total <= 0.0:
@@ -184,9 +262,52 @@ def population_densities(position_pc, shape):
         weights, total = {name: 0.0 for name in weights}, 1.0
         weights["old"] = 1.0
     densities = {name: max(disk, 0.0) * weight / total for name, weight in weights.items()}
-    densities["old"] += max(halo, 0.0)
-    densities["bulge"] = bulge
+    densities["old"] += max(shape.k_norm * thick, 0.0) + max(halo, 0.0)
+    densities["bulge"] = shape.k_norm * bulge
     return densities
+
+
+def component_masses(shape, steps=40):
+    """
+    Each component's share of the model's stars, by integrating its
+    density over space (unnormalized units; only the ratios mean
+    anything) -- what the math check and the tests compare with the Milky
+    Way's measured masses. The arm factor averages to 1 around any
+    circle, so the thin disk's mass doesn't depend on it.
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape parameters.
+        steps (int): Grid steps per axis (more is slower and closer).
+
+    Returns:
+        dict: `{"bulge", "thin_disk", "thick_disk"}` -> integrated density.
+    """
+    terms = model_terms(shape)
+    # The bulge on a box in its own frame (the integral doesn't care
+    # about the bar's angle), out to 4 scale lengths on each axis.
+    axes = (shape.bulge_scale_radius_pc, terms["bulge_scale_y_pc"], terms["bulge_scale_z_pc"])
+    cells = [[(i + 0.5) * 4.0 * axis / steps for i in range(steps)] for axis in axes]
+    bulge = sum(
+        math.exp(-0.5 * math.sqrt((u * u + v * v) ** 2 + w ** 4))
+        for u in (x / axes[0] for x in cells[0])
+        for v in (y / axes[1] for y in cells[1])
+        for w in (z / axes[2] for z in cells[2])
+    )
+    bulge *= 8.0 * shape.bulge_amplitude * (4.0 / steps) ** 3 * axes[0] * axes[1] * axes[2]
+
+    def disk(amplitude, length, height):
+        r_max, z_max = 12.0 * length, 12.0 * height
+        dr, dz = r_max / (4 * steps), z_max / (4 * steps)
+        radial = sum(2.0 * math.pi * r * math.exp(-r / length) for r in ((i + 0.5) * dr for i in range(4 * steps)))
+        vertical = sum(_vertical(z, height) for z in ((i + 0.5) * dz for i in range(4 * steps)))
+        return amplitude * radial * dr * 2.0 * vertical * dz
+
+    return {
+        "bulge": bulge,
+        "thin_disk": disk(1.0, shape.disk_scale_length_pc, shape.disk_scale_height_pc),
+        "thick_disk": disk(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"],
+                           terms["thick_disk_scale_height_pc"]),
+    }
 
 
 def relative_density(position_pc, shape):
@@ -234,10 +355,10 @@ def build_galaxy_shape(
             The galaxy's shape parameters -- see `GalaxyShape`.
         calibration_radius_pc (float, optional): The in-plane radius the
             `relative_density = 1.0` calibration point sits at. Defaults
-            to `2.82 * disk_scale_length_pc` -- the real Milky Way's own
-            solar-radius-to-scale-length ratio, reused here as a
-            physically-motivated default at whatever scale this galaxy
-            actually is, not a Milky-Way-specific constant.
+            to `tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH *
+            disk_scale_length_pc` -- the real Milky Way's own
+            solar-radius-to-scale-length ratio (8.2 / 2.6 kpc), reused
+            here at whatever scale this galaxy actually is.
         spiral_reference_angle_rad (float): See `GalaxyShape` -- arbitrary
             fixed orientation, `0.0` unless there's a reason to prefer
             another.
@@ -246,7 +367,7 @@ def build_galaxy_shape(
         GalaxyShape: With `k_norm` filled in.
     """
     if calibration_radius_pc is None:
-        calibration_radius_pc = 2.82 * disk_scale_length_pc
+        calibration_radius_pc = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * disk_scale_length_pc
 
     unnormalized = GalaxyShape(
         disk_scale_length_pc=disk_scale_length_pc,
@@ -261,11 +382,7 @@ def build_galaxy_shape(
         k_norm=1.0,
     )
 
-    theta_arm_at_calibration = (
-        spiral_reference_angle_rad
-        + math.log(calibration_radius_pc / disk_scale_length_pc) / math.tan(pitch_angle_rad)
-    )
-    theta_interarm = theta_arm_at_calibration + math.pi / arm_count
+    theta_interarm = _interarm_angle(calibration_radius_pc, unnormalized)
     calibration_position = (
         calibration_radius_pc * math.cos(theta_interarm),
         calibration_radius_pc * math.sin(theta_interarm),

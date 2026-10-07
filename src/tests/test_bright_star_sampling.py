@@ -25,8 +25,8 @@ from planetgen.generation.system import StarSystem
 THRESHOLD = 500.0
 
 SHAPE = density.build_galaxy_shape(
-    disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
-    bulge_amplitude=1.0, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
+    disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+    bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
 )
 
 
@@ -128,8 +128,8 @@ def test_young_stars_hug_the_plane_and_the_bulge_is_old():
     plane, high = shares((8000, 0, 0)), shares((8000, 0, 1000))
     assert plane["young"] > 100 * high["young"]
     assert high["old"] > 0.9
-    assert shares((0, 0, 2000))["bulge"] > 0.5
-    assert shares((8000, 0, 0))["bulge"] < 1e-6
+    assert shares((0, 0, 800))["bulge"] > 0.5
+    assert shares((8000, 0, 0))["bulge"] < 1e-3
 
 
 def test_pick_population_follows_the_densities():

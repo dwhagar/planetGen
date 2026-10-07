@@ -16,7 +16,7 @@ import subprocess
 
 import pytest
 
-from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms
 
 NODE = shutil.which("node")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static")
@@ -25,7 +25,7 @@ PRISMS = os.path.join(STATIC, "galaxyprisms.js")
 
 pytestmark = pytest.mark.skipif(NODE is None, reason="node is not installed")
 
-SHAPE = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
+SHAPE = build_galaxy_shape(2800.0, 300.0, 200.0, 1.0, 2, math.radians(15.0), 0.4)
 EDGE_PC = 4.0
 GALAXY_RADIUS_PC = 15000.0
 
@@ -36,7 +36,7 @@ def _shape():
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from planetgen.physics.units import pc_to_ly
 
-    return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
+    return {**shape_with_terms(SHAPE), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
 
 
 def _run(script):
@@ -379,7 +379,7 @@ def test_the_course_stage_is_the_smallest_one_holding_every_stop():
 const home = {ring: 1705, layer: -20, slot: 3225};
 const near = {ring: 1706, layer: -20, slot: 3226};
 const core = {ring: 5, layer: 0, slot: 1};
-const high = {ring: 5, layer: 900, slot: 1};
+const high = {ring: 5, layer: 2000, slot: 1};
 const holds = (stage, s) => S.resolveStage(stage, outline, edge).view.blocks.some(b => {
   const chain = P.drillChainOf(s.ring, s.layer, s.slot);
   return b.m === 1 ? b.ring === s.ring && b.wedge === s.slot && b.slab === s.layer : chain.some(c => S.sameBlock(c, b));

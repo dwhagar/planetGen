@@ -322,7 +322,10 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
             conn.execute("UPDATE planets SET name = ? WHERE id = ?", ("Ilq'Ot", planet.db_id))
     finally:
         conn.close()
-    planet = next(p for p in _load(mysql_config, system_id).planets if p.db_id == planet.db_id)
+    # An asteroid belt's id comes from its own table and can equal the
+    # planet's, so match the body type too.
+    planet = next(p for p in _load(mysql_config, system_id).planets
+                  if p.body_type != 'a' and p.db_id == planet.db_id)
     assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
     response = _edit(web_app, client, f"/system/{system_id}", "regenerate", f"planet:{planet.db_id}")

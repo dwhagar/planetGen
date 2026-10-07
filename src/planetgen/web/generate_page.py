@@ -74,10 +74,10 @@ from .helpers import crumb, current_admin, db_name, page_url, render_page, trust
 
 PLAN_FIELDS = (
     # (form name, planetgen flag, label, type, default, minimum, exclusive maximum)
-    ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, 2800.0, 1.0, None),
-    ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, 350.0, 1.0, None),
-    ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, 200.0, 1.0, None),
-    ("bulge_amplitude", "--bulge-amplitude", "Bulge amplitude", float, 1.0, 0.0, None),
+    ("disk_scale_length_pc", "--disk-scale-length-pc", "Disk scale length (pc)", float, 2600.0, 1.0, None),
+    ("disk_scale_height_pc", "--disk-scale-height-pc", "Disk scale height (pc)", float, 300.0, 1.0, None),
+    ("bulge_scale_radius_pc", "--bulge-scale-radius-pc", "Bulge scale radius (pc)", float, 1580.0, 1.0, None),
+    ("bulge_amplitude", "--bulge-amplitude", "Bulge amplitude", float, 3.11, 0.0, None),
     ("arm_count", "--arm-count", "Spiral arms", int, 2, 0, None),
     ("pitch_angle_deg", "--pitch-angle-deg", "Arm pitch angle (degrees)", float, 15.0, 1.0, 90.0),
     ("arm_amplitude", "--arm-amplitude", "Arm contrast (0 to 1)", float, 0.4, 0.0, 1.0),

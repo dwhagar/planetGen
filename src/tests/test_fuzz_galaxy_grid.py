@@ -450,8 +450,8 @@ def test_relative_density_is_finite_and_never_negative(shape, point):
 
 @given(SHAPES)
 def test_shape_is_calibrated_to_one_at_its_interarm_point(shape):
-    # The calibration point: 2.82 scale lengths out, between two arms.
-    r = 2.82 * shape.disk_scale_length_pc
+    # The calibration point: the solar radius (3.15 scale lengths) out, between two arms.
+    r = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
     theta_arm = shape.spiral_reference_angle_rad + math.log(r / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad)
     theta = theta_arm + math.pi / shape.arm_count
     value = galaxyDensity.relative_density((r * math.cos(theta), r * math.sin(theta), 0.0), shape)

@@ -61,10 +61,10 @@ import numpy as np
 from planetgen.db import store  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape, relative_density  # noqa: E402
 
-DEFAULT_DISK_SCALE_LENGTH_PC = 2800.0
-DEFAULT_DISK_SCALE_HEIGHT_PC = 350.0
-DEFAULT_BULGE_SCALE_RADIUS_PC = 200.0
-DEFAULT_BULGE_AMPLITUDE = 1.0
+DEFAULT_DISK_SCALE_LENGTH_PC = 2600.0
+DEFAULT_DISK_SCALE_HEIGHT_PC = 300.0
+DEFAULT_BULGE_SCALE_RADIUS_PC = 1580.0
+DEFAULT_BULGE_AMPLITUDE = 3.11
 DEFAULT_ARM_COUNT = 2
 DEFAULT_PITCH_ANGLE_DEG = 15.0
 DEFAULT_ARM_AMPLITUDE = 0.4
@@ -110,7 +110,7 @@ def _add_shape_arguments(parser):
                         help="Spiral arm/inter-arm density contrast, 0-1ish.")
     parser.add_argument("--calibration-radius-pc", type=float, default=None,
                         help="Where relative_density == 1.0 is calibrated -- defaults to "
-                             "2.82 * disk-scale-length-pc (build_galaxy_shape's own default).")
+                             "3.15 * disk-scale-length-pc (build_galaxy_shape's own default, the Sun's radius).")
 
 
 def _shape_from_args(args):

@@ -999,7 +999,7 @@ has any content at all — lives in `galaxy_layer` below instead.
 Building or rebuilding the skeleton replaces this row (and every
 `galaxy_layer` row) wholesale; there is no partial update, since a
 full build takes a few milliseconds even at real Milky-Way scale (a
-closed-form walk over ~3,900 rings and ~320 layers, not a per-sector scan over
+closed-form walk over ~3,800 rings and ~1,020 layers, not a per-sector scan over
 billions of candidates).
 
 | Column | Type | Null | Notes |

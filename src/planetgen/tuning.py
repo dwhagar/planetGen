@@ -575,13 +575,45 @@ WD_PROGENITOR_ENGULFMENT_AU = 1.5
 # STAR_FORMATION_AGE_RANGE_GY's. Young stars sit close to the plane and
 # crowd the spiral arms; old stars are puffed up by billions of years of
 # scattering and spread evenly in azimuth. Scale heights are relative to
-# the galaxy's own disk scale height (the old disk's, ~350 pc in the Milky
-# Way: young ~80 pc, intermediate ~200 pc). The bulge is old (8-12 Gy).
+# the galaxy's own thin-disk scale height, all exponential scale heights
+# (`galaxyDensity._vertical`): the old thin disk's ~300 pc in the Milky
+# Way (BHG16), young ~50 pc (OB stars, Reed 2000) and intermediate
+# ~150 pc (A to F dwarfs, Bovy 2017). The bulge is old
+# (8-12 Gy), and so is the thick disk, whose stars count as "old"
+# (`galaxyDensity.population_densities`).
 STELLAR_POPULATION_AGE_RANGES_GY = {
     "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
 }
-STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 80 / 350, "intermediate": 200 / 350, "old": 1.0}
+STELLAR_POPULATION_SCALE_HEIGHT_RATIO = {"young": 50 / 300, "intermediate": 150 / 300, "old": 1.0}
 STELLAR_POPULATION_ARM_AMPLITUDE = {"young": 0.9, "intermediate": 0.4, "old": 0.0}
+
+# The galaxy density model's fixed Milky Way structure
+# (`galaxyDensity`, GEN.118, GEN.119): everything that isn't a
+# `GalaxyShape` field, as ratios to those fields so it scales with the
+# galaxy. Sources: Bland-Hawthorn & Gerhard 2016 (ARA&A 54:529, "BHG16"),
+# Dwek et al. 1995 (ApJ 445:716), Wegg & Gerhard 2013 (MNRAS 435:1874).
+#
+# The Sun's distance from the center over the thin disk's scale length:
+# R0 = 8.2 kpc, L = 2.6 kpc (BHG16). The calibration point (relative
+# density 1.0) sits here by default, and the bar is angled from it.
+GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH = 8200.0 / 2600.0
+# The thick disk (BHG16): scale height 900 pc and scale length 2.0 kpc
+# against the thin disk's 300 pc and 2.6 kpc, and 4% of the thin disk's
+# density in the plane at the Sun. That makes it ~18% of the thin disk's
+# mass (BHG16: 6e9 against 3.5e10 Msun).
+THICK_DISK_SCALE_HEIGHT_RATIO = 900.0 / 300.0
+THICK_DISK_SCALE_LENGTH_RATIO = 2000.0 / 2600.0
+THICK_DISK_LOCAL_DENSITY_RATIO = 0.04
+# The bulge is the bar's boxy/peanut core, as COBE/DIRBE sees it edge-on:
+# Dwek et al. 1995's G2 fit, rho = exp(-r_s^2 / 2) with r_s^4 =
+# ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4, x0 = 1.58, y0 = 0.62, z0 = 0.43 kpc.
+# `bulge_scale_radius_pc` is x0 (along the bar); these are y0/x0 and z0/x0.
+BULGE_AXIS_RATIO_Y = 620.0 / 1580.0
+BULGE_AXIS_RATIO_Z = 430.0 / 1580.0
+# The bar's long axis leads the Sun-center line by 27 degrees in the
+# direction of rotation (its near end at positive galactic longitude;
+# Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).
+BULGE_BAR_ANGLE_DEG = 27.0
 
 # The lowest relative density anywhere (GEN.78): the exponential disk and
 # bulge fall toward zero far off the plane and toward the edge, but a sparse

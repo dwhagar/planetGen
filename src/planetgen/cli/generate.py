@@ -726,15 +726,19 @@ def add_plan_arguments(parser):
         parser (argparse.ArgumentParser): The parser to add options to.
     """
     shape_group = parser.add_argument_group("galaxy shape (galaxyDensity.GalaxyShape)")
-    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=2800.0,
-                             help="Exponential disk radial scale length, parsecs. Default: 2800 "
+    shape_group.add_argument('--disk-scale-length-pc', type=finite_float, default=2600.0,
+                             help="Thin disk exponential scale length, parsecs (the thick disk's is 0.77x). "
+                                  "Default: 2600 "
                                   "(real Milky Way scale).")
-    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=350.0,
-                             help="Disk vertical scale height, parsecs. Default: 350.")
-    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=200.0,
-                             help="Bulge exponential scale radius, parsecs. Default: 200.")
-    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=1.0,
-                             help="Bulge amplitude, relative to the disk term. Default: 1.0.")
+    shape_group.add_argument('--disk-scale-height-pc', type=finite_float, default=300.0,
+                             help="Thin disk exponential scale height, parsecs (the thick disk's is 3x). "
+                                  "Default: 300 (real Milky Way).")
+    shape_group.add_argument('--bulge-scale-radius-pc', type=finite_float, default=1580.0,
+                             help="Bar bulge scale length along the bar, parsecs (0.39x across it, 0.27x "
+                                  "vertically). Default: 1580 (COBE/DIRBE fit, Dwek et al. 1995).")
+    shape_group.add_argument('--bulge-amplitude', type=finite_float, default=3.11,
+                             help="Bulge central density, relative to the thin disk's at the center. "
+                                  "Default: 3.11 (bulge 31%% of the stars, as in the Milky Way).")
     shape_group.add_argument('--arm-count', type=int, default=2,
                              help="Number of spiral arms. Default: 2 (grand-design).")
     shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=15.0,
@@ -743,7 +747,7 @@ def add_plan_arguments(parser):
                              help="Arm/inter-arm density contrast amplitude, in [0, 1). Default: 0.4.")
     shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
-                                  "Defaults to build_galaxy_shape's own default (2.82x disk scale length).")
+                                  "Defaults to build_galaxy_shape's own default (3.15x disk scale length, the Sun's radius).")
 
     parser.add_argument('--seed', type=_galaxy_seed_arg, default=None, metavar="HEX",
                         help="The galaxy's 128-bit seed, as 32 hex digits: the same seed makes the same galaxy "

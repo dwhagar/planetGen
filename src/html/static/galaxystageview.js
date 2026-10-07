@@ -1952,13 +1952,13 @@ export function createStageView(host) {
   // columns deals them out in turn, right first, so each column runs the
   // map's whole height. Leaves them be while one has focus, unless
   // `force` (the columns changed).
-  function orderStrip(force) {
+  function orderStrip(force, heights) {
     if (!strip || !view) return;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
     const rows = strip.rows;
-    const keys = new Map();
-    rows.forEach(function (r) { keys.set(r, slabAnchor(r.option.blocks, rect).y); });
+    const keys = heights || new Map();
+    if (!heights) rows.forEach(function (r) { keys.set(r, slabAnchor(r.option.blocks, rect).y); });
     const below = strip.phone;
     const order = rows.slice().sort(function (p, q) {
       const d = keys.get(p) - keys.get(q) || q.option.pick.lo - p.option.pick.lo;
@@ -1997,6 +1997,30 @@ export function createStageView(host) {
     // to the highest slab, and the column runs from the lowest slab down.
     const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
     const items = Array.from(strip.list.children);
+    // Beside the map each line ends where its slab's outline comes
+    // nearest its button, which needn't keep the order of the slabs'
+    // anchors once the view tilts; if the ends come out of order, the
+    // buttons take the ends' order, so no two lines cross.
+    function sideEnds() {
+      const ends = new Map();
+      rows.forEach(function (r) {
+        const b = r.button.getBoundingClientRect();
+        const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
+        ends.set(r, { from: from, end: slabEnd(r, from, null, rect) });
+      });
+      return ends;
+    }
+    let ends = below ? null : sideEnds();
+    if (ends && [strip.list, strip.other].some(function (list) {
+      const column = list ? rows.filter(function (r) { return list.contains(r.item); }) : [];
+      column.sort(function (p, q) { return ends.get(p).from[1] - ends.get(q).from[1]; });
+      return column.some(function (r, n) { return n > 0 && ends.get(r).end.y < ends.get(column[n - 1]).end.y; });
+    })) {
+      const heights = new Map();
+      rows.forEach(function (r) { heights.set(r, ends.get(r).end.y); });
+      orderStrip(false, heights);
+      ends = sideEnds();
+    }
     rows.forEach(function (r) {
       if (!r.line) return;
       const b = r.button.getBoundingClientRect();
@@ -2009,9 +2033,8 @@ export function createStageView(host) {
         end = slabEnd(r, [lane, b.top + b.height / 2], lane, rect);
         points.push([b.right, b.top + b.height / 2], [lane, b.top + b.height / 2], [lane, end.y]);
       } else {
-        const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
-        end = slabEnd(r, from, null, rect);
-        points.push(from);
+        end = ends.get(r).end;
+        points.push(ends.get(r).from);
       }
       points.push([end.x, end.y]);
       r.line.setAttribute("points", points.map(function (p) {

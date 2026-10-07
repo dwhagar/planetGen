@@ -353,6 +353,12 @@ def _reference_checks():
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
               "the galactic year, about 230 million years", unit="My"),
+        Check("galaxy_bulge_to_total", "reference", "galaxyDensity.component_masses(default shape)",
+              lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
+              "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars (Bland-Hawthorn & Gerhard 2016)"),
+        Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.component_masses(default shape)",
+              lambda: _galaxy_mass_ratio("thick_disk", ("thin_disk",)), 0.17, 0.3,
+              "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun (Bland-Hawthorn & Gerhard 2016)"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
               "orbits.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
               lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,
@@ -539,13 +545,19 @@ def _ring_count_rule_violations():
 def _default_galaxy_shape():
     """`planetgen plan`'s default galaxy shape."""
     return galaxyDensity.build_galaxy_shape(
-        disk_scale_length_pc=2800.0, disk_scale_height_pc=350.0, bulge_scale_radius_pc=200.0,
-        bulge_amplitude=1.0, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
+        disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+        bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)
+
+
+def _galaxy_mass_ratio(part, of):
+    """One component's integrated mass over the sum of `of`'s."""
+    masses = galaxyDensity.component_masses(_default_galaxy_shape())
+    return masses[part] / sum(masses[name] for name in of)
 
 
 def _density_at_calibration():
     shape = _default_galaxy_shape()
-    radius = 2.82 * shape.disk_scale_length_pc
+    radius = tuning.GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH * shape.disk_scale_length_pc
     theta_arm = (shape.spiral_reference_angle_rad
                  + math.log(radius / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
     theta = theta_arm + math.pi / shape.arm_count
