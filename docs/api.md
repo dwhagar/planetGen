@@ -1067,9 +1067,9 @@ same request shape:
   backend has no `base_url`/credentials configured deployment-wide (see
   `GET /api/wiki-config` and `docs/config.md`'s `wiki.*` fields).
 - `path`: the target page's path/slug. **Required for `"wikijs"`**,
-  which addresses a page separately from its title (`src/wikiClient/wikijs.py`);
+  which addresses a page separately from its title (`src/planetgen/wiki/wikijs.py`);
   accepted but ignored for `"mediawiki"`, whose title — the system's or
-  sector's own name — is its address instead (`src/wikiClient/mediawiki.py`).
+  sector's own name — is its address instead (`src/planetgen/wiki/mediawiki.py`).
 
 A system publishes its page rendered from the database at upload time
 (Markdown to `wikijs`, wikitext to `mediawiki` — the same text `GET
@@ -1080,7 +1080,7 @@ On success (`201`), both return the new page's
 `{"id", "path", "title", "url"}` and record `url` on the matching column
 (`star_systems.wikijs_url`/`mediawiki_url`, or `sectors.wiki_url`) — see
 `database-schema.md`'s "Rendered wiki text and URLs". `409` if a page
-already exists at that path/title (every `wikiClient` backend is
+already exists at that path/title (every `planetgen.wiki` backend is
 create-only); `502` if the wiki instance rejected the credentials or
 couldn't be reached.
 Editing individual generated bodies (stars/planets/moons/belts) isn't

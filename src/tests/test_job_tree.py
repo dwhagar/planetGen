@@ -12,7 +12,6 @@ Tests that take the `mysql_config` fixture (see `conftest.py`) are
 skipped, not failed, when no MySQL test server is configured/reachable.
 """
 
-import os
 import sys
 import time
 
@@ -318,14 +317,12 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
     jobs_dir = tmp_path / "jobs"
     job_dir = jobs_dir / "20261001-120000-abcd"
     job_dir.mkdir(parents=True)
-    src = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     child = (
-        "import sys; sys.path.insert(0, %r)\n"
         "from planetgen.db import store\n"
         "from planetgen.queue import work\n"
         "with work.job_node('galaxy', 'Inside the step', store.control_mysql_config()):\n"
         "    pass\n"
-    ) % src
+    )
     env = {
         "PLANETGEN_MYSQL_HOST": control_config.host, "PLANETGEN_MYSQL_PORT": str(control_config.port),
         "PLANETGEN_MYSQL_USER": control_config.user, "PLANETGEN_MYSQL_PASSWORD": control_config.password or "",
@@ -334,7 +331,7 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
     import json
     (job_dir / "job.json").write_text(json.dumps({
         "id": job_dir.name, "kind": "galaxy", "title": "Generate sectors", "database": control_config.database,
-        "created_at": time.time(), "cwd": src, "env": env,
+        "created_at": time.time(), "cwd": str(tmp_path), "env": env,
         "steps": [{"label": "Step one", "argv": [sys.executable, "-c", child]},
                   {"label": "Step two", "argv": [sys.executable, "-c", "pass"]}],
     }))

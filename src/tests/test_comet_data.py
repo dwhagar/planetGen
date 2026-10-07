@@ -2,7 +2,7 @@
 Star-bound comet regression tests
 ==================================
 
-Covers `stellarObjects/cometData.Comet` -- a comet gravitationally bound
+Covers `planetgen.generation.comet.Comet` -- a comet gravitationally bound
 to a star (contrast `roguePlanetData.InterstellarComet`, covered by
 `test_phenomena.py`, which is always standalone/unbound). See
 docs/design/comet-orbital-realism.md for the design this implements.

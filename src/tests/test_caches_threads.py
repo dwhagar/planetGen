@@ -26,8 +26,6 @@ import threading
 
 import pytest
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, _SRC_DIR)
 
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402

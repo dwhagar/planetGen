@@ -44,8 +44,10 @@ platforms in more detail.
 > Do not install planetGen with `pip install .`. The installers put its
 > libraries where the web server can use them: from apt first on Linux,
 > or in a virtual environment built from a hash-checked lock file on
-> Windows and macOS. The site and the command line run the checkout's
-> code directly.
+> Windows and macOS. They then install the checkout itself as an
+> editable package (`pip install -e`), so the site and the command line
+> run the checkout's code and a `git pull` takes effect without a
+> reinstall.
 
 ## 1. Get the code
 
@@ -170,7 +172,7 @@ It runs six steps:
 
 1. Makes a virtual environment (`C:\srv\planetgen-venv`) with the
    libraries and waitress from `requirements-server.lock`, checked by
-   hash.
+   hash, and the checkout installed into it as an editable package.
 2. Fetches the NLTK corpus and sets `NLTK_DATA` machine-wide.
 3. Writes `config.json` if there is none, then migrates the database,
    with the same migrate-or-delete question as `update.sh`. While
@@ -268,7 +270,7 @@ planetgen plan      # the galaxy's shape and its bright stars; once, before anyt
 planetgen galaxy    # a random start and every sector within 100 ly of it
 ```
 
-On Windows run them from the checkout's `src\` with the venv's Python
+On Windows run them with the venv's Python
 (`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate ...`).
 On Linux and macOS the installer adds the `planetgen` command.
 
@@ -343,7 +345,7 @@ keeps the data when a migration is pending.
 The generator does not need the website. Run the installer anyway (it
 sets up the libraries, database and NLTK corpus) and skip step 5. Then
 run `planetgen`, the command the installer adds on Linux and macOS (on
-Windows, `python -m planetgen.cli.generate` from the checkout's `src\`).
+Windows, the venv's `python -m planetgen.cli.generate`).
 
 ## Development setup
 

@@ -1,6 +1,6 @@
-# wikiClient/exceptions.py
+# planetgen/wiki/exceptions.py
 
-"""Exception hierarchy shared by every `wikiClient` backend.
+"""Exception hierarchy shared by every `planetgen.wiki` backend.
 
 Every backend (`wikijs.WikiJsBackend`, `mediawiki.MediaWikiBackend`) raises
 these same four types rather than its own -- calling code that talks to a

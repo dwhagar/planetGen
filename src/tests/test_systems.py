@@ -563,10 +563,8 @@ def test_binary_system_markdown_renders_each_stars_table():
     branches each had their own copy of the same one-newline join).
     """
     import html as html_module
-    import os
 
-    _src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    from planetgen.web.lib.mdconvert import markdown_to_html  # same path setup as test_mdconvert.py
+    from planetgen.web.lib.mdconvert import markdown_to_html
 
     for wide_binary in (False, True):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))

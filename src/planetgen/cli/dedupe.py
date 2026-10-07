@@ -27,8 +27,8 @@ how many rows currently share it is left untouched, so re-running this
 script against a database it's already cleaned (with no new duplicates
 added by some other means in between) is a no-op.
 
-Run it from the checkout's `src/` (`python3 -m` puts the current
-directory on sys.path, so `planetgen` imports).
+Run it as `python3 -m planetgen.cli.dedupe` from anywhere (the editable
+install makes `planetgen` importable).
 
 Usage:
     python3 -m planetgen.cli.dedupe [--mysql-host HOST] [--mysql-port PORT]

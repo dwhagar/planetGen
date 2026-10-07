@@ -1,6 +1,6 @@
-# wikiClient/base.py
+# planetgen/wiki/base.py
 
-"""Shared result type and backend interface every `wikiClient` backend
+"""Shared result type and backend interface every `planetgen.wiki` backend
 implements -- `client.WikiClient` is a thin dispatcher over whichever one
 of these it was constructed with."""
 
@@ -33,7 +33,7 @@ class WikiPage:
 
 
 class WikiBackend:
-    """Abstract interface a `wikiClient` backend implements.
+    """Abstract interface a `planetgen.wiki` backend implements.
 
     A concrete backend (`wikijs.WikiJsBackend`, `mediawiki.MediaWikiBackend`)
     takes whatever connection/credential arguments its own wiki software

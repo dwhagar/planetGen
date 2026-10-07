@@ -239,6 +239,15 @@ so each PR's modules import ones that already moved:
     `planetgen.cli.generate`; `run_galaxy` imports the shared generation
     options from it inside `_default_generation_args`, the one place a
     run module needs them.
+    The second PR moved the last stray package, `src/wikiClient`, to
+    `planetgen.wiki` (no step had named it), limited `setup.py` to the
+    `planetgen` packages, and replaced the `/usr/local/bin/planetgen`
+    wrapper with pip's console script from the editable install (linked
+    there from the venv on macOS). install and update make the editable
+    install on every path (`--break-system-packages` on a PEP 668
+    Python, as the libraries already were) and skip it when `planetgen`
+    already imports from the checkout. The job runner no longer sets
+    `PYTHONPATH`, and every command runs from the checkout's root.
 
 ### 6.6 Deployment
 

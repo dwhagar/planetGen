@@ -351,3 +351,58 @@ def test_a_library_that_would_pull_in_numpy_brings_the_whole_stack(tmp_path):
 @pytest.mark.skipif(sys.platform == "win32", reason="bash")
 def test_other_libraries_leave_the_stack_alone(tmp_path):
     assert _run_needed(tmp_path, ["redis>=5.0.0"], 0) == ["redis>=5.0.0"]
+
+
+def _run_install_checkout(tmp_path, script_dir, mode="unmanaged"):
+    """Runs the script's install_checkout with PYTHON a stand-in that
+    records `-m pip` calls and hands everything else to this Python."""
+    script = _read("scripts", "install-python-deps.sh")
+    calls = tmp_path / "pip-calls"
+    python = tmp_path / "python"
+    python.write_text(f'#!/bin/sh\nif [ "$1" = -m ] && [ "$2" = pip ]; then echo "$*" >> "{calls}"; exit 0; fi\n'
+                      f'exec "{sys.executable}" "$@"\n')
+    python.chmod(0o755)
+    command = tmp_path / "bin" / "planetgen"
+    harness = "\n".join([
+        "set -euo pipefail", f'PYTHON="{python}"', f'SCRIPT_DIR="{script_dir}"', f'MODE={mode}',
+        f'PLANETGEN_COMMAND="{command}"', _function(script, "install_checkout") + "\n}\n", "install_checkout",
+    ])
+    result = subprocess.run(["bash", "-c", harness], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+    return (calls.read_text().splitlines() if calls.exists() else []), command
+
+
+def _installed_from_this_checkout():
+    try:
+        import planetgen
+    except ImportError:
+        return False
+    src = os.path.realpath(os.path.join(ROOT, "src"))
+    return os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__))) == src
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash")
+@pytest.mark.skipif(not _installed_from_this_checkout(), reason="needs `pip install -e .` of this checkout")
+def test_install_checkout_leaves_a_current_editable_install_alone(tmp_path):
+    """update.sh reinstalls nothing when planetgen already imports from
+    this checkout; the `planetgen` command links to pip's console script."""
+    import sysconfig
+    if not os.access(os.path.join(sysconfig.get_path("scripts"), "planetgen"), os.X_OK):
+        pytest.skip("no planetgen console script")
+    calls, command = _run_install_checkout(tmp_path, os.path.realpath(ROOT))
+    assert calls == []
+    assert os.readlink(command) == os.path.join(sysconfig.get_path("scripts"), "planetgen")
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash")
+@pytest.mark.parametrize("mode, flag", [("unmanaged", False), ("managed", True)])
+def test_install_checkout_installs_another_checkout_editable(tmp_path, mode, flag):
+    """A checkout planetgen doesn't import from is pip-installed editable,
+    without its dependencies (they come from the lock); a PEP 668 Python
+    needs --break-system-packages."""
+    other = tmp_path / "checkout"
+    (other / "src").mkdir(parents=True)
+    calls, _ = _run_install_checkout(tmp_path, other, mode)
+    assert len(calls) == 1
+    assert calls[0].endswith(f"--no-deps -e {other}")
+    assert ("--break-system-packages" in calls[0]) == flag

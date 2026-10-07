@@ -28,18 +28,11 @@ separate, write-capable database account -- see `docs/api.md`'s
 """
 
 import math
-import os
-import sys
 
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
-# planetgen lives at the repo root, three levels above src/planetgen/api/ (this
-# file) -- src/ itself is already on sys.path (see html/wsgi.py's own
-# docstring), but the repo root isn't, so it's added here specifically for
-# this import. Only `generate_sector_neighborhood_route` below needs it.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
-from planetgen.generation import run_galaxy  # noqa: E402
+from planetgen.generation import run_galaxy
 
 from planetgen.db.query import (
     facilities_for_system,
@@ -87,7 +80,7 @@ from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import render_system_sections, render_system_text
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
-from wikiClient import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
+from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
 from .common import ApiError, is_http_url, require_json_body
@@ -1712,14 +1705,14 @@ def delete_facility(facility_id):
 
 def _wiki_client_for(backend):
     """
-    Builds a `wikiClient.WikiClient` for `backend`, from
+    Builds a `planetgen.wiki.WikiClient` for `backend`, from
     `current_app.config["WIKI_CONFIG"]` (see `config.py`'s `_wiki_config`).
 
     Args:
         backend (str): `"wikijs"` or `"mediawiki"`.
 
     Returns:
-        wikiClient.WikiClient
+        planetgen.wiki.WikiClient
 
     Raises:
         ApiError: 501 if `backend` has no `base_url`/credentials
@@ -1746,9 +1739,9 @@ def _wiki_upload_request(body):
         body (dict): The parsed request body -- `{"backend": "wikijs" |
             "mediawiki", "path": str}`. `path` is the target page's
             path/slug for `"wikijs"` (which addresses a page separately
-            from its title -- see `wikiClient/wikijs.py`) and required
+            from its title -- see `planetgen/wiki/wikijs.py`) and required
             for it; `"mediawiki"` has no such separate concept (its
-            title *is* its address, see `wikiClient/mediawiki.py`), so
+            title *is* its address, see `planetgen/wiki/mediawiki.py`), so
             `path` is accepted but ignored for it.
 
     Returns:
@@ -1779,7 +1772,7 @@ def _wiki_upload_request(body):
 
 
 def _create_wiki_page(client, path, title, content):
-    """Wraps `client.create_page`, mapping `wikiClient`'s own exception
+    """Wraps `client.create_page`, mapping `planetgen.wiki`'s own exception
     hierarchy onto this API's status codes -- shared by both routes below
     so neither duplicates the mapping.
 
