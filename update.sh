@@ -183,6 +183,10 @@ echo "== 9/9: Checking that the web app imports =="
 check_app_imports
 
 echo
+echo "Checking the Redis server (config.json's redis.url):"
+ensure_redis
+
+echo
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
     echo "warning: the math check failed (step 4): bulk generation refuses to start until it passes." >&2
 fi

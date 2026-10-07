@@ -106,6 +106,52 @@ ensure_nltk_words() {
     chmod -R a+rX "$dir"
 }
 
+# The Redis server at config.json's redis.url (OPS.21), which the work
+# queue and the rate limits will use. On Linux with a local address it
+# installs redis-server with apt and starts it when nothing answers; on
+# macOS (Homebrew refuses to run as root) and for a remote address it
+# only says what to run. Nothing uses Redis yet, so a server that doesn't
+# answer warns rather than stopping the install or update.
+ensure_redis() {
+    local url host
+    url="$("$PYTHON" -c "import sys; sys.path.insert(0, sys.argv[1]); from stellarObjects.appconfig import load_config; print(load_config()['redis']['url'])" "$SCRIPT_DIR/src")" || {
+        echo "warning: couldn't read redis.url from config.json; skipping the Redis check." >&2
+        return 0
+    }
+    host="$("$PYTHON" -c "import sys; from urllib.parse import urlsplit; print(urlsplit(sys.argv[1]).hostname or '')" "$url")"
+    if redis_answers "$url"; then
+        echo "Redis: answering at $url"
+        return 0
+    fi
+    if [[ "$host" == 127.0.0.1 || "$host" == localhost || "$host" == ::1 ]] && ! is_macos \
+            && command -v apt-get >/dev/null 2>&1; then
+        if ! command -v redis-server >/dev/null 2>&1; then
+            echo "Redis: installing redis-server."
+            DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends redis-server || true
+        fi
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl enable --now redis-server >/dev/null 2>&1 || true
+        fi
+        if redis_answers "$url"; then
+            echo "Redis: answering at $url"
+            return 0
+        fi
+    fi
+    echo "warning: no Redis server answers at $url (config.json's redis.url)." >&2
+    if is_macos; then
+        echo "  Install and start it as your own user: brew install redis && brew services start redis" >&2
+    else
+        echo "  Install and start it: sudo apt install redis-server && sudo systemctl enable --now redis-server" >&2
+    fi
+    echo "  Nothing needs it yet; the work queue will (docs/deployment/README.md)." >&2
+}
+
+# Whether a Redis server answers PING at the URL in $1, using the redis
+# library install-python-deps.sh installed.
+redis_answers() {
+    "$PYTHON" -c "import sys, redis; redis.Redis.from_url(sys.argv[1], socket_connect_timeout=3).ping()" "$1" >/dev/null 2>&1
+}
+
 # Apache's modules: headers (static/'s Cache-Control/nosniff lines in
 # examples/apache/planetgen.conf.example), deflate (its compression
 # block) and wsgi (runs the Flask app: every page and the API). mod_wsgi

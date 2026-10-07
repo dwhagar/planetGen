@@ -770,9 +770,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
-| OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | open |
+| OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | open |
-| OPS.23 | A package layout plan for the reorganization | none | open |
+| OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
 | OPS.24 | Move the code into the new package layout, one package per PR | none | open |
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
@@ -799,7 +799,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
 | PERF.23 | The bright-star progress bar can end at 101% (bug) | none | done, PR #371 |
 | PERF.24 | The work queue and web jobs on Redis with RQ | none | open |
-| PERF.25 | The page and tile caches on cachetools and diskcache | none | open |
+| PERF.25 | The page cache on cachetools; the tile cache stays | none | open |
 | PERF.26 | Size estimates don't match what generation stores (bug) | none | open |
 | PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | open |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | open |

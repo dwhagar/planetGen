@@ -253,7 +253,7 @@ DB.8, DB.7, NAV.10 (Alembic), ADM.15 (RQ workers), UX.3 (progress from RQ), UX.2
 Work goes ahead on each default until Boss says otherwise.
 
 - **Lane order under the one-thread cap**: Default: the bugfix lane's CI red group first, then the groundwork lane's layout and libraries group (so code moves once), then the two lanes alternate group by group.
-- **Redis on Windows (OPS.21)**: Redis has no supported native Windows build. Default: the Windows installer points at Memurai or Redis in WSL.
+- **Redis on Windows (OPS.21, done in PR #437)**: Redis has no supported native Windows build. Default: the Windows installer points at Memurai or Redis in WSL.
 - **Habitability score structure (GEN.84)**: the docs give two structures (PHI-4's four domains with colour tiers, or PHI_bio, PHI_cpx and Phi_tech). Default: PHI-4's domains and tiers for display, with the Xenobiology doc's three tiers as the scores behind them.
 - **Wide-binary names under the codec (GEN.71)**: Default: the pair shares one codec name with "A" and "B"; planets are "<name> A I" style.
 - **GEN.29 outside phase 0**: it is a bug, but the class refactor (GEN.90) is the sweep. Default: it stays in phase 2 with the refactor.
@@ -268,7 +268,7 @@ Work goes ahead on each default until Boss says otherwise.
 
 | Files | Items | Order |
 |---|---|---|
-| Every module (the package move) | OPS.23, OPS.24 | Land before the library swaps; every open branch merges main after each move PR. |
+| Every module (the package move) | OPS.24 | Land before the library swaps; every open branch merges main after each move PR. |
 | stellarObjects/workQueue.py, jobRunner.py, web/jobs.py | PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20 | PERF.19's audit, then PERF.24 with OPS.19, then ADM.22. |
 | _db.py and migrateDb.py | TEST.81, TEST.87, DB.12, OPS.25, DB.11, DB.13, GEN.71, DB.7, NAV.10, API.11 | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
 | Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, TEST.71, VIEW.4, API.12 | One stream, in TODO order. |
@@ -279,11 +279,11 @@ Work goes ahead on each default until Boss says otherwise.
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | ADM.27, GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
 | Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
 | Generate page (generate.html, generate_page.py) | UX.40, ADM.16, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
-| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.25, OPS.21, OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 and the CI fix first; then Redis and pins. |
+| update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.25, OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 and the CI fix first; then Redis and pins. |
 
 ## Near-cycles and how they are broken
 
-- **The library swaps and the package move**: both touch every module. Broken by order: the layout plan and the move (OPS.23, OPS.24) land first, then each swap.
+- **The library swaps and the package move**: both touch every module. Broken by order: the layout plan (OPS.23, done in PR #435) and the move (OPS.24) land first, then each swap.
 - **The class refactor and the habitability index**: the classes need the scores and the scores read the classes' atmospheres. Broken by order: habitability inputs and score in phase 1 on today's classes, the refactor in phase 2.
 - **MAP.61 and the map bugs**: the engine items moved into phase 0 because the 2026-10-03 map bugs fold into them.
 - **API.6 and USR.2**, **NAV.4 and USR.1**: unchanged (keys and saved courses follow accounts).

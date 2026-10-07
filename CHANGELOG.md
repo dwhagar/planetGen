@@ -1,5 +1,15 @@
 # Changelog
 
+## [7.173.606] - 2026-10-07
+
+### Added
+- **The migration libraries are pinned, and install, update and CI provide Redis (OPS.21).** `setup.py` and the hash-pinned lock files now carry redis, rq, pyotp, segno, markdown, cachetools, SQLAlchemy, Alembic, Pydantic, numpy, scipy, astropy and scikit-image, so each library swap only changes code. `config.json` has a new `redis.url` (default `redis://127.0.0.1:6379/0`). `install.sh` and `update.sh` check that Redis answers there; on Linux with a local address they install and start `redis-server` when it doesn't. On macOS they say to run `brew install redis`. `install.ps1` and `update.ps1` check and point to Memurai or Redis in WSL. CI's test job runs a Redis service. Nothing uses Redis yet, so a missing server only warns. diskcache is left out: its last release has an unfixed advisory (PYSEC-2026-2447).
+
+## [7.172.606] - 2026-10-07
+
+### Changed
+- **A package layout plan for the code reorganization (OPS.23).** `docs/design/library-migration.md` section 6 names the `planetgen` packages, which module goes where, the shared helpers merged into utility modules, and the order of the move (OPS.24). No compatibility layer: each move updates every caller.
+
 ## [7.171.606] - 2026-10-07
 
 ### Changed

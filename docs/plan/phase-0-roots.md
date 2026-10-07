@@ -97,16 +97,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI |  | First library step: every swap after it needs the pins and Redis. |
-| OPS.23 | A package layout plan for the reorganization |  | Plan first, reviewed by Boss, so the move is mechanical. |
-| OPS.24 | Move the code into the new package layout, one package per PR | OPS.23, OPS.21 | Mechanical moves; every other open branch merges main after each one. |
-| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | OPS.23, OPS.24 | Parent; closes with its subitems. Goes before the library swaps so each file moves once. |
-| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | OPS.21 | Folds TEST.72 (the 2FA flake). |
+| OPS.24 | Move the code into the new package layout, one package per PR |  | Mechanical moves with no shims or wrappers (Boss 13:04Z): each PR updates every caller; every other open branch merges main after each one. |
+| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | OPS.24 | Parent; closes with its subitems. Goes before the library swaps so each file moves once. |
+| SEC.29 | Two-step sign-in on pyotp, QR codes on segno |  | Folds TEST.72 (the 2FA flake). |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | SEC.29 | Folded into SEC.29 (pyotp). |
-| SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | OPS.21 | Folds TEST.83 (rate-limit tests under load). |
+| SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage |  | Folds TEST.83 (rate-limit tests under load). |
 | TEST.83 | Rate-limit tests fail under parallel load (bug) | SEC.30 | Folded into SEC.30 (Flask-Limiter). test_web_admin.py; passes alone, fails under -n auto. |
-| UX.39 | Markdown rendered by the markdown library | OPS.21 |  |
-| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | OPS.21, SEC.29, UX.39, PERF.24, SEC.30, PERF.25, DB.11, ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102 | Parent of the library migration; closes with its subitems. Boss's explicit directive. |
+| UX.39 | Markdown rendered by the markdown library |  |  |
+| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | SEC.29, UX.39, PERF.24, SEC.30, PERF.25, DB.11, ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102 | Parent of the library migration; closes with its subitems. Boss's explicit directive. |
 
 ### Groundwork: data model
 
@@ -136,9 +134,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) |  | Moved into phase 0 as the first step of PERF.24 (Boss chose Redis, 2026-10-03). Audit only; nothing moves to the queue until it runs at any worker count. |
-| PERF.24 | The work queue and web jobs on Redis with RQ | OPS.21, PERF.19 | Replaces workQueue.py and jobRunner.py; folds OPS.19 and settles PERF.19. |
+| PERF.24 | The work queue and web jobs on Redis with RQ | PERF.19 | Replaces workQueue.py and jobRunner.py; folds OPS.19 and settles PERF.19. |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | PERF.24 | Folded into PERF.24: the job store moves with the queue. jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
-| PERF.25 | The page and tile caches on cachetools and diskcache | OPS.21 | Library swap only; PERF.20 plans short-term API caching on top of it. |
+| PERF.25 | The page cache on cachetools; the tile cache stays |  | tilecache.py stays (JSON only, Boss 13:27Z); diskcache, sqlitedict, cachelib and Flask-Caching are out. PERF.20 plans short-term API caching on top of it. |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | PERF.24 | Folds the four log and progress bugs below. |
 | ADM.23 | Log output wraps with hard line breaks (bug) | ADM.22 |  |
 | ADM.24 | A failed action's log closes before it can be read (bug) | ADM.22 |  |
@@ -149,13 +147,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.40 | Buttons, menus and dialogs from Shoelace web components | OPS.21, UX.28 | Folds UX.2, UX.26, UX.27, UX.31 and ADM.14; uses UX.28's approved icons. |
+| UX.40 | Buttons, menus and dialogs from Shoelace web components | UX.28 | Folds UX.2, UX.26, UX.27, UX.31 and ADM.14; uses UX.28's approved icons. |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | UX.28, UX.25, UX.40 | Folded into UX.40; first screen of ADM.34. 24, UX.28) is in phase 0. Sector page admin panel and edit_controls.html. |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | UX.26 | Folded into UX.40. 24, UX.28) is in phase 0. system.html edit panel (_edit_rows in system_pages.py). |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | UX.28, UX.40 | Folded into UX.40. 24, UX.28) is in phase 0. system.html subhead; shares wording with NAV.29. |
 | UX.2 | Menus sized to what they hold (bug) | UX.40 | Folded into UX.40. style.css menus; independent. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | UX.40 | Folded into UX.40. generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
-| UX.41 | Tables on TanStack Table and TanStack Virtual | OPS.21 | Folds UX.33 (phenomena filters). |
+| UX.41 | Tables on TanStack Table and TanStack Virtual |  | Folds UX.33 (phenomena filters). |
 | UX.33 | Filter phenomena by their classes and types (bug) | UX.41 | Folded into UX.41. 28) appear on their own; GEN.47 is done (PR #419), so nebulae exist and nothing blocks it. Filters over class lists that GEN.28 changes. |
 | ADM.34 | One admin menu per screen, holding only that screen's actions | UX.40, UX.26, UX.31 | UX.26 and UX.31 are its first two screens. |
 
@@ -177,7 +175,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.68 | Remove the old Sector Map code | MAP.67, MAP.79 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. Deletes sectormap.js. |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | MAP.65, MAP.66, MAP.67, MAP.68 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. Parent; closes with its subitems. |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | MAP.68, NAV.15, NAV.29, NAV.33, MAP.79 | Moved into phase 0 with the engine (all bugs in phase 0). Bug, but it is the 'pick mode uses the one engine' end state. |
-| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | OPS.21 | Folds the slow zoom and dense-sector crowding bugs. |
+| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering |  | Folds the slow zoom and dense-sector crowding bugs. |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | MAP.65 |  |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | NAV.14, MAP.67, MAP.107 | Fixed by the engine's one URL and history scheme (MAP.67) and NAV.14's breadcrumb. |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | MAP.65 |  |
@@ -193,7 +191,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | OPS.21 | Groundwork for the nebula map bugs; uses scikit-image for marching cubes. |
+| GEN.75 | A nebula shape from metaballs and warped noise, as a mesh |  | Groundwork for the nebula map bugs; uses scikit-image for marching cubes. |
 | MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | GEN.75 |  |
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | MAP.103 |  |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | GEN.75 | Replaces the diagram UX.38 is about. |
@@ -216,7 +214,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis).
 
 ## Open questions for Boss
 

@@ -111,7 +111,9 @@ LOCK_PINS="$SCRIPT_DIR/scripts/lock_pins.py"
 # plus its 'api' extra, as "<pip requirement> <apt package>". Keep in step
 # with setup.py (src/tests/test_install_python_deps.py checks this).
 # Each is imported by its pip name with "-" turned into "_"
-# (flask-limiter -> flask_limiter).
+# (flask-limiter -> flask_limiter), except where
+# scripts/probe_requirements.py's IMPORT_NAMES says otherwise
+# (scikit-image -> skimage).
 REQUIREMENTS=(
     "nltk>=3.9.1 python3-nltk"
     "pymysql>=1.1.1 python3-pymysql"
@@ -120,6 +122,19 @@ REQUIREMENTS=(
     "rich>=13.7.0 python3-rich"
     "flask>=3.0.3 python3-flask"
     "flask-limiter>=3.7.0 python3-flask-limiter"
+    "redis>=5.0.0 python3-redis"
+    "rq>=1.16.0 python3-rq"
+    "pyotp>=2.9.0 python3-pyotp"
+    "segno>=1.6.0 python3-segno"
+    "markdown>=3.6 python3-markdown"
+    "cachetools>=5.3.0 python3-cachetools"
+    "sqlalchemy>=2.0.30 python3-sqlalchemy"
+    "alembic>=1.13.0 python3-alembic"
+    "pydantic>=2.7.0 python3-pydantic"
+    "numpy>=1.26.0 python3-numpy"
+    "scipy>=1.13.0 python3-scipy"
+    "astropy>=6.0.0 python3-astropy"
+    "scikit-image>=0.22.0 python3-skimage"
 )
 
 if [[ -z "$PYTHON" ]]; then

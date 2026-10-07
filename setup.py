@@ -86,6 +86,32 @@ setup(
         # (TimeElapsedColumn/TimeRemainingColumn; see _generation_progress
         # in generate.py).
         'rich>=13.7.0',
+        # The library migration (OPS.20, docs/design/library-migration.md):
+        # pinned here first (OPS.21) so each swap PR only changes code.
+        # The work queue and web jobs on Redis (PERF.24), and Redis as
+        # Flask-Limiter's storage (SEC.30).
+        'redis>=5.0.0',
+        'rq>=1.16.0',
+        # Two-step sign-in and its QR code (SEC.29).
+        'pyotp>=2.9.0',
+        'segno>=1.6.0',
+        # Markdown rendering (UX.39).
+        'markdown>=3.6',
+        # The page and tile caches (PERF.25). diskcache is left out: its
+        # last release has an unfixed advisory (PYSEC-2026-2447, unpickling
+        # whatever is in the cache folder), which the dependency audit
+        # rejects; PERF.25 decides what replaces tilecache.py.
+        'cachetools>=5.3.0',
+        # The database layer and migrations (DB.11).
+        'sqlalchemy>=2.0.30',
+        'alembic>=1.13.0',
+        # Input validation (ADM.21).
+        'pydantic>=2.7.0',
+        # Physics (GEN.66) and nebula meshes (marching cubes).
+        'numpy>=1.26.0',
+        'scipy>=1.13.0',
+        'astropy>=6.0.0',
+        'scikit-image>=0.22.0',
     ],
     extras_require={
         # matplotlib/numpy are for tests/galaxy_shape_visualizer_cli.py
