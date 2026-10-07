@@ -954,9 +954,12 @@ credentials are current and writes an audit-log row.
   sector row and keeps its systems as standalone ones.) Answers
   `{"systems", "phenomena"}` deleted. `POST /api/sectors/<id>/regenerate`
   does the same, then generates the slot again from the galaxy's density
-  plan; the new sector has a new id and name (`sector_id`,
-  `sector_name`; `null` when the slot is outside the galaxy's outline). It is a `409`
-  for a sector off the galaxy grid or before `planetgen plan`.
+  plan. It is queued (see "Queued jobs"): `202` with a job id, and the
+  job's `result` has `deleted` and the new sector's id and name
+  (`sector_id`, `sector_name`; `null` when the slot is outside the
+  galaxy's outline). It is a `404` for an unknown sector and a `409` for a
+  sector off the galaxy grid or before `planetgen plan`, both before
+  anything is queued or deleted.
 
 ### Changing a class or a star
 
