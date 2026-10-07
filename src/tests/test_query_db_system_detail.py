@@ -2,7 +2,7 @@
 
 """
 Coverage for `query.system_detail`'s `binary_mutual_position_x/y/z_km`
-keys -- added so `html/lib/systemmap.py`'s System Map could place a
+keys -- added so `planetgen/web/maps/systemmap.py`'s System Map could place a
 binary pair's two stars at their real mass-weighted offsets from the
 system's own barycenter, instead of the old map's fixed schematic offset.
 Before this, `system_detail` queried the underlying `star_systems` row

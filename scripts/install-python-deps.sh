@@ -43,7 +43,7 @@
 #
 # planetGen itself is never installed into site-packages: every entry
 # point adds the checkout's src/ to sys.path itself (generate.py,
-# src/html/lib/apiclient.py, src/html/wsgi.py, and planetgen.cli.migrate
+# src/planetgen/web/lib/apiclient.py, src/html/wsgi.py, and planetgen.cli.migrate
 # through its own sys.path[0]), and /usr/local/bin/planetgen is a small
 # wrapper around the checkout's generate.py. (The unmanaged path still
 # pip-installs the package, as it always has, but nothing runs that copy.)
@@ -431,7 +431,7 @@ install_unmanaged() {
     # The `api` extra (Flask/Flask-Limiter, see setup.py's `extras_require`)
     # is included here, not left to a separate manual `pip install .[api]`
     # some other doc might mention: every page under src/html/ is a thin
-    # HTTP client over GET /api/... now (see html/lib/apiclient.py's own
+    # HTTP client over GET /api/... now (see planetgen/web/lib/apiclient.py's own
     # docstring), so the web interface this script exists to deploy simply
     # doesn't work without it -- confirmed in production as
     # "ModuleNotFoundError: No module named 'flask'" from mod_wsgi once the

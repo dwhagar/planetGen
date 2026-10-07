@@ -15,7 +15,7 @@
 // sqrt(b) and its area by sqrt(b) (its width by b^(1/4)); the core, sized
 // and lit by the star itself, is left alone (boostLight).
 //
-// The browser twin of lib/starmap.py's `star_light_boost` and
+// The browser twin of planetgen/web/maps/starmap.py's `star_light_boost` and
 // `_boost_light`, which work out the Sector Map's points before the page
 // is sent; tests/js/starlight.test.mjs checks the two agree.
 

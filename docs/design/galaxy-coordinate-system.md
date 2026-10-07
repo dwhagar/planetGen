@@ -82,7 +82,7 @@ same label on every placed phenomenon) comes from this frame.
 
 **Zones.** The Galaxy pages group sectors in Zones of
 `ZONE_RING_WIDTH = round(100 ly / 13.05 ly) = 8` rings
-(`html/lib/galaxymap.py`).
+(`planetgen/web/maps/galaxymap.py`).
 
 ## 3. Sector size: 4 pc
 

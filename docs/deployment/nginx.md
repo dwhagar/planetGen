@@ -88,7 +88,7 @@ this page.
 | `Alias /static/ .../src/html/static/` | `location /static/ { alias .../src/html/static/; }` |
 | `?v=` rule: a year and `immutable`, else `no-cache` | `map $arg_v $planetgen_static_cache` |
 | `X-Content-Type-Options: nosniff` on `static/` | `add_header X-Content-Type-Options "nosniff" always;` on `/static/` |
-| `Require all denied` on `src/html/lib` and `src/html/api` | Not needed: only `/static/` maps to disk |
+| `Require all denied` on `src/html/api` | Not needed: only `/static/` maps to disk |
 | `AddOutputFilterByType DEFLATE ...` | `gzip on;` with the same types |
 | `WSGIDaemonProcess ... processes=1 threads=5` | gunicorn `--workers 1 --worker-class gthread --threads 5` |
 | `request-timeout=60` | `proxy_read_timeout 60s` (see below) |

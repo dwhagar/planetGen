@@ -2,7 +2,7 @@
 
 """
 The tile cache's and the Generate jobs' fallback directory in the system
-temp directory (`html/lib/privatedir.py`, used by `lib/tilecache.py` and
+temp directory (`planetgen/web/lib/privatedir.py`, used by `planetgen/web/lib/tilecache.py` and
 `web/jobs.py`): created private (0700), and refused when another user
 could have planted it -- a symlink, a directory owned by someone else, or
 one other users can write to.
@@ -13,14 +13,13 @@ import stat
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 sys.path.insert(0, os.path.join(_SRC_DIR, "html"))
 sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 
-import tilecache  # noqa: E402
-from privatedir import ensure_private_dir  # noqa: E402
+from planetgen.web.lib import tilecache  # noqa: E402
+from planetgen.web.lib.privatedir import ensure_private_dir  # noqa: E402
 from web import jobs  # noqa: E402
 
 UNCREATABLE = "/proc/planetgen-test-cannot-create/dir"

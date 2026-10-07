@@ -45,7 +45,7 @@ import tempfile
 import threading
 import time
 
-from privatedir import ensure_private_dir
+from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
 

@@ -1,7 +1,7 @@
 # tests/test_tilecache.py
 
 """
-Tests for `html/lib/tilecache.py`, the web layer's on-disk cache of 3D
+Tests for `planetgen/web/lib/tilecache.py`, the web layer's on-disk cache of 3D
 Galaxy Map tiles. The API calls (`get_galaxy_changes`/`get_galaxy_tiles`)
 are replaced with fakes that count calls, so no API or database is
 needed.
@@ -12,12 +12,11 @@ import os
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 
-import tilecache  # noqa: E402
+from planetgen.web.lib import tilecache  # noqa: E402
 
 
 class FakeApi:

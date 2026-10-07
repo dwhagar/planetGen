@@ -24,9 +24,8 @@ from werkzeug.serving import make_server
 from api.app import create_app
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
-import tilecache  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
+from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.galaxy.drill import DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402

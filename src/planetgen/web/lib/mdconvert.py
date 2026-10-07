@@ -1,4 +1,4 @@
-# html/lib/mdconvert.py
+# planetgen/web/lib/mdconvert.py
 
 """
 A small, purpose-built Markdown-to-HTML converter for exactly the

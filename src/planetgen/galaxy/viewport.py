@@ -3,10 +3,10 @@
 """
 Interactive 3D Galaxy Map viewport queries.
 
-The flat, server-rendered-once SVG Galaxy Map (`html/lib/galaxymap.py`)
+The flat, server-rendered-once SVG Galaxy Map (`planetgen/web/maps/galaxymap.py`)
 plots every galaxy-placed sector in one shot, since the whole point of
 that map is a single bird's-eye overview. The interactive 3D map
-(`html/lib/galaxymap3d.py`/`static/galaxymap3d.js`) is the opposite: a
+(`planetgen/web/maps/galaxymap3d.py`/`static/galaxymap3d.js`) is the opposite: a
 real camera that moves freely through the galaxy, so what it needs to
 plot changes every time it moves -- this module is the data layer behind
 that, called fresh (via `queryDb.galaxy_tiles`) each time the camera's
@@ -190,7 +190,7 @@ def _planned_entry(slot, distance_pc=None):
 # A tile's key is `"level/ix/iy/iz"`, where `ix` counts cubes along x from
 # the root cube's -x face (same for y/z). A tile's contents depend only on
 # its key and the database, so the browser and the web layer can both
-# cache it (see `html/lib/tilecache.py` and `static/galaxymap3d.js`).
+# cache it (see `planetgen/web/lib/tilecache.py` and `static/galaxymap3d.js`).
 #
 # Each tile's work is bounded by construction: placed sectors are capped
 # per tile (`queryDb.GALAXY_TILE_MAX_PLACED`), planned slots are only

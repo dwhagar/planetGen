@@ -4,12 +4,12 @@
 TEST.54: the web layer's two caches used from real threads at once, as
 a threaded WSGI server (or several Apache threads) does.
 
-- The page cache (`lib/pagecache.py`'s `ResponseCache`): many threads
+- The page cache (`planetgen/web/lib/pagecache.py`'s `ResponseCache`): many threads
   filling, reading and clearing it together never raise, never hand back
   one target's body for another (a torn or mixed entry), keep its size
   bookkeeping right, and a `clear()` really empties it -- including of
   answers fetched before the clear and stored after it.
-- The tile cache (`lib/tilecache.py`): two writers of the same tile file
+- The tile cache (`planetgen/web/lib/tilecache.py`): two writers of the same tile file
   at once both finish, and the file always ends as one complete, valid
   tile -- never a mix of the two or a truncated file -- whether they
   meet in `_write_json` itself or in two `fetch_tiles` requests for the
@@ -27,11 +27,10 @@ import threading
 import pytest
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 sys.path.insert(0, _SRC_DIR)
 
-import pagecache  # noqa: E402
-import tilecache  # noqa: E402
+from planetgen.web.lib import pagecache  # noqa: E402
+from planetgen.web.lib import tilecache  # noqa: E402
 
 THREADS = 8
 ROUNDS = 400

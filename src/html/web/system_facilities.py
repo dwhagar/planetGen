@@ -36,10 +36,10 @@ import re
 
 from flask import abort, redirect, request
 
-import apiclient
-from fmt import format_distance_km, format_speed_kms
-from systempage import facility_kind_label, facility_row
-from tabledisplay import format_period
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import format_distance_km, format_speed_kms
+from planetgen.web.lib.systempage import facility_kind_label, facility_row
+from planetgen.web.lib.tabledisplay import format_period
 
 from planetgen.admin import activity_log
 from planetgen.population import facilities as facility_rules

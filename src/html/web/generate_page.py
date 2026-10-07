@@ -51,8 +51,8 @@ import time
 
 from flask import abort, current_app, jsonify, make_response, redirect, request, url_for
 
-import apiclient
-from fmt import utc_time_html
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import utc_time_html
 from planetgen.admin import activity_log
 from planetgen.generation import stats
 from planetgen import tuning

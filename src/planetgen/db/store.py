@@ -5479,7 +5479,7 @@ def _galaxy_placement_from_sector_offset(galaxy_position, offset_ly):
     galactic north -- `galaxyGeometry.sector_orientation`), the same frame
     `SpaceSector.add_system` places a star system's position in, so it is
     rotated into the galaxy frame before being added to the sector's
-    center -- the identical transform `html/lib/starmap.py` applies to a
+    center -- the identical transform `planetgen/web/maps/starmap.py` applies to a
     star system's position at render time.
 
     Unlike `compute_phenomenon_placement` (an independent random jitter,

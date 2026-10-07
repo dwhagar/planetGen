@@ -258,7 +258,7 @@ def test_planned_slots_skip_big_tiles_and_tiny_sectors():
 def test_tile_level_for_a_tiny_positive_radius_is_the_finest(radius):
     """MAP.90: a subnormal radius used to overflow log2; any tiny positive
     radius gets the finest level, here and in the page module's copy."""
-    from lib.galaxymap3d import _tile_level_for_view_radius
+    from planetgen.web.maps.galaxymap3d import _tile_level_for_view_radius
 
     assert tile_level_for_view_radius(radius) == TILE_MAX_LEVEL
     assert _tile_level_for_view_radius(radius) == TILE_MAX_LEVEL

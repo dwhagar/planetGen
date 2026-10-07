@@ -19,7 +19,7 @@ import re
 
 from flask import abort, current_app, flash, get_flashed_messages, redirect, request
 
-import apiclient
+from planetgen.web.lib import apiclient
 
 from planetgen.admin import activity_log
 

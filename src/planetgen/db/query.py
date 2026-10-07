@@ -803,7 +803,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}}` (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
-            -- for rendering the route, e.g. `html/lib/navmap.py`, without
+            -- for rendering the route, e.g. `planetgen/web/maps/navmap.py`, without
             a second position lookup). A node id is a plain `star_systems.
             id` int for a system hop (every INTERMEDIATE hop always is,
             regardless of either endpoint's own kind -- only `path[0]`/
@@ -905,7 +905,7 @@ def sector_neighbors(conn, sector):
     (`galaxyGeometry.neighbor_addresses`: the slots either side, the
     layers above and below, and the overlapping slots in the rings inside
     and outside), each tagged with whether a real `sectors` row already
-    exists there. Drives the Sector Map's (`html/lib/starmap.py`)
+    exists there. Drives the Sector Map's (`planetgen/web/maps/starmap.py`)
     neighboring-sector indicators -- an existing neighbor links straight
     to it; a not-yet-generated one shows its address so it can be fed to
     `generate.py galaxy --ring I --layer J --slot K`.
@@ -1060,7 +1060,7 @@ def sector_detail(conn, sector_id):
     Returns one sector's full web-display detail: name, size, galaxy
     placement, and every system placed in it (each with its own star
     roster) -- everything `html/sector.py`'s systems table and Sector Map
-    (`html/lib/starmap.py`) need, in one function.
+    (`planetgen/web/maps/starmap.py`) need, in one function.
 
     Distinct from `planetgen.db.store.load_sector`, which reconstructs
     the *generation* object graph (config/provenance, no database ids) --
@@ -1547,7 +1547,7 @@ def galaxy_placed_phenomena(conn):
     """
     Every galaxy-placed standalone phenomenon (all `_PHENOMENON_TABLES`
     types) -- the phenomenon counterpart to `galaxy_placed_sectors`, plotted as small
-    dots on the same Galaxy Map (`html/lib/galaxymap.py`).
+    dots on the same Galaxy Map (`planetgen/web/maps/galaxymap.py`).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -1619,7 +1619,7 @@ def phenomena_near_sector(conn, sector_id):
     type) generated as part of `sector_id` (its own `sector_id`), wherever
     it sits, plus every cloud from elsewhere (a phenomenon with a nonzero
     `radius_ly`) whose sphere could plausibly reach into this sector -- the
-    data `html/lib/starmap.py`'s Sector Map draws (translucent clouds for
+    data `planetgen/web/maps/starmap.py`'s Sector Map draws (translucent clouds for
     nebulae/asteroid fields/supernova remnants, point markers for the
     point-like types, whose own `radius_ly` is always 0 -- see
     `_PHENOMENON_TABLES`) and `html/web/sector_page.py` lists alongside
@@ -1811,7 +1811,7 @@ def system_detail(conn, system_id):
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 ELSE 1 END",
         (system_id,),
     ).fetchall()
-    # mass_kg (already selected above) is what lets html/lib/systemmap.py
+    # mass_kg (already selected above) is what lets planetgen/web/maps/systemmap.py
     # split binary_mutual_position_x/y/z_km below into each star's own
     # mass-weighted offset from the system's barycenter, rather than
     # (incorrectly) anchoring the whole system on the primary alone.
@@ -1976,7 +1976,7 @@ def _nearest_sector_siblings(system, sibling_rows, count=NEAREST_NEIGHBOR_COUNT)
 def galaxy_placed_sectors(conn):
     """
     Every sector with a galaxy position, plus its live system count -- the
-    data the `/galaxy` Galaxy Map (`html/lib/galaxymap.py`) plots.
+    data the `/galaxy` Galaxy Map (`planetgen/web/maps/galaxymap.py`) plots.
     Unplaced sectors (`center_x_pc IS NULL`) have nothing to plot and are
     excluded at the query itself.
 
@@ -2017,7 +2017,7 @@ def galaxy_density_shape(conn):
     serialized to a plain JSON-able dict. This is the real
     exponential-disk-plus-bulge-plus-spiral-arm model already used to gate
     and weight actual sector generation (`generate.py`'s `_BatchDensity`);
-    exposing it here lets the Galaxy Map (`html/lib/galaxymap.py`) shade
+    exposing it here lets the Galaxy Map (`planetgen/web/maps/galaxymap.py`) shade
     its "expected density" cloud from this same model instead of a
     generic illustrative gradient, so un-generated space still reads as
     the spiral it's predicted to be.

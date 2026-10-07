@@ -1,4 +1,4 @@
-# html/lib/classref.py
+# planetgen/web/lib/classref.py
 
 """
 The class reference catalog behind the `/classes` pages

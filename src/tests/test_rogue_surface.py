@@ -18,7 +18,6 @@ from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
 from api.app import create_app  # noqa: E402
 from api.config import Config  # noqa: E402
 from web import system_pages  # noqa: E402

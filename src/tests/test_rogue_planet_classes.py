@@ -19,8 +19,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import (RoguePlanet, default_rogue_planet_class, rogue_planet_class_candidates,
                                             rogue_planet_classes)
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import starmap  # noqa: E402
+from planetgen.web.maps import starmap  # noqa: E402
 from web import sector_page, system_pages  # noqa: E402
 
 

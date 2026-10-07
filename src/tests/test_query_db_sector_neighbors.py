@@ -2,7 +2,7 @@
 
 """
 Coverage for `query.sector_neighbors` (and `sector_detail`'s own
-`neighbors` key) -- the Sector Map's (`html/lib/starmap.py`) neighboring-
+`neighbors` key) -- the Sector Map's (`planetgen/web/maps/starmap.py`) neighboring-
 sector indicators, one clickable marker per immediately surrounding
 sector address, each tagged with whether a real `sectors` row already
 exists there.

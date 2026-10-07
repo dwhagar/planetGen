@@ -1,4 +1,4 @@
-# html/lib/galaxymap3d.py
+# planetgen/web/maps/galaxymap3d.py
 
 """
 Interactive 3D Galaxy Map panel: a real perspective-camera WebGL scene
@@ -12,9 +12,9 @@ as the camera moves, one fixed cube of space ("tile") at a time
 (`/galaxy/tiles`, `html/web/galaxy_views.py`, this page's own client-side
 JS `fetch()` target -- see that view's own docstring, and `planetgen.galaxy.viewport`'s
 "Cube tiles" section) rather than server-rendered once. Tiles are cached
-on the server's disk (`lib/tilecache.py`) and in the visitor's browser.
+on the server's disk (`planetgen/web/lib/tilecache.py`) and in the visitor's browser.
 
-This module's job mirrors `lib/starmap.py`'s division of labor:
+This module's job mirrors `planetgen/web/maps/starmap.py`'s division of labor:
 `/galaxy` (`html/web/galaxy_views.py`) fetches the first frame's tiles
 (`initial_tile_request` says which); this module only ever turns
 already-fetched plain data into the panel's HTML and its one starting
@@ -37,7 +37,7 @@ sector page; an unfilled one shows its designation and address, plus, for
 a logged-in admin, the same Generate buttons the Sector Map gives a
 neighbor that isn't generated yet (`static/generatebuttons.js`).
 
-Unlike `lib/starmap.py` (every dot's size/color/position is computed
+Unlike `planetgen/web/maps/starmap.py` (every dot's size/color/position is computed
 once, server-side, and the client only ever draws exactly what it's
 handed), per-block *styling* (opacity/color
 formulas) lives entirely in `static/galaxymap3d.js`
@@ -321,7 +321,7 @@ def _escape(text):
 
 def _json_script(data):
     """Same `<script type="application/json">`-safe escaping
-    `lib/starmap.py`'s own `_json_script` uses -- see that function's
+    `planetgen/web/maps/starmap.py`'s own `_json_script` uses -- see that function's
     docstring for why (a database name/label can contain `</script>`)."""
     return (
         json.dumps(data)

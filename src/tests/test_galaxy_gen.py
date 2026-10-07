@@ -500,7 +500,7 @@ def test_block_mode_rejects_bad_combinations(argv):
 # ---------------------------------------------------------------------------
 # --ring I --layer J --slot K -- single-address mode, the direct path from a
 # designation/address copied out of the interactive 3D Galaxy Map
-# (html/lib/galaxymap3d.py) into this script. Thin wrapper around
+# (planetgen/web/maps/galaxymap3d.py) into this script. Thin wrapper around
 # ensure_sector_generated (already covered in isolation below) plus its
 # own argparse validation -- the validation tests need no real database at
 # all (parser.error fires during argument parsing, before any connection
@@ -1491,7 +1491,7 @@ def test_stars_and_phenomena_fit_within_their_sectors_real_cells(mysql_config, m
 def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, monkeypatch):
     """
     MAP.45: what the Sector Map draws for a sector (`query.phenomena_near_sector`,
-    rendered by `html/lib/starmap.py`) keeps every point-like object -- a
+    rendered by `planetgen/web/maps/starmap.py`) keeps every point-like object -- a
     rogue planet, comet, black hole or neutron star -- inside that sector's
     own cell. A neighbor's rogue planets used to be pulled in by a sphere
     sized for the old cube and drawn outside the wireframe. Only a cloud
@@ -1501,9 +1501,7 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
     side, so each sector has generated neighbors whose rogue planets would
     show up if the search still took them.
     """
-    import os
-    sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "html", "lib"))
-    from starmap import render_map_panel
+    from planetgen.web.maps.starmap import render_map_panel
 
     _plan_wide_galaxy(mysql_config)
     _run_cli(["--ring", "0", "--num-systems", "10"] + _mysql_argv(mysql_config), planets=False)

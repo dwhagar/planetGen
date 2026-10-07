@@ -243,7 +243,7 @@ h2 {
   overflow-x: auto;
 }
 
-/* The site's one pager (html/lib/pagination.py), under every paged
+/* The site's one pager (planetgen/web/lib/pagination.py), under every paged
    table: a "Showing X-Y of Z" summary, then First/Prev, numbered pages
    and Next/Last. Each control is a link (or a plain span when
    disabled/current), all sized alike so the row doesn't shift
@@ -607,7 +607,7 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-/* Sector map: interactive 3D WebGL scene (html/lib/starmap.py builds the
+/* Sector map: interactive 3D WebGL scene (planetgen/web/maps/starmap.py builds the
    scene data, html/static/sectormap.js renders it with three.js) */
 .starmap-layout {
   display: flex;
@@ -667,7 +667,7 @@ tbody tr:last-child td {
   border: 0;
 }
 
-/* `<noscript>` fallback (lib/starmap.py's `_noscript_list_html`) -- a
+/* `<noscript>` fallback (planetgen/web/maps/starmap.py's `_noscript_list_html`) -- a
    browser that can't run sectormap.js still gets a plain link list
    instead of a blank panel; shown in normal flow (not `.sr-only`) since
    there's no WebGL scene to prefer over it in that case. */
@@ -683,7 +683,7 @@ tbody tr:last-child td {
    physical scale at the *current* zoom level. sectormap.js recomputes
    `.starmap-scale-bar`'s width and `.starmap-scale-label`'s text on every
    camera move from the exact ly-per-world-unit ratio embedded in
-   `#starmap-data` (see `_ly_per_px_at_zoom_1` in lib/starmap.py) and the
+   `#starmap-data` (see `_ly_per_px_at_zoom_1` in planetgen/web/maps/starmap.py) and the
    canvas's own live size -- never a fixed guess. */
 .starmap-scale {
   position: absolute;
@@ -828,7 +828,7 @@ tbody tr:last-child td {
   overflow-wrap: anywhere;
 }
 
-/* Galaxy map: flat SVG plot of galaxy-placed sectors (html/lib/galaxymap.py,
+/* Galaxy map: flat SVG plot of galaxy-placed sectors (planetgen/web/maps/galaxymap.py,
    html/galaxy.py). Quadrant zoom is still a plain server-rendered link
    that starts the SVG's own viewBox cropped to one quadrant, but real
    zoom/pan from there on is static/galaxymap.js + static/mapzoom.js
@@ -917,7 +917,7 @@ a:focus-visible .galaxymap-star-core {
 }
 
 /* Phenomenon diagram: flat, zoomable SVG drawn directly to AU scale
-   (html/lib/phenomenonmap.py, html/phenomenon.py) -- same static/mapzoom.js
+   (planetgen/web/maps/phenomenonmap.py, html/phenomenon.py) -- same static/mapzoom.js
    viewBox zoom/pan as the Galaxy Map above (static/phenomenonmap.js is its
    own small wiring script, same shape as galaxymap.js), so this reuses the
    identical .starmap-controls/.starmap-btn/.starmap-scale styling too;
@@ -981,7 +981,7 @@ a:focus-visible .galaxymap-star-core {
 }
 
 /* Phenomenon view: a rendered picture of the object
-   (html/lib/phenomenonrender.py, static/phenomenonrender.js). The SVG
+   (planetgen/web/maps/phenomenonrender.py, static/phenomenonrender.js). The SVG
    still shows until the script swaps in the canvas. Always dark: it is
    a picture of space, in either theme. */
 .phenomrender-viewport {
@@ -1044,7 +1044,7 @@ a:focus-visible .galaxymap-star-core {
 }
 
 /* NAV map: flat SVG plot of a NAV request's origin/destination/route
-   (html/lib/navmap.py, html/nav.py) -- a static plot with no static/*.js
+   (planetgen/web/maps/navmap.py, html/nav.py) -- a static plot with no static/*.js
    file of its own, same reasoning as the Galaxy map above (a top-down,
    height-blind projection has no "rotate to inspect" need). */
 .navmap-viewport {
@@ -1533,7 +1533,7 @@ code {
   font-size: 0.9em;
 }
 
-/* System map: true top-down position plot (html/lib/systemmap.py,
+/* System map: true top-down position plot (planetgen/web/maps/systemmap.py,
    html/static/systemmap.js) -- reuses the sector map's `.starmap-layout`/
    `.starmap-viewport`/`.starmap-info`/`.starmap-side` shell (same card/
    side-panel look), with `.sysmap-viewport` overriding the sector map's
@@ -1593,7 +1593,7 @@ code {
 }
 
 /* A hidden scene is marked with this class (toggled via `classList`),
-   not the HTML `hidden` attribute -- see `lib/systemmap.py`'s own note
+   not the HTML `hidden` attribute -- see `planetgen/web/maps/systemmap.py`'s own note
    on why `.hidden`/`[hidden]` don't reliably work on an `<svg>`. */
 .sysmap-svg.sysmap-hidden {
   display: none;
@@ -1606,7 +1606,7 @@ code {
   pointer-events: none;
 }
 
-/* The orbits-only sibling `<svg>` `lib/systemmap.py`'s `_scene_svg_pair`
+/* The orbits-only sibling `<svg>` `planetgen/web/maps/systemmap.py`'s `_scene_svg_pair`
    emits alongside the body-marker one above -- absolutely positioned
    (unlike the body-marker `.sysmap-svg`'s own `position: relative`,
    which is what sizes `.sysmap-viewport`'s aspect-ratio box) and given a
@@ -1669,7 +1669,7 @@ code {
 }
 
 /* A belt is now a plain stroked `<circle>` (a full ring around its own
-   anchor -- see `lib/systemmap.py`'s `_belt_ring_svg`), not a filled path,
+   anchor -- see `planetgen/web/maps/systemmap.py`'s `_belt_ring_svg`), not a filled path,
    so its own visible "band" is the stroke itself. */
 .sysmap-belt {
   fill: none;
@@ -1758,7 +1758,7 @@ code {
   vertical-align: middle;
 }
 
-/* Facilities (lib/systemmap.py's `_facilities_svg`): a small diamond at
+/* Facilities (planetgen/web/maps/systemmap.py's `_facilities_svg`): a small diamond at
    its host, on a dashed orbit when it orbits. */
 .sysmap-facility {
   cursor: pointer;
@@ -1847,7 +1847,7 @@ code {
   display: none;
 }
 
-/* Galaxy Map (3D) (html/lib/galaxymap3d.py, html/static/galaxymap3d.js) --
+/* Galaxy Map (3D) (planetgen/web/maps/galaxymap3d.py, html/static/galaxymap3d.js) --
    reuses every generic .starmap-* rule above (layout/viewport/controls/
    info panel/scale bar) unchanged; these three are its own additions:
    a hover tooltip with no .starmap-* equivalent (the flat SVG map uses a
