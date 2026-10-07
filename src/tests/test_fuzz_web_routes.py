@@ -70,7 +70,6 @@ from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
 from web import csrf  # noqa: E402
 
 from tests.conftest import _test_server_kwargs
@@ -793,7 +792,7 @@ def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param
     pages whose row offset would pass MySQL's range (B2)."""
     base = path.format(sector=fuzz_db["sector_id"])
     if base.startswith(_POPULATION_PAGES):
-        import apiclient
+        from planetgen.web.lib import apiclient
 
         monkeypatch.setattr(apiclient, "get_population_status",
                             lambda db: {"generated": True, "species": True, "polities": True, "territories": False})

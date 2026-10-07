@@ -140,9 +140,9 @@ fi
 echo
 echo "== 4/8: Making the web app's Python files and the shell scripts executable =="
 # No -maxdepth: every *.py under src/html/, at any subdirectory depth
-# (src/html/lib/*.py included), needs this -- a previous version of this
+# (src/html/web/*.py included), needs this -- a previous version of this
 # line was restricted to the top level only, which silently left
-# src/html/lib/*.py non-executable/unreadable-as-intended after every
+# src/html/web/*.py non-executable/unreadable-as-intended after every
 # install. examples/apache/set-permissions.sh (below) re-does this same walk
 # anyway with the correct final ownership, but doing it correctly here
 # too means a plain `sudo ./install.sh` is never the reason this is wrong.

@@ -57,7 +57,7 @@ planetGen has three layers that share one Python package:
    holds admin logins.
 3. **Serving.** One Flask app (`src/html/`) serves both the JSON API
    (`/api/...`) and the HTML pages. The pages never query the database
-   themselves; they call the API in-process through `lib/apiclient.py`,
+   themselves; they call the API in-process through `planetgen/web/lib/apiclient.py`,
    and the API reads through `planetgen.db.query` and `store.py`.
 
 Around those sit the installers (`install.sh`, `update.sh` and their
@@ -71,7 +71,7 @@ flowchart LR
     DB --> MySQL[("MySQL<br/>content schema<br/>+ control schema")]
     Browser["Browser"] --> WSGI["src/html/wsgi.py"]
     WSGI --> Web["src/html/web/<br/>HTML pages"]
-    Web --> Client["lib/apiclient.py<br/>(in-process)"]
+    Web --> Client["planetgen/web/lib/apiclient.py<br/>(in-process)"]
     Client --> API["src/html/api/<br/>JSON API"]
     API --> Q["planetgen.db.query"]
     Q --> MySQL
@@ -291,7 +291,7 @@ the browser loads.
 | `sector_page.py` | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (wiki upload, generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
 | `system_pages.py` | `/system/<id>`, `/phenomena`, `/phenomenon/<type>/<id>`. Links class labels to `/classes`; hands a facility POST to `system_facilities.py`. |
 | `system_facilities.py` | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |
-| `class_pages.py` | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `lib/classref.py`; `class_url` for the pages that link a class. |
+| `class_pages.py` | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `planetgen/web/lib/classref.py`; `class_url` for the pages that link a class. |
 | `galaxy_views.py` | `/galaxy` (the 3D Galaxy Map page and Quadrant tables; `?course=<from>,<to>` draws a NAV course), `/galaxy/tiles` and `/galaxy/stage` (JSON the map script fetches, through the tile cache), `/galaxy/locate` (the address bar's name lookup) and `/galaxy/territories` (the Territories overlay; its button shows only once a polity exists). |
 | `nav_page.py` | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | `admin_pages.py` | `/login`, `/logout`, `/account`, `/admin` (API keys, wiki links), `/admin/stats`. |
@@ -305,22 +305,24 @@ the browser loads.
 | `old_urls.py` | 301 redirects from the old CGI `/<name>.py` URLs. |
 | `templates/` | Jinja2 templates, one per page, all extending `base.html` (including `classes.html`, `class_type.html`, `class.html`); `partials/` holds shared fragments. |
 
-#### src/html/lib/
+#### src/planetgen/web/lib/ and src/planetgen/web/maps/
+
+Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `src/planetgen/web/maps/`.
 
 | Path | What it holds |
 |---|---|
-| [`apiclient.py`](../../src/html/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
-| [`tilecache.py`](../../src/html/lib/tilecache.py) | On-disk cache of Galaxy Map tiles and drill stages, invalidated by `/api/galaxy/changes`. |
-| [`pagecache.py`](../../src/html/lib/pagecache.py) | In-memory cache of the API's public GET answers for the pages (PERF.2): cleared by any API write in the process, checked against the galaxy content stamp, capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. |
+| [`apiclient.py`](../../src/planetgen/web/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
+| [`tilecache.py`](../../src/planetgen/web/lib/tilecache.py) | On-disk cache of Galaxy Map tiles and drill stages, invalidated by `/api/galaxy/changes`. |
+| [`pagecache.py`](../../src/planetgen/web/lib/pagecache.py) | In-memory cache of the API's public GET answers for the pages (PERF.2): cleared by any API write in the process, checked against the galaxy content stamp, capped by age and size. `page_cache` in `config.json`; `PLANETGEN_PAGE_CACHE=off` turns it off. |
 | `classref.py` | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
-| `galaxymap3d.py` | Builds the Galaxy Map panel and its first embedded tiles. |
-| `galaxymap.py` | Quadrant and Zone classification of sectors. |
-| `starmap.py` | Data for the 3D Sector Map (systems, phenomena, neighbor indicators). |
-| `systemmap.py` | The System Map: a top-down SVG of real body positions. |
+| `maps/galaxymap3d.py` | Builds the Galaxy Map panel and its first embedded tiles. |
+| `maps/galaxymap.py` | Quadrant and Zone classification of sectors. |
+| `maps/starmap.py` | Data for the 3D Sector Map (systems, phenomena, neighbor indicators). |
+| `maps/systemmap.py` | The System Map: a top-down SVG of real body positions. |
 | `systempage.py` | The system page's body list and data tables. |
-| `phenomenonmap.py` | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
-| `phenomenonrender.py` | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
-| `navmap.py` | The NAV page's top-down SVG of origin, destination and route. |
+| `maps/phenomenonmap.py` | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
+| `maps/phenomenonrender.py` | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
+| `maps/navmap.py` | The NAV page's top-down SVG of origin, destination and route. |
 | `tabledisplay.py` | Star and planet display strings computed from raw columns. |
 | `mdconvert.py` | Converts the generator's narrow Markdown subset to HTML. |
 | `pagination.py` | The site's one pager. |
@@ -545,7 +547,7 @@ stored; `render.py` renders it from rows when asked.
 
 Every request enters through `wsgi.py`. The HTML pages and the JSON API
 are one Flask app. A page view never opens a database connection: it calls
-`lib/apiclient.py`, which, inside a Flask request, runs the API route
+`planetgen/web/lib/apiclient.py`, which, inside a Flask request, runs the API route
 in-process (`web/transport.py`).
 
 ```mermaid
@@ -562,7 +564,7 @@ flowchart TD
     Q --> DB[("content schema")]
     R --> JSON["JSON"]
     JSON --> View
-    View --> Lib["lib/starmap.py, pagination.py, fmt.py"]
+    View --> Lib["planetgen/web/maps/starmap.py, pagination.py, fmt.py"]
     Lib --> Tpl["templates/sector.html"]
     Tpl --> B
     B -. "loads" .-> JS["static/sectormap.js + three.js"]
@@ -598,7 +600,7 @@ with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
 303 back to the page. Like every API write it clears the page cache.
 
 **The Galaxy Map.** `/galaxy` (`web/galaxy_views.py`) renders the panel
-from `lib/galaxymap3d.py` with the first view's tiles embedded.
+from `planetgen/web/maps/galaxymap3d.py` with the first view's tiles embedded.
 `static/galaxymap3d.js` then fetches more tiles from `/galaxy/tiles` (and
 drill-down stages from `/galaxy/stage`) as the camera moves.
 
@@ -646,7 +648,7 @@ flowchart TD
 
 There are three cache levels. The browser keeps tiles in `localStorage`,
 keyed by the cache generation. The web process keeps tile files under
-`tile_cache.dir` (`lib/tilecache.py`). The database is the source.
+`tile_cache.dir` (`planetgen/web/lib/tilecache.py`). The database is the source.
 Freshness comes from `queryDb.galaxy_changes`, which reads the
 `modified_at` columns and names only the tiles that changed; a change it
 cannot pin down starts a new generation. The grid shading itself needs no

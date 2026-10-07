@@ -44,10 +44,10 @@ from urllib.parse import urlsplit
 from flask import current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
-import apiclient
-from fmt import format_duration_seconds, format_number, utc_time_html
-import tilecache
-from pagination import fetch_page, page_slice, parse_page
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
+from planetgen.web.lib import tilecache
+from planetgen.web.lib.pagination import fetch_page, page_slice, parse_page
 
 from . import bp
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html

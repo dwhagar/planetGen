@@ -1,7 +1,7 @@
 # html/web/transport.py
 
 """
-In-process transport for `lib/apiclient.py`.
+In-process transport for `planetgen/web/lib/apiclient.py`.
 
 The Flask-served pages call `apiclient` functions (`get_sectors(db, ...)`, `auth_me(cookie_header)`, ...). Inside the
 Flask app those calls must not go out over HTTP to the very process
@@ -31,7 +31,7 @@ Details that matter:
 from flask import current_app, has_request_context, request
 from werkzeug.test import EnvironBuilder, run_wsgi_app
 
-import apiclient
+from planetgen.web.lib import apiclient
 from api.limiter import IN_PROCESS_ENVIRON_KEY
 
 API_PREFIX = "/api"

@@ -292,7 +292,7 @@ population data (`GET /api/population`, a polity count). Details:
 ## 9. An in-memory cache for the pages' API answers
 
 **Chosen:** each web process keeps the API's public GET answers in memory
-(`lib/pagecache.py`, asked by `apiclient._request` before each call).
+(`planetgen/web/lib/pagecache.py`, asked by `apiclient._request` before each call).
 Any successful API write in the process clears it; at most once every 15
 seconds per database it reads the galaxy content stamp (`GET
 /api/galaxy/changes`) and drops that database's entries when the stamp

@@ -1,7 +1,7 @@
 // html/static/systemmap.js
 //
 // Click-for-info and drill-into-moons behavior for the "System Map" panel
-// built by `lib/systemmap.py`. Unlike `sectormap.js` (which has to resolve
+// built by `planetgen/web/maps/systemmap.py`. Unlike `sectormap.js` (which has to resolve
 // clicks by geometry through a rotated 3D `preserve-3d` stack -- see that
 // file's own comment for why), this map is flat, static, fixed-size SVG
 // with no rotation/scroll/zoom, so a plain event-target lookup is all
@@ -27,7 +27,7 @@
 // to render (no WebGL) just leaves that marker's flat circle showing.
 
 // Sibling modules are imported with this module's own `?v=<version>`
-// query (html/lib/fmt.py's `static_url`), so they are cached and
+// query (planetgen/web/lib/fmt.py's `static_url`), so they are cached and
 // refreshed with the page's script. A plain static `import "./x.js"`
 // would drop the query: an update could then leave a stale copy cached,
 // and a page that also loaded the same file by its versioned URL would
@@ -127,7 +127,7 @@ function parseSurfaceTempK(text) {
 // scorched Class N reads hazy/orange, a frigid world reads pale blue, and
 // an Earth-like temperate one reads sky-blue, the same "gesture at the
 // physics, not model it exactly" spirit as this module's own
-// `_CLASS_COLORS` (see lib/systemmap.py).
+// `_CLASS_COLORS` (see planetgen/web/maps/systemmap.py).
 function glowColorForTemp(tempK) {
   if (!isFinite(tempK)) return "#bcdfff";
   if (tempK >= 320) return "#ffb066";
@@ -136,7 +136,7 @@ function glowColorForTemp(tempK) {
 }
 
 // The diagram's coordinate space when a scene has no viewBox to read --
-// `lib/systemmap.py`'s own `_VIEW_SIZE_PX`. A scene's viewBox is usually
+// `planetgen/web/maps/systemmap.py`'s own `_VIEW_SIZE_PX`. A scene's viewBox is usually
 // that 700 px frame, but MAP.88 widens it around the center when anything
 // drawn would run past the edge, so marker positions are turned into
 // canvas pixels through each marker's own scene's viewBox.
@@ -529,7 +529,7 @@ function resetInfo(panel) {
 
 // --- Labels that never overlap ------------------------------------------
 //
-// lib/systemmap.py places each name with an estimated text width (the
+// planetgen/web/maps/systemmap.py places each name with an estimated text width (the
 // no-script layout). Once a scene is shown, the real text is measured
 // here: a label that overlaps another label or any marker but its own is
 // nudged up or down a line, and hidden if neither clears (its name is
@@ -622,7 +622,7 @@ function layoutLabels(sceneEl) {
 //
 // Real straight-line distance between any two bodies (star, planet, or
 // moon) in the currently visible scene, computed from their own raw
-// `data-xkm`/`data-ykm` (set by `lib/systemmap.py`'s `_planet_attrs`/
+// `data-xkm`/`data-ykm` (set by `planetgen/web/maps/systemmap.py`'s `_planet_attrs`/
 // `_wide_binary_star_attrs`/etc -- see that module's own comment on why
 // this has to come from real km, not this scene's drawn pixel positions:
 // the shared log radial scale (`_radial_px`) preserves real angle but not
@@ -840,7 +840,7 @@ function computeMeasurement(elA, elB, sceneEl) {
 // --- Drawing the measured route ----------------------------------------
 //
 // The markers sit on a log radial scale around the scene's center
-// (lib/systemmap.py `_radial_px`, whose bounds the scene carries as
+// (planetgen/web/maps/systemmap.py `_radial_px`, whose bounds the scene carries as
 // data-lokm/data-hikm), so a straight line in km is a curve on the map:
 // each leg is sampled and every sample mapped the same way the markers
 // were. The two ends snap to their markers' drawn centers (markers can be
@@ -1024,7 +1024,7 @@ function initSystemMap(root) {
     return;
   }
   // `.sysmap-orbits-layer`s are excluded here (a separate list below) --
-  // `lib/systemmap.py`'s `_scene_svg_pair` now emits TWO sibling `<svg
+  // `planetgen/web/maps/systemmap.py`'s `_scene_svg_pair` now emits TWO sibling `<svg
   // class="sysmap-svg" data-scene="...">`s per scene (an orbits-only
   // layer plus this, the body-marker layer -- see that function's own
   // docstring for why), and `active`/`self`/`sceneFocusLabel` below all
@@ -1037,7 +1037,7 @@ function initSystemMap(root) {
   // into: a planet's own moons (`kind === "planet"`, from a scene
   // reached off a planet-with-moons marker) vs. a wide binary's
   // companion star and its own planets (`kind === "star"`, from
-  // `lib/systemmap.py`'s `_render_wide_binary_scenes`) -- both scenes
+  // `planetgen/web/maps/systemmap.py`'s `_render_wide_binary_scenes`) -- both scenes
   // share the same "self" marker convention, just with a different noun.
   function sceneFocusLabel(sceneEl) {
     var self = sceneEl.querySelector('[data-self="true"]');

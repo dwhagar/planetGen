@@ -1,4 +1,4 @@
-# html/lib/apiclient.py
+# planetgen/web/lib/apiclient.py
 
 """
 Client for the planetGen Flask API (`html/api/`), used by every page in
@@ -11,7 +11,7 @@ API: every page here used to open its own read-only MySQL connection
 run its own bespoke SQL; now every page is a thin HTTP client over
 `GET /api/...` (see `docs/api.md`), and the database-querying logic those
 pages used to duplicate lives once, in `planetgen.db.query`, shared with the API
-itself. `html/lib/fmt.py` still holds the formatting-only helpers
+itself. `planetgen/web/lib/fmt.py` still holds the formatting-only helpers
 (`esc`, `linkify_location`, `format_density`) that have nothing to do
 with fetching data.
 
@@ -27,22 +27,15 @@ alongside `html/` in a real deployment.
 
 import json
 import os
-import sys
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-# stellarObjects/ lives at src/stellarObjects/ (src layout); this file is
-# at src/html/lib/, two levels down from src/ -- add src/ to sys.path the
-# so
-# `planetgen.util.appconfig` is importable here too.
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+from planetgen.util import log
+from planetgen.util.appconfig import load_config
 
-from planetgen.util import log  # noqa: E402
-from planetgen.util.appconfig import load_config  # noqa: E402
-
-import pagecache  # noqa: E402 -- a sibling in lib/
+from planetgen.web.lib import pagecache
 
 API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
@@ -148,7 +141,7 @@ current call (or `None` for none); see `set_response_cache`."""
 
 def set_response_cache(provider):
     """
-    Lets `_request` serve public GETs from a cache (`lib/pagecache.py`).
+    Lets `_request` serve public GETs from a cache (`planetgen/web/lib/pagecache.py`).
 
     Args:
         provider (callable or None): `provider()` -> a
@@ -490,7 +483,7 @@ def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
     `has_shape` -- see `queryDb.galaxy_tiles`). Callers go
-    through `lib/tilecache.py`, which only asks for tiles it hasn't
+    through `planetgen/web/lib/tilecache.py`, which only asks for tiles it hasn't
     already cached on disk.
 
     Args:
@@ -504,7 +497,7 @@ def get_galaxy_tiles(db, tile_keys):
 def get_galaxy_stage(db, at=None):
     """Returns `GET /api/galaxy/stage`'s payload (`at`/`child_m`/
     `children`/`sectors` -- see `queryDb.galaxy_stage`). Callers go
-    through `lib/tilecache.py`, which caches each stage on disk."""
+    through `planetgen/web/lib/tilecache.py`, which caches each stage on disk."""
     _require_db(db)
     return _request("/galaxy/stage", {"db": db, "at": at})
 
@@ -599,7 +592,7 @@ def get_galaxy_locate(db, q):
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
     `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's
-    `state` (see `queryDb.galaxy_changes`). `lib/tilecache.py` uses it to
+    `state` (see `queryDb.galaxy_changes`). `planetgen/web/lib/tilecache.py` uses it to
     refresh only the tiles an edit touched."""
     _require_db(db)
     return _request("/galaxy/changes", {"db": db, "since": since})

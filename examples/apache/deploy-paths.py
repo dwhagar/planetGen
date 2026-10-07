@@ -9,7 +9,7 @@ create-cache-dir.sh runs this as root, so it deliberately imports nothing
 from the repo: it is run with `python3 -I` (no script directory, current
 directory, user site-packages or PYTHON* variables on sys.path) and reads
 config.json with the standard library alone. It mirrors
-`tilecache.configured_cache_dir()` (src/html/lib/tilecache.py) and
+`tilecache.configured_cache_dir()` (src/planetgen/web/lib/tilecache.py) and
 `jobs.jobs_dir()`'s configured directory (src/html/web/jobs.py); keep the
 three in step.
 

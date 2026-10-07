@@ -1,25 +1,16 @@
 """
-html/lib/navmap.py regression tests.
+planetgen/web/maps/navmap.py regression tests.
 
 Covers the pure geometry (`_scale`/`_project_all`) and the rendered SVG
-panel's shape -- same `sys.path` setup as `test_mdconvert.py` (`html/lib`
-isn't part of the installed `stellarObjects` package, CGI-only plumbing),
-and no database needed: `render_nav_map_panel` takes plain waypoint dicts,
+panel's shape, with no database needed: `render_nav_map_panel` takes plain waypoint dicts,
 the same shape `html/nav.py` builds from `queryDb.nav_between`'s result.
 
 Run with: pytest src/tests/test_navmap.py
 """
-import os
-import sys
-
-# This file lives at src/tests/ (src layout) -- one dirname() call reaches
-# src/, then down into html/lib (src/html/lib, not a top-level html/).
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-from navmap import _project_all, _scale, render_nav_map_panel  # noqa: E402
+from planetgen.web.maps.navmap import _project_all, _scale, render_nav_map_panel  # noqa: E402
 
 
 def _link(name, **params):

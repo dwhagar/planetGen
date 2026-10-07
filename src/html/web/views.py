@@ -8,10 +8,10 @@ two halves of `browse.py`), and `/search` (was `search.py`).
 
 from flask import redirect, request
 
-import apiclient
-from fmt import format_density, format_distance_ly
-from galaxymap import sector_quadrant
-from pagination import fetch_page, parse_page
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import format_density, format_distance_ly
+from planetgen.web.maps.galaxymap import sector_quadrant
+from planetgen.web.lib.pagination import fetch_page, parse_page
 
 from api.limiter import page_limit
 

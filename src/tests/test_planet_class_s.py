@@ -14,8 +14,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import classref  # noqa: E402
+from planetgen.web.lib import classref  # noqa: E402
 
 
 @pytest.fixture(scope="module")

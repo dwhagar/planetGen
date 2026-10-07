@@ -1,5 +1,5 @@
 """
-html/lib/galaxymap3d.py regression tests -- the interactive 3D Galaxy
+planetgen/web/maps/galaxymap3d.py regression tests -- the interactive 3D Galaxy
 Map's server-side panel builder (the `/galaxy` view, `web/galaxy_views.py`, calls `view_radius_bounds`
 to pick its starting radius, `initial_tile_request` for the first
 frame's tiles, then `render_galaxy_map3d_panel` to build the page). No
@@ -15,12 +15,11 @@ import re
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 
-from galaxymap3d import (  # noqa: E402
+from planetgen.web.maps.galaxymap3d import (  # noqa: E402
     CAMERA_FOV_DEG,
     CLICK_ZOOM_FACTOR_MAX,
     CLICK_ZOOM_FACTOR_MIN,
@@ -218,7 +217,7 @@ def test_panel_has_no_density_shape_without_a_skeleton():
 
 def test_panel_json_is_safely_escaped_against_script_breakout():
     # A database name is arbitrary operator-supplied text -- confirms the
-    # same </script>-breakout mitigation lib/starmap.py's own
+    # same </script>-breakout mitigation planetgen/web/maps/starmap.py's own
     # _json_script uses is applied here too.
     html = render_galaxy_map3d_panel("weird</script><script>alert(1)</script>db", None, EDGE_PC, _empty_view())
     assert "</script><script>alert" not in html

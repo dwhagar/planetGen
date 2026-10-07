@@ -18,8 +18,7 @@ import pytest
 from api.app import create_app
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from web.population_pages import format_years  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.population import model

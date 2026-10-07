@@ -256,8 +256,7 @@ def test_regenerate_sector_off_the_grid_is_refused(admin, mysql_config):
 # The web pages' buttons
 # ---------------------------------------------------------------------
 
-import web  # noqa: E402,F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from web import csrf  # noqa: E402
 
 

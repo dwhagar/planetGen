@@ -2,7 +2,7 @@
 
 """
 The sector page, `/sector/<id>` (was `sector.py`): the sector's size and
-badges, its interactive 3D Sector Map (`lib/starmap.py` data, drawn by
+badges, its interactive 3D Sector Map (`planetgen/web/maps/starmap.py` data, drawn by
 `static/sectormap.js`), and one "Contents" table of its systems and the
 phenomena near it, nearest the sector's center first, paged with
 `?contents_page=N`. The Contents table also lists the sector's
@@ -36,15 +36,15 @@ from urllib.parse import urlencode
 
 from flask import current_app, flash, get_flashed_messages, redirect, request, url_for
 
-import apiclient
-from fmt import (
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import (
     esc, format_number, format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html,
     runaway_text,
 )
-from galaxymap import sector_quadrant
-from pagination import page_slice, parse_page
-from starmap import render_map_panel
-from systempage import facility_kind_label
+from planetgen.web.maps.galaxymap import sector_quadrant
+from planetgen.web.lib.pagination import page_slice, parse_page
+from planetgen.web.maps.starmap import render_map_panel
+from planetgen.web.lib.systempage import facility_kind_label
 
 from api.common import is_http_url
 from planetgen.admin import activity_log

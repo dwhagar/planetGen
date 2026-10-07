@@ -1,4 +1,4 @@
-# html/lib/galaxymap.py
+# planetgen/web/maps/galaxymap.py
 
 """
 Quadrant/Zone classification shared by every page that groups sectors by
@@ -7,7 +7,7 @@ tables, and `sector.py`/`browse.py`'s "Quadrant N" links back into it.
 
 This module used to also build the Galaxy Map's own visualization (a
 flat, face-on SVG projection) -- superseded by a real 3D map
-(`lib/galaxymap3d.py`/`static/galaxymap3d.js`), which `galaxy.py` now
+(`planetgen/web/maps/galaxymap3d.py`/`static/galaxymap3d.js`), which `galaxy.py` now
 renders directly instead. That SVG rendering code (and its own
 `static/galaxymap.js`) has been removed; only the plain classification
 math below survived, since `sector.py`/`browse.py` still need it

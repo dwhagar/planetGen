@@ -24,8 +24,7 @@ from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.queue import progress_file  # noqa: E402
 from web import csrf, generate_page, jobs  # noqa: E402
 

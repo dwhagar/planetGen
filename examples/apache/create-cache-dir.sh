@@ -3,7 +3,7 @@
 # examples/apache/create-cache-dir.sh
 #
 # Creates the web interface's on-disk Galaxy Map tile cache (see
-# src/html/lib/tilecache.py), and the admin Generate page's jobs directory
+# src/planetgen/web/lib/tilecache.py), and the admin Generate page's jobs directory
 # (src/html/web/jobs.py), and gives them to Apache's worker user, so the
 # web interface can write to them (on macOS, _www). Runs on Linux and
 # macOS; install.ps1 does the same on Windows. Safe to run again: an

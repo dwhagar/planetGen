@@ -2,8 +2,8 @@
 
 """
 Property-based / brute-force tests for the text/HTML rendering layer:
-`html/lib/mdconvert.py`, `html/lib/fmt.py`, `html/lib/pagination.py`,
-`html/lib/tabledisplay.py`, and
+`planetgen/web/lib/mdconvert.py`, `planetgen/web/lib/fmt.py`, `planetgen/web/lib/pagination.py`,
+`planetgen/web/lib/tabledisplay.py`, and
 `planetgen/db/render.py`.
 
 Main invariants, checked structurally with `html.parser` rather than by
@@ -20,9 +20,7 @@ Same `sys.path` setup as `test_pagination.py`/`test_page_shell.py`. See
 
 import html
 import math
-import os
 import re
-import sys
 from html.parser import HTMLParser
 from unittest import mock
 
@@ -32,13 +30,10 @@ from stellarObjects.utils import format_number
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
-
-import fmt  # noqa: E402
-import mdconvert  # noqa: E402
-import pagination  # noqa: E402
-import tabledisplay  # noqa: E402
+from planetgen.web.lib import fmt  # noqa: E402
+from planetgen.web.lib import mdconvert  # noqa: E402
+from planetgen.web.lib import pagination  # noqa: E402
+from planetgen.web.lib import tabledisplay  # noqa: E402
 from planetgen.db import render as systemRender  # noqa: E402
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402

@@ -24,8 +24,7 @@ from planetgen.queue import load as systemLoad, work as workQueue
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
-import web  # noqa: F401 -- puts src/html/lib on sys.path
-import apiclient  # noqa: E402
+from planetgen.web.lib import apiclient  # noqa: E402
 from web import csrf, jobs, queue_page  # noqa: E402
 
 

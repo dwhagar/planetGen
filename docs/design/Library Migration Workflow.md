@@ -164,8 +164,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/html/lib/pagecache.py` (183 lines): Custom thread-safe in-memory cache for public API HTTP responses with TTL eviction.
-* `src/html/lib/tilecache.py` (516 lines): Custom file-backed disk cache for 3D Galaxy Map JSON tiles with manual directory cleanup, stale file eviction, and database stamp checking.
+* `src/planetgen/web/lib/pagecache.py` (183 lines): Custom thread-safe in-memory cache for public API HTTP responses with TTL eviction.
+* `src/planetgen/web/lib/tilecache.py` (516 lines): Custom file-backed disk cache for 3D Galaxy Map JSON tiles with manual directory cleanup, stale file eviction, and database stamp checking.
 
 #### Recommended Stack
 
@@ -188,7 +188,7 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/html/lib/mdconvert.py` (179 lines): Custom Markdown-to-HTML converter using regex string parsing to handle ATX headings, GFM pipe tables, and scientific superscript tags (`<sup>`).
+* `src/planetgen/web/lib/mdconvert.py` (179 lines): Custom Markdown-to-HTML converter using regex string parsing to handle ATX headings, GFM pipe tables, and scientific superscript tags (`<sup>`).
 * `src/planetgen/generation/validation.py` (783 lines): Imperative checking functions validating planet parameters, moon system orbits, and physical boundaries.
 
 #### Recommended Stack
@@ -214,13 +214,13 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 Phase 1: Low Risk / High Reduction (Security & Utility Modules)
 ├── Replace src/planetgen/admin/totp.py       --> pyotp
 ├── Replace src/planetgen/admin/qrcode.py  --> qrcode / segno
-└── Replace src/html/lib/mdconvert.py        --> markdown
+└── Replace src/planetgen/web/lib/mdconvert.py        --> markdown
 
 Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)
 ├── Refactor src/planetgen/physics/kepler.py --> scipy.optimize
 ├── Refactor physical_constants.py              --> astropy.constants & astropy.units
-├── Replace src/html/lib/pagecache.py           --> cachetools
-└── Replace src/html/lib/tilecache.py           --> diskcache
+├── Replace src/planetgen/web/lib/pagecache.py           --> cachetools
+└── Replace src/planetgen/web/lib/tilecache.py           --> diskcache
 
 Phase 3: Core Architecture Refactoring (Persistence & Task Execution)
 ├── Refactor src/planetgen/db/store.py          --> SQLAlchemy Core / ORM

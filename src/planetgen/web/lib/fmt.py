@@ -1,10 +1,10 @@
-# html/lib/fmt.py
+# planetgen/web/lib/fmt.py
 
 """
 Small, dependency-free formatting/escaping helpers shared by every page
 in `html/` -- what's left of the old `dbutil.py` once its database-access
 functions moved out: every page now fetches its data from the planetGen
-API (`html/lib/apiclient.py`) instead of querying MySQL directly, so this
+API (`planetgen/web/lib/apiclient.py`) instead of querying MySQL directly, so this
 module only ever operates on plain values already handed back as JSON,
 never a database row or connection.
 """
@@ -22,7 +22,7 @@ except ImportError:
     # The planetGen package isn't on the import path in this deployment --
     # density is still shown, just without the "% of local average"
     # comparison, rather than failing outright (matches every other
-    # html/lib module's own fallback for an optional stellarObjects import).
+    # web module's own fallback for an optional stellarObjects import).
     LOCAL_STELLAR_DENSITY_LY3 = None
 
 try:
@@ -131,7 +131,7 @@ def _read_package_version():
     still renders (just without a meaningful cache-busting value).
     """
     path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-                        "planetgen", "_version.py")
+                        "_version.py")
     try:
         with open(path, encoding="utf-8") as handle:
             match = re.search(r'^__version__\s*=\s*["\']([^"\']+)["\']', handle.read(), re.MULTILINE)

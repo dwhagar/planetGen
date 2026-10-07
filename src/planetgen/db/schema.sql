@@ -55,7 +55,7 @@
 -- human-facing label now displays it as "Octant" (html/sector.py,
 -- html/system.py, html/static/sectormap.js) so it doesn't collide with
 -- the unrelated, galaxy-scale "Quadrant" concept `sectors.center_x/y/z_pc`
--- and html/lib/galaxymap.py introduced later (4 azimuthal regions
+-- and planetgen/web/maps/galaxymap.py introduced later (4 azimuthal regions
 -- spanning many sectors, not this column's 8 sign-combination regions
 -- within one sector's own cube).
 --
@@ -131,7 +131,7 @@
 -- binary_effective_luminosity_w, binary_separation_km, binary_type, ...) --
 -- see this file's own header comment above. Consumers now compute display
 -- formatting on demand from those columns instead of reading a frozen
--- pre-rendered copy (`html/lib/tabledisplay.py` for the HTML viewer;
+-- pre-rendered copy (`planetgen/web/lib/tabledisplay.py` for the HTML viewer;
 -- `get_table_properties()` is still used, unchanged, to build the actual
 -- wiki-page text in `wikitext_content`/`markdown_content`).
 -- v6/v7: give every galaxy-placed sector exact vertices -- built from a
@@ -571,7 +571,7 @@
 --   every single search-page visit regardless of whether any filter was
 --   even active (`search()`'s facet+autocomplete computation always runs
 --   up front) -- confirmed in production as the API timing out
---   (`urllib.error.URLError`/`TimeoutError` from `html/lib/apiclient.py`)
+--   (`urllib.error.URLError`/`TimeoutError` from `planetgen/web/lib/apiclient.py`)
 --   on `/api/search` once the database grew past a trivial size.
 --
 -- v23: wiki publishing wired up (docs/TODO.md's "Wiki publishing isn't

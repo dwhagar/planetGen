@@ -1,6 +1,6 @@
 // html/static/phenomenonrender.js
 //
-// The phenomenon page's "View" panel (html/lib/phenomenonrender.py): a
+// The phenomenon page's "View" panel (planetgen/web/maps/phenomenonrender.py): a
 // three.js picture of a neutron star, black hole, quasar, rogue planet or
 // interstellar comet, built from the numbers in `#phenomrender`'s
 // `data-view` JSON. The panel's static SVG still stays when WebGL can't

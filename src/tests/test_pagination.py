@@ -1,21 +1,15 @@
 """
-html/lib/pagination.py regression tests -- the site's one shared pager.
+planetgen/web/lib/pagination.py regression tests -- the site's one shared pager.
 
-Same `sys.path` setup as `test_navmap.py` (`html/lib` isn't part of the
-installed `stellarObjects` package); no database needed.
+no database needed.
 
 Run with: pytest src/tests/test_pagination.py
 """
-import os
 import re
-import sys
-
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
 
 import pytest  # noqa: E402
 
-from pagination import (  # noqa: E402
+from planetgen.web.lib.pagination import (  # noqa: E402
     PAGE_SIZE,
     _page_numbers,
     clamp_page,

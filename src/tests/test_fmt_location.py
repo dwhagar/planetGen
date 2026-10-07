@@ -1,18 +1,13 @@
 """
-html/lib/fmt.py "Location:" rendering tests: `nearest_neighbors_location`
+planetgen/web/lib/fmt.py "Location:" rendering tests: `nearest_neighbors_location`
 (links built from live `system_detail` neighbor rows) and
 `linkify_location` (its fallback, parsing names out of the stored string).
 No database needed.
 
 Run with: pytest src/tests/test_fmt_location.py
 """
-import os
-import sys
 
-_SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html", "lib"))
-
-from fmt import linkify_location, nearest_neighbors_location  # noqa: E402
+from planetgen.web.lib.fmt import linkify_location, nearest_neighbors_location  # noqa: E402
 
 
 def _url(system_id):

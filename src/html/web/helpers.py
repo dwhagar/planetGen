@@ -40,9 +40,9 @@ these:
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
-import apiclient
+from planetgen.web.lib import apiclient
 from api.authz import SESSION_COOKIE_NAME
-from pagination import render_pagination
+from planetgen.web.lib.pagination import render_pagination
 
 from . import csrf
 
@@ -105,7 +105,7 @@ def trusted_html(html):
 
 def pager(page_param, page, total, anchor=None, label="Pages", keep=None):
     """
-    The shared pager (`lib/pagination.py`) for one table on the current
+    The shared pager (`planetgen/web/lib/pagination.py`) for one table on the current
     page, with plain `?<page_param>=N` GET links back to the current
     URL.
 

@@ -1,4 +1,4 @@
-# html/lib/tabledisplay.py
+# planetgen/web/lib/tabledisplay.py
 
 """
 Computes the same "Star Data"/"Planet Data" display strings
@@ -21,7 +21,7 @@ to read the wikitext form straight out of the database.
 
 That HTML `<sup>` form is only safe to embed where it's actually parsed as
 markup (`system.py`'s static table cells, inserted unescaped -- see its own
-comment on why). `lib/systemmap.py`'s interactive map instead carries these
+comment on why). `planetgen/web/maps/systemmap.py`'s interactive map instead carries these
 same formatted strings through `data-*` attributes that `static/systemmap.js`
 reads back with `.textContent` (deliberately never `innerHTML`, to keep every
 database-derived value safely un-executable) -- `.textContent` shows tags
@@ -34,7 +34,7 @@ first.
 
 import re
 
-from fmt import dash_unless_finite
+from planetgen.web.lib.fmt import dash_unless_finite
 
 _SUP_HTML_RE = re.compile(r'<sup>(-?\d+)</sup>')
 _SUPERSCRIPT_DIGITS = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")

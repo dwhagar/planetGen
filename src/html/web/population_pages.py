@@ -17,9 +17,9 @@ has no Species section (`helpers.population_status`).
 
 from flask import abort, request
 
-import apiclient
-from fmt import format_number
-from pagination import fetch_page, parse_page
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.fmt import format_number
+from planetgen.web.lib.pagination import fetch_page, parse_page
 
 from . import bp
 from .helpers import crumb, db_name, page_url, pager, population_status, render_page

@@ -227,7 +227,7 @@ def render(args):
     # log1p compresses the exponential falloff (bulge/disk both fall off
     # by orders of magnitude across the frame) into a range human vision
     # can actually distinguish -- the same "display-only contrast
-    # stretch" reasoning html/lib/galaxymap.py's own (now-removed)
+    # stretch" reasoning planetgen/web/maps/galaxymap.py's own (now-removed)
     # _DENSITY_RADIAL_GAMMA used for the flat map's density shading.
     face_display = np.log1p(face_grid)
     ax_face.pcolormesh(face_xs, face_ys, face_display, shading="auto", cmap="inferno")

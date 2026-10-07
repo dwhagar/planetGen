@@ -64,7 +64,7 @@ never mutates the generation/physics code's own native units. Its shape:
   comets), the same text the rendered page uses. The old `table_*`
   display-string columns were dropped in v5 and the stored page text in
   v29: display formatting is computed on demand from the data columns
-  (`html/lib/tabledisplay.py`, `planetgen/db/render.py`).
+  (`planetgen/web/lib/tabledisplay.py`, `planetgen/db/render.py`).
 
 ## How to read this document
 
@@ -118,7 +118,7 @@ dropped them (see "The searchable-field principle" below).
 
 *Historical: v5 dropped every `table_*`/`binary_table_*` column described
 in the next paragraph, and display strings are now computed on demand
-from the raw columns (`html/lib/tabledisplay.py`). The belt columns in
+from the raw columns (`planetgen/web/lib/tabledisplay.py`). The belt columns in
 the second paragraph remain.*
 
 Every `*Data`/`*_properties` dict that `to_paragraph_list()` builds in the
@@ -157,7 +157,7 @@ shared `planets` table into their own `moons` table; v2→v3 added
 `star_systems.location`; v3→v4 added `sectors`' galaxy-frame placement
 columns; v4→v5 dropped every pre-rendered `table_*`/`binary_table_*`
 display-string column (superseded by computing display formatting on
-demand from the underlying data columns, e.g. `html/lib/tabledisplay.py`);
+demand from the underlying data columns, e.g. `planetgen/web/lib/tabledisplay.py`);
 v6/v7 gave every galaxy-placed sector exact vertices (`sector_vertices`,
 built from an exact local spherical Voronoi tessellation among its
 same-shell neighbors — see `planetgen/galaxy/geometry.py`); v8 added

@@ -24,12 +24,10 @@ import os
 import re
 import shutil
 import subprocess
-import sys
 
 import pytest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(HERE, "..", "html", "lib"))
 
 NODE = shutil.which("node")
 JS_TESTS = sorted(glob.glob(os.path.join(HERE, "js", "*.test.mjs")))
@@ -40,7 +38,7 @@ GALAXY_RADIUS_PC = 15000.0
 
 def fixtures():
     """The values the JavaScript tests compare against, as a dict."""
-    from galaxymap3d import render_galaxy_map3d_panel
+    from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
     from planetgen.galaxy.density import build_galaxy_shape
     from planetgen.galaxy.geometry import provisional_sector_designation, ring_sector_count
     from planetgen.galaxy.skeleton import expected_system_count_at_density_1
@@ -85,7 +83,7 @@ def star_light():
     """MAP.87's brightness boost (`starmap.star_light_boost`) and a
     10 px, 0.5-strength halo boosted by it (`_boost_light`), from 1e-6 to
     1e7 L_sun, for static/starlight.js to match."""
-    from starmap import _boost_light, star_light_boost
+    from planetgen.web.maps.starmap import _boost_light, star_light_boost
 
     rows = []
     for exponent in range(-60, 71, 3):
@@ -100,7 +98,7 @@ def sector_map():
     """The Sector Map panel for two systems, a nebula, a rogue planet and a
     neighbour (test_starmap.py's own fixtures): its scene JSON and its
     control buttons."""
-    from starmap import render_map_panel
+    from planetgen.web.maps.starmap import render_map_panel
     from tests.test_starmap import _link, _make_system, _neighbor, _phenomenon
 
     near = _make_system(100.0, 50.0, -30.0)

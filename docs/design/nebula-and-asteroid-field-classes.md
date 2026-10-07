@@ -19,7 +19,7 @@ standard references.
 | | Nebulae and remnants drawn on the Galaxy Map | 7.36.0 | `queryDb.galaxy_clouds_in_box` |
 | | Inside badges on system and phenomenon pages, "Inside <name>" in sector Contents, `inside` in `GET /api/systems/<id>` | 7.41.0 (PR #148) | `queryDb.system_detail` |
 | | See-through cloud volumes on the Sector Map | 7.41.1 (PR #148) | `static/sectormap.js` |
-| | Class reference pages for nebula, remnant and asteroid field classes; class labels link to them | 7.46.0 (PR #167) | `html/lib/classref.py`, `web/class_pages.py` |
+| | Class reference pages for nebula, remnant and asteroid field classes; class labels link to them | 7.46.0 (PR #167) | `planetgen/web/lib/classref.py`, `web/class_pages.py` |
 | GEN.47 | Molecular clouds as a galaxy-scale field that spans sectors | | `nebulaField`, `_db._insert_field_nebulae` |
 
 Habitability does not use the squeezed heliopause yet.
