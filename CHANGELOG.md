@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.202.610] - 2026-10-07
+
+### Changed
+- TODO: Boss's answers to the open decisions are recorded. Wide-binary planets are named from two words (GEN.71). Orbital updates follow real time, one day per day, with an option to advance more (GEN.105). The orbital neighbour search is checked against the ring, layer and slot sectors (GEN.109). GEN.65 becomes a test across neighbourhood centres. New OPS.27 points the Windows installer at Redis in WSL.
+
 ## [7.201.610] - 2026-10-07
 
 ### Changed
