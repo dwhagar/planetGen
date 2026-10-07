@@ -42,6 +42,7 @@ PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (utils.format_pressure_pa)
 SPEED_OF_LIGHT_KMS = 299_792.458  # Exact (the SI definition), km/s -- the speed ladder's c (utils.format_speed_kms, static/speed.js)
 R = 8.314  # Ideal gas constant in J/(mol·K)
 BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
+REDUCED_PLANCK = 1.054571817e-34  # hbar, J*s (CODATA 2018) -- Hawking radiation (compactRemnant)
 STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴
 COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the floor for any body's surface temperature
 

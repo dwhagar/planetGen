@@ -25,7 +25,8 @@ import pytest
 
 from stellarObjects import _db, physical_constants, program_constants
 from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.compactRemnant import BlackHole, CompactRemnant, NeutronStar
+from stellarObjects.compactRemnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
+                                           hawking_temperature_k)
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
 from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
@@ -67,8 +68,17 @@ def test_black_hole_mass_and_spin_within_configured_ranges():
         assert bh.yerkes_class == "BH"
         assert bh.lifespan == float('inf')
         if not bh.has_accretion_disk:
-            assert bh.luminosity == 0.0
-            assert bh.habitable_zone == (0.0, 0.0)
+            # Only Hawking radiation (GEN.82): real, tiny, never zero.
+            assert bh.luminosity == pytest.approx(hawking_luminosity_w(bh.mass_solar))
+            assert bh.temperature == pytest.approx(hawking_temperature_k(bh.mass_solar))
+            assert 0.0 < bh.habitable_zone[1] < 1e-20
+
+
+def test_hawking_values_of_a_ten_solar_mass_black_hole():
+    # T = hbar c^3 / (8 pi G M k_B) and L = hbar c^6 / (15360 pi G^2 M^2):
+    # 6.17e-8 K and 9.00e-29 W at one solar mass (GEN.82).
+    assert hawking_temperature_k(10.0) == pytest.approx(6.17e-9, rel=1e-2)
+    assert hawking_luminosity_w(10.0) == pytest.approx(9.00e-31, rel=1e-2)
 
 
 def test_black_hole_mass_class_matches_its_mass(monkeypatch):
