@@ -98,9 +98,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI |  | First library step: every swap after it needs the pins and Redis. |
-| OPS.23 | A package layout plan for the reorganization |  | Plan first, reviewed by Boss, so the move is mechanical. |
-| OPS.24 | Move the code into the new package layout, one package per PR | OPS.23, OPS.21 | Mechanical moves; every other open branch merges main after each one. |
-| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | OPS.23, OPS.24 | Parent; closes with its subitems. Goes before the library swaps so each file moves once. |
+| OPS.24 | Move the code into the new package layout, one package per PR | OPS.21 | Mechanical moves with no shims or wrappers (Boss 13:04Z): each PR updates every caller; every other open branch merges main after each one. |
+| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | OPS.24 | Parent; closes with its subitems. Goes before the library swaps so each file moves once. |
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno | OPS.21 | Folds TEST.72 (the 2FA flake). |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | SEC.29 | Folded into SEC.29 (pyotp). |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | OPS.21 | Folds TEST.83 (rate-limit tests under load). |
@@ -216,7 +215,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan).
 
 ## Open questions for Boss
 
