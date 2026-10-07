@@ -37,7 +37,7 @@ import time
 
 import pymysql
 
-from planetgen.db.store import escape_like, get_connection, get_galaxy_shape, surrounding_cloud
+from planetgen.db.store import escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, surrounding_cloud
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -2946,10 +2946,12 @@ def galaxy_tiles(conn, tile_keys):
         edge_pc = skeleton.edge_pc
         shape = skeleton.shape
         expected_system_count = skeleton.expected_system_count_at_density_1
+        bounds = get_galaxy_bounds(conn) if parsed else None
     else:
         edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
         shape = None
         expected_system_count = None
+        bounds = None
 
     cloud_margins = _cloud_margins_pc(conn) if parsed else {}
     sample = []
@@ -2967,7 +2969,7 @@ def galaxy_tiles(conn, tile_keys):
             address for address in (sector_address(sector) for sector in placed) if address is not None
         }
         planned = planned_slots_in_tile(
-            level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses,
+            level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses, bounds,
         )
         filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
         clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
