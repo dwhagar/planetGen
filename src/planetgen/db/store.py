@@ -76,6 +76,7 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronSta
 from planetgen.population import facilities as facility_rules
 from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
 from planetgen.generation.config import SystemConfig
+from planetgen.generation.prevalence import FEATURES as PREVALENCE_FEATURES
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape
 from planetgen.galaxy.drill import DrillBlock
@@ -102,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 53
+SCHEMA_VERSION = 54
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1346,6 +1347,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (54, _column_marker("system_configs", "prevalence_comets")),
     (53, _table_marker("sector_stats")),
     (52, _table_marker("generation_runs")),
     (51, _column_marker("galaxy_shape", "galaxy_seed")),
@@ -1624,9 +1626,10 @@ def insert_system_config(conn, config: SystemConfig) -> int:
         INSERT INTO system_configs (
             markdown, habitable_world, asteroid_belt, comets, large_star, moons,
             max_planets, planets, star_type, name, age, intelligent_life,
-            binary_system, wide_binary, num_orbits
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """,
+            binary_system, wide_binary, num_orbits, {prevalence_columns}
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {prevalence_marks})
+        """.format(prevalence_columns=", ".join(f"prevalence_{feature}" for feature in PREVALENCE_FEATURES),
+                   prevalence_marks=", ".join("?" for _ in PREVALENCE_FEATURES)),
         (
             int(bool(config.MARKDOWN)),
             _tristate(config.HABITABLE_WORLD),
@@ -1643,6 +1646,7 @@ def insert_system_config(conn, config: SystemConfig) -> int:
             _tristate(config.BINARY_SYSTEM),
             _tristate(config.WIDE_BINARY),
             config.NUM_ORBITS,
+            *(float((config.PREVALENCE or {}).get(feature) or 0.0) for feature in PREVALENCE_FEATURES),
         ),
     )
     config_id = cur.lastrowid
@@ -6111,6 +6115,8 @@ def load_system_config(conn, config_id) -> SystemConfig:
         "wide_binary": _tristate_from_db(row["wide_binary"]),
         "num_orbits": row["num_orbits"],
         "slots": slots,
+        "prevalence": {feature: row[f"prevalence_{feature}"] for feature in PREVALENCE_FEATURES
+                       if row[f"prevalence_{feature}"]},
     })
 
 
@@ -9052,6 +9058,22 @@ def _migrate_v52_to_v53(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (53)")
 
 
+def _migrate_v53_to_v54(conn):
+    """
+    Adds `system_configs`' prevalence columns (GEN.52) -- see
+    `schema.sql`'s "v54" header note. A config stored before had none, so
+    they start at 0.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    missing = [f"ADD COLUMN prevalence_{feature} DOUBLE NOT NULL DEFAULT 0" for feature in PREVALENCE_FEATURES
+               if not _has_column(conn, "system_configs", f"prevalence_{feature}")]
+    if missing:
+        conn.execute("ALTER TABLE system_configs " + ", ".join(missing))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (54)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9164,6 +9186,7 @@ def _migration_steps():
         (51, _migrate_v50_to_v51),
         (52, _migrate_v51_to_v52),
         (53, _migrate_v52_to_v53),
+        (54, _migrate_v53_to_v54),
     ]
 
 

@@ -24,6 +24,7 @@ defined separately in `asteroidData`.
 import math
 import random
 
+from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
@@ -308,8 +309,17 @@ class Planet:
         if not self.is_moon:
             if moon_count is not None:
                 planetPhysics.generate_moons(self, moon_count=moon_count)
-            elif self.system_config.MOONS is not False and (self.system_config.MOONS is True or random.randrange(2) == 1):
+            elif self.system_config.MOONS is not False and (
+                    self.system_config.MOONS is True
+                    or self._draw_moons()):
                 planetPhysics.generate_moons(self)
+
+    def _draw_moons(self):
+        """Whether a planet left to chance gets moons: an even chance, moved
+        by the run's moons prevalence (GEN.52)."""
+        if prevalence.percent(self.system_config, "moons"):
+            return random.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
+        return random.randrange(2) == 1
 
     def to_dict(self):
         """

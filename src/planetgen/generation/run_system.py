@@ -160,6 +160,11 @@ def build_system_config(args):
     if args.age is not None:
         system_config.AGE = args.age
 
+    # A sector or galaxy run's --prevalence (GEN.52), the last one given
+    # for a feature winning.
+    for feature, percent in getattr(args, "prevalence", None) or ():
+        system_config.PREVALENCE[feature] = percent
+
     if args.flavor_chance_system is not None:
         program_constants.FLAVOR_CHANCE_SYSTEM = args.flavor_chance_system
 

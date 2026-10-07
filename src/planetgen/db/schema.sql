@@ -930,6 +930,11 @@
 --   `_migrate_v52_to_v53` moves each block's level onto its unfilled
 --   sectors and gives every filled sector a row at level 0.
 --
+-- v54: `system_configs` gains a `prevalence_<feature>` column per
+--   forcing option (GEN.52): the sector or galaxy run's percentage
+--   deviation from the feature's normal chance, 0 for none.
+--   `_migrate_v53_to_v54` adds them at 0.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1172,7 +1177,17 @@ CREATE TABLE IF NOT EXISTS system_configs (
     intelligent_life  TINYINT(1) CHECK (intelligent_life IN (0, 1)),
     binary_system     TINYINT(1) CHECK (binary_system IN (0, 1)),
     wide_binary       TINYINT(1) CHECK (wide_binary IN (0, 1)),     -- v50
-    num_orbits        INT
+    num_orbits        INT,
+    prevalence_habitable_world DOUBLE NOT NULL DEFAULT 0,  -- v54
+    prevalence_asteroid_belt DOUBLE NOT NULL DEFAULT 0,
+    prevalence_comets DOUBLE NOT NULL DEFAULT 0,
+    prevalence_large_star DOUBLE NOT NULL DEFAULT 0,
+    prevalence_moons DOUBLE NOT NULL DEFAULT 0,
+    prevalence_max_planets DOUBLE NOT NULL DEFAULT 0,
+    prevalence_intelligent_life DOUBLE NOT NULL DEFAULT 0,
+    prevalence_binary_system DOUBLE NOT NULL DEFAULT 0,
+    prevalence_wide_binary DOUBLE NOT NULL DEFAULT 0,
+    prevalence_planets DOUBLE NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Child table for the variable-length SLOTS recipe list

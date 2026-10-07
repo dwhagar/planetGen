@@ -31,7 +31,7 @@ from planetgen.util.serialization import fields_from_dict, fields_to_dict
 SERIALIZABLE_FIELDS = [
     "MARKDOWN", "HABITABLE_WORLD", "ASTEROID_BELT", "COMETS", "LARGE_STAR", "MOONS",
     "MAX_PLANETS", "PLANETS", "STAR_TYPE", "NAME", "AGE", "INTELLIGENT_LIFE",
-    "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS",
+    "BINARY_SYSTEM", "WIDE_BINARY", "NUM_ORBITS", "SLOTS", "PREVALENCE",
 ]
 
 
@@ -181,6 +181,15 @@ class SystemConfig:
         The list does not need to cover every slot; slots beyond the end of
         the list (or with a `None` entry) are generated normally. Defaults to
         None.
+        """
+
+        self.PREVALENCE = {}
+        """
+        dict: A sector or galaxy run's prevalences (GEN.52): feature name
+        (`prevalence.FEATURES`, e.g. "comets") to a percentage deviation
+        from its normal chance (+50 is 1.5 times as often, -100 never).
+        Features left out keep their normal chance. The tri-state flags
+        above force a feature; this only shifts how often it happens.
         """
 
         self.POPULATION = None
