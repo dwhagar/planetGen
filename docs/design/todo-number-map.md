@@ -1070,26 +1070,26 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.68 | Gate before bulk generation | none | done, PR #290 |
 | TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
 | TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
-| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | open |
+| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | done, PR #484 |
 | TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | done, PR #371 |
 | TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
 | TEST.75 | Tests for forcing and prevalence | none | open |
 | TEST.76 | A bright-star test breaks on Python 3.9 and 3.10 (bug) | none | done, PR #371 |
 | TEST.77 | A golden-seed regression test | none | open |
-| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | open |
+| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) | none | done, PR #484 |
 | TEST.79 | Route edge cases, written before NAV.12 | none | done, PR #427 |
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | done, PR #442 |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | done, PR #442 |
-| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | open |
+| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | done, PR #484 |
 | TEST.83 | Rate-limit tests fail under parallel load (bug) | none | open |
-| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | open |
+| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | done, PR #484 |
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
-| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
+| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | done, PR #484 |
 | TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | done, PR #442 |
-| TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | open |
-| TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | open |
-| TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | open |
+| TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | done, PR #484 |
+| TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | done, PR #484 |
+| TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

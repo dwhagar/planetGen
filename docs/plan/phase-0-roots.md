@@ -57,14 +57,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.78 | A resume test's sector query fails under ONLY_FULL_GROUP_BY on MariaDB 10.11 (bug) |  | From the Database thread (PR #342). |
-| TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
-| TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
-| TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
-| TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) |  | test_facilities.py; a random giant's sphere of influence can be under the test's 500,000 km orbit. |
-| TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) |  | test_web_browser_maps.py drill-down by clicks; failed once under -n auto on MariaDB 10.11, passed 3 of 3 alone. |
-| TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) |  | Apostrophe in a random planet name; compare against html.escape(planet.name). Moved from Groundwork: names from IDs (2026-10-07 18:18Z). |
-| TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) |  | test_web_generate.py; JobBusy once under -n 4, passed 3 reruns. |
 
 ### Groundwork: layout and libraries
 
@@ -187,7 +179,7 @@ GEN.116 keeps watch for Boss's error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). MAP.115 is folded into MAP.116 (2026-10-07).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). The ops-and-flakes bugs TEST.71, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89 and TEST.90 are done (PR #484, which also added GEN.117's generator z-spread test). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 
