@@ -248,6 +248,27 @@ def test_planned_slots_in_tile_respects_shape_and_exclusions():
     assert all(entry["predicted_star_count"] >= qualifying_threshold_star_count() for entry in filtered)
 
 
+def test_planned_slots_in_tile_stay_inside_the_galaxy_outline():
+    # MAP.118: a slot outside the stored outline (a layer above the top,
+    # or a ring past a layer's edge) is never offered as planned, since
+    # generation refuses it.
+    from planetgen.galaxy.skeleton import GalaxyBounds
+
+    key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (0.0, 0.0, 0.0), 0.0)[0]
+    level, ix, iy, iz = parse_tile_key(key)
+    unfiltered = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set())
+    layers = sorted({entry["layer_index"] for entry in unfiltered})
+    assert len(layers) > 1
+    bounds = GalaxyBounds([(layer, 0) for layer in layers[:-1]], EDGE_PC)
+    inside = planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), bounds)
+    assert inside
+    assert all(bounds.contains(e["ring_index"], e["layer_index"]) for e in inside)
+    assert all(e["layer_index"] != layers[-1] and e["ring_index"] == 0 for e in inside)
+    # An empty outline (none built yet) filters nothing.
+    assert planned_slots_in_tile(level, ix, iy, iz, EDGE_PC, None, None, set(), GalaxyBounds([], EDGE_PC)) \
+        == unfiltered
+
+
 def test_planned_slots_skip_big_tiles_and_tiny_sectors():
     assert planned_slots_in_tile(TILE_MAX_LEVEL - 1, 2047, 2047, 2047, EDGE_PC, None, None, set()) == []
     # A 0.5 pc sector edge would put thousands of slots in a 16 pc tile.

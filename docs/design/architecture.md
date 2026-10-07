@@ -88,8 +88,8 @@ flowchart LR
 |---|---|
 | [`generate.py`](../../generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
-| [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, and the same optional population prompt after the migration. Safe to run on a schedule (with no terminal the prompt is skipped). |
-| [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `-Population` runs the population pass without asking. |
+| [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `generate.py population` by hand). Safe to run on a schedule. |
+| [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `install.ps1 -Population` runs the population pass without asking. |
 | `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
 | `requirements.lock`, `requirements-server.lock` | Hash-pinned dependency locks, written by `scripts/lock-requirements.sh`. |
 | `config.json.example` | Template for the per-deployment `config.json` (gitignored). See [config.md](../config.md). |
@@ -102,7 +102,7 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`scripts/deploy-common.sh`](../../scripts/deploy-common.sh) | Steps shared by `install.sh` and `update.sh` (sourced by both): pick the Python, NLTK corpus, Apache modules or gunicorn launchd daemon, mod_wsgi check, import check, and `migrate_or_reset_db` (the y/N "delete the galaxy instead?" prompt), and `offer_population_pass` (the y/N "run the population pass now?" prompt, default No after 30 seconds, skipped with no terminal; `POPULATION=1` runs it without asking). |
+| [`scripts/deploy-common.sh`](../../scripts/deploy-common.sh) | Steps shared by `install.sh` and `update.sh` (sourced by both; `offer_population_pass` is the installer's alone): pick the Python, NLTK corpus, Apache modules or gunicorn launchd daemon, mod_wsgi check, import check, and `migrate_or_reset_db` (the y/N "delete the galaxy instead?" prompt), and `offer_population_pass` (the y/N "run the population pass now?" prompt, default No after 30 seconds, skipped with no terminal; `POPULATION=1` runs it without asking). |
 | [`scripts/deploy-common.ps1`](../../scripts/deploy-common.ps1) | The same shared steps for `install.ps1` and `update.ps1` (the population prompt is `Invoke-OptionalPopulation`). |
 | [`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh) | Makes the libraries importable by the system Python: plain pip, or apt first on an externally managed (PEP 668) Python, or a venv on macOS. `--check` installs only what is missing or too old. |
 | `scripts/probe_requirements.py` | Reports each requirement as ok, missing, old or broken. Used by both installers. Standard library only. |
@@ -728,7 +728,7 @@ flowchart TD
         U --> PDC["install-python-deps.sh --check"]
         DC --> NL["NLTK words corpus"]
         DC --> MR["migrate_or_reset_db -> planetgen.cli.migrate"]
-        DC --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
+        I --> POP{"offer_population_pass<br/>run it? (y/N, 30 s;<br/>POPULATION=1 skips the question)"}
         POP -->|"y"| GP["generate.py population"]
         DC --> WS["Apache modules / gunicorn daemon"]
         I --> EX["examples/apache/*.sh<br/>permissions, cache + jobs dirs, debug log"]
@@ -757,8 +757,9 @@ managed Python). The database step is `planetgen.cli.migrate` (Flow 2).
 After it (in `install.sh`, after the NLTK corpus, which the species names
 need), `offer_population_pass` asks whether to run `generate.py
 population`. The answer defaults to No after 30 seconds, and with no
-terminal the question is skipped, so a scheduled `update.sh` never runs
-it. `POPULATION=1` (`-Population` on Windows) runs it without asking.
+terminal the question is skipped. `POPULATION=1` (`-Population` on
+Windows) runs it without asking. The update scripts never ask or run it
+(OPS.7).
 `install.sh --skip-database` skips both. The
 `examples/apache/` helpers set permissions and create the tile cache, jobs
 directory and debug log.

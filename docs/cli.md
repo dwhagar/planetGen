@@ -418,7 +418,7 @@ python3 generate.py population --territories-only  # only recompute who owns whi
 ```
 
 `generate.py sector` and `generate.py galaxy` run it after saving when
-given `--population`. The install and update scripts offer it (y/N,
+given `--population`. The install scripts offer it (y/N,
 default N after 30 seconds; `POPULATION=1` or `-Population` runs it
 without asking). The website hides species, polities and the Galaxy
 Map's Territories overlay until it has made something to show

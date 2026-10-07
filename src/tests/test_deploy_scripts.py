@@ -151,6 +151,19 @@ def test_the_log_setup_never_stops_an_install_or_update():
     assert _code_lines("setup-debug-log.sh").count("exit 1") == 2
 
 
+def test_the_update_never_offers_the_population_pass():
+    # OPS.7: an update that just wiped the database mustn't offer to fill
+    # it; the installers keep their prompt.
+    with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
+        shell = f.read()
+    with open(os.path.join(REPO_DIR, "update.ps1"), encoding="utf-8") as f:
+        powershell = f.read()
+    assert "offer_population_pass" not in shell and "POPULATION=" not in shell
+    assert "Invoke-OptionalPopulation" not in powershell and "$Population" not in powershell
+    assert "generate.py population" in shell
+    assert "population" in powershell and "generate.py" in powershell
+
+
 # --- log-locations.py (OPS.5), run as the current user -----------------------
 
 LOG_LOCATIONS = os.path.join(APACHE_DIR, "log-locations.py")

@@ -159,7 +159,8 @@ def test_distance_overflowing_to_infinite_km_is_a_dash():
 
 def test_format_number_keeps_ints_and_specs():
     assert fmt.format_number(1234) == "1,234"
-    assert fmt.format_number(12_345) == "1.23 × 10⁴"
+    assert fmt.format_number(12_345) == "12,345"
+    assert fmt.format_number(1_234_567) == "1.23 × 10⁶"
     assert fmt.format_number(1.5, ".1f") == "1.5"
     assert fmt.format_number(float("nan"), ".1f") == "–"
 

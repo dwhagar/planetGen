@@ -32,7 +32,7 @@ CASES = [
     (500.0, "0.5 km"),
     (12_000.0, "12 km"),
     (9_999e3, "9,999 km"),
-    (384_400e3, "3.84 × 10⁵ km"),
+    (384_400e3, "384,400 km"),
     (pc.AU_M * 0.999, "1.49 × 10⁸ km"),
     (pc.AU_M, "1 AU"),
     (pc.AU_M * 5.2, "5.2 AU"),
@@ -46,7 +46,7 @@ CASES = [
     (pc.LIGHTYEAR_M * 2.5, "2.5 ly"),
     (pc.PARSEC_M, "1 pc (3.26 ly)"),
     (pc.PARSEC_M * 4.2, "4.2 pc (13.7 ly)"),
-    (pc.KILOPARSEC_M * 8, "8 kpc (2.61 × 10⁴ ly)"),
+    (pc.KILOPARSEC_M * 8, "8 kpc (26,093 ly)"),
     (pc.MEGAPARSEC_M * 1.5, "1.5 Mpc (4.89 × 10⁶ ly)"),
     (pc.GIGAPARSEC_M * 2, "2 Gpc (6.52 × 10⁹ ly)"),
 ]
