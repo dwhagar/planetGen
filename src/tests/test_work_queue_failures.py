@@ -1,7 +1,7 @@
 # tests/test_work_queue_failures.py
 
 """
-The work queue (`stellarObjects/workQueue.py`) when things go wrong:
+The work queue (`planetgen/queue/work.py`) when things go wrong:
 
 - TEST.20, failure paths: a worker process dies, `on_done` raises, a
   payload or result won't pickle, a result isn't JSON, two tasks share a
@@ -25,7 +25,7 @@ from concurrent.futures.process import BrokenProcessPool
 
 import pytest
 
-from stellarObjects import workQueue
+from planetgen.queue import work as workQueue
 from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy

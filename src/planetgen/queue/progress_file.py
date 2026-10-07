@@ -1,4 +1,4 @@
-# stellarObjects/progressFile.py
+# planetgen/queue/progress_file.py
 
 """
 Machine-readable progress for a run started from the web interface.

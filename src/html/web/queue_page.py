@@ -20,7 +20,7 @@ from flask import abort, current_app, request, url_for
 
 import apiclient
 from pagination import fetch_page, parse_page
-from stellarObjects import workQueue
+from planetgen.queue import work as workQueue
 from planetgen.admin import activity_log
 from planetgen.util import log
 

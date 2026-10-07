@@ -115,8 +115,8 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 
 #### Current Codebase State
 
-* `src/stellarObjects/workQueue.py` (1,611 lines): Custom process pool supervisor managing independent generation units (sectors, star scattering) with database lease locks (`work_lease` table), heartbeats, stale run reclamation, and custom process IPC.
-* `src/jobRunner.py` (305 lines): Custom process tree runner executing background jobs started by the web administration interface.
+* `src/planetgen/queue/work.py` (1,611 lines): Custom process pool supervisor managing independent generation units (sectors, star scattering) with database lease locks (`work_lease` table), heartbeats, stale run reclamation, and custom process IPC.
+* `planetgen.cli.job` (305 lines): Custom process tree runner executing background jobs started by the web administration interface.
 
 #### Recommended Stack
 
@@ -225,7 +225,7 @@ Phase 2: Numerical & Cache Refactoring (Performance & Physical Accuracy)
 Phase 3: Core Architecture Refactoring (Persistence & Task Execution)
 ├── Refactor src/planetgen/db/store.py          --> SQLAlchemy Core / ORM
 ├── Replace planetgen.cli.migrate                    --> Alembic
-├── Replace src/stellarObjects/workQueue.py     --> RQ or Huey
+├── Replace src/planetgen/queue/work.py     --> RQ or Huey
 └── Refactor src/planetgen/generation/validation.py  --> Pydantic
 ```
 

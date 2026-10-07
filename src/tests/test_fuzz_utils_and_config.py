@@ -5,7 +5,7 @@ Property-based / brute-force tests for the package's plumbing and pure
 math: `stellarObjects/utils.py` (unit conversions, formatters, orbital
 helpers, samplers), `appconfig.py` (hostile `config.json` contents),
 `config.py` (`SystemConfig` round trips), `serialization.py`,
-`progressFile.py`, `log.py`'s credential redaction, and sanity of every
+`progress_file.py`, `log.py`'s credential redaction, and sanity of every
 constant in `physical_constants.py`/`tuning.py`.
 
 Name-generation helpers from `utils.py` live in `test_fuzz_names.py`.
@@ -26,7 +26,8 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import progressFile, utils
+from stellarObjects import utils
+from planetgen.queue import progress_file
 from planetgen.db import store
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
@@ -591,8 +592,8 @@ def test_every_serializable_fields_list_is_collision_free_when_lowercased():
 @pytest.fixture
 def progress_env(tmp_path):
     path = tmp_path / "progress.json"
-    with mock.patch.dict(os.environ, {progressFile.ENV_VAR: str(path)}), \
-            mock.patch.object(progressFile, "_last_write", 0.0):
+    with mock.patch.dict(os.environ, {progress_file.ENV_VAR: str(path)}), \
+            mock.patch.object(progress_file, "_last_write", 0.0):
         yield path
 
 
@@ -601,8 +602,8 @@ def progress_env(tmp_path):
        description=st.one_of(st.none(), hostile_text))
 def test_progress_report_writes_valid_json(tmp_path_factory, completed, total, description):
     path = tmp_path_factory.mktemp("progress") / "progress.json"
-    with mock.patch.dict(os.environ, {progressFile.ENV_VAR: str(path)}):
-        progressFile.report(completed, total, description, force=True)
+    with mock.patch.dict(os.environ, {progress_file.ENV_VAR: str(path)}):
+        progress_file.report(completed, total, description, force=True)
     body = json.loads(path.read_text(encoding="utf-8"))
     assert body["completed"] == completed and body["total"] == total and body["description"] == description
     assert isinstance(body["updated_at"], float)
@@ -610,27 +611,27 @@ def test_progress_report_writes_valid_json(tmp_path_factory, completed, total, d
 
 
 def test_progress_report_is_throttled_unless_forced(progress_env):
-    progressFile.report(1, 10, "x", force=True)
+    progress_file.report(1, 10, "x", force=True)
     first = progress_env.read_text()
-    progressFile.report(2, 10, "x")
+    progress_file.report(2, 10, "x")
     assert progress_env.read_text() == first
-    progressFile.report(3, 10, "x", force=True)
+    progress_file.report(3, 10, "x", force=True)
     assert json.loads(progress_env.read_text())["completed"] == 3
 
 
 def test_progress_report_without_env_is_a_no_op(tmp_path):
     with mock.patch.dict(os.environ, {}):
-        os.environ.pop(progressFile.ENV_VAR, None)
-        progressFile.report(1, force=True)
-        with mock.patch.dict(os.environ, {progressFile.ENV_VAR: ""}):
-            progressFile.report(1, force=True)
+        os.environ.pop(progress_file.ENV_VAR, None)
+        progress_file.report(1, force=True)
+        with mock.patch.dict(os.environ, {progress_file.ENV_VAR: ""}):
+            progress_file.report(1, force=True)
     assert list(tmp_path.iterdir()) == []
 
 
 @pytest.mark.parametrize("target", ["missing-dir/progress.json", "\x01weird/../p.json"])
 def test_progress_report_never_raises_on_bad_paths(tmp_path, target):
-    with mock.patch.dict(os.environ, {progressFile.ENV_VAR: str(tmp_path / target)}):
-        progressFile.report(1, 2, "x", force=True)
+    with mock.patch.dict(os.environ, {progress_file.ENV_VAR: str(tmp_path / target)}):
+        progress_file.report(1, 2, "x", force=True)
 
 
 def test_progress_report_cleans_up_its_temp_file_when_the_rename_fails(tmp_path):
@@ -638,8 +639,8 @@ def test_progress_report_cleans_up_its_temp_file_when_the_rename_fails(tmp_path)
     the `.progress-*` temp file was left behind."""
     target = tmp_path / "progress.json"
     target.mkdir()
-    with mock.patch.dict(os.environ, {progressFile.ENV_VAR: str(target)}):
-        progressFile.report(1, 2, "x", force=True)
+    with mock.patch.dict(os.environ, {progress_file.ENV_VAR: str(target)}):
+        progress_file.report(1, 2, "x", force=True)
     assert sorted(p.name for p in tmp_path.iterdir()) == ["progress.json"]
 
 
@@ -651,8 +652,8 @@ def test_progress_report_cleans_up_its_temp_file_when_the_rename_fails(tmp_path)
 @example(value=b"bytes", description=None)
 def test_progress_report_never_raises_on_unserializable_values(tmp_path_factory, value, description):
     tmp = tmp_path_factory.mktemp("progress")
-    with mock.patch.dict(os.environ, {progressFile.ENV_VAR: str(tmp / "p.json")}):
-        progressFile.report(value, description=description, force=True)
+    with mock.patch.dict(os.environ, {progress_file.ENV_VAR: str(tmp / "p.json")}):
+        progress_file.report(value, description=description, force=True)
     assert not [p for p in tmp.iterdir() if p.name.startswith(".progress-")]
 
 

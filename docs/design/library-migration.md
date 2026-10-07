@@ -38,7 +38,7 @@ by the new libraries rather than patched in the old code.
 | Two-step sign-in | `totp.py` (100 lines), `qrcodegen.py` (900 lines) | pyotp, segno | Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies. |
 | Markdown | `mdconvert.py` | markdown | Same output for pages and the wiki export. |
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
-| Work queue and web jobs | `workQueue.py` (1,600 lines), `jobRunner.py`, the `work_lease` table | RQ on Redis | See section 3. |
+| Work queue and web jobs | `workQueue.py` (1,600 lines), `planetgen.cli.job`, the `work_lease` table | RQ on Redis | See section 3. |
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |
 | Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
@@ -153,11 +153,11 @@ import cycle can form between them.
 | `planetgen.population` | `model` (population), `facilities` (facilities) |
 | `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats) |
 | `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits) |
-| `planetgen.queue` | `work` (workQueue), `runner` (jobRunner's logic), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
+| `planetgen.queue` | `work` (workQueue), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
 | `planetgen.api` | everything in `src/html/api/` under the same module names |
 | `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |
 | `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
-| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query` (queryDb's command line), `migrate` (migrateDb), `reset` (resetDb), `orbits` (updateOrbits), `dedupe` (dedupeNames), `lockouts` (loginLockouts), `render_parity` (checkRenderParity), `job` (jobRunner). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into `planetgen.db` buys nothing. |
+| `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query` (queryDb's command line), `migrate` (migrateDb), `reset` (resetDb), `orbits` (updateOrbits), `dedupe` (dedupeNames), `lockouts` (loginLockouts), `render_parity` (checkRenderParity), `job` (jobRunner, moved whole; RQ replaces it, section 3). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into `planetgen.db` buys nothing. |
 
 Large modules move whole. `store.py` is split by DB.11 (SQLAlchemy), and
 `planetgen.db.query` with it; splitting them during the move would make every
@@ -209,7 +209,8 @@ so each PR's modules import ones that already moved:
    step 14's editable install, they run as `python3 -m planetgen.cli.<name>`
    from the checkout's `src/`; install and update do that, and the job
    runner puts `src/` on its steps' `PYTHONPATH`.
-9. `planetgen.queue`, with jobRunner.
+9. `planetgen.queue`, with jobRunner into `planetgen.cli.job` (the web
+   app starts it with `python -m` from `src/`).
 10. `planetgen.web.lib` and `planetgen.web.maps`.
 11. `planetgen.api`.
 12. `planetgen.web` with its templates, and wsgi.py; `src/html/` is down

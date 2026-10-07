@@ -325,7 +325,7 @@ def database_disk(galaxy_conn, mysql_host):
     otherwise (a database on another machine can't be measured from
     here, so nothing is refused for space then).
     """
-    from stellarObjects.workQueue import _is_local_host
+    from planetgen.queue.work import _is_local_host
 
     if not _is_local_host(mysql_host):
         return None

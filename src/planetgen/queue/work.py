@@ -1,4 +1,4 @@
-# stellarObjects/workQueue.py
+# planetgen/queue/work.py
 
 """
 The generation work queue (PERF.8): runs independent units of work (a

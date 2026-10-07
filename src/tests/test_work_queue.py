@@ -1,7 +1,7 @@
 # tests/test_work_queue.py
 
 """
-Tests for the generation work queue (PERF.8, `stellarObjects/workQueue.py`)
+Tests for the generation work queue (PERF.8, `planetgen/queue/work.py`)
 and parallel sector generation (PERF.7): worker counts, per-task seeds,
 the pool, failures, the control database's lease and task rows, and a
 `generate.py galaxy` run on several workers producing the same links
@@ -20,7 +20,7 @@ import time
 import pytest
 
 import generate
-from stellarObjects import workQueue
+from planetgen.queue import work as workQueue
 from planetgen.db import store
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy

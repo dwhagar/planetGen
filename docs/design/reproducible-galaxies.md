@@ -129,7 +129,7 @@ used, so the OS, architecture and Python parts cover the maths library.
   As built (OPS.10): `versionKey.run_line` writes it, first thing after
   `generate.py` sets up logging (a `plan --seed` names the seed given,
   otherwise the stored one, `none yet` before the first plan), and
-  `jobRunner.py` writes it at the top of a job's `output.log` with the
+  `planetgen.cli.job` writes it at the top of a job's `output.log` with the
   job's title. A work queue always runs inside a `generate.py` run, so
   its line is that run's.
 - **The run history (DB.6, phase 0).** A `generation_runs` table, one

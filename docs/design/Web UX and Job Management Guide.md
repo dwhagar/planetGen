@@ -6,7 +6,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 1: Native In-Process Queue & Admin Management Refactoring
 
-* **Target Files:** `src/jobRunner.py`, `src/stellarObjects/workQueue.py`, `src/html/web/admin_pages.py`, `src/html/web/templates/admin_queue.html`.
+* **Target Files:** `planetgen.cli.job`, `src/planetgen/queue/work.py`, `src/html/web/admin_pages.py`, `src/html/web/templates/admin_queue.html`.
 * **Objective:** Replace custom SQLite process-polling loops with Python's built-in `concurrent.futures.ProcessPoolExecutor` managed in-process, while expanding the admin web interface for queue inspection and control (Python Software Foundation, 2024).
 * **Steps:**
   1. Wrap `ProcessPoolExecutor` inside a global task manager singleton within the Flask application process (Python Software Foundation, 2024).

@@ -14,12 +14,12 @@ A job is a directory under the jobs directory (`jobs_dir()`):
             job.json            what to run: id, title, steps (argv lists), env
             runner.pid          the runner's pid, written when it is spawned
             cancel              written by Cancel; the runner stops when it sees it
-            state.json          written by src/jobRunner.py as it goes
-            progress.json       written by generate.py (stellarObjects.progressFile)
+            state.json          written by planetgen.cli.job as it goes
+            progress.json       written by generate.py (planetgen.queue.progress_file)
             output.log          every step's stdout and stderr
 
 `start_job` writes `job.json`, takes the lock and spawns
-`python3 src/jobRunner.py <job dir>` in its own session (on Windows, a
+`python3 -m planetgen.cli.job <job dir>` in its own session (on Windows, a
 detached process in its own process group), detached from the web server (a mod_wsgi request timeout or a graceful Apache reload
 doesn't stop it). The page then only ever reads these files, so it works
 the same whichever server process answers the next request.
@@ -56,7 +56,9 @@ GENERATE_SCRIPT = os.path.join(REPO_DIR, "generate.py")
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
 """list: Runs `planetgen.cli.reset` (the job runner puts the checkout's
 `src/` on the steps' `PYTHONPATH`)."""
-RUNNER_SCRIPT = os.path.join(REPO_DIR, "src", "jobRunner.py")
+SRC_DIR = os.path.join(REPO_DIR, "src")
+"""str: The checkout's `src/`, where the job runner starts so that
+`python -m planetgen.cli.job` finds the planetgen package."""
 
 DEFAULT_JOBS_DIR = "/var/lib/planetgen/jobs"
 """str: Used when neither `PLANETGEN_JOBS_DIR` nor `config.json`'s
@@ -68,10 +70,10 @@ DEFAULT_KEEP = 20
 deleted when a new job starts."""
 
 LOCK_NAME = "active"
-"""str: Must match `jobRunner.LOCK_NAME`."""
+"""str: Must match `planetgen.cli.job.LOCK_NAME`."""
 
 CANCEL_NAME = "cancel"
-"""str: Must match `jobRunner.CANCEL_NAME`."""
+"""str: Must match `planetgen.cli.job.CANCEL_NAME`."""
 
 WINDOWS = os.name == "nt"
 
@@ -634,9 +636,9 @@ def _spawn(path):
     for index, extra in enumerate(options):
         try:
             proc = subprocess.Popen(
-                [python_executable(), RUNNER_SCRIPT, path],
+                [python_executable(), "-m", "planetgen.cli.job", path],
                 stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                cwd=REPO_DIR, close_fds=True, **extra,
+                cwd=SRC_DIR, close_fds=True, **extra,
             )
             break
         except PermissionError:  # breakaway refused by the job object

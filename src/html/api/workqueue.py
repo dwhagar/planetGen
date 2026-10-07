@@ -3,7 +3,7 @@
 """
 Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`):
 the queue's state (workers active, the server's load, the lease, the
-whole-queue pause), the job trees (ADM.12, `stellarObjects/workQueue.py`)
+whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`)
 and the controls on them. Every route needs a logged-in admin past the
 forced credential change; every change is written to the audit and
 activity logs (`audit`).
@@ -14,7 +14,7 @@ page (`web/queue_page.py`), not here.
 
 from flask import Blueprint, g, jsonify, request
 
-from stellarObjects import systemLoad, workQueue
+from planetgen.queue import load as systemLoad, work as workQueue
 
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body

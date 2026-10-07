@@ -1,4 +1,4 @@
-# stellarObjects/progressRate.py
+# planetgen/queue/progress_rate.py
 
 """
 The rate behind every generation progress bar's ETA (PERF.7): work

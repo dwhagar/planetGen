@@ -2,7 +2,7 @@
 
 """
 TEST.27: the progress bars' ETA (`progressRate.DecayingRate`) and the web
-job's progress file (`progressFile.report`) under bad input -- a clock
+job's progress file (`progress_file.report`) under bad input -- a clock
 stepping backwards, NaN or infinite amounts and times, many units
 finishing at one instant, a tiny rate -- and the work queue's worker
 processes never writing the progress file (only the run that owns the
@@ -15,8 +15,8 @@ import os
 
 import pytest
 
-from stellarObjects import progressFile, workQueue
-from stellarObjects.progressRate import DecayingRate
+from planetgen.queue import progress_file, work as workQueue
+from planetgen.queue.progress_rate import DecayingRate
 
 
 class _Clock:
@@ -171,8 +171,8 @@ def test_a_rate_that_underflows_to_zero_has_no_eta():
 @pytest.mark.parametrize("bad", [math.nan, math.inf, -math.inf])
 def test_the_progress_file_never_holds_nan_or_infinity(tmp_path, monkeypatch, bad):
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
-    progressFile.report(3, 10, "Sectors", force=True, rate=bad, eta_s=bad)
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
+    progress_file.report(3, 10, "Sectors", force=True, rate=bad, eta_s=bad)
     text = path.read_text()
     # Strict JSON, as the browser's JSON.parse reads it.
     body = json.loads(text, parse_constant=lambda name: pytest.fail(f"progress file holds {name}"))
@@ -182,9 +182,9 @@ def test_the_progress_file_never_holds_nan_or_infinity(tmp_path, monkeypatch, ba
 
 def test_the_progress_file_skips_a_write_it_cannot_encode(tmp_path, monkeypatch):
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
-    progressFile.report(1, 10, "Sectors", force=True)
-    progressFile.report(2, 10, "Sectors", force=True, detail={"eta_s": math.nan})
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
+    progress_file.report(1, 10, "Sectors", force=True)
+    progress_file.report(2, 10, "Sectors", force=True, detail={"eta_s": math.nan})
     assert json.loads(path.read_text())["completed"] == 1
     assert sorted(os.listdir(tmp_path)) == ["progress.json"]
 
@@ -194,13 +194,13 @@ def test_the_progress_file_skips_a_write_it_cannot_encode(tmp_path, monkeypatch)
 # ---------------------------------------------------------------------------
 
 def _report_from_a_worker(payload):
-    progressFile.report(payload, 10, "From a worker", force=True)
-    return os.environ.get(progressFile.ENV_VAR)
+    progress_file.report(payload, 10, "From a worker", force=True)
+    return os.environ.get(progress_file.ENV_VAR)
 
 
 def test_workers_never_write_the_progress_file(tmp_path, monkeypatch):
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
     seen = []
     with workQueue.WorkQueue("progress", workers=2) as queue:
         for n in range(4):
@@ -209,6 +209,6 @@ def test_workers_never_write_the_progress_file(tmp_path, monkeypatch):
     assert seen == [None] * 4
     assert not path.exists()
     # The run itself still writes it.
-    assert os.environ[progressFile.ENV_VAR] == str(path)
-    progressFile.report(4, 4, "Sectors", force=True)
+    assert os.environ[progress_file.ENV_VAR] == str(path)
+    progress_file.report(4, 4, "Sectors", force=True)
     assert json.loads(path.read_text())["completed"] == 4

@@ -110,7 +110,7 @@ def pytest_sessionstart(session):
 
 def _generation_refs():
     """What a test file that runs generation has imported."""
-    refs = [sys.modules.get("generate"), sys.modules.get("stellarObjects.workQueue")]
+    refs = [sys.modules.get("generate"), sys.modules.get("planetgen.queue.work")]
     support = sys.modules.get("tests.bughunt_support")
     if support is not None:
         refs.append(support.run_cli)

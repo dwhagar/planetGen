@@ -90,7 +90,7 @@ from rich.text import Text
 # import path so this keeps working without requiring `pip install .` first.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
-from stellarObjects import progressFile, progressRate, workQueue
+from planetgen.queue import progress_file, progress_rate, work as workQueue
 from planetgen.db import store
 from planetgen.admin import activity_log
 from planetgen.population import model
@@ -132,10 +132,10 @@ logging.getLogger("transformers").setLevel(logging.ERROR)
 
 class _ReportingProgress(Progress):
     """
-    `rich.progress.Progress` that keeps a `progressRate.DecayingRate` per
+    `rich.progress.Progress` that keeps a `progress_rate.DecayingRate` per
     task (the rate behind `_DecayingRemainingColumn`'s ETA, PERF.7) and
     mirrors its most recently changed task, with that rate and ETA, to
-    `stellarObjects.progressFile` (a no-op unless the web interface
+    `planetgen.queue.progress_file` (a no-op unless the web interface
     started this run).
     """
 
@@ -147,7 +147,7 @@ class _ReportingProgress(Progress):
     to the progress file as its `detail`."""
 
     def add_task(self, description, *args, **kwargs):
-        task_id = super().add_task(description, *args, rate=progressRate.DecayingRate(), **kwargs)
+        task_id = super().add_task(description, *args, rate=progress_rate.DecayingRate(), **kwargs)
         self._report(task_id, force=True)
         return task_id
 
@@ -179,7 +179,7 @@ class _ReportingProgress(Progress):
             return
         rate = task.fields.get("rate")
         remaining = None if task.total is None else task.total - task.completed
-        progressFile.report(task.completed, task.total, task.description, force=force,
+        progress_file.report(task.completed, task.total, task.description, force=force,
                             rate=rate.rate if rate is not None else None,
                             eta_s=rate.eta(remaining) if rate is not None else None, detail=self._detail(),
                             percent=bool(task.fields.get("percent")))
@@ -214,7 +214,7 @@ class _ReportingProgress(Progress):
 class _DecayingRemainingColumn(ProgressColumn):
     """
     Time left for a task at its decaying-average rate (PERF.7,
-    `progressRate.DecayingRate`), rather than rich's own estimate from
+    `progress_rate.DecayingRate`), rather than rich's own estimate from
     its last few updates, which jumps about when many workers finish
     together. Blank until the first unit is done; 0:00:00 once finished.
     """
@@ -266,7 +266,7 @@ def _generation_progress(disable=False):
     Every task shows both elapsed time and an estimated time remaining,
     for as long as it runs (`TimeElapsedColumn`/`_DecayingRemainingColumn`)
     -- the estimate comes from a decaying average of units finished per
-    second (`progressRate.DecayingRate`, a 60 s time constant), counted
+    second (`progress_rate.DecayingRate`, a 60 s time constant), counted
     in the bar's own unit (sectors, or layers of bright stars), so it
     stays steady while several workers report at once.
 
@@ -292,7 +292,7 @@ def _generation_progress(disable=False):
     log, etc.), so no separate handling is needed for that case.
 
     The same counts also go to `$PLANETGEN_PROGRESS_FILE` when it is set
-    (`stellarObjects.progressFile`), so the web interface's Generate page
+    (`planetgen.queue.progress_file`), so the web interface's Generate page
     can show a run it started in the background.
 
     Args:
@@ -3736,7 +3736,7 @@ class _LayerTracker:
         self.finished = set()
         self.done_weight = 0.0
         self.done_layers = 0
-        self.layer_rate = progressRate.DecayingRate(clock=clock)
+        self.layer_rate = progress_rate.DecayingRate(clock=clock)
         self.last_done = clock()
         self.detail = None
         self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True)
