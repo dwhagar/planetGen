@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.205.610] - 2026-10-07
+
+### Fixed
+
+- The size estimate before a bulk run is closer to what the run adds (PERF.26). Fills measured on MariaDB add 37 to 52 KB per star system, so the default before anything is measured is now 48 KB instead of 70 KB. The size measured after a run leaves out the galaxy-wide tables a plan or the bright-star scatter writes, and on MySQL 8 it reads the tables' current sizes instead of a copy cached for a day.
+
+## [7.204.610] - 2026-10-07
+
+### Changed
+- **`stellarObjects/utils.py` is split into the `planetgen` packages, and `stellarObjects` is gone (OPS.24, step 13 of 14).** The number, distance, speed, duration, temperature, pressure and age text is `planetgen.util.format`; `finite_domain` is `planetgen.util.checks`; the power-law, bounded-bell and log-uniform draws are `planetgen.util.random`; unit conversions are `planetgen.physics.units`; the orbital helpers are `planetgen.physics.orbits`; the disk physics is `planetgen.physics.formation`; the galactic orbit is `planetgen.galaxy.galactic_orbit`; and the word-salad name generator is `planetgen.names.wordsalad`. The few helpers with one caller went to that caller's module. `planetgen.web.lib.fmt` now wraps `planetgen.util.format` instead of keeping its own copies, the Galaxy pages' Quadrant and Zone come from `planetgen.galaxy.geometry`, and the copies of the log-uniform draw are one `log_uniform`. Every draw is unchanged, so a seeded galaxy generates the same.
+
 ## [7.203.610] - 2026-10-07
 
 ### Fixed
