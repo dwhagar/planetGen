@@ -352,9 +352,9 @@ look and change how the first stages work.
 code base from a 0-dependency model into using 3rd party open source
 libraries to simplify our own code deployment." Hand-written TOTP, QR,
 Kepler solvers, SQL building, the process-pool queue, rate limiting,
-caches, Markdown and validation give way to pyotp, segno, scipy,
-astropy, SQLAlchemy with Alembic, RQ on Redis, Flask-Limiter, cachetools,
-diskcache, markdown and Pydantic; the pages gain Shoelace, TanStack,
+the page cache, Markdown and validation give way to pyotp, segno,
+scipy, astropy, SQLAlchemy with Alembic, RQ on Redis, Flask-Limiter,
+cachetools, markdown and Pydantic (the JSON tile cache stays); the pages gain Shoelace, TanStack,
 Xterm.js and three-mesh-bvh. The code is first reorganized into
 importable packages. Details: `library-migration.md`.
 

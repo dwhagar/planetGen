@@ -2916,15 +2916,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.19.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **PERF.25 The page and tile caches on cachetools, without diskcache**
+- [ ] **PERF.25 The page cache on cachetools; the tile cache stays**
   Today `pagecache.py` and `tilecache.py` hand-roll an in-memory LRU and
-  a disk cache. Done: in-memory caches use `cachetools` (TTL and LRU),
-  the Galaxy Map tile cache keeps the same keys and invalidation (MAP.72
-  tiles, PR #72), the old modules are deleted, and the cache tests pass
-  unchanged. diskcache is out: its latest release has an unfixed
-  advisory (it unpickles its cache folder) and the dependency audit
-  rejects it (OPS.21, PR #437), so the tile cache needs another way:
-  keep tilecache.py's disk store, or another library the audit passes.
+  a disk cache. Boss agreed (2026-10-07 13:27Z, Foundations thread):
+  `pagecache.py` moves to `cachetools` (TTL and LRU); `tilecache.py`
+  stays, since it stores JSON only, never unpickles, prunes by size and
+  checks its folder is private. Out: diskcache and sqlitedict (unfixed
+  advisories PYSEC-2026-2447 and PYSEC-2026-1939 that pip-audit
+  rejects), cachelib and Flask-Caching (they pickle by default and count
+  items, not bytes). If disk caching later proves slow, the fallback is
+  an optional Redis backend through redis-py storing JSON, on its own
+  instance or with TTL'd keys so tile eviction can't evict rate-limit
+  counters. Done: pagecache.py is replaced by cachetools with the same
+  keys and invalidation, and the cache tests pass unchanged.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **PERF.26 Size estimates don't match what generation stores (bug)**

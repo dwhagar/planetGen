@@ -136,7 +136,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.19 | Everything the API or web site starts runs on the work queue (investigate) |  | Moved into phase 0 as the first step of PERF.24 (Boss chose Redis, 2026-10-03). Audit only; nothing moves to the queue until it runs at any worker count. |
 | PERF.24 | The work queue and web jobs on Redis with RQ | PERF.19 | Replaces workQueue.py and jobRunner.py; folds OPS.19 and settles PERF.19. |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | PERF.24 | Folded into PERF.24: the job store moves with the queue. jobs.py and deploy-paths.py defaults; update.sh moves an old lowercase jobs folder. Same update.sh as OPS.7/OPS.8. |
-| PERF.25 | The page and tile caches on cachetools, without diskcache |  | diskcache is out (unfixed advisory, PR #437), so the tile cache needs another way. PERF.20 plans short-term API caching on top of it. |
+| PERF.25 | The page cache on cachetools; the tile cache stays |  | tilecache.py stays (JSON only, Boss 13:27Z); diskcache, sqlitedict, cachelib and Flask-Caching are out. PERF.20 plans short-term API caching on top of it. |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | PERF.24 | Folds the four log and progress bugs below. |
 | ADM.23 | Log output wraps with hard line breaks (bug) | ADM.22 |  |
 | ADM.24 | A failed action's log closes before it can be read (bug) | ADM.22 |  |
