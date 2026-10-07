@@ -23,3 +23,7 @@
   systems (was 88), reaching 4.1 kpc above the plane (was 1.3). An
   existing galaxy keeps its stored shape numbers but the new formulas read
   them differently, so plan and generate it again.
+- **The Galaxy Map's slab lines could cross after the view turned.** The
+  buttons were ordered by each slab's middle but each line ends where the
+  slab's outline comes nearest its button; when those ends come out of
+  order the buttons now follow them.
