@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.217.616] - 2026-10-07
+
+### Added
+
+- TODO item TEST.91: the System Map drill-and-measure browser test sometimes cannot click the first moon (phase 0, Bugfixes: ops and flakes).
+
 ## [7.216.615] - 2026-10-07
 
 ### Fixed
