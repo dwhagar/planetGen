@@ -47,7 +47,7 @@ setup(
     # discovered package gets its own explicit mapping instead of one
     # root-wide override.
     packages=find_packages(where='src'),
-    package_dir={pkg: f'src/{pkg}' for pkg in find_packages(where='src')},
+    package_dir={pkg: 'src/' + pkg.replace('.', '/') for pkg in find_packages(where='src')},
     package_data={
         # stellarObjects.names reads this at import time; setuptools does not
         # include non-.py files in a package by default, so without this the
