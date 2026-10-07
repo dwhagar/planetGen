@@ -2,7 +2,7 @@
 
 """
 PERF.7: the decaying-average rate behind every generation progress bar's
-ETA (`stellarObjects/progressRate.py`), the bar column that shows it, the
+ETA (`planetgen/queue/progress_rate.py`), the bar column that shows it, the
 same rate and ETA in the web job's progress file and on the Generate
 page, and the bright-star scatter drawn layer by layer on several
 workers giving the same stars as one.
@@ -16,10 +16,10 @@ import json
 import pytest
 
 import generate
-from stellarObjects import progressFile
+from planetgen.queue import progress_file
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
-from stellarObjects.progressRate import DecayingRate
+from planetgen.queue.progress_rate import DecayingRate
 
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _seed_galaxy
 
@@ -109,11 +109,11 @@ def test_the_remaining_column_shows_the_decaying_eta():
 
 def test_the_progress_file_carries_the_rate_and_eta(tmp_path, monkeypatch):
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
-    progressFile.report(3, 10, "Sectors", force=True, rate=0.5, eta_s=14.0)
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
+    progress_file.report(3, 10, "Sectors", force=True, rate=0.5, eta_s=14.0)
     body = json.loads(path.read_text())
     assert (body["completed"], body["total"], body["rate"], body["eta_s"]) == (3, 10, 0.5, 14.0)
-    progressFile.report(0, 10, "Sectors", force=True)
+    progress_file.report(0, 10, "Sectors", force=True)
     body = json.loads(path.read_text())
     assert body["rate"] is None and body["eta_s"] is None
 

@@ -1,7 +1,7 @@
 # tests/test_job_tree.py
 
 """
-Tests for the job tree (ADM.12, `stellarObjects/workQueue.py`'s
+Tests for the job tree (ADM.12, `planetgen/queue/work.py`'s
 `open_node`/`job_node`/`load_tree`, control schema v7): nodes nest under
 the one a process has open, under the job runner's step node across
 processes, record their own start, end and duration, and add their
@@ -19,8 +19,8 @@ import time
 import pytest
 
 import generate
-import jobRunner
-from stellarObjects import workQueue
+from planetgen.cli import job as jobRunner
+from planetgen.queue import work
 from planetgen.db import store as _db
 
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
@@ -40,14 +40,14 @@ def control_config(mysql_config, monkeypatch):
     conn = _db.get_control_connection(mysql_config, ensure_schema=True)
     conn.close()
     monkeypatch.setenv(_db.CONTROL_DB_ENV_VAR, mysql_config.database)
-    monkeypatch.delenv(workQueue.PARENT_ENV_VAR, raising=False)
+    monkeypatch.delenv(work.PARENT_ENV_VAR, raising=False)
     return mysql_config
 
 
 @pytest.fixture(autouse=True)
 def _no_open_nodes():
     yield
-    assert workQueue.current_node() is None, "a test left a job tree node open"
+    assert work.current_node() is None, "a test left a job tree node open"
 
 
 def _conn(config):
@@ -65,7 +65,7 @@ def _rows(config, sql, params=()):
 def _tree(config, root_id):
     conn = _conn(config)
     try:
-        return workQueue.load_tree(conn, root_id)
+        return work.load_tree(conn, root_id)
     finally:
         conn.close()
 
@@ -129,11 +129,11 @@ def test_a_fresh_control_schema_matches_the_added_columns(control_config):
 # ---------------------------------------------------------------------------
 
 def test_nodes_nest_and_every_node_is_timed(control_config):
-    with workQueue.job_node("plan", "Plan the galaxy", control_config, argv=["plan"], database="g1") as root:
-        with workQueue.job_node("skeleton", "Galaxy skeleton") as skeleton:
+    with work.job_node("plan", "Plan the galaxy", control_config, argv=["plan"], database="g1") as root:
+        with work.job_node("skeleton", "Galaxy skeleton") as skeleton:
             time.sleep(0.02)
-        with workQueue.job_node("bright-stars", "Bright stars"):
-            with workQueue.WorkQueue("Layers", workers=2, control_config=control_config) as queue:
+        with work.job_node("bright-stars", "Bright stars"):
+            with work.WorkQueue("Layers", workers=2, control_config=control_config) as queue:
                 queue.expect(4)
                 for n in range(4):
                     queue.submit("bright-stars", f"layer {n}", _slow, n)
@@ -163,8 +163,8 @@ def test_nodes_nest_and_every_node_is_timed(control_config):
 
 
 def test_one_worker_records_its_tasks_without_the_lease(control_config):
-    with workQueue.job_node("galaxy", "Serial run", control_config) as root:
-        with workQueue.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
+    with work.job_node("galaxy", "Serial run", control_config) as root:
+        with work.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
             for n in range(3):
                 queue.submit("sector", f"0,0,{n}", _square, n)
     queue_node = _tree(control_config, root.id)["children"][0]
@@ -175,8 +175,8 @@ def test_one_worker_records_its_tasks_without_the_lease(control_config):
 
 def test_a_failing_block_fails_its_node_and_its_parents(control_config):
     with pytest.raises(ValueError):
-        with workQueue.job_node("galaxy", "Breaks", control_config) as root:
-            with workQueue.job_node("population", "Population pass"):
+        with work.job_node("galaxy", "Breaks", control_config) as root:
+            with work.job_node("population", "Population pass"):
                 raise ValueError("broken")
     tree = _tree(control_config, root.id)
     assert tree["state"] == "failed" and tree["children"][0]["state"] == "failed"
@@ -185,32 +185,32 @@ def test_a_failing_block_fails_its_node_and_its_parents(control_config):
 @pytest.mark.parametrize("raised", [KeyboardInterrupt, SystemExit])
 def test_an_interrupted_block_cancels_its_node(control_config, raised):
     with pytest.raises(raised):
-        with workQueue.job_node("galaxy", "Stopped", control_config) as root:
+        with work.job_node("galaxy", "Stopped", control_config) as root:
             raise raised()
     assert _tree(control_config, root.id)["state"] == "cancelled"
 
 
 def test_a_process_hangs_its_root_under_the_parent_it_is_given(control_config, monkeypatch):
-    step = workQueue.open_node("step", "Step 1", control_config)
+    step = work.open_node("step", "Step 1", control_config)
     try:
         # What a step's own process sees: its node is open only there.
-        workQueue._open_nodes.remove(step)
-        monkeypatch.setenv(workQueue.PARENT_ENV_VAR, step.id)
-        with workQueue.job_node("galaxy", "Child run", control_config) as child:
+        work._open_nodes.remove(step)
+        monkeypatch.setenv(work.PARENT_ENV_VAR, step.id)
+        with work.job_node("galaxy", "Child run", control_config) as child:
             pass
         assert child.parent_id == step.id and child.root_id == step.root_id
-        monkeypatch.setenv(workQueue.PARENT_ENV_VAR, "20260101-000000-deadbeef")
-        with workQueue.job_node("galaxy", "Orphan", control_config) as orphan:
+        monkeypatch.setenv(work.PARENT_ENV_VAR, "20260101-000000-deadbeef")
+        with work.job_node("galaxy", "Orphan", control_config) as orphan:
             pass
         assert orphan.parent_id is None and orphan.root_id == orphan.id
     finally:
-        workQueue.close_node(step, "done")
+        work.close_node(step, "done")
     assert [node["title"] for node in _tree(control_config, step.id)["children"]] == ["Child run"]
 
 
 def test_without_a_control_database_nodes_cost_nothing(mysql_config):
-    with workQueue.job_node("galaxy", "Nowhere", mysql_config) as root:
-        with workQueue.WorkQueue("Sectors", workers=1, control_config=mysql_config) as queue:
+    with work.job_node("galaxy", "Nowhere", mysql_config) as root:
+        with work.WorkQueue("Sectors", workers=1, control_config=mysql_config) as queue:
             queue.submit("sector", "k", _square, 3)
     assert not root.store.available
     assert queue.finished == 1
@@ -257,7 +257,7 @@ def test_old_finished_trees_are_pruned_with_their_subtrees(control_config):
                          " VALUES ('old-child', 'sector', 'k', 'done', NOW(6) - INTERVAL 30 DAY)")
     finally:
         conn.close()
-    with workQueue.job_node("galaxy", "New run", control_config):
+    with work.job_node("galaxy", "New run", control_config):
         pass
     left = {row["id"] for row in _rows(control_config, "SELECT id FROM work_jobs")}
     assert "old" not in left and "old-child" not in left and "old-live" in left
@@ -265,13 +265,13 @@ def test_old_finished_trees_are_pruned_with_their_subtrees(control_config):
 
 
 def test_timing_by_kind(control_config):
-    with workQueue.job_node("galaxy", "Timed", control_config):
-        with workQueue.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
+    with work.job_node("galaxy", "Timed", control_config):
+        with work.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
             for n in range(3):
                 queue.submit("sector", str(n), _slow, n)
     conn = _conn(control_config)
     try:
-        timing = workQueue.timing_by_kind(conn)
+        timing = work.timing_by_kind(conn)
     finally:
         conn.close()
     assert timing["tasks"]["sector"]["count"] == 3
@@ -322,7 +322,7 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
         "import sys; sys.path.insert(0, %r)\n"
         "from planetgen.db import store\n"
         "from stellarObjects import workQueue\n"
-        "with workQueue.job_node('galaxy', 'Inside the step', store.control_mysql_config()):\n"
+        "with work.job_node('galaxy', 'Inside the step', store.control_mysql_config()):\n"
         "    pass\n"
     ) % src
     env = {

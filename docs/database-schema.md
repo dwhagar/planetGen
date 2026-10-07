@@ -804,7 +804,7 @@ v7 adds columns, see below):
 - **`admin_recovery_codes`** (v4) — ten single-use codes per admin with
   two-factor sign-in on: `code_hash` (SHA-256), `used_at`.
 - **`work_jobs`**, **`work_tasks`**, **`work_lease`** (v5, PERF.8) — the
-  generation work queue (`stellarObjects/workQueue.py`, see
+  generation work queue (`planetgen/queue/work.py`, see
   [`cli.md`](cli.md#parallel-generation)). `work_jobs` is one row per
   run that used worker processes (`title`, `holder` host:pid:token,
   `state` waiting/running/done/failed/cancelled, `workers`, task

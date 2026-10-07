@@ -22,7 +22,7 @@ import importlib
 import json
 import os
 
-from stellarObjects import workQueue
+from planetgen.queue import work as workQueue
 
 try:
     import fcntl

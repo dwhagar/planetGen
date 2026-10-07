@@ -5,7 +5,7 @@ Edge cases for the operator scripts the web server and installers run
 behind the scenes, called in-process so every branch is exercised (and
 measured) rather than only their happy path through a subprocess:
 
-- `src/jobRunner.py`: the admin Generate page's background job runner --
+- `planetgen.cli.job`: the admin Generate page's background job runner --
   success, first-failure stop, a missing program, a malformed step, an
   empty job, cancellation mid-step, and the `active` lock only ever being
   released by the job holding it.
@@ -28,7 +28,7 @@ import uuid
 import pymysql
 import pytest
 
-import jobRunner
+from planetgen.cli import job as jobRunner
 from planetgen.cli import migrate
 from planetgen.cli import reset
 from planetgen.cli import orbits

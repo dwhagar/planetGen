@@ -24,7 +24,7 @@ import pymysql
 import pytest
 
 import generate
-from stellarObjects import workQueue
+from planetgen.queue import work
 from planetgen.db import store
 from planetgen.names import uniqueness
 from planetgen.db.store import MySQLConfig
@@ -40,7 +40,7 @@ def _draws(payload):
 
 def _run_queue(workers, run_seed=99, keys=8):
     drawn = {}
-    with workQueue.WorkQueue("seeds", workers=workers, run_seed=run_seed) as queue:
+    with work.WorkQueue("seeds", workers=workers, run_seed=run_seed) as queue:
         for n in range(keys):
             queue.submit("draw", f"sector-{n}", _draws, 3,
                          on_done=lambda result, _s, _w, n=n: drawn.__setitem__(n, result))
@@ -60,7 +60,7 @@ def test_one_worker_draws_what_two_and_four_workers_draw():
 def test_one_worker_seeds_each_task_from_the_run_seed_and_its_key():
     one = _run_queue(1, run_seed=5)
     for n, values in one.items():
-        random.seed(workQueue.task_seed(5, f"sector-{n}"))
+        random.seed(work.task_seed(5, f"sector-{n}"))
         assert values == [random.random() for _ in range(3)]
     assert _run_queue(1, run_seed=6) != one
 
@@ -83,7 +83,7 @@ def test_a_failing_task_on_one_worker_still_restores_the_stream():
     expected = random.random()
     random.seed(7)
     with pytest.raises(ZeroDivisionError):
-        with workQueue.WorkQueue("fails", workers=1, run_seed=1) as queue:
+        with work.WorkQueue("fails", workers=1, run_seed=1) as queue:
             queue.submit("boom", "k", _divide_by_zero, None)
     assert random.random() == expected
 

@@ -15,7 +15,7 @@ import json
 import pytest
 
 import generate
-from stellarObjects import progressFile
+from planetgen.queue import progress_file
 from planetgen.generation import bright_stars
 
 from tests.test_bright_star_scatter import EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD
@@ -142,7 +142,7 @@ def test_a_weighted_bar_never_shows_more_than_100_percent(tmp_path, monkeypatch,
     """PERF.23: the terminal, the progress file and the Generate page all
     cap a share at 100%, whatever the count says."""
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
     progress = generate._generation_progress()
     main = progress.add_task("Bright stars (41 of 41 layers)", total=200.0, percent=True)
     progress.main_task = main
@@ -184,7 +184,7 @@ def test_slow_layers_add_a_second_bar_that_goes_once_they_speed_up():
 
 def test_the_progress_file_carries_the_second_bar(tmp_path, monkeypatch):
     path = tmp_path / "progress.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(path))
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
     progress = generate._generation_progress()
     main = progress.add_task("Bright stars (0 of 3 layers)", total=200.0, percent=True)
     progress.main_task = main

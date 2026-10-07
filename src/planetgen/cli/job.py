@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-# src/jobRunner.py
+# planetgen.cli.job
 
 """
 Runs one background job the web interface's admin Generate page started
-(`html/web/jobs.py` spawns `python3 src/jobRunner.py <job dir>` detached
+(`html/web/jobs.py` spawns `python3 -m planetgen.cli.job <job dir>` detached
 from the web server, then returns right away).
 
 A job is a list of steps, each one command line (`planetgen.cli.reset`, then
@@ -23,10 +23,10 @@ cancelled. SIGTERM does the same (a server shutting down, on POSIX).
 When it is done it removes the jobs directory's `active` lock, if the lock is still
 this job's, so the next job can start.
 
-The job is also the root of a job tree (ADM.12, `workQueue.open_node`):
+The job is also the root of a job tree (ADM.12, `work.open_node`):
 a "web-job" node with one "step" node per step, each step's
 `generate.py` run hanging its own nodes under its step
-(`workQueue.PARENT_ENV_VAR`), so the admin queue page shows the whole
+(`work.PARENT_ENV_VAR`), so the admin queue page shows the whole
 job with timings. That part is best effort.
 
 Standard library only at the top: this starts before anything else is
@@ -51,7 +51,7 @@ CANCEL_NAME = "cancel"
 
 CANCELLED_EXIT_CODE = 130
 """int: A step's exit status when an admin cancelled it from the queue
-page (must match `workQueue.CANCELLED_EXIT_CODE`)."""
+page (must match `work.CANCELLED_EXIT_CODE`)."""
 
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
@@ -116,7 +116,6 @@ def _mysql_config(job):
     """The job's database (`jobs.mysql_env`'s variables), as planetGen's
     `MySQLConfig`; imports planetGen, so only called once `state.json` is
     written."""
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     from planetgen.db import store
 
     env = job.get("env") or {}
@@ -137,7 +136,6 @@ def _run_line(job):
     """
     run = job.get("title") or job["id"]
     try:
-        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
         from planetgen.db import store
         from planetgen.galaxy import version_key
     except Exception:  # noqa: BLE001 -- the job runs without the line's details
@@ -162,12 +160,12 @@ class _JobTree:
         self.queue = None
         self.root = None
         try:
-            from stellarObjects import workQueue
+            from planetgen.queue import work
             from planetgen.db import store
 
             base = _mysql_config(job)
-            self.queue = workQueue
-            self.root = workQueue.open_node(
+            self.queue = work
+            self.root = work.open_node(
                 "web-job", job.get("title") or job["id"], store.control_mysql_config(base),
                 web_job_id=job["id"], database=job.get("database"),
             )
@@ -232,8 +230,8 @@ def run(job_dir):
     env.update(job.get("env") or {})
     env["PYTHONUNBUFFERED"] = "1"
     # Steps like `python -m planetgen.cli.reset` import planetgen from the
-    # checkout's src/ (this file's folder).
-    src_dir = os.path.dirname(os.path.abspath(__file__))
+    # checkout's src/.
+    src_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     env["PYTHONPATH"] = os.pathsep.join(p for p in (src_dir, env.get("PYTHONPATH")) if p)
     env["PLANETGEN_PROGRESS_FILE"] = progress_path
 
@@ -307,5 +305,5 @@ def run(job_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("usage: jobRunner.py <job dir>")
+        sys.exit("usage: planetgen.cli.job <job dir>")
     sys.exit(run(sys.argv[1]))

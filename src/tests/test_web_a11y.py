@@ -315,7 +315,7 @@ def sample_job(tmp_path_factory):
 def sample_job_tree(admin_token, site_db):
     """One finished job tree (`/admin/queue/<node_id>`, ADM.10) with a
     work queue and a task under it."""
-    from stellarObjects import workQueue
+    from planetgen.queue import work as workQueue
 
     with workQueue.job_node("galaxy", "generate.py galaxy --ring 1", site_db,
                             argv=["galaxy", "--ring", "1"]) as root:

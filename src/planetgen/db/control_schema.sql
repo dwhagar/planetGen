@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS admin_recovery_codes (
     KEY idx_admin_recovery_codes_admin_user_id (admin_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v5 (PERF.8): the generation work queue (`stellarObjects/workQueue.py`).
+-- v5 (PERF.8): the generation work queue (`planetgen/queue/work.py`).
 -- `work_jobs` is one row per run that queued work (a `generate.py`
 -- galaxy, sector or plan run, from the command line or the Generate
 -- page); `work_tasks` is one row per unit it handed to the worker pool

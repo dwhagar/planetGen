@@ -4,7 +4,7 @@
 Tests for managing the work queue from the admin page (ADM.10): pause,
 resume and cancel on any node of a job tree as a run sees them
 (`WorkQueue._obey`), the whole-queue pause, the stale lease, the load
-line (`stellarObjects/systemLoad.py`), the API under `/api/admin/work`
+line (`planetgen/queue/load.py`), the API under `/api/admin/work`
 and the pages under `/admin/queue`.
 
 Tests that take the `mysql_config` fixture (see `conftest.py`) are
@@ -20,7 +20,7 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import systemLoad, workQueue
+from planetgen.queue import load as systemLoad, work as workQueue
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 

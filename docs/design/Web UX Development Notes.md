@@ -75,7 +75,7 @@ Custom DOM progress updates in `generatefolds.js` and tracking routines in `prog
 
 ## 5. Background Task Scheduling & Parallel Processing
 
-The custom task queue in `workQueue.py` and `jobRunner.py` uses SQLite locking mechanisms that can lead to race conditions, worker process crashes, and incomplete state recovery.
+The custom task queue in `workQueue.py` and `planetgen.cli.job` uses SQLite locking mechanisms that can lead to race conditions, worker process crashes, and incomplete state recovery.
 
 ### Proposed Architecture
 
@@ -85,7 +85,7 @@ The custom task queue in `workQueue.py` and `jobRunner.py` uses SQLite locking m
 ### Architectural Evaluation
 
 * **Pros:**
-  * **Codebase:** Fully replaces `workQueue.py` and `jobRunner.py`, eliminating custom process management and recovery logic.
+  * **Codebase:** Fully replaces `workQueue.py` and `planetgen.cli.job`, eliminating custom process management and recovery logic.
   * **Server Performance:** Resolves SQLite `database is locked` errors caused by concurrent worker writes, enabling true multi-core CPU scaling for procedural generation algorithms.
   * **Client Performance:** Faster background task execution reduces user wait times and eliminates UI job-status timeouts.
 * **Cons:**

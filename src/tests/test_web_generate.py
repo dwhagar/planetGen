@@ -2,7 +2,7 @@
 
 """
 The admin Generate page (`web/generate_page.py`), its background jobs
-(`web/jobs.py`) and their runner (`src/jobRunner.py`).
+(`web/jobs.py`) and their runner (`planetgen.cli.job`).
 
 The page tests fake the logged-in admin and the galaxy summary through
 `apiclient`, and point the jobs directory at `tmp_path`. The job tests
@@ -26,7 +26,7 @@ from api.config import Config
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
-from stellarObjects import progressFile  # noqa: E402
+from planetgen.queue import progress_file  # noqa: E402
 from web import csrf, generate_page, jobs  # noqa: E402
 
 DB = "planetgen_generate_test"
@@ -666,7 +666,7 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
     progress = (
         "import sys; sys.path.insert(0, %r); "
         "from stellarObjects import progressFile; "
-        "progressFile.report(3, 10, 'Sectors', force=True); print('made three')"
+        "progress_file.report(3, 10, 'Sectors', force=True); print('made three')"
     ) % os.path.join(jobs.REPO_DIR, "src")
     job_id = jobs.start_job("galaxy", "Two steps", [
         _step("First", "print('hello from one')"),
@@ -749,7 +749,7 @@ def test_cancel_is_a_file_the_runner_reads(jobs_root):
     path = os.path.join(jobs_root, job_id)
     with open(os.path.join(path, jobs.CANCEL_NAME), "w") as f:
         f.write("now")
-    import jobRunner
+    from planetgen.cli import job as jobRunner
     assert jobRunner.CANCEL_NAME == jobs.CANCEL_NAME
     assert jobRunner.run(path) == 1
     job = jobs.get_job(job_id)
@@ -768,7 +768,7 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root):
 def test_state_file_write_retries_while_the_page_reads_it(tmp_path, monkeypatch):
     """Windows refuses to replace a file another process has open; the
     runner waits for the reader to close it instead of failing."""
-    import jobRunner
+    from planetgen.cli import job as jobRunner
     real_replace = os.replace
     failures = []
 
@@ -819,11 +819,11 @@ def test_log_tail_collapses_carriage_returns(jobs_root):
 
 
 def test_progress_file_is_a_no_op_without_the_variable(tmp_path, monkeypatch):
-    monkeypatch.delenv(progressFile.ENV_VAR, raising=False)
-    progressFile.report(1, 2, "x", force=True)
+    monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
+    progress_file.report(1, 2, "x", force=True)
     target = tmp_path / "p.json"
-    monkeypatch.setenv(progressFile.ENV_VAR, str(target))
-    progressFile.report(1, None, "Rings scanned", force=True)
+    monkeypatch.setenv(progress_file.ENV_VAR, str(target))
+    progress_file.report(1, None, "Rings scanned", force=True)
     assert json.loads(target.read_text())["description"] == "Rings scanned"
 
 
