@@ -41,8 +41,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.28 | Investigate icons instead of words on buttons |  | Icon set approved by Boss (2026-10-02); the icon sprite feeds UX.40. Survey and icon sprite; UX.25, UX.26 and UX.27 use its icons; MAP.55 (done, PR #369) left text labels with an icon hook. |
-| UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | UX.28 | Half built in the paused lane. Same sector table as UX.24 (done, PR #487). |
 
 ### Bugfixes: prevalence
 
@@ -57,7 +55,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) |  | From PR #481's browser-a11y run: the scene's svg or the sticky header takes the click. |
 
 ### Groundwork: layout and libraries
 
@@ -109,10 +106,10 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.40 | Buttons, menus and dialogs from Shoelace web components | UX.28 | Folds UX.2, UX.26, UX.27, UX.31 and ADM.14; uses UX.28's approved icons. |
-| UX.26 | Edit and admin actions as a button that opens a menu (bug) | UX.28, UX.25, UX.40 | Folded into UX.40; first screen of ADM.34. 24, UX.28) is in phase 0. Sector page admin panel and edit_controls.html. |
-| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | UX.26 | Folded into UX.40. 24, UX.28) is in phase 0. system.html edit panel (_edit_rows in system_pages.py). |
-| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | UX.28, UX.40 | Folded into UX.40. 24, UX.28) is in phase 0. system.html subhead; shares wording with NAV.29. |
+| UX.40 | Buttons, menus and dialogs from Shoelace web components |  | Folds UX.2, UX.26, UX.27, UX.31 and ADM.14; uses UX.28's approved icons. |
+| UX.26 | Edit and admin actions as a button that opens a menu (bug) | UX.40 | Folded into UX.40; first screen of ADM.34. Sector page admin panel and edit_controls.html. |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | UX.26 | Folded into UX.40. system.html edit panel (_edit_rows in system_pages.py). |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | UX.40 | Folded into UX.40. system.html subhead; shares wording with NAV.29. |
 | UX.2 | Menus sized to what they hold (bug) | UX.40 | Folded into UX.40. style.css menus; independent. |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | UX.40 | Folded into UX.40. generate.html field layout; before ADM.16 and GEN.24 add fields to the same page. |
 | UX.41 | Tables on TanStack Table and TanStack Virtual |  | Folds UX.33 (phenomena filters). |
@@ -164,7 +161,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | UX.28, MAP.95, UX.26, UX.27, UX.31, UX.40, ADM.34 | Moved into phase 0: UX.21 (a bug) needs it. Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | MAP.95, UX.26, UX.27, UX.31, UX.40, ADM.34 | Moved into phase 0: UX.21 (a bug) needs it. Boss 04:42Z. Audit first (list of what to remove or merge), Boss reviews, then removals; after the controls it audits settle. |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | MAP.68, UX.26, UX.27, UX.31, NAV.32, UX.37 | Moved into phase 0 (all bugs in phase 0), last. Bug, but a final pass over the finished pages. Judgment: its one known dead control (nebula '-' at the 1 ly limit) could be split out into phase 0. The nebula "-" control is split out to phase 0 as UX.38. |
 
 One thread at a time (Boss, 2026-10-03 and 2026-10-07). The
@@ -177,10 +174,10 @@ something else, the idea being to always have at least 1 thread going
 without even going tover the 2 dev 1 todo limit." GEN.65 is done (PR #476);
 GEN.116 keeps watch for Boss's error text.
 
-The Sector and system pages lane is paused. UX.24 and UX.29 were
-rebuilt by Bugfixes lane 1 and are done (PR #487); UX.25 is half
-built there and may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). The ops-and-flakes bugs TEST.71, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89 and TEST.90 are done (PR #484, which also added GEN.117's generator z-spread test). UX.24 and UX.29 are done (PR #487). MAP.115 is folded into MAP.116 (2026-10-07).
+The Sector and system pages lane's items are all done: UX.24 and
+UX.29 (PR #487), UX.28's icons and UX.25 (PR #490), rebuilt by
+Bugfixes lane 1.
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454). GEN.77, GEN.78 and GEN.79 are done (PR #461): giants now end with a short bright stretch (2% of the giant phase, 1000 to 2500 Lsun), so bright stars appear in the old disk and bulge and the bright-star count and its database space roughly double at the default threshold; sparse cells get a halo floor of a thousandth of the local density instead of being skipped. OPS.6, UX.36, MAP.117, NAV.41, OPS.7, SEC.31, UX.44 and MAP.118 are done (PR #457). GEN.81 and OPS.26 are done (PR #467). PERF.26 is done (PR #470). OPS.24 and its parent OPS.22 are done (PR #473): the package move is finished. OPS.27 is done (PR #475: Redis in WSL2 only). ADM.33 and GEN.65 are done (PR #476: owner override, and 18 edge-of-galaxy neighbourhood tests through web and CLI; GEN.116 keeps watch for Boss's error). PERF.25 is done (PR #478: the page cache on cachetools; tilecache.py stays). The ops-and-flakes bugs TEST.71, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89 and TEST.90 are done (PR #484, which also added GEN.117's generator z-spread test). UX.24 and UX.29 are done (PR #487). UX.28 and UX.25 are done (PR #490). TEST.91 is done (PR #493). MAP.115 is folded into MAP.116 (2026-10-07).
 
 ## Open questions for Boss
 
