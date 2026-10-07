@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | TEST.81, TEST.87, OPS.25, PERF.27, DB.12, MAP.114, GEN.65, PERF.26, ADM.27, GEN.76, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.80, TEST.82, TEST.84, TEST.86, OPS.21, OPS.23, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | TEST.81, TEST.87, OPS.25, PERF.27, DB.12, MAP.114, GEN.65, PERF.26, ADM.27, GEN.76, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.80, TEST.82, TEST.84, TEST.86, TEST.88, OPS.21, OPS.23, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -3425,13 +3425,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     job) offers "Show on Galaxy Map", which opens the map fitted to what
     it made with those sectors highlighted.
 
-  - [ ] **GEN.97 Generate N random neighborhoods**
-    Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
-    produce x number of random neighborhoods in the generation process."
-    Done: the Generate page and `generate.py` take a count and a
-    neighborhood radius and fill that many neighborhoods around random
-    qualifying centres.
-
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
   sector, the computer will place in the area of lowest density if it
@@ -3485,12 +3478,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   blocks and re-run the bright-star backfill for the wedge or slab in
   view; erasing always asks first.
   Prerequisites: ADM.34, MAP.120.
-
-  - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
-    Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus
-    in galactic view." Done: the admin menu on a block, slab or wedge
-    runs the bright-star backfill for it as a job.
-    Prerequisite: MAP.65.
 
 - [ ] **ADM.36 Change an object's trajectory vector**
   Boss (2026-10-07 11:47Z): "Give the user the ability to change an
@@ -3658,6 +3645,15 @@ clears each one.
   (a wait too short for a loaded machine, or a real stall in
   `_db._reserve_id_block`), fixed in the test or the code, and the test
   passes on every full `-n auto` run tried. [infra, DB]
+
+- [ ] **TEST.88 The facilities test fails when the drawn gas giant's sphere of influence is too small (bug)**
+  `test_facilities.py::test_facilities_are_stored_on_their_hosts`
+  places a starbase 500,000 km from the system's gas giant, but the
+  giant comes from a random draw, and on PR #434's CI (MariaDB 11.4,
+  2026-10-07) its sphere of influence was only 322,742 km, so
+  `_db.add_facility` refused the orbit. Done: the test picks its orbit
+  inside the drawn giant's sphere of influence (or fixes the system's
+  seed), and it passes on every run tried. [infra, ADM]
 
 ## USR: User accounts
 
@@ -3896,166 +3892,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     question for Boss: Redis has no supported native Windows build.
     Default: on Windows the installer points at Memurai or a Redis in
     WSL, and the docs say so.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **PERF.24 The work queue and web jobs on Redis with RQ**
-    Today `stellarObjects/workQueue.py` (1,600 lines) runs its own
-    process pool with database leases (`work_lease`), heartbeats and
-    stale-run reclaim, and `jobRunner.py` runs the web jobs as process
-    trees with state in the jobs folder. Boss chose Redis (2026-10-03),
-    which overrides the job guide's broker-less `ProcessPoolExecutor`.
-    Done: generation units (sectors, layer scatters, backfill blocks)
-    and web jobs run as RQ jobs on Redis workers; the worker count,
-    retries, timeouts and status come from RQ; a dead worker's job is
-    retried, not lost (PERF.22's case); progress and log lines are
-    published per job for ADM.22; results match the old queue for the
-    same seed at any worker count; and `workQueue.py`, `jobRunner.py`
-    and the `work_lease` table go. PERF.19's audit is its first step.
-    Prerequisites: OPS.21, PERF.19.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **PERF.25 The page and tile caches on cachetools and diskcache**
-    Today `pagecache.py` and `tilecache.py` hand-roll an in-memory LRU
-    and a disk cache. Done: in-memory caches use `cachetools` (TTL and
-    LRU), the Galaxy Map tile cache uses `diskcache` with the same keys
-    and invalidation (MAP.72 tiles, PR #72), the old modules are
-    deleted, and the cache tests pass unchanged.
-    Prerequisite: OPS.21.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **DB.11 The database layer and migrations on SQLAlchemy and Alembic**
-    Today `_db.py` (9,800 lines) builds SQL strings over PyMySQL with
-    its own pooling, and `migrateDb.py` replays `schema_vNN.sql.gz`
-    fixtures. Done: tables are declared as SQLAlchemy models (MySQL 8.4
-    and MariaDB 11.4 both supported), connections and transactions use
-    SQLAlchemy's pool, Alembic carries migrations from the current
-    schema (v53) forward with a baseline that recognises existing
-    databases, and the id-block and batching behaviour is kept (TEST.81
-    and TEST.87 stay fixed).
-    Prerequisite: OPS.24.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **SEC.29 Two-step sign-in on pyotp, QR codes on segno**
-    Today `totp.py` (100 lines) and `qrcodegen.py` (900 lines, a copy of
-    Nayuki's generator) do this by hand. Done: TOTP codes come from
-    `pyotp` with the same secrets, step and window, so enrolled users
-    keep working; QR codes come from `segno` as SVG; both old modules
-    are deleted; and the two-step tests pass every run, including near a
-    step boundary (TEST.72).
-    Prerequisite: OPS.21.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **SEC.30 Login and request rate limits on Flask-Limiter with Redis storage**
-    Today `loginThrottle.py`, `api/limiter.py` and `api/loginguard.py`
-    keep their own counters. Done: request limits use Flask-Limiter with
-    Redis storage; the per-address and per-username lockouts keep their
-    rules (docs/design/login-brute-force-protection.md) on the same
-    storage; the activity log and fail2ban lines are unchanged; and the
-    rate-limit tests pass alone and under `-n auto` (TEST.83).
-    Prerequisite: OPS.21.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **UX.39 Markdown rendered by the markdown library**
-    Today `mdconvert.py` converts the system and wiki Markdown by hand.
-    Done: the `markdown` package renders it with the same output for the
-    pages and wiki export (a test compares a sample), and `mdconvert.py`
-    is deleted.
-    Prerequisite: OPS.21.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **UX.40 Buttons, menus and dialogs from Shoelace web components**
-    From "Web UX Development Notes.md": buttons, menus, dropdowns,
-    dialogs and form fields use Shoelace components, vendored as ES
-    modules (no CDN at runtime). Done: a shared component set in the
-    base template; the menus size to their contents (UX.2), admin and
-    edit actions open from a button menu (UX.26, UX.31), the system page
-    buttons sit on one row (UX.27), and the Generate page text boxes
-    line up (ADM.14), each closed in this item's PRs; both themes and
-    keyboard use work.
-    Prerequisites: OPS.21, UX.28.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
-    Today every list page is a server-rendered table paged 50 rows at a
-    time (`tabledisplay.py`). Done: list pages use TanStack Table with
-    virtual scrolling, sorting and faceted filters fed by the API,
-    keeping 50-row pages for the server; the phenomena page filters by
-    class and type (UX.33) through it.
-    Prerequisite: OPS.21.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **ADM.21 Input validation on Pydantic models**
-    Today `validation.py` checks systems and admin input by hand
-    (ADM.5). Done: request bodies, admin forms and generation settings
-    are Pydantic models with the same limits, validation errors list
-    every field at once, and the old checks are deleted.
-    Prerequisite: OPS.24.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **ADM.22 Job logs streamed over SSE into Xterm.js, with native progress bars**
-    From "Web UX and Job Management Guide.md": the Generate page and
-    Queue page show a running job's log in an Xterm.js terminal fed by
-    Server-Sent Events from the RQ job, and its progress in native
-    `<progress>` bars (`generatejobs.js`, `generatefolds.js`, `jobs.py`,
-    `progressRate.py`). SSE needs threaded or gevent workers under
-    Apache (mod_wsgi settings documented). Done: logs and progress
-    stream live, reconnect after a drop, and keep the full log for
-    download.
-    Prerequisite: PERF.24.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-    - [ ] **ADM.23 Log output wraps with hard line breaks (bug)**
-      Boss (2026-10-03 05:38Z): "Log output should not use hard line
-      breaks for word wrapping let the browser or CLI handle that."
-      Done: log messages are written as single lines (no wrapping in the
-      message text), the terminal and console wrap them, and the debug
-      log keeps one record per line (OPS.9).
-      Prerequisite: ADM.22.
-
-    - [ ] **ADM.24 A failed action's log closes before it can be read (bug)**
-      Boss (2026-10-03 05:38Z): "If action fails that has a log screen,
-      pause on the log output waiting for user input to continue so they
-      can read the log." Done: when a job with a log fails, its log
-      stays open with the error in view until the user clicks Continue
-      (web) or presses Enter (interactive console; non-interactive runs
-      exit as now).
-      Prerequisite: ADM.22.
-
-    - [ ] **ADM.25 Error tracebacks don't reach the console and the web log window (bug)**
-      Boss (2026-10-03 05:38Z): "Error traces should be output to the
-      console and to the web-log-window when an action is running so
-      they can be readily copy-pasted into documents for tracing." Done:
-      an exception in a running action prints its full traceback to the
-      console and to the job's web log, with a Copy button, as well as
-      to the debug log.
-      Prerequisite: ADM.22.
-
-    - [ ] **ADM.26 The bright-star backfill shows no progress bar on the web (bug)**
-      Boss (2026-10-07 11:47Z): "During star backfill progress bars do
-      not appear on the web at all." Done: the backfill publishes
-      progress like the sector run does, and the Generate page shows its
-      bar and ETA.
-      Prerequisite: ADM.22.
-
-  - [ ] **GEN.66 Physics on scipy, and astropy constants and units**
-    Today `keplerMotion.py` solves Kepler and Barker by hand and
-    `physical_constants.py` holds 450 lines of constants. Done: Kepler
-    solving uses `scipy.optimize` (vectorised where many bodies move at
-    once), constants and unit conversions come from `astropy.constants`
-    and `astropy.units`, results agree with today's within stated
-    tolerances (tests), and the hand-rolled solvers are deleted.
-    Prerequisite: OPS.24.
-    Design: [docs/design/library-migration.md](design/library-migration.md)
-
-  - [ ] **MAP.102 Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering**
-    From "Web UX Development Notes.md": the Galaxy Map streams its stars
-    as 3D tiles with level of detail, picks through a BVH
-    (three-mesh-bvh) instead of scanning points, and draws
-    camera-relative so far-out coordinates don't jitter
-    (`galaxymap3d.js`, `galaxyprisms.js`). Done: zooming loads only the
-    tiles in view at the right detail, picking stays fast in dense
-    sectors, and the existing map tests pass.
-    Prerequisite: OPS.21.
     Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **OPS.22 Reorganize the code into importable Python packages with shared utility libraries**

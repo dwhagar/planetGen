@@ -91,6 +91,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) |  | test_validation.py, physics area. |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) |  | NULL_IN_THIS_GALAXY depends on the draw; about 1 in 5 on MySQL 8.0. |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) |  | test_galaxy_gen.py; failed once under -n auto. |
+| TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) |  | test_facilities.py; a random giant's sphere of influence can be under the test's 500,000 km orbit. |
 
 ### Groundwork: layout and libraries
 
