@@ -891,8 +891,8 @@ than persisted the way a system's is.
 
 ## Planned changes (not built)
 
-Schema changes the open TODO items plan, as of 2026-10-02 (7.132.433,
-galaxy schema v50, control schema v7). None of these exists yet; each
+Schema changes the open TODO items plan, as of 2026-10-07 (galaxy
+schema v53, control schema v7). None of these exists yet; each
 lands as a numbered migration when its item is built, and this section
 moves into the table descriptions below. Writers of the galaxy schema go
 one at a time in this order: GEN.44, PERF.11 with MAP.86, NAV.10,
@@ -901,14 +901,31 @@ NAV.19 ([plan/notes.md](plan/notes.md)). Why and how the reproducibility
 pieces fit together is in
 [design/reproducible-galaxies.md](design/reproducible-galaxies.md).
 
+From 2026-10-07 every schema change is an Alembic migration (DB.11, phase
+0: SQLAlchemy models replace the hand-written SQL in `_db.py`, and
+Alembic replaces `migrateDb.py` and the `schema_vNN.sql.gz` fixtures,
+starting from a baseline at the current schema). DB.13 (phase 0) moves
+every value kept in a JSON or serialized column into real, indexed
+columns or child tables. `sector_stats.bright_level_sol` = 0 is the one
+"generated" flag for a sector (GEN.76). Redis (OPS.21) holds the work
+queue and rate-limit counters, not galaxy data.
+
 Galaxy schema:
 
 | Item | Phase | Change |
 |---|---|---|
-| GEN.44, PERF.11 | 1 | One per-sector stats table keyed by sector address (an unfilled sector has no `sectors` row): the backfill level (-1 never backfilled, the dimmest L_sun reached, 0 fully generated), expected and actual density, and the galaxy-wide expected-against-actual decaying average. MAP.86's per-sector colour, saturation and lightness go in the same table. |
 | DB.7 | 1 | Each `sectors` row records the version key and full version string that generated it. |
 | DB.9 | 1 | Each sector gets a content checksum (the hash of GEN.58's fingerprint); the Reed-Solomon parity itself lives in a file outside the database. |
 | NAV.10 | 1 | Indexes on positions, for the route corridor query. |
+| GEN.69 | 0 | A unique ID column on every object kind, and an ID for every sector address whether or not it is filled; the name registry tables go (GEN.71). |
+| GEN.74 | 0 | Each positioned object's position stored for the point-in-space object, with mass and mu beside it. |
+| GEN.75 | 0 | Each nebula's shape (centres, radii, warp settings) and a low-poly mesh. |
+| GEN.85 to GEN.89 | 1 | Per planet: mantle redox, partial pressures of each gas, magnetic field, surface dose, hydrosphere and ocean class, and the habitability scores; per star: activity. |
+| GEN.100 | 1 | Black holes, neutron stars, quasars and nebulae placed galaxy-wide in the bright-star table with a type column. |
+| GEN.104, GEN.106 | 1 | A spin axis and rate per rotating body; an indexed `next_update_due` per moving object. |
+| GEN.109 | 2 | A per-sector point-mass table for the orbital update. |
+| PERF.29 | 1 | Which fill steps each sector has finished, so partial runs resume. |
+| POP.9, POP.10 | 1 | Tech-level indices per technological species; facility types, affiliation and Green/Yellow/Red ratings per facility. |
 | API.10, API.11 | 2 | Run reservations (claimed sectors and id ranges per run) and staging tables for uploaded batches. |
 
 Control schema:
@@ -916,7 +933,8 @@ Control schema:
 | Item | Phase | Change |
 |---|---|---|
 | API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
-| OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of nltk's `words` corpus files, `offensive_words.txt`, any name lists and `requirements.lock`, and the date; only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
+| GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
+| OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
 | GEN.59 | 1 | A pending-delta table: admin edits, deletes and regenerate seeds, by stable address path, as they happen, with the positional-update epoch. The daily merge (GEN.61, phase 2) folds them into a new settings file and clears them only after the file is written and read back. |
 | API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
 | USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |

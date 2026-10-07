@@ -13,21 +13,21 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.39 |
-| MAP | MAP.102 |
-| NAV | NAV.46 |
-| GEN | GEN.66 |
-| PERF | PERF.24 |
-| DB | DB.11 |
-| API | API.18 |
-| ADM | ADM.21 |
-| SEC | SEC.29 |
-| TEST | TEST.88 |
+| UX | UX.49 |
+| MAP | MAP.127 |
+| NAV | NAV.50 |
+| GEN | GEN.116 |
+| PERF | PERF.31 |
+| DB | DB.14 |
+| API | API.20 |
+| ADM | ADM.37 |
+| SEC | SEC.32 |
+| TEST | TEST.89 |
 | USR | USR.9 |
-| OPS | OPS.20 |
+| OPS | OPS.26 |
 | DOC | DOC.4 |
-| VIEW | VIEW.5 |
-| POP | POP.7 |
+| VIEW | VIEW.6 |
+| POP | POP.11 |
 
 ## Why this exists
 
@@ -409,6 +409,22 @@ Parents marked "new parent" had no old number of their own.
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
 | ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
+| ADM.21 | Input validation on Pydantic models | none | open |
+| ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | open |
+| ADM.23 | Log output wraps with hard line breaks (bug) | none | open |
+| ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
+| ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |
+| ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | open |
+| ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | open |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
+| ADM.29 | Fill a span of layers, rings or columns | none | open |
+| ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
+| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
+| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
+| ADM.33 | The owner can override "no room" warnings and generate anyway | none | open |
+| ADM.34 | One admin menu per screen, holding only that screen's actions | none | open |
+| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
+| ADM.36 | Change an object's trajectory vector | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -426,6 +442,8 @@ Parents marked "new parent" had no old number of their own.
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
 | API.16 | The API reports the galaxy's seed, version and run history | none | open |
 | API.17 | Remote generation reproduces what the server would make | none | open |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
+| API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -436,6 +454,9 @@ Parents marked "new parent" had no old number of their own.
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
+| DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
+| DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | open |
+| DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -501,9 +522,59 @@ Parents marked "new parent" had no old number of their own.
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
-| GEN.63 | Planet names are unique within a sector | none | open |
+| GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | open |
+| GEN.66 | Physics on scipy, and astropy constants and units | none | open |
+| GEN.67 | Names from IDs: replace word-salad name generation | none | open |
+| GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
+| GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
+| GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
+| GEN.71 | Remove the word-salad name code, nltk and the name registries | none | open |
+| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
+| GEN.73 | Nebulae don't get unique names (bug) | none | open |
+| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
+| GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | open |
+| GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | open |
+| GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | open |
+| GEN.78 | Some regions have a star probability of zero (bug) | none | open |
+| GEN.79 | Bright stars only land between layers -121 and 121, so the bulge never shows (bug) | none | open |
+| GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | open |
+| GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | open |
+| GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | open |
+| GEN.83 | A planetary habitability index (PHI) | none | open |
+| GEN.84 | Habitability design: one score structure and reconciled thresholds | none | open |
+| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | open |
+| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
+| GEN.87 | Surface radiation dose | none | open |
+| GEN.88 | Hydrosphere and ocean chemistry | none | open |
+| GEN.89 | The habitability score for every planet and moon | none | open |
+| GEN.90 | Refactor the planet classes around the habitability index | none | open |
+| GEN.91 | Classes like S and V in the hot and cold zones | none | open |
+| GEN.92 | Life and its highest stage follow the habitability score | none | open |
+| GEN.93 | Nebula conditions in planet generation | none | open |
+| GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | open |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
+| GEN.96 | Generation directives for a sector (an override button) | none | open |
+| GEN.97 | Generate N random neighborhoods | none | open |
+| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | open |
+| GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
+| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | open |
+| GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | open |
+| GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
+| GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
+| GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | open |
+| GEN.105 | Orbital updates | none | open |
+| GEN.106 | Movement thresholds and a next-update-due column | none | open |
+| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | open |
+| GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | open |
+| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | none | open |
+| GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
+| GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
+| GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | open |
+| GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | open |
+| GEN.114 | Add the chosen anomalies to the starmap | none | open |
+| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -604,7 +675,32 @@ Parents marked "new parent" had no old number of their own.
 | MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) | none | done, PR #422 |
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | none | done, PR #422 |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) | none | done, PR #422 |
-| MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | open |
+| MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | done, PR #431 |
+| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | open |
+| MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | open |
+| MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
+| MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
+| MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
+| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
+| MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
+| MAP.109 | Zooming in and out loads slowly (bug) | none | open |
+| MAP.110 | Slab button lines come out of numerical order (bug) | none | open |
+| MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
+| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
+| MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
+| MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | open |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
+| MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | open |
+| MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
+| MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
+| MAP.121 | The Sector Map shows the neighbouring sectors dimmed, fading the ones in the way | none | open |
+| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
+| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
+| MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |
+| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | open |
+| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
@@ -650,6 +746,10 @@ Parents marked "new parent" had no old number of their own.
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
+| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | open |
+| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
+| NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
+| NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -669,6 +769,12 @@ Parents marked "new parent" had no old number of their own.
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
+| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
+| OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | open |
+| OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | open |
+| OPS.23 | A package layout plan for the reorganization | none | open |
+| OPS.24 | Move the code into the new package layout, one package per PR | none | open |
+| OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -692,12 +798,23 @@ Parents marked "new parent" had no old number of their own.
 | PERF.21 | Generation works with any worker count: the parallel path is built, used and tested (bug) | none | done, PR #371 |
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
 | PERF.23 | The bright-star progress bar can end at 101% (bug) | none | done, PR #371 |
+| PERF.24 | The work queue and web jobs on Redis with RQ | none | open |
+| PERF.25 | The page and tile caches on cachetools and diskcache | none | open |
+| PERF.26 | Size estimates don't match what generation stores (bug) | none | open |
+| PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | open |
+| PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | open |
+| PERF.29 | Record which runs a partly filled sector still needs | none | open |
+| PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.4 | Younger and older civilizations | 15 (2026-09-24 01:32Z to 02:18Z); 12 (2026-09-24 01:57Z to 02:02Z); 10 (2026-09-24 02:25Z to 05:38Z); 9 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 18 (2026-09-30 16:44Z); 19 (2026-09-30 16:49Z); 20 (2026-09-30 16:51Z to 18:09Z); 37 (2026-09-30 18:14Z); 42 (2026-09-30 18:39Z to 18:41Z); 62 (2026-09-30 19:02Z to 19:17Z); 66 (2026-09-30 20:01Z to 20:27Z); 49 (2026-09-30 20:07Z); 53 (2026-09-30 20:08Z to 20:48Z); 54 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.5 | Population pages: species, polities, dominant species, territory (unnumbered in TODO.md) | none | done after 7.58.2, PR #184 |
 | POP.6 | Territories overlay on the Galaxy Map (unnumbered in TODO.md) | none | done in 7.54.0 (PR #179) and 7.58.1 (PR #181) |
+| POP.7 | Tech levels for technological species | none | open |
+| POP.8 | A tech-level design from the six domain indices | none | open |
+| POP.9 | A tech level generated for every technological species | none | open |
+| POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -726,6 +843,9 @@ Parents marked "new parent" had no old number of their own.
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | done, PR #221 |
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
+| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | open |
+| SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | open |
+| SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -773,10 +893,21 @@ Parents marked "new parent" had no old number of their own.
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
+| UX.39 | Markdown rendered by the markdown library | none | open |
+| UX.40 | Buttons, menus and dialogs from Shoelace web components | none | open |
+| UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
+| UX.42 | In-universe wording across the interface | none | open |
+| UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
+| UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | open |
+| UX.45 | Bookmark management | none | open |
+| UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
+| UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
+| UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | open |
 
 ## Tree IDs to flat IDs
 
@@ -951,6 +1082,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | open |
 | TEST.87 | The two-process id-block test times out under full parallel load (bug) | none | open |
+| TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

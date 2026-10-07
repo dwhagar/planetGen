@@ -345,3 +345,52 @@ phone-performance limits of the free camera stop mattering. Boss chose
 every drag-rotate and to start top-down, picking a wedge, then a slice,
 then a block. That would settle the design doc's decision 2 against Free
 look and change how the first stages work.
+
+## 11. Third-party libraries instead of zero dependencies (planned)
+
+**Chosen:** Boss (2026-10-03): "we have an explicit directive to move the
+code base from a 0-dependency model into using 3rd party open source
+libraries to simplify our own code deployment." Hand-written TOTP, QR,
+Kepler solvers, SQL building, the process-pool queue, rate limiting,
+caches, Markdown and validation give way to pyotp, segno, scipy,
+astropy, SQLAlchemy with Alembic, RQ on Redis, Flask-Limiter, cachetools,
+diskcache, markdown and Pydantic; the pages gain Shoelace, TanStack,
+Xterm.js and three-mesh-bvh. The code is first reorganized into
+importable packages. Details: `library-migration.md`.
+
+**When:** planned 2026-10-03 and 2026-10-07 as phase 0 groundwork; not
+built yet.
+
+**Why:** less code to maintain, audited implementations of security code,
+and several open bugs (job logs, test flakes, menus, slow map zoom) are
+fixed by the libraries rather than patched.
+
+**Turned down:** the job guide's broker-less process pool (Boss chose
+Redis); Huey and Celery (section 3 of `library-migration.md`).
+
+## 12. Names from IDs (planned)
+
+**Chosen:** Boss (2026-10-03): "Do away with name generation for any
+object, do away with our word-salad code entirely". Every object gets a
+unique ID, and its name is Boss's phoneme codec (`gatedPhonemeCodec.py`)
+applied to the ID under a naming key stored in the control database,
+drawn when the galaxy is created and changeable by an admin. Details:
+`object-ids.md`.
+
+**Why:** names become unique by construction (no collision rules, no
+registries, no word lists to keep reproducible), and changing the key
+renames the whole galaxy without touching a row.
+
+## 13. Every sector can be generated (planned)
+
+**Chosen:** Boss (2026-10-03 and 2026-10-07): "No sector should generate
+and not fill with stuff even if there are no star systems" and "The
+projected density is just to be used in generation, not to block
+generation anywhere." Every address inside the galaxy's bounds can be
+generated; the density only sets the odds (with a small floor
+everywhere), and `sector_stats.bright_level_sol` = 0 is the one
+"generated" flag. The console warns but does what it is asked.
+
+**Why:** the "doesn't qualify" rule left sparse and edge sectors
+impossible to fill, broke neighborhood runs, and kept rogue planets,
+comets and fields out of empty sectors.

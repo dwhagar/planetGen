@@ -926,3 +926,27 @@ is one sector wide, so the strip is a thin ribbon that hides radial
 neighbors), Morton hashing (every address is already closed form and the
 designation is already a reversible key) and fisheye lenses (they would
 bend the distances and bearings NAV reports).
+
+## 16. Planned changes (2026-10-03 and 2026-10-07)
+
+- **Charted only**: the "Generated only" toggle is renamed "Charted only";
+  it dims stars outside charted sectors as well as blocks, outlines the
+  charted sectors in each wedge, and never blocks picking.
+- **Free navigation**: every slab, wedge and block can be picked whether
+  or not anything is in it, the slab buttons never cover the pick area,
+  and the breadcrumb is drawn from the map's own state on every change.
+- **Select mode**: Galaxy (blocks and sectors, the default) or Star, where
+  stars and other objects pick, hover and offer Bookmark and Waypoint.
+- **Filters**: show, hide or highlight star classes and phenomenon kinds,
+  and a luminosity floor, on the Galaxy and Sector Maps.
+- **Less on the Galaxy Map**: no comets, rogue planets or asteroid fields
+  above the sector level, and a screen-density budget per tile that gives
+  sparse sectors more room than dense ones.
+- **Streaming**: tiles with level of detail, picking through a BVH, and
+  camera-relative rendering (library-migration.md).
+- **Opening view**: with nothing in the URL, the map fits all charted
+  space.
+- **Neighbours on the Sector Map**: the surrounding sectors drawn dimmed,
+  fading those between the camera and the sector.
+- **Infinite zoom** (the end state): one 3D interface from the galaxy down
+  to a moon.

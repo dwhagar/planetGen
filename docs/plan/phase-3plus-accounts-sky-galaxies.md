@@ -1,8 +1,8 @@
 # Phase 3+: Accounts, the sky and more galaxies
 
-Rebuilt on 2026-10-02 from the dependency report (every open item, its
-prerequisites and the files it shares), with Boss's decisions of that
-night. [docs/TODO.md](../TODO.md) is the master file: it holds each
+Rebuilt on 2026-10-07 from Boss's lists of 2026-10-03 and 2026-10-07
+and the dependency tree (every open item, its prerequisites and the
+files it shares). [docs/TODO.md](../TODO.md) is the master file: it holds each
 item's full text, and its "Plan: phases" section indexes every phase.
 This file gives the phase's goal, its build threads with each item's
 prerequisites in order, and its open questions. Where the two disagree,
@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The open-ended tail: user accounts (with API.6 keys and saved courses), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`).
+The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`).
 
 ## Threads
 
@@ -24,8 +24,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | API.9, USR.2 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.2 | Accounts with roles: user, admin and Owner |  | Control schema; no blockers, placed late by priority. |
+| API.6 | User-level API keys, owned by the account that created them, that can read but not upload | API.9, USR.2 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.3 | SMTP settings in the admin config | USR.2 |  |
 | USR.4 | Invite-only sign-up by unique link | USR.2, USR.3 |  |
 | USR.5 | Email loop for setting and resetting passwords | USR.3 |  |
@@ -34,13 +34,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | USR.8 | Every signed-in user can generate a one-off system | USR.2 | Boss 05:16Z. Today /admin/generate/system is admin-only and only admin accounts exist, so no earlier step is needed. Open question: per-user limit (default 30 an hour, admins unlimited). |
 | USR.1 | User accounts | USR.2, USR.3, USR.4, USR.5, USR.6, USR.7 | Parent; closes with its subitems. |
 | NAV.19 | Saved courses in the account (after USR.7) | USR.7, NAV.18 |  |
+| GEN.111 | Email the admin when two objects are inside each other's Hill radius | GEN.109, USR.3 | Needs USR.3's SMTP settings. |
 
 ### View
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | VIEW.1 | View from a planet |  | Research session with Boss. |
-| VIEW.4 | Constellation names in the name generator |  | Floats: no blockers, can run any time. |
+| VIEW.4 | Constellation names in the name generator |  | Constellation names from the codec under the naming key, not sliced word lists. Floats: no blockers, can run any time. |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | VIEW.1 |  |
 | VIEW.3 | Render the view as a PNG, with constellations | VIEW.2, VIEW.4 |  |
 
@@ -54,8 +55,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | OPS.12 | Parent of the chain. |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | DB.7, GEN.57, GEN.58, TEST.77, GEN.59, OPS.14, ADM.18, GEN.61, OPS.18 | The end state. |
+| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | OPS.12 | Parent of the chain. |
 
 ## Open questions for Boss
 

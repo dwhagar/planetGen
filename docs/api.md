@@ -1228,11 +1228,15 @@ front, never in production.
 
 ## Not done yet
 
-Planned API changes, as of 2026-10-02 (7.132.433). None is built; the
+Planned API changes, as of 2026-10-07. None is built; the
 items and their full text are in `docs/TODO.md`, and the phases in
 `docs/plan/`.
 
-- **Every API call logged (API.15, phase 0).** By default every call is
+- **Request validation and rate limits on libraries (ADM.21, SEC.30,
+  phase 0).** Request bodies are Pydantic models, and limits move to
+  Flask-Limiter with Redis storage; jobs started through the API run on
+  RQ (PERF.24). See [`design/library-migration.md`](design/library-migration.md).
+- **Every API call logged (API.15, phase 1).** By default every call is
   logged with the time, the route, the account that made it (the key's
   owner for an API key, the signed-in admin for the web site, and `god`
   for the console), how it came in (API key, web session or console),
@@ -1254,11 +1258,17 @@ items and their full text are in `docs/TODO.md`, and the phases in
   and the run history; API.12's download uses the same fields. See
   [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 - **Remote generation (API.3 and its parts, phases 2 and 3).** The
-  download of the seed, skeleton and name state (API.12), run
+  download of the seed, skeleton and naming key (API.12), run
   reservations (API.10), staging tables (API.11), compressed batch
   uploads (API.14) and checks on them (API.8); a remote run with the same
   seed and release produces what the server would, checked by
   fingerprint (API.17).
+- **Generate by recipe (API.18, phase 2; API.19, phase 3).** A JSON
+  recipe, where any field can be fixed, ranged or left random, generates
+  a sector, a system, a planet, a moon or any phenomenon, and later a
+  whole galaxy built up region by region. A request that makes no sense
+  gets 400; one that fails validation gets 422; both return a JSON error
+  object with details and the command's log output.
 - **Keys owned by accounts (API.6, phase 3+)**, after user accounts
   (USR.2).
 

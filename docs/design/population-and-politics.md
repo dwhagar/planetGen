@@ -178,6 +178,20 @@ No and skipped with no terminal; `POPULATION=1` (`-Population` on
 Windows) runs it without asking. Nothing in system generation itself
 changes.
 
+### Planned: tech levels and facility types (2026-10-03, 2026-10-07)
+
+- Species, polities and population are made only for worlds whose life
+  reaches a technological civilization.
+- **Tech levels** ("Technological Assessment.md"): six domain indices,
+  each 0 to 7 (Energy, Materials, Information, Medical, Propulsion,
+  Defense), combined as TL = 0.25 EI + 0.20 MI + 0.20 II + 0.15 MeI +
+  0.10 PI + 0.10 DI. Each index is drawn from the species' civilization
+  age, era and world, and stored in columns.
+- **Facility types**: admins define facility types and pick one from a
+  dropdown when placing a facility; each facility stores an affiliation
+  and Green/Yellow/Red ratings for crime, housing, resources, maintenance
+  and health.
+
 ## Storage (schema v44)
 
 - `species`: id, name (unique), homeworld_planet_id (unique),

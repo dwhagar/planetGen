@@ -162,3 +162,10 @@ Defaults are taken so work can start; each can change.
   Pwned? Default: offline only.
 - Two-factor optional or required for admins? Default: optional, and
   required for the Owner once roles exist.
+
+## 5. Planned: libraries (2026-10-07)
+
+The design above stays; its implementation moves to libraries
+(library-migration.md): request limits to Flask-Limiter with Redis
+storage, one-time codes to pyotp and QR codes to segno. The lockout
+rules, the activity log and the fail2ban lines don't change.
