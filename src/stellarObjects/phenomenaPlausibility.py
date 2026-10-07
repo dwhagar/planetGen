@@ -41,7 +41,7 @@ from collections import Counter, defaultdict
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
 from .asteroidFieldData import AsteroidField
-from .compactRemnant import BlackHole, NeutronStar
+from .compactRemnant import BlackHole, NeutronStar, hawking_luminosity_w
 from .config import SystemConfig
 from .nebulaData import Nebula
 from .plausibility import iqr_bounds
@@ -378,8 +378,9 @@ def check_hard_invariants(record):
             2 * pc.G * (mass * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2
         ) / 1000
         _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
-        if not record["has_accretion_disk"] and record["luminosity_w"] != 0.0:
-            issues.append("luminosity_w is nonzero despite has_accretion_disk being False")
+        if not record["has_accretion_disk"]:
+            # Without a disk it shines only by Hawking radiation (GEN.82).
+            _isclose_or_flag(issues, "luminosity_w", record["luminosity_w"], hawking_luminosity_w(mass))
         if record["has_accretion_disk"] and record["luminosity_w"] <= 0.0:
             issues.append("luminosity_w is not positive despite has_accretion_disk being True")
 

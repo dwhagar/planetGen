@@ -172,10 +172,11 @@ def _is_number(value):
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
-def assert_serialized_numbers_sane(data, *, zero_ok_paths=()):
+def assert_serialized_numbers_sane(data, *, zero_ok_paths=(), cold_ok_paths=()):
     """Every numeric leaf finite; sign/range rules by key name. A path in
-    `zero_ok_paths` may be exactly 0.0 (a black hole's own, deliberately
-    unmodeled, temperature/luminosity) but still never negative."""
+    `zero_ok_paths` may be exactly 0.0 but still never negative; a path in
+    `cold_ok_paths` may be colder than the CMB (a black hole's Hawking
+    temperature, GEN.82)."""
     problems = []
     for path, value in _walk(data):
         if not _is_number(value):
@@ -190,7 +191,7 @@ def assert_serialized_numbers_sane(data, *, zero_ok_paths=()):
             problems.append(f"{path} = {value!r} (must be > 0)")
         elif key in NON_NEGATIVE_KEYS and value < 0:
             problems.append(f"{path} = {value!r} (must be >= 0)")
-        if key in TEMPERATURE_KEYS and value < CMB_K:
+        if key in TEMPERATURE_KEYS and value < CMB_K and path not in cold_ok_paths:
             problems.append(f"{path} = {value!r} K (colder than the CMB)")
     assert not problems, "\n".join(problems[:25])
     # Strict JSON: no NaN/Infinity tokens a standards-conforming parser would reject.
@@ -437,7 +438,7 @@ def test_compact_remnant_anchored_systems(seed, remnant_cls, num_orbits, moons, 
         system = StarSystem(system_config=cfg, compact_remnant=remnant)
     assert system.star is remnant and system.binary_type is None
     zero_ok = ("$.temperature", "$.luminosity") if remnant_cls is BlackHole else ()
-    assert_serialized_numbers_sane(remnant.to_dict(), zero_ok_paths=zero_ok)
+    assert_serialized_numbers_sane(remnant.to_dict(), zero_ok_paths=zero_ok, cold_ok_paths=zero_ok)
     assert_serialized_numbers_sane({"planets": [p.to_dict() for p in system.planets]})
     assert_orbits_sane(system.planets)
     # The remnant alone round-trips through its own class.

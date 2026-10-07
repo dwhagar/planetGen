@@ -59,7 +59,6 @@ NULL_IN_THIS_GALAXY = {
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # The CLI places an interstellar comet near the galaxy's sectors only sometimes.
     **{("interstellar_comets", column): CHANCE for column in SECTOR_PLACEMENT},
-    ("species", "civilization_age_years"): "no civilization", ("species", "era"): "no civilization",
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("sectors", "wiki_url"): "never published", ("star_systems", "wikijs_url"): "never published",

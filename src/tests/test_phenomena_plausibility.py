@@ -28,6 +28,7 @@ import math
 import pytest
 
 from stellarObjects import phenomenaPlausibility as pp
+from stellarObjects.compactRemnant import hawking_luminosity_w
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
 
@@ -124,7 +125,8 @@ def _base_record(phenomenon_type, **overrides):
         "black-hole": {
             "mass_solar": _BLACK_HOLE_MASS_SOLAR, "spin": 0.5,
             "event_horizon_radius_km": _BLACK_HOLE_EVENT_HORIZON_KM,
-            "has_accretion_disk": False, "luminosity_w": 0.0, "is_intermediate_mass": False,
+            "has_accretion_disk": False, "luminosity_w": hawking_luminosity_w(_BLACK_HOLE_MASS_SOLAR),
+            "is_intermediate_mass": False,
         },
         "neutron-star": {
             "mass_solar": 1.4, "radius_km": _NEUTRON_STAR_RADIUS_KM, "spin_period_ms": 100.0,
@@ -207,6 +209,11 @@ def test_check_hard_invariants_flags_black_hole_mass_out_of_range():
 
 def test_check_hard_invariants_flags_black_hole_disk_luminosity_mismatch():
     issues = pp.check_hard_invariants(_base_record("black-hole", has_accretion_disk=True, luminosity_w=0.0))
+    assert any("luminosity_w" in issue for issue in issues)
+
+
+def test_check_hard_invariants_flags_a_diskless_black_hole_not_at_its_hawking_luminosity():
+    issues = pp.check_hard_invariants(_base_record("black-hole", luminosity_w=0.0))
     assert any("luminosity_w" in issue for issue in issues)
 
 
