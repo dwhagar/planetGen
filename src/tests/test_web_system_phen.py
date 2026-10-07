@@ -15,7 +15,7 @@ import re
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
@@ -26,7 +26,7 @@ from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
-from web import csrf  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -176,7 +176,7 @@ def _url(app, name, **params):
     """`page_url` as it appears in the HTML (escaped). Used for links to
     pages other groups are moving, whose URLs change when they land."""
     from markupsafe import escape
-    from web.helpers import page_url
+    from planetgen.web.helpers import page_url
     with app.test_request_context("/"):
         return str(escape(page_url(name, **params)))
 
@@ -185,7 +185,7 @@ def _nav_links(app, kind, entity_id):
     """The expected Navigate links (`/nav?from=`/`?to=<kind>:<id>`),
     HTML-escaped."""
     from markupsafe import escape
-    from web.system_pages import nav_links
+    from planetgen.web.system_pages import nav_links
     with app.test_request_context("/"):
         return {key: str(escape(url)) for key, url in nav_links(kind, entity_id).items()}
 

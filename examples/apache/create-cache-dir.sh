@@ -4,7 +4,7 @@
 #
 # Creates the web interface's on-disk Galaxy Map tile cache (see
 # src/planetgen/web/lib/tilecache.py), and the admin Generate page's jobs directory
-# (src/html/web/jobs.py), and gives them to Apache's worker user, so the
+# (src/planetgen/web/jobs.py), and gives them to Apache's worker user, so the
 # web interface can write to them (on macOS, _www). Runs on Linux and
 # macOS; install.ps1 does the same on Windows. Safe to run again: an
 # existing directory is only re-owned. Called by install.sh, and by update.sh when there's
@@ -74,7 +74,7 @@ else
     echo "Tile cache: $CACHE_DIR (owned by $APACHE_USER:$APACHE_GROUP)"
 fi
 
-# The admin Generate page's background jobs (src/html/web/jobs.py):
+# The admin Generate page's background jobs (src/planetgen/web/jobs.py):
 # PLANETGEN_JOBS_DIR, else config.json's jobs.dir, else
 # /var/lib/planetgen/jobs. Only when no tile cache directory was given as
 # the argument, since that argument names the tile cache alone.

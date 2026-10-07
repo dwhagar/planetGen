@@ -88,7 +88,7 @@ def test_drill_parameters_are_never_echoed_raw(client, fake):
 def test_drill_parameters_with_a_course(client, fake, monkeypatch):
     """`?course=` is the one the server reads; the drill-down parameters
     beside it change nothing about the course it draws."""
-    from web import nav_page
+    from planetgen.web import nav_page
 
     course = {"scope": "sector", "navUrl": "/nav?from=system:1&to=system:2", "points": [],
               "sector": {"id": 9, "name": "Nine", "ring": 5, "layer": 1, "slot": 20}}

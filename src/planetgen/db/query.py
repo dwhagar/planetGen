@@ -1622,7 +1622,7 @@ def phenomena_near_sector(conn, sector_id):
     data `planetgen/web/maps/starmap.py`'s Sector Map draws (translucent clouds for
     nebulae/asteroid fields/supernova remnants, point markers for the
     point-like types, whose own `radius_ly` is always 0 -- see
-    `_PHENOMENON_TABLES`) and `html/web/sector_page.py` lists alongside
+    `_PHENOMENON_TABLES`) and `planetgen/web/sector_page.py` lists alongside
     the sector's systems.
 
     A point-like object from another sector (a rogue planet, comet, black

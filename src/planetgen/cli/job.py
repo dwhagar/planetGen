@@ -3,7 +3,7 @@
 
 """
 Runs one background job the web interface's admin Generate page started
-(`html/web/jobs.py` spawns `python3 -m planetgen.cli.job <job dir>` detached
+(`planetgen/web/jobs.py` spawns `python3 -m planetgen.cli.job <job dir>` detached
 from the web server, then returns right away).
 
 A job is a list of steps, each one command line (`planetgen.cli.reset`, then

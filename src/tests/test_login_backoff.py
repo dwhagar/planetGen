@@ -161,7 +161,7 @@ def test_wait_text():
 
 @pytest.fixture
 def app(monkeypatch):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class _Config(Config):
@@ -260,7 +260,7 @@ def test_allowlisted_addresses_are_never_locked(app):
 
 
 def test_login_page_names_the_wait(app):
-    from web import csrf
+    from planetgen.web import csrf
     client = app.test_client()
     client.get("/login")
     nonce = client.get_cookie(csrf.COOKIE_NAME).value
@@ -328,7 +328,7 @@ def test_older_control_schema_gets_the_table(mysql_config):
 
 @pytest.fixture
 def real_app(mysql_config):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class RealConfig(Config):

@@ -35,7 +35,7 @@ import re
 import pytest
 
 from planetgen.api import auth as auth_routes
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.api.limiter import limiter
 from planetgen.db import store
@@ -509,7 +509,7 @@ def test_turning_two_factor_off_forgets_trusted_devices(admins):
 def test_turning_two_factor_off_on_the_account_page_keeps_this_browser_trusted(admins):
     _secret, codes = _turn_on_two_factor(admins.a)
     nonce, token = csrf_pair(secret=SECRET, session=session_of(admins.a))
-    from web import csrf
+    from planetgen.web import csrf
     admins.a.set_cookie(csrf.COOKIE_NAME, nonce, domain="localhost")
     response = admins.a.post("/account/two-factor", data={
         "action": "disable", "current_password": PASSWORD_A, "code": codes[0], csrf.FIELD_NAME: token,
@@ -533,7 +533,7 @@ def test_a_code_used_at_the_api_cannot_be_used_again_on_the_login_page(admins):
     assert api_browser.post("/api/auth/login/totp", json={"pending": pending, "code": code},
                             environ_base=_address()).status_code == 200
 
-    from web import csrf
+    from planetgen.web import csrf
     page_browser = admins.app.test_client()
     nonce, token = csrf_pair(secret=SECRET)
     page_browser.set_cookie(csrf.COOKIE_NAME, nonce, domain="localhost")

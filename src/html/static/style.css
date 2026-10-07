@@ -2111,7 +2111,7 @@ code {
 
 
 /* ==================================================================
-   Flask-served pages (html/web/templates/base.html)
+   Flask-served pages (planetgen/web/templates/base.html)
    ------------------------------------------------------------------
    Every page has `<body class="app">` and a top header. Everything
    below is scoped to `.app`; page content reuses the shared rules above

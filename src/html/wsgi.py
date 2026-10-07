@@ -2,40 +2,30 @@
 
 """
 WSGI entry point for the planetGen Flask app: the JSON API under `/api`
-and the HTML pages (`web/`, served at `/`, `/sectors`, ...).
+and the HTML pages (`planetgen.web`, served at `/`, `/sectors`, ...).
 
 Apache's `WSGIScriptAlias` points at this file's `application` object;
 gunicorn (`gunicorn --pythonpath .../src/html wsgi:application`) and
 waitress (`waitress-serve wsgi:application` run from `src/html`) load it
 the same way. Behind a separate reverse proxy (nginx, Caddy, IIS), set
 `config.json`'s `proxy_fix` so the app sees the client's address and
-scheme (`api/app.py`'s `_apply_proxy_fix`). See `docs/deployment/` for
+scheme (`planetgen/web/app.py`'s `_apply_proxy_fix`). See `docs/deployment/` for
 every platform. Also runnable directly (`python src/html/wsgi.py`) to
 start Flask's own dev server locally.
 
-This file lives alongside `api/` under `html/`, so a plain `python
-src/html/wsgi.py` invocation already makes `api` importable for free
-(Python inserts the running script's own directory as `sys.path[0]`).
-mod_wsgi's `WSGIScriptAlias`, though, doesn't execute this file as a
-normal `__main__` script -- it loads it as a WSGI script module via its
-own machinery, which does *not* reliably add this file's directory to
-`sys.path` first (confirmed in production: `WSGIDaemonProcess`/
-`WSGIScriptAlias` here raised `ModuleNotFoundError: No module named
-'api'` on this very `from api.app import create_app` line). Both `html/`
-(for `api`) and `src/` (for `queryDb`/`stellarObjects`, which
-`api/routes.py`/`api/config.py` import -- src layout) are
-therefore added explicitly below, rather than leaning on either
-interpreter's own implicit sys.path setup.
+The planetgen package lives in `src/`, one folder up. mod_wsgi's
+`WSGIScriptAlias` loads this file as a WSGI script module and doesn't
+reliably put any folder on `sys.path` first, so `src/` is added
+explicitly below. (Step 14 of the package move replaces this with an
+editable install.)
 """
 
 import os
 import sys
 
-_HTML_DIR = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.dirname(_HTML_DIR))
-sys.path.insert(0, _HTML_DIR)
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.util import log
 
 # The API's log lines are named "api" in the debug log; mod_wsgi owns

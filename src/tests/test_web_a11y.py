@@ -51,7 +51,7 @@ sync_api = pytest.importorskip("playwright.sync_api")
 
 from werkzeug.serving import make_server  # noqa: E402
 
-from planetgen.api.app import create_app  # noqa: E402
+from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
@@ -288,7 +288,7 @@ def base_url(site_app):
 def sample_job(tmp_path_factory):
     """One finished Generate job (`/admin/generate/jobs/<job_id>`), in a
     throwaway jobs directory."""
-    from web import jobs
+    from planetgen.web import jobs
 
     root = str(tmp_path_factory.mktemp("jobs"))
     previous = os.environ.get("PLANETGEN_JOBS_DIR")

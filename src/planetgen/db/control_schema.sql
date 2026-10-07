@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS control_schema_migrations (
 -- created afterward with a caller-chosen initial password -- cleared only
 -- by a successful `POST /api/auth/change-credentials`. While TRUE for the
 -- calling admin, every write/admin endpoint except change-credentials
--- itself refuses the request (see `html/api/auth.py`'s
+-- itself refuses the request (see `planetgen/api/auth.py`'s
 -- `require_fresh_credentials`), not just a UI reminder.
 CREATE TABLE IF NOT EXISTS admin_users (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,

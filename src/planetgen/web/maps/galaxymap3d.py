@@ -9,13 +9,13 @@ fixed-radius markers grew relative to the view as you zoomed in with no
 camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
 as the camera moves, one fixed cube of space ("tile") at a time
-(`/galaxy/tiles`, `html/web/galaxy_views.py`, this page's own client-side
+(`/galaxy/tiles`, `planetgen/web/galaxy_views.py`, this page's own client-side
 JS `fetch()` target -- see that view's own docstring, and `planetgen.galaxy.viewport`'s
 "Cube tiles" section) rather than server-rendered once. Tiles are cached
 on the server's disk (`planetgen/web/lib/tilecache.py`) and in the visitor's browser.
 
 This module's job mirrors `planetgen/web/maps/starmap.py`'s division of labor:
-`/galaxy` (`html/web/galaxy_views.py`) fetches the first frame's tiles
+`/galaxy` (`planetgen/web/galaxy_views.py`) fetches the first frame's tiles
 (`initial_tile_request` says which); this module only ever turns
 already-fetched plain data into the panel's HTML and its one starting
 JSON payload -- every *later* payload (`static/galaxymap3d.js`'s own live

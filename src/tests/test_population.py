@@ -9,7 +9,7 @@ import sys
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.population import model as population

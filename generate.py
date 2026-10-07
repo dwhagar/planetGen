@@ -744,7 +744,7 @@ def run_system(args):
     Generates one star system and saves it to the database, or, with
     `--output`, writes its page to a file (or stdout) and touches no
     database at all -- the admin site's one-off system page runs it that
-    way (`src/html/web/system_page.py`).
+    way (`src/planetgen/web/system_page.py`).
 
     A forced option the system can't meet is never saved silently
     (GEN.49): contradictory options are refused up front, and a system

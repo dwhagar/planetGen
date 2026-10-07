@@ -220,7 +220,7 @@ def test_debug_log_also_gets_each_line(log_dir, monkeypatch):
 
 @pytest.fixture
 def real_app(mysql_config, log_dir):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class RealConfig(Config):

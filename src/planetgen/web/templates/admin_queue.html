@@ -1,0 +1,50 @@
+{#- planetgen/web/templates/admin_queue.html -- /admin/queue (ADM.10). -#}
+{% extends "base.html" %}
+{% from "partials/queue_node.html" import node_summary, node_facts, node_actions with context %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section class="panel" id="queue-status" aria-labelledby="queue-status-heading">
+  <h2 id="queue-status-heading">Right now</h2>
+  <div class="stat-tiles">
+    <div class="stat-tile"><span class="stat-value">{{ queue.workers_active }}</span><span class="stat-label">Workers active</span></div>
+    <div class="stat-tile"><span class="stat-value">{{ queue.load }}</span><span class="stat-label">{{ queue.load_label }}</span></div>
+    <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }}</span><span class="stat-label">Jobs running</span></div>
+  </div>
+  {%- if not available %}
+  <p class="hint">Jobs aren't recorded yet: run <code>update.sh</code> to bring the control database up to date.</p>
+  {%- else %}
+  {%- if queue.paused %}
+  <p class="error">The queue is paused{% if queue.paused_by %} by {{ queue.paused_by }}{% endif %}{% if queue.paused_at %} since {{ utc_time(queue.paused_at) }}{% endif %}: no job starts or takes another task until it is resumed.</p>
+  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='queue-resume') }}">Resume the queue</a></p>
+  {%- else %}
+  <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='queue-pause') }}">Pause the queue</a>
+    <span class="hint">Pausing one job instead puts it on standby and lets the others run.</span></p>
+  {%- endif %}
+  <p>{% if queue.holder %}The workers' lease is held by <code>{{ queue.holder }}</code>, last heard from {{ queue.heartbeat }} ago{% if queue.stale %}, which is too long: that run has stopped{% endif %}.{% else %}No run holds the workers' lease.{% endif %}</p>
+  {%- if queue.stale %}
+  <p><a class="btn btn-danger" href="{{ url_for('web.admin_queue_confirm', action='clear-lease') }}">Clear the stale lease</a></p>
+  {%- endif %}
+  {%- endif %}
+</section>
+{%- if available %}
+<section class="panel" id="jobs" aria-labelledby="jobs-heading">
+  <h2 id="jobs-heading">Jobs</h2>
+  <p class="hint">Newest first. Open a job to see it as a tree, from the whole job down to single sectors, each with its own timing. Finished jobs are kept for a week.</p>
+  {%- if not rows %}
+  <p class="hint">No jobs recorded yet.</p>
+  {%- else %}
+  <ul class="queue-jobs">
+    {%- for row in rows %}
+    <li class="queue-job">
+      <p>{{ node_summary(row, link=True) }}</p>
+      {{ node_facts(row) }}
+      {{ node_actions(row) }}
+    </li>
+    {%- endfor %}
+  </ul>
+  {{ pager }}
+  {%- endif %}
+</section>
+{%- endif %}
+{% endblock %}

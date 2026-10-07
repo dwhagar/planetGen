@@ -1,7 +1,7 @@
 # tests/test_web_pages.py
 
 """
-The Flask-served HTML pages (`src/html/web/`).
+The Flask-served HTML pages (`src/planetgen/web/`).
 
 Most tests fake the data layer by monkeypatching the `apiclient`
 functions the views call, so they need no database. The tests at the bottom (marked by the `mysql_config`
@@ -14,7 +14,7 @@ import re
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
@@ -22,10 +22,10 @@ from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from web import csrf  # noqa: E402
-from web.helpers import page_url  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
+from planetgen.web.helpers import page_url  # noqa: E402
 from werkzeug.routing import BuildError  # noqa: E402
-from web.old_urls import OLD_PAGES  # noqa: E402
+from planetgen.web.old_urls import OLD_PAGES  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -149,7 +149,7 @@ def test_static_scripts_get_the_page_csp(client):
     """A script can be started as a Web Worker, which runs under its own
     response's CSP (the Galaxy Map's galaxyblocks.js imports
     galaxyprisms.js), so scripts get the pages' policy, not 'none'."""
-    from web import CONTENT_SECURITY_POLICY
+    from planetgen.web import CONTENT_SECURITY_POLICY
 
     resp = client.get("/static/galaxyblocks.js")
     assert resp.status_code == 200

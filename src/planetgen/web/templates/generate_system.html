@@ -1,0 +1,121 @@
+{#- planetgen/web/templates/generate_system.html -- /admin/generate/system (web/system_page.py). -#}
+{% extends "base.html" %}
+{%- macro field(name, label, kind="text", step="any", min=None, max=None, placeholder=None, hint=None) -%}
+<label class="search-field">{{ label }}
+  <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, '') }}"
+    {%- if kind == "number" %} step="{{ step }}" inputmode="decimal"{% endif %}
+    {%- if min is not none %} min="{{ min }}"{% endif %}
+    {%- if max is not none %} max="{{ max }}"{% endif %}
+    {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
+    {%- if kind == "text" %} autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
+  {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
+</label>
+{%- endmacro -%}
+{% block head %}
+{%- if result and not result.failed %}
+<script type="module" src="{{ static_url('copycode.js') }}"></script>
+{%- endif %}
+{% endblock %}
+{% block content %}
+{%- if error %}
+<p class="error" role="alert">{{ error }}</p>
+{%- endif %}
+
+<section class="panel" id="system-options" aria-labelledby="system-options-heading">
+  <h2 id="system-options-heading">Options</h2>
+  <p class="hint">The same options as <code>generate.py system</code>. Blank means the generator decides.
+  The system is only shown here; nothing is saved to the database.</p>
+  <form method="post" action="{{ url_for('web.generate_system') }}#system-result" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-fields">
+      {{ field("name", "Name", placeholder="random") }}
+      {{ field("star_type", "Star type", placeholder="random, e.g. G2V") }}
+      <label class="search-field">Age
+        <select name="age">
+          {%- for value, label in (("", "Generator decides"), ("young", "Young"), ("old", "Old")) %}
+          <option value="{{ value }}"{% if form.get("age", "") == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      {{ field("num_orbits", "Orbital slots", kind="number", step="1", min=0, max=max_num_orbits, placeholder="random",
+               hint="Planets and asteroid belts combined.") }}
+    </div>
+    <fieldset class="generate-mode">
+      <legend>Force or forbid</legend>
+      <div class="search-fields">
+        {%- for name, label in tristate_fields %}
+        <label class="search-field">{{ label }}
+          <select name="{{ name }}">
+            {%- for value, text in tristate_choices %}
+            <option value="{{ value }}"{% if form.get(name, "") == value %} selected{% endif %}>{{ text }}</option>
+            {%- endfor %}
+          </select>
+        </label>
+        {%- endfor %}
+      </div>
+    </fieldset>
+    <details class="search-more"{% if form.get("flavor_chance_system") or form.get("flavor_chance_planet") or form.get("max_planet_flavor") or form.get("system_file") %} open{% endif %}>
+      <summary>Flavor text and system file</summary>
+      <div class="search-fields">
+        {{ field("flavor_chance_system", "System flavor chance (0 to 1)", kind="number", min=0, max=1, placeholder="default") }}
+        {{ field("flavor_chance_planet", "Planet flavor chance (0 to 1)", kind="number", min=0, max=1, placeholder="default") }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="max_planet_flavor" value="1"{% if form.get("max_planet_flavor") %} checked{% endif %}> Maximum planet flavor</span></label>
+      </div>
+      <label class="search-field">System file (JSON, optional)
+        <textarea name="system_file" rows="8" class="content-box" spellcheck="false" autocomplete="off"
+          placeholder="{{ system_file_example }}">{{ form.get("system_file", "") }}</textarea>
+        <span class="field-hint">Anything <code>--system-file</code> accepts, such as an exact slot layout. The options above override it.</span>
+      </label>
+    </details>
+    <div class="search-fields system-format">
+      <label class="search-field">Format
+        <select name="format">
+          {%- for value, label in formats %}
+          <option value="{{ value }}"{% if form.get("format", "markdown") == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+      <label class="search-field generate-check"><span><input type="checkbox" name="debug" value="1"{% if form.get("debug") %} checked{% endif %}> Show the generator's reasoning (debug log)</span></label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">{% if result %}Generate another{% else %}Generate{% endif %}</button>
+    </div>
+  </form>
+</section>
+
+{%- if result %}
+<section class="panel" id="system-result" aria-labelledby="system-result-heading">
+  {%- if result.failed %}
+  <h2 id="system-result-heading">Generator output</h2>
+  <textarea readonly rows="12" class="content-box" aria-label="Generator output">{{ result.output or "No output." }}</textarea>
+  {%- else %}
+  <h2 id="system-result-heading">{{ result.title }}</h2>
+  <form method="post" action="{{ url_for('web.generate_system_download') }}" class="code-view">
+    {{ csrf_field() }}
+    <input type="hidden" name="format" value="{{ result.format }}">
+    <input type="hidden" name="title" value="{{ result.title }}">
+    <div class="code-view-header">
+      <span class="view-toggle-current">{{ result.format_label }}</span>
+      <span class="search-actions">
+        <button type="button" class="btn copy-btn" data-copy-target="system-code">Copy</button>
+        <button type="submit" class="btn" title="Save as {{ result.filename }}">Download</button>
+      </span>
+    </div>
+    <textarea readonly name="text" rows="{{ result.rows }}" id="system-code" class="content-box" aria-label="{{ result.format_label }} source">{{ result.text }}</textarea>
+  </form>
+  {%- if result.preview %}
+  <details class="search-more system-preview">
+    <summary>Preview</summary>
+    <div class="prose">{{ result.preview }}</div>
+  </details>
+  {%- endif %}
+  {%- endif %}
+  {%- if result.debug_log and not result.failed %}
+  <details class="search-more">
+    <summary>Debug log</summary>
+    <textarea readonly rows="16" class="content-box" aria-label="Debug log">{{ result.debug_log }}</textarea>
+  </details>
+  {%- endif %}
+</section>
+{%- endif %}
+{% endblock %}

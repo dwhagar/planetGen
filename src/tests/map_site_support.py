@@ -21,7 +21,7 @@ import threading
 import pytest
 from werkzeug.serving import make_server
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402

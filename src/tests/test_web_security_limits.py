@@ -22,7 +22,7 @@ import logging
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.common import is_http_url
 from planetgen.api.config import Config, _proxy_fix
 from planetgen.api.limiter import DEFAULT_PAGE_LIMITS

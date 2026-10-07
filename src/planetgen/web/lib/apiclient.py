@@ -2,7 +2,7 @@
 
 """
 Client for the planetGen Flask API (`planetgen/api/`), used by every page in
-`html/web/` instead of querying the database directly (in-process there,
+`planetgen/web/` instead of querying the database directly (in-process there,
 see `web/transport.py`; over HTTP anywhere else).
 
 This is the concrete result of moving the interim web browser onto the
@@ -85,7 +85,7 @@ class ApiError(Exception):
 # ---------------------------------------------------------------------
 # Transport: how a request actually reaches the API.
 #
-# The default is HTTP (`_http_transport`). The Flask-served pages (`html/web/`) run *inside* the API's own process, so
+# The default is HTTP (`_http_transport`). The Flask-served pages (`planetgen/web/`) run *inside* the API's own process, so
 # they install an in-process transport with `set_transport` (see
 # `web/transport.py`) that dispatches straight through the app's own
 # routes -- no HTTP round trip to itself. Every typed wrapper below

@@ -18,9 +18,9 @@ from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 
-from planetgen.api.app import create_app  # noqa: E402
+from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
-from web import system_pages  # noqa: E402
+from planetgen.web import system_pages  # noqa: E402
 
 EARTH = constants.EARTH_MASS_TO_KG
 JUPITER = constants.JUPITER_MASS_TO_KG

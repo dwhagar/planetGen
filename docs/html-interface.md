@@ -28,7 +28,7 @@ MySQL server (see "Locating the database" and "Deploying" below).
 ## How it works
 
 Every page is served by the same Flask app as the JSON API
-(`../src/html/wsgi.py`; the pages live in `../src/html/web/`, see "Flask
+(`../src/html/wsgi.py`; the pages live in `../src/planetgen/web/`, see "Flask
 pages" below). A page fetches its data through `../src/planetgen/web/lib/apiclient.py`,
 which inside the app dispatches straight through the API's own routes
 (no HTTP round trip), and renders it with a Jinja2 template. Links are
@@ -44,7 +44,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | File | Purpose |
 |---|---|
 | `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi, gunicorn or waitress): the Flask app serving the API under `/api` and every page. |
-| `../src/html/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
+| `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
 | `../src/planetgen/web/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
 | `../src/planetgen/web/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
 | `../src/planetgen/web/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`/`nearest_neighbors_location` -- which take a `system_url(system_id)` hook for the neighbour links -- `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data. Not web-accessible. |
@@ -172,7 +172,7 @@ follow a theme change on the next page view.
 ## Flask pages
 
 Every page is served by the same Flask app as the API
-(`../src/html/web/`, registered by `api/app.py`'s `create_app`). The
+(`../src/planetgen/web/`, registered by `api/app.py`'s `create_app`). The
 pages used to be one CGI script each; the "Replaces" column names the
 old script, whose URL now answers with a 301 to the new page (see "Old
 URLs" below).
@@ -480,7 +480,7 @@ without an admin session get a 403.
 ### How a Flask page is built
 
 ```
-src/html/web/
+src/planetgen/web/
   __init__.py         blueprint `web`, template globals, init_app()
   views.py            /, /sectors, /systems, /search
   system_pages.py     /system/<id>, /phenomena, /phenomenon/<type>/<id>

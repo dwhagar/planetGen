@@ -19,7 +19,7 @@ from werkzeug.serving import make_server
 def live_api(mysql_config):
     """Starts the real Flask API on a background thread against
     mysql_config's throwaway database; yields its base URL."""
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class TestConfig(Config):

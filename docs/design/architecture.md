@@ -70,7 +70,7 @@ flowchart LR
     SO --> DB["store.py"]
     DB --> MySQL[("MySQL<br/>content schema<br/>+ control schema")]
     Browser["Browser"] --> WSGI["src/html/wsgi.py"]
-    WSGI --> Web["src/html/web/<br/>HTML pages"]
+    WSGI --> Web["src/planetgen/web/<br/>HTML pages"]
     Web --> Client["planetgen/web/lib/apiclient.py<br/>(in-process)"]
     Client --> API["src/planetgen/api/<br/>JSON API"]
     API --> Q["planetgen.db.query"]
@@ -270,7 +270,7 @@ the browser loads.
 
 | Path | What it holds |
 |---|---|
-| [`app.py`](../../src/planetgen/api/app.py) | `create_app`: registers the API blueprints (`routes`, `auth`, `admin`, `population`), calls `web.init_app`, the rate limiter, proxy fix, security headers, request logging and the error handlers (JSON under `/api`, HTML pages elsewhere). |
+| [`app.py`](../../src/planetgen/web/app.py) | `create_app`: registers the API blueprints (`routes`, `auth`, `admin`, `population`), calls `web.init_app`, the rate limiter, proxy fix, security headers, request logging and the error handlers (JSON under `/api`, HTML pages elsewhere). |
 | [`routes.py`](../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, wiki upload, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
 | [`population.py`](../../src/planetgen/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
 | `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
@@ -281,11 +281,11 @@ the browser loads.
 | `config.py` | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
 | `common.py` | `ApiError` and the control-schema connection, shared by `routes.py` and `auth.py` without an import cycle. |
 
-#### src/html/web/
+#### src/planetgen/web/
 
 | Path | What it holds |
 |---|---|
-| [`__init__.py`](../../src/html/web/__init__.py) | The pages blueprint and `init_app`: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog (`classref.catalog()`) at startup, and gives the app its page cache (`_install_page_cache`, see Flow 3). |
+| [`__init__.py`](../../src/planetgen/web/__init__.py) | The pages blueprint and `init_app`: installs the in-process transport, the CSRF check and Jinja settings, builds the class reference catalog (`classref.catalog()`) at startup, and gives the app its page cache (`_install_page_cache`, see Flow 3). |
 | `views.py` | `/` (home), `/sectors`, `/systems`, `/search`. |
 | `searchpage.py` | Search page request parsing and URL building. |
 | `sector_page.py` | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (wiki upload, generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |

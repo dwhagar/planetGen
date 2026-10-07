@@ -8,10 +8,10 @@ repeat visit without the API, and an API write clearing it.
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
-import web
+from planetgen import web
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.db import store  # noqa: E402

@@ -114,7 +114,7 @@ hand). If WebGL runs out, three's own `InstancedMesh`, `BatchedMesh` and
 ## 4. A Flask-only website (CGI pages removed)
 
 **Chosen:** every page is served by the same Flask app as the API
-(`src/html/web/`, Jinja2 templates, mounted at `/` through mod_wsgi or
+(`src/planetgen/web/`, Jinja2 templates, mounted at `/` through mod_wsgi or
 gunicorn/waitress). Old `/<name>.py` URLs answer with a 301 to their
 replacement (`web/old_urls.py`).
 

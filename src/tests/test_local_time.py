@@ -40,6 +40,6 @@ def test_missing_and_unreadable_values():
 
 
 def test_the_shell_loads_the_local_time_script(tmp_path):
-    base = os.path.join(_SRC_DIR, "html", "web", "templates", "base.html")
+    base = os.path.join(_SRC_DIR, "planetgen", "web", "templates", "base.html")
     with open(base, encoding="utf-8") as handle:
         assert "static_url('localtime.js')" in handle.read()

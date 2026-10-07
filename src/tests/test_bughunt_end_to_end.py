@@ -92,7 +92,7 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     assert len(api_body["systems"]) == 2
 
     # The sector page is served by the Flask app (`/sector/<id>`).
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class _PageConfig(Config):
@@ -111,7 +111,7 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
 
 def _web_client(mysql_config):
     """A test client for the Flask app (API + pages) on `mysql_config`."""
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class _Config(Config):

@@ -22,7 +22,7 @@ import time
 
 import pytest
 
-from web import jobs  # noqa: E402
+from planetgen.web import jobs  # noqa: E402
 
 PY = sys.executable
 REPO = jobs.REPO_DIR
@@ -95,7 +95,7 @@ def test_two_threads_starting_at_once_start_one_job(jobs_root):
 
 STARTER = r"""
 import os, sys, time
-from web import jobs
+from planetgen.web import jobs
 go = sys.argv[1]
 while not os.path.exists(go):
     time.sleep(0.001)
@@ -320,7 +320,7 @@ def test_cancel_of_a_finished_job(jobs_root):
 
 SERVER = r"""
 import os, sys
-from web import jobs
+from planetgen.web import jobs
 job_id = jobs.start_job("reset", "Outlives", [
     {"label": "Slow", "argv": [sys.executable, "-c", "import time; time.sleep(2); print('still here')"]},
 ])

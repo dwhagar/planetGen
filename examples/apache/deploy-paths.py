@@ -10,7 +10,7 @@ from the repo: it is run with `python3 -I` (no script directory, current
 directory, user site-packages or PYTHON* variables on sys.path) and reads
 config.json with the standard library alone. It mirrors
 `tilecache.configured_cache_dir()` (src/planetgen/web/lib/tilecache.py) and
-`jobs.jobs_dir()`'s configured directory (src/html/web/jobs.py); keep the
+`jobs.jobs_dir()`'s configured directory (src/planetgen/web/jobs.py); keep the
 three in step.
 
 Usage:
