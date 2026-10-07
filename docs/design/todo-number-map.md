@@ -799,7 +799,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.22 | On Python 3.12 a run hangs forever when a worker process dies (bug) | none | done, PR #371 |
 | PERF.23 | The bright-star progress bar can end at 101% (bug) | none | done, PR #371 |
 | PERF.24 | The work queue and web jobs on Redis with RQ | none | open |
-| PERF.25 | The page and tile caches on cachetools, without diskcache | none | open |
+| PERF.25 | The page cache on cachetools; the tile cache stays | none | open |
 | PERF.26 | Size estimates don't match what generation stores (bug) | none | open |
 | PERF.27 | On Python 3.9, `--workers=--` comes back as a list and crashes generate.py's option checks (bug) | none | open |
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | open |
