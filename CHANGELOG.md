@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.182.607] - 2026-10-07
+
+### Fixed
+- **install.ps1 and update.ps1 no longer fail when no Redis answers**:
+  the Redis check stays a warning instead of leaving its exit code as
+  the script's.
+
 ## [7.181.607] - 2026-10-07
 
 ### Fixed
