@@ -692,8 +692,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
-| MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | open |
-| MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | open |
+| MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
+| MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
@@ -742,7 +742,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.38 | Every sector a straight line passes through | none | done, PR #357 |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
-| NAV.41 | The NAV page's course map is too small to read (bug) | none | open |
+| NAV.41 | The NAV page's course map is too small to read (bug) | none | done, PR #457 |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
@@ -756,8 +756,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
 | OPS.4 | Generate page jobs on native Windows | 54 (2026-09-30 20:48Z); 55 (2026-09-30 20:48Z to 22:12Z) | done in 7.9.2, PR #124 |
 | OPS.5 | Install and update check the log locations and say how to fix them | none | done, PR #288 |
-| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | open |
-| OPS.7 | Update asks to fill a wiped database with population data (bug) | none | open |
+| OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | done, PR #457 |
+| OPS.7 | Update asks to fill a wiped database with population data (bug) | none | done, PR #457 |
 | OPS.8 | Update reloads Apache itself when run as root | none | open |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
@@ -846,7 +846,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | open |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | open |
-| SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | open |
+| SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -891,7 +891,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
-| UX.36 | Scientific notation starts too early for whole numbers (bug) | none | open |
+| UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
 | UX.39 | Markdown rendered by the markdown library | none | open |
@@ -899,7 +899,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
 | UX.42 | In-universe wording across the interface | none | open |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
-| UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | open |
+| UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | done, PR #457 |
 | UX.45 | Bookmark management | none | open |
 | UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
