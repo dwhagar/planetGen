@@ -3,7 +3,7 @@
 """
 Machine-readable progress for a run started from the web interface.
 
-The admin Generate page (`html/web/generate_page.py`) starts `generate.py`
+The admin Generate page (`planetgen/web/generate_page.py`) starts `generate.py`
 as a background job and sets `PLANETGEN_PROGRESS_FILE` to a path inside
 that job's directory. While it is set, `report` writes the run's current
 progress there as a small JSON object, which the page reads to draw its

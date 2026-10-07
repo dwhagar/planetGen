@@ -119,7 +119,7 @@ def test_the_progress_file_carries_the_rate_and_eta(tmp_path, monkeypatch):
 
 
 def test_the_generate_page_counts_the_eta_down(monkeypatch):
-    import web.generate_page as generate_page
+    from planetgen.web import generate_page as generate_page
 
     monkeypatch.setattr(generate_page, "url_for", lambda *a, **k: "/job")
     monkeypatch.setattr(generate_page.time, "time", lambda: 1000.0)

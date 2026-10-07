@@ -130,7 +130,7 @@ def test_device_tokens_belong_to_one_admin_and_are_revoked_on_change(control_con
 
 @pytest.fixture
 def real_app(mysql_config):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class RealConfig(Config):

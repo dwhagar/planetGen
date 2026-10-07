@@ -5,7 +5,7 @@ npm package's own LICENSE file).
 three.module.min.js is three's build/three.module.js and build/three.core.js
 bundled into one file and minified. Vendored here -- rather than loaded from
 a CDN, the usual approach for a no-build-step project -- because
-the pages (html/web/__init__.py's SECURITY_HEADERS) send
+the pages (planetgen/web/__init__.py's SECURITY_HEADERS) send
 `Content-Security-Policy: default-src 'self'` and only ever serves same-
 origin `static/*.js`; a CDN script would need a script-src exception to that
 policy. sectormap.js imports this file directly by relative path (no

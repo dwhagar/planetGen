@@ -1,0 +1,129 @@
+{#- planetgen/web/templates/base.html -- the shell every Flask-served page extends.
+
+Context (from web.helpers.render_page and the context processor in
+web/__init__.py): title, section, breadcrumbs, description, site_name,
+site_version, sections, static_url(), page_url(), current_admin(),
+csrf_field().
+
+Blocks a page may fill: content (required), head (extra <link>/<script>
+tags, e.g. a map module), heading (to replace the default <h1>),
+subhead (badges or actions under the <h1>). -#}
+{%- macro section_links(label) -%}
+<nav class="site-sections" aria-label="{{ label }}">
+  <ul>
+    {%- for name, text in sections() %}
+    <li><a href="{{ page_url(name) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
+    {%- endfor %}
+  </ul>
+</nav>
+{%- endmacro -%}
+{%- macro search_form(id) -%}
+<form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
+  <label class="sr-only" for="{{ id }}">Search by name</label>
+  <input id="{{ id }}" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
+  <button type="submit">Search</button>
+</form>
+{%- endmacro -%}
+{%- macro gear_link(name, text, current, href=None) -%}
+<li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
+{%- endmacro -%}
+{#- The settings gear: search (for when the bar has no room for it), the
+    theme switch, and either the admin's pages or Login. -#}
+{%- macro gear_menu() -%}
+{%- set admin = current_admin() -%}
+<details class="site-gear">
+  <summary aria-label="Settings" title="Settings">
+    <svg class="gear-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.4l-.4 2.7a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .3.2.5.5.5h4c.3 0 .5-.2.5-.4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
+  </summary>
+  <div class="site-gear-panel">
+    {{ search_form("site-search-gear") }}
+    <nav class="site-account" aria-label="Settings">
+    <ul>
+      <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
+      {%- if admin %}
+      {{ gear_link('account', 'Account', 'account') }}
+      {{ gear_link('admin', 'Admin', 'admin') }}
+      {{ gear_link('generate', 'Generate', 'admin_generate') }}
+      {{ gear_link('admin_queue', 'Queue', 'admin_queue') }}
+      {{ gear_link('admin_stats', 'Stats', 'admin_stats') }}
+      {{ gear_link('logout', 'Logout', None) }}
+      {%- else %}
+      {{ gear_link('login', 'Login', 'login') }}
+      {%- endif %}
+    </ul>
+    </nav>
+  </div>
+</details>
+{%- endmacro -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ title }} - {{ site_name }}</title>
+{%- if description %}
+<meta name="description" content="{{ description }}">
+{%- endif %}
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f6f7fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#14151e" media="(prefers-color-scheme: dark)">
+<link rel="icon" type="image/svg+xml" href="{{ static_url('favicon.svg') }}">
+<script src="{{ static_url('theme.js') }}"></script>
+<script src="{{ static_url('localtime.js') }}" defer></script>
+<link rel="stylesheet" href="{{ static_url('style.css') }}">
+{%- block head %}{% endblock %}
+</head>
+<body class="app">
+<a class="skip-link" href="#main">Skip to content</a>
+{#- The top bar: the sections as buttons while they fit, else a Menu; the
+    search box while its text entry is at least twice the button's width;
+    everything else under the gear. Container queries in style.css pick
+    the layout, so it needs no script. -#}
+<header class="site-header">
+  <div class="site-header-inner">
+    <a class="site-name" href="{{ url_for('web.index') }}"{% if request.endpoint == 'web.index' %} aria-current="page"{% endif %}>{{ site_name }}</a>
+    <div class="site-wide">
+      {{ section_links("Main") }}
+    </div>
+    <details class="site-menu">
+      <summary>Menu</summary>
+      <div class="site-menu-panel">
+        {{ section_links("Main menu") }}
+      </div>
+    </details>
+    {{ search_form("site-search-wide") }}
+    {{ gear_menu() }}
+  </div>
+</header>
+<main id="main" class="app-main{% block main_class %}{% endblock %}" tabindex="-1">
+  {%- if breadcrumbs %}
+  <nav class="breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li><a href="{{ url_for('web.index') }}">Home</a></li>
+      {%- for item in breadcrumbs %}
+      {%- if item.url and not loop.last %}
+      <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+      {%- else %}
+      <li><span aria-current="page">{{ item.label }}</span></li>
+      {%- endif %}
+      {%- endfor %}
+    </ol>
+  </nav>
+  {%- endif %}
+  {%- block heading %}
+  <h1 class="page-title">{{ title }}</h1>
+  {%- endblock %}
+  {%- block subhead %}{% endblock %}
+  {%- set math_failed = math_check_failures() %}{% if math_failed and current_admin() %}
+  <p class="error math-check-warning" role="alert">The math check failed when the site started: {{ math_failed | join(", ") }}. Generated data may be wrong until it's fixed; run <code>python -m planetgen.physics.mathcheck -v</code> on the server for details.</p>
+  {%- endif %}
+  {%- for is_error, text in edit_flashes() %}
+  <p class="{{ 'error' if is_error else 'hint' }} edit-message" role="{{ 'alert' if is_error else 'status' }}">{{ text }}</p>
+  {%- endfor %}
+  {%- block content %}{% endblock %}
+</main>
+<footer class="site-footer">
+  <p>{% if site_name != "planetGen" %}{{ site_name }} &middot; {% endif %}planetGen {{ site_version }}</p>
+</footer>
+</body>
+</html>

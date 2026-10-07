@@ -1,0 +1,58 @@
+{#- planetgen/web/templates/partials/queue_node.html -- one job tree node on the
+admin queue pages (ADM.10): its line, its controls, its tasks and,
+nested, its children. -#}
+{%- macro node_summary(node, link=False) -%}
+<span class="badge job-{{ node.status }}">{{ node.status_label }}</span>
+{% if link %}<a href="{{ node.url }}">{{ node.title }}</a>{% else %}<strong>{{ node.title }}</strong>{% endif %}
+<span class="hint">{{ node.kind }}{% if node.asked %}, {{ node.asked }}{% endif %}</span>
+{%- endmacro -%}
+
+{%- macro node_facts(node) -%}
+<dl class="queue-facts">
+  <div><dt>Started</dt><dd>{{ utc_time(node.started_at) if node.started_at else "not yet" }}</dd></div>
+  <div><dt>Ended</dt><dd>{{ utc_time(node.finished_at) if node.finished_at else ("running" if node.live else "") }}</dd></div>
+  <div><dt>Duration</dt><dd>{{ node.duration }}</dd></div>
+  {%- if node.tasks %}
+  <div><dt>Progress</dt><dd>{{ node.done }} of {{ node.tasks }}</dd></div>
+  <div><dt>Tasks</dt><dd>{{ node.queued }} queued, {{ node.running }} running, {{ node.done }} done, {{ node.failed }} failed{% if node.cancelled %}, {{ node.cancelled }} cancelled{% endif %}</dd></div>
+  {%- endif %}
+  {%- if node.work %}<div><dt>Worker time</dt><dd>{{ node.work }}</dd></div>{% endif %}
+  {%- if node.eta %}<div><dt>Time left</dt><dd>about {{ node.eta }}</dd></div>{% endif %}
+  {%- if node.workers %}<div><dt>Workers</dt><dd>{{ node.workers }}</dd></div>{% endif %}
+  {%- if node.web_job_url %}<div><dt>Started by</dt><dd><a href="{{ node.web_job_url }}">Generate page job and its log</a></dd></div>{% endif %}
+</dl>
+{%- endmacro -%}
+
+{%- macro node_actions(node) -%}
+{%- if node.actions %}
+<p class="queue-actions">
+  {%- for action, label in node.actions %}
+  <a class="btn{% if action in ('cancel', 'delete') %} btn-danger{% endif %}" href="{{ url_for('web.admin_queue_confirm', action=action, node=node.id) }}">{{ label }}</a>
+  {%- endfor %}
+</p>
+{%- endif %}
+{%- endmacro -%}
+
+{%- macro tree_node(node, depth=0) -%}
+<details class="queue-node" id="node-{{ node.id }}"{% if depth < 2 or node.live or node.status in ('failed', 'interrupted') %} open{% endif %}>
+  <summary>{{ node_summary(node) }} <span class="hint">{{ node.duration }}{% if node.tasks %}, {{ node.done }} of {{ node.tasks }}{% endif %}</span></summary>
+  {{ node_facts(node) }}
+  {{ node_actions(node) }}
+  {%- if node.task_rows %}
+  <ul class="queue-tasks" aria-label="Tasks of {{ node.title }}">
+    {%- for task in node.task_rows %}
+    <li><span class="badge job-{{ task.status }}">{{ task.status_label }}</span>
+      {{ task.kind }} <code>{{ task.key }}</code>
+      {%- if task.started_at %} <span class="hint">started {{ utc_time(task.started_at) }}</span>{% endif %}
+      {%- if task.seconds %} <span class="hint">{{ task.seconds }}</span>{% endif %}
+      {%- if task.retry %} <a class="btn" href="{{ url_for('web.admin_queue_confirm', action='retry', node=node.id, task=task.id) }}">Retry</a>{% endif %}
+      {%- if task.error %}<br><span class="error">{{ task.error }}</span>{% endif %}</li>
+    {%- endfor %}
+  </ul>
+  {%- if node.task_rows|length < node.tasks %}<p class="hint">Showing {{ node.task_rows|length }} of {{ node.tasks }} tasks, failed ones first.</p>{% endif %}
+  {%- endif %}
+  {%- for child in node.children %}
+  {{ tree_node(child, depth + 1) }}
+  {%- endfor %}
+</details>
+{%- endmacro -%}

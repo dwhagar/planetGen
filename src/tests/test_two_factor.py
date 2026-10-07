@@ -111,7 +111,7 @@ def test_setup_confirm_and_check(control_conn, admin_id):
 
 @pytest.fixture
 def real_app(mysql_config):
-    from planetgen.api.app import create_app
+    from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
     class RealConfig(Config):
@@ -256,7 +256,7 @@ def test_command_line_reset(mysql_config, real_app, capsys, monkeypatch):
 
 def _csrf(app, client):
     from planetgen.api.authz import SESSION_COOKIE_NAME
-    from web import csrf
+    from planetgen.web import csrf
     nonce = "n" * 43
     client.set_cookie(csrf.COOKIE_NAME, nonce)
     session = client.get_cookie(SESSION_COOKIE_NAME)

@@ -2,7 +2,7 @@
 
 """
 The Flask-served Galaxy Map (`/galaxy`) and its tile JSON
-(`/galaxy/tiles`), `html/web/galaxy_views.py`, plus the old `galaxy.py`/
+(`/galaxy/tiles`), `planetgen/web/galaxy_views.py`, plus the old `galaxy.py`/
 `galaxy_tiles.py` URLs that redirect there.
 
 Most tests fake the data layer (the `apiclient` functions the view calls,
@@ -18,7 +18,7 @@ import re
 import pytest
 from flask import url_for
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
@@ -26,8 +26,8 @@ from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from web import csrf  # noqa: E402
-from web.helpers import page_url  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
+from planetgen.web.helpers import page_url  # noqa: E402
 
 
 DB = "planetgen_galaxy_test"
@@ -409,7 +409,7 @@ def test_territories_endpoint_reports_an_api_failure(client, fake, monkeypatch):
 def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
     """`?course=<from>,<to>` embeds the course `nav_page.galaxy_course`
     works out, and says what it is showing."""
-    from web import nav_page
+    from planetgen.web import nav_page
 
     asked = []
     course = {

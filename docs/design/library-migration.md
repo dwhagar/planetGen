@@ -122,7 +122,7 @@ backward compatibility." So:
 - install and update install the checkout as an editable package
   (`pip install -e .`), so `planetgen` imports from anywhere with no
   `sys.path` pushes, and a `git pull` takes effect without a reinstall.
-- `stellarObjects`, `src/planetgen/api`, `src/html/web`, `src/html/lib`,
+- `stellarObjects`, `src/html/api`, `src/html/web`, `src/html/lib`,
   `src/wikiClient`, `generate.py` and the `src/*.py` scripts are gone
   when the move is done.
 - `src/html/` keeps only `wsgi.py` (the WSGI entry point Apache, gunicorn
@@ -154,7 +154,7 @@ import cycle can form between them.
 | `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats) |
 | `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits) |
 | `planetgen.queue` | `work` (workQueue), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
-| `planetgen.api` | everything in `src/planetgen/api/` under the same module names |
+| `planetgen.api` | everything in `src/html/api/` under the same module names |
 | `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |
 | `planetgen.wiki` | the wiki client (`src/wikiClient/`) |
 | `planetgen.cli` | `generate` (generate.py's argument parsing and dispatch), `query` (queryDb's command line), `migrate` (migrateDb), `reset` (resetDb), `orbits` (updateOrbits), `dedupe` (dedupeNames), `lockouts` (loginLockouts), `render_parity` (checkRenderParity), `job` (jobRunner, moved whole; RQ replaces it, section 3). Each of the six small scripts moved whole, logic and argument parsing together: migrate's logic is replaced by Alembic (DB.11) and the rest are a page or two each, so splitting them out into `planetgen.db` buys nothing. |

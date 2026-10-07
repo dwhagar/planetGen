@@ -8,7 +8,7 @@ A fixed list of checks that the generator's math gives the right answers,
 run before anything trusts it (TEST.63): pytest runs it first and stops
 the suite if it fails (`tests/test_math_check.py`, `conftest.py`), and the
 website runs it once at startup and warns admins if it fails
-(`html/web/__init__.py`).
+(`planetgen/web/__init__.py`).
 
 Each `Check` names the function it calls, the value it expects, the
 tolerance it allows and where that expected value comes from (a textbook

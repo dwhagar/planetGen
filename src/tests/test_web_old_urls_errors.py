@@ -29,7 +29,7 @@ from urllib.parse import urlsplit
 
 import pytest
 
-from web.old_urls import OLD_PAGES
+from planetgen.web.old_urls import OLD_PAGES
 
 from tests.test_fuzz_web_routes import (  # noqa: F401 -- fixtures
     admin_client, app, build_path, check_response, fuzz_db, login_api, with_csrf,

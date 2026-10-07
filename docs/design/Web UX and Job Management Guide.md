@@ -6,7 +6,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 1: Native In-Process Queue & Admin Management Refactoring
 
-* **Target Files:** `planetgen.cli.job`, `src/planetgen/queue/work.py`, `src/html/web/admin_pages.py`, `src/html/web/templates/admin_queue.html`.
+* **Target Files:** `planetgen.cli.job`, `src/planetgen/queue/work.py`, `src/planetgen/web/admin_pages.py`, `src/planetgen/web/templates/admin_queue.html`.
 * **Objective:** Replace custom SQLite process-polling loops with Python's built-in `concurrent.futures.ProcessPoolExecutor` managed in-process, while expanding the admin web interface for queue inspection and control (Python Software Foundation, 2024).
 * **Steps:**
   1. Wrap `ProcessPoolExecutor` inside a global task manager singleton within the Flask application process (Python Software Foundation, 2024).
@@ -15,7 +15,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 2: Real-Time SSE Log Streaming & Terminal Integration
 
-* **Target Files:** `src/html/static/generatejobs.js`, `src/html/web/jobs.py`, `src/planetgen/util/log.py`.
+* **Target Files:** `src/html/static/generatejobs.js`, `src/planetgen/web/jobs.py`, `src/planetgen/util/log.py`.
 * **Objective:** Transition process log rendering from client HTTP polling to Server-Sent Events (SSE) and Xterm.js (Xterm.js, 2024).
 * **Steps:**
   1. Modify `log.py` to publish log outputs into thread-safe in-memory queues per job ID.
@@ -24,7 +24,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 
 ### Phase 3: Data Grids & Controls Modernization
 
-* **Target Files:** `src/planetgen/web/lib/tabledisplay.py`, `src/html/static/sectormap.js`, Jinja templates in `src/html/web/templates/`.
+* **Target Files:** `src/planetgen/web/lib/tabledisplay.py`, `src/html/static/sectormap.js`, Jinja templates in `src/planetgen/web/templates/`.
 * **Objective:** Eliminate server-rendered table DOM bloat and manual DOM construction in JavaScript.
 * **Steps:**
   1. Refactor `tabledisplay.py` and Jinja templates to serve lightweight container shell markup rather than large pre-rendered HTML tables.
@@ -79,7 +79,7 @@ This guide outlines a step-by-step conversion strategy to modernize the planetGe
 ### How should modern open-source UX components be integrated into Jinja2 templates?
 
 * **Architecture:** Adopt a progressive web component model using Shoelace and ESM-imported JavaScript libraries (Shoelace, 2024).
-* **Why:** Preserves the existing Jinja layout architecture in `src/html/web/templates/` while replacing client-side rendering with fast, accessible web components (Shoelace, 2024).
+* **Why:** Preserves the existing Jinja layout architecture in `src/planetgen/web/templates/` while replacing client-side rendering with fast, accessible web components (Shoelace, 2024).
 * **Data Flow:** Jinja renders lightweight HTML structural shells containing `data-*` attributes; static scripts in `src/html/static/` hydrate these containers using TanStack Table and Xterm.js (TanStack, 2024; Xterm.js, 2024).
 
 ## References

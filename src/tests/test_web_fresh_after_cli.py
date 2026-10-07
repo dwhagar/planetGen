@@ -38,11 +38,11 @@ import sys
 import pytest
 from markupsafe import escape
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
 import generate
-import web
+from planetgen import web
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402

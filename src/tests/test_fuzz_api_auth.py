@@ -27,8 +27,8 @@ from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
-from web import csrf  # noqa: E402
-from web.admin_pages import FLASH_COOKIE  # noqa: E402
+from planetgen.web import csrf  # noqa: E402
+from planetgen.web.admin_pages import FLASH_COOKIE  # noqa: E402
 
 from tests.fuzz_support import any_float, hostile_text, scaled
 from tests.test_fuzz_web_routes import (  # noqa: F401 -- fixtures

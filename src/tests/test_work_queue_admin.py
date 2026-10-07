@@ -18,14 +18,14 @@ import time
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.queue import load as systemLoad, work as workQueue
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth
 
 from planetgen.web.lib import apiclient  # noqa: E402
-from web import csrf, jobs, queue_page  # noqa: E402
+from planetgen.web import csrf, jobs, queue_page  # noqa: E402
 
 
 def _square(payload):

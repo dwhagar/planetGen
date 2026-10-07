@@ -34,7 +34,7 @@ import sys
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
-# generate.py lives at the repo root, two levels above src/planetgen/api/ (this
+# generate.py lives at the repo root, three levels above src/planetgen/api/ (this
 # file) -- src/ itself is already on sys.path (see html/wsgi.py's own
 # docstring), but the repo root isn't, so it's added here specifically for
 # this import. Only `generate_sector_neighborhood_route` below needs it.
@@ -774,7 +774,7 @@ def galaxy_tiles_route():
     `queryDb.galaxy_tiles` and `planetgen.galaxy.viewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
-    `/galaxy/tiles` (`html/web/galaxy_views.py`), which caches every tile on disk and only forwards
+    `/galaxy/tiles` (`planetgen/web/galaxy_views.py`), which caches every tile on disk and only forwards
     the ones it doesn't already have.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
@@ -792,7 +792,7 @@ def galaxy_locate_route():
     The Galaxy Map address bar's name lookup: `?q=<part of a name>`.
     Returns `{"matches": [...]}`, sectors and systems whose name contains
     it, each with its sector address -- see `queryDb.galaxy_locate`.
-    Called by `/galaxy/locate` (`html/web/galaxy_views.py`).
+    Called by `/galaxy/locate` (`planetgen/web/galaxy_views.py`).
     """
     return jsonify({"matches": galaxy_locate(get_db(), request.args.get("q") or "")})
 
@@ -804,7 +804,7 @@ def galaxy_stage_route():
     `planetgen.galaxy.drill`), or no `at` for the galaxy. Returns how
     many generated sectors each child block holds, and at a level-3 block
     the generated sectors themselves -- see `queryDb.galaxy_stage`.
-    Called by `/galaxy/stage` (`html/web/galaxy_views.py`), which caches
+    Called by `/galaxy/stage` (`planetgen/web/galaxy_views.py`), which caches
     each stage on disk.
     """
     try:

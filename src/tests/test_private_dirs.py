@@ -13,14 +13,13 @@ import stat
 import sys
 
 _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.path.join(_SRC_DIR, "html"))
 sys.path.insert(0, _SRC_DIR)
 
 import pytest  # noqa: E402
 
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.web.lib.privatedir import ensure_private_dir  # noqa: E402
-from web import jobs  # noqa: E402
+from planetgen.web import jobs  # noqa: E402
 
 UNCREATABLE = "/proc/planetgen-test-cannot-create/dir"
 

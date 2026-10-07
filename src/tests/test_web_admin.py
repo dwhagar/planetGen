@@ -1,7 +1,7 @@
 # tests/test_web_admin.py
 
 """
-The admin pages on the Flask app (`src/html/web/admin_pages.py`):
+The admin pages on the Flask app (`src/planetgen/web/admin_pages.py`):
 `/login`, `/logout`, `/account`, `/admin` and `/admin/stats`, which
 replaced `login.py`, `logout.py`, `changecreds.py`, `admin.py` and
 `adminstats.py` (those old URLs now redirect here).
@@ -18,14 +18,14 @@ from urllib.parse import parse_qs, urlsplit
 
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
 from planetgen.admin import auth as adminAuth
-from web import admin_pages, csrf  # noqa: E402
+from planetgen.web import admin_pages, csrf  # noqa: E402
 
 DB = "planetgen_web_test"
 NONCE = "n" * 43

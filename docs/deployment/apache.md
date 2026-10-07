@@ -187,8 +187,8 @@ See [`install.sh`](../../install.sh) for the full install script,
   to about 190 KB on the wire.
 - **Security headers have one source per response.** The HTML pages get
   `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`
-  and `Referrer-Policy` from `src/html/web/__init__.py` (`SECURITY_HEADERS`),
-  and the API gets its own from `src/planetgen/api/app.py`, so both work
+  and `Referrer-Policy` from `src/planetgen/web/__init__.py` (`SECURITY_HEADERS`),
+  and the API gets its own from `src/planetgen/web/app.py`, so both work
   without this vhost. The page CSP is `default-src 'self'; base-uri
   'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`.
   Earlier versions of the example vhost also set three of these

@@ -12,7 +12,7 @@ import os
 import pytest
 
 from planetgen.db import stats as adminStats
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.admin import auth as adminAuth

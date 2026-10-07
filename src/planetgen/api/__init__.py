@@ -14,11 +14,11 @@ database; see `docs/api.md`'s "Write endpoints" section for what's still
 needed before they do anything real.
 
 Lives under `html/` (moved here from `src/api/`) next to the HTML pages
-(`html/web/`), which the same Flask app serves -- see `html/wsgi.py` for
+(`planetgen/web/`), which the same Flask app serves -- see `html/wsgi.py` for
 the mod_wsgi entry point that imports this package, and
 `examples/apache/planetgen.conf.example` for the vhost. The pages fetch
 their data from these routes in-process (`planetgen/web/lib/apiclient.py`,
-`html/web/transport.py`) instead of querying MySQL directly -- see
+`planetgen/web/transport.py`) instead of querying MySQL directly -- see
 `docs/api.md` for how to run this and `docs/html-interface.md` for that
 side of it. `docs/TODO.md`'s "Open items" section covers what's still
 open (the write endpoints above, mainly).

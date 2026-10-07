@@ -15,11 +15,11 @@ import re
 import markupsafe
 import pytest
 
-from planetgen.api.app import create_app
+from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
-from web.population_pages import format_years  # noqa: E402
+from planetgen.web.population_pages import format_years  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.population import model
 from tests.test_population import _set_age, galaxy  # noqa: E402,F401
