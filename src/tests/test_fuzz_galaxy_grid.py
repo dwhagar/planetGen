@@ -21,6 +21,7 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
+from planetgen import tuning
 from planetgen.galaxy import (
     density as galaxyDensity, geometry as gg, skeleton as galaxySkeleton, viewport as gv,
 )
@@ -461,7 +462,11 @@ def test_shape_is_calibrated_to_one_at_its_interarm_point(shape):
 def test_skeleton_bound_is_an_upper_bound_at_every_angle(shape, r_cyl, z, theta):
     point = (r_cyl * math.cos(theta), r_cyl * math.sin(theta), z)
     bound = galaxySkeleton.bound_relative_density_at(shape, r_cyl, z)
-    assert galaxyDensity.relative_density(point, shape) <= bound * (1 + 1e-9) + 1e-300
+    # The model's own density: the halo floor (GEN.78) is left out of the
+    # skeleton's outline on purpose, so it can't widen it.
+    model = shape.k_norm * galaxyDensity._raw_density(point, shape)
+    assert model <= bound * (1 + 1e-9) + 1e-300
+    assert galaxyDensity.relative_density(point, shape) == max(model, tuning.MIN_RELATIVE_DENSITY)
 
 
 # --- skeleton ------------------------------------------------------------------

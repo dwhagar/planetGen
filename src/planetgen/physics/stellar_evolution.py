@@ -179,6 +179,62 @@ def _log_uniform(low, high, rng):
     return math.exp(rng.uniform(math.log(low), math.log(high)))
 
 
+def giant_luminosity_bands(mass_sol):
+    """
+    The luminosity bands (Lsun) a giant of initial mass `mass_sol` is drawn
+    from, as `(low, high, share)`, dimmest first, each log-uniform within
+    itself: a bright giant's one band, or a giant's main band and its short
+    bright tip (`GIANT_TIP_FRACTION`, GEN.79).
+    """
+    pc = tuning
+    if mass_sol >= pc.BRIGHT_GIANT_MIN_MASS_SOL:
+        return ((*pc.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL, 1.0),)
+    return ((*pc.GIANT_LUMINOSITY_RANGE_SOL, 1.0 - pc.GIANT_TIP_FRACTION),
+            (*pc.GIANT_TIP_LUMINOSITY_RANGE_SOL, pc.GIANT_TIP_FRACTION))
+
+
+def _band_share_above(low, high, share, min_luminosity_sol):
+    """The part of one log-uniform band's `share` at or above the value."""
+    if min_luminosity_sol is None or min_luminosity_sol <= low:
+        return share
+    if min_luminosity_sol >= high:
+        return 0.0
+    return share * math.log(high / min_luminosity_sol) / math.log(high / low)
+
+
+def giant_bright_chance(mass_sol, min_luminosity_sol):
+    """The chance a giant's luminosity (`giant_luminosity_bands`) is at
+    least `min_luminosity_sol`."""
+    return sum(_band_share_above(low, high, share, min_luminosity_sol)
+               for low, high, share in giant_luminosity_bands(mass_sol))
+
+
+def sample_giant_luminosity_sol(mass_sol, rng=random, min_luminosity_sol=None):
+    """
+    A giant's luminosity from `giant_luminosity_bands`, or from their part
+    at or above `min_luminosity_sol` (clamped to the top when none is).
+    One `rng.random()` draw, whichever band it lands in.
+    """
+    bands = giant_luminosity_bands(mass_sol)
+    weights = [_band_share_above(low, high, share, min_luminosity_sol) for low, high, share in bands]
+    total = sum(weights)
+    if total <= 0.0:
+        return bands[-1][1]
+    pick = rng.random() * total
+    # The last band with any weight, unless the pick lands before it.
+    index = max(i for i, weight in enumerate(weights) if weight > 0.0)
+    for i, weight in enumerate(weights):
+        if weight > 0.0 and pick < weight:
+            index = i
+            break
+        pick -= weight
+    low, high, _share = bands[index]
+    if min_luminosity_sol is not None:
+        low = min(max(low, min_luminosity_sol), high)
+    fraction = min(max(pick / weights[index], 0.0), 1.0)
+    return math.exp(math.log(low) + (math.log(high) - math.log(low)) * fraction)
+
+
 def _supergiant_yerkes_class(luminosity_sol):
     yerkes = "IB"
     for name, threshold in tuning.SUPERGIANT_YERKES_THRESHOLDS_SOL.items():
@@ -239,11 +295,8 @@ def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
                      phase_end_gy=t_sub)
     elif age_gy < t_giant:
         bright = mass_sol >= pc.BRIGHT_GIANT_MIN_MASS_SOL
-        low, high = pc.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL if bright else pc.GIANT_LUMINOSITY_RANGE_SOL
-        if min_luminosity_sol is not None:
-            low = min(max(low, min_luminosity_sol), high)
         state.update(yerkes_class="II" if bright else "III",
-                     luminosity_sol=_log_uniform(low, high, rng),
+                     luminosity_sol=sample_giant_luminosity_sol(mass_sol, rng, min_luminosity_sol),
                      temperature_k=rng.uniform(*pc.GIANT_TEMPERATURE_RANGE_K),
                      phase_end_gy=t_giant)
     elif massive:
