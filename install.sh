@@ -186,6 +186,10 @@ echo
 echo "Checking that the web app imports:"
 check_app_imports
 
+echo
+echo "Checking the Redis server (config.json's redis.url):"
+ensure_redis
+
 if is_macos; then
     cat <<EOF
 

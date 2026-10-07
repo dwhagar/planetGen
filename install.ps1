@@ -102,6 +102,7 @@ Set-PlanetGenPermissions
 
 Write-Step "6/6: Checking that the web app imports"
 Test-AppImports
+Test-Redis
 
 $waitress = Join-Path $VenvDir "Scripts\waitress-serve.exe"
 Write-Host @"

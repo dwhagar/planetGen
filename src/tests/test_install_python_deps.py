@@ -69,7 +69,7 @@ def test_install_and_update_share_the_deploy_checks():
     for script in ("install.sh", "update.sh"):
         code = _code(_read(script))
         assert 'source "$SCRIPT_DIR/scripts/deploy-common.sh"' in code, script
-        for check in ("ensure_nltk_words", "ensure_apache_modules", "check_app_imports"):
+        for check in ("ensure_nltk_words", "ensure_apache_modules", "check_app_imports", "ensure_redis"):
             assert check in code, (script, check)
 
 

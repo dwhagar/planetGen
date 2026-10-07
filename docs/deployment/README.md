@@ -2,7 +2,9 @@
 
 planetGen's web interface is one Flask app: every page and the JSON API
 (`/api`). It runs from a git checkout, reads `config.json` at the repo
-root, and talks to one MySQL or MariaDB server. This page compares the
+root, and talks to one MySQL or MariaDB server and one Redis server
+(`redis.url` in [`config.json`](../config.md); the work queue and rate
+limits move to it, and nothing uses it yet). This page compares the
 supported ways to host it and covers what they share. Each guide has the
 full steps for its platform.
 

@@ -29,6 +29,10 @@ def key(version):
     return tuple(parts)
 
 
+# Distributions whose import name isn't the pip name with "-" as "_".
+IMPORT_NAMES = {"scikit-image": "skimage"}
+
+
 for spec in sys.argv[1:]:
     name, floor = spec.split(">=")
     dist = None
@@ -46,7 +50,7 @@ for spec in sys.argv[1:]:
         print("old", spec, dist.version, where)
         continue
     try:
-        importlib.import_module(name.replace("-", "_"))
+        importlib.import_module(IMPORT_NAMES.get(name, name.replace("-", "_")))
     except Exception as exc:  # any import failure makes it unusable
         print("broken", spec, f"{type(exc).__name__}:{exc}".replace(" ", "_").replace("\n", "_"), where)
         continue

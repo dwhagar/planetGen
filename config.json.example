@@ -16,6 +16,9 @@
     "statement_timeout_seconds": 10
   },
   "control_database": "planetgen_control",
+  "redis": {
+    "url": "redis://127.0.0.1:6379/0"
+  },
   "ratelimit": {
     "default": "200 per day;50 per hour",
     "storage_uri": "memory://",

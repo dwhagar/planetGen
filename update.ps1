@@ -116,6 +116,7 @@ Set-PlanetGenPermissions
 
 Write-Step "8/8: Checking that the web app imports"
 Test-AppImports
+Test-Redis
 
 Write-Host ""
 if (-not $mathOk) {

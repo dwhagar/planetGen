@@ -28,6 +28,21 @@ guides unchanged.
   Windows), and the account and stats pages (the stats page shows no memory
   or load figures, which come from Linux-only sources).
 
+## Redis
+
+planetGen needs a Redis server (`redis.url` in `config.json`, default
+`redis://127.0.0.1:6379/0`) for the work queue and rate limits; nothing
+uses it yet. Redis has no supported native Windows build, so
+`install.ps1` and `update.ps1` don't install one; they only check that
+one answers and warn if not. Either:
+
+- **Memurai** (https://www.memurai.com/), a Redis-compatible server that
+  installs as a Windows service on port 6379, so the default `redis.url`
+  works unchanged; or
+- **Redis in WSL2**: `sudo apt install redis-server` in the WSL
+  distribution. WSL2 forwards `localhost` to Windows, so the default
+  `redis.url` reaches it while WSL is running.
+
 ## Which setup
 
 | | 1. IIS + HttpPlatformHandler | 2. Caddy + waitress service | 3. Apache Lounge + waitress service |

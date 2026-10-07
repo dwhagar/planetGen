@@ -28,7 +28,20 @@ $script:Requirements = @(
     "werkzeug>=3.0.0",
     "rich>=13.7.0",
     "flask>=3.0.3",
-    "flask-limiter>=3.7.0"
+    "flask-limiter>=3.7.0",
+    "redis>=5.0.0",
+    "rq>=1.16.0",
+    "pyotp>=2.9.0",
+    "segno>=1.6.0",
+    "markdown>=3.6",
+    "cachetools>=5.3.0",
+    "sqlalchemy>=2.0.30",
+    "alembic>=1.13.0",
+    "pydantic>=2.7.0",
+    "numpy>=1.26.0",
+    "scipy>=1.13.0",
+    "astropy>=6.0.0",
+    "scikit-image>=0.22.0"
 )
 $script:ServerRequirement = "waitress>=3.0.1"
 
@@ -501,6 +514,31 @@ import web
 "@ $Root
     if ($LASTEXITCODE -ne 0) { throw "The web app does not import with $python (see above)." }
     Write-Host "The web app and stellarObjects import cleanly with $python."
+}
+
+# The Redis server at config.json's redis.url (OPS.21), which the work
+# queue and the rate limits will use. Redis has no supported native
+# Windows build, so nothing is installed here: it only checks that one
+# answers, and otherwise says to run Memurai (a Redis-compatible Windows
+# service) or Redis in WSL (docs/deployment/windows.md). Nothing uses
+# Redis yet, so a server that doesn't answer only warns.
+function Test-Redis {
+    $python = Get-VenvPython
+    $url = & $python -c "import sys; sys.path.insert(0, sys.argv[1]); from stellarObjects.appconfig import load_config; print(load_config()['redis']['url'])" (Join-Path $Root "src")
+    if ($LASTEXITCODE -ne 0 -or -not $url) {
+        Write-Warning "Couldn't read redis.url from config.json; skipping the Redis check."
+        return
+    }
+    # The failure is caught in Python, not redirected here: Windows
+    # PowerShell turns a native program's stderr into errors.
+    & $python -c "import sys, redis`ntry: redis.Redis.from_url(sys.argv[1], socket_connect_timeout=3).ping()`nexcept Exception: sys.exit(1)" $url
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Redis: answering at $url"
+        return
+    }
+    Write-Warning ("No Redis server answers at $url (config.json's redis.url). Redis has no native " +
+        "Windows build: install Memurai (https://www.memurai.com/) or run Redis in WSL " +
+        "(docs/deployment/windows.md). Nothing needs it yet; the work queue will.")
 }
 
 # What restarts the app after an update, for the closing message.
