@@ -20,9 +20,12 @@ workers a run takes about the sum of its tasks' times divided by the
 worker count; the contention of running side by side is already in the
 measured times.
 
-Size is measured from the galaxy database itself (its tables' data and
-index bytes over its star systems), after every run, per galaxy
-database.
+Size is measured from the galaxy database itself (the data and index
+bytes of the tables a fill writes, over its star systems), after every
+run, per galaxy database. The galaxy-wide tables a plan or the
+bright-star scatter writes (`GALAXY_WIDE_TABLES`) are left out: they
+don't grow with the systems a run adds, and in a freshly planned galaxy
+they would make the first few systems look enormous (PERF.26).
 
 Everything here fails open: without the control database (not created
 yet, or no grant on it) the estimate uses `DEFAULT_SECONDS_PER_SYSTEM`
@@ -61,10 +64,21 @@ Measured 2026-10-01 on a 4-core test server with MariaDB on the same
 machine: 0.04 s with one worker, 0.17 s each with three (they wait on
 the database); rounded up."""
 
-DEFAULT_BYTES_PER_SYSTEM = 70 * 1024
+DEFAULT_BYTES_PER_SYSTEM = 48 * 1024
 """int: Database bytes per star system before the galaxy has any.
-Measured 2026-10-01: 10,545 systems in 692 MB (66 KB each, over half
-of it moons)."""
+Measured 2026-10-07 (PERF.26) on MariaDB 10.11 as the growth of every
+table across a fill: 52 KB each in a sparse ring (550 systems), 48 KB
+in a mid-disk ring (2,288), 37 KB in a dense inner ring (3,120), 44 KB
+in the test suite's small fill. Moons are about 40%, then planets,
+`nearest_systems` and rogue planets. The old 70 KB (2026-10-01) counted
+the whole database, galaxy-wide tables and empty ones included."""
+
+GALAXY_WIDE_TABLES = frozenset({
+    "bright_stars", "galaxy_column", "galaxy_layer", "galaxy_shape", "generation_runs", "id_blocks",
+    "schema_migrations", "sector_stats",
+})
+"""frozenset: Tables a plan or the bright-star scatter fills for the
+whole galaxy at once, left out of the size per system."""
 
 STATS_ENV_VAR = "PLANETGEN_GENERATION_STATS"
 """str: `0` keeps `generate.py` from reading or recording any stats (the
@@ -229,13 +243,21 @@ class GenerationStats:
 
     def measure_size(self, galaxy_conn, database):
         """Measures `database`'s bytes per star system from its own
-        tables (`information_schema`), when it holds any systems, and
-        keeps it for the next estimate."""
+        tables (`information_schema`, `GALAXY_WIDE_TABLES` left out),
+        when it holds any systems, and keeps it for the next estimate."""
+        try:
+            # MySQL 8 caches these sizes for a day by default, so a run's
+            # growth wouldn't show; MariaDB (no such variable) reads live.
+            galaxy_conn.execute("SET SESSION information_schema_stats_expiry = 0")
+        except Exception:  # noqa: BLE001
+            pass
+        excluded = sorted(GALAXY_WIDE_TABLES)
         try:
             systems = galaxy_conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
             total = galaxy_conn.execute(
                 "SELECT COALESCE(SUM(data_length + index_length), 0) AS b FROM information_schema.tables"
-                " WHERE table_schema = DATABASE()"
+                f" WHERE table_schema = DATABASE() AND table_name NOT IN ({', '.join(['?'] * len(excluded))})",
+                excluded,
             ).fetchone()["b"]
         except Exception as exc:  # noqa: BLE001 -- a size we can't read just isn't updated
             log.debug(f"Generation stats: can't measure the database's size ({exc}).")
