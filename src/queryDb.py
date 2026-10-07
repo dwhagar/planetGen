@@ -49,12 +49,12 @@ from planetgen import tuning
 from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects.brightStars import MPC_PER_PC
 from planetgen._version import VersionAction, __version__, version_banner
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
-from stellarObjects.spaceSector import classify_octant
-from stellarObjects.galaxyViewport import (
+from planetgen.galaxy.sector import classify_octant
+from planetgen.galaxy.viewport import (
     TILE_MAX_LEVEL,
     TILE_ROOT_EDGE_PC,
     parse_tile_key,
@@ -62,11 +62,11 @@ from stellarObjects.galaxyViewport import (
     tile_bounds_pc,
     tile_keys_containing,
 )
-from stellarObjects.galaxyDrill import (
+from planetgen.galaxy.drill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from stellarObjects.navGraph import build_route_graph, shortest_path
-from stellarObjects.navigation import (
+from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
+from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
@@ -561,7 +561,7 @@ def _load_nav_endpoint(conn, system_id):
     sector-local offset (`star_systems.position_x/y/z_mpc`,
     milliparsecs) into one absolute position -- both get converted to
     light-years (`pc_to_ly`/`milliparsecs_to_ly`) and summed componentwise
-    here, since light-years is the unit `stellarObjects.navigation`
+    here, since light-years is the unit `planetgen.galaxy.navigation`
     already works in for sector-local distances (see
     `spaceSector.distance_between`).
 
@@ -760,8 +760,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
     hole/neutron star) -- a direct course (distance/bearing/mark/warp and fold
-    travel times, from `stellarObjects.navigation`) plus an optimal route
-    via adjacent systems (`stellarObjects.navGraph`), or raises if NAV
+    travel times, from `planetgen.galaxy.navigation`) plus an optimal route
+    via adjacent systems (`planetgen.galaxy.nav_graph`), or raises if NAV
     doesn't apply to this pair.
 
     NAV availability rules (see docs/api.md's NAV section for the
@@ -2019,7 +2019,7 @@ def galaxy_density_shape(conn):
     """
     The galaxy's stored density-skeleton shape (the singleton
     `galaxy_shape` row `generate.py plan` writes -- see
-    `stellarObjects.galaxyDensity.GalaxyShape` and `_db.get_galaxy_shape`),
+    `planetgen.galaxy.density.GalaxyShape` and `_db.get_galaxy_shape`),
     serialized to a plain JSON-able dict. This is the real
     exponential-disk-plus-bulge-plus-spiral-arm model already used to gate
     and weight actual sector generation (`generate.py`'s `_BatchDensity`);
@@ -2142,7 +2142,7 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
 
 # ---------------------------------------------------------------------
 # Cube tiles -- backs GET /api/galaxy/tiles and GET /api/galaxy/stamp. See
-# `stellarObjects.galaxyViewport`'s "Cube tiles" section for the model.
+# `planetgen.galaxy.viewport`'s "Cube tiles" section for the model.
 # ---------------------------------------------------------------------
 
 GALAXY_TILE_MAX_PLACED = 250

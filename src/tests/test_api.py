@@ -21,11 +21,12 @@ import pytest
 from api.app import create_app
 from api.authz import SESSION_COOKIE_NAME
 from api.config import Config
-from stellarObjects import _db, adminAuth, spaceSector
+from stellarObjects import _db, adminAuth
+from planetgen.galaxy import sector as spaceSector
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyViewport import tile_keys_containing, tiles_intersecting_sphere
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
 import queryDb
@@ -762,7 +763,7 @@ def test_galaxy_filled_in_box_counts_every_placed_sector(mysql_config):
     """A tile's filled summary lists each addressed sector at g = 1 and
     past `max_cells` groups them into cells three sectors a side, with the
     cell's wedge by center angle -- nothing is sampled away."""
-    from stellarObjects.galaxyGeometry import ring_sector_count, sector_position_pc
+    from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 
     addresses = [(0, 0, 0), (1, 0, 4), (2, 1, 0), (7, -1, 30), (7, 0, 30)]
     ids = []
@@ -839,7 +840,7 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
 
 
 def _bright_row(position_pc, luminosity_sol, edge_pc):
-    from stellarObjects.galaxyGeometry import sector_address_at
+    from planetgen.galaxy.geometry import sector_address_at
 
     ring, layer, slot = sector_address_at(position_pc, edge_pc)
     return (ring, layer, slot, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
@@ -1014,7 +1015,7 @@ def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql
 
 
 def test_generated_star_floor_drops_fourfold_per_finer_tile_level():
-    from stellarObjects.galaxyViewport import TILE_MAX_LEVEL
+    from planetgen.galaxy.viewport import TILE_MAX_LEVEL
 
     assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL) == 0.0
     assert queryDb.generated_star_floor_sol(TILE_MAX_LEVEL - 1) == pytest.approx(queryDb.GENERATED_STAR_FLOOR_SOL_AT_32_PC)
@@ -1129,8 +1130,8 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;
     `galaxy_changes` names the stages a new sector makes stale."""
-    from stellarObjects.galaxyDrill import drill_block_sectors, drill_chain_of, format_drill_key
-    from stellarObjects.galaxyGeometry import sector_position_pc
+    from planetgen.galaxy.drill import drill_block_sectors, drill_chain_of, format_drill_key
+    from planetgen.galaxy.geometry import sector_position_pc
 
     home = (1705, -20, 3225)
     chain = drill_chain_of(*home)
@@ -1184,8 +1185,8 @@ def test_galaxy_stage_looks_average_their_sectors_stats(client, mysql_config):
     """MAP.86: each stage child, and each sector at a level-3 block, carries
     a `look` from `sector_stats`: the mean fill share of its generated
     sectors, the mean color of those with stars, and how many had one."""
-    from stellarObjects.galaxyDrill import drill_block_sectors, drill_chain_of, format_drill_key
-    from stellarObjects.galaxyGeometry import sector_position_pc
+    from planetgen.galaxy.drill import drill_block_sectors, drill_chain_of, format_drill_key
+    from planetgen.galaxy.geometry import sector_position_pc
 
     home = (1705, -20, 3225)
     chain = drill_chain_of(*home)
@@ -1227,7 +1228,7 @@ def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
     """`/api/galaxy/locate` finds sectors and systems whose name contains
     the term, each with its sector address, exact matches first; sectors
     with no address are left out."""
-    from stellarObjects.galaxyGeometry import sector_position_pc
+    from planetgen.galaxy.geometry import sector_position_pc
 
     address = (12, 1, 30)
     sector_id = _place_sector(mysql_config, "Belcana", sector_position_pc(*address, 4.0), address=address)
@@ -2136,7 +2137,7 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     """`GET /api/galaxy/cell` answers for any place in the galaxy, by
     address or by a point inside the cell, with its coordinates and 8
     corners, and names the generated sector there if one exists."""
-    from stellarObjects.galaxyGeometry import sector_position_pc
+    from planetgen.galaxy.geometry import sector_position_pc
     from stellarObjects.utils import ly_to_pc
 
     from planetgen import tuning

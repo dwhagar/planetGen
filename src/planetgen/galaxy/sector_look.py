@@ -1,4 +1,4 @@
-# stellarObjects/sectorLook.py
+# planetgen/galaxy/sector_look.py
 
 """
 A generated sector's color on the Galaxy Map (MAP.86), worked out once
@@ -91,6 +91,6 @@ def max_sector_systems(skeleton):
     """
     if skeleton is None:
         return None
-    from .galaxyDensity import relative_density
+    from planetgen.galaxy.density import relative_density
 
     return relative_density((0.0, 0.0, 0.0), skeleton.shape) * skeleton.expected_system_count_at_density_1

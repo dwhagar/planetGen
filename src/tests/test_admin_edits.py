@@ -13,7 +13,7 @@ from stellarObjects import _db, adminAuth, adminEdits, editStore, validation
 from planetgen import tuning
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 

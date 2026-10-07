@@ -19,7 +19,7 @@ from stellarObjects.nameUniqueness import (
     GREEK_ROMAN_CAPACITY, MAX_SYSTEM_NAME_WORDS, resolve_greek_roman_collision, word_count,
 )
 from stellarObjects.names import DIMINUTIVE_PREFIXES, GREEK_LETTERS
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 

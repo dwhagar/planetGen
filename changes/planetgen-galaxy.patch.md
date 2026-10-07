@@ -1,0 +1,2 @@
+### Changed
+- **The galaxy modules move into `planetgen.galaxy` (OPS.24, step 3 of 14).** The sector grid, density model, skeleton, drill-down blocks, viewport, seed, version key, sectors, sector colors, molecular cloud field and navigation now live in `planetgen.galaxy` (`geometry`, `density`, `skeleton`, `drill`, `viewport`, `seed`, `version_key`, `sector`, `sector_look`, `nebula_field`, `navigation`, `nav_graph`). `stellarObjects/__init__.py` no longer imports its classes eagerly, which would have created import cycles with the moved modules. Every caller moved with them.

@@ -1,5 +1,5 @@
 """
-stellarObjects/galaxyDrill.py
+planetgen/galaxy/drill.py
 
 The Galaxy Map drill-down's block ladder (docs/design/galaxy-drilldown-
 navigation.md, section 3): blocks 243, 27, 3 and 1 sectors a side, nested
@@ -28,7 +28,7 @@ import math
 from collections import namedtuple
 from functools import lru_cache
 
-from stellarObjects.galaxyGeometry import ring_master_count, ring_sector_count
+from planetgen.galaxy.geometry import ring_master_count, ring_sector_count
 
 DRILL_LEVELS = (243, 27, 3, 1)
 """tuple: Block sizes from the galaxy down to a sector (Boss's "bigger

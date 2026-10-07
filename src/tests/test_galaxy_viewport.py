@@ -1,7 +1,7 @@
 # tests/test_galaxy_viewport.py
 
 """
-Tests for `stellarObjects.galaxyViewport` -- the data layer behind the
+Tests for `planetgen.galaxy.viewport` -- the data layer behind the
 interactive 3D Galaxy Map's live viewport queries (`queryDb.galaxy_view`).
 See that module's own docstring for the tiers (placed/planned) this
 covers the pure, database-free "planned" half of, plus the cube tiles.
@@ -13,10 +13,10 @@ import sys
 
 import pytest
 
-from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
-from stellarObjects.galaxyGeometry import enumerate_sectors_within_radius
-from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
-from stellarObjects.galaxyViewport import (
+from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.geometry import enumerate_sectors_within_radius
+from planetgen.galaxy.skeleton import expected_system_count_at_density_1
+from planetgen.galaxy.viewport import (
     PLANNED_RADIUS_CAP_PC,
     PLANNED_TILE_MAX_EDGE_PC,
     TILE_MAX_LEVEL,

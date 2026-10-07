@@ -1,4 +1,4 @@
-# stellarObjects/navigation.py
+# planetgen/galaxy/navigation.py
 
 """
 Navigation
@@ -63,7 +63,7 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
-from .utils import format_period_years
+from stellarObjects.utils import format_period_years
 
 FRAME_GALACTIC = "galactic"
 """str: The Galactic Standard Frame (North = the galactic core)."""

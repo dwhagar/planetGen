@@ -44,8 +44,8 @@ import random
 
 from planetgen.physics import constants
 from planetgen import tuning
-from .galaxyDensity import population_densities, predicted_star_count
-from .galaxyGeometry import (
+from planetgen.galaxy.density import population_densities, predicted_star_count
+from planetgen.galaxy.geometry import (
     galaxy_to_local_pc,
     layer_bounds_pc,
     layer_center_z_pc,
@@ -55,7 +55,7 @@ from .galaxyGeometry import (
     sector_address_at,
     sector_position_pc,
 )
-from .spaceSector import _sample_poisson_count
+from planetgen.galaxy.sector import _sample_poisson_count
 from .stellarPopulation import bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars
 from .utils import pc_to_ly
 

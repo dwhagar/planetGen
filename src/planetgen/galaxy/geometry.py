@@ -1,4 +1,4 @@
-# stellarObjects/galaxyGeometry.py
+# planetgen/galaxy/geometry.py
 
 """
 Galaxy-Scale Cylindrical Sector Grid

@@ -2,7 +2,7 @@
 
 """
 `docs/TODO.md` TEST.31 (sector placement exhaustion), for
-`stellarObjects/spaceSector.py`:
+`planetgen/galaxy/sector.py`:
 
 - "could not place a new object": the exact message, raised after exactly
   `SECTOR_MAX_PLACEMENT_ATTEMPTS` samples (a clear spot on the last
@@ -35,10 +35,10 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
-from stellarObjects import spaceSector as ss
+from planetgen.galaxy import sector as ss
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import SectorCell
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.geometry import SectorCell
+from planetgen.galaxy.sector import SpaceSector
 
 ATTEMPTS = prog.SECTOR_MAX_PLACEMENT_ATTEMPTS
 

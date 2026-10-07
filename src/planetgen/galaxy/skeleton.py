@@ -1,4 +1,4 @@
-# stellarObjects/galaxySkeleton.py
+# planetgen/galaxy/skeleton.py
 
 """
 Galaxy-Wide Density Skeleton: Per-Layer Extents
@@ -46,9 +46,9 @@ import math
 from collections import namedtuple
 
 from planetgen import tuning
-from .galaxyDensity import _sech_squared
-from .galaxyGeometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
-from .spaceSector import SpaceSector
+from planetgen.galaxy.density import _sech_squared
+from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
+from planetgen.galaxy.sector import SpaceSector
 
 MAX_LAYER_SCAN = 1 << 12
 """int: The farthest layer `build_layer_extents` will walk from the plane

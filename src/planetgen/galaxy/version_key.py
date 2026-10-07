@@ -1,4 +1,4 @@
-# stellarObjects/versionKey.py
+# planetgen/galaxy/version_key.py
 
 """
 The version key (DB.6; docs/design/reproducible-galaxies.md, section 4):

@@ -16,8 +16,8 @@ import generate
 from stellarObjects import _db, brightStars
 from planetgen.physics import constants
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
-from stellarObjects.galaxyGeometry import sector_address_at, sector_position_pc
+from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
 from stellarObjects.utils import ly_to_pc
 from planetgen import tuning
 
@@ -585,11 +585,11 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
             sum(row["luminosity_w"] for row in stars) / len(stars) / constants.SOLAR_LUMINOSITY)
         assert stats["filled_at"] is not None
         # MAP.86: its map color, from those means and how full it is.
-        from stellarObjects import sectorLook
+        from planetgen.galaxy import sector_look
         skeleton = _db.get_galaxy_shape(conn)
         assert stats["fill_share"] == pytest.approx(
-            sectorLook.fill_share(systems, sectorLook.max_sector_systems(skeleton)))
-        assert (stats["color_r"], stats["color_g"], stats["color_b"]) == pytest.approx(sectorLook.sector_color(
+            sector_look.fill_share(systems, sector_look.max_sector_systems(skeleton)))
+        assert (stats["color_r"], stats["color_g"], stats["color_b"]) == pytest.approx(sector_look.sector_color(
             stats["mean_temperature_k"], stats["mean_luminosity_sol"], stats["fill_share"]))
         average, samples = _db.galaxy_density_ratio(conn)
         assert samples == 1 and average == pytest.approx(systems / stats["expected_systems"])

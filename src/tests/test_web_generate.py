@@ -839,7 +839,7 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 
 def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
     from stellarObjects import _db
-    from stellarObjects.spaceSector import SpaceSector
+    from planetgen.galaxy.sector import SpaceSector
 
     sector = SpaceSector("Doomed", edge_ly=10.0)
     _db.save_sector(sector, config=mysql_config)

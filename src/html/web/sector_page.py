@@ -50,7 +50,7 @@ from api.common import is_http_url
 from stellarObjects import activitylog
 from planetgen import tuning
 from planetgen.util import log
-from stellarObjects.galaxyGeometry import provisional_sector_designation
+from planetgen.galaxy.geometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 
 from . import bp, edit_actions, generate_page, jobs

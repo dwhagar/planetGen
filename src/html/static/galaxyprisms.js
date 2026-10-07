@@ -2,7 +2,7 @@
 //
 // The 3D Galaxy Map's sector grid and predicted-density shading
 // (galaxymap3d.js), drawn as cylindrical segment prisms. Space is cut the
-// way stellarObjects/galaxyGeometry.py cuts it into sectors: rings one
+// way planetgen/galaxy/geometry.py cuts it into sectors: rings one
 // sector edge wide around the galactic axis, layers one edge tall (layer 0
 // straddles z = 0) and each ring split into wedges about one edge long.
 // One cell is one prism: an annular wedge with curved inner and outer
@@ -17,7 +17,7 @@
 // the blocks make one solid, so only its surface is listed.
 //
 // Density comes from the galaxy's own analytic model
-// (stellarObjects.galaxyDensity.relative_density), evaluated right here
+// (planetgen.galaxy.density.relative_density), evaluated right here
 // from the shape parameters the page embeds -- no server round trip,
 // no sampled point cloud. Each prism is shaded by its mean density over
 // a few sample points.
@@ -86,7 +86,7 @@ function densityUpperBound(r0, zMinAbs, shape) {
   return shape.k_norm * (bulge + disk);
 }
 
-// --- The sector grid (mirrors stellarObjects/galaxyGeometry.py) -----------
+// --- The sector grid (mirrors planetgen/galaxy/geometry.py) -----------
 //
 // Ring i: cylindrical radius [i*e, (i+1)*e). Layer j: z in [(j-1/2)*e,
 // (j+1/2)*e), so layer 0 straddles the plane. Slot k: one of
@@ -412,7 +412,7 @@ export function blockSlotRange(ring, seg, m, sectorRing, wedges) {
 // section 3): 243, 27, 3 and 1 sectors a side, each block wholly inside one
 // block of the next size up. A block is {m, ring, wedge, slab}; at m = 1 it
 // is a sector, with the slot as `wedge` and the layer as `slab`.
-// stellarObjects/galaxyDrill.py is the same rules for the server, and
+// planetgen/galaxy/drill.py is the same rules for the server, and
 // tests/test_galaxydrill.py checks that the two agree.
 
 export var DRILL_LEVELS = [243, 27, 3, 1];
@@ -573,7 +573,7 @@ export function sectorDrawable(ring, layer, edgePc, shape) {
 
 // Whether sector (ring, layer) can exist: the galaxy's density bound at
 // its ring centerline and layer center reaches shape.sector_min_density
-// (the skeleton's rule, stellarObjects.galaxySkeleton). Without a
+// (the skeleton's rule, planetgen.galaxy.skeleton). Without a
 // threshold in the shape, everything counts.
 export function sectorAllowed(ring, layer, edgePc, shape) {
   if (!(shape.sector_min_density > 0)) return true;

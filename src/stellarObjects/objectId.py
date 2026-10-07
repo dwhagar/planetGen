@@ -31,7 +31,7 @@ seventeenth moves on one mark step.
 
 import math
 
-from .navigation import course_between
+from planetgen.galaxy.navigation import course_between
 
 KIND_CODES = {
     "rogue-planet": 1,

@@ -1,4 +1,4 @@
-# stellarObjects/nebulaField.py
+# planetgen/galaxy/nebula_field.py
 
 """
 The galaxy's molecular cloud field (GEN.47)
@@ -27,12 +27,12 @@ import functools
 import math
 import random
 
-from . import galaxyDensity, galaxySeed
+from planetgen.galaxy import density as galaxyDensity, seed as galaxySeed
 from planetgen import tuning
-from .config import SystemConfig
-from .nebulaData import Nebula, NEBULA_CLASS_LETTERS
-from .spaceSector import _sample_poisson_count
-from .utils import ly_to_pc
+from stellarObjects.config import SystemConfig
+from stellarObjects.nebulaData import Nebula, NEBULA_CLASS_LETTERS
+from planetgen.galaxy.sector import _sample_poisson_count
+from stellarObjects.utils import ly_to_pc
 
 FIELD_FAMILY = "dark"
 """str: The nebula family the field places (classes M-Q). Emission and

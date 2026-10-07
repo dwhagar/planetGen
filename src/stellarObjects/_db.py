@@ -62,7 +62,8 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, galaxySeed, objectId, versionKey
+from . import activitylog, objectId
+from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
 from planetgen.util import log
@@ -74,9 +75,9 @@ from . import facilities as facility_rules
 from .cometData import Comet, comet_designation, rename_comet_designation
 from .config import SystemConfig
 from .doubleStar import BinaryStarProxy
-from .galaxyDensity import GalaxyShape
-from .galaxyDrill import DrillBlock
-from .galaxyGeometry import (
+from planetgen.galaxy.density import GalaxyShape
+from planetgen.galaxy.drill import DrillBlock
+from planetgen.galaxy.geometry import (
     SectorCell, galaxy_to_local_pc, local_to_galaxy_pc, provisional_sector_designation, sector_address_at,
 )
 from .bodyNames import rename_prefix, wide_pair_first_word
@@ -89,7 +90,7 @@ from .nebulaData import Nebula
 from .planetData import Planet
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
 from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
-from .spaceSector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
+from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
 from .starData import Star
 from .quasarData import Quasar
 from .supernovaRemnantData import SupernovaRemnant
@@ -4839,8 +4840,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
         address (tuple): Its `(ring, layer, slot)`.
         center_pc (tuple): Its galaxy-frame center, parsecs.
     """
-    from .galaxyDensity import relative_density
-    from .sectorLook import fill_share, max_sector_systems, sector_color
+    from planetgen.galaxy.density import relative_density
+    from planetgen.galaxy.sector_look import fill_share, max_sector_systems, sector_color
 
     skeleton = get_galaxy_shape(conn)
     density = expected = None
@@ -5816,7 +5817,7 @@ def replace_galaxy_layers(layer_extents, config=None, conn=None):
             the caller's own transaction (the v33 migration does), instead
             of opening and committing a new one.
     """
-    from .galaxySkeleton import column_extents
+    from planetgen.galaxy.skeleton import column_extents
 
     layer_extents = list(layer_extents)
 
@@ -5881,7 +5882,7 @@ def get_galaxy_bounds(conn):
         GalaxyBounds or None: `None` if the skeleton was never built (no
             `galaxy_shape` row).
     """
-    from .galaxySkeleton import GalaxyBounds
+    from planetgen.galaxy.skeleton import GalaxyBounds
 
     skeleton = get_galaxy_shape(conn)
     if skeleton is None:
@@ -8271,7 +8272,7 @@ def _migrate_v32_to_v33(conn):
                            committed -- the caller commits once every step
                            up to `SCHEMA_VERSION` has run).
     """
-    from .galaxySkeleton import build_layer_extents, expected_system_count_at_density_1
+    from planetgen.galaxy.skeleton import build_layer_extents, expected_system_count_at_density_1
 
     has_ring_bands = conn.execute(
         "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'galaxy_ring_band'"
@@ -8339,7 +8340,7 @@ def _migrate_v34_to_v35(conn):
                            committed -- the caller commits once every step
                            up to `SCHEMA_VERSION` has run).
     """
-    from .galaxyGeometry import ring_sector_count
+    from planetgen.galaxy.geometry import ring_sector_count
 
     max_ring = conn.execute("SELECT MAX(ring_index) AS ring FROM sectors").fetchone()["ring"]
     changed = [
@@ -9008,7 +9009,7 @@ def _migrate_v52_to_v53(conn):
         "SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'bright_star_blocks'"
     ).fetchone() is not None
     if has_blocks:
-        from .galaxyDrill import drill_block_sectors, drill_slabs
+        from planetgen.galaxy.drill import drill_block_sectors, drill_slabs
 
         bounds = get_galaxy_bounds(conn)
         rows = []

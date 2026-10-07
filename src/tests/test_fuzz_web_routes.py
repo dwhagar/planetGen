@@ -66,7 +66,7 @@ from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path

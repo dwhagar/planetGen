@@ -39,8 +39,8 @@ import generate as sectorGen
 import queryDb
 from stellarObjects import _db
 from planetgen import tuning
-from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count, relative_density
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count, relative_density
+from planetgen.galaxy.geometry import (
     SectorCell, enumerate_sectors_within_radius, layer_bounds_pc, ring_bounds_pc, ring_sector_count,
     sector_orientation, sector_position_pc, slot_angle_bounds,
 )
@@ -85,7 +85,7 @@ def capture_generate_sector(_real, path):
 
     def fake(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
         worker_patches.append_json(path, [args.density, args.num_systems])
-        from stellarObjects.spaceSector import SpaceSector
+        from planetgen.galaxy.sector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
 
     return fake
@@ -439,7 +439,7 @@ def test_column_and_shell_reject_bad_combinations(argv):
 def test_block_mode_generates_one_layer_of_a_drill_block(mysql_config):
     """`--block 3.I.s.S --block-layer j`: the block's sectors on that
     layer (design doc section 3.5), and the whole block without it."""
-    from stellarObjects.galaxyDrill import parse_drill_key
+    from planetgen.galaxy.drill import parse_drill_key
 
     _plan_wide_galaxy(mysql_config)
     block = parse_drill_key("3.2.1.0")
@@ -473,7 +473,7 @@ def test_block_mode_needs_limit_or_yes_when_large(mysql_config):
 
 
 def test_block_layers_cover_the_sector_layers_of_each_size():
-    from stellarObjects.galaxyDrill import parse_drill_key
+    from planetgen.galaxy.drill import parse_drill_key
 
     assert galaxyGen.block_layers(parse_drill_key("3.5.0.0")) == [-1, 0, 1]
     assert galaxyGen.block_layers(parse_drill_key("3.5.0.2")) == [5, 6, 7]
@@ -701,7 +701,7 @@ def test_ensure_sector_generated_passes_relative_density_as_the_density_multipli
     def _fake_generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cloud_field=None):
         captured["density"] = args.density
         captured["num_systems"] = args.num_systems
-        from stellarObjects.spaceSector import SpaceSector
+        from planetgen.galaxy.sector import SpaceSector
         return "Fake Sector", SpaceSector(name="Fake Sector")
 
     monkeypatch.setattr(sectorGen, "generate_sector", _fake_generate_sector)
@@ -809,7 +809,7 @@ def test_sectors_table_rejects_duplicate_address(mysql_config):
     layer_index, ring_slot_index) address."""
     conn = _db.get_connection(mysql_config)
     try:
-        from stellarObjects.spaceSector import SpaceSector
+        from planetgen.galaxy.sector import SpaceSector
         galaxy_position = {
             "center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
             "galactic_radius_pc": 3.74, "ring_index": 0, "layer_index": 0, "ring_slot_index": 0,
@@ -1279,7 +1279,7 @@ def test_generate_sector_is_never_left_with_nothing_in_it():
     unpatched version would produce a genuinely empty sector far more
     often than this test could plausibly miss by chance alone.
     """
-    from stellarObjects.spaceSector import SpaceSector
+    from planetgen.galaxy.sector import SpaceSector
 
     e_value = SpaceSector(name="calibration").expected_system_count()
     args = galaxyGen._default_generation_args()

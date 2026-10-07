@@ -1,7 +1,7 @@
 # tests/test_fuzz_sector_placement.py
 
 """
-Property-based fuzzing of `stellarObjects/spaceSector.py`: random and
+Property-based fuzzing of `planetgen/galaxy/sector.py`: random and
 explicit placement (`add_system`/`add_phenomenon`/`add_home_system`),
 Poisson-disk growth (`grow_from_seed`), `nearest_neighbors`, the
 Poisson count sampler, the galaxy-cell geometry sectors place into, and
@@ -48,10 +48,10 @@ from hypothesis import strategies as st
 
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
-from stellarObjects import spaceSector as ss
+from planetgen.galaxy import sector as ss
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import SectorCell, ring_sector_count
-from stellarObjects.spaceSector import SpaceSector, distance_between, required_separation_ly
+from planetgen.galaxy.geometry import SectorCell, ring_sector_count
+from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
 from stellarObjects.systemData import StarSystem
 
 from tests.fuzz_support import any_float, deterministic_entropy as _seeded_generation, hostile_text, scaled

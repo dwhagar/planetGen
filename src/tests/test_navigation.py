@@ -1,8 +1,8 @@
 # tests/test_navigation.py
 
 """
-NAV feature tests: the pure math modules (`stellarObjects.navigation`,
-`stellarObjects.navGraph`) need no database and run unconditionally;
+NAV feature tests: the pure math modules (`planetgen.galaxy.navigation`,
+`planetgen.galaxy.nav_graph`) need no database and run unconditionally;
 `queryDb.nav_between` (the DB query/orchestration layer both `/api/nav`
 and `html/nav.py` build on) is tested against a real, throwaway MySQL
 database via `conftest.py`'s `mysql_config` fixture, seeded with real
@@ -18,17 +18,17 @@ from queryDb import NavUnavailable, nav_between
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
 from stellarObjects.nebulaData import Nebula
-from stellarObjects.navGraph import build_knn_adjacency, shortest_path
-from stellarObjects.navigation import (
+from planetgen.galaxy.nav_graph import build_knn_adjacency, shortest_path
+from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_speed_c, format_course, fold_travel_times, warp_speed_c, warp_travel_times,
 )
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.supernovaRemnantData import SupernovaRemnant
 from stellarObjects.systemData import StarSystem
 
 
 # ---------------------------------------------------------------------
-# stellarObjects.navigation -- pure math, no database.
+# planetgen.galaxy.navigation -- pure math, no database.
 # ---------------------------------------------------------------------
 
 def test_course_toward_the_center_is_0_mark_0():
@@ -201,7 +201,7 @@ def test_fold_travel_times_default_factors():
 
 
 # ---------------------------------------------------------------------
-# stellarObjects.navGraph -- pure math, no database.
+# planetgen.galaxy.nav_graph -- pure math, no database.
 # ---------------------------------------------------------------------
 
 def test_build_knn_adjacency_is_symmetric():

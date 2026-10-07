@@ -38,7 +38,7 @@ import pytest
 from stellarObjects import _db
 from stellarObjects.asteroidData import AsteroidBelt
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 from tests.fuzz_support import deterministic_entropy

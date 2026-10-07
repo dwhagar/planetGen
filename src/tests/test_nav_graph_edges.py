@@ -13,8 +13,8 @@ import random
 
 import pytest
 
-from stellarObjects.navGraph import _build_kdtree, _knn_query, build_knn_adjacency, shortest_path
-from stellarObjects.navigation import fold_travel_times, warp_travel_times
+from planetgen.galaxy.nav_graph import _build_kdtree, _knn_query, build_knn_adjacency, shortest_path
+from planetgen.galaxy.navigation import fold_travel_times, warp_travel_times
 
 
 def _brute_knn(positions, origin_id, k):

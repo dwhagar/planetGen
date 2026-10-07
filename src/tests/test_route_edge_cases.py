@@ -31,14 +31,14 @@ import pytest
 from queryDb import nav_between
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import sector_position_pc
-from stellarObjects.navGraph import (
+from planetgen.galaxy.geometry import sector_position_pc
+from planetgen.galaxy.nav_graph import (
     build_knn_adjacency, build_route_graph, connected_components, join_islands, shortest_path,
 )
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, NAV_ADJACENCY_K, NAV_ISLAND_LINKS,
 )
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 

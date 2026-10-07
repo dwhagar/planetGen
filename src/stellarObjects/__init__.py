@@ -4,24 +4,9 @@
 Stellar Objects Package
 =======================
 
-This package contains the core classes for generating procedural star systems,
-including stars, planets, and moons.
-
-This package exports the following classes:
-    - Star: Represents a single star and its properties.
-    - Planet: Represents a single planet or moon and its properties.
-    - StarSystem: Represents a full star system, including a central star and a list of planets.
-    - SpaceSector: Represents a named collection of star systems laid out in 3D space.
-    - SectorSystemEntry: One star system's placement (and generation recipe) within a SpaceSector.
-
-It also exports `__version__`, this package's version string (see
-`_version.py` for why that lives in its own dependency-free module).
+The generation code still waiting to move into the `planetgen` package
+(docs/design/library-migration.md, section 6). Its modules are imported
+by name (`from stellarObjects.starData import Star`); the package itself
+exports nothing, so importing one module never drags in the rest (which
+would make import cycles with the moved `planetgen` modules).
 """
-
-from planetgen._version import __version__
-from .planetData import Planet
-from .spaceSector import SectorSystemEntry, SpaceSector
-from .starData import Star
-from .systemData import StarSystem
-
-__all__ = ['Planet', 'SectorSystemEntry', 'SpaceSector', 'Star', 'StarSystem', '__version__']

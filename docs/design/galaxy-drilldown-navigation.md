@@ -8,7 +8,7 @@ segment, MAP.56 onward) are still planned.
 
 | Piece | Section | TODO | Built in |
 |---|---|---|---|
-| Block ladder (`stellarObjects/galaxyDrill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.28 | 7.41.2, PR #160 |
+| Block ladder (`planetgen/galaxy/drill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.28 | 7.41.2, PR #160 |
 | Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.29 | 7.41.3, PR #160 |
 | The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only" | 4, 5, 8.1 | MAP.16 | 7.44.0, PR #171 |
 | Top-down only, quarter, layer and arc picks, dimmed hover, wedge lines kept to the view, opening at a sector's layer, the map's Back and Forward | 4, 5, 8.1, 10, 11 | MAP.17, MAP.18, MAP.19, MAP.44, MAP.26 | 7.73.177 |
@@ -216,7 +216,7 @@ sectors of its children.
   `drillSlabs(block)`, `drillBlockSectors(block, layer)` and
   `drillChainOf(ring, layer, slot)`. Pure, and runs under node like the
   rest of the file.
-- `stellarObjects/galaxyDrill.py`: the same functions in Python, for
+- `planetgen/galaxy/drill.py`: the same functions in Python, for
   the API (section 7) and generation (section 6), plus
   `format_drill_key`/`parse_drill_key` for the `m.ring.wedge.slab` keys
   (`formatDrillKey`/`parseDrillKey` on the page). Built 2026-10-01
@@ -879,7 +879,7 @@ every star of the sector (MAP.80, phase 1).
   panning", IEEE Transactions on Visualization and Computer Graphics
   9(4), 2003, pp. 424-431. The source of the formulas in section 5.3.
 - This repo: `static/galaxyprisms.js` (`blockWedgeCount`,
-  `blockSlotRange`, `blockSectorCount`), `stellarObjects/galaxyGeometry.py`
+  `blockSlotRange`, `blockSectorCount`), `planetgen/galaxy/geometry.py`
   (`ring_master_count`, `ring_sector_count`), `stellarObjects/generationLimits.py`,
   `web/generate_page.py`, `web/nav_page.py`.
 

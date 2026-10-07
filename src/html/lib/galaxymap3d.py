@@ -10,7 +10,7 @@ camera to shrink them the opposite way). This map's camera can travel
 anywhere in the galaxy instead, so most of what it draws is fetched live
 as the camera moves, one fixed cube of space ("tile") at a time
 (`/galaxy/tiles`, `html/web/galaxy_views.py`, this page's own client-side
-JS `fetch()` target -- see that view's own docstring, and `stellarObjects.galaxyViewport`'s
+JS `fetch()` target -- see that view's own docstring, and `planetgen.galaxy.viewport`'s
 "Cube tiles" section) rather than server-rendered once. Tiles are cached
 on the server's disk (`lib/tilecache.py`) and in the visitor's browser.
 
@@ -83,7 +83,7 @@ import json
 import math
 
 try:
-    from stellarObjects.galaxyViewport import (
+    from planetgen.galaxy.viewport import (
         TILE_MAX_LEVEL,
         TILE_ROOT_EDGE_PC,
     )
@@ -432,7 +432,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "maxTilesPerRequest": MAX_TILES_PER_REQUEST,
         "hasShape": bool(initial_view.get("has_shape")),
         # The galaxy's density model parameters -- static/galaxyprisms.js
-        # evaluates stellarObjects.galaxyDensity.relative_density from
+        # evaluates planetgen.galaxy.density.relative_density from
         # these itself to shade the density prisms.
         "densityShape": _density_shape(galaxy_shape),
         "blockMinPx": BLOCK_MIN_PX,

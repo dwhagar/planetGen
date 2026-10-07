@@ -16,7 +16,8 @@ import time
 import pytest
 
 import generate
-from stellarObjects import _db, galaxySeed, versionKey
+from stellarObjects import _db
+from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
 from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
 

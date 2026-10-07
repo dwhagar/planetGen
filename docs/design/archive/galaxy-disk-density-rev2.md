@@ -16,7 +16,7 @@
 
 **Status:** superseded, not built as designed here. The density model
 itself (section 1) is implemented as described
-(`stellarObjects/galaxyDensity.py`). The preplanned-table idea this
+(`planetgen/galaxy/density.py`). The preplanned-table idea this
 revision's title refers to -- persisting every one of ~10.5 billion
 qualifying sectors' position/density up front in a `galaxy_sector_plan`
 table (section 6, ~1 TB per section 5's own measurement) -- was not built:
@@ -27,7 +27,7 @@ all. What was actually built instead -- a singleton shape row plus one row
 per shell recording a *candidate* slot-index band, ~4,000 rows total for a
 real Milky-Way-scale galaxy -- is documented in
 `docs/design/galaxy-coordinate-system.md` section 9's storage-analysis
-addendum, `stellarObjects/galaxySkeleton.py`, and `galaxyPlan.py`. Kept
+addendum, `planetgen/galaxy/skeleton.py`, and `galaxyPlan.py`. Kept
 here for the density model itself (still accurate) and as a record of the
 storage-cost reasoning that led to the smaller design actually shipped;
 section 5's feasibility numbers and section 6's schema no longer describe

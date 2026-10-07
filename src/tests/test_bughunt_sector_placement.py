@@ -17,7 +17,7 @@ not just trusting the source).
 import pytest
 
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector, distance_between, required_separation_ly
+from planetgen.galaxy.sector import SpaceSector, distance_between, required_separation_ly
 from stellarObjects.systemData import StarSystem
 
 from tests.bughunt_support import FUZZ_SEEDS, run_seeded

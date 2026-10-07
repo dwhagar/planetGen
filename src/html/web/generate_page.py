@@ -56,8 +56,8 @@ from fmt import utc_time_html
 from stellarObjects import activitylog, generationStats
 from planetgen import tuning
 from planetgen.util import log
-from stellarObjects.galaxyDrill import format_drill_key, parse_drill_key
-from stellarObjects.galaxyGeometry import sector_address_at
+from planetgen.galaxy.drill import format_drill_key, parse_drill_key
+from planetgen.galaxy.geometry import sector_address_at
 from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly
 from stellarObjects.generationLimits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,

@@ -20,11 +20,11 @@ import random
 
 import pytest
 
-from stellarObjects.galaxyDensity import build_galaxy_shape, predicted_star_count
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.geometry import (
     cylindrical_radius_pc, layer_center_z_pc, ring_radius_pc, sector_address_at, sector_position_pc,
 )
-from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
+from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 
 EDGE_LY = 11.5
 EDGE_PC = EDGE_LY / 3.26156

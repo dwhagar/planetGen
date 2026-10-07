@@ -20,7 +20,7 @@ Run with: pytest tests/test_name_uniqueness_db.py
 
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 

@@ -15,7 +15,7 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 WRITERS = 4

@@ -3,7 +3,7 @@
 
 """
 Diagnostic tool: renders this galaxy's real density model
-(`stellarObjects.galaxyDensity.GalaxyShape`) as actual images, so a
+(`planetgen.galaxy.density.GalaxyShape`) as actual images, so a
 person can eyeball whether a set of shape parameters (`generate.py
 plan`'s own args) actually looks like a recognizable spiral galaxy --
 face-on and edge-on -- rather than only ever judging it through
@@ -63,7 +63,7 @@ _SRC_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, _SRC_DIR)
 
 from stellarObjects import _db  # noqa: E402
-from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density  # noqa: E402
+from planetgen.galaxy.density import build_galaxy_shape, relative_density  # noqa: E402
 
 DEFAULT_DISK_SCALE_LENGTH_PC = 2800.0
 DEFAULT_DISK_SCALE_HEIGHT_PC = 350.0

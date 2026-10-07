@@ -9,7 +9,7 @@ from stellarObjects import _db, facilities
 from planetgen.physics import constants
 from stellarObjects.config import SystemConfig
 from planetgen.physics.planets import calculate_orbital_period_years
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import circular_orbital_speed_kms
 import queryDb
